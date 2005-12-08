@@ -1,0 +1,25 @@
+# MSN Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="MSN"
+	description="MSN Search"
+	method="GET"
+	action="http://search.msn.com/results.aspx"
+	routeType="The Web"
+>
+
+<INPUT NAME="q" USER>
+<INPUT NAME="FORM" VALUE="QBHP">
+<INPUT NAME="srch_type" VALUE="0">
+<INPUT NAME="count" VALUE="10">
+<INPUTNEXT NAME="first" FACTOR="10">
+
+<INTERPRET
+resultListStart='<h2>Results</h2>'
+resultListEnd='</html>'
+resultItemStart='><h3>'
+resultItemEnd=' </ul></li>'
+>
+
+</SEARCH>

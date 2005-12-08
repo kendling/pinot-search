@@ -1,0 +1,35 @@
+# Xapian Omega Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="Xapian Omega"
+	description="Xapian Omega"
+	method="GET"
+	action="http://localhost/cgi-bin/omega"
+	routeType="Local Host"
+>
+
+<INPUT NAME="P" USER>
+<INPUT NAME="DEFAULTOP" VALUE="or">
+<INPUT NAME="DB" VALUE="default">
+<INPUT NAME="FMT" VALUE="query">
+<INPUT NAME="FILTERS" VALUE="--O">
+<INPUTNEXT NAME="%5B" FACTOR="1" VALUE="1">
+
+<INTERPRET
+resultListStart="<hits>"
+resultListEnd="</hits>"
+resultItemStart="<TD VALIGN=top>"
+resultItemEnd="</small><P></TD>"
+# The following attributes are specific to Pinot
+#resultTitleStart='title="'
+#resultTitleEnd='"'
+#resultLinkStart='url="'
+#resultLinkEnd='"'
+#resultExtractStart='sample="'
+#resultExtractEnd='"'
+>
+
+</SEARCH>
+
+

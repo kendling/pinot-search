@@ -1,0 +1,18 @@
+#
+# libtextcat 2.2 config file
+# The following languages are supported by Xapian::Stem
+#
+/usr/share/libtextcat/LM/english.lm                     english
+/usr/share/libtextcat/LM/spanish.lm                     spanish
+/usr/share/libtextcat/LM/french.lm                      french
+/usr/share/libtextcat/LM/german.lm                      german
+/usr/share/libtextcat/LM/danish.lm			danish
+/usr/share/libtextcat/LM/dutch.lm			dutch
+/usr/share/libtextcat/LM/finnish.lm			finnish
+/usr/share/libtextcat/LM/italian.lm			italian
+/usr/share/libtextcat/LM/norwegian.lm			norwegian
+/usr/share/libtextcat/LM/portuguese.lm			portuguese
+/usr/share/libtextcat/LM/russian-iso8859_5.lm		russian-iso8859_5
+/usr/share/libtextcat/LM/russian-koi8_r.lm		russian-koi8_r
+/usr/share/libtextcat/LM/russian-windows1251.lm		russian-windows1251
+/usr/share/libtextcat/LM/swedish.lm			swedish

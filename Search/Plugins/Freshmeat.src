@@ -1,0 +1,28 @@
+# Freshmeat Search Plugin
+# Based on the work of rcoscali@rcsnet.net
+
+<search 
+   name="Freshmeat"
+   description="Freshmeat Projects Search"
+   method="GET"
+   action="http://freshmeat.net/search/"
+   update="http://www.rcsnet.net/mozilla/freshmeat.src"
+   updateIcon="http://www.rcsnet.net/mozilla/freshmeat.gif"
+   updateCheckDays=7
+   routeType="Software"
+>
+
+<input name="section" value="projects">
+<input name="q" user>
+<inputnext name="offset" factor="25">
+<inputprev name="offset" factor="25">
+
+<interpret 
+    browserResultType="result" 
+    baseUrl="http://freshmeat.net"
+    resultListStart=""
+    resultListEnd=""
+    resultItemStart='<td valign="top">    <b>'
+    resultItemEnd='</small></b></td>    </tr>'
+>
+</search>

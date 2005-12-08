@@ -1,0 +1,31 @@
+# Acoona Plugin
+
+<SEARCH
+	version="1.0"
+	name="Acoona"
+	description="Acoona.com"
+	method="GET"
+	action="http://www.accoona.com/search.jsp"
+	routeType="The Web"
+>
+
+<INPUT NAME="la" VALUE="en">
+<INPUT NAME="col" VALUE="">
+<INPUT NAME="qt" USER>
+<INPUTNEXT NAME="st" FACTOR="10" VALUE="1">
+
+<INTERPRET
+resultListStart=""
+resultListEnd=""
+resultItemStart='<td class="webtitle" valign="top">'
+resultItemEnd='</span> </td></tr>'
+>
+
+</SEARCH>
+
+
+
+
+
+
+

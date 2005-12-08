@@ -1,0 +1,25 @@
+# Koders Plugin
+
+<SEARCH
+	version="1.0"
+	name="Koders"
+	description="Koders.com"
+	method="GET"
+	action="http://koders.com/"
+	routeType="Source Code"
+>
+
+<INPUT NAME="s" USER>
+<INPUT NAME="_%3Abtn" VALUE="Search">
+<INPUT NAME="_%3Ala" VALUE="*">
+<INPUT NAME="_%3Ali" VALUE="*">
+<INPUTNEXT NAME="p" FACTOR="1">
+
+<INTERPRET
+resultListStart=""
+resultListEnd=""
+resultItemStart='class="results_header">'
+resultItemEnd='</tr><tr>'
+>
+
+</SEARCH>

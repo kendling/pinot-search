@@ -1,0 +1,13 @@
+--- pinot-0.20/variables.mk_bak    2005-07-17 19:55:39.549604896 +0800
++++ pinot-0.20/variables.mk        2005-07-17 20:01:56.493300744 +0800
+@@ -72,8 +72,8 @@
+ SQLITE_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags sqlite3)
+ SQLITE_LIBS = $(shell /usr/bin/pkg-config --libs sqlite3)
+ # LibXML 2.0
+-LIBXML_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags libxml++-2.6)
+-LIBXML_LIBS = $(shell /usr/bin/pkg-config --libs libxml++-2.6)
++LIBXML_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags libxml++-1.0) -DHAS_LIBXMLPP026
++LIBXML_LIBS = $(shell /usr/bin/pkg-config --libs libxml++-1.0)
+ # Mozilla
+ MOZILLA_LIB_DIR = $(shell dirname `find /usr/lib*/mozilla* -name libgtkembedmoz.so | head -1`)
+ ifeq ($(MOZILLA_LIB_DIR),)

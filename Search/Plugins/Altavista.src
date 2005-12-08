@@ -1,0 +1,36 @@
+# Altavista Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="Altavista"
+	description="Altavista.com"
+	method="GET"
+	action="http://www.altavista.com/web/results"
+	routeType="The Web"
+>
+
+<INPUT NAME="pg" VALUE="aq">
+<INPUT NAME="aqmode" VALUE="s">
+<INPUT NAME="aqa" USER>
+<INPUT NAME="aqb" VALUE="">
+<INPUT NAME="kgs" VALUE="1">
+<INPUT NAME="kls" VALUE="0">
+<INPUT NAME="dt" VALUE="tmperiod">
+<INPUT NAME="d2" VALUE="0">
+<INPUT NAME="dfr%5Bd%5D" VALUE="1">
+<INPUT NAME="dfr%5Bm%5D" VALUE="1">
+<INPUT NAME="&dfr%5By%5D" VALUE="1980">
+<INPUT NAME="filetype" VALUE="">
+<INPUT NAME="rc" VALUE="dmn">
+<INPUT NAME="swd" VALUE="">
+<INPUT NAME="lh" VALUE="">
+<INPUTNEXT NAME="nbq" FACTOR="0">
+
+<INTERPRET
+resultListStart=""
+resultListEnd=""
+resultItemStart="<br class='lb'>"
+resultItemEnd="&nbsp;<br><br>"
+>
+
+</SEARCH>

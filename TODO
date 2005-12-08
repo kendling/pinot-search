@@ -1,0 +1,99 @@
+General
+- Fix dependencies in build system, use autoconf and friends
+- Fix the FIXMEs
+- Get rid of dead code/classes/methods...
+- Advertise service via Rendezvous with Howl (http://www.porchdogsoft.com/products/howl/)
+- Remove hardcoded paths
+- Man page, see help2man (http://www.gnu.org/software/help2man/)
+- Logging should not be all (DEBUG) or nothing (release)
+- Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
+- Change .spec to allow building with Google and ObjectsSearch SOAP APIs support
+- Don't use system(), fork and exec, especially for the external browser
+
+Search
+- Write a Spirit-based parser for extracting results from web pages
+- Allow to use "extended" INTERPRET tags selectively 
+- With engines that provide a redirection URL for results (eg Acoona), it looks like
+  the query hitory is not saved/checked correctly
+- OR terms if AND search on index doesn't return anything
+- Add Creative Commons (http://search.yahoo.com/cc)
+- Add http://beta.exalead.com/search
+- Add csourcesearch.net
+- Add http://www.patentcommons.org/commons/patentsearch.php
+- Apply Pinot specific filters (eg "L" for language) on internal indices only
+
+Collect
+- Comply with robot stuff defined at http://www.robotstxt.org/
+- Harvest mode grabs all pages on a specific site down to a certain depth
+- Make User-Agent string configurable
+- Make download timeout configurable
+- Investigate replacing neon (and gsoap ?) with libsoup
+- Support for HTML frames
+- Write a tokenizer for RFCs that breaks chapters into individual documents
+- Allow to cache documents that had to be converted ? eg PDF, MS Word
+
+Index
+- Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
+- Allow to import and use omindex-produced indexes  so that they can be used like pinot's internal indexes
+- Write a pseudo-filesystem for indexes with FUSE (http://fuse.sourceforge.net/) or gnome-vfs ?
+- Interface with libtranslate (http://www.nongnu.org/libtranslate/) ? :-)
+- Xapian lock files can be deleted at startup if no other instance is running
+- Make sure terms are not longer than btree:max_key_len bytes
+- Play around with the XAPIAN_FLUSH_THRESHOLD env var
+- Catch DatabaseModifiedError exceptions, call reopen()
+- Sort index/database back-end, don't replicate what's in the configuration file, etc...
+- Switch to Xapian's new Flint back-end (set XAPIAN_PREFER_FLINT=1)
+- Write a back-end for CLucene (http://clucene.sourceforge.net/)
+- Flush the index before searching not after modification
+- Hash document data to determine on updates whether documents have changed
+- Allow to monitor imported documents for changes
+
+Browser plugin
+- Write Firefox extension that searches Pinot indexes and indexes the cache
+- Borrow code from beagle's Firefox plugin
+- Skip popups and non text documents
+- Use dbus for communication
+- Index browser history in My Web index
+
+RenderHTML
+- Sort out issues with gtk_embed_moz if possible
+- Replace Mozilla GTK embed with GTK WebCore or latest gtkhtml, or drop altogether ?
+- Is it possible to build against Firefox instead of the Mozilla suite ?
+- Highlight search terms
+- Fix crash with documents that link to images with https
+
+Mail
+- Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
+- Index Evolution email (Camel, might be useful for other types actually)
+- Keep track of attachments and avoid indexing the same file twice
+- Append sender to title or use as host name ?
+- Decypher and use Mozilla's mailbox scheme, eg
+  mailbox://mbox_file_name?number=2164959&part=1.2&type=text/plain&filename=portability.txt
+- When parsing email's Date field, take the timezone offset into account, eg in
+    Date: Thu, 25 Aug 2005 11:04:49 +0800
+  +0800 is basically same as SGT. At the moment the date is assumed to be GMT !
+- Mail messages with attachements are not indexed
+- Check that labels are removed when a message is unindexed (eg because it's no longer
+  in the mail account)
+
+UI
+- Switching back and forth between grouping modes messes up results rankings : check scores
+- When sorting results by host name, give better score to results that appear several times
+- Results and index trees should be sorted when clicking on columns
+- Make sure all operations (eg search engines) and threads can be stopped cleanly
+- Show which threads are running, what they are doing, and allow to stop them selectively
+- Add an history window to edit Index and ViewHistory
+- Automatic indexing of a query's results depending on type, source, size, language
+- Non modal status window to display log of operations
+- Display search engines icons (Gtk::IconSource::set_filename() and Gtk::Style::render_icon())
+- Only show documents that have the selected label
+- Replace Combobox objects with ComboboxText's (glademm support required)
+- Replace glademm with libglademm ?
+- Show extract instead of URL in index list
+- At startup, don't switch to the Index tab when listing the documents index
+- Show activity when mail is being indexed
+- Update Last Run after the query has completed
+- Add a Recent Import section that relies on documents timestamps
+- Filter documents by language, similarly to how labels are shown
+- Save query expander and extract field status in config file
+

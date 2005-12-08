@@ -1,0 +1,24 @@
+# A9 Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="A9"
+	description="Amazon A9.com"
+	method="GET"
+	action="http://a9.com/"
+	routeType="The Web"
+>
+
+<INPUT NAME="q" USER>
+<INPUT NAME="p" VALUE="0">
+# The next line sets pw to 1 + results_count/10
+<INPUTNEXT NAME="pw" FACTOR="1" VALUE="1">
+
+<INTERPRET
+resultListStart=""
+resultListEnd=""
+resultItemStart='style="margin-bottom:'
+resultItemEnd='</div>'
+>
+
+</SEARCH>

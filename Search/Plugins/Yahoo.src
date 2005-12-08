@@ -1,0 +1,31 @@
+# Yahoo! Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="Yahoo!"
+	description="Yahoo.com"
+	method="GET"
+	action="http://search.yahoo.com/search"
+	routeType="The Web"
+>
+
+<INPUT NAME="x" VALUE="op">
+<INPUT NAME="va" USER>
+<INPUT NAME="ve_vt" VALUE="any">
+<INPUT NAME="vst" VALUE="0">
+<INPUT NAME="vd" VALUE="all">
+<INPUT NAME="fl" VALUE="0">
+<INPUT NAME="vf" VALUE="all">
+<INPUT NAME="ei" VALUE="ISO-8859-1">
+<INPUT NAME="vm" VALUE="p">
+<INPUT NAME="n" VALUE="10">
+<INPUTNEXT NAME="b" FACTOR="10" VALUE="1">
+
+<INTERPRET
+resultListStart=""
+resultListEnd=""
+resultItemStart="<li><div>"
+resultItemEnd="</em> "
+>
+
+</SEARCH>

@@ -1,0 +1,27 @@
+# Teoma Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="Teoma"
+	description="Teoma.com"
+	method="GET"
+	action="http://s.teoma.com/search"
+	routeType="The Web"
+>
+
+<INPUT NAME="q" USER>
+<INPUT NAME="qcat" VALUE="1">
+<INPUT NAME="qsrc" VALUE="0">
+<INPUT NAME="Search.x" VALUE="45">
+<INPUT NAME="Search.y" VALUE="13">
+<INPUT NAME="Search" VALUE="submitve_vt">
+<INPUTNEXT NAME="page" FACTOR="1">
+
+<INTERPRET
+resultListStart=''
+resultListEnd=''
+resultItemStart='<div id="result">'
+resultItemEnd='<br class="resultSpace" />'
+>
+
+</SEARCH>

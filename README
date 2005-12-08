@@ -1,0 +1,89 @@
+Pinot, http://pinot.berlios.de/
+
+Pinot is a metasearch tool for the X-Window desktop. It acts as a front-end for
+search engines such as Google (with support for the SOAP API), All The Web,
+Ask Jeeves, etc.. and allows one to index relevant results locally and query
+the index.
+It was developed and tested on GNU/Linux and should work on other Unix-like systems.
+
+Dependencies :
+---------------
+
+Name			Location			Version used
+----			--------			------------
+
+SQLite							sqlite-devel-3.1.2-1
+http://www.sqlite.org/
+
+xapian-core						xapian-core-devel-0.9.0-1
+http://www.xapian.org/
+
+neon							neon-devel-0.24.7-4
+http://www.webdav.org/neon/
+
+Google SOAP API (1)	Search/Google/googleapi		beta2
+
+ GSOAP			$GSOAP_HOME			2.6.2
+ http://www.cs.fsu.edu/~engelen/soap.html
+ eg GSOAP_HOME=/home/fabrice/Projects/gsoap-linux-2.6
+
+ObjectsSearch API (2)	Search/ObjectsSearch		beta
+
+ GSOAP			$GSOAP_HOME			2.6.2
+
+gtkmm >= 2.4.12						gtkmm24-devel-2.6.2-2
+http://www.gtkmm.org/
+
+libxml++ (3)						libxml++-devel-2.10.0-1
+http://libxmlplusplus.sourceforge.net/
+
+ libxml2						libxml2-devel-2.6.16-3
+
+ots							ots-devel-0.4.2-2
+http://libots.sourceforge.net/
+
+libtextcat						libtextcat-devel-2.2-1
+http://software.wise-guys.nl/libtextcat/
+
+fam							fam-devel-2.6.10-9.FC2
+http://oss.sgi.com/projects/fam/
+- OR -
+gamin (4)						gamin-0.1.1-3.FC4
+http://www.gnome.org/~veillard/gamin/
+
+gmime							gmime-devel-2.1.9-3
+http://spruce.sourceforge.net/gmime
+
+Mozilla with gtk-mozembed				mozilla-devel-1.6
+http://www.mozilla.org/
+
+boost (5)						boost-devel-1.32.0-1.fc3
+http://www.boost.org/
+
+pdftohtml						pdftohtml-0.36-4
+http://pdftohtml.sourceforge.net/
+
+antiword						antiword-0.36.1-2
+http://www.winfield.demon.nl/
+
+glademm (6)						glademm-2.6.0_cvs-SNAP
+http://home.wtal.de/petig/Gtk/index.html
+
+(1) enabled with 'make HAS_GOOGLEAPI=yes'
+(2) enabled with 'make HAS_OSAPI=yes'
+(3) or libxml++ 0.26 if HAS_LIBXMLPP026 is defined
+(4) >= 0.1.6 and a recent kernel are required for the inotify backend
+(5) for building only
+(6) to optionally regenerate the GUI code
+
+FAQ :
+-----
+
+- When listing an index or indexing documents, Pinot complains of an
+  "index error". What's going on ?
+
+  This is likely because a previous instance didn't exit properly and one
+  (or more) index is still locked. Quit Pinot and look for a "db_lock" file
+  in "~/.pinot/index" and "~/.pinot/mail". If it's there, delete it and
+  restart Pinot. This will be fixed in the future.
+

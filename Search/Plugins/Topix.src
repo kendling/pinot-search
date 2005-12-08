@@ -1,0 +1,23 @@
+# Topix Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="Topix"
+	description="Topix.net"
+	method="GET"
+	action="http://www.topix.net/search/advanced"
+	routeType="News"
+>
+
+<INPUT NAME="q" USER>
+<INPUT NAME="n" VALUE="search">
+<INPUTNEXT NAME="start" FACTOR="1" VALUE="0">
+
+<INTERPRET
+resultListStart=""
+resultListEnd=""
+resultItemStart='<div class=searchres>'
+resultItemEnd='</div> </div>'
+>
+
+</SEARCH>

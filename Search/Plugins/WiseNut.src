@@ -1,0 +1,23 @@
+# WiseNut Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="WiseNut"
+	description="WiseNut.com"
+	method="GET"
+	action="http://www.wisenut.com/search/query.dll"
+	routeType="The Web"
+>
+
+<INPUT NAME="q" USER>
+<INPUT NAME="c" VALUE="10">
+<INPUTNEXT NAME="p" FACTOR="1">
+
+<INTERPRET
+resultListStart=""
+resultListEnd=""
+resultItemStart="<TD class=m1> <b>"
+resultItemEnd="</TD></TR>"
+>
+
+</SEARCH>

@@ -1,0 +1,24 @@
+# Ask Jeeves Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="Ask Jeeves"
+	description="Ask.com Ask Jeeves"
+	method="GET"
+	action="http://www.ask.com/web"
+	routeType="The Web"
+>
+
+<INPUT NAME="q" USER>
+<INPUT NAME="qsrc" VALUE="0">
+<INPUT NAME="o" VALUE="0">
+<INPUTNEXT NAME="page" FACTOR="1" VALUE="1">
+
+<INTERPRET
+resultListStart=""
+resultListEnd=""
+resultItemStart='<div class="m10_0_16">'
+resultItemEnd='Save</a>'
+>
+
+</SEARCH>

@@ -1,0 +1,330 @@
+/*
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#include <neon/ne_uri.h>
+
+#include "Url.h"
+
+Url::Url(const string &url)
+{
+	parse(url);
+}
+
+Url::~Url()
+{
+}
+
+Url::Url(const Url &other) :
+	m_protocol(other.m_protocol),
+	m_user(other.m_user),
+	m_password(other.m_password),
+	m_host(other.m_host),
+	m_location(other.m_location),
+	m_file(other.m_file),
+	m_parameters(other.m_parameters)
+{
+}
+
+Url& Url::operator=(const Url& other)
+{
+	m_protocol = other.m_protocol;
+	m_user = other.m_user;
+	m_password = other.m_password;
+	m_host = other.m_host;
+	m_location = other.m_location;
+	m_file = other.m_file;
+	m_parameters = other.m_parameters;
+
+	return *this;
+}
+
+void Url::parse(const string &url)
+{
+	string::size_type pos1 =0, pos2 = 0;
+	bool hasHostName = true;
+
+	// If the URL starts with a slash, don't parse and consider it local
+	if (url[0] == '/')
+	{
+		m_location = url;
+		return;
+	}
+
+	// Protocol
+	pos1 = url.find("://");
+	if (pos1 != string::npos)
+	{
+		m_protocol = url.substr(0, pos1);
+		pos1 += 3;
+
+		if ((m_protocol == "file") ||
+			(m_protocol == "mailbox"))
+		{
+			hasHostName = false;
+		}
+	}
+	else
+	{
+		// Assume default protocol
+		m_protocol = "http";
+		pos1 = 0;
+	}
+
+	if (hasHostName == true)
+	{
+		// User and password
+		pos2 = url.find_first_of(":", pos1);
+		if (pos2 != string::npos)
+		{
+			bool isPartOfLocation = false;
+
+			string::size_type firstSlash = url.find_first_of("/", pos1);
+			if (firstSlash != string::npos)
+			{
+				// The : is part of the location if it follows the /, eg like in this URL :
+				// http://216.239.39.100/search?q=cache:X8L8R9AazsAJ:eastenwest.free.fr/site/php/download.php%3Ftype%3Darticles%26ID%3D193+fabrice+colin&hl=en&ie=UTF-8
+				if (pos2 > firstSlash)
+				{
+					isPartOfLocation = true;
+				}
+			}
+
+			if (isPartOfLocation == false)
+			{
+				m_user = url.substr(pos1, pos2 - pos1);
+				pos1 = pos2 + 1;
+
+				pos2 = url.find_first_of("@", pos1);
+				if (pos2 != string::npos)
+				{
+					m_password = url.substr(pos1, pos2 - pos1);
+					pos1 = pos2 + 1;
+				}
+			}
+		}
+
+		// Host name
+		pos2 = url.find_first_of("/", pos1);
+		if (pos2 != string::npos)
+		{
+			m_host = url.substr(pos1, pos2 - pos1);
+			pos2++;
+		}
+		else
+		{
+			m_host = url.substr(pos1);
+			return;
+		}
+		// FIXME: what about the port number ?
+	}
+	else
+	{
+		m_host = "localhost";
+		pos2 = pos1;
+	}
+
+	string locationAndFile = url.substr(pos2);
+	pos2 = locationAndFile.find("?");
+	// Parameters
+	if (pos2 != string::npos)
+	{
+		m_parameters = locationAndFile.substr(pos2+1);
+		locationAndFile.resize(pos2);
+	}
+
+	// Location and file
+	pos1 = locationAndFile.find_last_of("/");
+	if (pos1 != string::npos)
+	{
+		m_location = locationAndFile.substr(0, pos1);
+		m_file = locationAndFile.substr(pos1+1);
+	}
+	else
+	{
+		// No slash found, what we have got is either a directory
+		// directly under the root or a file name
+		// Assume this is a directory unless there's a dot
+		if (locationAndFile.find('.') == string::npos)
+		{
+			m_location = locationAndFile;
+			m_file = "";
+		}
+		else
+		{
+			m_location = "";
+			m_file = locationAndFile;
+		}
+	}
+}
+
+string Url::getProtocol(void) const
+{
+	return m_protocol;
+}
+
+string Url::getUser(void) const
+{
+	return m_user;
+}
+
+string Url::getPassword(void) const
+{
+	return m_password;
+}
+
+string Url::getHost(void) const
+{
+	return m_host;
+}
+
+string Url::getLocation(void) const
+{
+	return m_location;
+}
+
+string Url::getFile(void) const
+{
+	return m_file;
+}
+
+string Url::getParameters(void) const
+{
+	return m_parameters;
+}
+
+/// Canonicalizes an URL.
+string Url::canonicalizeUrl(const string &url)
+{
+	if (url.empty() == true)
+	{
+		return "";
+	}
+
+	Url urlObj(url);
+	string location = urlObj.getLocation();
+	string file = urlObj.getFile();
+
+	// Get rid of the last directory's slash
+	if ((file.empty() == true) &&
+		(location.empty() == false) &&
+		(url[url.length() - 1] == '/'))
+	{
+		return url.substr(0, url.length() - 1);
+	}
+
+	return url;
+}
+
+/// Truncates an URL to the given length by discarding characters in the middle.
+string Url::prettifyUrl(const string &url, unsigned int maxLen)
+{
+	if (maxLen >= url.length())
+	{
+		// Don't change anything...
+		return url;
+	}
+
+	unsigned int diffLen = url.length() - maxLen;
+	Url urlObj(url);
+	string protocol = urlObj.getProtocol();
+	string user = urlObj.getUser();
+	string password = urlObj.getPassword();
+	string host = urlObj.getHost();
+	string location = urlObj.getLocation();
+	string file = urlObj.getFile();
+	
+	string prettyUrl = protocol;
+	prettyUrl += "://";
+	if (user.empty() == false)
+	{
+		prettyUrl += user;
+		prettyUrl += ":";
+		prettyUrl += password;
+	}
+	prettyUrl += host;
+	prettyUrl += "/";
+
+	if (url.length() <= diffLen)
+	{
+		// That's the bare minimum...
+		prettyUrl = protocol;
+		prettyUrl += "://";
+		prettyUrl += host;
+		prettyUrl += "/...";
+	}
+	else if (location.length() > diffLen + 3)
+	{
+		// Truncate the location and keep the rest intact
+		prettyUrl += location.substr(0, location.length() - (diffLen + 3));
+		prettyUrl += ".../";
+		prettyUrl += file;
+	}
+	else
+	{
+		// Cut somewhere in the middle of the URL then
+		prettyUrl += location;
+		prettyUrl += "/";
+		prettyUrl += file;
+		unsigned int urlLen = prettyUrl.length();
+		string::size_type startPos = 0;
+		if (urlLen - diffLen > 0)
+		{
+			startPos = (urlLen - diffLen) / 2;
+		}
+		string tmp = prettyUrl;
+		prettyUrl = tmp.substr(0, startPos);
+		prettyUrl += "...";
+		prettyUrl += tmp.substr(startPos + diffLen);
+	}
+
+	return prettyUrl;
+}
+
+/// Escapes an URL.
+string Url::escapeUrl(const string &url)
+{
+	string escapedUrlStr = "";
+
+	if (url.empty() == false)
+	{
+		char *escapedUrl = ne_path_escape(url.c_str());
+		if (escapedUrl != NULL)
+		{
+			escapedUrlStr = escapedUrl;
+			free(escapedUrl);
+		}
+	}
+
+	return escapedUrlStr;
+}
+
+/// Unescapes an URL.
+string Url::unescapeUrl(const string &escapedUrl)
+{
+	string unescapedUrlStr = "";
+
+	if (escapedUrl.empty() == false)
+	{
+		char *unescapedUrl = ne_path_unescape(escapedUrl.c_str());
+		if (unescapedUrl != NULL)
+		{
+			unescapedUrlStr = unescapedUrl;
+			free(unescapedUrl);
+		}
+	}
+
+	return unescapedUrlStr;
+}
