@@ -1072,8 +1072,14 @@ void ListenerThread::do_listening()
 		while (m_done == false)
 		{
 			int fdCount = select(fd + 1, &listenSet, NULL, NULL, NULL);
-			if ((fdCount > 0) &&
-				(FD_ISSET(fd, &listenSet)))
+			if (fdCount < 0)
+			{
+#ifdef DEBUG
+				perror("ListenerThread::do_listening: select() failed");
+#endif
+				break;
+			}
+			else if (FD_ISSET(fd, &listenSet))
 			{
 				string xmlMsg;
 				char buffer[1024];
@@ -1247,8 +1253,14 @@ void MonitorThread::do_monitoring()
 		selectTimeout.tv_usec = 0;
 
 		int fdCount = select(fd + 1, &listenSet, NULL, NULL, &selectTimeout);
-		if ((fdCount > 0) &&
-			(FD_ISSET(fd, &listenSet)))
+		if (fdCount < 0)
+		{
+#ifdef DEBUG
+			perror("MonitorThread::do_monitoring: select() failed");
+#endif
+			break;
+		}
+		else if (FD_ISSET(fd, &listenSet))
 		{
 #ifdef DEBUG
 			cout << "MonitorThread::do_monitoring: select() returned" << endl;
