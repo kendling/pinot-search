@@ -1385,13 +1385,13 @@ void mainWindow::on_copy_activate()
 	}
 	else if (m_pResultsTree->is_focus() == true)
 	{
+		vector<Result> resultsList;
 		bool firstItem = true;
 
 #ifdef DEBUG
 		cout << "mainWindow::on_copy_activate: results tree" << endl;
 #endif
 		// Get the current results selection
-		vector<Result> resultsList;
 		m_pResultsTree->getSelection(resultsList);
 	
 		for (vector<Result>::const_iterator resultIter = resultsList.begin();
@@ -1409,13 +1409,13 @@ void mainWindow::on_copy_activate()
 	}
 	else if (m_pIndexTree->is_focus() == true)
 	{
+		vector<IndexedDocument> documentsList;
 		bool firstItem = true;
 
 #ifdef DEBUG
 		cout << "mainWindow::on_copy_activate: index tree" << endl;
 #endif
 		// Get the current documents selection
-		vector<IndexedDocument> documentsList;
 		m_pIndexTree->getSelection(documentsList);
 	
 		for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
@@ -1634,6 +1634,8 @@ void mainWindow::on_viewfromindex_activate()
 //
 void mainWindow::on_refreshindex_activate()
 {
+	vector<IndexedDocument> documentsList;
+
 	// Make sure this has been configured
 	if (m_settings.m_indexLocation.empty() == true)
 	{
@@ -1642,8 +1644,12 @@ void mainWindow::on_refreshindex_activate()
 	}
 
 	// Get the current documents selection
-	vector<IndexedDocument> documentsList;
-	m_pIndexTree->getSelection(documentsList);
+	if ((m_pIndexTree->getSelection(documentsList) == false) ||
+		(documentsList.empty() == true))
+	{
+		// No selection
+		return;
+	}
 
 	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
@@ -1700,7 +1706,12 @@ void mainWindow::on_showfromindex_activate()
 	}
 
 	// Get the current documents selection
-	m_pIndexTree->getSelection(documentsList);
+	if ((m_pIndexTree->getSelection(documentsList) == false) ||
+		(documentsList.empty() == true))
+	{
+		// No selection
+		return;
+	}
 
 	// If there's only one document selected, get its labels
 	if (documentsList.size() == 1)
@@ -1802,11 +1813,12 @@ void mainWindow::on_showfromindex_activate()
 //
 void mainWindow::on_unindex_activate()
 {
+	vector<IndexedDocument> documentsList;
 	ustring boxTitle = _("Delete this document from the index ?");
 
 	// Get the current documents selection
-	vector<IndexedDocument> documentsList;
-	if (m_pIndexTree->getSelection(documentsList) == false)
+	if ((m_pIndexTree->getSelection(documentsList) == false) ||
+		(documentsList.empty() == true))
 	{
 		return;
 	}
