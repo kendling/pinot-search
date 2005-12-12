@@ -146,6 +146,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	string url = Url::escapeUrl(docInfo.getLocation());
 	char *content = NULL;
 	size_t contentLen = 0;
+	int statusCode = 200;
 	unsigned int redirectionsCount = 0;
 
 	if (url.empty() == true)
@@ -227,7 +228,6 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 		{
 			ssize_t bytesRead = 0;
 			char buffer[1024];
-			int statusCode = 0;
 
 			// Get the status
 			const ne_status *pStatus = ne_get_status(m_pRequest);
@@ -237,6 +237,11 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 #ifdef DEBUG
 				cout << "NeonDownloader::retrieveUrl: status is " << statusCode << endl;
 #endif
+			}
+			else
+			{
+				// Assume all is well
+				statusCode = 200;
 			}
 
 			// Read the content
@@ -342,22 +347,25 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	if ((content != NULL) &&
 		(contentLen > 0))
 	{
-		// Is it an html type ?
-		if (g_contentTypeHeaderValue.find("htm") != string::npos)
+		if (statusCode < 400)
 		{
-			urlDocument = new HtmlDocument(docInfo.getTitle(), url,
-				g_contentTypeHeaderValue, docInfo.getLanguage());
-		}
-		else
-		{
-			urlDocument = new Document(docInfo.getTitle(), url,
-				g_contentTypeHeaderValue, docInfo.getLanguage());
-		}
-		// ...and copy the content into it
-		urlDocument->setData(content, contentLen);
+			// Is it an html type ?
+			if (g_contentTypeHeaderValue.find("htm") != string::npos)
+			{
+				urlDocument = new HtmlDocument(docInfo.getTitle(), url,
+					g_contentTypeHeaderValue, docInfo.getLanguage());
+			}
+			else
+			{
+				urlDocument = new Document(docInfo.getTitle(), url,
+					g_contentTypeHeaderValue, docInfo.getLanguage());
+			}
+			// ...and copy the content into it
+			urlDocument->setData(content, contentLen);
 #ifdef DEBUG
-		cout << "NeonDownloader::retrieveUrl: document size is " << contentLen << endl;
+			cout << "NeonDownloader::retrieveUrl: document size is " << contentLen << endl;
 #endif
+		}
 		free(content);
 	}
 
