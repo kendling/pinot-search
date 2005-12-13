@@ -117,6 +117,7 @@ protected:
 	bool queue_index(const DocumentInfo &docInfo, const std::string &labelName,
 		unsigned int docId = 0);
 	bool queue_unindex(set<unsigned int> &docIdList);
+	void edit_query(QueryProperties &queryProps, bool newQuery);
 	void run_search(const QueryProperties &queryProps);
 	void browse_index(unsigned int startDoc = 0);
 	void index_document(const DocumentInfo &docInfo, const std::string &labelName,

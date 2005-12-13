@@ -1465,21 +1465,7 @@ void mainWindow::on_paste_activate()
 		// FIXME: look for \n as query fields separators ?
 		QueryProperties queryProps = QueryProperties(locale_from_utf8(clipText),
 			"", "", "", "");
-		string summary = queryProps.toString();
-
-		// Add a new row to the query tree
-		TreeModel::iterator iter = m_refQueryTree->append();
-		TreeModel::Row row = *iter;
-		row[m_queryColumns.m_name] = clipText;
-		if (summary.empty() == false)
-		{
-			row[m_queryColumns.m_summary] = to_utf8(summary);
-		}
-		else
-		{
-			row[m_queryColumns.m_summary] = _("<undefined>");
-		}
-		row[m_queryColumns.m_properties] = queryProps;
+		edit_query(queryProps, true);
 	}
 	else
 	{
@@ -2021,39 +2007,7 @@ void mainWindow::on_addQueryButton_clicked()
 {
 	QueryProperties queryProps = QueryProperties("", "", "", "", "");
 
-	// Start with editing the new query's properties
-	queryDialog queryBox(queryProps);
-	queryBox.show();
-	if (queryBox.run() == RESPONSE_OK)
-	{
-		// Is the name okay ?
-		if (queryBox.badName() == true)
-		{
-			ustring statusText = _("Query name");
-			statusText += " ";
-			statusText += queryProps.getName();
-			statusText += " ";
-			statusText +=  _("is already in use");
-
-			// Tell user name is bad
-			set_status(statusText);
-			return;
-		}
-
-		// Add the new query
-		if (m_settings.addQuery(queryProps) == false)
-		{
-			ustring statusText = _("Couldn't add query");
-			statusText += " ";
-			statusText += queryProps.getName();
-
-			set_status(statusText);
-			return;
-		}
-
-		populate_queryTreeview();
-		set_status(_("Added new query"));
-	}
+	edit_query(queryProps, true);
 }
 
 //
@@ -2070,57 +2024,9 @@ void mainWindow::on_editQueryButton_clicked()
 		cout << "mainWindow::on_editQueryButton_clicked: selected " << row[m_queryColumns.m_name] << endl;
 #endif
 
-		// Backup the current name
-		ustring queryName = row[m_queryColumns.m_name];
-
 		// Edit this query's properties
 		QueryProperties queryProps = row[m_queryColumns.m_properties];
-		queryDialog queryBox(queryProps);
-		queryBox.show();
-		if (queryBox.run() != RESPONSE_OK)
-		{
-			// Nothing to do
-			return;
-		}
-
-		// Is the name okay ?
-		if (queryBox.badName() == true)
-		{
-			ustring statusText = _("Query name");
-			statusText += " ";
-			statusText += queryProps.getName();
-			statusText += " ";
-			statusText +=  _("is already in use");
-
-			// Tell user name is bad
-			set_status(statusText);
-			return;
-		}
-
-		// Did the name change ?
-		ustring newQueryName = to_utf8(queryProps.getName());
-		if (newQueryName != queryName)
-		{
-			// Remove records from QueryHistory
-			string queryName = locale_from_utf8(row[m_queryColumns.m_name]);
-			QueryHistory history(m_settings.m_historyDatabase);
-			history.deleteItems(queryName, true);
-		}
-
-		// Update the query properties
-		if ((m_settings.removeQuery(queryName) == false) ||
-			(m_settings.addQuery(queryProps) == false))
-		{
-			ustring statusText = _("Couldn't update query");
-			statusText += " ";
-			statusText += queryName;
-
-			set_status(statusText);
-			return;
-		}
-
-		populate_queryTreeview();
-		set_status(_("Edited query"));
+		edit_query(queryProps, false);
 	}
 }
 
@@ -2375,6 +2281,87 @@ bool mainWindow::queue_unindex(set<unsigned int> &docIdList)
 	start_thread(new UnindexingThread(docIdList));
 
 	return false;
+}
+
+//
+// Edits a query
+//
+void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
+{
+	string queryName;
+
+	if (newQuery == false)
+	{
+		// Backup the current name
+		queryName = queryProps.getName();
+	}
+
+	// Edit the query's properties
+	queryDialog queryBox(queryProps);
+	queryBox.show();
+	if (queryBox.run() != RESPONSE_OK)
+	{
+		// Nothing to do
+		return;
+	}
+
+	// Is the name okay ?
+	if (queryBox.badName() == true)
+	{
+		ustring statusText = _("Query name");
+		statusText += " ";
+		statusText += queryProps.getName();
+		statusText += " ";
+		statusText +=  _("is already in use");
+
+		// Tell user the name is bad
+		set_status(statusText);
+		return;
+	}
+
+	if (newQuery == false)
+	{
+		// Did the name change ?
+		string newQueryName = queryProps.getName();
+		if (newQueryName != queryName)
+		{
+			QueryHistory history(m_settings.m_historyDatabase);
+
+			// Remove records from QueryHistory
+			history.deleteItems(queryName, true);
+		}
+
+		// Update the query properties
+		if ((m_settings.removeQuery(queryName) == false) ||
+			(m_settings.addQuery(queryProps) == false))
+		{
+			ustring statusText = _("Couldn't update query");
+			statusText += " ";
+			statusText += queryName;
+	
+			set_status(statusText);
+			return;
+		}
+
+		set_status(_("Edited query"));
+	}
+	else
+	{
+		// Add the new query
+		if (m_settings.addQuery(queryProps) == false)
+		{
+			ustring statusText = _("Couldn't add query");
+			statusText += " ";
+			statusText += queryProps.getName();
+
+			set_status(statusText);
+			return;
+		}
+
+		set_status(_("Added new query"));
+	}
+
+	populate_queryTreeview();
 }
 
 //
@@ -2769,6 +2756,9 @@ void mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 //
 bool mainWindow::check_queue(void)
 {
+#ifdef DEBUG
+	cout << "mainWindow::check_queue: called" << endl;
+#endif
 	if (get_threads_count() >= m_maxThreads)
 	{
 #ifdef DEBUG
