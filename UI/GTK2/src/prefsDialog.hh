@@ -13,6 +13,7 @@
 #define _PREFSDIALOG_HH
 
 #include <string>
+#include <map>
 #include <set>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
@@ -27,6 +28,10 @@ class prefsDialog : public prefsDialog_glade
 public:
 	prefsDialog();
 	virtual ~prefsDialog();
+
+	const std::set<std::string> &getLabelsToDelete(void) const;
+
+	const std::map<std::string, std::string> &getLabelsToRename(void) const;
 
 	const std::set<std::string> &getMailLabelsToDelete(void) const;
 
@@ -59,9 +64,9 @@ private:
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
 	MailAccountModelColumns m_mailColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refMailTree;
-	std::set<Glib::ustring> m_deletedIndexes;
 	std::set<std::string> m_deletedLabels;
-	std::set<Glib::ustring> m_deletedMail;
+	std::map<std::string, std::string> m_renamedLabels;
+	std::set<std::string> m_deletedMail;
 	static unsigned int m_maxDirLevel;
 
 };

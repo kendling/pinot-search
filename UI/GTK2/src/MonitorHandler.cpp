@@ -112,7 +112,7 @@ bool MboxHandler::checkMailAccount(const string &fileName, PinotSettings::MailAc
 }
 
 bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex,
-	LabelManager &labelMan, time_t &lastMessageTime,
+	time_t &lastMessageTime,
 	const string &tempSourceLabel, const string &sourceLabel)
 {
 	bool indexedFile = false;
@@ -133,7 +133,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex
 	while (pMessage != NULL)
 	{
 		// Has this message already been indexed ?
-		unsigned int docId = pIndex->hasDocument(*pMessage);
+		unsigned int docId = pIndex->hasDocument(pMessage->getLocation());
 		if (docId == 0)
 		{
 			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
@@ -148,8 +148,11 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex
 				break;	
 			}
 
+			set<string> labels;
+			labels.insert(tempSourceLabel);
+
 			unsigned int docId = 0;
-			indexedFile = pIndex->indexDocument(*pTokenizer, docId);
+			indexedFile = pIndex->indexDocument(*pTokenizer, labels, docId);
 			if (indexedFile == true)
 			{
 				time_t messageDate = boxParser.getDate();
@@ -160,9 +163,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex
 					lastMessageTime = messageDate;
 				}
 
-				set<string> labels;
-				labels.insert(tempSourceLabel);
-				labelMan.setLabels(docId, pIndex->getLocation(), labels);
+				pIndex->setDocumentLabels(docId, labels);
 
 				IndexedDocument docInfo(pMessage->getTitle(),
 					XapianEngine::buildUrl(PinotSettings::getInstance().m_mailIndexLocation, docId),
@@ -189,7 +190,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex
 				set<string> labels;
 
 				// Get the message's labels
-				labelMan.getLabels(docId, pIndex->getLocation(), labels);
+				pIndex->getDocumentLabels(docId, labels);
 				// The source label must have been applied to the message when originally indexed
 				set<string>::iterator labelIter = labels.find(sourceLabel.c_str());
 				if (labelIter != labels.end())
@@ -198,7 +199,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex
 					labels.erase(labelIter);
 					// Add the temporary label
 					labels.insert(tempSourceLabel);
-					labelMan.setLabels(docId, pIndex->getLocation(), labels);
+					pIndex->setDocumentLabels(docId, labels);
 				}
 			}
 		}
@@ -223,8 +224,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex
 	return indexedFile;
 }
 
-bool MboxHandler::deleteMessages(IndexInterface *pIndex,  LabelManager &labelMan,
-	const string &sourceLabel)
+bool MboxHandler::deleteMessages(IndexInterface *pIndex, const string &sourceLabel)
 {
 	set<unsigned int> docIdList;
 	bool unindexedMsgs = false;
@@ -235,7 +235,7 @@ bool MboxHandler::deleteMessages(IndexInterface *pIndex,  LabelManager &labelMan
 	}
 
 	// Unindex all documents labeled with this source label
-	if ((labelMan.getDocumentsWithLabel(sourceLabel, pIndex->getLocation(), docIdList) == true) &&
+	if ((pIndex->getDocumentsWithLabel(sourceLabel, docIdList) == true) &&
 		(docIdList.empty() == false))
 	{
 #ifdef DEBUG
@@ -313,7 +313,6 @@ bool MboxHandler::hasNewLocations(void) const
 
 bool MboxHandler::fileExists(const string &fileName, bool end)
 {
-	LabelManager labelMan(PinotSettings::getInstance().m_historyDatabase);
 	PinotSettings::MailAccount mailAccount;
 	off_t previousSize = 0;
 
@@ -350,19 +349,19 @@ bool MboxHandler::fileExists(const string &fileName, bool end)
 	// Get a parser
 	MboxParser boxParser(fileName);
 
-	bool indexedFile = parseMailAccount(boxParser, &index, labelMan,
+	bool indexedFile = parseMailAccount(boxParser, &index, 
 		mailAccount.m_lastMessageTime, tempSourceLabel, sourceLabel);
 
 	// Any document still labeled with this source label wasn't found
 	// this time around and should be unindexed
-	if (deleteMessages(&index, labelMan, sourceLabel) == true)
+	if (deleteMessages(&index, sourceLabel) == true)
 	{
 		indexedFile = true;
 	}
 
 	// Rename the temporary label for next time the mbox is parsed
-	labelMan.deleteLabel(sourceLabel);
-	labelMan.renameLabel(tempSourceLabel, sourceLabel);
+	index.deleteLabel(sourceLabel);
+	index.renameLabel(tempSourceLabel, sourceLabel);
 
 	// Flush the index
 	index.flush();
@@ -386,7 +385,6 @@ void MboxHandler::fileCreated(const string &fileName)
 
 bool MboxHandler::fileChanged(const string &fileName)
 {
-	LabelManager labelMan(PinotSettings::getInstance().m_historyDatabase);
 	PinotSettings::MailAccount mailAccount;
 	off_t previousSize = 0, mboxOffset = 0;
 
@@ -431,7 +429,7 @@ bool MboxHandler::fileChanged(const string &fileName)
 	// Get a parser
 	MboxParser boxParser(fileName, mboxOffset);
 
-	bool indexedFile = parseMailAccount(boxParser, &index, labelMan,
+	bool indexedFile = parseMailAccount(boxParser, &index,
 		mailAccount.m_lastMessageTime, sourceLabel, "");
 	if (indexedFile == true)
 	{
@@ -458,7 +456,6 @@ bool MboxHandler::fileChanged(const string &fileName)
 
 bool MboxHandler::fileDeleted(const string &fileName)
 {
-	LabelManager labelMan(PinotSettings::getInstance().m_historyDatabase);
 	string sourceLabel = string("mailbox://") + fileName;
 	bool unindexedFile = false;
 
@@ -474,10 +471,10 @@ bool MboxHandler::fileDeleted(const string &fileName)
 	}
 
 	// Unindex all documents labeled with this source label
-	if (deleteMessages(&index, labelMan, sourceLabel) == true)
+	if (deleteMessages(&index, sourceLabel) == true)
 	{
 		// Delete the label
-		labelMan.deleteLabel(sourceLabel);
+		index.deleteLabel(sourceLabel);
 
 		return true;
 	}

@@ -26,7 +26,6 @@
 #include "DocumentInfo.h"
 #include "IndexedDocument.h"
 #include "MboxParser.h"
-#include "LabelManager.h"
 #include "IndexInterface.h"
 #include "PinotSettings.h"
 
@@ -91,11 +90,10 @@ class MboxHandler : public MonitorHandler
 			off_t &previousSize);
 
 		bool parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex,
-			LabelManager &labelMan, time_t &lastMessageTime,
-			const std::string &tempSourceLabel, const std::string &sourceLabel);
-
-		bool deleteMessages(IndexInterface *pIndex, LabelManager &labelMan,
+			time_t &lastMessageTime, const std::string &tempSourceLabel,
 			const std::string &sourceLabel);
+
+		bool deleteMessages(IndexInterface *pIndex, const std::string &sourceLabel);
 
 	private:
 		MboxHandler(const MboxHandler &other);

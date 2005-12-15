@@ -33,7 +33,6 @@
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
-#include "LabelManager.h"
 #include "QueryHistory.h"
 #include "IndexedDocument.h"
 #include "DownloaderFactory.h"
@@ -166,7 +165,7 @@ bool IndexBrowserThread::stop(void)
 	return true;
 }
 
-SigC::Signal3<void, IndexedDocument, unsigned int, std::string>& IndexBrowserThread::getUpdateSignal(void)
+SigC::Signal3<void, IndexedDocument, unsigned int, string>& IndexBrowserThread::getUpdateSignal(void)
 {
 	return m_signalUpdate;
 }
@@ -216,7 +215,7 @@ void IndexBrowserThread::do_browsing()
 		<< " documents to browse, starting at " << m_startDoc << endl;
 #endif
 	index.getDocumentIDs(docIDList, m_maxDocsCount, m_startDoc);
-	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); iter++)
+	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
 	{
 		if (m_done == true)
 		{
@@ -409,8 +408,8 @@ const set<unsigned int> &LabelQueryThread::getDocumentsList(void) const
 
 void LabelQueryThread::do_querying()
 {
-	LabelManager labelMan(PinotSettings::getInstance().m_historyDatabase);
 	const map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
+
 	map<string, string>::const_iterator mapIter = indexesMap.find(m_indexName);
 	if (mapIter == indexesMap.end())
 	{
@@ -423,7 +422,86 @@ void LabelQueryThread::do_querying()
 		return;
 	}
 
-	labelMan.getDocumentsWithLabel(m_labelName, mapIter->second, m_documentsList);
+	XapianIndex index(mapIter->second);
+	if (index.isGood() == false)
+	{
+		m_status = _("Index error on");
+		m_status += " ";
+		m_status += mapIter->second;
+		emitSignal();
+		return;
+	}
+
+	index.getDocumentsWithLabel(m_labelName, m_documentsList);
+
+	emitSignal();
+}
+
+LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToDelete,
+	const map<string, string> &labelsToRename)
+{
+	copy(labelsToDelete.begin(), labelsToDelete.end(), inserter(m_labelsToDelete, m_labelsToDelete.begin()));
+	copy(labelsToRename.begin(), labelsToRename.end(), inserter(m_labelsToRename, m_labelsToRename.begin()));
+}
+
+LabelUpdateThread::~LabelUpdateThread()
+{
+}
+
+bool LabelUpdateThread::start(void)
+{
+	// Create a non-joinable thread
+	Thread::create(slot_class(*this, &LabelUpdateThread::do_update), false);
+
+	return true;
+}
+
+string LabelUpdateThread::getType(void) const
+{
+	return "LabelUpdateThread";
+}
+
+bool LabelUpdateThread::stop(void)
+{
+	m_done = true;
+	m_status = _("Stopped querying index labels");
+	return true;
+}
+
+void LabelUpdateThread::do_update()
+{
+	XapianIndex docsIndex(PinotSettings::getInstance().m_indexLocation);
+	if (docsIndex.isGood() == false)
+	{
+		m_status = _("Index error on");
+		m_status += " ";
+		m_status += PinotSettings::getInstance().m_indexLocation;
+		emitSignal();
+		return;
+	}
+
+	XapianIndex mailIndex(PinotSettings::getInstance().m_mailIndexLocation);
+	if (mailIndex.isGood() == false)
+	{
+		m_status = _("Index error on");
+		m_status += " ";
+		m_status += PinotSettings::getInstance().m_mailIndexLocation;
+		emitSignal();
+		return;
+	}
+
+	// Delete labels
+	for (set<string>::iterator iter = m_labelsToDelete.begin(); iter != m_labelsToDelete.end(); ++iter)
+	{
+		docsIndex.deleteLabel(*iter);
+		mailIndex.deleteLabel(*iter);
+	}
+	// Rename labels
+	for (map<string, string>::iterator iter = m_labelsToRename.begin(); iter != m_labelsToRename.end(); ++iter)
+	{
+		docsIndex.renameLabel(iter->first, iter->second);
+		mailIndex.renameLabel(iter->first, iter->second);
+	}
 
 	emitSignal();
 }
@@ -594,7 +672,7 @@ string IndexingThread::getLabelName(void) const
 	return m_labelName;
 }
 
-const std::set<unsigned int> &IndexingThread::getDocumentIDs(void) const
+const set<unsigned int> &IndexingThread::getDocumentIDs(void) const
 {
 	return m_docIdList;
 }
@@ -739,18 +817,14 @@ void IndexingThread::do_indexing()
 			}
 			else
 			{
+				set<string> labels;
 				unsigned int docId = 0;
 
 				// Save the new document ID
-				success = index.indexDocument(*pTokens, docId);
+				labels.insert(m_labelName);
+				success = index.indexDocument(*pTokens, labels, docId);
 				if (success == true)
 				{
-					LabelManager labelMan(PinotSettings::getInstance().m_historyDatabase);
-
-					set<string> labels;
-					labels.insert(m_labelName);
-					labelMan.setLabels(docId, index.getLocation(), labels);
-
 					m_docIdList.insert(docId);
 				}
 			}
@@ -830,7 +904,6 @@ void UnindexingThread::do_unindexing()
 {
 	if (m_done == false)
 	{
-		LabelManager labelMan(PinotSettings::getInstance().m_historyDatabase);
 		XapianIndex index(m_indexLocation);
 
 		if (index.isGood() == false)
@@ -850,51 +923,47 @@ void UnindexingThread::do_unindexing()
 		{
 			// Yep
 			// FIXME: better delete documents one label at a time
-			for (set<string>::iterator iter = m_labelNames.begin(); iter != m_labelNames.end(); iter++)
+			for (set<string>::iterator iter = m_labelNames.begin(); iter != m_labelNames.end(); ++iter)
 			{
 				string labelName = (*iter);
-				labelMan.getDocumentsWithLabel(labelName, m_indexLocation, m_docIdList);
-				labelMan.deleteLabel(labelName);
-			}
-#ifdef DEBUG
-			cout << "UnindexingThread::do_unindexing: " << m_docIdList.size() << " documents have one of the labels" << endl;
-#endif
-		}
 
-		for (set<unsigned int>::iterator iter = m_docIdList.begin(); iter != m_docIdList.end(); iter++)
-		{
-			unsigned int docId = (*iter);
-
-			if (index.unindexDocument(docId) == true)
-			{
-				// Delete any label this document may have had
-				if (labelMan.deleteItem(docId, m_indexLocation) == false)
+				// By unindexing all documents that match the label,
+				// we effectively delete the label from the index
+				if (index.unindexDocuments(labelName) == true)
 				{
-#ifdef DEBUG
-					cout << "UnindexingThread::do_unindexing: " << docId
-						<< " may not have had labels" << endl;
-#endif
+					// OK
+					++m_docsCount;
 				}
-
-				// OK
-				m_status = "";
-				++m_docsCount;
 			}
-#ifdef DEBUG
-			else cout << "UnindexingThread::do_unindexing: couldn't remove " << docId << endl;
-#endif
-		}
 
-		if (m_docIdList.empty() == false)
-		{
-#ifdef DEBUG
-			cout << "UnindexingThread::do_unindexing: removed " << m_docIdList.size() << " documents" << endl;
-#endif
-			// Flush the index
-			index.flush();
+			// Nothing to report
+			m_status = "";
 		}
 		else
 		{
+			for (set<unsigned int>::iterator iter = m_docIdList.begin(); iter != m_docIdList.end(); ++iter)
+			{
+				unsigned int docId = (*iter);
+
+				if (index.unindexDocument(docId) == true)
+				{
+					// OK
+					++m_docsCount;
+				}
+#ifdef DEBUG
+				else cout << "UnindexingThread::do_unindexing: couldn't remove " << docId << endl;
+#endif
+			}
+#ifdef DEBUG
+			cout << "UnindexingThread::do_unindexing: removed " << m_docsCount << " documents" << endl;
+#endif
+		}
+
+		if (m_docsCount > 0)
+		{
+			// Flush the index
+			index.flush();
+
 			// Nothing to report
 			m_status = "";
 		}
@@ -1215,7 +1284,7 @@ void MonitorThread::do_monitoring()
 			}
 
 			// Go through the locations map
-			for (map<unsigned long, std::string>::const_iterator fsIter = fsLocations.begin(); fsIter != fsLocations.end(); ++fsIter)
+			for (map<unsigned long, string>::const_iterator fsIter = fsLocations.begin(); fsIter != fsLocations.end(); ++fsIter)
 			{
 				string fsLocation = fsIter->second;
 				struct stat fileStat;
@@ -1266,7 +1335,15 @@ void MonitorThread::do_monitoring()
 			cout << "MonitorThread::do_monitoring: select() returned" << endl;
 #endif
 			// There might be more than one event waiting...
-			while ((FAMPending(&famConn) >= 1) &&
+			int pendingEvents = FAMPending(&famConn);
+			if (pendingEvents < 0)
+			{
+#ifdef DEBUG
+				perror("MonitorThread::do_monitoring: FAMPending() failed");
+#endif
+				break;
+			}
+			while ((pendingEvents >= 1) &&
 				(m_done == false))
 			{
 				double averageLoad[3];
@@ -1347,6 +1424,9 @@ void MonitorThread::do_monitoring()
 						}
 					}
 				}
+
+				// Anything else pending ?
+				pendingEvents = FAMPending(&famConn);
 			}
 		}
 		else

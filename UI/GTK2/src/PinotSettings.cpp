@@ -476,13 +476,17 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		{
 			queryProps.setLanguage(nodeContent);
 		}
-		else if (nodeName == "hostname")
+		else if (nodeName == "hostfilter")
 		{
-			queryProps.setHostNameFilter(nodeContent);
+			queryProps.setHostFilter(nodeContent);
 		}
-		else if (nodeName == "filename")
+		else if (nodeName == "filefilter")
 		{
-			queryProps.setFileNameFilter(nodeContent);
+			queryProps.setFileFilter(nodeContent);
+		}
+		else if (nodeName == "labelfilter")
+		{
+			queryProps.setLabelFilter(nodeContent);
 		}
 		else if (nodeName == "maxresults")
 		{
@@ -789,8 +793,9 @@ bool PinotSettings::save(void)
 		addChildElement(pElem, "phrase", queryIter->second.getPhrase());
 		addChildElement(pElem, "any", queryIter->second.getAnyWords());
 		addChildElement(pElem, "not", queryIter->second.getNotWords());
-		addChildElement(pElem, "hostname", queryIter->second.getHostNameFilter());
-		addChildElement(pElem, "filename", queryIter->second.getFileNameFilter());
+		addChildElement(pElem, "hostfilter", queryIter->second.getHostFilter());
+		addChildElement(pElem, "filefilter", queryIter->second.getFileFilter());
+		addChildElement(pElem, "labelfilter", queryIter->second.getLabelFilter());
 		addChildElement(pElem, "language", queryIter->second.getLanguage());
 		sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
 		addChildElement(pElem, "maxresults", numStr);

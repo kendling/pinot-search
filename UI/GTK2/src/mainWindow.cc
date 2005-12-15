@@ -36,7 +36,6 @@
 #include "TimeConverter.h"
 #include "Url.h"
 #include "ActionHistory.h"
-#include "LabelManager.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderFactory.h"
@@ -974,6 +973,18 @@ void mainWindow::on_thread_end()
 			}
 		}
 	}
+	else if (type == "LabelUpdateThread")
+	{
+		LabelQueryThread *pLabelQueryThread = dynamic_cast<LabelQueryThread *>(pThread);
+		if (pLabelQueryThread == NULL)
+		{
+			delete pThread;
+			return;
+		}
+
+		status = _("Updated label(s)");
+		set_status(status);
+	}
 	else if (type == "DownloadingThread")
 	{
 		DownloadingThread *pDownloadThread = dynamic_cast<DownloadingThread *>(pThread);
@@ -1059,25 +1070,27 @@ void mainWindow::on_thread_end()
 			if (m_state.getCurrentIndex() == _("My Documents"))
 			{
 				XapianIndex index(m_settings.m_indexLocation);
-				DocumentInfo docInfo;
-				string date;
 
-				// Update the index tree
-				for (set<unsigned int>::iterator idIter = docIdList.begin();
-					idIter != docIdList.end(); ++idIter)
+				if (index.isGood() == true)
 				{
-					unsigned int docId = *idIter;
-
-					// Get that document's properties
-					if (index.getDocumentInfo(docId, docInfo) == true)
+					// Update the index tree
+					for (set<unsigned int>::iterator idIter = docIdList.begin();
+						idIter != docIdList.end(); ++idIter)
 					{
-						// Append to the index tree
-						IndexedDocument indexedDoc(docInfo.getTitle(),
-							XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
-							docInfo.getLocation(), docInfo.getType(),
-							docInfo.getLanguage());
-						indexedDoc.setTimestamp(docInfo.getTimestamp());
-						m_pIndexTree->appendDocument(indexedDoc, labeled);
+						DocumentInfo docInfo;
+						unsigned int docId = *idIter;
+
+						// Get that document's properties
+						if (index.getDocumentInfo(docId, docInfo) == true)
+						{
+							// Append to the index tree
+							IndexedDocument indexedDoc(docInfo.getTitle(),
+								XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
+								docInfo.getLocation(), docInfo.getType(),
+								docInfo.getLanguage());
+							indexedDoc.setTimestamp(docInfo.getTimestamp());
+							m_pIndexTree->appendDocument(indexedDoc, labeled);
+						}
 					}
 				}
 
@@ -1231,9 +1244,6 @@ void mainWindow::on_message_reception(DocumentInfo docInfo, string labelName)
 //
 void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, string indexName)
 {
-	LabelManager labelMan(m_settings.m_historyDatabase);
-	bool hasLabel = false;
-
 	if (indexName != locale_from_utf8(m_state.getCurrentIndex()))
 	{
 		// Ignore
@@ -1262,15 +1272,8 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 		return;
 	}
 
-	// Does that document have the current label ?
-	string currentLabelName;
-	if (m_state.getCurrentLabel(currentLabelName) > 0)
-	{
-		hasLabel = labelMan.hasLabel(docId, mapIter->second, currentLabelName);
-	}
-
 	// Add a row
-	if (m_pIndexTree->appendDocument(docInfo, hasLabel) == true)
+	if (m_pIndexTree->appendDocument(docInfo, true) == true)
 	{
 #ifdef DEBUG
 		cout << "mainWindow::on_message_indexupdate: added document to index list" << endl;
@@ -1339,11 +1342,20 @@ void mainWindow::on_configure_activate()
 		}
 	}
 
-	// Any mail documents we should delete ?
-	const set<string> &labelNames = prefsBox.getMailLabelsToDelete();
-	if (labelNames.empty() == false)
+	// Any labels to delete or rename ?
+	const set<string> &labelsToDelete = prefsBox.getLabelsToDelete();
+	const std::map<string, string> &labelsToRename = prefsBox.getLabelsToRename();
+	if ((labelsToDelete.empty() == false) ||
+		(labelsToRename.empty() == false))
 	{
-		start_thread(new UnindexingThread(labelNames, locale_from_utf8(m_settings.m_mailIndexLocation)));
+		start_thread(new LabelUpdateThread(labelsToDelete, labelsToRename));
+	}
+
+	// Any mail documents we should delete ?
+	const set<string> &mailLabelsToDelete = prefsBox.getMailLabelsToDelete();
+	if (mailLabelsToDelete.empty() == false)
+	{
+		start_thread(new UnindexingThread(mailLabelsToDelete, locale_from_utf8(m_settings.m_mailIndexLocation)));
 	}
 }
 
@@ -1670,13 +1682,12 @@ void mainWindow::on_refreshindex_activate()
 //
 void mainWindow::on_showfromindex_activate()
 {
-	LabelManager labelMan(m_settings.m_historyDatabase);
 	vector<IndexedDocument> documentsList;
 	set<string> docLabels;
 	DocumentInfo docInfo;
 	unsigned int docId = 0;
 	int width, height;
-	bool matchedLabel = false, editTitle = false;
+	bool editTitle = false;
 
 	const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
 	std::map<string, string>::const_iterator mapIter = indexesMap.find(m_state.getCurrentIndex());	
@@ -1690,6 +1701,8 @@ void mainWindow::on_showfromindex_activate()
 		set_status(statusText);
 		return;
 	}
+
+	XapianIndex index(mapIter->second);
 
 	// Get the current documents selection
 	if ((m_pIndexTree->getSelection(documentsList) == false) ||
@@ -1707,23 +1720,14 @@ void mainWindow::on_showfromindex_activate()
 		// Get the document ID
 		Url urlObj(docIter->getLocation());
 		docId = (unsigned int)atoi(urlObj.getFile().c_str());
-		if (docId > 0)
-		{
-			labelMan.getLabels(docId, mapIter->second, docLabels);
 
-			// Does it match the current label ?
-			string currentLabelName;
-			if ((m_state.getCurrentLabel(currentLabelName) > 0) &&
-				(find(docLabels.begin(), docLabels.end(), currentLabelName) != docLabels.end()))
-			{
-				matchedLabel = true;
-			}
+		if (index.isGood() == true)
+		{
+			index.getDocumentLabels(docId, docLabels);
 		}
 
-		docInfo.setTitle(docIter->getTitle());
-		docInfo.setLocation(docIter->getOriginalLocation());
-		docInfo.setType(docIter->getType());
-		docInfo.setLanguage(docIter->getLanguage());
+		docInfo = DocumentInfo(docIter->getTitle(), docIter->getOriginalLocation(),
+			docIter->getType(), docIter->getLanguage());
 		docInfo.setTimestamp(docIter->getTimestamp());
 		editTitle = true;
 	}
@@ -1740,40 +1744,20 @@ void mainWindow::on_showfromindex_activate()
 	}
 	const set<string> &labels = propertiesBox.getLabels();
 
-	// Now apply these labels to all documents
-	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
-		docIter != documentsList.end(); ++docIter)
+	if (index.isGood() == true)
 	{
-		// Check the document ID
-		unsigned int docId = docIter->getID();
-		if (docId == 0)
+		// Now apply these labels to all the documents
+		for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
+			docIter != documentsList.end(); ++docIter)
 		{
-			continue;
+			// Set the document's labels list
+			index.setDocumentLabels(docIter->getID(), labels);
 		}
-		// Set the document's labels list
-		labelMan.setLabels(docId, mapIter->second, labels);
 	}
 
 	if ((documentsList.size() == 1) &&
 		(docId > 0))
 	{
-		bool matchesLabel = false;
-
-		// Does the sole selected document match the current label now ?
-		string currentLabelName;
-		if ((m_state.getCurrentLabel(currentLabelName) > 0) &&
-			(find(labels.begin(), labels.end(), currentLabelName) != labels.end()))
-		{
-			matchesLabel = true;
-		}
-
-		// Was there any change ?
-		if (matchesLabel != matchedLabel)
-		{
-			// Update this document to the index tree
-			m_pIndexTree->setDocumentLabeledState(docId, matchesLabel);
-		}
-
 		string newTitle = propertiesBox.getDocumentInfo().getTitle();
 		if (newTitle != docInfo.getTitle())
 		{
@@ -1787,10 +1771,12 @@ void mainWindow::on_showfromindex_activate()
 	{
 		string currentLabelName;
 
-		// Because the current label may have been applied to or removed from
-		// one or more of the selected documents, refresh the list of matching documents
-		m_state.getCurrentLabel(currentLabelName);
-		start_thread(new LabelQueryThread(m_state.getCurrentIndex(), currentLabelName));
+		if (m_state.getCurrentLabel(currentLabelName) > 0)
+		{
+			// The current label may have been applied to or removed from
+			// one or more of the selected documents, so refresh the list
+			start_thread(new LabelQueryThread(m_state.getCurrentIndex(), currentLabelName));
+		}
 	}
 }
 
@@ -2533,15 +2519,16 @@ void mainWindow::browse_index(unsigned int startDoc)
 void mainWindow::index_document(const DocumentInfo &docInfo,
 	const string &labelName, unsigned int docId)
 {
-	LabelManager labelMan(m_settings.m_historyDatabase);
 	Url urlObj(docInfo.getLocation());
-	string indexName = m_settings.m_indexLocation;
+	string indexLocation = m_settings.m_indexLocation;
 
 	// If the document is mail, we need to check My Email
 	if (urlObj.getProtocol() == "mailbox")
 	{
-		indexName = m_settings.m_mailIndexLocation;
+		indexLocation = m_settings.m_mailIndexLocation;
 	}
+
+	XapianIndex index(indexLocation);
 
 	// Is it an update ?
 	if (docId > 0)
@@ -2551,7 +2538,6 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 	}
 	else
 	{
-		XapianIndex index(indexName);
 		string url(docInfo.getLocation());
 		bool isNewDocument = false;
 
@@ -2559,7 +2545,7 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 		// or is being indexed
 		if (index.isGood() == true)
 		{
-			docId = index.hasDocument(docInfo);
+			docId = index.hasDocument(url);
 		}
 		if ((docId == 0) &&
 			(m_state.writeLock(4) == true))
@@ -2589,31 +2575,12 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 	{
 		set<string> docLabels;
 
-		// Get the labels for this document
-		labelMan.getLabels(docId, indexName, docLabels);
-
-		// Add this new label if it's not in
-		if (find(docLabels.begin(), docLabels.end(), labelName) == docLabels.end())
-		{
+		// Add this new label
 #ifdef DEBUG
-			cout << "mainWindow::index_document: applying label " << labelName << " to document " << docId << endl;
+		cout << "mainWindow::index_document: applying label " << labelName << " to document " << docId << endl;
 #endif
-			// Update the document's labels list
-			docLabels.insert(labelName);
-			labelMan.setLabels(docId, indexName, docLabels);
-
-			// Is this the current label ?
-			string currentLabelName;
-			if ((m_state.getCurrentLabel(currentLabelName) > 0) &&
-				(labelName == currentLabelName))
-			{
-				// Update this document in the index tree
-				m_pIndexTree->setDocumentLabeledState(docId, true);
-			}
-		}
-#ifdef DEBUG
-		else cout << "mainWindow::index_document: label " << labelName << " already applied to document " << docId << endl;
-#endif
+		docLabels.insert(labelName);
+		index.setDocumentLabels(docId, docLabels, false);
 	}
 }
 

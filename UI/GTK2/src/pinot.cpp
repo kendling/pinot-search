@@ -28,7 +28,6 @@
 #include "TokenizerFactory.h"
 #include "Languages.h"
 #include "ActionHistory.h"
-#include "LabelManager.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "XapianDatabase.h"
@@ -120,7 +119,6 @@ int main(int argc, char **argv)
 	// Do the same for the history database
 	if ((settings.m_historyDatabase.empty() == true) ||
 		(ActionHistory::create(settings.m_historyDatabase) == false) ||
-		(LabelManager::create(settings.m_historyDatabase) == false) ||
 		(QueryHistory::create(settings.m_historyDatabase) == false) ||
 		(ViewHistory::create(settings.m_historyDatabase) == false))
 	{

@@ -1007,12 +1007,11 @@ bool ResultsTree::appendResult(const string &text, const string &url,
 	string strippedText = HtmlTokenizer::stripTags(text);
 	XapianIndex index(m_settings.m_indexLocation);
 	ViewHistory viewHistory(m_settings.m_historyDatabase);
-	DocumentInfo docInfo(text, url, "", language);
 	bool isIndexed = false;
 
 	// Is this document indexed ?
 	if ((index.isGood() == true) &&
-		(index.hasDocument(docInfo) > 0))
+		(index.hasDocument(url) > 0))
 	{
 		isIndexed = true;
 	}

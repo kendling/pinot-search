@@ -28,10 +28,14 @@ queryDialog::queryDialog(QueryProperties &properties) :
 {
 	string name = m_properties.getName();
 
-	// Associate the columns model to the label combo
-	m_refLabelTree = ListStore::create(m_labelColumns);
-	labelCombobox->set_model(m_refLabelTree);
-	labelCombobox->pack_start(m_labelColumns.m_name);
+	// Associate the columns model to the index label combo
+	m_refLabelNameTree = ListStore::create(m_labelNameColumns);
+	labelNameCombobox->set_model(m_refLabelNameTree);
+	labelNameCombobox->pack_start(m_labelNameColumns.m_name);
+	// ...and the label filter combo
+	m_refLabelFilterTree = ListStore::create(m_labelFilterColumns);
+	labelFilterCombobox->set_model(m_refLabelFilterTree);
+	labelFilterCombobox->pack_start(m_labelFilterColumns.m_name);
 	// Associate the columns model to the language combo
 	m_refLanguageTree = ListStore::create(m_languageColumns);
 	languageCombobox->set_model(m_refLanguageTree);
@@ -55,9 +59,9 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	notEntry->set_text(locale_to_utf8(m_properties.getNotWords()));
 
 	// Host name
-	hostNameEntry->set_text(locale_to_utf8(m_properties.getHostNameFilter()));
+	hostNameEntry->set_text(locale_to_utf8(m_properties.getHostFilter()));
 	// File name
-	fileNameEntry->set_text(locale_to_utf8(m_properties.getFileNameFilter()));
+	fileNameEntry->set_text(locale_to_utf8(m_properties.getFileFilter()));
 	// Maximum number of results
 	resultsCountSpinbutton->set_value((double)m_properties.getMaximumResultsCount());
 	// Index all results
@@ -71,45 +75,47 @@ queryDialog::~queryDialog()
 void queryDialog::populate_comboboxes()
 {
 	unsigned int labelNum = 1;
-	bool foundLanguage = false;
 
-	TreeModel::iterator iter = m_refLabelTree->append();
+	TreeModel::iterator iter = m_refLabelNameTree->append();
 	TreeModel::Row row = *iter;
-	row[m_labelColumns.m_name] = "None";
-	labelCombobox->set_active(0);
+	row[m_labelNameColumns.m_name] = _("None");
+	labelNameCombobox->set_active(0);
 
-#ifdef DEBUG
-	cout << "queryDialog::populate_comboboxes: looking for " << m_properties.getLabelName() << endl;
-#endif
-	// Add all labels to the combo and select the one defined for the query
+	iter = m_refLabelFilterTree->append();
+	row = *iter;
+	row[m_labelFilterColumns.m_name] = _("Any");
+	labelFilterCombobox->set_active(0);
+
+	// Add all labels to both label combos and select the one defined for the query
 	for (set<PinotSettings::Label>::const_iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
 	{
 		string labelName = labelIter->m_name;
 
-		iter = m_refLabelTree->append();
+		iter = m_refLabelNameTree->append();
 		row = *iter;
-		row[m_labelColumns.m_name] = locale_to_utf8(labelName);
-#ifdef DEBUG
-	cout << "queryDialog::populate_comboboxes: added label " << labelName << endl;
-#endif
-
+		row[m_labelNameColumns.m_name] = locale_to_utf8(labelName);
 		if (labelName == m_properties.getLabelName())
 		{
-			labelCombobox->set_active(labelNum);
-			// Keep going
+			labelNameCombobox->set_active(labelNum);
 		}
+
+		iter = m_refLabelFilterTree->append();
+		row = *iter;
+		row[m_labelFilterColumns.m_name] = locale_to_utf8(labelName);
+		if (labelName == m_properties.getLabelFilter())
+		{
+			labelFilterCombobox->set_active(labelNum);
+		}
+
 		++labelNum;
 	}
 
-	string queryLanguage = m_properties.getLanguage();
 	iter = m_refLanguageTree->append();
 	row = *iter;
 	row[m_languageColumns.m_name] = _("Any");
+	languageCombobox->set_active(0);
 
 	// Add all supported languages and select the one defined for the query
-#ifdef DEBUG
-	cout << "queryDialog::populate_comboboxes: looking for " << queryLanguage << endl;
-#endif
 	for (unsigned int languageNum = 0; languageNum < Languages::m_count; ++languageNum)
 	{
 		string languageName = Languages::getIntlName(languageNum);
@@ -117,20 +123,13 @@ void queryDialog::populate_comboboxes()
 		row = *iter;
 		row[m_languageColumns.m_name] = languageName;
 
-		if ((foundLanguage == false) &&
-			(queryLanguage.empty() == false) &&
-			(queryLanguage == languageName))
+		if (languageName == m_properties.getLanguage())
 		{
 #ifdef DEBUG
 			cout << "queryDialog::populate_comboboxes: found at " << languageNum << endl;
 #endif
 			languageCombobox->set_active(languageNum + 1);
-			foundLanguage = true;
 		}
-	}
-	if (foundLanguage == false)
-	{
-		languageCombobox->set_active(0);
 	}
 }
 
@@ -176,34 +175,34 @@ void queryDialog::on_queryOkbutton_clicked()
 			m_properties.setLanguage(Languages::getIntlName(chosenLanguage));
 		}
 	}
-	// Host name
-	m_properties.setHostNameFilter(locale_from_utf8(hostNameEntry->get_text()));
-	// File name
-	m_properties.setFileNameFilter(locale_from_utf8(fileNameEntry->get_text()));
 	// Maximum number of results
 	m_properties.setMaximumResultsCount((unsigned int)resultsCountSpinbutton->get_value());
 	// Index all results
 	m_properties.setIndexResults(indexCheckbutton->get_active());
-	// Label
-	int chosenLabel = labelCombobox->get_active_row_number();
-#ifdef DEBUG
-	cout << "queryDialog::on_queryOkbutton_clicked: chosen label " << chosenLabel << endl;
-#endif
-	if (chosenLabel == 0)
+	// Index label
+	int chosenLabel = labelNameCombobox->get_active_row_number();
+	m_properties.setLabelName("");
+	if (chosenLabel > 0)
 	{
-		// No label
-		m_properties.setLabelName("");
-	}
-	else
-	{
-		TreeModel::iterator iter = labelCombobox->get_active();
+		TreeModel::iterator iter = labelNameCombobox->get_active();
 		TreeModel::Row row = *iter;
-		string labelName = locale_from_utf8(row[m_labelColumns.m_name]);
+		string labelName = locale_from_utf8(row[m_labelNameColumns.m_name]);
 
-#ifdef DEBUG
-		cout << "queryDialog::on_queryOkbutton_clicked: label is " << labelName << endl;
-#endif
 		m_properties.setLabelName(labelName);
+	}
+	// Filters
+	m_properties.setHostFilter(locale_from_utf8(hostNameEntry->get_text()));
+	m_properties.setFileFilter(locale_from_utf8(fileNameEntry->get_text()));
+	// Label filter
+	chosenLabel = labelFilterCombobox->get_active_row_number();
+	m_properties.setLabelFilter("");
+	if (chosenLabel > 0)
+	{
+		TreeModel::iterator iter = labelFilterCombobox->get_active();
+		TreeModel::Row row = *iter;
+		string labelName = locale_from_utf8(row[m_labelFilterColumns.m_name]);
+
+		m_properties.setLabelFilter(labelName);
 	}
 }
 

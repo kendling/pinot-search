@@ -177,6 +177,31 @@ class LabelQueryThread : public WorkerThread
 
 };
 
+class LabelUpdateThread : public WorkerThread
+{
+	public:
+		LabelUpdateThread(const std::set<std::string> &labelsToDelete,
+			const std::map<std::string, std::string> &labelsToRename);
+		virtual ~LabelUpdateThread();
+
+		virtual bool start(void);
+
+		virtual std::string getType(void) const;
+
+		virtual bool stop(void);
+
+	protected:
+		std::set<std::string> m_labelsToDelete;
+		std::map<std::string, std::string> m_labelsToRename;
+
+		void do_update();
+
+	private:
+		LabelUpdateThread(const LabelUpdateThread &other);
+		LabelUpdateThread &operator=(const LabelUpdateThread &other);
+
+};
+
 class DownloadingThread : public WorkerThread
 {
 	public:

@@ -33,10 +33,12 @@ protected:
 	std::string m_name;
 	QueryProperties& m_properties;
 	const std::set<PinotSettings::Label> &m_labels;
-	ComboModelColumns m_labelColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refLabelTree;
+	ComboModelColumns m_labelNameColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
 	ComboModelColumns m_languageColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLanguageTree;
+	ComboModelColumns m_labelFilterColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refLabelFilterTree;
 	bool m_badName;
 
 	void populate_comboboxes();

@@ -15,7 +15,6 @@
 
 #include "MIMEScanner.h"
 #include "SearchEngineFactory.h"
-#include "LabelManager.h"
 #include "QueryHistory.h"
 #include "Url.h"
 #include "config.h"
@@ -86,11 +85,19 @@ prefsDialog::~prefsDialog()
 {
 }
 
+const set<string> &prefsDialog::getLabelsToDelete(void) const
+{
+	return m_deletedLabels;
+}
+
+const map<string, string> &prefsDialog::getLabelsToRename(void) const
+{
+	return m_renamedLabels;
+}
+
 const set<string> &prefsDialog::getMailLabelsToDelete(void) const
 {
-	// This will have been reset by save_labelsTreeview()
-	// and set by save_mailTreeview() !
-	return m_deletedLabels;
+	return m_deletedMail;
 }
 
 void prefsDialog::populate_comboboxes()
@@ -149,8 +156,6 @@ void prefsDialog::populate_labelsTreeview()
 
 bool prefsDialog::save_labelsTreeview()
 {
-	LabelManager labelMan(m_settings.m_historyDatabase);
-
 	// Clear the current settings
 	m_settings.m_labels.clear();
 
@@ -172,7 +177,7 @@ bool prefsDialog::save_labelsTreeview()
 				(label.m_name != oldName))
 			{
 				// Yes, it was
-				labelMan.renameLabel(locale_from_utf8(oldName), locale_from_utf8(label.m_name));
+				m_renamedLabels[locale_from_utf8(oldName)] = locale_from_utf8(label.m_name);
 			}
 			// Check user didn't recreate this label after having deleted it
 			set<string>::iterator labelIter = m_deletedLabels.find(locale_from_utf8(label.m_name));
@@ -191,13 +196,6 @@ bool prefsDialog::save_labelsTreeview()
 			m_settings.m_labels.insert(label);
 		}
 	}
-
-	// Remove all references to labels that have been deleted
-	for (set<string>::iterator labelIter = m_deletedLabels.begin(); labelIter != m_deletedLabels.end(); ++labelIter)
-	{
-		labelMan.deleteLabel(*labelIter);
-	}
-	m_deletedLabels.clear();
 
 	return true;
 }
@@ -258,8 +256,11 @@ bool prefsDialog::save_mailTreeview()
 				mailAccount.m_modTime = row[m_mailColumns.m_mTime];
 				mailAccount.m_lastMessageTime = row[m_mailColumns.m_minDate];
 
+				string mailLabel("mailbox://");
+				mailLabel += locale_from_utf8(mailAccount.m_name);
+
 				// Check user didn't recreate this mail account after having deleted it
-				set<ustring>::iterator mailIter = m_deletedMail.find(mailAccount.m_name);
+				set<string>::iterator mailIter = m_deletedMail.find(mailLabel);
 				if (mailIter != m_deletedMail.end())
 				{
 					m_deletedMail.erase(mailIter);
@@ -275,19 +276,6 @@ bool prefsDialog::save_mailTreeview()
 				<< ", file " << row[m_mailColumns.m_location] << ", is not supported" << endl;
 #endif
 		}
-	}
-
-	// Remove all documents from deleted mail accounts
-	for (set<ustring>::iterator mailIter = m_deletedMail.begin(); mailIter != m_deletedMail.end(); ++mailIter)
-	{
-		string sourceLabel = "mailbox://";
-		sourceLabel += *mailIter;
-
-		// Reuse the labels list
-		m_deletedLabels.insert(sourceLabel);
-#ifdef DEBUG
-		cout << "prefsDialog::save_mailTreeview: will unindex documents from " << *mailIter << endl;
-#endif
 	}
 
 	return true;
@@ -492,15 +480,19 @@ void prefsDialog::on_removeAccountButton_clicked()
 	TreeModel::iterator iter = mailTreeview->get_selection()->get_selected();
 	if (iter)
 	{
+		string mailLabel("mailbox://");
+
 		// Unselect
 		mailTreeview->get_selection()->unselect(iter);
 		// Select another row
 		TreeModel::Path path = m_refMailTree->get_path(iter);
 		path.next();
 		mailTreeview->get_selection()->select(path);
+
 		// Erase
 		TreeModel::Row row = *iter;
-		m_deletedMail.insert(row[m_mailColumns.m_location]);
+		mailLabel += locale_from_utf8(row[m_mailColumns.m_location]);
+		m_deletedMail.insert(mailLabel);
 		m_refMailTree->erase(row);
 
 		TreeModel::Children children = m_refMailTree->children();
