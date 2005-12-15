@@ -36,16 +36,42 @@ class XapianIndex : public IndexInterface
 		virtual std::string getLocation(void) const;
 
 		/// Indexes the given data.
-		virtual bool indexDocument(Tokenizer &tokens, unsigned int &docId);
+		virtual bool indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+			unsigned int &docId);
 
-		/// Updates the given document; true if success.
+		/// Returns a document's properties.
+		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const;
+
+		/// Returns a document's labels.
+		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const;
+
+		/// Returns documents that have a label.
+		virtual bool getDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds) const;
+
+		/// Updates the given document.
 		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens);
 
-		/// Returns the ID of the given document.
-		virtual unsigned int hasDocument(const DocumentInfo &docInfo) const;
+		/// Updates a document's properties.
+		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);
 
-		/// Unindexes the given document; true if success.
+		/// Sets a document's labels.
+		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
+			bool resetLabels = true);
+
+		/// Checks whether the given URL is in the index.
+		virtual unsigned int hasDocument(const std::string &url) const;
+
+		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId);
+
+		/// Unindexes documents with the given label.
+		virtual bool unindexDocuments(const std::string &labelName);
+
+		/// Renames a label.
+		virtual bool renameLabel(const std::string &name, const std::string &newName);
+
+		/// Deletes all references to a label.
+		virtual bool deleteLabel(const std::string &name);
 
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void);
@@ -58,12 +84,6 @@ class XapianIndex : public IndexInterface
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0,
 			bool sortByDate = false) const;
 
-		/// Returns a document's properties.
-		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const;
-
-		/// Updates a document's properties.
-		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);
-
 	protected:
 		static const unsigned int m_maxTermLength;
 		static const std::string MAGIC_TERM;
@@ -71,8 +91,8 @@ class XapianIndex : public IndexInterface
 		IndexHistory *m_pHistory;
 		std::string m_stemLanguage;
 
-		bool addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
-			Xapian::termcount &termPos, const std::string &prefix, StemmingMode mode) const;
+		void addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
+			const std::string &prefix, Xapian::termcount &termPos, StemmingMode mode) const;
 
 		bool prepareDocument(const DocumentInfo &info, Xapian::Document &doc,
 			Xapian::termcount &termPos, const std::string &summary) const;
@@ -80,8 +100,8 @@ class XapianIndex : public IndexInterface
 		std::string scanDocument(const char *pData, unsigned int dataLength,
 			DocumentInfo &info);
 
-		void setDocumentData(Xapian::Document &doc, const DocumentInfo &info, const string &extract,
-			const string &language) const;
+		void setDocumentData(Xapian::Document &doc, const DocumentInfo &info,
+			const std::string &extract, const std::string &language) const;
 
 	private:
 		XapianIndex(const XapianIndex &other);

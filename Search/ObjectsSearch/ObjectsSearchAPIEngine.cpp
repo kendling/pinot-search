@@ -104,8 +104,8 @@ bool ObjectsSearchAPIEngine::makeCall(const string &query)
 /// Runs a query; true if success.
 bool ObjectsSearchAPIEngine::runQuery(QueryProperties& queryProps)
 {
-	setHostNameFilter(queryProps.getHostNameFilter());
-	setFileNameFilter(queryProps.getFileNameFilter());
+	setHostNameFilter(queryProps.getHostFilter());
+	setFileNameFilter(queryProps.getFileFilter());
 
 	// See http://www.objectssearch.com/en/help.html for a description of queries
 	string query = queryProps.getAndWords();

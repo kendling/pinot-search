@@ -67,8 +67,8 @@ XapianIndex::~XapianIndex()
 	}
 }
 
-bool XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
-	Xapian::termcount &termPos, const string &prefix, StemmingMode mode) const
+void XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
+	const string &prefix, Xapian::termcount &termPos, StemmingMode mode) const
 {
 	Xapian::Stem *pStemmer = NULL;
 	string term;
@@ -86,34 +86,30 @@ bool XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 		{
 			continue;
 		}
-
 		// Lower case the term
 		term = StringManip::toLowerCase(term);
+
 		// Stem the term ?
 		if ((mode == STORE_UNSTEM) ||
 			(pStemmer == NULL))
 		{
-			// Add the term to the document
-			doc.add_posting(prefix + term, termPos);
+			doc.add_posting(prefix + term,  termPos++);
 		}
 		else if (mode == STORE_STEM)
 		{
 			string stemmedTerm = pStemmer->stem_word(term);
 
-			// Add the stemmed term to the document
-			doc.add_posting(prefix + stemmedTerm, termPos);
+			doc.add_posting(prefix + stemmedTerm,  termPos++);
 		}
 		else if (mode == STORE_BOTH)
 		{
 			string stemmedTerm = pStemmer->stem_word(term);
 
 			// Add both
-			doc.add_posting(prefix + term, termPos);
-			doc.add_posting(prefix + stemmedTerm, termPos);
+			doc.add_posting(prefix + term,  termPos);
+			// ...at the same position
+			doc.add_posting(prefix + stemmedTerm,  termPos++);
 		}
-
-		// Next
-		termPos++;
 	}
 #ifdef DEBUG
 	cout << "XapianIndex::addTermsToDocument: added " << termPos << " terms" << endl;
@@ -123,16 +119,13 @@ bool XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 	{
 		delete pStemmer;
 	}
-
-	return true;
 }
 
 bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &doc,
 	Xapian::termcount &termPos, const std::string &summary) const
 {
 	// Add a magic term :-)
-	doc.add_posting(MAGIC_TERM, termPos);
-	termPos++;
+	doc.add_posting(MAGIC_TERM, termPos++);
 
 	// Index the title with and without prefix T
 	string title = info.getTitle();
@@ -141,9 +134,9 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 		Document titleDoc;
 		titleDoc.setData(title.c_str(), title.length());
 		Tokenizer titleTokens(&titleDoc);
-		termPos = addTermsToDocument(titleTokens, doc, termPos, "T", STORE_UNSTEM);
+		addTermsToDocument(titleTokens, doc, "T", termPos, STORE_UNSTEM);
 		titleTokens.rewind();
-		termPos = addTermsToDocument(titleTokens, doc, termPos, "", m_stemMode);
+		addTermsToDocument(titleTokens, doc, "", termPos, m_stemMode);
 	}
 
 	// Index the full URL with prefix U
@@ -158,12 +151,12 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 
 	// ...the host name with prefix H
 	string hostName = urlObj.getHost();
-	doc.add_posting(string("H") + StringManip::toLowerCase(hostName), termPos++);
+	doc.add_term(string("H") + StringManip::toLowerCase(hostName));
 	// ...and the file name with prefix F
 	string fileName = urlObj.getFile();
-	doc.add_posting(string("F") + StringManip::toLowerCase(fileName), termPos++);
+	doc.add_term(string("F") + StringManip::toLowerCase(fileName));
 	// Finally, add the language with prefix L
-	doc.add_posting(string("L") + StringManip::toLowerCase(m_stemLanguage), termPos++);
+	doc.add_term(string("L") + StringManip::toLowerCase(m_stemLanguage));
 
 	setDocumentData(doc, info, summary, m_stemLanguage);
 
@@ -278,7 +271,8 @@ string XapianIndex::getLocation(void) const
 }
 
 /// Indexes the given data.
-bool XapianIndex::indexDocument(Tokenizer &tokens, unsigned int &docId)
+bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+			unsigned int &docId)
 {
 	unsigned int dataLength = 0;
 	bool indexed = false;
@@ -326,7 +320,13 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, unsigned int &docId)
 		Xapian::termcount termPos = 0;
 
 		// Add the tokenizer's terms to the Xapian document
-		termPos = addTermsToDocument(tokens, doc, termPos, "", m_stemMode);
+		addTermsToDocument(tokens, doc, "", termPos, m_stemMode);
+		// Add labels
+		for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
+			++labelIter)
+		{
+			doc.add_term(string("C") + *labelIter);
+		}
 		if (prepareDocument(docInfo, doc, termPos, summary) == true)
 		{
 			Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
@@ -351,6 +351,105 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, unsigned int &docId)
 	}
 
 	return indexed;
+}
+
+/// Returns a document's properties.
+bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const
+{
+	if (m_pHistory == NULL)
+	{
+		return false;
+	}
+
+	return m_pHistory->getItem(docId, docInfo);
+}
+
+/// Returns a document's labels.
+bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) const
+{
+	bool gotLabels = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	labels.clear();
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			for (Xapian::TermIterator termIter = pIndex->termlist_begin(docId);
+				termIter != pIndex->termlist_end(docId); ++termIter)
+			{
+				// Is this a label ?
+				if ((*termIter)[0] == 'C')
+				{
+					labels.insert((*termIter).substr(1));
+				}
+			}
+			gotLabels = true;
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get document's labels: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get document's labels, unknown exception occured" << endl;
+	}
+
+	return gotLabels;
+}
+
+/// Returns documents that have a label.
+bool XapianIndex::getDocumentsWithLabel(const string &name, set<unsigned int> &docIds) const
+{
+	bool lookedForLabel = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	docIds.clear();
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			string term("C");
+
+			// Get documents that have this label
+			term += name;
+			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
+				postingIter != pIndex->postlist_end(term); ++postingIter)
+			{
+				Xapian::docid docId = *postingIter;
+
+				docIds.insert(docId);
+			}
+			lookedForLabel = true;
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get documents: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get documents, unknown exception occured" << endl;
+	}
+
+	return lookedForLabel;
 }
 
 /// Updates the given document; true if success.
@@ -388,11 +487,22 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 
 	try
 	{
+		set<string> labels;
 		Xapian::Document doc;
 		Xapian::termcount termPos = 0;
 
 		// Add the tokenizer's terms to the document
-		termPos = addTermsToDocument(tokens, doc, termPos, "", m_stemMode);
+		 addTermsToDocument(tokens, doc, "", termPos, m_stemMode);
+		// Get the document's labels
+		if (getDocumentLabels(docId, labels) == true)
+		{
+			// Add labels
+			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
+				++labelIter)
+			{
+				doc.add_term(string("C") + *labelIter);
+			}
+		}
 		if (prepareDocument(docInfo, doc, termPos, summary) == true)
 		{
 			Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
@@ -418,8 +528,118 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	return updated;
 }
 
-/// Returns the ID of the given document.
-unsigned int XapianIndex::hasDocument(const DocumentInfo &docInfo) const
+/// Updates a document's properties.
+bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo)
+{
+	bool updated = false;
+
+	if (docId == 0)
+	{
+		return false;
+	}
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			Xapian::Document doc = pIndex->get_document(docId);
+
+			// Get the current document data
+			string record = doc.get_data();
+			string extract = StringManip::extractField(record, "sample=", "\n");
+			string language = StringManip::extractField(record, "language=", "\n");
+
+			// Update the document data with the new extract
+			setDocumentData(doc, docInfo, extract, language);
+			// Update the document
+			if (m_pHistory->updateItem(docId, docInfo) == true)
+			{
+				pIndex->replace_document(docId, doc);
+				updated = true;
+			}
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't update document: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't update document, unknown exception occured" << endl;
+	}
+
+	return updated;
+}
+
+/// Sets a document's labels.
+bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
+	bool resetLabels)
+{
+	bool updatedLabels = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			Xapian::Document doc = pIndex->get_document(docId);
+
+			// Reset existing labels ?
+			if (resetLabels == true)
+			{
+				for (Xapian::TermIterator termIter = doc.termlist_begin();
+					termIter != doc.termlist_end(); ++termIter)
+				{
+					// Is this a label ?
+					if ((*termIter)[0] == 'C')
+					{
+						doc.remove_term(*termIter);
+					}
+				}
+			}
+
+			// Set new labels
+			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
+				++labelIter)
+			{
+				doc.add_term(string("C") + *labelIter);
+			}
+
+			pIndex->replace_document(docId, doc);
+			updatedLabels = true;
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't update document's labels: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't update document's labels, unknown exception occured" << endl;
+	}
+
+	return updatedLabels;
+}
+
+/// Checks whether the given URL is in the index.
+unsigned int XapianIndex::hasDocument(const string &url) const
 {
 	if (m_pHistory == NULL)
 	{
@@ -427,7 +647,7 @@ unsigned int XapianIndex::hasDocument(const DocumentInfo &docInfo) const
 	}
 
 	// Is this URL in the history file ?
-	return m_pHistory->hasURL(docInfo.getLocation());
+	return m_pHistory->hasURL(url);
 }
 
 /// Unindexes the given document; true if success.
@@ -471,6 +691,153 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 	}
 
 	return unindexed;
+}
+
+/// Unindexes documents with the given label.
+bool XapianIndex::unindexDocuments(const string &labelName)
+{
+	bool unindexed = false;
+
+	if (labelName.empty() == true)
+	{
+		return false;
+	}
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if ((pDatabase == NULL) ||
+		(m_pHistory == NULL))
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			string term("C");
+
+			// Delete documents from the index
+			term += labelName;
+			pIndex->delete_document(term);
+			// FIXME: remove entries from the history file
+			//m_pHistory->deleteItem(docId);
+			unindexed = true;
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't unindex documents: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't unindex documents, unknown exception occured" << endl;
+	}
+
+	return unindexed;
+}
+
+/// Renames a label.
+bool XapianIndex::renameLabel(const string &name, const string &newName)
+{
+	bool renamedLabel = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			string term("C");
+
+			// Get documents that have this label
+			term += name;
+			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
+				postingIter != pIndex->postlist_end(term); ++postingIter)
+			{
+				Xapian::docid docId = *postingIter;
+
+				// Get the document
+				Xapian::Document doc = pIndex->get_document(docId);
+				// Remove the term
+				doc.remove_term(term);
+				// ...add the new one
+				doc.add_term(string("C") + newName);
+				// ...and update the document
+				pIndex->replace_document(docId, doc);
+			}
+
+			renamedLabel = true;
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't delete label: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't delete label, unknown exception occured" << endl;
+	}
+
+	return renamedLabel;
+}
+
+/// Deletes all references to a label.
+bool XapianIndex::deleteLabel(const string &name)
+{
+	bool deletedLabel = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			string term("C");
+
+			// Get documents that have this label
+			term += name;
+			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
+				postingIter != pIndex->postlist_end(term); ++postingIter)
+			{
+				Xapian::docid docId = *postingIter;
+
+				// Get the document
+				Xapian::Document doc = pIndex->get_document(docId);
+				// Remove the term
+				doc.remove_term(term);
+				// ...and update the document
+				pIndex->replace_document(docId, doc);
+			}
+			deletedLabel = true;
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't delete label: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't delete label, unknown exception occured" << endl;
+	}
+
+	return deletedLabel;
 }
 
 /// Flushes recent changes to the disk.
@@ -555,67 +922,4 @@ unsigned int XapianIndex::getDocumentIDs(set<unsigned int> &docIDList,
 	docIDList.clear();
 
 	return m_pHistory->listItems(docIDList, maxDocsCount, startDoc, sortByDate);
-}
-
-/// Returns a document's properties.
-bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const
-{
-	if (m_pHistory == NULL)
-	{
-		return false;
-	}
-
-	return m_pHistory->getItem(docId, docInfo);
-}
-
-/// Updates a document's properties.
-bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo)
-{
-	bool updated = false;
-
-	if (docId == 0)
-	{
-		return false;
-	}
-
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return false;
-	}
-
-	try
-	{
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-		if (pIndex != NULL)
-		{
-			Xapian::Document doc = pIndex->get_document(docId);
-
-			// Get the current document data
-			string record = doc.get_data();
-			string extract = StringManip::extractField(record, "sample=", "\n");
-			string language = StringManip::extractField(record, "language=", "\n");
-
-			// Update the document data with the new extract
-			setDocumentData(doc, docInfo, extract, language);
-			// Update the document
-			if (m_pHistory->updateItem(docId, docInfo) == true)
-			{
-				pIndex->replace_document(docId, doc);
-				updated = true;
-			}
-		}
-		pDatabase->unlock();
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't update document: " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't update document, unknown exception occured" << endl;
-	}
-
-	return updated;
 }

@@ -41,16 +41,42 @@ class IndexInterface
 		virtual std::string getLocation(void) const = 0;
 
 		/// Indexes the given data.
-		virtual bool indexDocument(Tokenizer &tokens, unsigned int &docId) = 0;
+		virtual bool indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+			unsigned int &docId) = 0;
 
-		/// Updates the given document; true if success.
+		/// Returns a document's properties.
+		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const = 0;
+
+		/// Returns a document's labels.
+		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const = 0;
+
+		/// Returns documents that have a label.
+		virtual bool getDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds) const = 0;
+
+		/// Updates the given document.
 		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens) = 0;
 
-		/// Returns the ID of the given document.
-		virtual unsigned int hasDocument(const DocumentInfo &docInfo) const = 0;
+		/// Updates a document's properties.
+		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo) = 0;
 
-		/// Unindexes the given document; true if success.
+		/// Sets a document's labels.
+		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
+			bool resetLabels = true) = 0;
+
+		/// Checks whether the given URL is in the index.
+		virtual unsigned int hasDocument(const std::string &url) const = 0;
+
+		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId) = 0;
+
+		/// Unindexes documents with the given label.
+		virtual bool unindexDocuments(const std::string &labelName) = 0;
+
+		/// Renames a label.
+		virtual bool renameLabel(const std::string &name, const std::string &newName) = 0;
+
+		/// Deletes all references to a label.
+		virtual bool deleteLabel(const std::string &name) = 0;
 
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void) = 0;
@@ -62,12 +88,6 @@ class IndexInterface
 		virtual unsigned int getDocumentIDs(std::set<unsigned int> &docIDList,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0,
 			bool sortByDate = false) const = 0;
-
-		/// Returns a document's properties.
-		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const = 0;
-
-		/// Updates a document's properties.
-		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo) = 0;
 
 	protected:
 		StemmingMode m_stemMode;

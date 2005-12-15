@@ -43,8 +43,9 @@ QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_anyWords(other.m_anyWords),
 	m_notWords(other.m_notWords),
 	m_language(other.m_language),
-	m_hostName(other.m_hostName),
-	m_fileName(other.m_fileName),
+	m_hostFilter(other.m_hostFilter),
+	m_fileFilter(other.m_fileFilter),
+	m_labelFilter(other.m_labelFilter),
 	m_resultsCount(other.m_resultsCount),
 	m_indexResults(other.m_indexResults),
 	m_labelName(other.m_labelName)
@@ -63,8 +64,9 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 	m_anyWords = other.m_anyWords;
 	m_notWords = other.m_notWords;
 	m_language = other.m_language;
-	m_hostName = other.m_hostName;
-	m_fileName = other.m_fileName;
+	m_hostFilter = other.m_hostFilter;
+	m_fileFilter = other.m_fileFilter;
+	m_labelFilter = other.m_labelFilter;
 	m_resultsCount = other.m_resultsCount;
 	m_indexResults = other.m_indexResults;
 	m_labelName = other.m_labelName;
@@ -164,28 +166,40 @@ string QueryProperties::getLanguage(void) const
 	return m_language;
 }
 
-/// Sets host name filter.
-void QueryProperties::setHostNameFilter(const string &filter)
+/// Sets host filter.
+void QueryProperties::setHostFilter(const string &filter)
 {
-	m_hostName = filter;
+	m_hostFilter = filter;
 }
 
-/// Gets host name filter.
-string QueryProperties::getHostNameFilter(void) const
+/// Gets host filter.
+string QueryProperties::getHostFilter(void) const
 {
-	return 	m_hostName;
+	return 	m_hostFilter;
 }
 
-/// Sets file name filter.
-void QueryProperties::setFileNameFilter(const string &filter)
+/// Sets file filter.
+void QueryProperties::setFileFilter(const string &filter)
 {
-	m_fileName = filter;
+	m_fileFilter = filter;
 }
 
-/// Gets file name filter.
-string QueryProperties::getFileNameFilter(void) const
+/// Gets file filter.
+string QueryProperties::getFileFilter(void) const
 {
-	return m_fileName;
+	return m_fileFilter;
+}
+
+/// Sets label filter.
+void QueryProperties::setLabelFilter(const string &filter)
+{
+	m_labelFilter = filter;
+}
+
+/// Gets label filter.
+string QueryProperties::getLabelFilter(void) const
+{
+	return m_labelFilter;
 }
 
 /// Sets the maximum number of results.
@@ -286,15 +300,20 @@ string QueryProperties::toString(bool forPresentation) const
 			queryString += " +L";
 			queryString += m_language;
 		}
-		if (m_hostName.empty() == false)
+		if (m_hostFilter.empty() == false)
 		{
 			queryString += " +H";
-			queryString += m_hostName;
+			queryString += m_hostFilter;
 		}
-		if (m_fileName.empty() == false)
+		if (m_fileFilter.empty() == false)
 		{
 			queryString += " +F";
-			queryString += m_fileName;
+			queryString += m_fileFilter;
+		}
+		if (m_labelFilter.empty() == false)
+		{
+			queryString += " +C";
+			queryString += m_labelFilter;
 		}
 	}
 

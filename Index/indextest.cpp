@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
+#include <set>
 #include <iostream>
 
 #include "Document.h"
@@ -84,6 +86,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
+			set<string> labels;
 			unsigned int docId = 0;
 
 			Tokenizer *pTokens = TokenizerFactory::getTokenizer(argv[3], &doc);
@@ -96,7 +99,7 @@ int main(int argc, char **argv)
 			// Ignore index type, use a XapianIndex
 			XapianIndex index(argv[2]);
 			index.setStemmingMode(IndexInterface::STORE_BOTH);
-			if (index.indexDocument(*pTokens, docId) == false)
+			if (index.indexDocument(*pTokens, labels, docId) == false)
 			{
 				cerr << "Couldn't index " << argv[3] << " !" << endl;
 			}

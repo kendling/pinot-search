@@ -274,12 +274,12 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 	}
 
 	// Get the host name filter
-	if (queryProps.getHostNameFilter().empty() == false)
+	if (queryProps.getHostFilter().empty() == false)
 	{
 		vector<string> hostTerms;
 
 		term = "H";
-		term += StringManip::toLowerCase(queryProps.getHostNameFilter());
+		term += StringManip::toLowerCase(queryProps.getHostFilter());
 		hostTerms.push_back(term);
 		if (followOperators == true)
 		{
@@ -289,18 +289,33 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 	}
 
 	// Get the file name filter
-	if (queryProps.getFileNameFilter().empty() == false)
+	if (queryProps.getFileFilter().empty() == false)
 	{
 		vector<string> fileTerms;
 
 		term = "F";
-		term += StringManip::toLowerCase(queryProps.getFileNameFilter());
+		term += StringManip::toLowerCase(queryProps.getFileFilter());
 		fileTerms.push_back(term);
 		if (followOperators == true)
 		{
 			queryOp = Xapian::Query::OP_AND;
 		}
 		queryStack.push(Xapian::Query(queryOp, fileTerms.begin(), fileTerms.end()));
+	}
+
+	// Get the label name filter
+	if (queryProps.getLabelFilter().empty() == false)
+	{
+		vector<string> labelTerms;
+
+		term = "C";
+		term += queryProps.getLabelFilter();
+		labelTerms.push_back(term);
+		if (followOperators == true)
+		{
+			queryOp = Xapian::Query::OP_AND;
+		}
+		queryStack.push(Xapian::Query(queryOp, labelTerms.begin(), labelTerms.end()));
 	}
 
 	// Get the language filter

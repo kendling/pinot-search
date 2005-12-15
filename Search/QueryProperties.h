@@ -65,15 +65,20 @@ class QueryProperties
 		/// Gets the query's language.
 		string getLanguage(void) const;
 
-		/// Sets host name filter.
-		void setHostNameFilter(const string &filter);
-		/// Gets host name filter.
-		string getHostNameFilter(void) const;
+		/// Sets host filter.
+		void setHostFilter(const string &filter);
+		/// Gets host filter.
+		string getHostFilter(void) const;
 
-		/// Sets file name filter.
-		void setFileNameFilter(const string &filter);
-		/// Gets file name filter.
-		string getFileNameFilter(void) const;
+		/// Sets file filter.
+		void setFileFilter(const string &filter);
+		/// Gets file filter.
+		string getFileFilter(void) const;
+
+		/// Sets label filter.
+		void setLabelFilter(const string &filter);
+		/// Gets label filter.
+		string getLabelFilter(void) const;
 
 		/// Sets the maximum number of results.
 		void setMaximumResultsCount(unsigned int count);
@@ -100,8 +105,9 @@ class QueryProperties
 		string m_anyWords;
 		string m_notWords;
 		string m_language;
-		string m_hostName;
-		string m_fileName;
+		string m_hostFilter;
+		string m_fileFilter;
+		string m_labelFilter;
 		unsigned int m_resultsCount;
 		bool m_indexResults;
 		string m_labelName;

@@ -85,8 +85,8 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 	string andTerms = queryProps.getAndWords();
 	string phrase = queryProps.getPhrase();
 
-	setHostNameFilter(queryProps.getHostNameFilter());
-	setFileNameFilter(queryProps.getFileNameFilter());
+	setHostNameFilter(queryProps.getHostFilter());
+	setFileNameFilter(queryProps.getFileFilter());
 
 	if (m_key.empty() == true)
 	{

@@ -505,8 +505,8 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 		formattedQuery += tagIter->second;
 	}
 
-	setHostNameFilter(queryProps.getHostNameFilter());
-	setFileNameFilter(queryProps.getFileNameFilter());
+	setHostNameFilter(queryProps.getHostFilter());
+	setFileNameFilter(queryProps.getFileFilter());
 
 #ifdef DEBUG
 	cout << "PluginWebEngine::runQuery: querying " << m_name << endl;
