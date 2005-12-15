@@ -105,10 +105,8 @@ protected:
 
 	virtual void on_indexCombobox_changed();
 
-	virtual void on_indexFirstButton_clicked();
 	virtual void on_indexBackButton_clicked();
 	virtual void on_indexForwardButton_clicked();
-	virtual void on_indexLastButton_clicked();
 
 	virtual bool on_queryTreeview_button_press_event(GdkEventButton *ev);
 	virtual bool on_mainWindow_delete_event(GdkEventAny *ev);

@@ -293,10 +293,8 @@ mainWindow::mainWindow() :
 	//viewstop1->set_sensitive(false);
 	// ...and buttons
 	removeIndexButton->set_sensitive(false);
-	indexFirstButton->set_sensitive(false);
 	indexBackButton->set_sensitive(false);
 	indexForwardButton->set_sensitive(false);
-	indexLastButton->set_sensitive(false);
 
 	// Set focus on the query entry field
 	set_focus(*liveQueryEntry);
@@ -815,14 +813,6 @@ void mainWindow::on_thread_end()
 		cout << "mainWindow::on_thread_end: " << m_state.m_indexDocsCount
 			<< " documents, starting at " << m_state.m_startDoc << endl;
 #endif
-		if (m_state.m_startDoc > 0)
-		{
-			indexFirstButton->set_sensitive(true);
-		}
-		else
-		{
-			indexFirstButton->set_sensitive(false);
-		}
 		if (m_state.m_startDoc >= m_maxDocsCount)
 		{
 			indexBackButton->set_sensitive(true);
@@ -838,14 +828,6 @@ void mainWindow::on_thread_end()
 		else
 		{
 			indexForwardButton->set_sensitive(false);
-		}
-		if (m_state.m_indexDocsCount > m_state.m_startDoc + count)
-		{
-			indexLastButton->set_sensitive(true);
-		}
-		else
-		{
-			indexLastButton->set_sensitive(false);
 		}
 		m_state.m_browsingIndex = false;
 	}
@@ -1261,7 +1243,6 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 		++m_state.m_indexDocsCount;
 		// ...and make sure the user can display that last page
 		indexForwardButton->set_sensitive(true);
-		indexLastButton->set_sensitive(true);
 		return;
 	}
 
@@ -2093,15 +2074,6 @@ void mainWindow::on_indexCombobox_changed()
 }
 
 //
-// Index first button click
-//
-void mainWindow::on_indexFirstButton_clicked()
-{
-	m_state.m_startDoc = 0;
-	browse_index(m_state.m_startDoc);
-}
-
-//
 // Index back button click
 //
 void mainWindow::on_indexBackButton_clicked()
@@ -2126,18 +2098,6 @@ void mainWindow::on_indexForwardButton_clicked()
 	else if (m_state.m_indexDocsCount >= m_state.m_startDoc + m_maxDocsCount)
 	{
 		m_state.m_startDoc += m_maxDocsCount;
-		browse_index(m_state.m_startDoc);
-	}
-}
-
-//
-// Index last button click
-//
-void mainWindow::on_indexLastButton_clicked()
-{
-	if (m_state.m_indexDocsCount >= m_state.m_startDoc + m_maxDocsCount)
-	{
-		m_state.m_startDoc = m_state.m_indexDocsCount - (m_state.m_indexDocsCount % m_maxDocsCount);
 		browse_index(m_state.m_startDoc);
 	}
 }
