@@ -24,7 +24,6 @@
 #include <xapian.h>
 
 #include "DocumentInfo.h"
-#include "IndexHistory.h"
 #include "IndexInterface.h"
 
 class XapianDatabase
