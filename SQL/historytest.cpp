@@ -17,7 +17,6 @@
 #include <iostream>
 
 #include "ActionHistory.h"
-#include "IndexHistory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 
@@ -27,14 +26,13 @@ int main(int argc, char **argv)
 {
 	if (argc < 3)
 	{
-		cerr << "Usage: " << argv[0] << " <database> CREATE|CHECK=<url>|LISTACTIONS=<max>" << endl;
+		cerr << "Usage: " << argv[0] << " <database> CREATE|LISTACTIONS=<max>" << endl;
 		return EXIT_FAILURE;
 	}
 
 	if (strncmp(argv[2], "CREATE", 6) == 0)
 	{
 		if ((ActionHistory::create(argv[1]) == true) &&
-			(IndexHistory::create(argv[1]) == true) &&
 			(QueryHistory::create(argv[1]) == true) &&
 			(ViewHistory::create(argv[1]) == true))
 		{
@@ -43,19 +41,6 @@ int main(int argc, char **argv)
 		else
 		{
 			cout << "Couldn't create database " << argv[1] << endl;
-		}
-	}
-	else if (strncmp(argv[2], "CHECK=", 6) == 0)
-	{
-		IndexHistory history(argv[1]);
-
-		if (history.hasURL(argv[2] + 6) > 0)
-		{
-			cout << "URL exists in IndexHistory" << endl;
-		}
-		else
-		{
-			cout << "URL doesn't exist in IndexHistory" << endl;
 		}
 	}
 	else if (strncmp(argv[2], "LISTACTIONS=", 12) == 0)

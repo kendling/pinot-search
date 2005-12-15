@@ -276,7 +276,7 @@ string QueryProperties::toString(bool forPresentation) const
 		replace(tmp.begin(), tmp.end(), ' ', '-');
 		if (queryString.empty() == false)
 		{
-			queryString += "-";
+			queryString += " -";
 		}
 		queryString += tmp;
 		queryString += " ";

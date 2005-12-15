@@ -23,7 +23,6 @@
 #include <xapian.h>
 
 #include "DocumentInfo.h"
-#include "IndexHistory.h"
 #include "IndexInterface.h"
 
 class XapianIndex : public IndexInterface
@@ -80,7 +79,7 @@ class XapianIndex : public IndexInterface
 		virtual unsigned int getDocumentsCount(void) const;
 
 		/// Returns a list of document IDs.
-		virtual unsigned int getDocumentIDs(std::set<unsigned int> &docIDList,
+		virtual unsigned int getDocumentIDs(std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0,
 			bool sortByDate = false) const;
 
@@ -88,7 +87,6 @@ class XapianIndex : public IndexInterface
 		static const unsigned int m_maxTermLength;
 		static const std::string MAGIC_TERM;
 		std::string m_databaseName;
-		IndexHistory *m_pHistory;
 		std::string m_stemLanguage;
 
 		void addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,

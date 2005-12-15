@@ -42,8 +42,7 @@ const string XapianIndex::MAGIC_TERM = "X-MetaSE-Doc";
 
 XapianIndex::XapianIndex(const string &indexName) :
 	IndexInterface(),
-	m_databaseName(indexName),
-	m_pHistory(NULL)
+	m_databaseName(indexName)
 {
 
 	string historyFile = indexName;
@@ -51,20 +50,14 @@ XapianIndex::XapianIndex(const string &indexName) :
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if ((pDatabase != NULL) &&
-		(pDatabase->isOpen() == true) &&
-		(IndexHistory::create(historyFile) == true))
+		(pDatabase->isOpen() == true))
 	{
-		m_pHistory = new IndexHistory(historyFile);
 		m_goodIndex = true;
 	}
 }
 
 XapianIndex::~XapianIndex()
 {
-	if (m_pHistory != NULL)
-	{
-		delete m_pHistory;
-	}
 }
 
 void XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
@@ -125,7 +118,7 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 	Xapian::termcount &termPos, const std::string &summary) const
 {
 	// Add a magic term :-)
-	doc.add_posting(MAGIC_TERM, termPos++);
+	doc.add_term(MAGIC_TERM);
 
 	// Index the title with and without prefix T
 	string title = info.getTitle();
@@ -139,16 +132,11 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 		addTermsToDocument(titleTokens, doc, "", termPos, m_stemMode);
 	}
 
-	// Index the full URL with prefix U
 	string location = info.getLocation();
-	for (string::iterator i = location.begin(); i != location.end(); i++)
-	{
-		*i = tolower(*i);
-	}
-	doc.add_posting(string("U") + location, termPos++);
-
 	Url urlObj(location);
 
+	// Index the full URL with prefix U
+	doc.add_term(string("U") + location);
 	// ...the host name with prefix H
 	string hostName = urlObj.getHost();
 	doc.add_term(string("H") + StringManip::toLowerCase(hostName));
@@ -278,8 +266,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 	bool indexed = false;
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if ((pDatabase == NULL) ||
-		(m_pHistory == NULL))
+	if (pDatabase == NULL)
 	{
 		cerr << "Bad index " << m_databaseName << endl;
 		return false;
@@ -334,8 +321,6 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 			{
 				// Add this document to the Xapian index
 				docId = pIndex->add_document(doc);
-				// Add an entry in the history file
-				m_pHistory->insertItem(docId, docInfo);
 				indexed = true;
 			}
 			pDatabase->unlock();
@@ -356,12 +341,51 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 /// Returns a document's properties.
 bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const
 {
-	if (m_pHistory == NULL)
+	bool foundDocument = false;
+
+	if (docId == 0)
 	{
 		return false;
 	}
 
-	return m_pHistory->getItem(docId, docInfo);
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			Xapian::Document doc = pIndex->get_document(docId);
+
+			// Get the current document data
+			string record = doc.get_data();
+			if (record.empty() == false)
+			{
+				docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
+					StringManip::extractField(record, "url=", "\n"),
+					StringManip::extractField(record, "type=", "\n"),
+					StringManip::extractField(record, "language=", "\n"));
+				docInfo.setTimestamp(StringManip::extractField(record, "timestamp=", "\n"));
+				foundDocument = true;
+			}
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get document properties: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get document properties, unknown exception occured" << endl;
+	}
+
+	return foundDocument;
 }
 
 /// Returns a document's labels.
@@ -557,24 +581,20 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 			string extract = StringManip::extractField(record, "sample=", "\n");
 			string language = StringManip::extractField(record, "language=", "\n");
 
-			// Update the document data with the new extract
+			// Update the document data with the current extract and language
 			setDocumentData(doc, docInfo, extract, language);
-			// Update the document
-			if (m_pHistory->updateItem(docId, docInfo) == true)
-			{
-				pIndex->replace_document(docId, doc);
-				updated = true;
-			}
+			pIndex->replace_document(docId, doc);
+			updated = true;
 		}
 		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't update document: " << error.get_msg() << endl;
+		cerr << "Couldn't update document properties: " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't update document, unknown exception occured" << endl;
+		cerr << "Couldn't update document properties, unknown exception occured" << endl;
 	}
 
 	return updated;
@@ -641,13 +661,44 @@ bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &label
 /// Checks whether the given URL is in the index.
 unsigned int XapianIndex::hasDocument(const string &url) const
 {
-	if (m_pHistory == NULL)
+	unsigned int docId = 0;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
 	{
+		cerr << "Bad index " << m_databaseName << endl;
 		return 0;
 	}
 
-	// Is this URL in the history file ?
-	return m_pHistory->hasURL(url);
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			string term("U");
+
+			// Get documents that have this term
+			term += url;
+			Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
+			if (postingIter != pIndex->postlist_end(term))
+			{
+				// This URL was indexed
+				docId = *postingIter;
+			}
+			// FIXME: what if the term exist in more than one document ?
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't delete label: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't delete label, unknown exception occured" << endl;
+	}
+
+	return docId;
 }
 
 /// Unindexes the given document; true if success.
@@ -661,8 +712,7 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 	}
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if ((pDatabase == NULL) ||
-		(m_pHistory == NULL))
+	if (pDatabase == NULL)
 	{
 		cerr << "Bad index " << m_databaseName << endl;
 		return false;
@@ -675,8 +725,6 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 		{
 			// Delete the document from the index
 			pIndex->delete_document(docId);
-			// Remove the entry from the history file
-			m_pHistory->deleteItem(docId);
 			unindexed = true;
 		}
 		pDatabase->unlock();
@@ -704,8 +752,7 @@ bool XapianIndex::unindexDocuments(const string &labelName)
 	}
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if ((pDatabase == NULL) ||
-		(m_pHistory == NULL))
+	if (pDatabase == NULL)
 	{
 		cerr << "Bad index " << m_databaseName << endl;
 		return false;
@@ -721,8 +768,6 @@ bool XapianIndex::unindexDocuments(const string &labelName)
 			// Delete documents from the index
 			term += labelName;
 			pIndex->delete_document(term);
-			// FIXME: remove entries from the history file
-			//m_pHistory->deleteItem(docId);
 			unindexed = true;
 		}
 		pDatabase->unlock();
@@ -911,15 +956,49 @@ unsigned int XapianIndex::getDocumentsCount(void) const
 }
 
 /// Returns a list of document IDs.
-unsigned int XapianIndex::getDocumentIDs(set<unsigned int> &docIDList,
+unsigned int XapianIndex::getDocumentIDs(set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc, bool sortByDate) const
 {
-	if (m_pHistory == NULL)
+	unsigned int docCount = 0;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
 	{
+		cerr << "Bad index " << m_databaseName << endl;
 		return 0;
 	}
 
-	docIDList.clear();
+	docIds.clear();
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			// Get a list of documents that have the magic term
+			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(MAGIC_TERM);
+				(postingIter != pIndex->postlist_end(MAGIC_TERM)) && (docCount < maxDocsCount);
+				++postingIter)
+			{
+				Xapian::docid docId = *postingIter;
 
-	return m_pHistory->listItems(docIDList, maxDocsCount, startDoc, sortByDate);
+				// We cannot use postingIter->skip_to() because startDoc isn't an ID
+				if (docCount >= startDoc)
+				{
+					docIds.insert(docId);
+				}
+				++docCount;
+			}
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get document list: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get document list, unknown exception occured" << endl;
+	}
+
+	return docIds.size();
 }
