@@ -976,7 +976,7 @@ unsigned int XapianIndex::getDocumentIDs(set<unsigned int> &docIds,
 		{
 			// Get a list of documents that have the magic term
 			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(MAGIC_TERM);
-				(postingIter != pIndex->postlist_end(MAGIC_TERM)) && (docCount < maxDocsCount);
+				(postingIter != pIndex->postlist_end(MAGIC_TERM)) && (docIds.size() < maxDocsCount);
 				++postingIter)
 			{
 				Xapian::docid docId = *postingIter;

@@ -1449,7 +1449,14 @@ void mainWindow::on_paste_activate()
 	}
 
 	ustring clipText = refClipboard->wait_for_text();
-	if (queryTreeview->is_focus() == true)
+	if (liveQueryEntry->is_focus() == true)
+	{
+		ustring queryText = liveQueryEntry->get_text();
+
+		// FIXME: paste where the cursor is
+		liveQueryEntry->set_text(queryText + clipText);
+	}
+	else if (queryTreeview->is_focus() == true)
 	{
 #ifdef DEBUG
 		cout << "mainWindow::on_paste_activate: query tree" << endl;
