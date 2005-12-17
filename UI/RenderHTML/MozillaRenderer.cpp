@@ -15,12 +15,32 @@
  */
  
 #include <iostream>
+#include <nspr/nspr.h>
+#include <nss/nss.h>
+#include <nss/ssl.h>
 #include <gtkmozembed.h>
 
 #include "MozillaRenderer.h"
 
 MozillaRenderer::MozillaRenderer()
 {
+	// Initialize NSPR and NSS
+	PR_Init (PR_SYSTEM_THREAD, PR_PRIORITY_NORMAL, 10);
+	if (NSS_InitReadWrite(NULL) == SECFailure)
+	{
+		if (NSS_NoDB_Init(NULL) == SECFailure)
+		{
+#ifdef DEBUG
+			cout << "MozillaRenderer::ctor: couldn't initialize NSS" << endl;
+#endif
+		}
+	}
+	NSS_SetDomesticPolicy();
+	SSL_OptionSetDefault(SSL_ENABLE_SSL2, PR_TRUE);
+	SSL_OptionSetDefault(SSL_ENABLE_SSL3, PR_TRUE);
+	SSL_OptionSetDefault(SSL_ENABLE_TLS, PR_TRUE);
+	SSL_OptionSetDefault(SSL_V2_COMPATIBLE_HELLO, PR_TRUE);
+
 	gtk_moz_embed_push_startup();
 
 	// Create our web browser component
@@ -42,6 +62,10 @@ MozillaRenderer::MozillaRenderer()
 MozillaRenderer::~MozillaRenderer()
 {
 	gtk_moz_embed_pop_startup();
+	// Shutdown NSS and NSPR
+	NSS_Shutdown();
+	// FIXME: this hangs, waiting on a condition variable
+	//PR_Cleanup();
 }
 
 /// Returns the GTK widget.
