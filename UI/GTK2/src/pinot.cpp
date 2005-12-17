@@ -27,11 +27,12 @@
 
 #include "TokenizerFactory.h"
 #include "Languages.h"
+#include "XapianDatabase.h"
+#include "XapianDatabaseFactory.h"
 #include "ActionHistory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
-#include "XapianDatabase.h"
-#include "XapianDatabaseFactory.h"
+#include "NeonDownloader.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -39,9 +40,9 @@
 
 using namespace std;
 
-ofstream outputFile;
-streambuf *coutbuf = NULL;
-streambuf *cerrbuf = NULL;
+static ofstream outputFile;
+static streambuf *coutBuf = NULL;
+static streambuf *cerrBuf = NULL;
 
 void closeAll(void)
 {
@@ -61,14 +62,17 @@ void closeAll(void)
 	TokenizerFactory::unloadTokenizers();
 
 	// Restore the stream buffers
-	if (coutbuf != NULL)
+	if (coutBuf != NULL)
 	{
-		cout.rdbuf(coutbuf);
+		cout.rdbuf(coutBuf);
 	}
-	if (cerrbuf != NULL)
+	if (cerrBuf != NULL)
 	{
-		cerr.rdbuf(cerrbuf);
+		cerr.rdbuf(cerrBuf);
 	}
+	outputFile.close();
+
+	NeonDownloader::shutdown();
 }
 
 int main(int argc, char **argv)
@@ -78,6 +82,7 @@ int main(int argc, char **argv)
 	textdomain (GETTEXT_PACKAGE);
 #endif //ENABLE_NLS
 
+	NeonDownloader::initialize();
 	Glib::thread_init();
 	Gtk::Main m(&argc, &argv);
 
@@ -91,8 +96,8 @@ int main(int argc, char **argv)
 	string logFileName = confDirectory;
 	logFileName += "/pinot.log";
 	outputFile.open(logFileName.c_str());
-	coutbuf = cout.rdbuf();
-	cerrbuf = cerr.rdbuf();
+	coutBuf = cout.rdbuf();
+	cerrBuf = cerr.rdbuf();
 	cout.rdbuf(outputFile.rdbuf());
 	cerr.rdbuf(outputFile.rdbuf());
 

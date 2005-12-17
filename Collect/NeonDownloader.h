@@ -31,6 +31,12 @@ class NeonDownloader : public DownloaderInterface
 		NeonDownloader();
 		virtual ~NeonDownloader();
 
+		/// Initialize the downloader.
+		static void initialize(void);
+
+		/// Shutdown the downloader.
+		static void shutdown(void);
+
 		/// Sets a (name, value) setting; true if success.
 		virtual bool setSetting(const std::string &name, const std::string &value);
 

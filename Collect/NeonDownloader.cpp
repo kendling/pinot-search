@@ -20,6 +20,12 @@
 #include <pthread.h>
 #include <iostream>
 
+#include <neon/ne_session.h>
+// Does Neon have OpenSSL support ?
+#ifdef NE_SSL_H
+#include <openssl/crypto.h>
+#endif	// NE_SSL_H
+
 #include "HtmlTokenizer.h"
 #include "HtmlDocument.h"
 #include "Url.h"
@@ -59,6 +65,62 @@ static void headerHandler(void *userdata, const char *value)
 }
 
 bool NeonDownloader::m_initialized = false;
+
+#ifdef NE_SSL_H
+// OpenSSL multi-thread support, required by Neon
+static pthread_mutex_t locksTable[CRYPTO_NUM_LOCKS];
+
+// OpenSSL locking functiom
+static void lockingCallback(int mode, int n, const char *file, int line)
+{
+#ifdef DEBUG
+	cout << "lockingCallback: called for mutex " << n << endl;
+#endif
+	if (mode & CRYPTO_LOCK)
+	{
+		pthread_mutex_lock(&(locksTable[n]));
+	}
+	else
+	{
+		pthread_mutex_unlock(&(locksTable[n]));
+	}
+}
+
+unsigned long idCallback(void)
+{
+	return (unsigned long)pthread_self();
+}
+#endif // NE_SSL_H
+
+/// Initialize the downloader.
+void NeonDownloader::initialize(void)
+{
+#ifdef NE_SSL_H
+	// Initialize the OpenSSL mutexes
+	for (unsigned int lockNum = 0; lockNum < CRYPTO_NUM_LOCKS; ++lockNum)
+	{
+		pthread_mutex_init(&(locksTable[lockNum]), NULL);
+	}
+	// Set the callbacks
+	CRYPTO_set_locking_callback(lockingCallback);
+	CRYPTO_set_id_callback(idCallback);
+#endif	// NE_SSL_H
+}
+
+/// Shutdown the downloader.
+void NeonDownloader::shutdown(void)
+{
+#ifdef NE_SSL_H
+	// Reset the OpenSSL callbacks
+	CRYPTO_set_id_callback(NULL);
+	CRYPTO_set_locking_callback(NULL);
+	// Free the mutexes
+	for (unsigned int lockNum = 0; lockNum < CRYPTO_NUM_LOCKS; ++lockNum)
+	{
+		pthread_mutex_destroy(&(locksTable[lockNum]));
+	}
+#endif	// NE_SSL_H
+}
 
 NeonDownloader::NeonDownloader() :
 	m_pSession(NULL), m_pRequest(NULL), DownloaderInterface()
