@@ -41,6 +41,9 @@ class XapianIndex : public IndexInterface
 		/// Returns a document's properties.
 		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const;
 
+		/// Determines whether a document has a label.
+		virtual bool hasLabel(unsigned int docId, const std::string &name) const;
+
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const;
 
@@ -78,10 +81,9 @@ class XapianIndex : public IndexInterface
 		/// Returns the number of documents.
 		virtual unsigned int getDocumentsCount(void) const;
 
-		/// Returns a list of document IDs.
-		virtual unsigned int getDocumentIDs(std::set<unsigned int> &docIds,
-			unsigned int maxDocsCount = 0, unsigned int startDoc = 0,
-			bool sortByDate = false) const;
+		/// Lists document IDs.
+		virtual unsigned int listDocuments(std::set<unsigned int> &docIds,
+			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
 	protected:
 		static const unsigned int m_maxTermLength;

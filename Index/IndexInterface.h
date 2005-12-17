@@ -47,6 +47,9 @@ class IndexInterface
 		/// Returns a document's properties.
 		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const = 0;
 
+		/// Determines whether a document has a label.
+		virtual bool hasLabel(unsigned int docId, const std::string &name) const = 0;
+
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const = 0;
 
@@ -84,10 +87,9 @@ class IndexInterface
 		/// Returns the number of documents.
 		virtual unsigned int getDocumentsCount(void) const = 0;
 
-		/// Returns a list of document IDs.
-		virtual unsigned int getDocumentIDs(std::set<unsigned int> &docIDList,
-			unsigned int maxDocsCount = 0, unsigned int startDoc = 0,
-			bool sortByDate = false) const = 0;
+		/// Lists document IDs.
+		virtual unsigned int listDocuments(std::set<unsigned int> &docIDList,
+			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
 
 	protected:
 		StemmingMode m_stemMode;

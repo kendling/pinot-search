@@ -392,6 +392,54 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 	return foundDocument;
 }
 
+/// Determines whether a document has a label.
+bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
+{
+	bool foundLabel = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			string term("C");
+
+			// Get documents that have this label
+			// FIXME: would it be faster to get the document's terms ?
+			term += name;
+			Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
+			if (postingIter != pIndex->postlist_end(term))
+			{
+				// Is this document in the list ?
+				postingIter.skip_to(docId);
+				if ((postingIter != pIndex->postlist_end(term)) &&
+					(docId == (*postingIter)))
+				{
+					foundLabel = true;
+				}
+			}
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't check document labels: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't check document labels, unknown exception occured" << endl;
+	}
+
+	return foundLabel;
+}
+
 /// Returns a document's labels.
 bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) const
 {
@@ -959,9 +1007,9 @@ unsigned int XapianIndex::getDocumentsCount(void) const
 	return docCount;
 }
 
-/// Returns a list of document IDs.
-unsigned int XapianIndex::getDocumentIDs(set<unsigned int> &docIds,
-	unsigned int maxDocsCount, unsigned int startDoc, bool sortByDate) const
+/// Lists document IDs.
+unsigned int XapianIndex::listDocuments(set<unsigned int> &docIds,
+	unsigned int maxDocsCount, unsigned int startDoc) const
 {
 	unsigned int docCount = 0;
 

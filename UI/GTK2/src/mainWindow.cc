@@ -1226,6 +1226,8 @@ void mainWindow::on_message_reception(DocumentInfo docInfo, string labelName)
 //
 void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, string indexName)
 {
+	bool hasLabel = false;
+
 	if (indexName != locale_from_utf8(m_state.getCurrentIndex()))
 	{
 		// Ignore
@@ -1246,15 +1248,25 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 		return;
 	}
 
-	const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
-	std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
-	if (mapIter == indexesMap.end())
+	// Does that document have the current label ?
+	string currentLabelName;
+	if (m_state.getCurrentLabel(currentLabelName) > 0)
 	{
-		return;
+		const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
+		std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
+		if (mapIter != indexesMap.end())
+		{
+			XapianIndex index(mapIter->second);
+
+			if (index.isGood() == true)
+			{
+				hasLabel = index.hasLabel(docId, currentLabelName);
+			}
+		}
 	}
 
 	// Add a row
-	if (m_pIndexTree->appendDocument(docInfo, true) == true)
+	if (m_pIndexTree->appendDocument(docInfo, hasLabel) == true)
 	{
 #ifdef DEBUG
 		cout << "mainWindow::on_message_indexupdate: added document to index list" << endl;
@@ -1681,10 +1693,11 @@ void mainWindow::on_showfromindex_activate()
 {
 	vector<IndexedDocument> documentsList;
 	set<string> docLabels;
+	string currentLabelName;
 	DocumentInfo docInfo;
 	unsigned int docId = 0;
 	int width, height;
-	bool editTitle = false;
+	bool matchedLabel = false, editTitle = false;
 
 	const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
 	std::map<string, string>::const_iterator mapIter = indexesMap.find(m_state.getCurrentIndex());	
@@ -1721,6 +1734,13 @@ void mainWindow::on_showfromindex_activate()
 		if (index.isGood() == true)
 		{
 			index.getDocumentLabels(docId, docLabels);
+
+			// Does it match the current label ?
+			if ((m_state.getCurrentLabel(currentLabelName) > 0) &&
+				(find(docLabels.begin(), docLabels.end(), currentLabelName) != docLabels.end()))
+			{
+				matchedLabel = true;
+			}
 		}
 
 		docInfo = DocumentInfo(docIter->getTitle(), docIter->getOriginalLocation(),
@@ -1755,12 +1775,29 @@ void mainWindow::on_showfromindex_activate()
 	if ((documentsList.size() == 1) &&
 		(docId > 0))
 	{
+		bool matchesLabel = false;
+
+		// Does the sole selected document match the current label now ?
+		if ((currentLabelName.empty() == false) &&
+			(find(labels.begin(), labels.end(), currentLabelName) != labels.end()))
+		{
+				matchesLabel = true;
+		}
+
+		// Was there any change ?
+		if (matchesLabel != matchedLabel)
+		{
+				// Update this document to the index tree
+				m_pIndexTree->setDocumentLabeledState(docId, matchesLabel);
+		}
+
+		// Did the title change ?
 		string newTitle = propertiesBox.getDocumentInfo().getTitle();
 		if (newTitle != docInfo.getTitle())
 		{
 			docInfo.setTitle(newTitle);
 			
-			// Update the document's title
+			// Update the document
 			start_thread(new UpdateDocumentThread(m_state.getCurrentIndex(), docId, docInfo));
 		}
 	}

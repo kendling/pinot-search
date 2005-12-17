@@ -214,7 +214,7 @@ void IndexBrowserThread::do_browsing()
 	cout << "IndexBrowserThread::do_browsing: " << m_maxDocsCount << " off " << m_indexDocsCount
 		<< " documents to browse, starting at " << m_startDoc << endl;
 #endif
-	index.getDocumentIDs(docIDList, m_maxDocsCount, m_startDoc);
+	index.listDocuments(docIDList, m_maxDocsCount, m_startDoc);
 	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
 	{
 		if (m_done == true)
