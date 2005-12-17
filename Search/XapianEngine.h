@@ -50,7 +50,8 @@ class XapianEngine : public SearchEngineInterface
 		bool queryDatabase(Xapian::Query &query);
 
 		void stackQuery(const QueryProperties &queryProps,
-			std::stack<Xapian::Query> &queryStack, bool followOperators);
+			std::stack<Xapian::Query> &queryStack, const string &language,
+			bool followOperators);
 
 	private:
 		XapianEngine(const XapianEngine &other);

@@ -183,9 +183,8 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 }
 
 void XapianEngine::stackQuery(const QueryProperties &queryProps,
-	stack<Xapian::Query> &queryStack, bool followOperators)
+	stack<Xapian::Query> &queryStack, const string &language, bool followOperators)
 {
-	string language = queryProps.getLanguage();
 	Xapian::Query::op queryOp = Xapian::Query::OP_OR;
 	string term;
 
@@ -253,22 +252,16 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 #ifdef DEBUG
 			cout << "XapianEngine::stackQuery: OP_AND_NOT "  << notTerms.size() << endl;
 #endif
-			// An AND_NOT has to have two sub-queries
-			if (followOperators == true)
-			{
-				queryOp = Xapian::Query::OP_AND;
-			}
-			Xapian::Query notQuery(queryOp, notTerms.begin(), notTerms.end());
 			// We need something to AND_NOT these terms against
+			// Not following the operator would make us return documents
+			// that have terms the user isn't interested in
+			Xapian::Query notQuery(Xapian::Query::OP_AND, notTerms.begin(), notTerms.end());
 			if (queryStack.empty() == false)
 			{
 				Xapian::Query topQuery = queryStack.top();
 				queryStack.pop();
-				if (followOperators == true)
-				{
-					queryOp = Xapian::Query::OP_AND_NOT;
-				}
-				queryStack.push(Xapian::Query(queryOp, topQuery, notQuery));
+
+				queryStack.push(Xapian::Query(Xapian::Query::OP_AND_NOT, topQuery, notQuery));
 			}
 		}
 	}
@@ -384,9 +377,17 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 	try
 	{
 		stack<Xapian::Query> queryStack;
+		string language;
+		unsigned int searchStep = 1;
 		bool followOperators = true;
 
-		stackQuery(queryProps, queryStack, followOperators);
+		// Searches are run in this order :
+		// 1. follow operators and don't stem terms
+		// 2. if no results, follow operators and stem terms
+		// 3. if no results, don't follow operators and don't stem terms
+		// 4. if no results, don't follow operators and stem terms
+		// Steps 2 and 4 depend on a language being defined for the query
+		stackQuery(queryProps, queryStack, language, followOperators);
 		while (queryStack.empty() == false)
 		{
 			while (queryStack.size() > 1)
@@ -404,27 +405,50 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 				queryStack.push(query);
 			}
 
-			// Query the database with the full query
+			// Query the database
 			if (queryDatabase(queryStack.top()) == true)
 			{
-#if 0
-				if ((m_resultsList.empty() == true) &&
-					(followOperators == true))
+				if (m_resultsList.empty() == true)
 				{
 					// The search did succeed but didn't return anything
-					// Try again by OR'ing terms together
+					// Try the next step
+					switch (++searchStep)
+					{
+						case 2:
+							followOperators = true;
+							language = queryProps.getLanguage();
+							if (language.empty() == false)
+							{
+								break;
+							}
+							++searchStep;
+						case 3:
+							followOperators = false;
+							language.clear();
+							break;
+						case 4:
+							followOperators = false;
+							language = queryProps.getLanguage();
+							if (language.empty() == false)
+							{
+								break;
+							}
+							++searchStep;
+						default:
+							return true;
+					}
+
+					// Empty the stack
 					while (queryStack.empty() == false)
 					{
 						queryStack.pop();
 					}
-					followOperators = false;
 #ifdef DEBUG
-					cout << "XapianEngine::runQuery: trying with OR'ed terms" << endl;
+					cout << "XapianEngine::runQuery: trying step " << searchStep << endl;
 #endif
-					stackQuery(queryProps, queryStack, followOperators);
+					stackQuery(queryProps, queryStack, language, followOperators);
 					continue;
 				}
-#endif
 
 				return true;
 			}
