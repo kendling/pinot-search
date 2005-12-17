@@ -84,7 +84,7 @@ endif
 MOZILLA_XPCOM_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags mozilla-xpcom)
 MOZILLA_XPCOM_LIBS = -Xlinker -rpath -Xlinker ${MOZILLA_LIB_DIR} $(shell /usr/bin/pkg-config --libs mozilla-xpcom)
 GTKMOZ_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags mozilla-gtkmozembed gtk+-2.0)
-GTKMOZ_LIBS = -Xlinker -rpath -Xlinker ${MOZILLA_LIB_DIR} $(shell /usr/bin/pkg-config --libs mozilla-gtkmozembed gtk+-2.0)
+GTKMOZ_LIBS = -Xlinker -rpath -Xlinker ${MOZILLA_LIB_DIR} $(shell /usr/bin/pkg-config --libs mozilla-gtkmozembed gtk+-2.0 mozilla-nss)
 # GTKmm 2.0
 GTKMM_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags gtkmm-2.4)
 GTKMM_LIBS = $(shell /usr/bin/pkg-config --libs gtkmm-2.4)
