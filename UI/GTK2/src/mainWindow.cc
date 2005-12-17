@@ -1366,7 +1366,12 @@ void mainWindow::on_copy_activate()
 {
 	ustring text;
 
-	if (queryTreeview->is_focus() == true)
+	if (liveQueryEntry->is_focus() == true)
+	{
+		liveQueryEntry->copy_clipboard();
+		return;
+	}
+	else if (queryTreeview->is_focus() == true)
 	{
 #ifdef DEBUG
 		cout << "mainWindow::on_copy_activate: query tree" << endl;
@@ -1451,10 +1456,10 @@ void mainWindow::on_paste_activate()
 	ustring clipText = refClipboard->wait_for_text();
 	if (liveQueryEntry->is_focus() == true)
 	{
-		ustring queryText = liveQueryEntry->get_text();
+		int currentPosition = liveQueryEntry->get_position();
 
-		// FIXME: paste where the cursor is
-		liveQueryEntry->set_text(queryText + clipText);
+		// Paste where the cursor is
+		liveQueryEntry->insert_text(clipText, clipText.length(), currentPosition);
 	}
 	else if (queryTreeview->is_focus() == true)
 	{
@@ -1482,7 +1487,11 @@ void mainWindow::on_paste_activate()
 //
 void mainWindow::on_delete_activate()
 {
-	if (m_pResultsTree->is_focus() == true)
+	if (liveQueryEntry->is_focus() == true)
+	{
+		liveQueryEntry->delete_selection();
+	}
+	else if (m_pResultsTree->is_focus() == true)
 	{
 #ifdef DEBUG
 		cout << "mainWindow::on_delete_activate: results tree" << endl;
