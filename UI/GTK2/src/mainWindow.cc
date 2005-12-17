@@ -957,8 +957,8 @@ void mainWindow::on_thread_end()
 	}
 	else if (type == "LabelUpdateThread")
 	{
-		LabelQueryThread *pLabelQueryThread = dynamic_cast<LabelQueryThread *>(pThread);
-		if (pLabelQueryThread == NULL)
+		LabelUpdateThread *pLabelUpdateThread = dynamic_cast<LabelUpdateThread *>(pThread);
+		if (pLabelUpdateThread == NULL)
 		{
 			delete pThread;
 			return;
