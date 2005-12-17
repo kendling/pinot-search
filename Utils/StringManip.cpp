@@ -63,15 +63,32 @@ string StringManip::extractField(const string &str, const string &start, const s
 string StringManip::extractField(const string &str, const string &start, const string &end, string::size_type &endPos)
 {
 	string fieldValue;
+	string::size_type startPos = string::npos;
 
-	string::size_type startPos = str.find(start, endPos);
+	if (start.empty() == true)
+	{
+		startPos = 0;
+	}
+	else
+	{
+		startPos = str.find(start, endPos);
+	}
+
 	if (startPos != string::npos)
 	{
 		startPos += start.length();
-		endPos = str.find(end, startPos);
-		if (endPos != string::npos)
+
+		if (end.empty() == true)
 		{
-			fieldValue = str.substr(startPos, endPos - startPos);
+			fieldValue = str.substr(startPos);
+		}
+		else
+		{
+			endPos = str.find(end, startPos);
+			if (endPos != string::npos)
+			{
+				fieldValue = str.substr(startPos, endPos - startPos);
+			}
 		}
 	}
 

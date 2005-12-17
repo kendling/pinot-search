@@ -369,8 +369,12 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 				docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
 					StringManip::extractField(record, "url=", "\n"),
 					StringManip::extractField(record, "type=", "\n"),
-					StringManip::extractField(record, "language=", "\n"));
+					StringManip::extractField(record, "language=", ""));
 				docInfo.setTimestamp(StringManip::extractField(record, "timestamp=", "\n"));
+#ifdef DEBUG
+				cout << "XapianIndex::getDocumentInfo: language is "
+					<< docInfo.getLanguage() << endl;
+#endif
 				foundDocument = true;
 			}
 		}
@@ -579,7 +583,7 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 			// Get the current document data
 			string record = doc.get_data();
 			string extract = StringManip::extractField(record, "sample=", "\n");
-			string language = StringManip::extractField(record, "language=", "\n");
+			string language = StringManip::extractField(record, "language=", "");
 
 			// Update the document data with the current extract and language
 			setDocumentData(doc, docInfo, extract, language);
