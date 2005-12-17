@@ -22,7 +22,7 @@
 
 #include "MozillaRenderer.h"
 
-MozillaRenderer::MozillaRenderer()
+void MozillaRenderer::initialize(void)
 {
 	// Initialize NSPR and NSS
 	PR_Init (PR_SYSTEM_THREAD, PR_PRIORITY_NORMAL, 10);
@@ -40,7 +40,18 @@ MozillaRenderer::MozillaRenderer()
 	SSL_OptionSetDefault(SSL_ENABLE_SSL3, PR_TRUE);
 	SSL_OptionSetDefault(SSL_ENABLE_TLS, PR_TRUE);
 	SSL_OptionSetDefault(SSL_V2_COMPATIBLE_HELLO, PR_TRUE);
+}
 
+void MozillaRenderer::shutdown(void)
+{
+	// Shutdown NSS and NSPR
+	NSS_Shutdown();
+	// FIXME: this hangs, waiting on a condition variable
+	//PR_Cleanup();
+}
+
+MozillaRenderer::MozillaRenderer()
+{
 	gtk_moz_embed_push_startup();
 
 	// Create our web browser component
@@ -62,10 +73,6 @@ MozillaRenderer::MozillaRenderer()
 MozillaRenderer::~MozillaRenderer()
 {
 	gtk_moz_embed_pop_startup();
-	// Shutdown NSS and NSPR
-	NSS_Shutdown();
-	// FIXME: this hangs, waiting on a condition variable
-	//PR_Cleanup();
 }
 
 /// Returns the GTK widget.

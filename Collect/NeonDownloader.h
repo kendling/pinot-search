@@ -31,10 +31,10 @@ class NeonDownloader : public DownloaderInterface
 		NeonDownloader();
 		virtual ~NeonDownloader();
 
-		/// Initialize the downloader.
+		/// Initializes the downloader.
 		static void initialize(void);
 
-		/// Shutdown the downloader.
+		/// Shutdowns the downloader.
 		static void shutdown(void);
 
 		/// Sets a (name, value) setting; true if success.

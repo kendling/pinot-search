@@ -32,6 +32,12 @@ class MozillaRenderer
 		MozillaRenderer();
 		virtual ~MozillaRenderer();
 
+		/// Initializes the renderer.
+		static void initialize(void);
+
+		/// Shutdowns the renderer.
+		static void shutdown(void);
+
 		/// Returns the GTK widget.
 		GtkWidget *getWidget(void);
 

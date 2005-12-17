@@ -33,6 +33,7 @@
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "NeonDownloader.h"
+#include "MozillaRenderer.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -72,6 +73,7 @@ void closeAll(void)
 	}
 	outputFile.close();
 
+	MozillaRenderer::shutdown();
 	NeonDownloader::shutdown();
 }
 
@@ -83,6 +85,7 @@ int main(int argc, char **argv)
 #endif //ENABLE_NLS
 
 	NeonDownloader::initialize();
+	MozillaRenderer::initialize();
 	Glib::thread_init();
 	Gtk::Main m(&argc, &argv);
 
