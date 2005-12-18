@@ -1,2 +1,20 @@
+2005/12/18 version_0_3_5
+Xapian + SQLite back-end :
+ - dropped unnecessary tables, moved labels and properties into the index
+Neon downloader :
+ - fail on HTTP errors
+ - setup OpenSSL callbacks for multi-threading support
+Search :
+ - can filter documents by label
+ - multi-step index search : exact matches first, then with stemming, then with ignoring the operators
+HTML browser :
+ - initialize NSS and NSPR to get rid of crash when visiting https sites
+UI :
+ - on double clicks in the index tab, check a document is selected before opening the properties box
+ - copy & paste should now work as expected
+ - modified index browser
+Threads :
+ - handle select() errors
+
 2005/12/08 version_0_3_0
  - first public release

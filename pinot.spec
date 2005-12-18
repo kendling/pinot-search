@@ -3,7 +3,7 @@
 
 Summary: Metasearch tool
 Name: pinot
-Version: 0.30
+Version: 0.35
 Release: 1
 License: GPL
 Group: Applications/Internet 
