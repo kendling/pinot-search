@@ -9,6 +9,8 @@ General
 - Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
 - Change .spec to allow building with Google and ObjectsSearch SOAP APIs support
 - Don't use system(), fork and exec, especially for the external browser
+- Replace libmagic with xdgmime (built in gtk > 2.8), use it to determine which application
+  is for which MIME type too
 
 Search
 - Write a Spirit-based parser for extracting results from web pages
@@ -21,6 +23,7 @@ Search
 - Add csourcesearch.net
 - Add http://www.patentcommons.org/commons/patentsearch.php
 - Apply Pinot specific filters (eg "L" for language) on internal indices only
+- Use Xapian's QueryParser, map fields (label, language, title etc...) to prefixes
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -31,6 +34,7 @@ Collect
 - Support for HTML frames
 - Write a tokenizer for RFCs that breaks chapters into individual documents
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
+- Use poppler for the PDF tokenizer
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
@@ -96,4 +100,5 @@ UI
 - Add a Recent Import section that relies on documents timestamps
 - Filter documents by language, similarly to how labels are shown
 - Save query expander and extract field status in config file
+- Enable to save live queries
 
