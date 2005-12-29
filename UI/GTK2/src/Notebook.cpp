@@ -16,14 +16,98 @@
 
 #include <sigc++/slot.h>
 
-#include "NotebookTabBox.h"
+#include "Notebook.h"
 #include "PinotUtils.h"
 
 using namespace SigC;
 using namespace Glib;
 using namespace Gtk;
 
-NotebookTabBox::NotebookTabBox(const Glib::ustring &title, PageType type) :
+NotebookPageBox::NotebookPageBox(const ustring &title, NotebookPageBox::PageType type,
+	PinotSettings &settings) :
+	VBox(),
+	m_title(title),
+	m_type(type),
+	m_settings(settings)
+{
+}
+
+NotebookPageBox::~NotebookPageBox()
+{
+}
+
+//
+// Returns the page title.
+//
+ustring NotebookPageBox::getTitle(void) const
+{
+	return m_title;
+}
+
+//
+// Returns the page type.
+//
+NotebookPageBox::PageType NotebookPageBox::getType(void) const
+{
+	return m_type;
+}
+
+ResultsPage::ResultsPage(const ustring &queryName, ResultsTree *pTree,
+	PinotSettings &settings) :
+	NotebookPageBox(queryName, NotebookPageBox::RESULTS_PAGE, settings),
+	m_pTree(pTree)
+{
+	if (pTree != NULL)
+	{
+		pack_start(*pTree->getResultsScrolledWindow(), Gtk::PACK_EXPAND_WIDGET, 0);
+		pack_start(*pTree->getExtractScrolledWindow(), Gtk::PACK_SHRINK, 0);
+	}
+
+	show();
+}
+
+ResultsPage::~ResultsPage()
+{
+}
+
+//
+// Returns the page's tree.
+//
+ResultsTree *ResultsPage::getTree(void) const
+{
+	return m_pTree;
+}
+
+ViewPage::ViewPage(const ustring &viewName, HtmlView *pView,
+	PinotSettings &settings) :
+	NotebookPageBox(viewName, NotebookPageBox::VIEW_PAGE, settings),
+	m_pView(pView)
+{
+	if (pView != NULL)
+	{
+		Widget *pViewWidget = pView->getWidget();
+		if (pViewWidget != NULL)
+		{
+			pack_start(*pViewWidget);
+		}
+	}
+
+	show();
+}
+
+ViewPage::~ViewPage()
+{
+}
+
+//
+// Returns the page's view.
+//
+HtmlView *ViewPage::getView(void) const
+{
+	return m_pView;
+}
+
+NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::PageType type) :
 	HBox(),
 	m_title(title),
 	m_pageType(type),
@@ -114,17 +198,9 @@ bool NotebookTabBox::onButtonPressEvent(GdkEventButton *ev)
 }
 
 //
-// Returns the page type.
-//
-NotebookTabBox::PageType NotebookTabBox::getPageType(void) const
-{
-	return m_pageType;
-}
-
-//
 // Returns the close signal.
 //
-Signal2<void, ustring, NotebookTabBox::PageType>& NotebookTabBox::getCloseSignal(void)
+Signal2<void, ustring, NotebookPageBox::PageType>& NotebookTabBox::getCloseSignal(void)
 {
 	return m_signalClose;
 }

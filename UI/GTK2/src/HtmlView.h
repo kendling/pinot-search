@@ -18,7 +18,6 @@
 #define _HTMLVIEW_HH
 
 #include <sigc++/object.h>
-#include <gtkmm/box.h>
 #include <gtkmm/menu.h>
 
 #include "MozillaRenderer.h"
@@ -26,11 +25,15 @@
 class HtmlView : public MozillaRenderer, public SigC::Object
 {
 	public:
-		HtmlView(Gtk::VBox *viewVbox, Gtk::Menu *pPopupMenu);
+		HtmlView(Gtk::Menu *pPopupMenu);
 		virtual ~HtmlView();
+
+		/// Returns the underlying widget.
+		Gtk::Widget *getWidget(void) const;
 
 	protected:
 		Gtk::Menu *m_pPopupMenu;
+		Gtk::Widget *m_pDocHtmlView;
 
 		/// Handles button presses.
 		void onButtonPressEvent(GdkEventButton *ev);

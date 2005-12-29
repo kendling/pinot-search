@@ -40,16 +40,19 @@ using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
 
-ResultsTree::ResultsTree(VBox *resultsVbox, Menu *pPopupMenu, PinotSettings &settings) :
+ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
+	PinotSettings &settings) :
 	TreeView(),
+	m_queryName(queryName),
 	m_pPopupMenu(pPopupMenu),
+	m_pResultsScrolledwindow(NULL),
 	m_settings(settings),
-	m_extractScrolledwindow(NULL),
+	m_pExtractScrolledwindow(NULL),
 	m_extractTextview(NULL),
 	m_showExtract(true)
 {
-	ScrolledWindow *resultsScrolledwindow = manage(new ScrolledWindow());
-	m_extractScrolledwindow = manage(new ScrolledWindow());
+	m_pResultsScrolledwindow = manage(new ScrolledWindow());
+	m_pExtractScrolledwindow = manage(new ScrolledWindow());
 	m_extractTextview = manage(new TextView());
 
 	// This is the actual results tree
@@ -59,12 +62,12 @@ ResultsTree::ResultsTree(VBox *resultsVbox, Menu *pPopupMenu, PinotSettings &set
 	set_rules_hint(true);
 	set_reorderable(false);
 	set_enable_search(true);
-	resultsScrolledwindow->set_flags(CAN_FOCUS);
-	resultsScrolledwindow->set_border_width(4);
-	resultsScrolledwindow->set_shadow_type(SHADOW_NONE);
-	resultsScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_ALWAYS);
-	resultsScrolledwindow->property_window_placement().set_value(CORNER_TOP_LEFT);
-	resultsScrolledwindow->add(*this);
+	m_pResultsScrolledwindow->set_flags(CAN_FOCUS);
+	m_pResultsScrolledwindow->set_border_width(4);
+	m_pResultsScrolledwindow->set_shadow_type(SHADOW_NONE);
+	m_pResultsScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_ALWAYS);
+	m_pResultsScrolledwindow->property_window_placement().set_value(CORNER_TOP_LEFT);
+	m_pResultsScrolledwindow->add(*this);
 
 	// That's for the extract view
 	m_extractTextview->set_flags(CAN_FOCUS);
@@ -78,16 +81,12 @@ ResultsTree::ResultsTree(VBox *resultsVbox, Menu *pPopupMenu, PinotSettings &set
 	m_extractTextview->set_indent(0);
 	m_extractTextview->set_wrap_mode(WRAP_WORD);
 	m_extractTextview->set_justification(JUSTIFY_LEFT);
-	m_extractScrolledwindow->set_flags(CAN_FOCUS);
-	m_extractScrolledwindow->set_border_width(4);
-	m_extractScrolledwindow->set_shadow_type(SHADOW_NONE);
-	m_extractScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_AUTOMATIC);
-	m_extractScrolledwindow->property_window_placement().set_value(CORNER_TOP_LEFT);
-	m_extractScrolledwindow->add(*m_extractTextview);
-
-	// Position the scrolled windows
-	resultsVbox->pack_start(*resultsScrolledwindow, Gtk::PACK_EXPAND_WIDGET, 0);
-	resultsVbox->pack_start(*m_extractScrolledwindow, Gtk::PACK_SHRINK, 0);
+	m_pExtractScrolledwindow->set_flags(CAN_FOCUS);
+	m_pExtractScrolledwindow->set_border_width(4);
+	m_pExtractScrolledwindow->set_shadow_type(SHADOW_NONE);
+	m_pExtractScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_AUTOMATIC);
+	m_pExtractScrolledwindow->property_window_placement().set_value(CORNER_TOP_LEFT);
+	m_pExtractScrolledwindow->add(*m_extractTextview);
 
 	// Associate the columns model to the results tree
 	m_refStore = TreeStore::create(m_resultsColumns);
@@ -119,8 +118,12 @@ ResultsTree::ResultsTree(VBox *resultsVbox, Menu *pPopupMenu, PinotSettings &set
 	// Allow multiple selection
 	get_selection()->set_mode(SELECTION_MULTIPLE);
 
-	// Handle button presses
-	signal_button_press_event().connect_notify(SigC::slot(*this, &ResultsTree::onButtonPressEvent));
+	// Connect the signals
+	signal_button_press_event().connect_notify(
+		SigC::slot(*this, &ResultsTree::onButtonPressEvent));
+	get_selection()->signal_changed().connect(
+		SigC::slot(*this, &ResultsTree::onSelectionChanged));
+
 	// Enable interactive search
 	set_search_column(m_resultsColumns.m_text.index());
 	set_search_equal_func(SigC::slot(*this, &ResultsTree::onSearchEqual));
@@ -138,9 +141,9 @@ ResultsTree::ResultsTree(VBox *resultsVbox, Menu *pPopupMenu, PinotSettings &set
 
 	// Show all
 	show();
-	resultsScrolledwindow->show();
+	m_pResultsScrolledwindow->show();
 	m_extractTextview->show();
-	m_extractScrolledwindow->show();
+	m_pExtractScrolledwindow->show();
 }
 
 ResultsTree::~ResultsTree()
@@ -230,17 +233,6 @@ void ResultsTree::renderRanking(CellRenderer *renderer, const TreeModel::iterato
 	}
 }
 
-//
-// Interactive search equal function.
-//
-bool ResultsTree::onSearchEqual(const RefPtr<TreeModel>& model, int column,
-	const ustring& key, const TreeModel::iterator& iter)
-{
-}
-
-//
-// Handles button presses.
-//
 void ResultsTree::onButtonPressEvent(GdkEventButton *ev)
 {
 	// Check for popup click
@@ -278,43 +270,16 @@ void ResultsTree::onButtonPressEvent(GdkEventButton *ev)
 	}
 }
 
-//
-// Handles selection changes.
-//
-bool ResultsTree::onSelectionChanged(void)
+void ResultsTree::onSelectionChanged(void)
 {
-	bool goodSel = true;
-
-#ifdef DEBUG
-	cout << "ResultsTree::onSelectionChanged: called" << endl;
-#endif
-	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
-	if (selectedItems.empty() == true)
-	{
-		return false;
-	}
-
-	// Go through selected items
-	for (list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
-		itemPath != selectedItems.end(); ++itemPath)
-	{
-		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
-		TreeModel::Row row = *iter;
-
-		// Check only results are selected
-		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_type];
-		if (type != ResultsModelColumns::RESULT_TITLE)
-		{
-			goodSel = false;
-		}
-	}
-
-	return goodSel;
+	m_signalSelectionChanged(m_queryName);
 }
 
-//
-// Handles attempts to select rows.
-//
+bool ResultsTree::onSearchEqual(const RefPtr<TreeModel>& model, int column,
+	const ustring& key, const TreeModel::iterator& iter)
+{
+}
+
 bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 		const TreeModel::Path& path, bool path_currently_selected)
 {
@@ -343,7 +308,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			set<string> engineNames, indexNames;
 			string extract;
 
-			m_queryName = locale_from_utf8(row[m_resultsColumns.m_queryName]);
+			// m_queryName and row[m_resultsColumns.m_queryName] should be equal
 			string url = locale_from_utf8(row[m_resultsColumns.m_url]);
 			unsigned int engineIds = row[m_resultsColumns.m_engines];
 			unsigned int indexIds = row[m_resultsColumns.m_indexes];
@@ -378,7 +343,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 #ifdef DEBUG
 				cout << "ResultsTree::onSelectionSelect: first engine for " << url << " was " << engineName << endl;
 #endif
-				extract = history.getItemExtract(m_queryName, engineName, url);
+				extract = history.getItemExtract(locale_from_utf8(m_queryName), engineName, url);
 			}
 
 			RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
@@ -392,9 +357,6 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 	return true;
 }
 
-//
-// Handles GTK style changes.
-//
 void ResultsTree::onStyleChanged(const RefPtr<Style> &previous_style)
 {
 #ifdef DEBUG
@@ -406,6 +368,22 @@ void ResultsTree::onStyleChanged(const RefPtr<Style> &previous_style)
 	m_newIconPixbuf = render_icon(Stock::NEW, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_upIconPixbuf = render_icon(Stock::GO_UP, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_downIconPixbuf = render_icon(Stock::GO_DOWN, ICON_SIZE_MENU, "MetaSE-pinot");
+}
+
+//
+// Returns the results scrolled window.
+//
+ScrolledWindow *ResultsTree::getResultsScrolledWindow(void) const
+{
+	return m_pResultsScrolledwindow;
+}
+
+//
+// Returns the extract scrolled window.
+//
+ScrolledWindow *ResultsTree::getExtractScrolledWindow(void) const
+{
+	return m_pExtractScrolledwindow;
 }
 
 //
@@ -773,6 +751,40 @@ void ResultsTree::regroupResults(bool groupBySearchEngine)
 }
 
 //
+// Determines if results are selected.
+//
+bool ResultsTree::checkSelection(void)
+{
+	bool goodSel = true;
+
+#ifdef DEBUG
+	cout << "ResultsTree::checkSelection: called" << endl;
+#endif
+	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
+	if (selectedItems.empty() == true)
+	{
+		return false;
+	}
+
+	// Go through selected items
+	for (list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
+		itemPath != selectedItems.end(); ++itemPath)
+	{
+		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
+		TreeModel::Row row = *iter;
+
+		// Check only results are selected
+		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_type];
+		if (type != ResultsModelColumns::RESULT_TITLE)
+		{
+			goodSel = false;
+		}
+	}
+
+	return goodSel;
+}
+
+//
 // Gets the first selected item's URL.
 //
 ustring ResultsTree::getFirstSelectionURL(void)
@@ -941,13 +953,21 @@ void ResultsTree::showExtract(bool show)
 	if (m_showExtract == true)
 	{
 		// Show the extract
-		m_extractScrolledwindow->show();
+		m_pExtractScrolledwindow->show();
 	}
 	else
 	{
 		// Hide
-		m_extractScrolledwindow->hide();
+		m_pExtractScrolledwindow->hide();
 	}
+}
+
+//
+// Returns the changed selection signal.
+//
+Signal1<void, ustring>& ResultsTree::getSelectionChangedSignal(void)
+{
+	return m_signalSelectionChanged;
 }
 
 //

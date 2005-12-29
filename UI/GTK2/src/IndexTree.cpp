@@ -38,6 +38,7 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	TreeView(),
 	m_indexName(indexName),
 	m_pPopupMenu(pPopupMenu),
+	m_pIndexScrolledwindow(NULL),
 	m_settings(settings)
 {
 	m_pIndexScrolledwindow = manage(new ScrolledWindow());
@@ -150,7 +151,10 @@ void IndexTree::onButtonPressEvent(GdkEventButton *ev)
 	// Check for double clicks
 	else if (ev->type == GDK_2BUTTON_PRESS)
 	{
-		m_signalEdit;
+#ifdef DEBUG
+		cout << "IndexTree::onButtonPressEvent: double-click" << endl;
+#endif
+		m_signalEdit();
 	}
 }
 

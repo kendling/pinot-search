@@ -44,6 +44,7 @@
 #include "XapianEngine.h"
 #include "config.h"
 #include "NLS.h"
+#include "IndexPage.h"
 #include "PinotUtils.h"
 #include "mainWindow.hh"
 #include "aboutDialog.hh"
@@ -126,9 +127,10 @@ void mainWindow::InternalState::unlock(void)
 mainWindow::mainWindow() :
 	m_settings(PinotSettings::getInstance()), mainWindow_glade(),
 	m_pEnginesTree(NULL),
-	m_pResultsTree(NULL),
+	m_pNotebook(NULL),
 	m_pIndexMenu(NULL),
-	m_pLabelsMenu(NULL)
+	m_pLabelsMenu(NULL),
+	m_pHtmlView(NULL)
 {
 	// Reposition and resize the window
 	// Make sure the coordinates and sizes make sense
@@ -178,27 +180,23 @@ mainWindow::mainWindow() :
 	// Populate
 	populate_queryTreeview();
 
-	// Position the results tree
-	m_pResultsTree = manage(new ResultsTree(resultsVbox, resultsMenuitem->get_submenu(), m_settings));
-	// Connect to the "changed" signal
-	m_pResultsTree->get_selection()->signal_changed().connect(SigC::slot(*this,
-		&mainWindow::on_resultsTreeviewSelection_changed));
-
 	// Populate the index menu
 	populate_indexMenu();
 
-	// Add an HTML renderer in the View tab
-	m_pHtmlView = new HtmlView(viewVbox, NULL);
-	if (m_settings.m_browseResults == true)
-	{
-		// Hide this tab
-		Widget *pPage = mainNotebook->get_nth_page(1);
-		if (pPage != NULL)
-		{
-			pPage->hide();
-		}
-	}
-	else
+	// Create a notebook, without any page initially
+	m_pNotebook = manage(new Notebook());
+	m_pNotebook->set_flags(Gtk::CAN_FOCUS);
+	m_pNotebook->set_show_tabs(true);
+	m_pNotebook->set_show_border(true);
+	m_pNotebook->set_tab_pos(Gtk::POS_TOP);
+	m_pNotebook->set_scrollable(false);
+	rightVbox->pack_start(*m_pNotebook, Gtk::PACK_EXPAND_WIDGET, 4);
+	m_pNotebook->signal_switch_page().connect(
+		SigC::slot(*this, &mainWindow::on_switch_page), false);
+
+	// Create an HTML renderer
+	m_pHtmlView = new HtmlView(NULL);
+	if (m_settings.m_browseResults == false)
 	{
 		view_document("file:///usr/share/pinot/index.html", true);
 	}
@@ -208,6 +206,8 @@ mainWindow::mainWindow() :
 	removeQueryButton->set_sensitive(false);
 	findQueryButton->set_sensitive(false);
 	clearresults1->set_sensitive(false);
+	showextract1->set_sensitive(false);
+	groupresults1->set_sensitive(false);
 	viewresults1->set_sensitive(false);
 	// Hide the View Cache menu item ?
 	if (SearchEngineFactory::isSupported("googleapi") == false)
@@ -256,6 +256,7 @@ mainWindow::mainWindow() :
 
 	// Now we are ready
 	set_status(_("Ready"));
+	m_pNotebook->show();
 	show();
 }
 
@@ -272,15 +273,12 @@ mainWindow::~mainWindow()
 		for_each(m_state.m_pThreads.begin(), m_state.m_pThreads.end(), DeleteSetPointer());
 	}
 
-	// This is a hack to avoid segfaults when the View tab hasn't been made visible
-	Widget *pPage = mainNotebook->get_nth_page(1);
-	if (pPage != NULL)
+	// Stop in case we were loading a page
+	NotebookPageBox *pNotebookPage = get_page(_("View"), NotebookPageBox::VIEW_PAGE);
+	if (pNotebookPage != NULL)
 	{
-		pPage->show();
+		m_pHtmlView->stop();
 	}
-	mainNotebook->set_current_page(1);
-	// Stop if we were loading a page
-	m_pHtmlView->stop();
 	delete m_pHtmlView;
 }
 
@@ -449,11 +447,31 @@ void mainWindow::on_enginesTreeviewSelection_changed()
 //
 // Results tree selection changed
 //
-void mainWindow::on_resultsTreeviewSelection_changed()
+void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 {
-	if (m_pResultsTree->onSelectionChanged() == true)
+	ustring url;
+	bool hasSelection = false;
+
+	NotebookPageBox *pNotebookPage = get_page(queryName, NotebookPageBox::RESULTS_PAGE);
+	if (pNotebookPage != NULL)
 	{
-		ustring url = m_pResultsTree->getFirstSelectionURL();
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				hasSelection = pResultsTree->checkSelection();
+				if (hasSelection == true)
+				{
+					url = pResultsTree->getFirstSelectionURL();
+				}
+			}
+		}
+	}
+
+	if (hasSelection == true)
+	{
 		bool isViewable = true, isIndexable = true, isCached = false;
 
 		Url urlObj(locale_from_utf8(url));
@@ -502,7 +520,7 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 {
 	vector<IndexedDocument> documentsList;
 
-	IndexPage *pIndexPage = get_index_page(indexName);
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage == NULL)
 	{
 		return;
@@ -560,7 +578,7 @@ void mainWindow::on_index_changed(ustring indexName)
 #endif
 
 	// Is there already a page for this index ?
-	pIndexPage = get_index_page(indexName);
+	pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage != NULL)
 	{
 		// Force a refresh
@@ -574,13 +592,12 @@ void mainWindow::on_index_changed(ustring indexName)
 		foundPage = true;
 	}
 
-	if ((foundPage == false) &&
-		(m_state.writeLock(1) == true))
+	if (foundPage == false)
 	{
 		NotebookTabBox *pTab = manage(new NotebookTabBox(indexName,
-			NotebookTabBox::INDEX_PAGE));
+			NotebookPageBox::INDEX_PAGE));
 		pTab->getCloseSignal().connect(
-			SigC::slot(*this, &mainWindow::on_page_closed));
+			SigC::slot(*this, &mainWindow::on_close_page));
 
 		// Position the index tree
 		pIndexTree = manage(new IndexTree(indexName, indexMenuitem->get_submenu(), m_settings));
@@ -599,14 +616,19 @@ void mainWindow::on_index_changed(ustring indexName)
 			SigC::slot(*this, &mainWindow::on_indexBackButton_clicked));
 		pIndexPage->getForwardClickedSignal().connect(
 			SigC::slot(*this, &mainWindow::on_indexForwardButton_clicked));
-		int pageNum = mainNotebook->append_page(*pIndexPage, *pTab);
-		if (pageNum >= 0)
-		{
-			// Add this page to the list
-			foundPage = true;
-		}
 
-		m_state.unlock();
+		// Append the page
+		if (m_state.writeLock(1) == true)
+		{
+			int pageNum = m_pNotebook->append_page(*pIndexPage, *pTab);
+			m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+			if (pageNum >= 0)
+			{
+				foundPage = true;
+			}
+
+			m_state.unlock();
+		}
 	}
 
 	if (foundPage == true)
@@ -620,7 +642,7 @@ void mainWindow::on_index_changed(ustring indexName)
 //
 void mainWindow::on_label_changed(ustring indexName, ustring labelName)
 {
-	IndexPage *pIndexPage = get_index_page(indexName);
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage == NULL)
 	{
 		return;
@@ -647,25 +669,52 @@ void mainWindow::on_label_changed(ustring indexName, ustring labelName)
 }
 
 //
+// Notebook page switch
+//
+void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
+{
+#ifdef DEBUG
+	cout << "mainWindow::on_switch_page: switched to page " << p1 << endl;
+#endif
+	if (m_state.m_currentPage != (int)p1)
+	{
+		// Disable the widgets that depend on what page is selected
+		// Results
+		clearresults1->set_sensitive(false);
+		showextract1->set_sensitive(false);
+		groupresults1->set_sensitive(false);
+		viewresults1->set_sensitive(false);
+		viewcache1->set_sensitive(false);
+		indexresults1->set_sensitive(false);
+		// Index
+		viewfromindex1->set_sensitive(false);
+		refreshindex1->set_sensitive(false);
+		showfromindex1->set_sensitive(false);
+		unindex1->set_sensitive(false);
+	}
+	m_state.m_currentPage = (int)p1;
+}
+
+//
 // Notebook page closed
 //
-void mainWindow::on_page_closed(ustring title, NotebookTabBox::PageType type)
+void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 {
-	if (type != NotebookTabBox::INDEX_PAGE)
-	{
-		return;
-	}
-
 #ifdef DEBUG
-	cout << "mainWindow::on_page_closed: called for tab " << title << endl;
+	cout << "mainWindow::on_close_page: called for tab " << title << endl;
 #endif
-	int pageNum = get_index_page_number(title);
+	int pageNum = get_page_number(title, type);
 	if (pageNum >= 0)
 	{
+		if (type == NotebookPageBox::VIEW_PAGE)
+		{
+			m_pHtmlView->stop();
+		}
+
 		if (m_state.writeLock(2) == true)
 		{
 			// Remove the page
-			mainNotebook->remove_page(pageNum);
+			m_pNotebook->remove_page(pageNum);
 
 			m_state.unlock();
 		}
@@ -749,7 +798,7 @@ void mainWindow::on_thread_end()
 		ustring indexName = locale_to_utf8(pBrowseThread->getIndexName());
 
 		// Find the page for this index
-		pIndexPage = get_index_page(indexName);
+		pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage == NULL)
 		{
 			// It's probably been closed by the user
@@ -793,6 +842,7 @@ void mainWindow::on_thread_end()
 		unsigned int count = 0;
 		ResultsModelColumns::ResultType rootType;
 		bool mergeDuplicates = false;
+		int pageNum = -1;
 
 		QueryingThread *pQueryThread = dynamic_cast<QueryingThread *>(pThread);
 		if (pQueryThread == NULL)
@@ -802,51 +852,93 @@ void mainWindow::on_thread_end()
 		}
 
 		QueryProperties queryProps = pQueryThread->getQuery();
-		string queryName = queryProps.getName();
-		string engineName = pQueryThread->getEngineName();
+		ustring queryName = to_utf8(queryProps.getName());
+		ustring engineName = to_utf8(pQueryThread->getEngineName());
+		const vector<Result> &resultsList = pQueryThread->getResults();
 
 		status = _("Query");
 		status += " ";
-		status += to_utf8(queryName);
+		status += queryName;
 		status += " ";
 		status += _("on");
 		status += " ";
-		status += to_utf8(engineName);
+		status += engineName;
 		status += " ";
 		status += _("ended");
 		set_status(status);
 
-		// Switch to the results page
-		mainNotebook->set_current_page(0);
-
-		// Add these results to the tree
-		const vector<Result> &resultsList = pQueryThread->getResults();
-		if (m_pResultsTree->addResults(queryProps, engineName,
-			resultsList, searchenginegroup1->get_active()) == true)
+		// Find the page for this query
+		ResultsTree *pResultsTree = NULL;
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(get_page(queryName, NotebookPageBox::RESULTS_PAGE));
+		if (pResultsPage != NULL)
 		{
-#ifdef DEBUG
-			cout << "mainWindow::on_thread_end: added results" << endl;
-#endif
-			// Enable results clearing
-			clearresults1->set_sensitive(true);
-
-			// Index results ?
-			if ((queryProps.getIndexResults() == true) &&
-				(resultsList.empty() == false))
+			pResultsTree = pResultsPage->getTree();
+			if (pResultsTree == NULL)
 			{
-				string labelName = queryProps.getLabelName();
+				return;
+			}
+			pageNum = get_page_number(queryName, NotebookPageBox::RESULTS_PAGE);
+		}
+		else
+		{
+			// There is none, create one
+			NotebookTabBox *pTab = manage(new NotebookTabBox(queryName,
+				NotebookPageBox::RESULTS_PAGE));
+			pTab->getCloseSignal().connect(
+				SigC::slot(*this, &mainWindow::on_close_page));
+
+			// Position the results tree
+			pResultsTree = manage(new ResultsTree(queryName, resultsMenuitem->get_submenu(), m_settings));
+			pResultsPage = manage(new ResultsPage(queryName, pResultsTree, m_settings));
+			// Connect to the "changed" signal
+			pResultsTree->getSelectionChangedSignal().connect(
+				SigC::slot(*this, &mainWindow::on_resultsTreeviewSelection_changed));
+
+			// Append the page
+			if (m_state.writeLock(1) == true)
+			{
+				pageNum = m_pNotebook->append_page(*pResultsPage, *pTab);
+				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+
+				m_state.unlock();
+			}
+		}
+
+		if (pageNum >= 0)
+		{
+			// Switch to that page
+			m_pNotebook->set_current_page(pageNum);
+
+			// Add the results to the tree
+			if (pResultsTree->addResults(queryProps, engineName,
+				resultsList, searchenginegroup1->get_active()) == true)
+			{
+#ifdef DEBUG
+				cout << "mainWindow::on_thread_end: added results" << endl;
+#endif
+				// Enable some menuitems
+				clearresults1->set_sensitive(true);
+				showextract1->set_sensitive(false);
+				groupresults1->set_sensitive(false);
+			}
+		}
+
+		// Index results ?
+		if ((queryProps.getIndexResults() == true) &&
+			(resultsList.empty() == false))
+		{
+			string labelName = queryProps.getLabelName();
 
 #ifdef DEBUG
-				cout << "mainWindow::on_thread_end: indexing results, with label " << labelName << endl;
+			cout << "mainWindow::on_thread_end: indexing results, with label " << labelName << endl;
 #endif
-				for (vector<Result>::const_iterator resultIter = resultsList.begin();
-					resultIter != resultsList.end(); ++resultIter)
-				{
-					// Queue this action
-					queue_index(DocumentInfo(resultIter->getTitle(), resultIter->getLocation(),
-						resultIter->getType(), resultIter->getLanguage()),
-						labelName);
-				}
+			for (vector<Result>::const_iterator resultIter = resultsList.begin();
+				resultIter != resultsList.end(); ++resultIter)
+			{
+				// Queue this action
+				queue_index(DocumentInfo(resultIter->getTitle(), resultIter->getLocation(),
+					resultIter->getType(), resultIter->getLanguage()),
+					labelName);
 			}
 		}
 	}
@@ -860,7 +952,7 @@ void mainWindow::on_thread_end()
 		}
 		ustring indexName = locale_to_utf8(pLabelQueryThread->getIndexName());
 
-		IndexPage *pIndexPage = get_index_page(indexName);
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage == NULL)
 		{
 			return;
@@ -908,7 +1000,7 @@ void mainWindow::on_thread_end()
 					pIndexTree->setLabel(documentsList);
 
 					// Switch to the index page
-					mainNotebook->set_current_page(get_index_page_number(indexName));
+					m_pNotebook->set_current_page(get_page_number(indexName, NotebookPageBox::INDEX_PAGE));
 					break;
 				}
 			}
@@ -948,13 +1040,21 @@ void mainWindow::on_thread_end()
 				// Make sure settings haven't changed in the meantime
 				if (m_settings.m_browseResults == false)
 				{
-					// Display the URL in the View tab
-					mainNotebook->set_current_page(1);
-					if (m_pHtmlView->renderData(pData, dataLength, url) == true)
+					ustring viewName = _("View");
+
+					// Is there still a view page ?
+					int pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
+					if (pageNum >= 0)
 					{
-						//viewstop1->set_sensitive(true);
+						// Display the URL in the View tab
+						if (m_pHtmlView->renderData(pData, dataLength, url) == true)
+						{
+							//viewstop1->set_sensitive(true);
+							set_status(locale_to_utf8(url));
+						}
+
+						m_pNotebook->set_current_page(pageNum);
 					}
-					set_status(locale_to_utf8(url));
 				}
 			}
 		}
@@ -1000,7 +1100,7 @@ void mainWindow::on_thread_end()
 			}
 
 			// Is the index still being shown ?
-			IndexPage *pIndexPage = get_index_page(_("My Documents"));
+			IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Documents"), NotebookPageBox::INDEX_PAGE));
 			if (pIndexPage != NULL)
 			{
 				IndexTree *pIndexTree = pIndexPage->getTree();
@@ -1071,7 +1171,7 @@ void mainWindow::on_thread_end()
 			return;
 		}
 
-		IndexPage *pIndexPage = get_index_page(_("My Documents"));
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Documents"), NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
 			IndexTree *pIndexTree = pIndexPage->getTree();
@@ -1199,7 +1299,7 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 	bool hasLabel = false;
 
 	// Find the page for this index
-	pIndexPage = get_index_page(locale_to_utf8(indexName));
+	pIndexPage = dynamic_cast<IndexPage*>(get_page(locale_to_utf8(indexName), NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage == NULL)
 	{
 		// It's probably been closed by the user
@@ -1288,9 +1388,9 @@ void mainWindow::on_configure_activate()
 
 	if (m_state.readLock(5) == true)
 	{
-		for (int pageNum = 0; pageNum < mainNotebook->get_n_pages(); ++pageNum)
+		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
-			Widget *pPage = mainNotebook->get_nth_page(pageNum);
+			Widget *pPage = m_pNotebook->get_nth_page(pageNum);
 			if (pPage != NULL)
 			{
 				IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pPage);
@@ -1314,22 +1414,10 @@ void mainWindow::on_configure_activate()
 	// Do the changes affect the View tab ?
 	if (useExternalBrowser != m_settings.m_browseResults)
 	{
-		int nCurrentPage = mainNotebook->get_current_page();
-		Widget *pPage = mainNotebook->get_nth_page(1);
-		if (pPage != NULL)
+		// Close the existing view page ?
+		if (m_settings.m_browseResults == true)
 		{
-			// Hide or show ?
-			if (m_settings.m_browseResults == true)
-			{
-				pPage->hide();
-			}
-			else
-			{
-				pPage->show();
-
-				// Make sure we show the same tab
-				mainNotebook->set_current_page(nCurrentPage);
-			}
+			on_close_page(_("View"), NotebookPageBox::VIEW_PAGE);
 		}
 	}
 
@@ -1391,38 +1479,44 @@ void mainWindow::on_copy_activate()
 		// Copy only the query name, not the summary
 		text = row[m_queryColumns.m_name];
 	}
-	else if (m_pResultsTree->is_focus() == true)
-	{
-		vector<Result> resultsList;
-		bool firstItem = true;
-
-#ifdef DEBUG
-		cout << "mainWindow::on_copy_activate: results tree" << endl;
-#endif
-		// Get the current results selection
-		m_pResultsTree->getSelection(resultsList);
-	
-		for (vector<Result>::const_iterator resultIter = resultsList.begin();
-			resultIter != resultsList.end(); ++resultIter)
-		{
-			if (firstItem == false)
-			{
-				text += "\n";
-			}
-			text += resultIter->getTitle();
-			text += " ";
-			text += resultIter->getLocation();
-			firstItem = false;
-		}
-	}
 	else
 	{
-		// The focus may be on one of the index tabs
-		IndexPage *pIndexPage = get_index_page_with_focus(true);
-		if (pIndexPage != NULL)
+		// The focus may be on one of the notebook pages
+		NotebookPageBox *pNotebookPage = get_page_with_focus();
+		if (pNotebookPage != NULL)
 		{
-			IndexTree *pIndexTree = pIndexPage->getTree();
-			if (pIndexTree != NULL)
+			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+			if (pResultsPage != NULL)
+			{
+				vector<Result> resultsList;
+				bool firstItem = true;
+
+#ifdef DEBUG
+				cout << "mainWindow::on_copy_activate: results tree" << endl;
+#endif
+				ResultsTree *pResultsTree = pResultsPage->getTree();
+				if (pResultsTree != NULL)
+				{
+					// Get the current results selection
+					pResultsTree->getSelection(resultsList);
+				}
+
+				for (vector<Result>::const_iterator resultIter = resultsList.begin();
+					resultIter != resultsList.end(); ++resultIter)
+				{
+					if (firstItem == false)
+					{
+						text += "\n";
+					}
+					text += resultIter->getTitle();
+					text += " ";
+					text += resultIter->getLocation();
+					firstItem = false;
+				}
+			}
+
+			IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pNotebookPage);
+			if (pIndexPage != NULL)
 			{
 				vector<IndexedDocument> documentsList;
 				bool firstItem = true;
@@ -1430,8 +1524,12 @@ void mainWindow::on_copy_activate()
 #ifdef DEBUG
 				cout << "mainWindow::on_copy_activate: index tree" << endl;
 #endif
-				// Get the current documents selection
-				pIndexTree->getSelection(documentsList);
+				IndexTree *pIndexTree = pIndexPage->getTree();
+				if (pIndexTree != NULL)
+				{
+					// Get the current documents selection
+					pIndexTree->getSelection(documentsList);
+				}
 
 				for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
 					docIter != documentsList.end(); ++docIter)
@@ -1511,15 +1609,25 @@ void mainWindow::on_delete_activate()
 	{
 		liveQueryEntry->delete_selection();
 	}
-	else if (m_pResultsTree->is_focus() == true)
+	else
 	{
-#ifdef DEBUG
-		cout << "mainWindow::on_delete_activate: results tree" << endl;
-#endif
-		if (m_pResultsTree->deleteSelection() == true)
+		NotebookPageBox *pNotebookPage = get_page_with_focus();
+		if (pNotebookPage != NULL)
 		{
-			// The results tree is now empty
-			clearresults1->set_sensitive(false);
+			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+			if (pResultsPage != NULL)
+			{
+#ifdef DEBUG
+				cout << "mainWindow::on_delete_activate: results tree" << endl;
+#endif
+				ResultsTree *pResultsTree = pResultsPage->getTree();
+				if ((pResultsTree != NULL) &&
+					(pResultsTree->deleteSelection() == true))
+				{
+					// The results tree is now empty
+					clearresults1->set_sensitive(false);
+				}
+			}
 		}
 	}
 	// Nothing else can be deleted
@@ -1530,8 +1638,20 @@ void mainWindow::on_delete_activate()
 //
 void mainWindow::on_clearresults_activate()
 {
-	m_pResultsTree->clear();
-	clearresults1->set_sensitive(false);
+	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	if (pNotebookPage != NULL)
+	{
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				pResultsTree->clear();
+				clearresults1->set_sensitive(false);
+			}
+		}
+	}
 }
 
 //
@@ -1539,10 +1659,19 @@ void mainWindow::on_clearresults_activate()
 //
 void mainWindow::on_showextract_activate()
 {
-#ifdef DEBUG
-	cout << "mainWindow::on_showextract_activate: called" << endl;
-#endif
-	m_pResultsTree->showExtract(showextract1->get_active());
+	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	if (pNotebookPage != NULL)
+	{
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				pResultsTree->showExtract(showextract1->get_active());
+			}
+		}
+	}
 }
 
 //
@@ -1552,11 +1681,20 @@ void mainWindow::on_groupresults_activate()
 {
 	ResultsModelColumns::ResultType currentType, newType;
 
-#ifdef DEBUG
-	cout << "mainWindow::on_groupresults_activate: called" << endl;
-#endif
 	// What's the new grouping criteria ?
-	m_pResultsTree->regroupResults(searchenginegroup1->get_active());
+	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	if (pNotebookPage != NULL)
+	{
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				pResultsTree->regroupResults(searchenginegroup1->get_active());
+			}
+		}
+	}
 }
 
 //
@@ -1564,11 +1702,23 @@ void mainWindow::on_groupresults_activate()
 //
 void mainWindow::on_viewresults_activate()
 {
-	ustring url = m_pResultsTree->getFirstSelectionURL();
-	if (view_document(locale_from_utf8(url)) == true)
+	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	if (pNotebookPage != NULL)
 	{
-		// We can update the row right now
-		m_pResultsTree->setFirstSelectionViewedState(true);
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				ustring url = pResultsTree->getFirstSelectionURL();
+				if (view_document(locale_from_utf8(url)) == true)
+				{
+					// We can update the row right now
+					pResultsTree->setFirstSelectionViewedState(true);
+				}
+			}
+		}
 	}
 }
 
@@ -1577,12 +1727,24 @@ void mainWindow::on_viewresults_activate()
 //
 void mainWindow::on_viewcache_activate()
 {
-	ustring url = m_pResultsTree->getFirstSelectionURL();
+	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	if (pNotebookPage != NULL)
+	{
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				ustring url = pResultsTree->getFirstSelectionURL();
 
-	start_thread(new DownloadingThread(url, true));
+				start_thread(new DownloadingThread(url, true));
 
-	// Update the row now, even though the cached page may not be retrieved
-	m_pResultsTree->setFirstSelectionViewedState(true);
+				// Update the row now, even though the cached page may not be retrieved
+				pResultsTree->setFirstSelectionViewedState(true);
+			}
+		}
+	}
 }
 
 //
@@ -1590,6 +1752,8 @@ void mainWindow::on_viewcache_activate()
 //
 void mainWindow::on_indexresults_activate()
 {
+	vector<Result> resultsList;
+
 	// Make sure this has been configured
 	if (m_settings.m_indexLocation.empty() == true)
 	{
@@ -1597,8 +1761,19 @@ void mainWindow::on_indexresults_activate()
 		return;
 	}
 
-	vector<Result> resultsList;
-	m_pResultsTree->getSelection(resultsList);
+	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	if (pNotebookPage != NULL)
+	{
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				pResultsTree->getSelection(resultsList);
+			}
+		}
+	}
 
 	// Go through selected results
 	for (vector<Result>::const_iterator resultIter = resultsList.begin();
@@ -1639,7 +1814,7 @@ void mainWindow::on_import_activate()
 //
 void mainWindow::on_viewfromindex_activate()
 {
-	IndexPage *pIndexPage = get_index_page_with_focus(false);
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page_with_focus());
 	if (pIndexPage != NULL)
 	{
 		IndexTree *pIndexTree = pIndexPage->getTree();
@@ -1668,7 +1843,7 @@ void mainWindow::on_refreshindex_activate()
 	}
 
 	// Get the current documents selection
-	IndexPage *pIndexPage = get_index_page_with_focus(false);
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page_with_focus());
 	if (pIndexPage != NULL)
 	{
 		IndexTree *pIndexTree = pIndexPage->getTree();
@@ -1725,11 +1900,14 @@ void mainWindow::on_showfromindex_activate()
 	int width, height;
 	bool matchedLabel = false, editTitle = false;
 
+#ifdef DEBUG
+	cout << "mainWindow::on_showfromindex_activate: called" << endl;
+#endif
 	IndexTree *pIndexTree = NULL;
-	IndexPage *pIndexPage = get_index_page_with_focus(false);
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page_with_focus());
 	if (pIndexPage != NULL)
 	{
-		indexName = locale_from_utf8(pIndexPage->getIndexName());
+		indexName = locale_from_utf8(pIndexPage->getTitle());
 		labelName = locale_from_utf8(pIndexPage->getLabelName());
 		pIndexTree = pIndexPage->getTree();
 	}
@@ -1857,7 +2035,7 @@ void mainWindow::on_unindex_activate()
 	ustring boxTitle = _("Delete this document from the index ?");
 
 	IndexTree *pIndexTree = NULL;
-	IndexPage *pIndexPage = get_index_page_with_focus(false);
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page_with_focus());
 	if (pIndexPage != NULL)
 	{
 		pIndexTree = pIndexPage->getTree();
@@ -2143,7 +2321,7 @@ void mainWindow::on_findQueryButton_clicked()
 //
 void mainWindow::on_indexBackButton_clicked(ustring indexName)
 {
-	IndexPage *pIndexPage = get_index_page(indexName);
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage != NULL)
 	{
 		if (pIndexPage->getFirstDocument() >= m_maxDocsCount)
@@ -2159,7 +2337,7 @@ void mainWindow::on_indexBackButton_clicked(ustring indexName)
 //
 void mainWindow::on_indexForwardButton_clicked(ustring indexName)
 {
-	IndexPage *pIndexPage = get_index_page(indexName);
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage != NULL)
 	{
 		if (pIndexPage->getDocumentsCount() == 0)
@@ -2187,31 +2365,6 @@ bool mainWindow::on_queryTreeview_button_press_event(GdkEventButton *ev)
 	}
 
 	return false;
-}
-
-//
-// Notebook page switch
-//
-void mainWindow::on_mainNotebook_switch_page(GtkNotebookPage *p0, guint p1)
-{
-#ifdef DEBUG
-	cout << "mainWindow::on_mainNotebook_switch_page: switched to page " << p1 << endl;
-#endif
-	if (m_state.m_currentPage != (int)p1)
-	{
-		// Disable the widgets that depend on what page is selected
-		// Results
-		clearresults1->set_sensitive(false);
-		viewresults1->set_sensitive(false);
-		viewcache1->set_sensitive(false);
-		indexresults1->set_sensitive(false);
-		// Index
-		viewfromindex1->set_sensitive(false);
-		refreshindex1->set_sensitive(false);
-		showfromindex1->set_sensitive(false);
-		unindex1->set_sensitive(false);
-	}
-	m_state.m_currentPage = (int)p1;
 }
 
 //
@@ -2263,79 +2416,56 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 }
 
 //
-// Returns the IndexPage for the index that has the focus.
+// Returns the page that has the focus.
 //
-IndexPage *mainWindow::get_index_page_with_focus(bool checkTree)
+NotebookPageBox *mainWindow::get_page_with_focus(void)
 {
-	IndexPage *pIndexPage = NULL;
+	NotebookPageBox *pNotebookPage = NULL;
 
 	if (m_state.readLock(7) == true)
 	{
-		for (int pageNum = 0; pageNum < mainNotebook->get_n_pages(); ++pageNum)
+		if (m_state.m_currentPage >= 0)
 		{
-			Widget *pPage = mainNotebook->get_nth_page(pageNum);
+			Widget *pPage = m_pNotebook->get_nth_page(m_state.m_currentPage);
 			if (pPage != NULL)
 			{
-				pIndexPage = dynamic_cast<IndexPage*>(pPage);
-				if (pIndexPage != NULL)
-				{
-#ifdef DEBUG
-					cout << "mainWindow::get_index_page_with_focus: " << pIndexPage->getIndexName() << endl;
-#endif
-					if (checkTree == false)
-					{
-						if (pIndexPage->is_focus() == true)
-						{
-							break;
-						}
-					}
-					else
-					{
-						IndexTree *pIndexTree = pIndexPage->getTree();
-						if ((pIndexTree != NULL) &&
-							(pIndexTree->is_focus() == true))
-						{
-							break;
-						}
-					}
-					pIndexPage = NULL;
-				}
+				pNotebookPage = dynamic_cast<NotebookPageBox*>(pPage);
 			}
 		}
 
 		m_state.unlock();
 	}
 
-	return pIndexPage;
+	return pNotebookPage;
 }
 
 //
-// Returns the IndexPage for the given index.
+// Returns the page with the given title.
 //
-IndexPage *mainWindow::get_index_page(const ustring &indexName)
+NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::PageType type)
 {
-	IndexPage *pIndexPage = NULL;
+	NotebookPageBox *pNotebookPage = NULL;
 
 	if (m_state.readLock(8) == true)
 	{
-		for (int pageNum = 0; pageNum < mainNotebook->get_n_pages(); ++pageNum)
+		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
-			Widget *pPage = mainNotebook->get_nth_page(pageNum);
+			Widget *pPage = m_pNotebook->get_nth_page(pageNum);
 			if (pPage != NULL)
 			{
-				pIndexPage = dynamic_cast<IndexPage*>(pPage);
-				if (pIndexPage != NULL)
+				pNotebookPage = dynamic_cast<NotebookPageBox*>(pPage);
+				if (pNotebookPage != NULL)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::get_index_page: " << pIndexPage->getIndexName() << endl;
+					cout << "mainWindow::get_page: " << pNotebookPage->getTitle() << endl;
 #endif
-					// It's an index page, check the name of the index
-					if (indexName == pIndexPage->getIndexName())
+					if ((title == pNotebookPage->getTitle()) &&
+						(type == pNotebookPage->getType()))
 					{
 						// That's the page we are looking for
 						break;
 					}
-					pIndexPage = NULL;
+					pNotebookPage = NULL;
 				}
 			}
 		}
@@ -2343,31 +2473,31 @@ IndexPage *mainWindow::get_index_page(const ustring &indexName)
 		m_state.unlock();
 	}
 
-	return pIndexPage;
+	return pNotebookPage;
 }
 
 //
-// Returns the page number for the given index.
+// Returns the page number with the given title.
 //
-int mainWindow::get_index_page_number(const ustring &indexName)
+int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType type)
 {
 	int pageNumber = -1;
 
 	if (m_state.readLock(9) == true)
 	{
-		for (int pageNum = 0; pageNum < mainNotebook->get_n_pages(); ++pageNum)
+		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
-			Widget *pPage = mainNotebook->get_nth_page(pageNum);
+			Widget *pPage = m_pNotebook->get_nth_page(pageNum);
 			if (pPage != NULL)
 			{
-				IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pPage);
-				if (pIndexPage != NULL)
+				NotebookPageBox *pNotebookPage = dynamic_cast<NotebookPageBox*>(pPage);
+				if (pNotebookPage != NULL)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::get_index_page_number: " << pIndexPage->getIndexName() << endl;
+					cout << "mainWindow::get_page_number: " << pNotebookPage->getTitle() << endl;
 #endif
-					// It's an index page, check the name of the index
-					if (indexName == pIndexPage->getIndexName())
+					if ((title == pNotebookPage->getTitle()) &&
+						(type == pNotebookPage->getType()))
 					{
 						// That's the page we are looking for
 						pageNumber = pageNum;
@@ -2668,7 +2798,7 @@ void mainWindow::browse_index(const ustring &indexName, unsigned int startDoc)
 	}
 	m_state.m_browsingIndex = true;
 
-	IndexPage *pIndexPage = get_index_page(indexName);
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage != NULL)
 	{
 		IndexTree *pIndexTree = pIndexPage->getTree();
@@ -2681,7 +2811,7 @@ void mainWindow::browse_index(const ustring &indexName, unsigned int startDoc)
 		pIndexPage->setDocumentsCount(0);
 
 		// Switch to that index page
-		mainNotebook->set_current_page(get_index_page_number(indexName));
+		m_pNotebook->set_current_page(get_page_number(indexName, NotebookPageBox::INDEX_PAGE));
 	}
 
 	if (indexName == _("My Documents"))
@@ -2779,9 +2909,6 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 		set_status(_("No URL to browse"));
 		return false;
 	}
-#ifdef DEBUG
-	cout << "mainWindow::view_document: URL is " << url << endl;
-#endif
 
 	// Is browsing enabled ?
 	if ((internalViewerOnly == false) &&
@@ -2820,13 +2947,46 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 		}
 		else
 		{
-			// Display the URL in the View tab
-			mainNotebook->set_current_page(1);
-			if (m_pHtmlView->renderUrl(url) == true)
+			ViewPage *pViewPage = NULL;
+			ustring viewName = _("View");
+			int pageNum = -1;
+
+			// Is there already a page for this index ?
+			pViewPage = dynamic_cast<ViewPage*>(get_page(viewName, NotebookPageBox::VIEW_PAGE));
+			if (pViewPage != NULL)
 			{
-				//viewstop1->set_sensitive(true);
+				pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
 			}
-			set_status(locale_to_utf8(m_pHtmlView->getLocation()));
+			else
+			{
+				NotebookTabBox *pTab = manage(new NotebookTabBox(viewName,
+					NotebookPageBox::VIEW_PAGE));
+				pTab->getCloseSignal().connect(
+					SigC::slot(*this, &mainWindow::on_close_page));
+
+				// Position everything
+				pViewPage = manage(new ViewPage(viewName, m_pHtmlView, m_settings));
+
+				// Append the page
+				if (m_state.writeLock(1) == true)
+				{
+					pageNum = m_pNotebook->append_page(*pViewPage, *pTab);
+					m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+
+					m_state.unlock();
+				}
+			}
+
+			if (pageNum >= 0)
+			{
+				// Display the URL
+				m_pNotebook->set_current_page(pageNum);
+				if (m_pHtmlView->renderUrl(url) == true)
+				{
+					//viewstop1->set_sensitive(true);
+				}
+				set_status(locale_to_utf8(m_pHtmlView->getLocation()));
+			}
 		}
 	}
 

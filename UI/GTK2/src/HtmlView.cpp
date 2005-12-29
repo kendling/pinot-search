@@ -26,25 +26,23 @@
 using namespace Glib;
 using namespace Gtk;
 
-HtmlView::HtmlView(VBox *viewVbox, Menu *pPopupMenu) :
+HtmlView::HtmlView(Menu *pPopupMenu) :
 	MozillaRenderer(),
-	m_pPopupMenu(pPopupMenu)
+	m_pPopupMenu(pPopupMenu),
+	m_pDocHtmlView(NULL)
 {
-	GtkWidget *view = getWidget();
+	GtkWidget *view = getObject();
 	if (view != NULL)
 	{
 		// Wrap this into a gtkmm Widget object
-		// FIXME: need manage(wrap()) ?
-		Widget *pDocHtmlView = wrap(view);
-		if ((pDocHtmlView != NULL) &&
-			(viewVbox != NULL))
+		m_pDocHtmlView = wrap(view);
+		if (m_pDocHtmlView != NULL)
 		{
-			viewVbox->pack_start(*pDocHtmlView);
-
 			// Handle button presses
-			pDocHtmlView->signal_button_press_event().connect_notify(SigC::slot(*this, &HtmlView::onButtonPressEvent));
+			m_pDocHtmlView->signal_button_press_event().connect_notify(
+				SigC::slot(*this, &HtmlView::onButtonPressEvent));
 
-			pDocHtmlView->show();
+			m_pDocHtmlView->show();
 		}
 	}
 }
@@ -70,4 +68,12 @@ void HtmlView::onButtonPressEvent(GdkEventButton *ev)
 			m_pPopupMenu->popup(ev->button, ev->time);
 		}
 	}
+}
+
+//
+// Returns the underlying widget.
+//
+Widget *HtmlView::getWidget(void) const
+{
+	return m_pDocHtmlView;
 }

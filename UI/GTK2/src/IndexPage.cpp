@@ -37,10 +37,8 @@ using namespace Gtk;
 
 IndexPage::IndexPage(const ustring &indexName, IndexTree *pTree,
 	PinotSettings &settings) :
-	VBox(),
-	m_indexName(indexName),
+	NotebookPageBox(indexName, NotebookPageBox::INDEX_PAGE, settings),
 	m_pTree(pTree),
-	m_settings(settings),
 	m_pLabelCombobox(NULL),
 	m_pBackButton(NULL),
 	m_pForwardButton(NULL),
@@ -162,34 +160,18 @@ void IndexPage::onLabelChanged(void)
 		{
 			m_labelName.clear();
 		}
-		m_signalLabelChanged(m_indexName, m_labelName);
+		m_signalLabelChanged(m_title, m_labelName);
 	}
 }
 
 void IndexPage::onBackClicked(void)
 {
-	m_signalBackClicked(m_indexName);
+	m_signalBackClicked(m_title);
 }
 
 void IndexPage::onForwardClicked(void)
 {
-	m_signalForwardClicked(m_indexName);
-}
-
-//
-// Returns the name of the index being listed.
-//
-ustring IndexPage::getIndexName(void) const
-{
-	return m_indexName;
-}
-
-//
-// Returns the name of the current label.
-//
-ustring IndexPage::getLabelName(void) const
-{
-	return m_labelName;
+	m_signalForwardClicked(m_title);
 }
 
 //
@@ -198,6 +180,14 @@ ustring IndexPage::getLabelName(void) const
 IndexTree *IndexPage::getTree(void) const
 {
 	return m_pTree;
+}
+
+//
+// Returns the name of the current label.
+//
+ustring IndexPage::getLabelName(void) const
+{
+	return m_labelName;
 }
 
 //

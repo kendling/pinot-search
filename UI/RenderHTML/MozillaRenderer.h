@@ -38,9 +38,6 @@ class MozillaRenderer
 		/// Shutdowns the renderer.
 		static void shutdown(void);
 
-		/// Returns the GTK widget.
-		GtkWidget *getWidget(void);
-
 		/// Renders HTML held in a buffer.
 		bool renderData(const char *data, unsigned int length, const string &baseUrl);
 
@@ -74,6 +71,9 @@ class MozillaRenderer
 	protected:
 		GtkWidget *m_htmlWidget;
 		bool m_rendering;
+
+		/// Returns the GTK widget.
+		GtkWidget *getObject(void);
 
 	private:
 		MozillaRenderer(const MozillaRenderer &other);

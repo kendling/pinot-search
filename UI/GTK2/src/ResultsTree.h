@@ -25,7 +25,6 @@
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 #include <gdkmm/pixbuf.h>
-#include <gtkmm/box.h>
 #include <gtkmm/button.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/scrolledwindow.h>
@@ -42,14 +41,15 @@
 class ResultsTree : public Gtk::TreeView
 {
 	public:
-		ResultsTree(Gtk::VBox *resultsVbox, Gtk::Menu *pPopupMenu, PinotSettings &settings);
+		ResultsTree(const Glib::ustring &queryName, Gtk::Menu *pPopupMenu,
+			PinotSettings &settings);
 		virtual ~ResultsTree();
 
-		/**
-		  * Handles selection changes.
-		  * Returns true if a result is selected.
-		  */
-		bool onSelectionChanged(void);
+		/// Returns the results scrolled window.
+		Gtk::ScrolledWindow *getResultsScrolledWindow(void) const;
+
+		/// Returns the extract scrolled window.
+		Gtk::ScrolledWindow *getExtractScrolledWindow(void) const;
 
 		/**
 		  * Adds a set of results.
@@ -60,6 +60,9 @@ class ResultsTree : public Gtk::TreeView
 
 		/// Groups results.
 		void regroupResults(bool groupBySearchEngine);
+
+		/// Determines if results are selected.
+		bool checkSelection(void);
 
 		/// Gets the first selected item's URL.
 		Glib::ustring getFirstSelectionURL(void);
@@ -82,9 +85,15 @@ class ResultsTree : public Gtk::TreeView
 		/// Shows or hides the extract field.
 		void showExtract(bool show = true);
 
+		/// Returns the changed selection signal.
+		SigC::Signal1<void, Glib::ustring>& getSelectionChangedSignal(void);
+
 	protected:
-		Glib::RefPtr<Gtk::TreeStore> m_refStore;
+		Glib::ustring m_queryName;
 		Gtk::Menu *m_pPopupMenu;
+		Gtk::ScrolledWindow *m_pResultsScrolledwindow;
+		Glib::RefPtr<Gtk::TreeStore> m_refStore;
+		SigC::Signal1<void, Glib::ustring> m_signalSelectionChanged;
 		PinotSettings &m_settings;
 		Glib::RefPtr<Gdk::Pixbuf> m_indexedIconPixbuf;
 		Glib::RefPtr<Gdk::Pixbuf> m_viewededIconPixbuf;
@@ -93,11 +102,10 @@ class ResultsTree : public Gtk::TreeView
 		Glib::RefPtr<Gdk::Pixbuf> m_downIconPixbuf;
 		std::map<std::string, Gtk::TreeModel::iterator> m_resultsGroups;
 		ResultsModelColumns m_resultsColumns;
-		Gtk::ScrolledWindow *m_extractScrolledwindow;
+		Gtk::ScrolledWindow *m_pExtractScrolledwindow;
 		Gtk::TextView *m_extractTextview;
 		std::set<std::string> m_indexNames;
 		bool m_showExtract;
-		std::string m_queryName;
 
 		void renderViewStatus(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
 
@@ -105,14 +113,13 @@ class ResultsTree : public Gtk::TreeView
 
 		void renderRanking(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
 
-		/// Interactive search equal function.
+		void onButtonPressEvent(GdkEventButton *ev);
+
+		void onSelectionChanged(void);
+
 		bool onSearchEqual(const Glib::RefPtr<Gtk::TreeModel>& model, int column,
 			const Glib::ustring& key, const Gtk::TreeModel::iterator& iter);
 
-		/// Handles button presses.
-		void onButtonPressEvent(GdkEventButton *ev);
-
-		/// Handles attempts to select rows.
 		bool onSelectionSelect(const Glib::RefPtr<Gtk::TreeModel>& model,
 			const Gtk::TreeModel::Path& path, bool path_currently_selected);
 

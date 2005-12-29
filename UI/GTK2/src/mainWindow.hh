@@ -25,6 +25,7 @@
 #include <gdkmm/pixbuf.h>
 #include <gdkmm/color.h>
 #include <gtkmm/rc.h>
+#include <gtkmm/notebook.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/treestore.h>
 #include <gtkmm/treeselection.h>
@@ -38,9 +39,8 @@
 #include "QueryProperties.h"
 #include "EnginesTree.h"
 #include "HtmlView.h"
-#include "IndexPage.h"
 #include "ModelColumns.h"
-#include "NotebookTabBox.h"
+#include "Notebook.h"
 #include "PinotSettings.h"
 #include "ResultsTree.h"
 #include "WorkerThreads.h"
@@ -61,11 +61,12 @@ protected:
 	// Handlers
 	void on_enginesTreeviewSelection_changed();
 	void on_queryTreeviewSelection_changed();
-	void on_resultsTreeviewSelection_changed();
+	void on_resultsTreeviewSelection_changed(Glib::ustring queryName);
 	void on_indexTreeviewSelection_changed(Glib::ustring indexName);
 	void on_index_changed(Glib::ustring indexName);
 	void on_label_changed(Glib::ustring indexName, Glib::ustring labelName);
-	void on_page_closed(Glib::ustring title, NotebookTabBox::PageType type);
+	void on_switch_page(GtkNotebookPage *p0, guint p1);
+	void on_close_page(Glib::ustring title, NotebookPageBox::PageType type);
 	void on_thread_end();
 	void on_editindex(Glib::ustring indexName, Glib::ustring location);
 	void on_message_reception(DocumentInfo docInfo, std::string labelName);
@@ -109,13 +110,14 @@ protected:
 	virtual void on_indexForwardButton_clicked(Glib::ustring indexName);
 
 	virtual bool on_queryTreeview_button_press_event(GdkEventButton *ev);
-	virtual void on_mainNotebook_switch_page(GtkNotebookPage *p0, guint p1);
 	virtual bool on_mainWindow_delete_event(GdkEventAny *ev);
 
 	// Action methods
-	IndexPage *get_index_page_with_focus(bool checkTree);
-	IndexPage *get_index_page(const Glib::ustring &indexName);
-	int get_index_page_number(const Glib::ustring &indexName);
+	NotebookPageBox *get_page_with_focus(void);
+	NotebookPageBox *get_page(const Glib::ustring &title,
+		NotebookPageBox::PageType type);
+	int get_page_number(const Glib::ustring &title,
+		NotebookPageBox::PageType type);
 	bool queue_index(const DocumentInfo &docInfo, const std::string &labelName,
 		unsigned int docId = 0);
 	bool queue_unindex(set<unsigned int> &docIdList);
@@ -144,8 +146,8 @@ private:
 	// Query
 	QueryModelColumns m_queryColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refQueryTree;
-	// Results
-	ResultsTree *m_pResultsTree;
+	// Notebook
+	Gtk::Notebook *m_pNotebook;
 	// Index
 	Gtk::Menu *m_pIndexMenu;
 	Gtk::Menu *m_pLabelsMenu;

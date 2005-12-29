@@ -14,7 +14,7 @@ UI_GTK2_SRCS = aboutDialog.cc aboutDialog_glade.cc \
 	queryDialog.cc queryDialog_glade.cc \
 	mainWindow.cc mainWindow_glade.cc
 UI_SRCS = pinot.cpp EnginesTree.cpp IndexPage.cpp IndexTree.cpp \
-	HtmlView.cpp ModelColumns.cpp MonitorHandler.cpp NotebookTabBox.cpp \
+	HtmlView.cpp ModelColumns.cpp MonitorHandler.cpp Notebook.cpp \
 	PinotSettings.cpp PinotUtils.cpp ResultsTree.cpp WorkerThreads.cpp
 UI_GTK2_OBJS := $(patsubst %.cc,${OBJ_DIR}/%.o,${UI_GTK2_SRCS})
 UI_OBJS := $(patsubst %.cpp,${OBJ_DIR}/%.o,${UI_SRCS})

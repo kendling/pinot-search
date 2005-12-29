@@ -22,7 +22,6 @@
 #include <sigc++/slot.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
-#include <gtkmm/box.h>
 #include <gtkmm/menu.h>
 #include <gdkmm/pixbuf.h>
 #include <gtkmm/combobox.h>
@@ -37,23 +36,21 @@
 #include "IndexedDocument.h"
 #include "IndexTree.h"
 #include "ModelColumns.h"
+#include "Notebook.h"
 #include "PinotSettings.h"
 
-class IndexPage : public Gtk::VBox
+class IndexPage : public NotebookPageBox
 {
 	public:
 		IndexPage(const Glib::ustring &indexName, IndexTree *pTree,
 			PinotSettings &settings);
 		virtual ~IndexPage();
 
-		/// Returns the name of the index being listed.
-		Glib::ustring getIndexName(void) const;
+		/// Returns the page's tree.
+		virtual IndexTree *getTree(void) const;
 
 		/// Returns the name of the current label.
 		Glib::ustring getLabelName(void) const;
-
-		/// Returns the page's tree.
-		IndexTree *getTree(void) const;
 
 		/// Populates the labels list.
 		void populateLabelCombobox(void);
@@ -86,7 +83,6 @@ class IndexPage : public Gtk::VBox
 		Glib::ustring m_indexName;
 		Glib::ustring m_labelName;
 		IndexTree *m_pTree;
-		PinotSettings &m_settings;
 		ComboModelColumns m_labelNameColumns;
 		Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
 		Gtk::ComboBox *m_pLabelCombobox;

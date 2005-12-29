@@ -76,7 +76,7 @@ MozillaRenderer::~MozillaRenderer()
 }
 
 /// Returns the GTK widget.
-GtkWidget *MozillaRenderer::getWidget(void)
+GtkWidget *MozillaRenderer::getObject(void)
 {
 	return m_htmlWidget;
 }
