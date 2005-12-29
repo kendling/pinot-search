@@ -125,11 +125,11 @@ class QueryingThread : public WorkerThread
 
 		virtual std::string getType(void) const;
 
-		virtual std::string getEngineName(void) const;
+		std::string getEngineName(void) const;
 
-		virtual QueryProperties getQuery(void) const;
+		QueryProperties getQuery(void) const;
 
-		virtual const std::vector<Result> &getResults(void) const;
+		const std::vector<Result> &getResults(void) const;
 
 		virtual bool stop(void);
 
@@ -158,11 +158,13 @@ class LabelQueryThread : public WorkerThread
 
 		virtual std::string getType(void) const;
 
-		virtual std::string getLabelName(void) const;
+		std::string getIndexName(void) const;
+
+		std::string getLabelName(void) const;
 
 		virtual bool stop(void);
 
-		virtual const std::set<unsigned int> &getDocumentsList(void) const;
+		const std::set<unsigned int> &getDocumentsList(void) const;
 
 	protected:
 		std::string m_indexName;
@@ -212,9 +214,9 @@ class DownloadingThread : public WorkerThread
 
 		virtual std::string getType(void) const;
 
-		virtual std::string getURL(void) const;
+		std::string getURL(void) const;
 
-		virtual const Document *getDocument(void) const;
+		const Document *getDocument(void) const;
 
 		virtual bool stop(void);
 

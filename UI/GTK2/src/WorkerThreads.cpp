@@ -389,6 +389,11 @@ string LabelQueryThread::getType(void) const
 	return "LabelQueryThread";
 }
 
+string LabelQueryThread::getIndexName(void) const
+{
+	return m_indexName;
+}
+
 string LabelQueryThread::getLabelName(void) const
 {
 	return m_labelName;

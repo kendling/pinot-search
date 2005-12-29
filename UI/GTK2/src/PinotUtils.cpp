@@ -23,6 +23,7 @@
 #include "PinotUtils.h"
 
 using namespace std;
+using namespace SigC;
 using namespace Glib;
 using namespace Gtk;
 
@@ -80,8 +81,8 @@ bool select_file_name(Window &parentWindow, const ustring &title,
 	fileChooser.set_select_multiple(false);
 	fileChooser.set_transient_for(parentWindow);
 	// Add response buttons
-	fileChooser.add_button(Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-	fileChooser.add_button(okButtonStockId, Gtk::RESPONSE_OK);
+	fileChooser.add_button(Stock::CANCEL, RESPONSE_CANCEL);
+	fileChooser.add_button(okButtonStockId, RESPONSE_OK);
 	// FIXME: add FileFilter's
 	fileChooser.show();
 	int result = fileChooser.run();
@@ -110,23 +111,6 @@ TreeViewColumn *create_resizable_column(const ustring &title, const TreeModelCol
 
 	CellRendererText *textCellRenderer = new CellRendererText();
 	treeColumn->pack_start(*manage(textCellRenderer));
-	treeColumn->add_attribute(textCellRenderer->property_text(), modelColumn);
-	treeColumn->set_resizable(true);
-
-	return treeColumn;
-}
-
-/// Create a resizable text column, rendered by renderTextCell.
-TreeViewColumn *create_resizable_column(const ustring &title, const TreeModelColumnBase& modelColumn,
-	const TreeViewColumn::SlotCellData &renderTextCell)
-{
-	TreeViewColumn *treeColumn = new TreeViewColumn(title);
-
-	CellRendererText *textCellRenderer = new CellRendererText();
-	treeColumn->pack_start(*manage(textCellRenderer));
-	// This will be called to render the text
-	treeColumn->set_cell_data_func(*textCellRenderer, renderTextCell);
-
 	treeColumn->add_attribute(textCellRenderer->property_text(), modelColumn);
 	treeColumn->set_resizable(true);
 

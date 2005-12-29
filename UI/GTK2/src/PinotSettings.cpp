@@ -253,10 +253,10 @@ bool PinotSettings::loadConfiguration(const std::string &fileName)
 	// FIXME: check the top-level element is okay
 
 	// Go through the subnodes
-	Node::NodeList childNodes = pRootElem->get_children();
+	const Node::NodeList childNodes = pRootElem->get_children();
 	if (childNodes.empty() == false)
 	{
-		for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
+		for (Node::NodeList::const_iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 		{
 			Node *pNode = (*iter);
 			// All nodes should be elements

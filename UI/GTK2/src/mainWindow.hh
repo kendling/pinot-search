@@ -36,10 +36,11 @@
 #include "IndexedDocument.h"
 #include "ActionHistory.h"
 #include "QueryProperties.h"
-#include "HtmlView.h"
 #include "EnginesTree.h"
-#include "IndexTree.h"
+#include "HtmlView.h"
+#include "IndexPage.h"
 #include "ModelColumns.h"
+#include "NotebookTabBox.h"
 #include "PinotSettings.h"
 #include "ResultsTree.h"
 #include "WorkerThreads.h"
@@ -55,15 +56,16 @@ protected:
 	// Utility methods
 	void populate_queryTreeview();
 	void save_queryTreeview();
-	void populate_indexCombobox();
-	void populate_labelMenu();
+	void populate_indexMenu();
 
 	// Handlers
 	void on_enginesTreeviewSelection_changed();
 	void on_queryTreeviewSelection_changed();
 	void on_resultsTreeviewSelection_changed();
-	void on_indexTreeviewSelection_changed();
-	void on_labelMenu_changed(unsigned int pos);
+	void on_indexTreeviewSelection_changed(Glib::ustring indexName);
+	void on_index_changed(Glib::ustring indexName);
+	void on_label_changed(Glib::ustring indexName, Glib::ustring labelName);
+	void on_page_closed(Glib::ustring title, NotebookTabBox::PageType type);
 	void on_thread_end();
 	void on_editindex(Glib::ustring indexName, Glib::ustring location);
 	void on_message_reception(DocumentInfo docInfo, std::string labelName);
@@ -103,21 +105,23 @@ protected:
 	virtual void on_removeQueryButton_clicked();
 	virtual void on_findQueryButton_clicked();
 
-	virtual void on_indexCombobox_changed();
-
-	virtual void on_indexBackButton_clicked();
-	virtual void on_indexForwardButton_clicked();
+	virtual void on_indexBackButton_clicked(Glib::ustring indexName);
+	virtual void on_indexForwardButton_clicked(Glib::ustring indexName);
 
 	virtual bool on_queryTreeview_button_press_event(GdkEventButton *ev);
+	virtual void on_mainNotebook_switch_page(GtkNotebookPage *p0, guint p1);
 	virtual bool on_mainWindow_delete_event(GdkEventAny *ev);
 
 	// Action methods
+	IndexPage *get_index_page_with_focus(bool checkTree);
+	IndexPage *get_index_page(const Glib::ustring &indexName);
+	int get_index_page_number(const Glib::ustring &indexName);
 	bool queue_index(const DocumentInfo &docInfo, const std::string &labelName,
 		unsigned int docId = 0);
 	bool queue_unindex(set<unsigned int> &docIdList);
 	void edit_query(QueryProperties &queryProps, bool newQuery);
 	void run_search(const QueryProperties &queryProps);
-	void browse_index(unsigned int startDoc = 0);
+	void browse_index(const Glib::ustring &indexName, unsigned int startDoc);
 	void index_document(const DocumentInfo &docInfo, const std::string &labelName,
 		unsigned int docId = 0);
 	bool view_document(const std::string &url, bool internalViewerOnly = false);
@@ -143,7 +147,7 @@ private:
 	// Results
 	ResultsTree *m_pResultsTree;
 	// Index
-	IndexTree *m_pIndexTree;
+	Gtk::Menu *m_pIndexMenu;
 	Gtk::Menu *m_pLabelsMenu;
 	ComboModelColumns m_indexNameColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refIndexNameTree;
@@ -164,14 +168,8 @@ private:
 			bool writeLock(unsigned int where);
 			void unlock(void);
 
-			unsigned int getCurrentLabel(std::string &labelName);
-			void setCurrentLabel(unsigned int labelPos, const std::string &labelName);
-			Glib::ustring getCurrentIndex(void);
-			void setCurrentIndex(const Glib::ustring &indexName);
-
-			// Index
-			unsigned int m_indexDocsCount;
-			unsigned int m_startDoc;
+			// Notebook pages
+			int m_currentPage;
 			// Worker threads
 			std::set<WorkerThread *> m_pThreads;
 			unsigned int m_backgroundThreads;
@@ -182,10 +180,6 @@ private:
 		protected:
 			// Read/write lock
 			pthread_rwlock_t m_rwLock;
-			// Index
-			unsigned int m_currentLabelPos;
-			std::string m_currentLabelName;
-			Glib::ustring m_currentIndexName;
 
 	} m_state;
 	static unsigned int m_maxDocsCount;

@@ -34,12 +34,13 @@ using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
 
-IndexTree::IndexTree(VBox *indexVbox, Menu *pPopupMenu, PinotSettings &settings) :
+IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &settings) :
 	TreeView(),
+	m_indexName(indexName),
 	m_pPopupMenu(pPopupMenu),
 	m_settings(settings)
 {
-	ScrolledWindow *indexScrolledwindow = manage(new ScrolledWindow());
+	m_pIndexScrolledwindow = manage(new ScrolledWindow());
 
 	// This is the actual index tree
 	set_events(Gdk::BUTTON_PRESS_MASK);
@@ -48,16 +49,13 @@ IndexTree::IndexTree(VBox *indexVbox, Menu *pPopupMenu, PinotSettings &settings)
 	set_rules_hint(true);
 	set_reorderable(false);
 	set_enable_search(true);
-	indexScrolledwindow->set_flags(Gtk::CAN_FOCUS);
-	indexScrolledwindow->set_border_width(4);
-	indexScrolledwindow->set_shadow_type(Gtk::SHADOW_NONE);
-	indexScrolledwindow->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS);
-	indexScrolledwindow->property_window_placement().set_value(Gtk::CORNER_TOP_LEFT);
-	indexScrolledwindow->add(*this);
+	m_pIndexScrolledwindow->set_flags(Gtk::CAN_FOCUS);
+	m_pIndexScrolledwindow->set_border_width(4);
+	m_pIndexScrolledwindow->set_shadow_type(Gtk::SHADOW_NONE);
+	m_pIndexScrolledwindow->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS);
+	m_pIndexScrolledwindow->property_window_placement().set_value(Gtk::CORNER_TOP_LEFT);
+	m_pIndexScrolledwindow->add(*this);
 
-	// Position the scrolled window
-	indexVbox->pack_start(*indexScrolledwindow);
-	
 	// Associate the columns model to the index tree
 	m_refStore = ListStore::create(m_indexColumns);
 	set_model(m_refStore);
@@ -81,8 +79,12 @@ IndexTree::IndexTree(VBox *indexVbox, Menu *pPopupMenu, PinotSettings &settings)
 	// Allow multiple selection
 	get_selection()->set_mode(SELECTION_MULTIPLE);
 
-	// Handle button presses
-	signal_button_press_event().connect_notify(SigC::slot(*this, &IndexTree::onButtonPressEvent));
+	// Connect the signals
+	signal_button_press_event().connect_notify(
+		SigC::slot(*this, &IndexTree::onButtonPressEvent));
+	get_selection()->signal_changed().connect(
+		SigC::slot(*this, &IndexTree::onSelectionChanged));
+
 	// Enable interactive search
 	set_search_column(m_indexColumns.m_text.index());
 	set_search_equal_func(SigC::slot(*this, &IndexTree::onSearchEqual));
@@ -96,8 +98,8 @@ IndexTree::IndexTree(VBox *indexVbox, Menu *pPopupMenu, PinotSettings &settings)
 	setCurrentLabelColour(0, 0, 0, false);
 
 	// Show all
+	m_pIndexScrolledwindow->show();
 	show();
-	indexScrolledwindow->show();
 }
 
 IndexTree::~IndexTree()
@@ -134,17 +136,6 @@ void IndexTree::renderLabel(CellRenderer *renderer, const TreeModel::iterator &i
 	}
 }
 
-//
-// Interactive search equal function.
-//
-bool IndexTree::onSearchEqual(const RefPtr<TreeModel>& model, int column,
-	const ustring& key, const TreeModel::iterator& iter)
-{
-}
-
-//
-// Handles button presses.
-//
 void IndexTree::onButtonPressEvent(GdkEventButton *ev)
 {
 	// Check for popup click
@@ -159,30 +150,20 @@ void IndexTree::onButtonPressEvent(GdkEventButton *ev)
 	// Check for double clicks
 	else if (ev->type == GDK_2BUTTON_PRESS)
 	{
-		m_signalEdit();
+		m_signalEdit;
 	}
 }
 
-//
-// Handles selection changes.
-//
-bool IndexTree::onSelectionChanged(void)
+void IndexTree::onSelectionChanged(void)
 {
-#ifdef DEBUG
-	cout << "IndexTree::onSelectionChanged: called" << endl;
-#endif
-	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
-	if (selectedItems.empty() == true)
-	{
-		return false;
-	}
-
-	return true;
+	m_signalSelectionChanged(m_indexName);
 }
 
-//
-// Handles attempts to select rows.
-//
+bool IndexTree::onSearchEqual(const RefPtr<TreeModel>& model, int column,
+	const ustring& key, const TreeModel::iterator& iter)
+{
+}
+
 bool IndexTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 		const TreeModel::Path& path, bool path_currently_selected)
 {
@@ -203,6 +184,14 @@ bool IndexTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 	}
 
 	return true;
+}
+
+//
+// Returns the tree's scrolled window.
+//
+ScrolledWindow *IndexTree::getScrolledWindow(void) const
+{
+	return m_pIndexScrolledwindow;
 }
 
 //
@@ -485,6 +474,15 @@ unsigned int IndexTree::getRowsCount(void)
 }
 
 //
+// Refreshes the tree.
+//
+void IndexTree::refresh(void)
+{
+	// FIXME: not sure why, but this helps with refreshing the tree
+	columns_autosize();
+}
+
+//
 // Returns true if the tree is empty.
 //
 bool IndexTree::isEmpty(void)
@@ -531,4 +529,12 @@ void IndexTree::clear(void)
 Signal0<void>& IndexTree::getEditDocumentSignal(void)
 {
 	return m_signalEdit;
+}
+
+//
+// Returns the changed selection signal.
+//
+Signal1<void, ustring>& IndexTree::getSelectionChangedSignal(void)
+{
+	return m_signalSelectionChanged;
 }

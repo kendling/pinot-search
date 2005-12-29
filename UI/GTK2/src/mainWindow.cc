@@ -73,11 +73,7 @@ unsigned int mainWindow::m_maxDocsCount = 100;
 unsigned int mainWindow::m_maxThreads = 2;
 
 mainWindow::InternalState::InternalState() :
-	m_currentLabelPos(0),
-	m_currentLabelName(_("None")),
-	m_currentIndexName(_("My Documents")),
-	m_indexDocsCount(0),
-	m_startDoc(0),
+	m_currentPage(0),
 	m_backgroundThreads(0),
 	m_browsingIndex(false)
 {
@@ -124,52 +120,6 @@ void mainWindow::InternalState::unlock(void)
 	pthread_rwlock_unlock(&m_rwLock);
 }
 
-unsigned int mainWindow::InternalState::getCurrentLabel(string &labelName)
-{
-	if (readLock(1) == true)
-	{
-		unsigned int labelPos = m_currentLabelPos;
-		labelName = m_currentLabelName;
-		unlock();
-
-		return labelPos;
-	}
-	
-	return 0;
-}
-
-void mainWindow::InternalState::setCurrentLabel(unsigned int labelPos, const string &labelName)
-{
-	if (writeLock(1) == true)
-	{
-		m_currentLabelPos = labelPos;
-		m_currentLabelName = labelName;
-		unlock();
-	}
-}
-
-Glib::ustring mainWindow::InternalState::getCurrentIndex(void)
-{
-	ustring indexName;
-
-	if (readLock(2) == true)
-	{
-		indexName = m_currentIndexName;
-		unlock();
-	}
-
-	return indexName;
-}
-
-void mainWindow::InternalState::setCurrentIndex(const Glib::ustring &indexName)
-{
-	if (writeLock(2) == true)
-	{
-		m_currentIndexName = indexName;
-		unlock();
-	}
-}
-
 //
 // Constructor
 //
@@ -177,7 +127,7 @@ mainWindow::mainWindow() :
 	m_settings(PinotSettings::getInstance()), mainWindow_glade(),
 	m_pEnginesTree(NULL),
 	m_pResultsTree(NULL),
-	m_pIndexTree(NULL),
+	m_pIndexMenu(NULL),
 	m_pLabelsMenu(NULL)
 {
 	// Reposition and resize the window
@@ -234,31 +184,15 @@ mainWindow::mainWindow() :
 	m_pResultsTree->get_selection()->signal_changed().connect(SigC::slot(*this,
 		&mainWindow::on_resultsTreeviewSelection_changed));
 
-	// Position the index tree
-	m_pIndexTree = manage(new IndexTree(indexVbox, indexMenuitem->get_submenu(), m_settings));
-	// Connect to the "changed" signal
-	m_pIndexTree->get_selection()->signal_changed().connect(SigC::slot(*this,
-		&mainWindow::on_indexTreeviewSelection_changed));
-	// Connect to the edit document signal
-	m_pIndexTree->getEditDocumentSignal().connect(SigC::slot(*this,
-		&mainWindow::on_showfromindex_activate));
-
-	// Associate the columns model to the index combo
-	m_refIndexNameTree = ListStore::create(m_indexNameColumns);
-	indexCombobox->set_model(m_refIndexNameTree);
-	indexCombobox->pack_start(m_indexNameColumns.m_name);
-	// Populate the index combo
-	populate_indexCombobox();
-
-	// Populate the label menu
-	populate_labelMenu();
+	// Populate the index menu
+	populate_indexMenu();
 
 	// Add an HTML renderer in the View tab
 	m_pHtmlView = new HtmlView(viewVbox, NULL);
 	if (m_settings.m_browseResults == true)
 	{
 		// Hide this tab
-		Widget *pPage = mainNotebook->get_nth_page(2);
+		Widget *pPage = mainNotebook->get_nth_page(1);
 		if (pPage != NULL)
 		{
 			pPage->hide();
@@ -285,7 +219,6 @@ mainWindow::mainWindow() :
 		viewcache1->set_sensitive(false);
 	}
 	indexresults1->set_sensitive(false);
-	showlabels1->set_sensitive(false);
 	viewfromindex1->set_sensitive(false);
 	refreshindex1->set_sensitive(false);
 	showfromindex1->set_sensitive(false);
@@ -293,8 +226,6 @@ mainWindow::mainWindow() :
 	//viewstop1->set_sensitive(false);
 	// ...and buttons
 	removeIndexButton->set_sensitive(false);
-	indexBackButton->set_sensitive(false);
-	indexForwardButton->set_sensitive(false);
 
 	// Set focus on the query entry field
 	set_focus(*liveQueryEntry);
@@ -320,8 +251,6 @@ mainWindow::mainWindow() :
 	start_thread(pMonitorThread, true);
 	// The handler object will be deleted when the thread terminates
 
-	// List the documents index
-	browse_index();
 	// There might be queued actions
 	check_queue();
 
@@ -344,12 +273,12 @@ mainWindow::~mainWindow()
 	}
 
 	// This is a hack to avoid segfaults when the View tab hasn't been made visible
-	Widget *pPage = mainNotebook->get_nth_page(2);
+	Widget *pPage = mainNotebook->get_nth_page(1);
 	if (pPage != NULL)
 	{
 		pPage->show();
 	}
-	mainNotebook->set_current_page(2);
+	mainNotebook->set_current_page(1);
 	// Stop if we were loading a page
 	m_pHtmlView->stop();
 	delete m_pHtmlView;
@@ -424,82 +353,35 @@ void mainWindow::save_queryTreeview()
 }
 
 //
-// Populate the indexes list
+// Populate the index menu
 //
-void mainWindow::populate_indexCombobox()
+void mainWindow::populate_indexMenu()
 {
-	TreeModel::iterator iter;
-	TreeModel::Row row;
-
-	const std::map<string, string> &indexes = m_settings.getIndexes();
-#ifdef DEBUG
-	cout << "mainWindow::populate_indexCombobox: " << indexes.size() << " indexes" << endl;
-#endif
-	m_refIndexNameTree->clear();
-	std::map<string, string>::const_iterator indexIter = indexes.begin();
-	for (; indexIter != indexes.end(); ++indexIter)
+	if (m_pIndexMenu == NULL)
 	{
-		string indexName = indexIter->first;
-
-		if (m_settings.isInternalIndex(indexName) == true)
-		{
-			// Add this index
-			iter = m_refIndexNameTree->append();
-			row = *iter;
-			row[m_indexNameColumns.m_name] = to_utf8(indexName);
-#ifdef DEBUG
-			cout << "mainWindow::populate_indexCombobox: added " << indexName << endl;
-#endif
-		}
-	}
-
-	indexCombobox->set_active(0);
-}
-
-//
-// Populate the labels menu
-//
-void mainWindow::populate_labelMenu()
-{
-	RadioMenuItem::Group labelsGroup;
-	RadioMenuItem *firstLabelMenuItem = NULL;
-	RadioMenuItem *labelMenuItem = NULL;
-
-#ifdef DEBUG
-	cout << "mainWindow::populate_labels_menu: called" << endl;
-#endif
-	if (m_pLabelsMenu == NULL)
-	{
-		m_pLabelsMenu = new Menu();
-		showlabels1->set_submenu(*m_pLabelsMenu);
+		m_pIndexMenu = new Menu();
+		list1->set_submenu(*m_pIndexMenu);
 	}
 	else
 	{
 		// Clear the submenu
-		m_pLabelsMenu->items().clear();
+		m_pIndexMenu->items().clear();
 	}
 
-	SigC::Slot1<void, unsigned int> labelsSlot = SigC::slot(*this, &mainWindow::on_labelMenu_changed);
-	unsigned int count = 1;
-                                                                                                                                                             
-	// Initialize the submenu
-	m_pLabelsMenu->items().push_back(Menu_Helpers::RadioMenuElem(labelsGroup, _("None")));
-	firstLabelMenuItem = labelMenuItem = (RadioMenuItem*)&m_pLabelsMenu->items().back();
-	// Bind the callback's parameter to the menuitem's position in the submenu
-	SigC::Slot0<void> labelsSlot0 = sigc::bind(labelsSlot, 0);
-	labelMenuItem->signal_activate().connect(labelsSlot0);
-	for (set<PinotSettings::Label>::const_iterator iter = m_settings.m_labels.begin();
-		iter != m_settings.m_labels.end(); ++iter)
-	{
-		m_pLabelsMenu->items().push_back(Menu_Helpers::RadioMenuElem(labelsGroup, iter->m_name));
-		labelMenuItem = (RadioMenuItem*)&m_pLabelsMenu->items().back();
-		SigC::Slot0<void> labelsSlot0 = sigc::bind(labelsSlot, count);
-		labelMenuItem->signal_activate().connect(labelsSlot0);
-		++count;
-	}
+	SigC::Slot1<void, ustring> indexSlot = SigC::slot(*this, &mainWindow::on_index_changed);
 
-	// Activate the first menuitem
-	firstLabelMenuItem->set_active(true);
+	// Populate the submenu
+	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Documents")));
+	MenuItem *pMenuItem = &m_pIndexMenu->items().back();
+	// Bind the callback's parameter to the index name
+	SigC::Slot0<void> documentsActivateSlot = sigc::bind(indexSlot, _("My Documents"));
+	pMenuItem->signal_activate().connect(documentsActivateSlot);
+
+	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Email")));
+	pMenuItem = &m_pIndexMenu->items().back();
+	// Bind the callback's parameter to the index name
+	SigC::Slot0<void> emailActivateSlot = sigc::bind(indexSlot, _("My Email"));
+	pMenuItem->signal_activate().connect(emailActivateSlot);
 }
 
 //
@@ -616,20 +498,29 @@ void mainWindow::on_resultsTreeviewSelection_changed()
 //
 // Index tree selection changed
 //
-void mainWindow::on_indexTreeviewSelection_changed()
+void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 {
-	if (m_pIndexTree->onSelectionChanged() == true)
+	vector<IndexedDocument> documentsList;
+
+	IndexPage *pIndexPage = get_index_page(indexName);
+	if (pIndexPage == NULL)
+	{
+		return;
+	}
+
+	IndexTree *pIndexTree = pIndexPage->getTree();
+	if ((pIndexTree != NULL) &&
+		(pIndexTree->getSelection(documentsList) == true))
 	{
 		bool isDocumentsIndex = true;
 		bool canViewDocument = true;
 
 		// Enable these menu items, unless the index is not the documents index
-		ustring currentIndexName = m_state.getCurrentIndex();
-		if (currentIndexName != _("My Documents"))
+		if (indexName != _("My Documents"))
 		{
 			isDocumentsIndex = false;
 		}
-		if ((currentIndexName == _("My Email")) &&
+		if ((indexName == _("My Email")) &&
 			(m_settings.m_browseResults == true))
 		{
 			canViewDocument = false;
@@ -642,7 +533,7 @@ void mainWindow::on_indexTreeviewSelection_changed()
 		// Show the URL in the status bar
 		ustring statusText = _("Document location is");
 		statusText += " ";
-		statusText += m_pIndexTree->getFirstSelectionURL();
+		statusText += pIndexTree->getFirstSelectionURL();
 		set_status(statusText, true);
 	}
 	else
@@ -656,56 +547,128 @@ void mainWindow::on_indexTreeviewSelection_changed()
 }
 
 //
-// Index > Show Labels menu selected
+// Index > List menu selected
 //
-void mainWindow::on_labelMenu_changed(unsigned int pos)
+void mainWindow::on_index_changed(ustring indexName)
 {
-	string currentLabelName;
-	unsigned int currentLabelPos;
+	IndexTree *pIndexTree = NULL;
+	IndexPage *pIndexPage = NULL;
+	bool foundPage = false;
 
-	// Since we listen for signal_activate(), this handler gets called when the
-	// current item is unselected and when the new one is selected
-	currentLabelPos = m_state.getCurrentLabel(currentLabelName);
-	if (currentLabelPos == pos)
+#ifdef DEBUG
+	cout << "mainWindow::on_index_changed: current index now " << indexName << endl;
+#endif
+
+	// Is there already a page for this index ?
+	pIndexPage = get_index_page(indexName);
+	if (pIndexPage != NULL)
 	{
-		// Ignore unselections
+		// Force a refresh
+		pIndexTree = pIndexPage->getTree();
+		if (pIndexTree != NULL)
+		{
+			pIndexTree->clear();
+		}
+		pIndexPage->setFirstDocument(0);
+		pIndexPage->setDocumentsCount(0);
+		foundPage = true;
+	}
+
+	if ((foundPage == false) &&
+		(m_state.writeLock(1) == true))
+	{
+		NotebookTabBox *pTab = manage(new NotebookTabBox(indexName,
+			NotebookTabBox::INDEX_PAGE));
+		pTab->getCloseSignal().connect(
+			SigC::slot(*this, &mainWindow::on_page_closed));
+
+		// Position the index tree
+		pIndexTree = manage(new IndexTree(indexName, indexMenuitem->get_submenu(), m_settings));
+		pIndexPage = manage(new IndexPage(indexName, pIndexTree, m_settings));
+		// Connect to the "changed" signal
+		pIndexTree->getSelectionChangedSignal().connect(
+			SigC::slot(*this, &mainWindow::on_indexTreeviewSelection_changed));
+		// Connect to the edit document signal
+		pIndexTree->getEditDocumentSignal().connect(
+			SigC::slot(*this, &mainWindow::on_showfromindex_activate));
+		// Connect to the label changed signal
+		pIndexPage->getLabelChangedSignal().connect(
+			SigC::slot(*this, &mainWindow::on_label_changed));
+		// ...and to the buttons clicked signals
+		pIndexPage->getBackClickedSignal().connect(
+			SigC::slot(*this, &mainWindow::on_indexBackButton_clicked));
+		pIndexPage->getForwardClickedSignal().connect(
+			SigC::slot(*this, &mainWindow::on_indexForwardButton_clicked));
+		int pageNum = mainNotebook->append_page(*pIndexPage, *pTab);
+		if (pageNum >= 0)
+		{
+			// Add this page to the list
+			foundPage = true;
+		}
+
+		m_state.unlock();
+	}
+
+	if (foundPage == true)
+	{
+		browse_index(indexName, 0);
+	}
+}
+
+//
+// Index > labels combo selection changed
+//
+void mainWindow::on_label_changed(ustring indexName, ustring labelName)
+{
+	IndexPage *pIndexPage = get_index_page(indexName);
+	if (pIndexPage == NULL)
+	{
 		return;
 	}
+	IndexTree *pIndexTree = pIndexPage->getTree();
+	if (pIndexTree == NULL)
+	{
+		return;
+	}
+
 #ifdef DEBUG
-	cout << "mainWindow::on_labelMenu_changed: called on " << pos << endl;
+	cout << "mainWindow::on_label_changed: called on " << labelName << endl;
 #endif
-	currentLabelPos = pos;
-	if (currentLabelPos == 0)
+	pIndexTree->setCurrentLabelColour(0, 0, 0, false);
+	if (labelName.empty() == true)
 	{
 		// User selected no label
-		currentLabelName = _("None");
-		m_state.setCurrentLabel(currentLabelPos, currentLabelName);
-		m_pIndexTree->setCurrentLabelColour(0, 0, 0, false);
-		set_status(_("No labels"));
+		set_status(_("No label"));
 		return;
 	}
 
-	// Get the actual label from the settings object
-	unsigned int labelNum = 1;
-	for (set<PinotSettings::Label>::iterator labelIter = m_settings.m_labels.begin();
-		labelIter != m_settings.m_labels.end(); ++labelIter)
-	{
-		if (labelNum == pos)
-		{
-			// That's the one
-			currentLabelName = locale_from_utf8(labelIter->m_name);
-			m_state.setCurrentLabel(currentLabelPos, currentLabelName);
-#ifdef DEBUG
-			cout << "mainWindow::on_labelMenu_changed: label is " << currentLabelName << endl;
-#endif
-			// Switch temporarily to no label
-			m_pIndexTree->setCurrentLabelColour(0, 0, 0, false);
+	// Get the documents that match this label
+	start_thread(new LabelQueryThread(indexName, labelName));
+}
 
-			// Get the documents that match this label
-			start_thread(new LabelQueryThread(m_state.getCurrentIndex(), currentLabelName));
-			break;
+//
+// Notebook page closed
+//
+void mainWindow::on_page_closed(ustring title, NotebookTabBox::PageType type)
+{
+	if (type != NotebookTabBox::INDEX_PAGE)
+	{
+		return;
+	}
+
+#ifdef DEBUG
+	cout << "mainWindow::on_page_closed: called for tab " << title << endl;
+#endif
+	int pageNum = get_index_page_number(title);
+	if (pageNum >= 0)
+	{
+		if (m_state.writeLock(2) == true)
+		{
+			// Remove the page
+			mainNotebook->remove_page(pageNum);
+
+			m_state.unlock();
 		}
-		++labelNum;
 	}
 }
 
@@ -773,7 +736,6 @@ void mainWindow::on_thread_end()
 	{
 		char docsCountStr[64];
 		unsigned int count = 0;
-		bool enableIndexOps = false;
 
 		IndexBrowserThread *pBrowseThread = dynamic_cast<IndexBrowserThread *>(pThread);
 		if (pBrowseThread == NULL)
@@ -782,8 +744,25 @@ void mainWindow::on_thread_end()
 			return;
 		}
 
-		m_state.m_indexDocsCount = pBrowseThread->getDocumentsCount();
-		count = m_pIndexTree->getRowsCount();
+		IndexPage *pIndexPage = NULL;
+		IndexTree *pIndexTree = NULL;
+		ustring indexName = locale_to_utf8(pBrowseThread->getIndexName());
+
+		// Find the page for this index
+		pIndexPage = get_index_page(indexName);
+		if (pIndexPage == NULL)
+		{
+			// It's probably been closed by the user
+			return;
+		}
+		pIndexTree = pIndexPage->getTree();
+		if (pIndexTree == NULL)
+		{
+			return;
+		}
+
+		pIndexPage->setDocumentsCount(pBrowseThread->getDocumentsCount());
+		count = pIndexTree->getRowsCount();
 
 		status = _("Showing");
 		status += " ";
@@ -792,43 +771,20 @@ void mainWindow::on_thread_end()
 		status += " ";
 		status += _("off");
 		status += " ";
-		snprintf(docsCountStr, 64, "%u", m_state.m_indexDocsCount);
+		snprintf(docsCountStr, 64, "%u", pIndexPage->getDocumentsCount());
 		status += docsCountStr;
 		status += " ";
 		status += _("documents from");
 		status += " ";
-		status += m_state.getCurrentIndex();
+		status += indexName;
 		set_status(status);
 
-		if (m_state.m_indexDocsCount > 0)
+		if (pIndexPage->getDocumentsCount() > 0)
 		{
-			// Switch to the index page
-			mainNotebook->set_current_page(1);
-			// FIXME: not sure why, but this helps with refreshing the tree
-			m_pIndexTree->columns_autosize();
-			enableIndexOps = true;
+			// Refresh the tree
+			pIndexTree->refresh();
 		}
-		showlabels1->set_sensitive(enableIndexOps);
-#ifdef DEBUG
-		cout << "mainWindow::on_thread_end: " << m_state.m_indexDocsCount
-			<< " documents, starting at " << m_state.m_startDoc << endl;
-#endif
-		if (m_state.m_startDoc >= m_maxDocsCount)
-		{
-			indexBackButton->set_sensitive(true);
-		}
-		else
-		{
-			indexBackButton->set_sensitive(false);
-		}
-		if (m_state.m_indexDocsCount >= m_state.m_startDoc + m_maxDocsCount)
-		{
-			indexForwardButton->set_sensitive(true);
-		}
-		else
-		{
-			indexForwardButton->set_sensitive(false);
-		}
+		pIndexPage->updateButtons(m_maxDocsCount);
 		m_state.m_browsingIndex = false;
 	}
 	else if (type == "QueryingThread")
@@ -896,31 +852,39 @@ void mainWindow::on_thread_end()
 	}
 	else if (type == "LabelQueryThread")
 	{
-		string currentLabelName;
-		unsigned int currentLabelPos = 0;
-
 		LabelQueryThread *pLabelQueryThread = dynamic_cast<LabelQueryThread *>(pThread);
 		if (pLabelQueryThread == NULL)
 		{
 			delete pThread;
 			return;
 		}
+		ustring indexName = locale_to_utf8(pLabelQueryThread->getIndexName());
+
+		IndexPage *pIndexPage = get_index_page(indexName);
+		if (pIndexPage == NULL)
+		{
+			return;
+		}
+		IndexTree *pIndexTree = pIndexPage->getTree();
+		if (pIndexTree == NULL)
+		{
+			return;
+		}
 
 		// Don't bother if the index is not being listed, or if the user
 		// changed the label in the meantime
-		currentLabelPos = m_state.getCurrentLabel(currentLabelName);
-		if ((m_pIndexTree->isEmpty() == false) &&
-			(currentLabelPos > 0) &&
-			(currentLabelName == pLabelQueryThread->getLabelName()))
+		ustring labelName = pIndexPage->getLabelName();
+		if ((pIndexTree->isEmpty() == false) &&
+			(labelName.empty() == false) &&
+			(labelName == locale_to_utf8(pLabelQueryThread->getLabelName())))
 		{
 			const set<unsigned int> &documentsList = pLabelQueryThread->getDocumentsList();
 			char docsCountStr[64];
 			unsigned int docsCount = documentsList.size();
-			unsigned int labelNum = 1;
 
 			status = _("Label");
 			status += " ";
-			status += to_utf8(pLabelQueryThread->getLabelName());
+			status += labelName;
 			status += " ";
 			status += _("matches");
 			status += " ";
@@ -931,27 +895,22 @@ void mainWindow::on_thread_end()
 			set_status(status);
 
 #ifdef DEBUG
-			cout << "mainWindow::on_thread_end: current label is " << currentLabelName << endl;
+			cout << "mainWindow::on_thread_end: current label is " << labelName << endl;
 #endif
 			// Get the actual label colour from the settings
 			for (set<PinotSettings::Label>::iterator labelIter = m_settings.m_labels.begin();
 				labelIter != m_settings.m_labels.end(); ++labelIter)
 			{
-#ifdef DEBUG
-				cout << "mainWindow::on_thread_end: looking at label "
-					<< labelIter->m_name << ", position " << labelNum << endl;
-#endif
-				if (labelNum == currentLabelPos)
+				if (labelName == labelIter->m_name)
 				{
 					// Display the selected label's colour in the index tree
-					m_pIndexTree->setCurrentLabelColour(labelIter->m_red, labelIter->m_green, labelIter->m_blue);
-					m_pIndexTree->setLabel(documentsList);
+					pIndexTree->setCurrentLabelColour(labelIter->m_red, labelIter->m_green, labelIter->m_blue);
+					pIndexTree->setLabel(documentsList);
 
 					// Switch to the index page
-					mainNotebook->set_current_page(1);
+					mainNotebook->set_current_page(get_index_page_number(indexName));
 					break;
 				}
-				++labelNum;
 			}
 		}
 	}
@@ -990,7 +949,7 @@ void mainWindow::on_thread_end()
 				if (m_settings.m_browseResults == false)
 				{
 					// Display the URL in the View tab
-					mainNotebook->set_current_page(2);
+					mainNotebook->set_current_page(1);
 					if (m_pHtmlView->renderData(pData, dataLength, url) == true)
 					{
 						//viewstop1->set_sensitive(true);
@@ -1029,7 +988,7 @@ void mainWindow::on_thread_end()
 			status += to_utf8(url);
 
 			// Update the in-progress list
-			if (m_state.writeLock(3) == true)
+			if (m_state.writeLock(4) == true)
 			{
 				set<string>::iterator urlIter = m_state.m_beingIndexed.find(url);
 				if (urlIter != m_state.m_beingIndexed.end())
@@ -1040,20 +999,23 @@ void mainWindow::on_thread_end()
 				m_state.unlock();
 			}
 
-			// Was the current label applied to that document ?
-			string currentLabelName;
-			if ((m_state.getCurrentLabel(currentLabelName) > 0) &&
-				(pIndexThread->getLabelName() == currentLabelName))
-			{
-				labeled = true;
-			}
-
 			// Is the index still being shown ?
-			if (m_state.getCurrentIndex() == _("My Documents"))
+			IndexPage *pIndexPage = get_index_page(_("My Documents"));
+			if (pIndexPage != NULL)
 			{
+				IndexTree *pIndexTree = pIndexPage->getTree();
 				XapianIndex index(m_settings.m_indexLocation);
 
-				if (index.isGood() == true)
+				// Was the current label applied to that document ?
+				ustring labelName = pIndexPage->getLabelName();
+				if ((labelName.empty() == false) &&
+					(labelName == locale_to_utf8(pIndexThread->getLabelName())))
+				{
+					labeled = true;
+				}
+
+				if ((pIndexTree != NULL) &&
+					(index.isGood() == true))
 				{
 					// Update the index tree
 					for (set<unsigned int>::iterator idIter = docIdList.begin();
@@ -1071,12 +1033,10 @@ void mainWindow::on_thread_end()
 								docInfo.getLocation(), docInfo.getType(),
 								docInfo.getLanguage());
 							indexedDoc.setTimestamp(docInfo.getTimestamp());
-							m_pIndexTree->appendDocument(indexedDoc, labeled);
+							pIndexTree->appendDocument(indexedDoc, labeled);
 						}
 					}
 				}
-
-				showlabels1->set_sensitive(true);
 			}
 		}
 
@@ -1111,8 +1071,16 @@ void mainWindow::on_thread_end()
 			return;
 		}
 
-		m_pIndexTree->setDocumentTitle(pUpdateThread->getDocumentID(),
-			pUpdateThread->getDocumentInfo().getTitle());
+		IndexPage *pIndexPage = get_index_page(_("My Documents"));
+		if (pIndexPage != NULL)
+		{
+			IndexTree *pIndexTree = pIndexPage->getTree();
+			if (pIndexTree != NULL)
+			{
+				pIndexTree->setDocumentTitle(pUpdateThread->getDocumentID(),
+					pUpdateThread->getDocumentInfo().getTitle());
+			}
+		}
 
 		status = _("Updated document");
 		set_status(status);
@@ -1226,31 +1194,40 @@ void mainWindow::on_message_reception(DocumentInfo docInfo, string labelName)
 //
 void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, string indexName)
 {
+	IndexPage *pIndexPage = NULL;
+	IndexTree *pIndexTree = NULL;
 	bool hasLabel = false;
 
-	if (indexName != locale_from_utf8(m_state.getCurrentIndex()))
+	// Find the page for this index
+	pIndexPage = get_index_page(locale_to_utf8(indexName));
+	if (pIndexPage == NULL)
 	{
-		// Ignore
+		// It's probably been closed by the user
 #ifdef DEBUG
-		cout << "mainWindow::on_message_indexupdate: " << indexName << " not current" << endl;
+		cout << "mainWindow::on_message_indexupdate: " << indexName << " not being shown" << endl;
 #endif
+		return;
+	}
+	pIndexTree = pIndexPage->getTree();
+	if (pIndexTree == NULL)
+	{
 		return;
 	}
 
 	// Is the last page being displayed ?
-	if (m_state.m_startDoc + m_maxDocsCount < m_state.m_indexDocsCount)
+	if (pIndexPage->getFirstDocument() + m_maxDocsCount < pIndexPage->getDocumentsCount())
 	{
 		// No, so we can't add a new entry for that document
 		// Increment the count
-		++m_state.m_indexDocsCount;
+		pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
 		// ...and make sure the user can display that last page
-		indexForwardButton->set_sensitive(true);
+		pIndexPage->updateButtons(m_maxDocsCount);
 		return;
 	}
 
 	// Does that document have the current label ?
-	string currentLabelName;
-	if (m_state.getCurrentLabel(currentLabelName) > 0)
+	ustring labelName = pIndexPage->getLabelName();
+	if (labelName.empty() == false)
 	{
 		const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
 		std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
@@ -1260,18 +1237,18 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 
 			if (index.isGood() == true)
 			{
-				hasLabel = index.hasLabel(docId, currentLabelName);
+				hasLabel = index.hasLabel(docId, locale_from_utf8(labelName));
 			}
 		}
 	}
 
 	// Add a row
-	if (m_pIndexTree->appendDocument(docInfo, hasLabel) == true)
+	if (pIndexTree->appendDocument(docInfo, hasLabel) == true)
 	{
 #ifdef DEBUG
 		cout << "mainWindow::on_message_indexupdate: added document to index list" << endl;
 #endif
-		++m_state.m_indexDocsCount;
+		pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
 	}
 }
 
@@ -1309,15 +1286,36 @@ void mainWindow::on_configure_activate()
 	// FIXME: if mail accounts are configured, make sure the MonitorThread
 	// is running and knows about the new accounts
 
-	// Synchronize the labels list with the new settings
-	m_pIndexTree->setCurrentLabelColour(0, 0, 0, false);
-	populate_labelMenu();
+	if (m_state.readLock(5) == true)
+	{
+		for (int pageNum = 0; pageNum < mainNotebook->get_n_pages(); ++pageNum)
+		{
+			Widget *pPage = mainNotebook->get_nth_page(pageNum);
+			if (pPage != NULL)
+			{
+				IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pPage);
+				if (pIndexPage != NULL)
+				{
+					IndexTree *pIndexTree = pIndexPage->getTree();
+
+					// Synchronize the labels list with the new settings
+					if (pIndexTree != NULL)
+					{
+						pIndexTree->setCurrentLabelColour(0, 0, 0, false);
+					}
+					pIndexPage->populateLabelCombobox();
+				}
+			}
+		}
+
+		m_state.unlock();
+	}
 
 	// Do the changes affect the View tab ?
 	if (useExternalBrowser != m_settings.m_browseResults)
 	{
 		int nCurrentPage = mainNotebook->get_current_page();
-		Widget *pPage = mainNotebook->get_nth_page(2);
+		Widget *pPage = mainNotebook->get_nth_page(1);
 		if (pPage != NULL)
 		{
 			// Hide or show ?
@@ -1417,37 +1415,47 @@ void mainWindow::on_copy_activate()
 			firstItem = false;
 		}
 	}
-	else if (m_pIndexTree->is_focus() == true)
-	{
-		vector<IndexedDocument> documentsList;
-		bool firstItem = true;
-
-#ifdef DEBUG
-		cout << "mainWindow::on_copy_activate: index tree" << endl;
-#endif
-		// Get the current documents selection
-		m_pIndexTree->getSelection(documentsList);
-	
-		for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
-			docIter != documentsList.end(); ++docIter)
-		{
-			if (firstItem == false)
-			{
-				text += "\n";
-			}
-			text += docIter->getTitle();
-			text += " ";
-			text += docIter->getLocation();
-			firstItem = false;
-		}
-	}
 	else
 	{
-		// Only rows from the query, results and index trees can be copied
+		// The focus may be on one of the index tabs
+		IndexPage *pIndexPage = get_index_page_with_focus(true);
+		if (pIndexPage != NULL)
+		{
+			IndexTree *pIndexTree = pIndexPage->getTree();
+			if (pIndexTree != NULL)
+			{
+				vector<IndexedDocument> documentsList;
+				bool firstItem = true;
+
 #ifdef DEBUG
-		cout << "mainWindow::on_copy_activate: other" << endl;
+				cout << "mainWindow::on_copy_activate: index tree" << endl;
 #endif
-		return;
+				// Get the current documents selection
+				pIndexTree->getSelection(documentsList);
+
+				for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
+					docIter != documentsList.end(); ++docIter)
+				{
+					if (firstItem == false)
+					{
+						text += "\n";
+					}
+					text += docIter->getTitle();
+					text += " ";
+					text += docIter->getLocation();
+					firstItem = false;
+				}
+			}
+		}
+
+		if (text.empty() == true)
+		{
+			// Only rows from the query, results and index trees can be copied
+#ifdef DEBUG
+			cout << "mainWindow::on_copy_activate: other" << endl;
+#endif
+			return;
+		}
 	}
 	
 	RefPtr<Clipboard> refClipboard = Clipboard::get();
@@ -1631,9 +1639,18 @@ void mainWindow::on_import_activate()
 //
 void mainWindow::on_viewfromindex_activate()
 {
-	// View the first document, don't bother about the rest
-	ustring url = m_pIndexTree->getFirstSelectionLiveURL();
-	view_document(locale_from_utf8(url));
+	IndexPage *pIndexPage = get_index_page_with_focus(false);
+	if (pIndexPage != NULL)
+	{
+		IndexTree *pIndexTree = pIndexPage->getTree();
+
+		if (pIndexTree != NULL)
+		{
+			// View the first document, don't bother about the rest
+			ustring url = pIndexTree->getFirstSelectionLiveURL();
+			view_document(locale_from_utf8(url));
+		}
+	}
 }
 
 //
@@ -1651,11 +1668,20 @@ void mainWindow::on_refreshindex_activate()
 	}
 
 	// Get the current documents selection
-	if ((m_pIndexTree->getSelection(documentsList) == false) ||
-		(documentsList.empty() == true))
+	IndexPage *pIndexPage = get_index_page_with_focus(false);
+	if (pIndexPage != NULL)
 	{
-		// No selection
-		return;
+		IndexTree *pIndexTree = pIndexPage->getTree();
+
+		if (pIndexTree != NULL)
+		{
+			if ((pIndexTree->getSelection(documentsList) == false) ||
+				(documentsList.empty() == true))
+			{
+				// No selection
+				return;
+			}
+		}
 	}
 
 	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
@@ -1693,19 +1719,28 @@ void mainWindow::on_showfromindex_activate()
 {
 	vector<IndexedDocument> documentsList;
 	set<string> docLabels;
-	string currentLabelName;
+	string indexName, labelName;
 	DocumentInfo docInfo;
 	unsigned int docId = 0;
 	int width, height;
 	bool matchedLabel = false, editTitle = false;
 
+	IndexTree *pIndexTree = NULL;
+	IndexPage *pIndexPage = get_index_page_with_focus(false);
+	if (pIndexPage != NULL)
+	{
+		indexName = locale_from_utf8(pIndexPage->getIndexName());
+		labelName = locale_from_utf8(pIndexPage->getLabelName());
+		pIndexTree = pIndexPage->getTree();
+	}
+
 	const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
-	std::map<string, string>::const_iterator mapIter = indexesMap.find(m_state.getCurrentIndex());	
+	std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);	
 	if (mapIter == indexesMap.end())
 	{
 		ustring statusText = _("Index");
 		statusText += " ";
-		statusText += m_state.getCurrentIndex();
+		statusText += indexName;
 		statusText += " ";
 		statusText += _("doesn't exist");
 		set_status(statusText);
@@ -1715,7 +1750,8 @@ void mainWindow::on_showfromindex_activate()
 	XapianIndex index(mapIter->second);
 
 	// Get the current documents selection
-	if ((m_pIndexTree->getSelection(documentsList) == false) ||
+	if ((pIndexTree == NULL) ||
+		(pIndexTree->getSelection(documentsList) == false) ||
 		(documentsList.empty() == true))
 	{
 		// No selection
@@ -1736,8 +1772,8 @@ void mainWindow::on_showfromindex_activate()
 			index.getDocumentLabels(docId, docLabels);
 
 			// Does it match the current label ?
-			if ((m_state.getCurrentLabel(currentLabelName) > 0) &&
-				(find(docLabels.begin(), docLabels.end(), currentLabelName) != docLabels.end()))
+			if ((labelName.empty() == false) &&
+				(find(docLabels.begin(), docLabels.end(), labelName) != docLabels.end()))
 			{
 				matchedLabel = true;
 			}
@@ -1778,17 +1814,17 @@ void mainWindow::on_showfromindex_activate()
 		bool matchesLabel = false;
 
 		// Does the sole selected document match the current label now ?
-		if ((currentLabelName.empty() == false) &&
-			(find(labels.begin(), labels.end(), currentLabelName) != labels.end()))
+		if ((labelName.empty() == false) &&
+			(find(labels.begin(), labels.end(), labelName) != labels.end()))
 		{
-				matchesLabel = true;
+			matchesLabel = true;
 		}
 
 		// Was there any change ?
 		if (matchesLabel != matchedLabel)
 		{
-				// Update this document to the index tree
-				m_pIndexTree->setDocumentLabeledState(docId, matchesLabel);
+			// Update this document to the index tree
+			pIndexTree->setDocumentLabeledState(docId, matchesLabel);
 		}
 
 		// Did the title change ?
@@ -1798,18 +1834,16 @@ void mainWindow::on_showfromindex_activate()
 			docInfo.setTitle(newTitle);
 			
 			// Update the document
-			start_thread(new UpdateDocumentThread(m_state.getCurrentIndex(), docId, docInfo));
+			start_thread(new UpdateDocumentThread(indexName, docId, docInfo));
 		}
 	}
 	else
 	{
-		string currentLabelName;
-
-		if (m_state.getCurrentLabel(currentLabelName) > 0)
+		if (labelName.empty() == false)
 		{
 			// The current label may have been applied to or removed from
 			// one or more of the selected documents, so refresh the list
-			start_thread(new LabelQueryThread(m_state.getCurrentIndex(), currentLabelName));
+			start_thread(new LabelQueryThread(indexName, labelName));
 		}
 	}
 }
@@ -1822,8 +1856,16 @@ void mainWindow::on_unindex_activate()
 	vector<IndexedDocument> documentsList;
 	ustring boxTitle = _("Delete this document from the index ?");
 
+	IndexTree *pIndexTree = NULL;
+	IndexPage *pIndexPage = get_index_page_with_focus(false);
+	if (pIndexPage != NULL)
+	{
+		pIndexTree = pIndexPage->getTree();
+	}
+
 	// Get the current documents selection
-	if ((m_pIndexTree->getSelection(documentsList) == false) ||
+	if ((pIndexTree == NULL) ||
+		(pIndexTree->getSelection(documentsList) == false) ||
 		(documentsList.empty() == true))
 	{
 		return;
@@ -1845,11 +1887,7 @@ void mainWindow::on_unindex_activate()
 	}
 
 	// Remove these documents from the tree
-	if (m_pIndexTree->deleteSelection() == true)
-	{
-		// The index tree is now empty
-		showlabels1->set_sensitive(false);
-	}
+	pIndexTree->deleteSelection();
 
 	set<unsigned int> docIdList;
 	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
@@ -2101,57 +2139,39 @@ void mainWindow::on_findQueryButton_clicked()
 }
 
 //
-// Index list mouse click
-//
-void mainWindow::on_indexCombobox_changed()
-{
-	TreeModel::iterator indexIter = indexCombobox->get_active();
-	if (indexIter)
-	{
-		TreeModel::Row row = *indexIter;
-
-		ustring indexName = row[m_indexNameColumns.m_name];
-#ifdef DEBUG
-		cout << "mainWindow::on_indexCombobox_changed: current index now " << indexName << endl;
-#endif
-		ustring currentIndexName = m_state.getCurrentIndex();
-		m_state.setCurrentIndex(indexName);
-		if ((currentIndexName.empty() == false) &&
-			(currentIndexName != indexName))
-		{
-			// Force a refresh if the selected index has changed
-			m_state.m_startDoc = m_state.m_indexDocsCount = 0;
-			on_indexForwardButton_clicked();
-		}
-	}
-}
-
-//
 // Index back button click
 //
-void mainWindow::on_indexBackButton_clicked()
+void mainWindow::on_indexBackButton_clicked(ustring indexName)
 {
-	if (m_state.m_startDoc >= m_maxDocsCount)
+	IndexPage *pIndexPage = get_index_page(indexName);
+	if (pIndexPage != NULL)
 	{
-		m_state.m_startDoc -= m_maxDocsCount;
-		browse_index(m_state.m_startDoc);
+		if (pIndexPage->getFirstDocument() >= m_maxDocsCount)
+		{
+			pIndexPage->setFirstDocument(pIndexPage->getFirstDocument() - m_maxDocsCount);
+			browse_index(indexName, pIndexPage->getFirstDocument());
+		}
 	}
 }
 
 //
 // Index forward button click
 //
-void mainWindow::on_indexForwardButton_clicked()
+void mainWindow::on_indexForwardButton_clicked(ustring indexName)
 {
-	if (m_state.m_indexDocsCount == 0)
+	IndexPage *pIndexPage = get_index_page(indexName);
+	if (pIndexPage != NULL)
 	{
-		m_state.m_startDoc = 0;
-		browse_index(m_state.m_startDoc);
-	}
-	else if (m_state.m_indexDocsCount >= m_state.m_startDoc + m_maxDocsCount)
-	{
-		m_state.m_startDoc += m_maxDocsCount;
-		browse_index(m_state.m_startDoc);
+		if (pIndexPage->getDocumentsCount() == 0)
+		{
+			pIndexPage->setFirstDocument(0);
+			browse_index(indexName, 0);
+		}
+		else if (pIndexPage->getDocumentsCount() >= pIndexPage->getFirstDocument() + m_maxDocsCount)
+		{
+			pIndexPage->setFirstDocument(pIndexPage->getFirstDocument() + m_maxDocsCount);
+			browse_index(indexName, pIndexPage->getFirstDocument());
+		}
 	}
 }
 
@@ -2167,6 +2187,31 @@ bool mainWindow::on_queryTreeview_button_press_event(GdkEventButton *ev)
 	}
 
 	return false;
+}
+
+//
+// Notebook page switch
+//
+void mainWindow::on_mainNotebook_switch_page(GtkNotebookPage *p0, guint p1)
+{
+#ifdef DEBUG
+	cout << "mainWindow::on_mainNotebook_switch_page: switched to page " << p1 << endl;
+#endif
+	if (m_state.m_currentPage != (int)p1)
+	{
+		// Disable the widgets that depend on what page is selected
+		// Results
+		clearresults1->set_sensitive(false);
+		viewresults1->set_sensitive(false);
+		viewcache1->set_sensitive(false);
+		indexresults1->set_sensitive(false);
+		// Index
+		viewfromindex1->set_sensitive(false);
+		refreshindex1->set_sensitive(false);
+		showfromindex1->set_sensitive(false);
+		unindex1->set_sensitive(false);
+	}
+	m_state.m_currentPage = (int)p1;
 }
 
 //
@@ -2187,7 +2232,7 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 			return true;
 		}
 
-		if (m_state.readLock(4) == true)
+		if (m_state.readLock(6) == true)
 		{
 			for (set<WorkerThread *>::iterator threadIter = m_state.m_pThreads.begin();
 				threadIter != m_state.m_pThreads.end(); ++threadIter)
@@ -2215,6 +2260,127 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 
 	Main::quit();
 	return false;
+}
+
+//
+// Returns the IndexPage for the index that has the focus.
+//
+IndexPage *mainWindow::get_index_page_with_focus(bool checkTree)
+{
+	IndexPage *pIndexPage = NULL;
+
+	if (m_state.readLock(7) == true)
+	{
+		for (int pageNum = 0; pageNum < mainNotebook->get_n_pages(); ++pageNum)
+		{
+			Widget *pPage = mainNotebook->get_nth_page(pageNum);
+			if (pPage != NULL)
+			{
+				pIndexPage = dynamic_cast<IndexPage*>(pPage);
+				if (pIndexPage != NULL)
+				{
+#ifdef DEBUG
+					cout << "mainWindow::get_index_page_with_focus: " << pIndexPage->getIndexName() << endl;
+#endif
+					if (checkTree == false)
+					{
+						if (pIndexPage->is_focus() == true)
+						{
+							break;
+						}
+					}
+					else
+					{
+						IndexTree *pIndexTree = pIndexPage->getTree();
+						if ((pIndexTree != NULL) &&
+							(pIndexTree->is_focus() == true))
+						{
+							break;
+						}
+					}
+					pIndexPage = NULL;
+				}
+			}
+		}
+
+		m_state.unlock();
+	}
+
+	return pIndexPage;
+}
+
+//
+// Returns the IndexPage for the given index.
+//
+IndexPage *mainWindow::get_index_page(const ustring &indexName)
+{
+	IndexPage *pIndexPage = NULL;
+
+	if (m_state.readLock(8) == true)
+	{
+		for (int pageNum = 0; pageNum < mainNotebook->get_n_pages(); ++pageNum)
+		{
+			Widget *pPage = mainNotebook->get_nth_page(pageNum);
+			if (pPage != NULL)
+			{
+				pIndexPage = dynamic_cast<IndexPage*>(pPage);
+				if (pIndexPage != NULL)
+				{
+#ifdef DEBUG
+					cout << "mainWindow::get_index_page: " << pIndexPage->getIndexName() << endl;
+#endif
+					// It's an index page, check the name of the index
+					if (indexName == pIndexPage->getIndexName())
+					{
+						// That's the page we are looking for
+						break;
+					}
+					pIndexPage = NULL;
+				}
+			}
+		}
+
+		m_state.unlock();
+	}
+
+	return pIndexPage;
+}
+
+//
+// Returns the page number for the given index.
+//
+int mainWindow::get_index_page_number(const ustring &indexName)
+{
+	int pageNumber = -1;
+
+	if (m_state.readLock(9) == true)
+	{
+		for (int pageNum = 0; pageNum < mainNotebook->get_n_pages(); ++pageNum)
+		{
+			Widget *pPage = mainNotebook->get_nth_page(pageNum);
+			if (pPage != NULL)
+			{
+				IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pPage);
+				if (pIndexPage != NULL)
+				{
+#ifdef DEBUG
+					cout << "mainWindow::get_index_page_number: " << pIndexPage->getIndexName() << endl;
+#endif
+					// It's an index page, check the name of the index
+					if (indexName == pIndexPage->getIndexName())
+					{
+						// That's the page we are looking for
+						pageNumber = pageNum;
+						break;
+					}
+				}
+			}
+		}
+
+		m_state.unlock();
+	}
+
+	return pageNumber;
 }
 
 //
@@ -2491,7 +2657,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 //
 // Browse an index
 //
-void mainWindow::browse_index(unsigned int startDoc)
+void mainWindow::browse_index(const ustring &indexName, unsigned int startDoc)
 {
 	bool enableIndexOps = false;
 
@@ -2502,25 +2668,31 @@ void mainWindow::browse_index(unsigned int startDoc)
 	}
 	m_state.m_browsingIndex = true;
 
-	// Remove existing rows in the index tree
-	m_pIndexTree->clear();
-	// Disable this
-	showlabels1->set_sensitive(false);
-	// Reset variables
-	m_state.m_indexDocsCount = 0;
+	IndexPage *pIndexPage = get_index_page(indexName);
+	if (pIndexPage != NULL)
+	{
+		IndexTree *pIndexTree = pIndexPage->getTree();
+		if (pIndexTree != NULL)
+		{
+			// Remove existing rows in the index tree
+			pIndexTree->clear();
+		}
+		// Reset variables
+		pIndexPage->setDocumentsCount(0);
 
-	if (m_state.getCurrentIndex() == _("My Documents"))
+		// Switch to that index page
+		mainNotebook->set_current_page(get_index_page_number(indexName));
+	}
+
+	if (indexName == _("My Documents"))
 	{
 		enableIndexOps = true;
 	}
 	import1->set_sensitive(enableIndexOps);
 
 	// Spawn a new thread to browse the index
-#ifdef DEBUG
-	cout << "mainWindow::browse_index: indexing " << m_state.getCurrentIndex() << endl;
-#endif
 	IndexBrowserThread *pBrowseThread = new IndexBrowserThread(
-		locale_from_utf8(m_state.getCurrentIndex()), m_maxDocsCount, startDoc);
+		locale_from_utf8(indexName), m_maxDocsCount, startDoc);
 	pBrowseThread->getUpdateSignal().connect(SigC::slot(*this,
 		&mainWindow::on_message_indexupdate));
 	start_thread(pBrowseThread);
@@ -2561,7 +2733,7 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 			docId = index.hasDocument(url);
 		}
 		if ((docId == 0) &&
-			(m_state.writeLock(4) == true))
+			(m_state.writeLock(10) == true))
 		{
 			if (m_state.m_beingIndexed.find(url) == m_state.m_beingIndexed.end())
 			{
@@ -2649,7 +2821,7 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 		else
 		{
 			// Display the URL in the View tab
-			mainNotebook->set_current_page(2);
+			mainNotebook->set_current_page(1);
 			if (m_pHtmlView->renderUrl(url) == true)
 			{
 				//viewstop1->set_sensitive(true);
@@ -2686,7 +2858,7 @@ void mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 	pNewThread->getFinishedSignal().connect(SigC::slot(*this,
 		&mainWindow::on_thread_end));
 
-	if (m_state.writeLock(5) == true)
+	if (m_state.writeLock(11) == true)
 	{
 		pair<set<WorkerThread *>::iterator, bool> insertPair = m_state.m_pThreads.insert(pNewThread);
 		insertedThread = insertPair.second;
@@ -2833,7 +3005,7 @@ unsigned int mainWindow::get_threads_count(void)
 {
 	int count = 0;
 
-	if (m_state.readLock(5) == true)
+	if (m_state.readLock(12) == true)
 	{
 		count = m_state.m_pThreads.size() - m_state.m_backgroundThreads;
 		m_state.unlock();

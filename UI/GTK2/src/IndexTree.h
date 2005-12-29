@@ -22,7 +22,6 @@
 #include <sigc++/slot.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
-#include <gtkmm/box.h>
 #include <gtkmm/menu.h>
 #include <gdkmm/pixbuf.h>
 #include <gtkmm/scrolledwindow.h>
@@ -39,14 +38,12 @@
 class IndexTree : public Gtk::TreeView
 {
 	public:
-		IndexTree(Gtk::VBox *indexVbox, Gtk::Menu *pPopupMenu, PinotSettings &settings);
+		IndexTree(const Glib::ustring &indexName, Gtk::Menu *pPopupMenu,
+			PinotSettings &settings);
 		virtual ~IndexTree();
 
-		/**
-		  * Handles selection changes.
-		  * Returns true if a result is selected.
-		  */
-		bool onSelectionChanged(void);
+		/// Returns the tree's scrolled window.
+		Gtk::ScrolledWindow *getScrolledWindow(void) const;
 
 		/// Adds a set of documents.
 		bool addDocuments(const std::vector<IndexedDocument> &documentsList);
@@ -85,6 +82,9 @@ class IndexTree : public Gtk::TreeView
 		/// Returns the number of rows.
 		unsigned int getRowsCount(void);
 
+		/// Refreshes the tree.
+		void refresh(void);
+
 		/// Returns true if the tree is empty.
 		bool isEmpty(void);
 
@@ -94,10 +94,16 @@ class IndexTree : public Gtk::TreeView
 		/// Returns the document edit signal.
 		SigC::Signal0<void>& getEditDocumentSignal(void);
 
+		/// Returns the changed selection signal.
+		SigC::Signal1<void, Glib::ustring>& getSelectionChangedSignal(void);
+
 	protected:
-		Glib::RefPtr<Gtk::ListStore> m_refStore;
+		Glib::ustring m_indexName;
 		Gtk::Menu *m_pPopupMenu;
+		Gtk::ScrolledWindow *m_pIndexScrolledwindow;
+		Glib::RefPtr<Gtk::ListStore> m_refStore;
 		SigC::Signal0<void> m_signalEdit;
+		SigC::Signal1<void, Glib::ustring> m_signalSelectionChanged;
 		PinotSettings &m_settings;
 		IndexModelColumns m_indexColumns;
 		Gdk::Color m_currentLabelColour;
@@ -106,14 +112,13 @@ class IndexTree : public Gtk::TreeView
 
 		void renderLabel(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
 
-		/// Interactive search equal function.
+		void onButtonPressEvent(GdkEventButton *ev);
+
+		void onSelectionChanged(void);
+
 		bool onSearchEqual(const Glib::RefPtr<Gtk::TreeModel>& model, int column,
 			const Glib::ustring& key, const Gtk::TreeModel::iterator& iter);
 
-		/// Handles button presses.
-		void onButtonPressEvent(GdkEventButton *ev);
-
-		/// Handles attempts to select rows.
 		bool onSelectionSelect(const Glib::RefPtr<Gtk::TreeModel>& model,
 			const Gtk::TreeModel::Path& path, bool path_currently_selected);
 

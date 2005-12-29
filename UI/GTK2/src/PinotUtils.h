@@ -22,41 +22,10 @@
 #if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>2
 #include <sigc++/compatibility.h>
 #endif
-#include <sigc++/signal.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/window.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/treemodel.h>
-
-/**
-  * DCTreeView subclasses TreeView and handles double clicks.
-  * Handling double-clicks on tree views is not straight-forward, see :
-  * http://bugzilla.gnome.org/show_bug.cgi?id=89780
-  * http://www.gtkmm.org/gtkmm2/docs/tutorial/html/ch08s07.html
-  */
-class DCTreeView : public Gtk::TreeView
-{
-	public:
-		DCTreeView() : Gtk::TreeView() {}
-		virtual ~DCTreeView() {}
-
-		SigC::Signal0<void> signal_double_click_event;
-
-	protected:
-		bool on_button_press_event(GdkEventButton* event)
-		{
-			// Check for double clicks
-			if (event->type == GDK_2BUTTON_PRESS)
-			{
-				signal_double_click_event();
-				return true;
-			}
-
-			// Not handled
-			return TreeView::on_button_press_event(event);
-		}
-
-};
 
 /// Open a FileSelector and request a file. Location can be initialized.
 bool select_file_name(Gtk::Window &parentWindow, const Glib::ustring &title,
@@ -65,11 +34,6 @@ bool select_file_name(Gtk::Window &parentWindow, const Glib::ustring &title,
 /// Create a resizable text column.
 Gtk::TreeViewColumn *create_resizable_column(const Glib::ustring &title,
 	const Gtk::TreeModelColumnBase& modelColumn);
-
-/// Create a resizable text column, rendered by renderTextCell.
-Gtk::TreeViewColumn *create_resizable_column(const Glib::ustring &title,
-	const Gtk::TreeModelColumnBase& modelColumn,
-	const  Gtk::TreeViewColumn::SlotCellData &renderTextCell);
 
 /// Create a resizable icon and text column, rendered by renderTextAndIconCell.
 Gtk::TreeViewColumn *create_resizable_column_with_icon(const Glib::ustring &title,

@@ -48,7 +48,6 @@ ResultsTree::ResultsTree(VBox *resultsVbox, Menu *pPopupMenu, PinotSettings &set
 	m_extractTextview(NULL),
 	m_showExtract(true)
 {
-	HBox *extractHbox = manage(new class Gtk::HBox(false, 0));
 	ScrolledWindow *resultsScrolledwindow = manage(new ScrolledWindow());
 	m_extractScrolledwindow = manage(new ScrolledWindow());
 	m_extractTextview = manage(new TextView());
@@ -142,7 +141,6 @@ ResultsTree::ResultsTree(VBox *resultsVbox, Menu *pPopupMenu, PinotSettings &set
 	resultsScrolledwindow->show();
 	m_extractTextview->show();
 	m_extractScrolledwindow->show();
-	extractHbox->show();
 }
 
 ResultsTree::~ResultsTree()
