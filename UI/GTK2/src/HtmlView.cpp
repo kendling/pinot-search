@@ -28,6 +28,7 @@ using namespace Gtk;
 
 HtmlView::HtmlView(Menu *pPopupMenu) :
 	MozillaRenderer(),
+	SigC::Object(),
 	m_pPopupMenu(pPopupMenu),
 	m_pDocHtmlView(NULL)
 {
@@ -49,6 +50,10 @@ HtmlView::HtmlView(Menu *pPopupMenu) :
 
 HtmlView::~HtmlView()
 {
+	if (m_pDocHtmlView != NULL)
+	{
+		delete m_pDocHtmlView;
+	}
 }
 
 //

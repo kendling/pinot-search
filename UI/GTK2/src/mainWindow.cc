@@ -708,10 +708,17 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 	{
 		if (type == NotebookPageBox::VIEW_PAGE)
 		{
+			// Stop rendering
 			m_pHtmlView->stop();
-		}
 
-		if (m_state.writeLock(2) == true)
+			// Hide, don't close the page
+			Widget *pPage = m_pNotebook->get_nth_page(pageNum);
+			if (pPage != NULL)
+			{
+				pPage->hide();
+			}
+		}
+		else if (m_state.writeLock(2) == true)
 		{
 			// Remove the page
 			m_pNotebook->remove_page(pageNum);
@@ -1482,7 +1489,7 @@ void mainWindow::on_copy_activate()
 	else
 	{
 		// The focus may be on one of the notebook pages
-		NotebookPageBox *pNotebookPage = get_page_with_focus();
+		NotebookPageBox *pNotebookPage = get_current_page();
 		if (pNotebookPage != NULL)
 		{
 			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
@@ -1611,7 +1618,7 @@ void mainWindow::on_delete_activate()
 	}
 	else
 	{
-		NotebookPageBox *pNotebookPage = get_page_with_focus();
+		NotebookPageBox *pNotebookPage = get_current_page();
 		if (pNotebookPage != NULL)
 		{
 			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
@@ -1638,7 +1645,7 @@ void mainWindow::on_delete_activate()
 //
 void mainWindow::on_clearresults_activate()
 {
-	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
 		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
@@ -1659,7 +1666,7 @@ void mainWindow::on_clearresults_activate()
 //
 void mainWindow::on_showextract_activate()
 {
-	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
 		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
@@ -1682,7 +1689,7 @@ void mainWindow::on_groupresults_activate()
 	ResultsModelColumns::ResultType currentType, newType;
 
 	// What's the new grouping criteria ?
-	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
 		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
@@ -1702,7 +1709,7 @@ void mainWindow::on_groupresults_activate()
 //
 void mainWindow::on_viewresults_activate()
 {
-	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
 		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
@@ -1727,7 +1734,7 @@ void mainWindow::on_viewresults_activate()
 //
 void mainWindow::on_viewcache_activate()
 {
-	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
 		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
@@ -1761,7 +1768,7 @@ void mainWindow::on_indexresults_activate()
 		return;
 	}
 
-	NotebookPageBox *pNotebookPage = get_page_with_focus();
+	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
 		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
@@ -1814,7 +1821,7 @@ void mainWindow::on_import_activate()
 //
 void mainWindow::on_viewfromindex_activate()
 {
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page_with_focus());
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
 		IndexTree *pIndexTree = pIndexPage->getTree();
@@ -1843,7 +1850,7 @@ void mainWindow::on_refreshindex_activate()
 	}
 
 	// Get the current documents selection
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page_with_focus());
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
 		IndexTree *pIndexTree = pIndexPage->getTree();
@@ -1862,13 +1869,6 @@ void mainWindow::on_refreshindex_activate()
 	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
 	{
-		// The URL to download, ie the original location of the document
-		string url = docIter->getOriginalLocation();
-		if (url.empty() == true)
-		{
-			continue;
-		}
-
 		// The document ID
 		unsigned int docId = docIter->getID();
 		if (docId == 0)
@@ -1876,14 +1876,21 @@ void mainWindow::on_refreshindex_activate()
 			continue;
 		}
 
-		// The title
-		string title = docIter->getTitle();
+		// The URL to download, ie the original location of the document
+		string url = docIter->getOriginalLocation();
+		if (url.empty() == true)
+		{
+			continue;
+		}
 #ifdef DEBUG
 		cout << "mainWindow::on_refreshindex_activate: URL is " << url << endl;
 #endif
 
 		// Add this action to the queue
-		queue_index(*docIter, "", docId);
+		DocumentInfo docInfo(docIter->getTitle(), url,
+			docIter->getType(), docIter->getLanguage());
+		docInfo.setTimestamp(docIter->getTimestamp());
+		queue_index(docInfo, "", docId);
 	}
 }
 
@@ -1904,7 +1911,7 @@ void mainWindow::on_showfromindex_activate()
 	cout << "mainWindow::on_showfromindex_activate: called" << endl;
 #endif
 	IndexTree *pIndexTree = NULL;
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page_with_focus());
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
 		indexName = locale_from_utf8(pIndexPage->getTitle());
@@ -2035,7 +2042,7 @@ void mainWindow::on_unindex_activate()
 	ustring boxTitle = _("Delete this document from the index ?");
 
 	IndexTree *pIndexTree = NULL;
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page_with_focus());
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
 		pIndexTree = pIndexPage->getTree();
@@ -2416,21 +2423,18 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 }
 
 //
-// Returns the page that has the focus.
+// Returns the current page.
 //
-NotebookPageBox *mainWindow::get_page_with_focus(void)
+NotebookPageBox *mainWindow::get_current_page(void)
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
 	if (m_state.readLock(7) == true)
 	{
-		if (m_state.m_currentPage >= 0)
+		Widget *pPage = m_pNotebook->get_nth_page(m_pNotebook->get_current_page());
+		if (pPage != NULL)
 		{
-			Widget *pPage = m_pNotebook->get_nth_page(m_state.m_currentPage);
-			if (pPage != NULL)
-			{
-				pNotebookPage = dynamic_cast<NotebookPageBox*>(pPage);
-			}
+			pNotebookPage = dynamic_cast<NotebookPageBox*>(pPage);
 		}
 
 		m_state.unlock();
@@ -2477,7 +2481,7 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 }
 
 //
-// Returns the page number with the given title.
+// Returns the number of the page with the given title.
 //
 int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType type)
 {
@@ -2956,6 +2960,9 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 			if (pViewPage != NULL)
 			{
 				pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
+				// The page may be hidden
+				pViewPage->show();
+				// FIXME: move the page
 			}
 			else
 			{

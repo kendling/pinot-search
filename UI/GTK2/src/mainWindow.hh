@@ -113,7 +113,7 @@ protected:
 	virtual bool on_mainWindow_delete_event(GdkEventAny *ev);
 
 	// Action methods
-	NotebookPageBox *get_page_with_focus(void);
+	NotebookPageBox *get_current_page(void);
 	NotebookPageBox *get_page(const Glib::ustring &title,
 		NotebookPageBox::PageType type);
 	int get_page_number(const Glib::ustring &title,
