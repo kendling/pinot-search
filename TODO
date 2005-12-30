@@ -23,7 +23,8 @@ Search
 - Add csourcesearch.net
 - Add http://www.patentcommons.org/commons/patentsearch.php
 - Apply Pinot specific filters (eg "L" for language) on internal indices only
-- Use Xapian's QueryParser, map fields (label, language, title etc...) to prefixes
+- Assuming text is tokenized a la omindex, use Xapian's QueryParser, map fields
+  (label, language, title) to prefixes, etc...
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -32,7 +33,6 @@ Collect
 - Make download timeout configurable
 - Investigate replacing neon (and gsoap ?) with libsoup
 - Support for HTML frames
-- Write a tokenizer for RFCs that breaks chapters into individual documents
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
 - Use poppler for the PDF tokenizer
 
@@ -64,7 +64,6 @@ RenderHTML
 - Replace Mozilla GTK embed with GTK WebCore or latest gtkhtml, or drop altogether ?
 - Is it possible to build against Firefox instead of the Mozilla suite ?
 - Highlight search terms
-- Fix crash with documents that link to images with https
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -77,8 +76,6 @@ Mail
     Date: Thu, 25 Aug 2005 11:04:49 +0800
   +0800 is basically same as SGT. At the moment the date is assumed to be GMT !
 - Mail messages with attachements are not indexed
-- Check that labels are removed when a message is unindexed (eg because it's no longer
-  in the mail account)
 
 UI
 - Switching back and forth between grouping modes messes up results rankings : check scores
@@ -94,11 +91,12 @@ UI
 - Replace Combobox objects with ComboboxText's (glademm support required)
 - Replace glademm with libglademm ?
 - Show extract instead of URL in index list
-- At startup, don't switch to the Index tab when listing the documents index
 - Show activity when mail is being indexed
 - Update Last Run after the query has completed
 - Add a Recent Import section that relies on documents timestamps
 - Filter documents by language, similarly to how labels are shown
 - Save query expander and extract field status in config file
 - Enable to save live queries
+- Clean up method names
+- Prefer ustring to string whenever possible
 
