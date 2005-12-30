@@ -91,7 +91,6 @@ indexDialog_glade::indexDialog_glade(
    locationEntry->set_visibility(true);
    locationEntry->set_editable(true);
    locationEntry->set_max_length(0);
-   locationEntry->set_text(_(""));
    locationEntry->set_has_frame(true);
    locationEntry->set_activates_default(false);
    locationButton->set_flags(Gtk::CAN_FOCUS);
@@ -121,7 +120,6 @@ indexDialog_glade::indexDialog_glade(
    nameEntry->set_visibility(true);
    nameEntry->set_editable(true);
    nameEntry->set_max_length(0);
-   nameEntry->set_text(_(""));
    nameEntry->set_has_frame(true);
    nameEntry->set_activates_default(false);
    portSpinbutton->set_flags(Gtk::CAN_FOCUS);

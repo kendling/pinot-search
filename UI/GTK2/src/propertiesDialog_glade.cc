@@ -86,7 +86,6 @@ propertiesDialog_glade::propertiesDialog_glade(
    titleEntry->set_visibility(true);
    titleEntry->set_editable(true);
    titleEntry->set_max_length(0);
-   titleEntry->set_text(_(""));
    titleEntry->set_has_frame(true);
    titleEntry->set_activates_default(false);
    extractTextview->set_flags(Gtk::CAN_FOCUS);
@@ -127,7 +126,6 @@ propertiesDialog_glade::propertiesDialog_glade(
    languageEntry->set_visibility(true);
    languageEntry->set_editable(false);
    languageEntry->set_max_length(0);
-   languageEntry->set_text(_(""));
    languageEntry->set_has_frame(true);
    languageEntry->set_activates_default(false);
    typeLabel->set_alignment(0,0.5);
@@ -140,7 +138,6 @@ propertiesDialog_glade::propertiesDialog_glade(
    typeEntry->set_visibility(true);
    typeEntry->set_editable(false);
    typeEntry->set_max_length(0);
-   typeEntry->set_text(_(""));
    typeEntry->set_has_frame(true);
    typeEntry->set_activates_default(false);
    propertiesTable->set_row_spacings(0);

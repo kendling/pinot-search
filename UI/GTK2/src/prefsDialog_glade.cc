@@ -150,7 +150,6 @@ prefsDialog_glade::prefsDialog_glade(
    apiKeyEntry->set_visibility(true);
    apiKeyEntry->set_editable(true);
    apiKeyEntry->set_max_length(0);
-   apiKeyEntry->set_text(_(""));
    apiKeyEntry->set_has_frame(true);
    apiKeyEntry->set_activates_default(false);
    ignoreRobotsCheckbutton->set_flags(Gtk::CAN_FOCUS);
@@ -161,7 +160,6 @@ prefsDialog_glade::prefsDialog_glade(
    browserEntry->set_visibility(true);
    browserEntry->set_editable(true);
    browserEntry->set_max_length(0);
-   browserEntry->set_text(_(""));
    browserEntry->set_has_frame(true);
    browserEntry->set_activates_default(false);
    browserButton->set_flags(Gtk::CAN_FOCUS);

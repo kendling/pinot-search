@@ -116,7 +116,6 @@ queryDialog_glade::queryDialog_glade(
    nameEntry->set_visibility(true);
    nameEntry->set_editable(true);
    nameEntry->set_max_length(0);
-   nameEntry->set_text(_(""));
    nameEntry->set_has_frame(true);
    nameEntry->set_activates_default(false);
    table1->set_row_spacings(0);
@@ -127,21 +126,18 @@ queryDialog_glade::queryDialog_glade(
    anyEntry->set_visibility(true);
    anyEntry->set_editable(true);
    anyEntry->set_max_length(0);
-   anyEntry->set_text(_(""));
    anyEntry->set_has_frame(true);
    anyEntry->set_activates_default(false);
    hostNameEntry->set_flags(Gtk::CAN_FOCUS);
    hostNameEntry->set_visibility(true);
    hostNameEntry->set_editable(true);
    hostNameEntry->set_max_length(0);
-   hostNameEntry->set_text(_(""));
    hostNameEntry->set_has_frame(true);
    hostNameEntry->set_activates_default(false);
    fileNameEntry->set_flags(Gtk::CAN_FOCUS);
    fileNameEntry->set_visibility(true);
    fileNameEntry->set_editable(true);
    fileNameEntry->set_max_length(0);
-   fileNameEntry->set_text(_(""));
    fileNameEntry->set_has_frame(true);
    fileNameEntry->set_activates_default(false);
    resultsCountSpinbutton->set_flags(Gtk::CAN_FOCUS);
@@ -187,7 +183,6 @@ queryDialog_glade::queryDialog_glade(
    notEntry->set_visibility(true);
    notEntry->set_editable(true);
    notEntry->set_max_length(0);
-   notEntry->set_text(_(""));
    notEntry->set_has_frame(true);
    notEntry->set_activates_default(false);
    tersmTable->set_row_spacings(0);
@@ -221,7 +216,6 @@ queryDialog_glade::queryDialog_glade(
    phraseEntry->set_visibility(true);
    phraseEntry->set_editable(true);
    phraseEntry->set_max_length(0);
-   phraseEntry->set_text(_(""));
    phraseEntry->set_has_frame(true);
    phraseEntry->set_activates_default(false);
    phraseLabel->set_alignment(0,0.5);
@@ -240,7 +234,6 @@ queryDialog_glade::queryDialog_glade(
    andEntry->set_visibility(true);
    andEntry->set_editable(true);
    andEntry->set_max_length(0);
-   andEntry->set_text(_(""));
    andEntry->set_has_frame(true);
    andEntry->set_activates_default(false);
    andLabel->set_alignment(0,0.5);

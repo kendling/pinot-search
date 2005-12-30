@@ -272,7 +272,6 @@ mainWindow_glade::mainWindow_glade(
    liveQueryEntry->set_visibility(true);
    liveQueryEntry->set_editable(true);
    liveQueryEntry->set_max_length(0);
-   liveQueryEntry->set_text(_(""));
    liveQueryEntry->set_has_frame(true);
    liveQueryEntry->set_activates_default(false);
    findButton->set_flags(Gtk::CAN_FOCUS);
