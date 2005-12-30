@@ -24,17 +24,20 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <utility>
 
+#include "Languages.h"
 #include "StringManip.h"
+#include "TimeConverter.h"
 #include "Url.h"
 #include "Summarizer.h"
-#include "TimeConverter.h"
 #include "LanguageDetector.h"
 #include "XapianDatabaseFactory.h"
 #include "XapianIndex.h"
 
 using std::string;
 using std::set;
+using std::min;
 
 // This puts a limit to terms length.
 const unsigned int XapianIndex::m_maxTermLength = 64;
@@ -284,7 +287,6 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 			return false;
 		}
 
-		// Obtain a summary
 		const char *pData = pDocument->getData(dataLength);
 		if (pData == NULL)
 		{
@@ -366,10 +368,24 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 			string record = doc.get_data();
 			if (record.empty() == false)
 			{
+				string language = StringManip::extractField(record, "language=", "");
+
+				// Get the language name in the current locale
+				for (unsigned int langNum = 0; langNum < Languages::m_count; ++langNum)
+				{
+					if (strncasecmp(language.c_str(), Languages::m_names[langNum],
+						min(language.length(), strlen(Languages::m_names[langNum]))) == 0)
+					{
+						// That's the one !
+						language = Languages::getIntlName(langNum);
+						break;
+					}
+				}
+
 				docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
 					StringManip::extractField(record, "url=", "\n"),
 					StringManip::extractField(record, "type=", "\n"),
-					StringManip::extractField(record, "language=", ""));
+					language);
 				docInfo.setTimestamp(StringManip::extractField(record, "timestamp=", "\n"));
 #ifdef DEBUG
 				cout << "XapianIndex::getDocumentInfo: language is "
@@ -547,7 +563,6 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 		return false;
 	}
 
-	// Obtain a summary
 	const char *pData = pDocument->getData(dataLength);
 	if (pData == NULL)
 	{

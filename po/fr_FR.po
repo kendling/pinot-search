@@ -17,10 +17,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.20\n"
+"Project-Id-Version: pinot 0.35\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-12-08 19:20+0800\n"
-"PO-Revision-Date: 2005-12-08 19:20+0800\n"
+"POT-Creation-Date: 2005-12-30 17:20+0800\n"
+"PO-Revision-Date: 2005-12-30 17:20+0800\n"
 "Last-Translator: Fabrice Colin <colinf@chez.com>\n"
 "Language-Team: en_GB <colinf@chez.com>\n"
 "MIME-Version: 1.0\n"
@@ -423,7 +423,7 @@ msgstr "Voir le Cache"
 
 #: UI/GTK2/src/mainWindow_glade.cc:195 UI/GTK2/src/mainWindow_glade.cc:231
 msgid "_Index"
-msgstr "Indexer"
+msgstr "Index"
 
 #: UI/GTK2/src/mainWindow_glade.cc:198
 msgid "List Contents Of"
@@ -693,7 +693,7 @@ msgstr "N'importe lequel des mots:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:73
 msgid "File name:"
-msgstr "Nom de machine:"
+msgstr "Nom de ficher:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:74
 msgid "Number of results:"
@@ -701,11 +701,11 @@ msgstr "Nombre de resultats:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:77
 msgid "Host name:"
-msgstr "Nom de fichier:"
+msgstr "Nom de machine:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:78
 msgid "None of the words:"
-msgstr "Nombre de resultats:"
+msgstr "Aucun des mots:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:84
 msgid "Limit to documents that match"
@@ -717,15 +717,15 @@ msgstr "la phrase"
 
 #: UI/GTK2/src/queryDialog_glade.cc:88
 msgid "the language:"
-msgstr "aucun des mots"
+msgstr "la langue"
 
 #: UI/GTK2/src/queryDialog_glade.cc:92
 msgid "all the words:"
-msgstr "la langue"
+msgstr "tous les mots"
 
 #: UI/GTK2/src/queryDialog_glade.cc:93
 msgid "the label:"
-msgstr "tous les mots"
+msgstr "l'etiquette"
 
 #: UI/GTK2/src/queryDialog_glade.cc:98
 msgid "Advanced"

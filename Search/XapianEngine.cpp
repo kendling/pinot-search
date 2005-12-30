@@ -20,7 +20,9 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <utility>
 
+#include "Languages.h"
 #include "StringManip.h"
 #include "Tokenizer.h"
 #include "Url.h"
@@ -33,8 +35,9 @@ using std::stack;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::min;
 
-static bool extractWords(const string &text, const string &language, vector<string> &wordsList)
+static bool extractWords(const string &text, const string &stemLanguage, vector<string> &wordsList)
 {
 	Xapian::Stem *pStemmer = NULL;
 
@@ -43,9 +46,9 @@ static bool extractWords(const string &text, const string &language, vector<stri
 		return false;
 	}
 
-	if (language.empty() == false)
+	if (stemLanguage.empty() == false)
 	{
-		pStemmer = new Xapian::Stem(StringManip::toLowerCase(language));
+		pStemmer = new Xapian::Stem(StringManip::toLowerCase(stemLanguage));
 	}
 
 	Document doc;
@@ -77,6 +80,23 @@ static bool extractWords(const string &text, const string &language, vector<stri
 	}
 
 	return true;
+}
+
+static string getLanguageNameInEnglish(const string &language)
+{
+	for (unsigned int langNum = 0; langNum < Languages::m_count; ++langNum)
+	{
+		string intlLanguage = Languages::getIntlName(langNum);
+
+		if (strncasecmp(language.c_str(), intlLanguage.c_str(),
+			min(language.length(), intlLanguage.length())) == 0)
+		{
+			// That's the one !
+			return StringManip::toLowerCase(Languages::m_names[langNum]);
+		}
+	}
+
+	return language;
 }
 
 XapianEngine::XapianEngine(const string &database) :
@@ -183,7 +203,7 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 }
 
 void XapianEngine::stackQuery(const QueryProperties &queryProps,
-	stack<Xapian::Query> &queryStack, const string &language, bool followOperators)
+	stack<Xapian::Query> &queryStack, const string &stemLanguage, bool followOperators)
 {
 	Xapian::Query::op queryOp = Xapian::Query::OP_OR;
 	string term;
@@ -193,7 +213,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 	{
 		vector<string> andTerms;
 
-		if (extractWords(queryProps.getAndWords(), language, andTerms) == true)
+		if (extractWords(queryProps.getAndWords(), stemLanguage, andTerms) == true)
 		{
 #ifdef DEBUG
 			cout << "XapianEngine::stackQuery: OP_AND "  << andTerms.size() << endl;
@@ -211,7 +231,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 	{
 		vector<string> phraseTerms;
 
-		if (extractWords(queryProps.getPhrase(), language, phraseTerms) == true)
+		if (extractWords(queryProps.getPhrase(), stemLanguage, phraseTerms) == true)
 		{
 #ifdef DEBUG
 			cout << "XapianEngine::stackQuery: OP_PHRASE "  << phraseTerms.size() << endl;
@@ -229,7 +249,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 	{
 		vector<string> orTerms;
 
-		if (extractWords(queryProps.getAnyWords(), language, orTerms) == true)
+		if (extractWords(queryProps.getAnyWords(), stemLanguage, orTerms) == true)
 		{
 #ifdef DEBUG
 			cout << "XapianEngine::stackQuery: OP_OR "  << orTerms.size() << endl;
@@ -247,7 +267,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 	{
 		vector<string> notTerms;
 
-		if (extractWords(queryProps.getNotWords(), language, notTerms) == true)
+		if (extractWords(queryProps.getNotWords(), stemLanguage, notTerms) == true)
 		{
 #ifdef DEBUG
 			cout << "XapianEngine::stackQuery: OP_AND_NOT "  << notTerms.size() << endl;
@@ -312,12 +332,16 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 	}
 
 	// Get the language filter
-	if (queryProps.getLanguage().empty() == false)
+	string language = queryProps.getLanguage();
+	if (language.empty() == false)
 	{
 		vector<string> languageTerms;
 
 		term = "L";
-		term += StringManip::toLowerCase(queryProps.getLanguage());
+		term += getLanguageNameInEnglish(language);
+#ifdef DEBUG
+		cout << "XapianEngine::stackQuery: filter "  << term << endl;
+#endif
 		languageTerms.push_back(term);
 		if (followOperators == true)
 		{
@@ -351,10 +375,10 @@ bool XapianEngine::runQuery(const string &keyword)
 	{
 		vector<string> keywordTerms;
 		keywordTerms.push_back(keyword);
-		Xapian::Query keyworkQuery(Xapian::Query::OP_AND, keywordTerms.begin(), keywordTerms.end());
+		Xapian::Query keywordQuery(Xapian::Query::OP_AND, keywordTerms.begin(), keywordTerms.end());
 
 		// Query the database with the full query
-		return queryDatabase(keyworkQuery);
+		return queryDatabase(keywordQuery);
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -377,7 +401,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 	try
 	{
 		stack<Xapian::Query> queryStack;
-		string language;
+		string stemLanguage;
 		unsigned int searchStep = 1;
 		bool followOperators = true;
 
@@ -387,7 +411,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 		// 3. if no results, don't follow operators and don't stem terms
 		// 4. if no results, don't follow operators and stem terms
 		// Steps 2 and 4 depend on a language being defined for the query
-		stackQuery(queryProps, queryStack, language, followOperators);
+		stackQuery(queryProps, queryStack, "", followOperators);
 		while (queryStack.empty() == false)
 		{
 			while (queryStack.size() > 1)
@@ -416,20 +440,20 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 					{
 						case 2:
 							followOperators = true;
-							language = queryProps.getLanguage();
-							if (language.empty() == false)
+							stemLanguage = queryProps.getLanguage();
+							if (stemLanguage.empty() == false)
 							{
 								break;
 							}
 							++searchStep;
 						case 3:
 							followOperators = false;
-							language.clear();
+							stemLanguage.clear();
 							break;
 						case 4:
 							followOperators = false;
-							language = queryProps.getLanguage();
-							if (language.empty() == false)
+							stemLanguage = queryProps.getLanguage();
+							if (stemLanguage.empty() == false)
 							{
 								break;
 							}
@@ -446,7 +470,8 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 #ifdef DEBUG
 					cout << "XapianEngine::runQuery: trying step " << searchStep << endl;
 #endif
-					stackQuery(queryProps, queryStack, language, followOperators);
+					stackQuery(queryProps, queryStack,
+						getLanguageNameInEnglish(stemLanguage), followOperators);
 					continue;
 				}
 

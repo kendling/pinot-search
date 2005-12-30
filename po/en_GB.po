@@ -17,10 +17,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.20\n"
+"Project-Id-Version: pinot 0.35\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-12-08 19:20+0800\n"
-"PO-Revision-Date: 2005-12-08 19:20+0800\n"
+"POT-Creation-Date: 2005-12-30 17:20+0800\n"
+"PO-Revision-Date: 2005-12-30 17:20+0800\n"
 "Last-Translator: Fabrice Colin <colinf@chez.com>\n"
 "Language-Team: en_GB <colinf@chez.com>\n"
 "MIME-Version: 1.0\n"

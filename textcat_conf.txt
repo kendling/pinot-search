@@ -1,6 +1,7 @@
 #
 # libtextcat 2.2 config file
 # The following languages are supported by Xapian::Stem
+# Languages names MUST be in English
 #
 /usr/share/libtextcat/LM/english.lm                     english
 /usr/share/libtextcat/LM/spanish.lm                     spanish
