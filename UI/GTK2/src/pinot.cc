@@ -15,6 +15,7 @@
  */
 
 #include <stdlib.h>
+#include <signal.h>
 #include <unistd.h>
 #include <libintl.h>
 #include <iostream>
@@ -45,7 +46,7 @@ static ofstream outputFile;
 static streambuf *coutBuf = NULL;
 static streambuf *cerrBuf = NULL;
 
-void closeAll(void)
+static void closeAll(void)
 {
 	cout << "Exiting..." << endl;
 
@@ -77,8 +78,17 @@ void closeAll(void)
 	NeonDownloader::shutdown();
 }
 
+static void quitAll(int sigNum)
+{
+	cout << "Quitting..." << endl;
+
+	Gtk::Main::quit();
+}
+
 int main(int argc, char **argv)
 {
+	struct sigaction newAction;
+
 #if defined(ENABLE_NLS)
 	bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
 	textdomain (GETTEXT_PACKAGE);
@@ -111,6 +121,13 @@ int main(int argc, char **argv)
 	// Load tokenizer libraries, if any
 	TokenizerFactory::loadTokenizers("/usr/share/pinot/tokenizers");
 	TokenizerFactory::loadTokenizers(confDirectory + string("/tokenizers"));
+
+	// Catch interrupts
+	sigemptyset(&newAction.sa_mask);
+	newAction.sa_flags = 0;
+	newAction.sa_handler = quitAll;
+	sigaction(SIGINT, &newAction, NULL);
+	sigaction(SIGQUIT, &newAction, NULL);
 
 	// Ensure Xapian will be able to deal with internal indices
 	if (XapianDatabaseFactory::getDatabase(settings.m_indexLocation, false) == NULL)

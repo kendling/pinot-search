@@ -405,14 +405,6 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 	// Unselect all
 	get_selection()->unselect_all();
 
-	// This describes the query
-	string queryDetails = "\"";
-	queryDetails += queryName;
-	queryDetails += "\" ";
-	queryDetails += _("on");
-	queryDetails += " ";
-	queryDetails += registeredEngineName;
-
 	// What's the grouping criteria ?
 	if (groupBySearchEngine == true)
 	{
@@ -479,7 +471,7 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 		}
 		else
 		{
-			groupName = queryDetails;
+			groupName = registeredEngineName;
 		}
 
 		// Add the group or get its position if it's already in
@@ -545,7 +537,7 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 		{
 			// If this didn't return any result, add an empty group
 			TreeModel::iterator groupIter;
-			appendGroup(queryDetails, rootType, groupIter);
+			appendGroup(registeredEngineName, rootType, groupIter);
 			updateGroup(groupIter);
 
 			return true;
@@ -677,16 +669,9 @@ void ResultsTree::regroupResults(bool groupBySearchEngine)
 						for (set<string>::iterator iter = engineNames.begin(); iter != engineNames.end(); ++iter)
 						{
 							string engineName = (*iter);
-
-							string groupName = "\"";
-							groupName += locale_from_utf8(childRow[m_resultsColumns.m_queryName]);
-							groupName += "\" ";
-							groupName += _("on");
-							groupName += " ";
-							groupName += engineName;
-
 							unsigned int indexId = 0;
 							unsigned int engineId = m_settings.getEngineId(engineName);
+
 							if (engineId == 0)
 							{
 								// This is actually an index, not an engine...
@@ -698,7 +683,7 @@ void ResultsTree::regroupResults(bool groupBySearchEngine)
 							}
 
 							// Add group
-							if (appendGroup(groupName, newType, groupIter) == true)
+							if (appendGroup(engineName, newType, groupIter) == true)
 							{
 								// Add result
 								appendResult(locale_from_utf8(childRow[m_resultsColumns.m_text]), url,

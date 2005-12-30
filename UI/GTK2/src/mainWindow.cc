@@ -221,8 +221,8 @@ mainWindow::mainWindow() :
 	indexresults1->set_sensitive(false);
 	viewfromindex1->set_sensitive(false);
 	refreshindex1->set_sensitive(false);
-	showfromindex1->set_sensitive(false);
 	unindex1->set_sensitive(false);
+	showfromindex1->set_sensitive(false);
 	//viewstop1->set_sensitive(false);
 	// ...and buttons
 	removeIndexButton->set_sensitive(false);
@@ -545,8 +545,8 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 		}
 		viewfromindex1->set_sensitive(canViewDocument);
 		refreshindex1->set_sensitive(isDocumentsIndex);
-		showfromindex1->set_sensitive(true);
 		unindex1->set_sensitive(isDocumentsIndex);
+		showfromindex1->set_sensitive(true);
 
 		// Show the URL in the status bar
 		ustring statusText = _("Document location is");
@@ -559,8 +559,8 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 		// No, disable these
 		viewfromindex1->set_sensitive(false);
 		refreshindex1->set_sensitive(false);
-		showfromindex1->set_sensitive(false);
 		unindex1->set_sensitive(false);
+		showfromindex1->set_sensitive(false);
 	}
 }
 
@@ -673,24 +673,40 @@ void mainWindow::on_label_changed(ustring indexName, ustring labelName)
 //
 void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 {
-#ifdef DEBUG
-	cout << "mainWindow::on_switch_page: switched to page " << p1 << endl;
-#endif
-	if (m_state.m_currentPage != (int)p1)
+	// Did the page change ?
+	if (m_state.m_currentPage != p1)
 	{
-		// Disable the widgets that depend on what page is selected
-		// Results
-		clearresults1->set_sensitive(false);
-		showextract1->set_sensitive(false);
-		groupresults1->set_sensitive(false);
+		bool showResultsMenuitems = false;
+
+		NotebookPageBox *pNotebookPage = dynamic_cast<NotebookPageBox*>(m_pNotebook->get_nth_page(p1));
+		if (pNotebookPage != NULL)
+		{
+			NotebookPageBox::PageType type = pNotebookPage->getType();
+			if (type == NotebookPageBox::RESULTS_PAGE)
+			{
+				showResultsMenuitems = true;
+			}
+#ifdef DEBUG
+			cout << "mainWindow::on_switch_page: switched to page " << p1
+				<< ", type " << type << endl;
+#endif
+		}
+
+		// Results menuitems that depend on the page
+		clearresults1->set_sensitive(showResultsMenuitems);
+		showextract1->set_sensitive(showResultsMenuitems);
+		groupresults1->set_sensitive(showResultsMenuitems);
+
+		// Results menuitems that depend on selection
 		viewresults1->set_sensitive(false);
 		viewcache1->set_sensitive(false);
 		indexresults1->set_sensitive(false);
-		// Index
+
+		// Index menuitems that depend on selection
 		viewfromindex1->set_sensitive(false);
 		refreshindex1->set_sensitive(false);
-		showfromindex1->set_sensitive(false);
 		unindex1->set_sensitive(false);
+		showfromindex1->set_sensitive(false);
 	}
 	m_state.m_currentPage = (int)p1;
 }
@@ -913,21 +929,11 @@ void mainWindow::on_thread_end()
 
 		if (pageNum >= 0)
 		{
+			// Add the results to the tree
+			pResultsTree->addResults(queryProps, engineName,
+				resultsList, searchenginegroup1->get_active());
 			// Switch to that page
 			m_pNotebook->set_current_page(pageNum);
-
-			// Add the results to the tree
-			if (pResultsTree->addResults(queryProps, engineName,
-				resultsList, searchenginegroup1->get_active()) == true)
-			{
-#ifdef DEBUG
-				cout << "mainWindow::on_thread_end: added results" << endl;
-#endif
-				// Enable some menuitems
-				clearresults1->set_sensitive(true);
-				showextract1->set_sensitive(false);
-				groupresults1->set_sensitive(false);
-			}
 		}
 
 		// Index results ?
@@ -1421,10 +1427,15 @@ void mainWindow::on_configure_activate()
 	// Do the changes affect the View tab ?
 	if (useExternalBrowser != m_settings.m_browseResults)
 	{
-		// Close the existing view page ?
 		if (m_settings.m_browseResults == true)
 		{
+			// Close the existing view page
 			on_close_page(_("View"), NotebookPageBox::VIEW_PAGE);
+		}
+		else
+		{
+			// Reopen the view page
+			view_document("file:///usr/share/pinot/index.html", true);
 		}
 	}
 
@@ -1628,11 +1639,9 @@ void mainWindow::on_delete_activate()
 				cout << "mainWindow::on_delete_activate: results tree" << endl;
 #endif
 				ResultsTree *pResultsTree = pResultsPage->getTree();
-				if ((pResultsTree != NULL) &&
-					(pResultsTree->deleteSelection() == true))
+				if (pResultsTree != NULL)
 				{
-					// The results tree is now empty
-					clearresults1->set_sensitive(false);
+					pResultsTree->deleteSelection();
 				}
 			}
 		}
@@ -1655,7 +1664,6 @@ void mainWindow::on_clearresults_activate()
 			if (pResultsTree != NULL)
 			{
 				pResultsTree->clear();
-				clearresults1->set_sensitive(false);
 			}
 		}
 	}
@@ -1813,7 +1821,7 @@ void mainWindow::on_import_activate()
 		&mainWindow::on_message_import));
 	importBox.show();
 	importBox.run();
-	// Let the signal handler deal with mporting stuff
+	// Let the signal handler deal with importing stuff
 }
 
 //
@@ -2793,8 +2801,6 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 //
 void mainWindow::browse_index(const ustring &indexName, unsigned int startDoc)
 {
-	bool enableIndexOps = false;
-
 	// Rudimentary lock
 	if (m_state.m_browsingIndex == true)
 	{
@@ -2817,12 +2823,6 @@ void mainWindow::browse_index(const ustring &indexName, unsigned int startDoc)
 		// Switch to that index page
 		m_pNotebook->set_current_page(get_page_number(indexName, NotebookPageBox::INDEX_PAGE));
 	}
-
-	if (indexName == _("My Documents"))
-	{
-		enableIndexOps = true;
-	}
-	import1->set_sensitive(enableIndexOps);
 
 	// Spawn a new thread to browse the index
 	IndexBrowserThread *pBrowseThread = new IndexBrowserThread(
@@ -2874,9 +2874,6 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 				m_state.m_beingIndexed.insert(url);
 				isNewDocument = true;
 			}
-#ifdef DEBUG
-			else cout << "mainWindow::index_document: already indexed " << url << endl;
-#endif
 
 			m_state.unlock();
 		}
@@ -2885,6 +2882,13 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 		{
 			// This is a new document
 			start_thread(new IndexingThread(docInfo, labelName));
+		}
+		else
+		{
+			ustring status = url;
+			status += " ";
+			status += _("is already indexed or is being indexed");
+			set_status(status);
 		}
 	}
 
@@ -2934,7 +2938,7 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 			(system(shellCommand.c_str()) == -1))
 		{
 			ustring status = _("Couldn't browse URL:");
-			status == " ";
+			status += " ";
 			status += Glib::strerror(errno);
 			set_status(status);
 		}
@@ -2955,14 +2959,14 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 			ustring viewName = _("View");
 			int pageNum = -1;
 
-			// Is there already a page for this index ?
+			// Is there already a view page ?
 			pViewPage = dynamic_cast<ViewPage*>(get_page(viewName, NotebookPageBox::VIEW_PAGE));
 			if (pViewPage != NULL)
 			{
 				pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
 				// The page may be hidden
 				pViewPage->show();
-				// FIXME: move the page
+				// FIXME: reorder pages
 			}
 			else
 			{
