@@ -14,11 +14,15 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <string.h>
+#include <utility>
+
 #include "Languages.h"
 
 using std::string;
 using std::map;
 using std::pair;
+using std::min;
 
 unsigned int Languages::m_count = 12;
 
@@ -55,4 +59,42 @@ string Languages::getIntlName(unsigned int num)
 	}
 
 	return iter->second;
+}
+
+string Languages::toEnglish(const string &language)
+{
+	if (language.empty() == false)
+	{
+		for (unsigned int langNum = 0; langNum < Languages::m_count; ++langNum)
+		{
+			string intlLanguage = Languages::getIntlName(langNum);
+
+			if (strncasecmp(language.c_str(), intlLanguage.c_str(),
+				min(language.length(), intlLanguage.length())) == 0)
+			{
+				return Languages::m_names[langNum];
+			}
+		}
+	}
+
+	return language;
+}
+
+string Languages::toLocale(const string &language)
+{
+	if (language.empty() == false)
+	{
+		// Get the language name in the current locale
+		for (unsigned int langNum = 0; langNum < Languages::m_count; ++langNum)
+		{
+			if (strncasecmp(language.c_str(), Languages::m_names[langNum],
+				min(language.length(), strlen(Languages::m_names[langNum]))) == 0)
+			{
+				// That's the one !
+				return Languages::getIntlName(langNum);
+			}
+		}
+	}
+
+	return language;
 }

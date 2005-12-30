@@ -30,6 +30,7 @@
 #include <libxml++/nodes/textnode.h>
 
 #include "config.h"
+#include "Languages.h"
 #include "NLS.h"
 #include "PluginWebEngine.h"
 #include "PinotSettings.h"
@@ -474,7 +475,7 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		}
 		else if (nodeName == "language")
 		{
-			queryProps.setLanguage(nodeContent);
+			queryProps.setLanguage(Languages::toLocale(nodeContent));
 		}
 		else if (nodeName == "hostfilter")
 		{
@@ -796,7 +797,7 @@ bool PinotSettings::save(void)
 		addChildElement(pElem, "hostfilter", queryIter->second.getHostFilter());
 		addChildElement(pElem, "filefilter", queryIter->second.getFileFilter());
 		addChildElement(pElem, "labelfilter", queryIter->second.getLabelFilter());
-		addChildElement(pElem, "language", queryIter->second.getLanguage());
+		addChildElement(pElem, "language", Languages::toEnglish(queryIter->second.getLanguage()));
 		sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
 		addChildElement(pElem, "maxresults", numStr);
 		addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));

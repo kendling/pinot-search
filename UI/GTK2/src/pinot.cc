@@ -114,6 +114,20 @@ int main(int argc, char **argv)
 	cout.rdbuf(outputFile.rdbuf());
 	cerr.rdbuf(outputFile.rdbuf());
 
+	// Localize language names
+	Languages::setIntlName(0, _("Danish"));
+	Languages::setIntlName(1, _("Dutch"));
+	Languages::setIntlName(2, _("English"));
+	Languages::setIntlName(3, _("Finnish"));
+	Languages::setIntlName(4, _("French"));
+	Languages::setIntlName(5, _("German"));
+	Languages::setIntlName(6, _("Italian"));
+	Languages::setIntlName(7, _("Norwegian"));
+	Languages::setIntlName(8, _("Portuguese"));
+	Languages::setIntlName(9, _("Russian"));
+	Languages::setIntlName(10, _("Spanish"));
+	Languages::setIntlName(11, _("Swedish"));
+
 	// Load the settings
 	settings.load();
 	settings.loadSearchEngines("/usr/share/pinot/engines");
@@ -152,20 +166,6 @@ int main(int argc, char **argv)
 	}
 
 	atexit(closeAll);
-
-	// Localize language names
-	Languages::setIntlName(0, _("Danish"));
-	Languages::setIntlName(1, _("Dutch"));
-	Languages::setIntlName(2, _("English"));
-	Languages::setIntlName(3, _("Finnish"));
-	Languages::setIntlName(4, _("French"));
-	Languages::setIntlName(5, _("German"));
-	Languages::setIntlName(6, _("Italian"));
-	Languages::setIntlName(7, _("Norwegian"));
-	Languages::setIntlName(8, _("Portuguese"));
-	Languages::setIntlName(9, _("Russian"));
-	Languages::setIntlName(10, _("Spanish"));
-	Languages::setIntlName(11, _("Swedish"));
 
 	// Create and open the main dialog box
 	mainWindow mainBox;

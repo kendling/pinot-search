@@ -28,8 +28,14 @@ class Languages
 		/// Sets the name for the given code.
 		static bool setIntlName(unsigned int num, const std::string &name);
 
-		/// Gets the name for the given code.
+		/// Gets the name of the language at the given position.
 		static std::string getIntlName(unsigned int num);
+
+		/// Returns a language name, in English.
+		static std::string toEnglish(const std::string &language);
+
+		/// Returns a language name, in the current locale.
+		static std::string toLocale(const std::string &language);
 
 		static unsigned int m_count;
 		static char *m_codes[];

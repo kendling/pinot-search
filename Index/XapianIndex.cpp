@@ -24,7 +24,6 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-#include <utility>
 
 #include "Languages.h"
 #include "StringManip.h"
@@ -37,7 +36,6 @@
 
 using std::string;
 using std::set;
-using std::min;
 
 // This puts a limit to terms length.
 const unsigned int XapianIndex::m_maxTermLength = 64;
@@ -368,19 +366,7 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 			string record = doc.get_data();
 			if (record.empty() == false)
 			{
-				string language = StringManip::extractField(record, "language=", "");
-
-				// Get the language name in the current locale
-				for (unsigned int langNum = 0; langNum < Languages::m_count; ++langNum)
-				{
-					if (strncasecmp(language.c_str(), Languages::m_names[langNum],
-						min(language.length(), strlen(Languages::m_names[langNum]))) == 0)
-					{
-						// That's the one !
-						language = Languages::getIntlName(langNum);
-						break;
-					}
-				}
+				string language = Languages::toLocale(StringManip::extractField(record, "language=", ""));
 
 				docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
 					StringManip::extractField(record, "url=", "\n"),

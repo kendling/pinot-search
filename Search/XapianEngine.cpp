@@ -20,7 +20,6 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <utility>
 
 #include "Languages.h"
 #include "StringManip.h"
@@ -35,7 +34,6 @@ using std::stack;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
 
 static bool extractWords(const string &text, const string &stemLanguage, vector<string> &wordsList)
 {
@@ -80,23 +78,6 @@ static bool extractWords(const string &text, const string &stemLanguage, vector<
 	}
 
 	return true;
-}
-
-static string getLanguageNameInEnglish(const string &language)
-{
-	for (unsigned int langNum = 0; langNum < Languages::m_count; ++langNum)
-	{
-		string intlLanguage = Languages::getIntlName(langNum);
-
-		if (strncasecmp(language.c_str(), intlLanguage.c_str(),
-			min(language.length(), intlLanguage.length())) == 0)
-		{
-			// That's the one !
-			return StringManip::toLowerCase(Languages::m_names[langNum]);
-		}
-	}
-
-	return language;
 }
 
 XapianEngine::XapianEngine(const string &database) :
@@ -338,7 +319,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		vector<string> languageTerms;
 
 		term = "L";
-		term += getLanguageNameInEnglish(language);
+		term += StringManip::toLowerCase(Languages::toEnglish(language));
 #ifdef DEBUG
 		cout << "XapianEngine::stackQuery: filter "  << term << endl;
 #endif
@@ -471,7 +452,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 					cout << "XapianEngine::runQuery: trying step " << searchStep << endl;
 #endif
 					stackQuery(queryProps, queryStack,
-						getLanguageNameInEnglish(stemLanguage), followOperators);
+						Languages::toEnglish(stemLanguage), followOperators);
 					continue;
 				}
 
