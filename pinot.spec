@@ -74,6 +74,7 @@ cat >%{name}.desktop << EOF
 Name=Pinot Metasearch tool
 Comment=Search the Web and your documents
 Exec=%{_bindir}/pinot
+StartupNotify=true
 Icon=pinot.png
 Terminal=false
 Type=Application
