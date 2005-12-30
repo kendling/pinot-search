@@ -7,11 +7,13 @@ UI/GTK2/src/importDialog_glade.cc
 UI/GTK2/src/indexDialog.cc
 UI/GTK2/src/indexDialog_glade.cc
 UI/GTK2/src/IndexTree.cpp
+UI/GTK2/src/IndexPage.cpp
 UI/GTK2/src/mainWindow.cc
 UI/GTK2/src/mainWindow_glade.cc
 UI/GTK2/src/ModelColumns.cpp
 UI/GTK2/src/MonitorHandler.cpp
-UI/GTK2/src/pinot.cpp
+UI/GTK2/src/Notebook.cpp
+UI/GTK2/src/pinot.cc
 UI/GTK2/src/PinotSettings.cpp
 UI/GTK2/src/PinotUtils.cpp
 UI/GTK2/src/prefsDialog.cc
