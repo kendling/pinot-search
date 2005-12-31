@@ -411,8 +411,8 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	{
 		if (statusCode < 400)
 		{
-			// Is it an html type ?
-			if (g_contentTypeHeaderValue.find("htm") != string::npos)
+			// Is it an HTML type ?
+			if (g_contentTypeHeaderValue.find("html") != string::npos)
 			{
 				urlDocument = new HtmlDocument(docInfo.getTitle(), url,
 					g_contentTypeHeaderValue, docInfo.getLanguage());
