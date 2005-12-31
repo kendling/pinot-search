@@ -28,44 +28,6 @@
 
 using namespace std;
 
-/// Removes double and single quotes in links or any other attribute.
-static string removeLinkQuotes(const string &quotedLink)
-{
-	string link;
-
-	if (quotedLink[0] == '"')
-	{
-		string::size_type closingQuotePos = quotedLink.find("\"", 1);
-		if (closingQuotePos != string::npos)
-		{
-			link = quotedLink.substr(1, closingQuotePos - 1);
-		}
-	}
-	else if (quotedLink[0] == '\'')
-	{
-		string::size_type closingQuotePos = quotedLink.find("'", 1);
-		if (closingQuotePos != string::npos)
-		{
-			link = quotedLink.substr(1, closingQuotePos - 1);
-		}
-	}
-	else
-	{
-		// There are no quotes, so just look for the first space, if any
-		string::size_type spacePos = quotedLink.find(" ");
-		if (spacePos != string::npos)
-		{
-			link = quotedLink.substr(0, spacePos);
-		}
-		else
-		{
-			link = quotedLink;
-		}
-	}
-
-	return link;
-}
-
 HtmlTokenizer::HtmlTokenizer(const Document *pDocument, unsigned int linksStartAtPos) :
 	Tokenizer(NULL),
 	m_pHtmlDocument(NULL),
@@ -200,7 +162,7 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 			if ((extractMetaTags == true) &&
 				(regexec(&metaRegex, tag.c_str(), nMetaMatches, pMetaMatches, 
 					REG_NOTBOL|REG_NOTEOL) == 0) &&
-				(pLinksMatches[nMetaMatches - 1].rm_so != -1))
+				(pMetaMatches[nMetaMatches - 1].rm_so != -1))
 			{
 				string tmp, metaName, metaContent;
 
@@ -208,13 +170,13 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 				tmp = tag.substr(pMetaMatches[1].rm_so,
 					pMetaMatches[1].rm_eo - pMetaMatches[1].rm_so);
 				// Remove quotes
-				metaName = removeLinkQuotes(tmp);
+				metaName = StringManip::removeQuotes(tmp);
 
 				// META tag content
 				tmp = tag.substr(pMetaMatches[2].rm_so,
 					pMetaMatches[2].rm_eo - pMetaMatches[2].rm_so);
 				// Remove quotes
-				metaContent = removeLinkQuotes(tmp);
+				metaContent = StringManip::removeQuotes(tmp);
 #ifdef DEBUG_TOKENIZER
 				cout << "HtmlTokenizer::parseHTML: found META tag " << metaName << ": " << metaContent << endl;
 #endif
@@ -244,7 +206,7 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 				}
 
 				// Remove quotes
-				link = removeLinkQuotes(quotedLink);
+				link = StringManip::removeQuotes(quotedLink);
 				linkOpenPos = startPos - 1;
 
 				// Remember to get the name of the link

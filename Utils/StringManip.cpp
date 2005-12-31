@@ -137,6 +137,44 @@ unsigned int StringManip::removeCharacters(string &str, const string &characters
 	return count;	
 }
 
+/// Removes double and single quotes in links or any other attribute.
+string StringManip::removeQuotes(const string &str)
+{
+	string unquotedText;
+
+	if (str[0] == '"')
+	{
+		string::size_type closingQuotePos = str.find("\"", 1);
+		if (closingQuotePos != string::npos)
+		{
+			unquotedText = str.substr(1, closingQuotePos - 1);
+		}
+	}
+	else if (str[0] == '\'')
+	{
+		string::size_type closingQuotePos = str.find("'", 1);
+		if (closingQuotePos != string::npos)
+		{
+			unquotedText = str.substr(1, closingQuotePos - 1);
+		}
+	}
+	else
+	{
+		// There are no quotes, so just look for the first space, if any
+		string::size_type spacePos = str.find(" ");
+		if (spacePos != string::npos)
+		{
+			unquotedText = str.substr(0, spacePos);
+		}
+		else
+		{
+			unquotedText = str;
+		}
+	}
+
+	return unquotedText;
+}
+
 /// Hashes a string.
 string StringManip::hashString(string &str)
 {

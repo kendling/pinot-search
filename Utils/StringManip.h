@@ -40,6 +40,9 @@ class StringManip
 		/// Removes characters from a string.
 		static unsigned int removeCharacters(std::string &str, const std::string &characters);
 
+		/// Removes double and single quotes.
+		static std::string removeQuotes(const std::string &str);
+
 		/// Hashes a string.
 		static std::string hashString(std::string &str);
 
