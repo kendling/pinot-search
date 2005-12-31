@@ -32,6 +32,12 @@ class HtmlDocument : public Document
 		/// Copies the given data in the document.
 		virtual bool setData(const char *data, unsigned int length);
 
+		/// Maps the given file.
+		virtual bool setDataFromFile(const std::string &fileName);
+
+	protected:
+		void parseHead(void);
+
 };
 	
 #endif // _HTML_DOCUMENT_H
