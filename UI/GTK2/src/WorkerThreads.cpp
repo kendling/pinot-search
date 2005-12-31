@@ -291,8 +291,13 @@ QueryProperties QueryingThread::getQuery(void) const
 	return m_queryProps;
 }
 
-const vector<Result> &QueryingThread::getResults(void) const
+const vector<Result> &QueryingThread::getResults(string &charset) const
 {
+	charset = m_resultsCharset;
+#ifdef DEBUG
+	cout << "QueryingThread::getResults: charset is " << charset << endl;
+#endif
+
 	return m_resultsList;
 }
 
@@ -331,9 +336,11 @@ void QueryingThread::do_querying()
 	{
 		const vector<Result> &resultsList = engine->getResults();
 
-		// Copy the results list
 		m_resultsList.clear();
 		m_resultsList.reserve(resultsList.size());
+		m_resultsCharset = engine->getResultsCharset();
+
+		// Copy the results list
 		for (vector<Result>::const_iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
 		{
@@ -763,8 +770,7 @@ void IndexingThread::do_indexing()
 		}
 
 		// Use the title we were supplied with ?
-		if ((m_docInfo.getTitle().empty() == false) ||
-			(urlObj.getProtocol() == "file"))
+		if (m_docInfo.getTitle().empty() == false)
 		{
 			m_pDoc->setTitle(m_docInfo.getTitle());
 		}

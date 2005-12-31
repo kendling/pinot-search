@@ -129,7 +129,7 @@ class QueryingThread : public WorkerThread
 
 		QueryProperties getQuery(void) const;
 
-		const std::vector<Result> &getResults(void) const;
+		const std::vector<Result> &getResults(std::string &charset) const;
 
 		virtual bool stop(void);
 
@@ -139,6 +139,7 @@ class QueryingThread : public WorkerThread
 		std::string m_engineOption;
 		QueryProperties m_queryProps;
 		std::vector<Result> m_resultsList;
+		std::string m_resultsCharset;
 
 		void do_querying();
 

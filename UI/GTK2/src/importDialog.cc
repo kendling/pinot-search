@@ -244,7 +244,7 @@ void importDialog::on_importOkButton_clicked()
 
 void importDialog::on_selectButton_clicked()
 {
-	ustring fileName = locale_to_utf8(m_directory);
+	ustring fileName = to_utf8(m_directory);
 
 	if (select_file_name(*this, _("Document To Import"), fileName, true, m_importDirectory) == true)
 	{
@@ -257,9 +257,9 @@ void importDialog::on_selectButton_clicked()
 		if (pos != string::npos)
 		{
 			// Update m_directory
-		m_directory = locale_from_utf8(fileName.substr(0, pos + 1));
+			m_directory = locale_from_utf8(fileName.substr(0, pos + 1));
 #ifdef DEBUG
-		cout << "importDialog::on_selectButton_clicked: directory now " << m_directory << endl;
+			cout << "importDialog::on_selectButton_clicked: directory now " << m_directory << endl;
 #endif
 		}
 	}

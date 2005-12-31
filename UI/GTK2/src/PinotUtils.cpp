@@ -138,16 +138,41 @@ TreeViewColumn *create_resizable_column_with_icon(const ustring &title,
 	return treeColumn;
 }
 
-/// Converts to UTF-8, catches conversion errors
-ustring to_utf8(string text, ustring fallback)
+/// Converts to UTF-8.
+ustring to_utf8(const string &text)
 {
+	std::string charset;
+
+	// Get the locale charset
+	get_charset(charset);
+	// Call overload
+	return to_utf8(text, charset);
+}
+
+/// Converts from the given charset to UTF-8.
+ustring to_utf8(const string &text, const string &charset)
+{
+	if ((charset == "UTF-8") ||
+		(charset == "utf-8"))
+	{
+		// No conversion necessary
+		return text;
+	}
+
 	try
 	{
-		return locale_to_utf8(text);
+		if (charset.empty() == false)
+		{
+			return convert_with_fallback(text, "UTF-8", charset);
+		}
+		else
+		{
+			return locale_to_utf8(text);
+		}
 	}
 	catch (ConvertError &ce)
 	{
 	}
 
-	return fallback;
+	return "";
 }

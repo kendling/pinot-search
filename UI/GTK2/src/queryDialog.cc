@@ -13,6 +13,7 @@
 #include "config.h"
 #include "Languages.h"
 #include "NLS.h"
+#include "PinotUtils.h"
 #include "queryDialog.hh"
 
 using namespace std;
@@ -50,18 +51,18 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	}
 	else
 	{
-		nameEntry->set_text(locale_to_utf8(name));
+		nameEntry->set_text(to_utf8(name));
 	}
 	// Query terms
-	andEntry->set_text(locale_to_utf8(m_properties.getAndWords()));
-	phraseEntry->set_text(locale_to_utf8(m_properties.getPhrase()));
-	anyEntry->set_text(locale_to_utf8(m_properties.getAnyWords()));
-	notEntry->set_text(locale_to_utf8(m_properties.getNotWords()));
+	andEntry->set_text(to_utf8(m_properties.getAndWords()));
+	phraseEntry->set_text(to_utf8(m_properties.getPhrase()));
+	anyEntry->set_text(to_utf8(m_properties.getAnyWords()));
+	notEntry->set_text(to_utf8(m_properties.getNotWords()));
 
 	// Host name
-	hostNameEntry->set_text(locale_to_utf8(m_properties.getHostFilter()));
+	hostNameEntry->set_text(to_utf8(m_properties.getHostFilter()));
 	// File name
-	fileNameEntry->set_text(locale_to_utf8(m_properties.getFileFilter()));
+	fileNameEntry->set_text(to_utf8(m_properties.getFileFilter()));
 	// Maximum number of results
 	resultsCountSpinbutton->set_value((double)m_properties.getMaximumResultsCount());
 	// Index all results
@@ -93,7 +94,7 @@ void queryDialog::populate_comboboxes()
 
 		iter = m_refLabelNameTree->append();
 		row = *iter;
-		row[m_labelNameColumns.m_name] = locale_to_utf8(labelName);
+		row[m_labelNameColumns.m_name] = to_utf8(labelName);
 		if (labelName == m_properties.getLabelName())
 		{
 			labelNameCombobox->set_active(labelNum);
@@ -101,7 +102,7 @@ void queryDialog::populate_comboboxes()
 
 		iter = m_refLabelFilterTree->append();
 		row = *iter;
-		row[m_labelFilterColumns.m_name] = locale_to_utf8(labelName);
+		row[m_labelFilterColumns.m_name] = to_utf8(labelName);
 		if (labelName == m_properties.getLabelFilter())
 		{
 			labelFilterCombobox->set_active(labelNum);

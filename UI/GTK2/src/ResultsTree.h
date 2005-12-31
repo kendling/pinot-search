@@ -56,7 +56,8 @@ class ResultsTree : public Gtk::TreeView
 		  * Returns true if something was added to the tree.
 		  */
 		bool addResults(QueryProperties &queryProps, const std::string &engineName,
-			const std::vector<Result> &resultsList, bool groupBySearchEngine);
+			const std::vector<Result> &resultsList, const std::string &charset,
+			bool groupBySearchEngine);
 
 		/// Groups results.
 		void regroupResults(bool groupBySearchEngine);
@@ -131,7 +132,7 @@ class ResultsTree : public Gtk::TreeView
 			Gtk::TreeModel::iterator &groupIter);
 
 		/// Adds a new row in the results tree.
-		bool appendResult(const std::string &text, const std::string &url,
+		bool appendResult(const Glib::ustring &text, const Glib::ustring &url,
 			float score, const std::string &language, int rankDiff,
 			const std::string &queryName, unsigned int engineId, unsigned int indexId,
 			Gtk::TreeModel::iterator &newRowIter,

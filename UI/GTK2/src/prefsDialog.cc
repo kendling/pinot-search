@@ -297,8 +297,8 @@ void prefsDialog::on_message_import(DocumentInfo docInfo)
 		TreeModel::iterator iter = m_refMailTree->append();
 		TreeModel::Row row = *iter;
 
-		row[m_mailColumns.m_location] = locale_to_utf8(fileName);
-		row[m_mailColumns.m_type] = locale_to_utf8(mimeType);
+		row[m_mailColumns.m_location] = to_utf8(fileName);
+		row[m_mailColumns.m_type] = to_utf8(mimeType);
 		row[m_mailColumns.m_mTime] = 0;
 		row[m_mailColumns.m_minDate] = 0;
 	}
@@ -360,7 +360,7 @@ void prefsDialog::on_addLabelButton_clicked()
 	// Now create a new entry in the labels list
 	TreeModel::iterator iter = m_refLabelsTree->append();
 	TreeModel::Row row = *iter;
-	row[m_labelsColumns.m_name] = locale_to_utf8(_("New Label"));
+	row[m_labelsColumns.m_name] = to_utf8(_("New Label"));
 	// This marks the label as new
 	row[m_labelsColumns.m_enabled] = false;
 	// FIXME: initialize the colour to something meaningful, depending on the current theme perhaps ?
@@ -469,7 +469,7 @@ void prefsDialog::on_editAccountButton_clicked()
 		if (select_file_name(*this, _("Mbox File Location"), fileName, true) == true)
 		{
 			row[m_mailColumns.m_location] = fileName;
-			row[m_mailColumns.m_type] = locale_to_utf8(MIMEScanner::scanFile(fileName));
+			row[m_mailColumns.m_type] = to_utf8(MIMEScanner::scanFile(fileName));
 		}
 	}
 }

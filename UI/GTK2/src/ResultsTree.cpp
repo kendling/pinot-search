@@ -347,7 +347,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			}
 
 			RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
-			refBuffer->set_text(to_utf8(extract));
+			refBuffer->set_text(extract);
 			// The extract is not editable
 			m_extractTextview->set_editable(false);
 			m_extractTextview->set_cursor_visible(false);
@@ -391,7 +391,7 @@ ScrolledWindow *ResultsTree::getExtractScrolledWindow(void) const
 // Returns true if something was added to the tree.
 //
 bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineName,
-	const vector<Result> &resultsList, bool groupBySearchEngine)
+	const vector<Result> &resultsList, const string &charset, bool groupBySearchEngine)
 {
 	std::map<string, TreeModel::iterator> updatedGroups;
 	string registeredEngineName = engineName;
@@ -483,17 +483,20 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 
 			// Has the result's ranking changed ?
 			float oldestScore = 0;
-			float previousScore = history.hasItem(queryName, registeredEngineName, location, oldestScore);
+			float previousScore = history.hasItem(queryName, registeredEngineName,
+				location, oldestScore);
 			if (previousScore > 0)
 			{
 				// Update this result whatever the current and previous rankings were
-				history.updateItem(queryName, registeredEngineName, location, title, extract, language, currentScore);
+				history.updateItem(queryName, registeredEngineName, location,
+					title, to_utf8(extract, charset).c_str(), language, currentScore);
 				rankDiff = (int)(currentScore - previousScore);
 			}
 			else
 			{
 				// No, this is a new result
-				history.insertItem(queryName, registeredEngineName, location, resultIter->getTitle(), extract, language, currentScore);
+				history.insertItem(queryName, registeredEngineName, location,
+					resultIter->getTitle(), to_utf8(extract, charset).c_str(), language, currentScore);
 				// New results are displayed as such only if the query has already been run on the engine
 				if (isNewQuery == false)
 				{
@@ -503,8 +506,9 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 			}
 
 			++count;
-			if (appendResult(title, location, currentScore, language, rankDiff,
-				queryName, engineId, indexId, titleIter, &(*groupIter), true) == true)
+			if (appendResult(to_utf8(title, charset), to_utf8(location, charset),
+				currentScore, language, rankDiff, queryName, engineId, indexId,
+				titleIter, &(*groupIter), true) == true)
 			{
 #ifdef DEBUG
 				cout << "ResultsTree::addResults: added row for result " << count << endl;
@@ -627,7 +631,8 @@ void ResultsTree::regroupResults(bool groupBySearchEngine)
 					if (appendGroup(groupName, newType, groupIter) == true)
 					{
 						// Add result
-						success = appendResult(locale_from_utf8(childRow[m_resultsColumns.m_text]), url,
+						success = appendResult(childRow[m_resultsColumns.m_text],
+							childRow[m_resultsColumns.m_url],
 							(float)atof(locale_from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
 							locale_from_utf8(childRow[m_resultsColumns.m_language]),
 							childRow[m_resultsColumns.m_rankDiff],
@@ -686,7 +691,8 @@ void ResultsTree::regroupResults(bool groupBySearchEngine)
 							if (appendGroup(engineName, newType, groupIter) == true)
 							{
 								// Add result
-								appendResult(locale_from_utf8(childRow[m_resultsColumns.m_text]), url,
+								appendResult(childRow[m_resultsColumns.m_text],
+									childRow[m_resultsColumns.m_url],
 									(float)atof(locale_from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
 									locale_from_utf8(childRow[m_resultsColumns.m_language]),
 									childRow[m_resultsColumns.m_rankDiff],
@@ -958,7 +964,7 @@ Signal1<void, ustring>& ResultsTree::getSelectionChangedSignal(void)
 //
 // Adds a new row in the results tree.
 //
-bool ResultsTree::appendResult(const string &text, const string &url,
+bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 	float score, const string &language, int rankDiff,
 	const string &queryName, unsigned int engineId, unsigned int indexId,
 	TreeModel::iterator &newRowIter, const TreeModel::Row *parentRow, bool noDuplicates)
@@ -1007,7 +1013,6 @@ bool ResultsTree::appendResult(const string &text, const string &url,
 #endif
 	}
 
-	string strippedText = HtmlTokenizer::stripTags(text);
 	XapianIndex index(m_settings.m_indexLocation);
 	ViewHistory viewHistory(m_settings.m_historyDatabase);
 	bool isIndexed = false;
@@ -1026,8 +1031,7 @@ bool ResultsTree::appendResult(const string &text, const string &url,
 	snprintf(scoreStr, 128, "%.f", score);
 
 	TreeModel::Row childRow = *newRowIter;
-	updateRow(childRow, to_utf8(strippedText, "???"),
-		to_utf8(url), scoreStr,
+	updateRow(childRow, text, url, scoreStr,
 		to_utf8(language), to_utf8(queryName), engineId, indexId,
 		ResultsModelColumns::RESULT_TITLE, isIndexed,
 		wasViewed, rankDiff);
@@ -1050,7 +1054,7 @@ bool ResultsTree::appendGroup(const string &groupName,
 		// No, it isn't: insert a new group in the tree
 		groupIter = m_refStore->append();
 		TreeModel::Row groupRow = *groupIter;
-		updateRow(groupRow, to_utf8(groupName, "???"),
+		updateRow(groupRow, to_utf8(groupName),
 				"", "", "", "", 0, 0, groupType,
 				false, false, false);
 

@@ -40,7 +40,10 @@ Gtk::TreeViewColumn *create_resizable_column_with_icon(const Glib::ustring &titl
 	const Gtk::TreeModelColumnBase& modelColumn,
 	const  Gtk::TreeViewColumn::SlotCellData &renderTextAndIconCell);
 
-/// Converts to UTF-8, catches conversion errors
-Glib::ustring to_utf8(std::string text, Glib::ustring fallback = Glib::ustring(""));
+/// Converts to UTF-8.
+Glib::ustring to_utf8(const std::string &text);
+
+/// Converts from the given charset to UTF-8.
+Glib::ustring to_utf8(const std::string &text, const std::string &charset);
 
 #endif // _PINOTUTILS_HH

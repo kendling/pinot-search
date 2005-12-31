@@ -818,7 +818,7 @@ void mainWindow::on_thread_end()
 
 		IndexPage *pIndexPage = NULL;
 		IndexTree *pIndexTree = NULL;
-		ustring indexName = locale_to_utf8(pBrowseThread->getIndexName());
+		ustring indexName = to_utf8(pBrowseThread->getIndexName());
 
 		// Find the page for this index
 		pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
@@ -877,7 +877,8 @@ void mainWindow::on_thread_end()
 		QueryProperties queryProps = pQueryThread->getQuery();
 		ustring queryName = to_utf8(queryProps.getName());
 		ustring engineName = to_utf8(pQueryThread->getEngineName());
-		const vector<Result> &resultsList = pQueryThread->getResults();
+		string resultsCharset;
+		const vector<Result> &resultsList = pQueryThread->getResults(resultsCharset);
 
 		status = _("Query");
 		status += " ";
@@ -931,7 +932,8 @@ void mainWindow::on_thread_end()
 		{
 			// Add the results to the tree
 			pResultsTree->addResults(queryProps, engineName,
-				resultsList, searchenginegroup1->get_active());
+				resultsList, resultsCharset,
+				searchenginegroup1->get_active());
 			// Switch to that page
 			m_pNotebook->set_current_page(pageNum);
 		}
@@ -963,7 +965,7 @@ void mainWindow::on_thread_end()
 			delete pThread;
 			return;
 		}
-		ustring indexName = locale_to_utf8(pLabelQueryThread->getIndexName());
+		ustring indexName = to_utf8(pLabelQueryThread->getIndexName());
 
 		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage == NULL)
@@ -981,7 +983,7 @@ void mainWindow::on_thread_end()
 		ustring labelName = pIndexPage->getLabelName();
 		if ((pIndexTree->isEmpty() == false) &&
 			(labelName.empty() == false) &&
-			(labelName == locale_to_utf8(pLabelQueryThread->getLabelName())))
+			(labelName == to_utf8(pLabelQueryThread->getLabelName())))
 		{
 			const set<unsigned int> &documentsList = pLabelQueryThread->getDocumentsList();
 			char docsCountStr[64];
@@ -1063,7 +1065,7 @@ void mainWindow::on_thread_end()
 						if (m_pHtmlView->renderData(pData, dataLength, url) == true)
 						{
 							//viewstop1->set_sensitive(true);
-							set_status(locale_to_utf8(url));
+							set_status(to_utf8(url));
 						}
 
 						m_pNotebook->set_current_page(pageNum);
@@ -1122,7 +1124,7 @@ void mainWindow::on_thread_end()
 				// Was the current label applied to that document ?
 				ustring labelName = pIndexPage->getLabelName();
 				if ((labelName.empty() == false) &&
-					(labelName == locale_to_utf8(pIndexThread->getLabelName())))
+					(labelName == to_utf8(pIndexThread->getLabelName())))
 				{
 					labeled = true;
 				}
@@ -1312,7 +1314,7 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 	bool hasLabel = false;
 
 	// Find the page for this index
-	pIndexPage = dynamic_cast<IndexPage*>(get_page(locale_to_utf8(indexName), NotebookPageBox::INDEX_PAGE));
+	pIndexPage = dynamic_cast<IndexPage*>(get_page(to_utf8(indexName), NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage == NULL)
 	{
 		// It's probably been closed by the user
@@ -2996,7 +2998,7 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 				{
 					//viewstop1->set_sensitive(true);
 				}
-				set_status(locale_to_utf8(m_pHtmlView->getLocation()));
+				set_status(to_utf8(m_pHtmlView->getLocation()));
 			}
 		}
 	}
