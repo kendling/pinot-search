@@ -253,7 +253,7 @@ class IndexingThread : public DownloadingThread
 
 		std::string getLabelName(void) const;
 
-		const std::set<unsigned int> &getDocumentIDs(void) const;
+		unsigned int getDocumentID(void) const;
 
 		bool isNewDocument(void) const;
 
@@ -264,7 +264,7 @@ class IndexingThread : public DownloadingThread
 		std::string m_indexLocation;
 		bool m_ignoreRobotsDirectives;
 		std::string m_labelName;
-		std::set<unsigned int> m_docIdList;
+		unsigned int m_docId;
 		bool m_update;
 
 		void do_indexing();

@@ -1085,13 +1085,29 @@ void mainWindow::on_thread_end()
 			return;
 		}
 
-		const set<unsigned int> &docIdList = pIndexThread->getDocumentIDs();
+		// Get the document properties
+		unsigned int docId = pIndexThread->getDocumentID();
+		DocumentInfo docInfo = pIndexThread->getDocumentInfo();
+
+		// Is the index still being shown ?
+		IndexTree *pIndexTree = NULL;
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Documents"), NotebookPageBox::INDEX_PAGE));
+		if (pIndexPage != NULL)
+		{
+			pIndexTree = pIndexPage->getTree();
+		}
 
 		// Did the thread perform an update ?
 		if (pIndexThread->isNewDocument() == false)
 		{
 			// Yes, it did
 			status = _("Updated document");
+
+			if (pIndexTree != NULL)
+			{
+				// Update the index tree
+				pIndexTree->setDocumentTitle(docId, docInfo.getTitle());
+			}
 		}
 		else
 		{
@@ -1114,13 +1130,8 @@ void mainWindow::on_thread_end()
 				m_state.unlock();
 			}
 
-			// Is the index still being shown ?
-			IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Documents"), NotebookPageBox::INDEX_PAGE));
 			if (pIndexPage != NULL)
 			{
-				IndexTree *pIndexTree = pIndexPage->getTree();
-				XapianIndex index(m_settings.m_indexLocation);
-
 				// Was the current label applied to that document ?
 				ustring labelName = pIndexPage->getLabelName();
 				if ((labelName.empty() == false) &&
@@ -1128,30 +1139,17 @@ void mainWindow::on_thread_end()
 				{
 					labeled = true;
 				}
+			}
 
-				if ((pIndexTree != NULL) &&
-					(index.isGood() == true))
-				{
-					// Update the index tree
-					for (set<unsigned int>::iterator idIter = docIdList.begin();
-						idIter != docIdList.end(); ++idIter)
-					{
-						DocumentInfo docInfo;
-						unsigned int docId = *idIter;
-
-						// Get that document's properties
-						if (index.getDocumentInfo(docId, docInfo) == true)
-						{
-							// Append to the index tree
-							IndexedDocument indexedDoc(docInfo.getTitle(),
-								XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
-								docInfo.getLocation(), docInfo.getType(),
-								docInfo.getLanguage());
-							indexedDoc.setTimestamp(docInfo.getTimestamp());
-							pIndexTree->appendDocument(indexedDoc, labeled);
-						}
-					}
-				}
+			if (pIndexTree != NULL)
+			{
+				// Append to the index tree
+				IndexedDocument indexedDoc(docInfo.getTitle(),
+					XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
+					docInfo.getLocation(), docInfo.getType(),
+					docInfo.getLanguage());
+				indexedDoc.setTimestamp(docInfo.getTimestamp());
+				pIndexTree->appendDocument(indexedDoc, labeled);
 			}
 		}
 

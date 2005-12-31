@@ -651,7 +651,7 @@ IndexingThread::IndexingThread(const DocumentInfo &docInfo, unsigned int docId) 
 	m_indexLocation = PinotSettings::getInstance().m_indexLocation;
 	// Ignore robots directives on updates
 	m_ignoreRobotsDirectives = true;
-	m_docIdList.insert(docId);
+	m_docId = docId;
 	m_update = true;
 	// Don't trigger signal after the document has been downloaded
 	m_signalAfterDownload = false;
@@ -684,9 +684,9 @@ string IndexingThread::getLabelName(void) const
 	return m_labelName;
 }
 
-const set<unsigned int> &IndexingThread::getDocumentIDs(void) const
+unsigned int IndexingThread::getDocumentID(void) const
 {
-	return m_docIdList;
+	return m_docId;
 }
 
 bool IndexingThread::isNewDocument(void) const
@@ -769,11 +769,19 @@ void IndexingThread::do_indexing()
 			return;
 		}
 
-		// Use the title we were supplied with ?
 		if (m_docInfo.getTitle().empty() == false)
 		{
+			// Use the title we were supplied with
 			m_pDoc->setTitle(m_docInfo.getTitle());
 		}
+		else
+		{
+			// Use the document's
+			m_docInfo.setTitle(m_pDoc->getTitle());
+		}
+#ifdef DEBUG
+		cout << "IndexingThread::do_indexing: title is " << m_pDoc->getTitle() << endl;
+#endif
 
 		// Tokenize this document
 		Tokenizer *pTokens = TokenizerFactory::getTokenizerByType(m_docInfo.getType(), m_pDoc);
@@ -813,18 +821,12 @@ void IndexingThread::do_indexing()
 			index.setStemmingMode(IndexInterface::STORE_BOTH);
 
 			// Update an existing document or add to the index ?
-			if ((m_update == true) &&
-				(m_docIdList.size() == 1))
+			if (m_update == true)
 			{
-				set<unsigned int>::iterator idIter = m_docIdList.begin();
-				if (idIter != m_docIdList.end())
-				{
-					unsigned int docId = *idIter;
-					success = index.updateDocument(docId, *pTokens);
+				success = index.updateDocument(m_docId, *pTokens);
 #ifdef DEBUG
-					cout << "IndexingThread::do_indexing: updated " << docId << endl;
+				cout << "IndexingThread::do_indexing: updated " << m_docId << endl;
 #endif
-				}
 			}
 			else
 			{
@@ -836,7 +838,7 @@ void IndexingThread::do_indexing()
 				success = index.indexDocument(*pTokens, labels, docId);
 				if (success == true)
 				{
-					m_docIdList.insert(docId);
+					m_docId = docId;
 				}
 			}
 
