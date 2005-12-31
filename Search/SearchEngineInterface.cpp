@@ -64,6 +64,12 @@ const vector<Result> &SearchEngineInterface::getResults(void) const
 	return m_resultsList;
 }
 
+/// Returns the charset for the previous query's results.
+string SearchEngineInterface::getResultsCharset(void) const
+{
+	return m_charset;
+}
+
 void SearchEngineInterface::setHostNameFilter(const string &filter)
 {
 	m_hostFilter = filter;

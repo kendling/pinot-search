@@ -52,6 +52,9 @@ class SearchEngineInterface
 		/// Returns the results for the previous query.
 		virtual const vector<Result> &getResults(void) const;
 
+		/// Returns the charset for the previous query's results.
+		virtual string getResultsCharset(void) const;
+
 	protected:
 		string m_key;
 		unsigned int m_callsCount;
@@ -60,6 +63,7 @@ class SearchEngineInterface
 		string m_hostFilter;
 		string m_fileFilter;
 		vector<Result> m_resultsList;
+		string m_charset;
 
 		SearchEngineInterface();
 

@@ -21,6 +21,7 @@
 #include <algorithm>
 
 #include "HtmlTokenizer.h"
+#include "StringManip.h"
 #include "Url.h"
 #include "DownloaderFactory.h"
 #include "WebEngine.h"
@@ -37,6 +38,8 @@ WebEngine::~WebEngine()
 
 Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 {
+	m_charset.clear();
+
 	// Any type of downloader will do...
 	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader("http", "");
 	if (myDownloader == NULL)
@@ -45,6 +48,17 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 	}
 
 	Document *urlDoc = myDownloader->retrieveUrl(docInfo);
+	if (urlDoc != NULL)
+	{
+		string contentType = urlDoc->getType();
+
+		// Was a charset specified ?
+		string::size_type pos = contentType.find("charset=");
+		if (pos != string::npos)
+		{
+			m_charset = StringManip::removeQuotes(contentType.substr(pos + 8));
+		}
+	}
 	delete myDownloader;
 
 	return urlDoc;
