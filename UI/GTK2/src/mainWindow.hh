@@ -24,6 +24,7 @@
 #include <glibmm/refptr.h>
 #include <gdkmm/pixbuf.h>
 #include <gdkmm/color.h>
+#include <gtkmm/entrycompletion.h>
 #include <gtkmm/rc.h>
 #include <gtkmm/notebook.h>
 #include <gtkmm/liststore.h>
@@ -59,6 +60,7 @@ protected:
 	void populate_indexMenu();
 
 	// Handlers
+	bool on_queryCompletion_match(const Glib::ustring &key, const Gtk::TreeModel::const_iterator &iter);
 	void on_enginesTreeviewSelection_changed();
 	void on_queryTreeviewSelection_changed();
 	void on_resultsTreeviewSelection_changed(Glib::ustring queryName);
@@ -100,6 +102,7 @@ protected:
 	virtual void on_addIndexButton_clicked();
 	virtual void on_removeIndexButton_clicked();
 
+	virtual void on_liveQueryEntry_changed();
 	virtual void on_findButton_clicked();
 	virtual void on_addQueryButton_clicked();
 	virtual void on_editQueryButton_clicked();
@@ -144,6 +147,9 @@ private:
 	// Engine
 	EnginesTree *m_pEnginesTree;
 	// Query
+	ComboModelColumns m_liveQueryColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refLiveQueryList;
+	Glib::RefPtr<Gtk::EntryCompletion> m_refLiveQueryCompletion;
 	QueryModelColumns m_queryColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refQueryTree;
 	// Notebook

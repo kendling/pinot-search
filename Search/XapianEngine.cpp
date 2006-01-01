@@ -124,17 +124,17 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 			// Give the query object to the enquire session
 			enquire.set_query(query);
 
-			// Get the top N results of the query
+			// Get the top results of the query
 			Xapian::MSet matches = enquire.get_mset(0, m_maxResultsCount);
 
 			// Get the results
 #ifdef DEBUG
 			cout << "XapianEngine::queryDatabase: " << matches.get_matches_estimated() << "/" << m_maxResultsCount << " results found" << endl;
 #endif
-			for (Xapian::MSetIterator i = matches.begin(); i != matches.end(); ++i)
+			for (Xapian::MSetIterator mIter = matches.begin(); mIter != matches.end(); ++mIter)
 			{
 				// Get the document data
-				string record = i.get_document().get_data();
+				string record = mIter.get_document().get_data();
 
 				// Get the title
 				string title = StringManip::extractField(record, "caption=", "\n");
@@ -147,7 +147,7 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 				{
 					// Hmmm this shouldn't be empty...
 					// Use this instead, even though the document isn't cached in the index
-					url = buildUrl(m_databaseName, *i);
+					url = buildUrl(m_databaseName, *mIter);
 				}
 				else
 				{
@@ -167,7 +167,7 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 				string language = StringManip::extractField(record, "language=", "\n");
 
 				// Add this result
-				Result thisResult(url, title, summary, language, (float)i.get_percent());
+				Result thisResult(url, title, summary, language, (float)mIter.get_percent());
 				m_resultsList.push_back(thisResult);
 			}
 

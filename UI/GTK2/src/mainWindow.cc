@@ -149,18 +149,29 @@ mainWindow::mainWindow() :
 		mainHpaned->set_position(m_settings.m_panePos);
 	}
 
-	// Position the engine tree
-	m_pEnginesTree = manage(new EnginesTree(enginesVbox, m_settings));
-	// Connect to the "changed" signal
-	m_pEnginesTree->get_selection()->signal_changed().connect(SigC::slot(*this,
-		&mainWindow::on_enginesTreeviewSelection_changed));
-	// Connect to the edit index signal
-	m_pEnginesTree->getEditIndexSignal().connect(SigC::slot(*this,
-		&mainWindow::on_editindex));
-
 	// Set an icon for this and other windows
 	set_icon_from_file("/usr/share/icons/hicolor/48x48/apps/pinot.png");
 	set_default_icon_from_file("/usr/share/icons/hicolor/48x48/apps/pinot.png");
+
+	// Position the engine tree
+	m_pEnginesTree = manage(new EnginesTree(enginesVbox, m_settings));
+	// Connect to the "changed" signal
+	m_pEnginesTree->get_selection()->signal_changed().connect(
+		SigC::slot(*this, &mainWindow::on_enginesTreeviewSelection_changed));
+	// Connect to the edit index signal
+	m_pEnginesTree->getEditIndexSignal().connect(
+		SigC::slot(*this, &mainWindow::on_editindex));
+
+	// Enable completion on the live query field
+	m_refLiveQueryList = ListStore::create(m_liveQueryColumns);
+	m_refLiveQueryCompletion = EntryCompletion::create();
+	m_refLiveQueryCompletion->set_model(m_refLiveQueryList);
+	m_refLiveQueryCompletion->set_text_column(m_liveQueryColumns.m_name);
+	m_refLiveQueryCompletion->set_minimum_key_length(3);
+	m_refLiveQueryCompletion->set_popup_completion(true);
+	m_refLiveQueryCompletion->set_match_func(
+		SigC::slot(*this, &mainWindow::on_queryCompletion_match));
+	liveQueryEntry->set_completion(m_refLiveQueryCompletion);
 
 	// Associate the columns model to the query tree
 	m_refQueryTree = ListStore::create(m_queryColumns);
@@ -175,8 +186,8 @@ mainWindow::mainWindow() :
 	// Allow only single selection
 	queryTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	// Connect to the "changed" signal
-	queryTreeview->get_selection()->signal_changed().connect(SigC::slot(*this, 
-		&mainWindow::on_queryTreeviewSelection_changed));
+	queryTreeview->get_selection()->signal_changed().connect(
+		SigC::slot(*this, &mainWindow::on_queryTreeviewSelection_changed));
 	// Populate
 	populate_queryTreeview();
 
@@ -227,9 +238,6 @@ mainWindow::mainWindow() :
 	// ...and buttons
 	removeIndexButton->set_sensitive(false);
 
-	// Set focus on the query entry field
-	set_focus(*liveQueryEntry);
-
 	// Set tooltips
 	m_tooltips.set_tip(*addIndexButton, _("Add index"));
 	m_tooltips.set_tip(*removeIndexButton, _("Remove index"));
@@ -238,15 +246,15 @@ mainWindow::mainWindow() :
 	// Fire up a listener thread
 	ListenerThread *pListenThread = new ListenerThread(PinotSettings::getConfigurationDirectory() + string("/fifo"));
 	// Connect to its reception signal
-	pListenThread->getReceptionSignal().connect(SigC::slot(*this,
-		&mainWindow::on_message_reception));
+	pListenThread->getReceptionSignal().connect(
+		SigC::slot(*this, &mainWindow::on_message_reception));
 	start_thread(pListenThread, true);
 
 	// Fire up the mail monitor thread
 	MboxHandler *pMbox = new MboxHandler();
 	// Connect to its update signal
-	pMbox->getUpdateSignal().connect(SigC::slot(*this,
-		&mainWindow::on_message_indexupdate));
+	pMbox->getUpdateSignal().connect(
+		SigC::slot(*this, &mainWindow::on_message_indexupdate));
 	MonitorThread *pMonitorThread = new MonitorThread(pMbox);
 	start_thread(pMonitorThread, true);
 	// The handler object will be deleted when the thread terminates
@@ -405,6 +413,18 @@ void mainWindow::on_queryTreeviewSelection_changed()
 	}
 }
 
+bool mainWindow::on_queryCompletion_match(const ustring &key, const TreeModel::const_iterator &iter)
+{
+	TreeModel::Row row = *iter;
+
+	ustring match = row[m_liveQueryColumns.m_name];
+#ifdef DEBUG
+	cout << "mainWindow::on_queryCompletion_match: " << key << ", " << match << endl;
+#endif
+
+	return true;
+}
+
 //
 // Engines tree selection changed
 //
@@ -424,7 +444,6 @@ void mainWindow::on_enginesTreeviewSelection_changed()
 	}
 
 	TreeModel::iterator engineIter = m_pEnginesTree->getIter(*enginePath);
-	TreeModel::Row engineRow = *engineIter;
 	bool enableRemoveIndex = false;
 
 	// Make sure it's a leaf node
@@ -2235,6 +2254,64 @@ void mainWindow::on_removeIndexButton_clicked()
 		}
 	}
 
+}
+
+//
+// Live query entry change
+//
+void mainWindow::on_liveQueryEntry_changed()
+{
+	ustring liveQuery = liveQueryEntry->get_text();
+
+	// Reset the list
+	m_refLiveQueryList->clear();
+
+	if (m_refLiveQueryCompletion->get_minimum_key_length() > liveQuery.length())
+	{
+#ifdef DEBUG
+		cout << "mainWindow::on_liveQueryEntry_changed: too short" << endl;
+#endif
+		return;
+	}
+
+	// FIXME: relying on other indices may also be useful
+	XapianIndex docsIndex(m_settings.m_indexLocation);
+	if (docsIndex.isGood() == true)
+	{
+		ustring prefix, term = liveQuery;
+
+		// Get the last term from the entry field
+		ustring::size_type pos = liveQuery.find_last_of(" ");
+		if (pos != ustring::npos)
+		{
+			prefix = liveQuery.substr(0, pos);
+			prefix += " ";
+			term = liveQuery.substr(pos + 1);
+		}
+
+		if (term.empty() == false)
+		{
+			set<string> suggestedTerms;
+			int termIndex = 0;
+
+			// Get a list of suggestions
+			docsIndex.getCloseTerms(locale_from_utf8(term), suggestedTerms);
+
+			// Populate the list
+			for (set<string>::iterator termIter = suggestedTerms.begin();
+				termIter != suggestedTerms.end(); ++termIter)
+			{
+				TreeModel::iterator iter = m_refLiveQueryList->append();
+				TreeModel::Row row = *iter;
+
+				row[m_liveQueryColumns.m_name] = prefix + to_utf8(*termIter);
+				++termIndex;
+			}
+#ifdef DEBUG
+			cout << "mainWindow::on_liveQueryEntry_changed: " << termIndex << " suggestions" << endl;
+#endif
+		}
+	}
 }
 
 //

@@ -837,6 +837,63 @@ bool XapianIndex::unindexDocuments(const string &labelName)
 	return unindexed;
 }
 
+/// Suggests terms.
+unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggestions)
+{
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return 0;
+	}
+
+	suggestions.clear();
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			Xapian::TermIterator termIter = pIndex->allterms_begin();
+
+			if (termIter != pIndex->allterms_end())
+			{
+				string baseTerm(StringManip::toLowerCase(term));
+				unsigned int count = 0;
+
+				// Get the next 10 terms
+				termIter.skip_to(baseTerm);
+				while ((termIter != pIndex->allterms_end()) &&
+					(count < 10))
+				{
+					string suggestedTerm(*termIter);
+
+					if (suggestedTerm.find(baseTerm) != 0)
+					{
+						// This term doesn't have the same root
+						break;
+					}
+					suggestions.insert(*termIter);
+
+					// Next
+					++count;
+					++termIter;
+				}
+			}
+		}
+		pDatabase->unlock();
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get terms: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get terms, unknown exception occured" << endl;
+	}
+
+	return suggestions.size();
+}
+
 /// Renames a label.
 bool XapianIndex::renameLabel(const string &name, const string &newName)
 {

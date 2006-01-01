@@ -75,6 +75,9 @@ class IndexInterface
 		/// Unindexes documents with the given label.
 		virtual bool unindexDocuments(const std::string &labelName) = 0;
 
+		/// Suggests terms.
+		virtual unsigned int getCloseTerms(const std::string &term, std::set<std::string> &suggestions) = 0;
+
 		/// Renames a label.
 		virtual bool renameLabel(const std::string &name, const std::string &newName) = 0;
 
