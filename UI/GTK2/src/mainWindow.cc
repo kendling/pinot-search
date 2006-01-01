@@ -25,6 +25,7 @@
 #include <glibmm/stringutils.h>
 #include <glibmm/convert.h>
 #include <glibmm/thread.h>
+#include <gtkmm/aboutdialog.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/scrolledwindow.h>
@@ -47,7 +48,6 @@
 #include "IndexPage.h"
 #include "PinotUtils.h"
 #include "mainWindow.hh"
-#include "aboutDialog.hh"
 #include "importDialog.hh"
 #include "indexDialog.hh"
 #include "propertiesDialog.hh"
@@ -2135,7 +2135,14 @@ void mainWindow::on_unindex_activate()
 //
 void mainWindow::on_about_activate()
 {
-	aboutDialog aboutBox;
+	AboutDialog aboutBox;
+
+	aboutBox.set_comments(_("A metasearch tool for the Free Desktop"));
+	aboutBox.set_copyright(_("(C) 2005-2006 Fabrice Colin"));
+	aboutBox.set_name("Pinot");
+	aboutBox.set_version(VERSION);
+	aboutBox.set_website("http://pinot.berlios.de/");
+	aboutBox.set_website_label("http://pinot.berlios.de/");
 	aboutBox.show();
 	aboutBox.run();
 }

@@ -6,8 +6,7 @@ CXXFLAGS += -DHAVE_CONFIG_H -I. -I.. ${LIBXML_CXXFLAGS} ${GTKMOZ_CXXFLAGS} ${GTK
 
 LIBS += ${LIBXML_LIBS} ${GTKMOZ_LIBS} ${GTKMM_LIBS} -lgthread-2.0 -lfam
 
-UI_GTK2_SRCS = aboutDialog.cc aboutDialog_glade.cc \
-	importDialog.cc importDialog_glade.cc \
+UI_GTK2_SRCS = importDialog.cc importDialog_glade.cc \
 	indexDialog.cc indexDialog_glade.cc \
 	prefsDialog.cc prefsDialog_glade.cc \
 	propertiesDialog.cc propertiesDialog_glade.cc \

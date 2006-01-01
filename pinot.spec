@@ -11,8 +11,8 @@ Source: %{name}-%{version}.tar.gz
 Patch0: libxmlpp026.patch
 URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-Requires: xapian-core-libs >= 0.9.0, neon >= 0.24, gtkmm24 >= 2.4.12, mozilla >= %{mozilla_ver}, sqlite >= 3.1.2, ots >= 0.4.2, libtextcat >= 2.2, fam >= 2.6.10, gmime >= 2.1, file
-BuildRequires: xapian-core-devel >= 0.9.0, neon-devel >= 0.24, gtkmm24-devel >= 2.4.12, mozilla-devel >= %{mozilla_ver}, sqlite-devel >= 3.1.2, ots-devel >= 0.4.2, libtextcat-devel >= 2.2, fam-devel >= 2.6.10, gmime-devel >= 2.1, file, boost-devel >= 1.32, desktop-file-utils
+Requires: xapian-core-libs >= 0.9.0, neon >= 0.24, gtkmm24 >= 2.6, mozilla >= %{mozilla_ver}, sqlite >= 3.1.2, ots >= 0.4.2, libtextcat >= 2.2, fam >= 2.6.10, gmime >= 2.1, file
+BuildRequires: xapian-core-devel >= 0.9.0, neon-devel >= 0.24, gtkmm24-devel >= 2.6, mozilla-devel >= %{mozilla_ver}, sqlite-devel >= 3.1.2, ots-devel >= 0.4.2, libtextcat-devel >= 2.2, fam-devel >= 2.6.10, gmime-devel >= 2.1, file, boost-devel >= 1.32, desktop-file-utils
 %if 0%{?_with_libxmlpp026:1}
 Requires: libxml++ >= 0.26
 BuildRequires: libxml++-devel >= 0.26
