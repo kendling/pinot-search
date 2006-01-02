@@ -374,9 +374,9 @@ void IndexTree::setLabel(const set<unsigned int> &documentsList)
 }
 
 //
-// Sets a document's title.
+// Updates a document's properties.
 //
-void IndexTree::setDocumentTitle(unsigned int docId, const string &text)
+void IndexTree::updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo)
 {
 	if (docId == 0)
 	{
@@ -391,10 +391,10 @@ void IndexTree::setDocumentTitle(unsigned int docId, const string &text)
 
 		if (docId == row[m_indexColumns.m_id])
 		{
-#ifdef DEBUG
-			cout << "IndexTree::setLabel: updating title of document " << docId << endl;
-#endif
-			row[m_indexColumns.m_text] = to_utf8(text);
+			row[m_indexColumns.m_text] = to_utf8(docInfo.getTitle());
+			row[m_indexColumns.m_type] = to_utf8(docInfo.getType());
+			row[m_indexColumns.m_language] = to_utf8(docInfo.getLanguage());
+			row[m_indexColumns.m_timestamp] = to_utf8(docInfo.getTimestamp());
 			break;
 		}
 	}

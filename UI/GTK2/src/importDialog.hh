@@ -17,6 +17,7 @@
 #include <sigc++/slot.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
+#include <gtkmm/button.h>
 #include <gtkmm/liststore.h>
 
 #include "DocumentInfo.h"
@@ -42,6 +43,8 @@ public:
 protected:
 	void populate_combobox(bool allowLocalOnly);
 	void scan_file(const std::string &fileName, unsigned int &level);
+	void import_file(const std::string &fileName,
+		const DocumentInfo &docInfo);
 
 private:
 	ComboModelColumns m_typeColumns;
@@ -53,7 +56,7 @@ private:
 	SigC::Signal1<void, DocumentInfo> m_signalImportFile;
 	static std::string m_directory;
 
-	virtual void on_importOkButton_clicked();
+	virtual void on_importButton_clicked();
 	virtual void on_selectButton_clicked();
 	virtual void on_locationEntry_changed();
 	virtual void on_typeCombobox_changed();

@@ -74,6 +74,7 @@ unsigned int mainWindow::m_maxDocsCount = 100;
 unsigned int mainWindow::m_maxThreads = 2;
 
 mainWindow::InternalState::InternalState() :
+	m_liveQueryLength(0),
 	m_currentPage(0),
 	m_backgroundThreads(0),
 	m_browsingIndex(false)
@@ -1125,7 +1126,7 @@ void mainWindow::on_thread_end()
 			if (pIndexTree != NULL)
 			{
 				// Update the index tree
-				pIndexTree->setDocumentTitle(docId, docInfo.getTitle());
+				pIndexTree->updateDocumentInfo(docId, docInfo);
 			}
 		}
 		else
@@ -1209,8 +1210,8 @@ void mainWindow::on_thread_end()
 			IndexTree *pIndexTree = pIndexPage->getTree();
 			if (pIndexTree != NULL)
 			{
-				pIndexTree->setDocumentTitle(pUpdateThread->getDocumentID(),
-					pUpdateThread->getDocumentInfo().getTitle());
+				pIndexTree->updateDocumentInfo(pUpdateThread->getDocumentID(),
+					pUpdateThread->getDocumentInfo());
 			}
 		}
 
@@ -2260,7 +2261,6 @@ void mainWindow::on_removeIndexButton_clicked()
 			m_pEnginesTree->populate();
 		}
 	}
-
 }
 
 //
@@ -2269,17 +2269,20 @@ void mainWindow::on_removeIndexButton_clicked()
 void mainWindow::on_liveQueryEntry_changed()
 {
 	ustring liveQuery = liveQueryEntry->get_text();
+	unsigned int liveQueryLength = liveQuery.length();
 
 	// Reset the list
 	m_refLiveQueryList->clear();
 
-	if (m_refLiveQueryCompletion->get_minimum_key_length() > liveQuery.length())
+	// If characters are being deleted or if the string is too short, don't
+	// attempt to offer suggestions
+	if ((m_state.m_liveQueryLength > liveQueryLength) ||
+		(m_refLiveQueryCompletion->get_minimum_key_length() > liveQueryLength))
 	{
-#ifdef DEBUG
-		cout << "mainWindow::on_liveQueryEntry_changed: too short" << endl;
-#endif
+		m_state.m_liveQueryLength = liveQueryLength;
 		return;
 	}
+	m_state.m_liveQueryLength = liveQueryLength;
 
 	// FIXME: relying on other indices may also be useful
 	XapianIndex docsIndex(m_settings.m_indexLocation);

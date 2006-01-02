@@ -852,6 +852,9 @@ void IndexingThread::do_indexing()
 			{
 				// Flush the index
 				index.flush();
+
+				// The document properties may have changed
+				index.getDocumentInfo(m_docId, m_docInfo);
 			}
 		}
 

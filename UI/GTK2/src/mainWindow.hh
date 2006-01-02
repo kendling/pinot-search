@@ -176,6 +176,8 @@ private:
 			bool writeLock(unsigned int where);
 			void unlock(void);
 
+			// Query
+			unsigned int m_liveQueryLength;
 			// Notebook pages
 			int m_currentPage;
 			// Worker threads

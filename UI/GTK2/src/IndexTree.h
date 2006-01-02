@@ -67,8 +67,8 @@ class IndexTree : public Gtk::TreeView
 		/// Sets the documents that match the current label.
 		void setLabel(const std::set<unsigned int> &documentsList);
 
-		/// Sets a document's title.
-		void setDocumentTitle(unsigned int docId, const std::string &text);
+		/// Updates a document's properties.
+		void updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);
 
 		/// Marks a document as labeled.
 		void setDocumentLabeledState(unsigned int docId, bool labeled);

@@ -24,7 +24,6 @@
 using namespace std;
 using namespace SigC;
 using namespace Glib;
-using namespace Gdk;
 using namespace Gtk;
 
 string importDialog::m_directory = "";
@@ -74,9 +73,9 @@ importDialog::importDialog(const Glib::ustring &title,
 		depthSpinbutton->set_value(m_maxDirLevel);
 	}
 
-	// Disable the OK button as long the location entry field is empty
+	// Disable this button as long the location entry field is empty
 	// The title field may remain empty
-	importOkButton->set_sensitive(false);
+	importButton->set_sensitive(false);
 }
 
 importDialog::~importDialog()
@@ -149,7 +148,10 @@ void importDialog::scan_file(const string &fileName, unsigned int &level)
 			if (pEntryName != NULL)
 			{
 				string location = fileName;
-				location += "/";
+				if (fileName[fileName.length() - 1] != '/')
+				{
+					location += "/";
+				}
 				location += pEntryName;
 
 				// Scan this entry
@@ -170,10 +172,8 @@ void importDialog::scan_file(const string &fileName, unsigned int &level)
 		}
 		closedir(pDir);
 	}
-	else	if (S_ISREG(fileStat.st_mode))
+	else if (S_ISREG(fileStat.st_mode))
 	{
-		// Get the MIME type
-		string mimeType = MIMEScanner::scanFile(fileName);
 		// Build a valid URL
 		string location = "file://";
 		location += fileName;
@@ -185,10 +185,19 @@ void importDialog::scan_file(const string &fileName, unsigned int &level)
 			title += urlObj.getFile();
 		}
 
-		// Fire up the signal
-		m_signalImportFile(DocumentInfo(title, location, mimeType, ""));
-		++m_docsCount;
+		DocumentInfo docInfo(title, location,
+			MIMEScanner::scanFile(fileName), "");
+
+		import_file(urlObj.getFile(), docInfo);
 	}
+}
+
+void importDialog::import_file(const string &fileName,
+	const DocumentInfo &docInfo)
+{
+	// Fire up the signal
+	m_signalImportFile(docInfo);
+	++m_docsCount;
 }
 
 ustring importDialog::getDocumentTitle(void)
@@ -206,10 +215,12 @@ Signal1<void, DocumentInfo> &importDialog::getImportFileSignal(void)
 	return m_signalImportFile;
 }
 
-void importDialog::on_importOkButton_clicked()
+void importDialog::on_importButton_clicked()
 {
 	string location = locale_from_utf8(locationEntry->get_text());
 	unsigned int level = 0;
+
+	importButton->set_sensitive(false);
 
 	// Title
 	m_title = titleEntry->get_text();
@@ -222,7 +233,7 @@ void importDialog::on_importOkButton_clicked()
 			// Update m_directory
 			m_directory = location.substr(0, pos + 1);
 #ifdef DEBUG
-			cout << "importDialog::on_importOkButton_clicked: directory now " << m_directory << endl;
+			cout << "importDialog::on_importButton_clicked: directory now " << m_directory << endl;
 #endif
 		}
 
@@ -234,11 +245,10 @@ void importDialog::on_importOkButton_clicked()
 	else
 	{
 		Url urlObj(location);
+		DocumentInfo docInfo(locale_from_utf8(m_title), location,
+			MIMEScanner::scanUrl(urlObj), "");
 
-		// Signal now
-		m_signalImportFile(DocumentInfo(locale_from_utf8(m_title), location,
-			MIMEScanner::scanUrl(urlObj), ""));
-		++m_docsCount;
+		import_file(urlObj.getFile(), docInfo);
 	}
 }
 
@@ -299,7 +309,7 @@ void importDialog::on_locationEntry_changed()
 		enableOk = false;
 	}
 
-	importOkButton->set_sensitive(enableOk);
+	importButton->set_sensitive(enableOk);
 }
 
 void importDialog::on_typeCombobox_changed()
