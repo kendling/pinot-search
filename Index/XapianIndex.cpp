@@ -61,6 +61,16 @@ XapianIndex::~XapianIndex()
 {
 }
 
+string XapianIndex::limitTermLength(const string &term)
+{
+	if (term.length() > XapianIndex::m_maxTermLength)
+	{
+		return term.substr(0, XapianIndex::m_maxTermLength);
+	}
+
+	return term;
+}
+
 void XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 	const string &prefix, Xapian::termcount &termPos, StemmingMode mode) const
 {
@@ -87,22 +97,22 @@ void XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 		if ((mode == STORE_UNSTEM) ||
 			(pStemmer == NULL))
 		{
-			doc.add_posting(prefix + term,  termPos++);
+			doc.add_posting(limitTermLength(prefix + term), termPos++);
 		}
 		else if (mode == STORE_STEM)
 		{
 			string stemmedTerm = pStemmer->stem_word(term);
 
-			doc.add_posting(prefix + stemmedTerm,  termPos++);
+			doc.add_posting(limitTermLength(prefix + stemmedTerm), termPos++);
 		}
 		else if (mode == STORE_BOTH)
 		{
 			string stemmedTerm = pStemmer->stem_word(term);
 
 			// Add both
-			doc.add_posting(prefix + term,  termPos);
+			doc.add_posting(limitTermLength(prefix + term), termPos);
 			// ...at the same position
-			doc.add_posting(prefix + stemmedTerm,  termPos++);
+			doc.add_posting(limitTermLength(prefix + stemmedTerm), termPos++);
 		}
 	}
 #ifdef DEBUG
@@ -137,15 +147,15 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 	Url urlObj(location);
 
 	// Index the full URL with prefix U
-	doc.add_term(string("U") + location);
+	doc.add_term(limitTermLength(string("U") + location));
 	// ...the host name with prefix H
 	string hostName = urlObj.getHost();
-	doc.add_term(string("H") + StringManip::toLowerCase(hostName));
+	doc.add_term(limitTermLength(string("H") + StringManip::toLowerCase(hostName)));
 	// ...and the file name with prefix F
 	string fileName = urlObj.getFile();
-	doc.add_term(string("F") + StringManip::toLowerCase(fileName));
+	doc.add_term(limitTermLength(string("F") + StringManip::toLowerCase(fileName)));
 	// Finally, add the language with prefix L
-	doc.add_term(string("L") + StringManip::toLowerCase(m_stemLanguage));
+	doc.add_term(limitTermLength(string("L") + StringManip::toLowerCase(m_stemLanguage)));
 
 	setDocumentData(doc, info, summary, m_stemLanguage);
 
@@ -261,7 +271,7 @@ string XapianIndex::getLocation(void) const
 
 /// Indexes the given data.
 bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
-			unsigned int &docId)
+	unsigned int &docId)
 {
 	unsigned int dataLength = 0;
 	bool indexed = false;
@@ -312,7 +322,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 			++labelIter)
 		{
-			doc.add_term(string("C") + *labelIter);
+			doc.add_term(limitTermLength(string("C") + *labelIter));
 		}
 		if (prepareDocument(docInfo, doc, termPos, summary) == true)
 		{
@@ -323,7 +333,6 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 				docId = pIndex->add_document(doc);
 				indexed = true;
 			}
-			pDatabase->unlock();
 		}
 	}
 	catch (const Xapian::Error &error)
@@ -334,6 +343,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 	{
 		cerr << "Couldn't index document, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return indexed;
 }
@@ -380,7 +390,6 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 				foundDocument = true;
 			}
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -390,6 +399,7 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 	{
 		cerr << "Couldn't get document properties, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return foundDocument;
 }
@@ -428,7 +438,6 @@ bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 				}
 			}
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -438,6 +447,7 @@ bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 	{
 		cerr << "Couldn't check document labels, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return foundLabel;
 }
@@ -471,7 +481,6 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 			}
 			gotLabels = true;
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -481,6 +490,7 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 	{
 		cerr << "Couldn't get document's labels, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return gotLabels;
 }
@@ -516,7 +526,6 @@ bool XapianIndex::getDocumentsWithLabel(const string &name, set<unsigned int> &d
 			}
 			lookedForLabel = true;
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -526,6 +535,7 @@ bool XapianIndex::getDocumentsWithLabel(const string &name, set<unsigned int> &d
 	{
 		cerr << "Couldn't get documents, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return lookedForLabel;
 }
@@ -569,7 +579,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 		Xapian::termcount termPos = 0;
 
 		// Add the tokenizer's terms to the document
-		 addTermsToDocument(tokens, doc, "", termPos, m_stemMode);
+		addTermsToDocument(tokens, doc, "", termPos, m_stemMode);
 		// Get the document's labels
 		if (getDocumentLabels(docId, labels) == true)
 		{
@@ -577,7 +587,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 				++labelIter)
 			{
-				doc.add_term(string("C") + *labelIter);
+				doc.add_term(limitTermLength(string("C") + *labelIter));
 			}
 		}
 		if (prepareDocument(docInfo, doc, termPos, summary) == true)
@@ -590,7 +600,6 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 				// FIXME: if the document information has changed, we need to update the history too
 				updated = true;
 			}
-			pDatabase->unlock();
 		}
 	}
 	catch (const Xapian::Error &error)
@@ -601,6 +610,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	{
 		cerr << "Couldn't update document, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return updated;
 }
@@ -639,7 +649,6 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 			pIndex->replace_document(docId, doc);
 			updated = true;
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -649,6 +658,7 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 	{
 		cerr << "Couldn't update document properties, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return updated;
 }
@@ -691,13 +701,12 @@ bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &label
 			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 				++labelIter)
 			{
-				doc.add_term(string("C") + *labelIter);
+				doc.add_term(limitTermLength(string("C") + *labelIter));
 			}
 
 			pIndex->replace_document(docId, doc);
 			updatedLabels = true;
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -707,6 +716,7 @@ bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &label
 	{
 		cerr << "Couldn't update document's labels, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return updatedLabels;
 }
@@ -740,7 +750,6 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 			}
 			// FIXME: what if the term exist in more than one document ?
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -750,6 +759,7 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 	{
 		cerr << "Couldn't delete label, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return docId;
 }
@@ -780,7 +790,6 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 			pIndex->delete_document(docId);
 			unindexed = true;
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -790,6 +799,7 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 	{
 		cerr << "Couldn't unindex document, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return unindexed;
 }
@@ -823,7 +833,6 @@ bool XapianIndex::unindexDocuments(const string &labelName)
 			pIndex->delete_document(term);
 			unindexed = true;
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -833,6 +842,7 @@ bool XapianIndex::unindexDocuments(const string &labelName)
 	{
 		cerr << "Couldn't unindex documents, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return unindexed;
 }
@@ -880,7 +890,6 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 				}
 			}
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -890,6 +899,7 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 	{
 		cerr << "Couldn't get terms, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return suggestions.size();
 }
@@ -925,14 +935,13 @@ bool XapianIndex::renameLabel(const string &name, const string &newName)
 				// Remove the term
 				doc.remove_term(term);
 				// ...add the new one
-				doc.add_term(string("C") + newName);
+				doc.add_term(limitTermLength(string("C") + newName));
 				// ...and update the document
 				pIndex->replace_document(docId, doc);
 			}
 
 			renamedLabel = true;
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -942,6 +951,7 @@ bool XapianIndex::renameLabel(const string &name, const string &newName)
 	{
 		cerr << "Couldn't delete label, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return renamedLabel;
 }
@@ -981,7 +991,6 @@ bool XapianIndex::deleteLabel(const string &name)
 			}
 			deletedLabel = true;
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -991,6 +1000,7 @@ bool XapianIndex::deleteLabel(const string &name)
 	{
 		cerr << "Couldn't delete label, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return deletedLabel;
 }
@@ -1018,7 +1028,6 @@ bool XapianIndex::flush(void)
 			pIndex->flush();
 			flushed = true;
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -1028,6 +1037,7 @@ bool XapianIndex::flush(void)
 	{
 		cerr << "Couldn't flush database, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return flushed;
 }
@@ -1051,7 +1061,6 @@ unsigned int XapianIndex::getDocumentsCount(void) const
 		{
 			docCount = pIndex->get_doccount();
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -1061,6 +1070,7 @@ unsigned int XapianIndex::getDocumentsCount(void) const
 	{
 		cerr << "Couldn't count documents, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return docCount;
 }
@@ -1099,7 +1109,6 @@ unsigned int XapianIndex::listDocuments(set<unsigned int> &docIds,
 				++docCount;
 			}
 		}
-		pDatabase->unlock();
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -1109,6 +1118,7 @@ unsigned int XapianIndex::listDocuments(set<unsigned int> &docIds,
 	{
 		cerr << "Couldn't get document list, unknown exception occured" << endl;
 	}
+	pDatabase->unlock();
 
 	return docIds.size();
 }

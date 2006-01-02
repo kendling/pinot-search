@@ -94,6 +94,8 @@ class XapianIndex : public IndexInterface
 		std::string m_databaseName;
 		std::string m_stemLanguage;
 
+		static std::string limitTermLength(const std::string &term);
+
 		void addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 			const std::string &prefix, Xapian::termcount &termPos, StemmingMode mode) const;
 
