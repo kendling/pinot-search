@@ -223,7 +223,8 @@ void IndexPage::populateLabelCombobox(void)
 void IndexPage::updateButtonsState(unsigned int maxDocsCount)
 {
 #ifdef DEBUG
-	cout << "IndexPage::updateButtonsState: " << m_firstDoc << " " << m_docsCount << endl;
+	cout << "IndexPage::updateButtonsState: counts " << m_firstDoc
+		<< " " << m_docsCount << endl;
 #endif
 	if (m_firstDoc >= maxDocsCount)
 	{

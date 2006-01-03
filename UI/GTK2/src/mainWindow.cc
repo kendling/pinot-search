@@ -607,8 +607,6 @@ void mainWindow::on_index_changed(ustring indexName)
 		{
 			pIndexTree->clear();
 		}
-		pIndexPage->setFirstDocument(0);
-		pIndexPage->setDocumentsCount(0);
 		foundPage = true;
 	}
 
@@ -853,6 +851,7 @@ void mainWindow::on_thread_end()
 		}
 
 		pIndexPage->setDocumentsCount(pBrowseThread->getDocumentsCount());
+		pIndexPage->updateButtonsState(m_maxDocsCount);
 
 		status = _("Showing");
 		status += " ";
@@ -864,9 +863,10 @@ void mainWindow::on_thread_end()
 		snprintf(docsCountStr, 64, "%u", pIndexPage->getDocumentsCount());
 		status += docsCountStr;
 		status += " ";
-		status += _("documents from");
+		status += _("documents, starting at");
 		status += " ";
-		status += indexName;
+		snprintf(docsCountStr, 64, "%u", pIndexPage->getFirstDocument());
+		status += docsCountStr;
 		set_status(status);
 
 		if (pIndexPage->getDocumentsCount() > 0)
@@ -874,7 +874,6 @@ void mainWindow::on_thread_end()
 			// Refresh the tree
 			pIndexTree->refresh();
 		}
-		pIndexPage->updateButtonsState(m_maxDocsCount);
 		m_state.m_browsingIndex = false;
 	}
 	else if (type == "QueryingThread")
@@ -1239,18 +1238,12 @@ void mainWindow::on_thread_end()
 	// Any threads left to return ?
 	if (get_threads_count() == 0)
 	{
-#ifdef DEBUG
-		cout << "mainWindow::on_thread_end: disconnecting timeout" << endl;
-#endif
 		if (m_timeoutConnection.connected() == true)
 		{
 			m_timeoutConnection.block();
 			m_timeoutConnection.disconnect();
 			mainProgressbar->set_fraction(0.0);
 		}
-#ifdef DEBUG
-		else cout << "mainWindow::on_thread_end: not connected" << endl;
-#endif
 	}
 }
 
@@ -1355,18 +1348,6 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 	}
 	unsigned int rowsCount = pIndexTree->getRowsCount();
 
-	// Ensure the last page is being displayed and is not full
-	if ((pIndexPage->getFirstDocument() + rowsCount < pIndexPage->getDocumentsCount()) ||
-		(rowsCount >= m_maxDocsCount))
-	{
-		// No, so we can't add a new entry for that document
-		// Increment the count
-		pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
-		// ...and update the buttons
-		pIndexPage->updateButtonsState(m_maxDocsCount);
-		return;
-	}
-
 	// Does that document have the current label ?
 	ustring labelName = pIndexPage->getLabelName();
 	if (labelName.empty() == false)
@@ -1385,13 +1366,7 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 	}
 
 	// Add a row
-	if (pIndexTree->appendDocument(docInfo, hasLabel) == true)
-	{
-#ifdef DEBUG
-		cout << "mainWindow::on_message_indexupdate: added document to index list" << endl;
-#endif
-		pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
-	}
+	pIndexTree->appendDocument(docInfo, hasLabel);
 }
 
 //
@@ -2437,8 +2412,7 @@ void mainWindow::on_indexBackButton_clicked(ustring indexName)
 	{
 		if (pIndexPage->getFirstDocument() >= m_maxDocsCount)
 		{
-			pIndexPage->setFirstDocument(pIndexPage->getFirstDocument() - m_maxDocsCount);
-			browse_index(indexName, pIndexPage->getFirstDocument());
+			browse_index(indexName, pIndexPage->getFirstDocument() - m_maxDocsCount);
 		}
 	}
 }
@@ -2453,14 +2427,22 @@ void mainWindow::on_indexForwardButton_clicked(ustring indexName)
 	{
 		if (pIndexPage->getDocumentsCount() == 0)
 		{
-			pIndexPage->setFirstDocument(0);
+#ifdef DEBUG
+			cout << "mainWindow::on_indexForwardButton_clicked: first" << endl;
+#endif
 			browse_index(indexName, 0);
 		}
 		else if (pIndexPage->getDocumentsCount() >= pIndexPage->getFirstDocument() + m_maxDocsCount)
 		{
-			pIndexPage->setFirstDocument(pIndexPage->getFirstDocument() + m_maxDocsCount);
-			browse_index(indexName, pIndexPage->getFirstDocument());
+#ifdef DEBUG
+			cout << "mainWindow::on_indexForwardButton_clicked: next" << endl;
+#endif
+			browse_index(indexName, pIndexPage->getFirstDocument() + m_maxDocsCount);
 		}
+#ifdef DEBUG
+		cout << "mainWindow::on_indexForwardButton_clicked: counts "
+			<< pIndexPage->getFirstDocument() << " " << pIndexPage->getDocumentsCount() << endl;
+#endif
 	}
 }
 
@@ -2502,7 +2484,8 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 				threadIter != m_state.m_pThreads.end(); ++threadIter)
 			{
 #ifdef DEBUG
-				cout << "mainWindow::on_mainWindow_delete_event: stopping thread" << endl;
+				cout << "mainWindow::on_mainWindow_delete_event: stopping thread "
+					<< (*threadIter)->getId() << endl;
 #endif
 				// Stop all non-background threads
 				if ((*threadIter)->isBackground() == false)
@@ -2525,6 +2508,9 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 	get_position(m_settings.m_xPos, m_settings.m_yPos);
 	get_size(m_settings.m_width, m_settings.m_height);
 	m_settings.m_panePos = mainHpaned->get_position();
+#ifdef DEBUG
+	cout << "mainWindow::on_mainWindow_delete_event: quitting" << endl;
+#endif
 
 	Main::quit();
 	return false;
@@ -2895,9 +2881,7 @@ void mainWindow::browse_index(const ustring &indexName, unsigned int startDoc)
 			// Remove existing rows in the index tree
 			pIndexTree->clear();
 		}
-		// Reset variables
-		pIndexPage->setFirstDocument(0);
-		pIndexPage->setDocumentsCount(0);
+		pIndexPage->setFirstDocument(startDoc);
 
 		// Switch to that index page
 		m_pNotebook->set_current_page(get_page_number(indexName, NotebookPageBox::INDEX_PAGE));
