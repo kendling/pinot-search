@@ -21,6 +21,7 @@
 #include <map>
 #include <set>
 #include <pthread.h>
+#include <sigc++/connection.h>
 #include <glibmm/refptr.h>
 #include <gdkmm/pixbuf.h>
 #include <gdkmm/color.h>
@@ -36,7 +37,6 @@
 
 #include "DocumentInfo.h"
 #include "IndexedDocument.h"
-#include "ActionHistory.h"
 #include "QueryProperties.h"
 #include "EnginesTree.h"
 #include "HtmlView.h"
@@ -140,7 +140,8 @@ protected:
 	void set_status(const Glib::ustring &text, bool canBeSkipped = false);
 
 private:
-	// Threads status text
+	// Threads
+	SigC::Connection m_threadsEndConnection;
 	Glib::ustring m_threadStatusText;
 	// Global settings
 	PinotSettings &m_settings;
@@ -186,6 +187,8 @@ private:
 			// In-progress actions
 			std::set<std::string> m_beingIndexed;
 			bool m_browsingIndex;
+			// Action queue
+			std::map<DocumentInfo, string> m_indexQueue;
 
 		protected:
 			// Read/write lock

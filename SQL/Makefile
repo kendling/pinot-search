@@ -2,7 +2,7 @@
 ROOT_DIR = ..
 include ${ROOT_DIR}/variables.mk
 
-SQL_SRCS = SQLiteBase.cpp ActionHistory.cpp QueryHistory.cpp ViewHistory.cpp
+SQL_SRCS = SQLiteBase.cpp QueryHistory.cpp ViewHistory.cpp
 SQL_OBJS := $(patsubst %.cpp,${OBJ_DIR}/%.o,${SQL_SRCS})
 SQL_TEST = ${BIN_DIR}/historytest
 

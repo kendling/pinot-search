@@ -38,6 +38,7 @@ IndexedDocument::~IndexedDocument()
 
 IndexedDocument& IndexedDocument::operator=(const IndexedDocument& other)
 {
+	Document::operator=(other);
 	m_originalLocation = other.m_originalLocation;
 }
 

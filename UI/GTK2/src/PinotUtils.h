@@ -24,12 +24,17 @@
 #endif
 #include <glibmm/ustring.h>
 #include <gtkmm/window.h>
+#include <gtkmm/filechooserdialog.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/treemodel.h>
 
-/// Open a FileSelector and request a file. Location can be initialized.
+/// Open a FileChooserDialog.
 bool select_file_name(Gtk::Window &parentWindow, const Glib::ustring &title,
 	Glib::ustring &location, bool openOrCreate = true, bool directoriesOnly = false);
+
+/// Prepare a FileChooser.
+bool prepare_chooser(Gtk::FileChooser *pChooser, Glib::ustring &location,
+	bool openOrCreate = true, bool directoriesOnly = false);
 
 /// Create a resizable text column.
 Gtk::TreeViewColumn *create_resizable_column(const Glib::ustring &title,

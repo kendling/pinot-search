@@ -16,7 +16,6 @@
 
 #include <iostream>
 
-#include "ActionHistory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 
@@ -26,14 +25,13 @@ int main(int argc, char **argv)
 {
 	if (argc < 3)
 	{
-		cerr << "Usage: " << argv[0] << " <database> CREATE|LISTACTIONS=<max>" << endl;
+		cerr << "Usage: " << argv[0] << " <database> CREATE" << endl;
 		return EXIT_FAILURE;
 	}
 
 	if (strncmp(argv[2], "CREATE", 6) == 0)
 	{
-		if ((ActionHistory::create(argv[1]) == true) &&
-			(QueryHistory::create(argv[1]) == true) &&
+		if ((QueryHistory::create(argv[1]) == true) &&
 			(ViewHistory::create(argv[1]) == true))
 		{
 			cout << "Created database " << argv[1] << " and its tables" << endl;
@@ -41,33 +39,6 @@ int main(int argc, char **argv)
 		else
 		{
 			cout << "Couldn't create database " << argv[1] << endl;
-		}
-	}
-	else if (strncmp(argv[2], "LISTACTIONS=", 12) == 0)
-	{
-		ActionHistory actions(argv[1]);
-		SQLiteResults *results = actions.executeStatement("SELECT Option, Date FROM ActionHistory ORDER BY %s DESC LIMIT %s;", "Date", argv[2] + 12);
-		if (results != NULL)
-		{
-			while (results->hasMoreRows() == true)
-			{
-				SQLiteRow *row = results->nextRow();
-				if (row == NULL)
-				{
-					break;
-				}
-
-				for (int i = 0; i < row->getColumnsCount(); ++i)
-				{
-					cout << results->getColumnName(i) << ": " << row->getColumn(i) << endl;
-				}
-				delete row;
-			}
-			delete results;
-		}
-		else
-		{
-			cout << "Couldn't list actions in database " << argv[1] << endl;
 		}
 	}
 

@@ -220,8 +220,11 @@ void IndexPage::populateLabelCombobox(void)
 //
 // Updates the state of the index buttons.
 //
-void IndexPage::updateButtons(unsigned int maxDocsCount)
+void IndexPage::updateButtonsState(unsigned int maxDocsCount)
 {
+#ifdef DEBUG
+	cout << "IndexPage::updateButtonsState: " << m_firstDoc << " " << m_docsCount << endl;
+#endif
 	if (m_firstDoc >= maxDocsCount)
 	{
 		m_pBackButton->set_sensitive(true);

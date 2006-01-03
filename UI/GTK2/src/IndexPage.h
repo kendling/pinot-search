@@ -56,7 +56,7 @@ class IndexPage : public NotebookPageBox
 		void populateLabelCombobox(void);
 
 		/// Updates the state of the index buttons.
-		void updateButtons(unsigned int maxDocsCount);
+		void updateButtonsState(unsigned int maxDocsCount);
 
 		/// Gets the number of documents.
 		unsigned int getDocumentsCount(void) const;

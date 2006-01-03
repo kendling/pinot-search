@@ -60,7 +60,7 @@ DocumentInfo& DocumentInfo::operator=(const DocumentInfo& other)
 
 bool DocumentInfo::operator<(const DocumentInfo& other) const
 {
-	if (m_title < other.m_title)
+	if (m_location < other.m_location)
 	{
 		return true;
 	}

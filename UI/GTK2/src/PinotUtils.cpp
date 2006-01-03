@@ -30,13 +30,49 @@ using namespace Gtk;
 bool select_file_name(Window &parentWindow, const ustring &title,
 	ustring &location, bool openOrCreate, bool directoriesOnly)
 {
-	FileChooserAction chooserAction = FILE_CHOOSER_ACTION_OPEN;
+	FileChooserDialog fileChooser(title);
 	StockID okButtonStockId = Stock::OPEN;
 
 	if (title.empty() == true)
 	{
 		return false;
 	}
+
+	if (openOrCreate == false)
+	{
+		okButtonStockId = Stock::SAVE;
+	}
+
+	prepare_chooser(&fileChooser, location, openOrCreate, directoriesOnly);
+	fileChooser.add_button(Stock::CANCEL, RESPONSE_CANCEL);
+	fileChooser.add_button(okButtonStockId, RESPONSE_OK);
+	// FIXME: add FileFilter's
+	fileChooser.set_title(title);
+	fileChooser.show();
+
+	int result = fileChooser.run();
+	if (result == RESPONSE_OK)
+	{
+		// Retrieve the chosen location
+		if (directoriesOnly == false)
+		{
+			location = filename_to_utf8(fileChooser.get_filename());
+		}
+		else
+		{
+			location = filename_to_utf8(fileChooser.get_current_folder());
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool prepare_chooser(FileChooser *pChooser, ustring &location,
+	bool openOrCreate, bool directoriesOnly)
+{
+	FileChooserAction chooserAction = FILE_CHOOSER_ACTION_OPEN;
 
 	// Have we been provided with an initial location ?
 	if (location.empty() == true)
@@ -59,7 +95,6 @@ bool select_file_name(Window &parentWindow, const ustring &title,
 		else
 		{
 			chooserAction = FILE_CHOOSER_ACTION_SAVE;
-			okButtonStockId = Stock::SAVE;
 		}
 	}
 	else
@@ -71,35 +106,14 @@ bool select_file_name(Window &parentWindow, const ustring &title,
 		else
 		{
 			chooserAction = FILE_CHOOSER_ACTION_CREATE_FOLDER;
-			okButtonStockId = Stock::SAVE;
 		}
 	}
 
-	FileChooserDialog fileChooser(title, chooserAction);
-	fileChooser.set_filename(filename_from_utf8(location));
-	fileChooser.set_local_only();
-	fileChooser.set_select_multiple(false);
-	fileChooser.set_transient_for(parentWindow);
-	// Add response buttons
-	fileChooser.add_button(Stock::CANCEL, RESPONSE_CANCEL);
-	fileChooser.add_button(okButtonStockId, RESPONSE_OK);
+	pChooser->set_action(chooserAction);
+	pChooser->set_filename(filename_from_utf8(location));
+	pChooser->set_local_only();
+	pChooser->set_select_multiple(false);
 	// FIXME: add FileFilter's
-	fileChooser.show();
-	int result = fileChooser.run();
-	if (result == RESPONSE_OK)
-	{
-		// Retrieve the chosen location
-		if (directoriesOnly == false)
-		{
-			location = filename_to_utf8(fileChooser.get_filename());
-		}
-		else
-		{
-			location = filename_to_utf8(fileChooser.get_current_folder());
-		}
-
-		return true;
-	}
 
 	return false;
 }

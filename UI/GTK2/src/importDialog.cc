@@ -114,6 +114,12 @@ void importDialog::scan_file(const string &fileName, unsigned int &level)
 		return;
 	}
 
+	// Skip dotfiles
+	if (urlObj.getFile()[0] == '.')
+	{
+		return;
+	}
+
 #ifdef DEBUG
 	cout << "importDialog::scan_file: " << fileName << endl;
 #endif

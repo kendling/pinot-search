@@ -36,7 +36,6 @@
 #include "IndexedDocument.h"
 #include "TimeConverter.h"
 #include "Url.h"
-#include "ActionHistory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderFactory.h"
@@ -243,6 +242,10 @@ mainWindow::mainWindow() :
 	m_tooltips.set_tip(*addIndexButton, _("Add index"));
 	m_tooltips.set_tip(*removeIndexButton, _("Remove index"));
 
+	// Connect to threads' finished signal
+	m_threadsEndConnection = WorkerThread::getFinishedSignal().connect(
+		SigC::slot(*this, &mainWindow::on_thread_end));
+
 	// FIXME: delete all "ignored" threads when exiting !!!
 	// Fire up a listener thread
 	ListenerThread *pListenThread = new ListenerThread(PinotSettings::getConfigurationDirectory() + string("/fifo"));
@@ -259,9 +262,6 @@ mainWindow::mainWindow() :
 	MonitorThread *pMonitorThread = new MonitorThread(pMbox);
 	start_thread(pMonitorThread, true);
 	// The handler object will be deleted when the thread terminates
-
-	// There might be queued actions
-	check_queue();
 
 	// Now we are ready
 	set_status(_("Ready"));
@@ -827,7 +827,6 @@ void mainWindow::on_thread_end()
 	else if (type == "IndexBrowserThread")
 	{
 		char docsCountStr[64];
-		unsigned int count = 0;
 
 		IndexBrowserThread *pBrowseThread = dynamic_cast<IndexBrowserThread *>(pThread);
 		if (pBrowseThread == NULL)
@@ -854,11 +853,10 @@ void mainWindow::on_thread_end()
 		}
 
 		pIndexPage->setDocumentsCount(pBrowseThread->getDocumentsCount());
-		count = pIndexTree->getRowsCount();
 
 		status = _("Showing");
 		status += " ";
-		snprintf(docsCountStr, 64, "%u", count);
+		snprintf(docsCountStr, 64, "%u", pIndexTree->getRowsCount());
 		status += docsCountStr;
 		status += " ";
 		status += _("off");
@@ -876,7 +874,7 @@ void mainWindow::on_thread_end()
 			// Refresh the tree
 			pIndexTree->refresh();
 		}
-		pIndexPage->updateButtons(m_maxDocsCount);
+		pIndexPage->updateButtonsState(m_maxDocsCount);
 		m_state.m_browsingIndex = false;
 	}
 	else if (type == "QueryingThread")
@@ -1163,13 +1161,22 @@ void mainWindow::on_thread_end()
 
 			if (pIndexTree != NULL)
 			{
-				// Append to the index tree
-				IndexedDocument indexedDoc(docInfo.getTitle(),
-					XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
-					docInfo.getLocation(), docInfo.getType(),
-					docInfo.getLanguage());
-				indexedDoc.setTimestamp(docInfo.getTimestamp());
-				pIndexTree->appendDocument(indexedDoc, labeled);
+				unsigned int rowsCount = pIndexTree->getRowsCount();
+
+				// Ensure the last page is being displayed and is not full
+				if ((pIndexPage->getFirstDocument() + rowsCount == pIndexPage->getDocumentsCount()) &&
+					(rowsCount < m_maxDocsCount))
+				{
+					// Add a row to the index tree
+					IndexedDocument indexedDoc(docInfo.getTitle(),
+						XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
+						docInfo.getLocation(), docInfo.getType(),
+						docInfo.getLanguage());
+					indexedDoc.setTimestamp(docInfo.getTimestamp());
+					pIndexTree->appendDocument(indexedDoc, labeled);
+				}
+				pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
+				pIndexPage->updateButtonsState(m_maxDocsCount);
 			}
 		}
 
@@ -1346,15 +1353,17 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 	{
 		return;
 	}
+	unsigned int rowsCount = pIndexTree->getRowsCount();
 
-	// Is the last page being displayed ?
-	if (pIndexPage->getFirstDocument() + m_maxDocsCount < pIndexPage->getDocumentsCount())
+	// Ensure the last page is being displayed and is not full
+	if ((pIndexPage->getFirstDocument() + rowsCount < pIndexPage->getDocumentsCount()) ||
+		(rowsCount >= m_maxDocsCount))
 	{
 		// No, so we can't add a new entry for that document
 		// Increment the count
 		pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
-		// ...and make sure the user can display that last page
-		pIndexPage->updateButtons(m_maxDocsCount);
+		// ...and update the buttons
+		pIndexPage->updateButtonsState(m_maxDocsCount);
 		return;
 	}
 
@@ -2507,6 +2516,10 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 		}
 	}
 
+	// Disconnect the threads' finished signal
+	m_threadsEndConnection.block();
+	m_threadsEndConnection.disconnect();
+
 	// Save the window's position and dimensions now
 	// Don't worry about the gravity, it hasn't been changed
 	get_position(m_settings.m_xPos, m_settings.m_yPos);
@@ -2618,41 +2631,19 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 bool mainWindow::queue_index(const DocumentInfo &docInfo,
 	const string &labelName, unsigned int docId)
 {
-	ActionHistory::ActionType type = ActionHistory::ACTION_INDEX;
-
-	if (docId > 0)
-	{
-		// This is an update
-		type = ActionHistory::ACTION_UPDATE;
-	}
-
 	if (get_threads_count() >= m_maxThreads)
 	{
-		ActionHistory history(m_settings.m_historyDatabase);
-
-		string option = docInfo.getTitle();
-		option += "|";
-		option += Url::escapeUrl(docInfo.getLocation());
-		option += "|";
-		option += docInfo.getType();
-		option += "|";
-		option += labelName;
-		if (type == ActionHistory::ACTION_UPDATE)
+		if (m_state.writeLock(50) == true)
 		{
-			option += "|";
-			char docIdStr[64];
-			snprintf(docIdStr, 64, "%d", docId);
-			option += docIdStr;
-		}
-#ifdef DEBUG
-		cout << "mainWindow::queue_index: " << option << endl;
-#endif
+			m_state.m_indexQueue[docInfo] = labelName;
 
-		// Add this to ActionHistory and return
-		return history.insertItem(type, option);
+			m_state.unlock();
+		}
+
+		return true;
 	}
 
-	if (type == ActionHistory::ACTION_UPDATE)
+	if (docId > 0)
 	{
 		// Update the document
 		index_document(docInfo, labelName, docId);
@@ -2905,6 +2896,7 @@ void mainWindow::browse_index(const ustring &indexName, unsigned int startDoc)
 			pIndexTree->clear();
 		}
 		// Reset variables
+		pIndexPage->setFirstDocument(0);
 		pIndexPage->setDocumentsCount(0);
 
 		// Switch to that index page
@@ -3112,10 +3104,6 @@ void mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 	}
 
 	pNewThread->setId(nextId);
-	// Connect to the finished signal
-	pNewThread->getFinishedSignal().connect(SigC::slot(*this,
-		&mainWindow::on_thread_end));
-
 	if (m_state.writeLock(11) == true)
 	{
 		pair<set<WorkerThread *>::iterator, bool> insertPair = m_state.m_pThreads.insert(pNewThread);
@@ -3166,9 +3154,6 @@ void mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 //
 bool mainWindow::check_queue(void)
 {
-#ifdef DEBUG
-	cout << "mainWindow::check_queue: called" << endl;
-#endif
 	if (get_threads_count() >= m_maxThreads)
 	{
 #ifdef DEBUG
@@ -3177,80 +3162,48 @@ bool mainWindow::check_queue(void)
 		return false;
 	}
 
-	ActionHistory history(m_settings.m_historyDatabase);
-	ActionHistory::ActionType type;
-	string option;
+	DocumentInfo docInfo;
+	string labelName;
 
-	if (history.deleteOldestItem(type, option) == false)
+	if (m_state.writeLock(12) == true)
 	{
+		if (m_state.m_indexQueue.empty() == false)
+		{
+			// Get the first item
+			std::map<DocumentInfo, string>::iterator queueIter = m_state.m_indexQueue.begin();
+			if (queueIter != m_state.m_indexQueue.end())
+			{
+				docInfo = queueIter->first;
+				labelName = queueIter->second;
+
+				m_state.m_indexQueue.erase(queueIter);
+			}
+		}
+
+		m_state.unlock();
+	}
+
+	string location = docInfo.getLocation();
+	if (location.empty() == true)
+	{
+		// Nothing to do
 #ifdef DEBUG
-		cout << "mainWindow::check_queue: found no action" << endl;
+		cout << "mainWindow::check_queue: empty queue" << endl;
 #endif
 		return false;
 	}
 
-	if (type == ActionHistory::ACTION_INDEX)
+	// Is it an update ?
+	XapianIndex docsIndex(m_settings.m_indexLocation);
+	unsigned int docId = docsIndex.hasDocument(location);
+	if (docId > 0)
 	{
-		string::size_type lastPos = 0, pos = option.find_first_of("|");
-		if (pos != string::npos)
-		{
-			string title = option.substr(lastPos, pos - lastPos);
-
-			lastPos = pos + 1;
-			pos = option.find_first_of("|", lastPos);
-			if (pos != string::npos)
-			{
-				string url = option.substr(lastPos, pos - lastPos);
-
-				lastPos = pos + 1;
-				pos = option.find_first_of("|", lastPos);
-				if (pos != string::npos)
-				{
-					string type = option.substr(lastPos, pos - lastPos);
-
-					string labelName = option.substr(pos + 1);
-
-					// Index the document
-					index_document(DocumentInfo(title, Url::unescapeUrl(url), type, ""),
-						labelName);
-				}
-			}
-		}
+		// Yes, it is
+		index_document(docInfo, labelName, docId);
 	}
-	else if (type == ActionHistory::ACTION_UPDATE)
+	else
 	{
-		string::size_type lastPos = 0, pos = option.find_first_of("|");
-		if (pos != string::npos)
-		{
-			string title = option.substr(lastPos, pos - lastPos);
-
-			lastPos = pos + 1;
-			pos = option.find_first_of("|", lastPos);
-			if (pos != string::npos)
-			{
-				string url = option.substr(lastPos, pos - lastPos);
-
-				lastPos = pos + 1;
-				pos = option.find_first_of("|", lastPos);
-				if (pos != string::npos)
-				{
-					string type = option.substr(lastPos, pos - lastPos);
-
-					lastPos = pos + 1;
-					pos = option.find_first_of("|", lastPos);
-					if (pos != string::npos)
-					{
-						string labelName = option.substr(lastPos, pos - lastPos);
-
-						unsigned int docId = (unsigned int)atoi(option.substr(pos + 1).c_str());
-
-						// Update the document
-						index_document(DocumentInfo(title, Url::unescapeUrl(url), type, ""),
-							labelName, docId);
-					}
-				}
-			}
-		}
+		index_document(docInfo, labelName);
 	}
 
 	return true;
@@ -3263,7 +3216,7 @@ unsigned int mainWindow::get_threads_count(void)
 {
 	int count = 0;
 
-	if (m_state.readLock(12) == true)
+	if (m_state.readLock(13) == true)
 	{
 		count = m_state.m_pThreads.size() - m_state.m_backgroundThreads;
 		m_state.unlock();
@@ -3292,7 +3245,7 @@ void mainWindow::update_threads_status(void)
 		snprintf(countStr, 64, "%d", threads);
 		text = countStr;
 		text += " ";
-		text += _("thread(s)");
+		text += _("task(s) running");
 		text += " - ";
 		m_threadStatusText = text;
 	}

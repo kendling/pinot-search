@@ -116,7 +116,7 @@ void WorkerThread::emitSignal(void)
 	cout << "WorkerThread::emitSignal: end of thread " << m_id << endl;
 #endif
 	m_done = true;
-	m_signalFinished();
+	m_signalFinished.emit();
 }
 
 IndexBrowserThread::IndexBrowserThread(const string &indexName,
