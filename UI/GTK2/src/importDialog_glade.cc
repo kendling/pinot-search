@@ -108,14 +108,12 @@ importDialog_glade::importDialog_glade(
    locationEntry->set_visibility(true);
    locationEntry->set_editable(true);
    locationEntry->set_max_length(0);
-   locationEntry->set_text(_(""));
    locationEntry->set_has_frame(true);
    locationEntry->set_activates_default(false);
    titleEntry->set_flags(Gtk::CAN_FOCUS);
    titleEntry->set_visibility(true);
    titleEntry->set_editable(true);
    titleEntry->set_max_length(0);
-   titleEntry->set_text(_(""));
    titleEntry->set_has_frame(true);
    titleEntry->set_activates_default(false);
    locationLabel->set_alignment(0,0.5);

@@ -2252,16 +2252,27 @@ void mainWindow::on_removeIndexButton_clicked()
 //
 void mainWindow::on_liveQueryEntry_changed()
 {
-	ustring liveQuery = liveQueryEntry->get_text();
-	unsigned int liveQueryLength = liveQuery.length();
+	ustring prefix, term = liveQueryEntry->get_text();
+	unsigned int liveQueryLength = term.length();
 
 	// Reset the list
 	m_refLiveQueryList->clear();
+	// Get the last term from the entry field
+	ustring::size_type pos = term.find_last_of(" ");
+	if (pos != ustring::npos)
+	{
+		ustring liveQuery(term);
 
-	// If characters are being deleted or if the string is too short, don't
+		prefix = liveQuery.substr(0, pos);
+		prefix += " ";
+		term = liveQuery.substr(pos + 1);
+	}
+
+	// If characters are being deleted or if the term is too short, don't
 	// attempt to offer suggestions
 	if ((m_state.m_liveQueryLength > liveQueryLength) ||
-		(m_refLiveQueryCompletion->get_minimum_key_length() > liveQueryLength))
+		(term.empty() == true) ||
+		(m_refLiveQueryCompletion->get_minimum_key_length() > term.length()))
 	{
 		m_state.m_liveQueryLength = liveQueryLength;
 		return;
@@ -2272,39 +2283,25 @@ void mainWindow::on_liveQueryEntry_changed()
 	XapianIndex docsIndex(m_settings.m_indexLocation);
 	if (docsIndex.isGood() == true)
 	{
-		ustring prefix, term = liveQuery;
+		set<string> suggestedTerms;
+		int termIndex = 0;
 
-		// Get the last term from the entry field
-		ustring::size_type pos = liveQuery.find_last_of(" ");
-		if (pos != ustring::npos)
+		// Get a list of suggestions
+		docsIndex.getCloseTerms(locale_from_utf8(term), suggestedTerms);
+
+		// Populate the list
+		for (set<string>::iterator termIter = suggestedTerms.begin();
+			termIter != suggestedTerms.end(); ++termIter)
 		{
-			prefix = liveQuery.substr(0, pos);
-			prefix += " ";
-			term = liveQuery.substr(pos + 1);
+			TreeModel::iterator iter = m_refLiveQueryList->append();
+			TreeModel::Row row = *iter;
+
+			row[m_liveQueryColumns.m_name] = prefix + to_utf8(*termIter);
+			++termIndex;
 		}
-
-		if (term.empty() == false)
-		{
-			set<string> suggestedTerms;
-			int termIndex = 0;
-
-			// Get a list of suggestions
-			docsIndex.getCloseTerms(locale_from_utf8(term), suggestedTerms);
-
-			// Populate the list
-			for (set<string>::iterator termIter = suggestedTerms.begin();
-				termIter != suggestedTerms.end(); ++termIter)
-			{
-				TreeModel::iterator iter = m_refLiveQueryList->append();
-				TreeModel::Row row = *iter;
-
-				row[m_liveQueryColumns.m_name] = prefix + to_utf8(*termIter);
-				++termIndex;
-			}
 #ifdef DEBUG
-			cout << "mainWindow::on_liveQueryEntry_changed: " << termIndex << " suggestions" << endl;
+		cout << "mainWindow::on_liveQueryEntry_changed: " << termIndex << " suggestions" << endl;
 #endif
-		}
 	}
 }
 
