@@ -18,7 +18,6 @@
 #define _PINOTUTILS_HH
 
 #include <string>
-#include <vector>
 #if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>2
 #include <sigc++/compatibility.h>
 #endif
@@ -35,6 +34,9 @@ bool select_file_name(Gtk::Window &parentWindow, const Glib::ustring &title,
 /// Prepare a FileChooser.
 bool prepare_chooser(Gtk::FileChooser *pChooser, Glib::ustring &location,
 	bool openOrCreate = true, bool directoriesOnly = false);
+
+/// Get a column height.
+int get_column_height(Gtk::TreeView *pTree);
 
 /// Create a resizable text column.
 Gtk::TreeViewColumn *create_resizable_column(const Glib::ustring &title,

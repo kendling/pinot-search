@@ -91,7 +91,7 @@ string Summarizer::summarize(const char *pText, unsigned int textLen)
 			pSummary = ots_get_doc_text(pArticle, &outputLen);
 #ifdef DEBUG
 			cout << "Summarizer::summarize: summarized to " << outputLen << " bytes in "
-				<< timer.stop() << " us " << endl;
+				<< timer.stop()/1000 << " ms" << endl;
 #endif
 
 			// Get the title before freeing the article

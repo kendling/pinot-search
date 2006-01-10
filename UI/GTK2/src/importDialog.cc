@@ -1,22 +1,34 @@
-// generated 2004/3/6 14:15:21 GMT by fabrice@amra.dyndns.org.(none)
-// using glademm V2.0.0
-//
-// newer (non customized) versions of this file go to importDialog.cc_new
-
-// This file is for your program, I won't touch it again!
+/*
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
 
 #include <stdlib.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <strings.h>
 #include <iostream>
+#include <algorithm>
+#include <utility>
+#include <sigc++/class_slot.h>
 #include <glibmm/convert.h>
+#include <gtkmm/stock.h>
+#include <gtkmm/main.h>
 
 #include "config.h"
 #include "MIMEScanner.h"
 #include "NLS.h"
 #include "Url.h"
+#include "XapianIndex.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "importDialog.hh"
@@ -26,63 +38,96 @@ using namespace SigC;
 using namespace Glib;
 using namespace Gtk;
 
-string importDialog::m_directory = "";
+string importDialog::InternalState::m_defaultDirectory = "";
+
+importDialog::InternalState::InternalState(importDialog *pWindow) :
+	ThreadsManager(),
+	m_importing(false),
+	m_pImportWindow(pWindow)
+{
+	pthread_mutex_init(&m_scanMutex, NULL);
+	pthread_cond_init(&m_scanCondVar, NULL);
+}
+
+importDialog::InternalState::~InternalState()
+{
+	pthread_cond_destroy(&m_scanCondVar);
+	pthread_mutex_destroy(&m_scanMutex);
+}
+
+void importDialog::InternalState::connect(void)
+{
+	if (m_pImportWindow != NULL)
+	{
+		// Connect the dispatcher
+		m_threadsEndConnection = WorkerThread::getDispatcher().connect(
+			SigC::slot(*m_pImportWindow, &importDialog::on_thread_end));
+#ifdef DEBUG
+		cout << "importDialog::InternalState::connect: connected" << endl;
+#endif
+	}
+}
 
 importDialog::importDialog(const Glib::ustring &title,
-	bool selectTitle, bool selectDepth, bool allowLocalOnly) :
+	const set<string> &mimeTypes) :
 	importDialog_glade(),
 	m_docsCount(0),
 	m_importDirectory(false),
-	m_maxDirLevel(1)
+	m_state(this)
 {
+	set_title(title);
+
+	// Copy the list of authorized MIME types
+	copy(mimeTypes.begin(), mimeTypes.end(), inserter(m_mimeTypes, m_mimeTypes.begin()));
+	// FIXME: populate the list
+
+	// Initialize the default directory
+	if (m_state.m_defaultDirectory.empty() == true)
+	{
+		char *homeDir = getenv("HOME");
+		if (homeDir != NULL)
+		{
+			m_state.m_defaultDirectory = homeDir + string("/");
+		}
+	}
+
 	// Associate the columns model to the type combo
 	m_refTypeList = ListStore::create(m_typeColumns);
 	typeCombobox->set_model(m_refTypeList);
 	typeCombobox->pack_start(m_typeColumns.m_name);
 	// Populate
-	populate_combobox(allowLocalOnly);
+	populate_typeCombobox(false);
 
-	// Initialize the default directory
-	if (m_directory.empty() == true)
-	{
-		char *homeDir = getenv("HOME");
-		if (homeDir != NULL)
-		{
-			m_directory = homeDir + string("/");
-		}
-	}
+	// The default type is not directory
+	// FIXME: this could also apply to URLs !
+	depthSpinbutton->set_sensitive(false);
+	depthSpinbutton->set_value(1);
 
-	set_title(title);
+	// Associate the columns model to the MIME types tree
+	m_refMimeTypeList = ListStore::create(m_mimeTypeColumns);
+	mimeTreeview->set_model(m_refMimeTypeList);
+	mimeTreeview->append_column_editable(_("Enabled"), m_mimeTypeColumns.m_enabled);
+	mimeTreeview->append_column(_("MIME Type"), m_mimeTypeColumns.m_type);
+	// Allow only single selection
+	mimeTreeview->get_selection()->set_mode(SELECTION_SINGLE);
+	// Populate
+	populate_mimeTreeview();
 
-	if (selectTitle == false)
-	{
-		titleLabel->hide();
-		titleEntry->hide();
-	}
-
-	if (selectDepth == false)
-	{
-		depthLabel->hide();
-		depthSpinbutton->hide();
-	}
-	else
-	{
-		// The default type is not directory
-		// FIXME: this could also apply to URLs !
-		depthSpinbutton->set_sensitive(false);
-		depthSpinbutton->set_value(m_maxDirLevel);
-	}
+	// Connect to threads' finished signal
+	m_state.connect();
 
 	// Disable this button as long the location entry field is empty
 	// The title field may remain empty
 	importButton->set_sensitive(false);
+	importProgressbar->set_pulse_step(0.10);
+	importProgressbar->set_text(_("Waiting..."));
 }
 
 importDialog::~importDialog()
 {
 }
 
-void importDialog::populate_combobox(bool allowLocalOnly)
+void importDialog::populate_typeCombobox(bool localOnly)
 {
 	bool foundLanguage = false;
 
@@ -92,7 +137,7 @@ void importDialog::populate_combobox(bool allowLocalOnly)
 	iter = m_refTypeList->append();
 	row = *iter;
 	row[m_typeColumns.m_name] = _("Whole directory");
-	if (allowLocalOnly == false)
+	if (localOnly == false)
 	{
 		iter = m_refTypeList->append();
 		row = *iter;
@@ -102,220 +147,184 @@ void importDialog::populate_combobox(bool allowLocalOnly)
 	typeCombobox->set_active(0);
 }
 
-void importDialog::scan_file(const string &fileName, unsigned int &level)
+void importDialog::populate_mimeTreeview(void)
 {
-	struct stat fileStat;
-	Url urlObj("file://" + fileName);
-
-	if ((fileName.empty() == true) ||
-		(urlObj.getFile() == ".") ||
-		(urlObj.getFile() == ".."))
+	// Add all MIME types
+	for (set<string>::const_iterator typeIter = m_mimeTypes.begin();
+		typeIter != m_mimeTypes.end(); ++typeIter)
 	{
-		return;
-	}
+		TreeModel::iterator iter = m_refMimeTypeList->append();
+		TreeModel::Row row = *iter;
 
-	// Skip dotfiles
-	if (urlObj.getFile()[0] == '.')
+		row[m_mimeTypeColumns.m_enabled] = true;
+		row[m_mimeTypeColumns.m_type] = to_utf8(*typeIter);
+	}
+}
+
+bool importDialog::start_thread(WorkerThread *pNewThread)
+{
+	if (m_state.start_thread(pNewThread, false) == false)
 	{
-		return;
+		// Delete the object
+		delete pNewThread;
+		return false;
 	}
-
 #ifdef DEBUG
-	cout << "importDialog::scan_file: " << fileName << endl;
+	cout << "importDialog::start_thread: started thread " << pNewThread->getId() << endl;
 #endif
-	if (lstat(fileName.c_str(), &fileStat) == -1)
+
+	return true;
+}
+
+bool importDialog::on_import_file(const string &fileName)
+{
+	string mimeType = MIMEScanner::scanFile(fileName);
+	bool askForAnotherFile = false;
+
+	// Check the MIME type
+	if ((m_mimeTypesBlackList.find(mimeType) != m_mimeTypesBlackList.end()) ||
+		((m_mimeTypes.find(mimeType) == m_mimeTypes.end()) &&
+		(strncasecmp(mimeType.c_str(), "text", 4) != 0)))
 	{
 #ifdef DEBUG
-		cout << "importDialog::scan_file: stat failed" << endl;
+		cout << "importDialog::on_import_file: filtering out type " << mimeType << endl;
 #endif
-		return;
+		// It's black-listed, or not authorized and not text
+		askForAnotherFile = true;
 	}
-
-	// Is it a file or a directory ?
-	if (S_ISLNK(fileStat.st_mode))
+	else
 	{
-		cout << "importDialog::scan_file: skipping symlink" << endl;
-		return;
-	}
-	else if (S_ISDIR(fileStat.st_mode))
-	{
-		// A directory : scan it
-		DIR *pDir = opendir(fileName.c_str());
-		if (pDir == NULL)
-		{
-			return;
-		}
-
-		// Iterate through this directory's entries
-		struct dirent *pDirEntry = readdir(pDir);
-		while (pDirEntry != NULL)
-		{
-			char *pEntryName = pDirEntry->d_name;
-			if (pEntryName != NULL)
-			{
-				string location = fileName;
-				if (fileName[fileName.length() - 1] != '/')
-				{
-					location += "/";
-				}
-				location += pEntryName;
-
-				// Scan this entry
-				if ((m_maxDirLevel == 0) ||
-					(level < m_maxDirLevel))
-				{
-					++level;
-					scan_file(location, level);
-					--level;
-				}
-#ifdef DEBUG
-				else cout << "importDialog::scan_file: not going deeper than level " << level << endl;
-#endif
-			}
-
-			// Next entry
-			pDirEntry = readdir(pDir);
-		}
-		closedir(pDir);
-	}
-	else if (S_ISREG(fileStat.st_mode))
-	{
-		// Build a valid URL
-		string location = "file://";
-		location += fileName;
+		XapianIndex index(PinotSettings::getInstance().m_indexLocation);
+		IndexingThread *pThread = NULL;
+		string url("file://" + fileName);
 		string title = locale_from_utf8(m_title);
+		unsigned int docId = 0;
+
+		importProgressbar->pulse();
+		importProgressbar->set_text(to_utf8(fileName));
+
+		if (index.isGood() == true)
+		{
+			docId = index.hasDocument(url);
+		}
 
 		if (m_importDirectory == true)
 		{
-			title += " ";
+			Url urlObj(url);
+
+			if (title.empty() == false)
+			{
+				title += " ";
+			}
 			title += urlObj.getFile();
 		}
+		DocumentInfo docInfo(title, url, mimeType, "");
 
-		DocumentInfo docInfo(title, location,
-			MIMEScanner::scanFile(fileName), "");
+		if (docId > 0)
+		{
+			// This document needs updating
+			index.getDocumentInfo(docId, docInfo);
+			pThread = new IndexingThread(docInfo, docId);
+		}
+		else
+		{
+			pThread = new IndexingThread(docInfo, "");
+		}
 
-		import_file(urlObj.getFile(), docInfo);
+		// Launch the new thread
+		start_thread(pThread);
+	}
+
+	return askForAnotherFile;
+}
+
+void importDialog::on_thread_end()
+{
+	ustring status;
+
+	WorkerThread *pThread = m_state.on_thread_end();
+	if (pThread == NULL)
+	{
+		// It's likely to be a thread that was started by the main window
+#ifdef DEBUG
+		cout << "importDialog::on_thread_end: foreign thread" << endl;
+#endif
+		return;
+	}
+
+	// Any thread still running ?
+	if (m_state.has_threads() == false)
+	{
+#ifdef DEBUG
+		cout << "importDialog::on_thread_end: imported all" << endl;
+#endif
+		m_state.m_importing = false;
+	}
+
+	// What type of thread was it ?
+	string type = pThread->getType();
+	if (type == "IndexingThread")
+	{
+		// Did it succeed ?
+		if (pThread->getStatus().empty() == true)
+		{
+			// Yes, it did
+			++m_docsCount;
+		}
+
+		if (m_state.m_importing == true)
+		{
+			// Ask the scanner for another file
+			pthread_mutex_lock(&m_state.m_scanMutex);
+			pthread_cond_signal(&m_state.m_scanCondVar);
+			pthread_mutex_unlock(&m_state.m_scanMutex);
+#ifdef DEBUG
+			cout << "importDialog::on_thread_end: signaled DirectoryScannerThread" << endl;
+#endif
+		}
+	}
+
+	// Delete the thread
+	delete pThread;
+
+	do
+	{
+#ifdef DEBUG
+		cout << "importDialog::on_thread_end: UI event" << endl;
+#endif
+		Main::iteration(false);
+	} while(Main::events_pending() == true);
+
+	if (m_state.m_importing == false)
+	{
+		importProgressbar->set_text(_("Done"));
+		importProgressbar->set_fraction(1.0);
+		importButton->set_sensitive(true);
 	}
 }
 
-void importDialog::import_file(const string &fileName,
-	const DocumentInfo &docInfo)
+void importDialog::setHeight(int maxHeight)
 {
-	// Fire up the signal
-	m_signalImportFile(docInfo);
-	++m_docsCount;
-}
+	// FIXME: there must be a better way to determine how high the tree should be
+	// for all rows to be visible !
+	int rowsCount = m_refTypeList->children().size();
+	// By default, the tree is high enough for one row
+	if (rowsCount > 1)
+	{
+		int width, height;
 
-ustring importDialog::getDocumentTitle(void)
-{
-	return m_title;
+		// What's the current size ?
+		get_size(width, height);
+		// Add enough room for the rows we need to show
+		height += get_column_height(mimeTreeview) * (rowsCount - 1);
+		// Resize
+		resize(width, min(maxHeight, height));
+	}
 }
 
 unsigned int importDialog::getDocumentsCount(void)
 {
 	return m_docsCount;
-}
-
-Signal1<void, DocumentInfo> &importDialog::getImportFileSignal(void)
-{
-	return m_signalImportFile;
-}
-
-void importDialog::on_importButton_clicked()
-{
-	string location = locale_from_utf8(locationEntry->get_text());
-	unsigned int level = 0;
-
-	importButton->set_sensitive(false);
-
-	// Title
-	m_title = titleEntry->get_text();
-	// Type
-	if (typeCombobox->get_active_row_number() <= 1)
-	{
-		string::size_type pos = location.find_last_of("/");
-		if (pos != string::npos)
-		{
-			// Update m_directory
-			m_directory = location.substr(0, pos + 1);
-#ifdef DEBUG
-			cout << "importDialog::on_importButton_clicked: directory now " << m_directory << endl;
-#endif
-		}
-
-		// Maximum depth
-		m_maxDirLevel = (unsigned int)depthSpinbutton->get_value();
-
-		scan_file(location, level);
-	}
-	else
-	{
-		Url urlObj(location);
-		DocumentInfo docInfo(locale_from_utf8(m_title), location,
-			MIMEScanner::scanUrl(urlObj), "");
-
-		import_file(urlObj.getFile(), docInfo);
-	}
-}
-
-void importDialog::on_selectButton_clicked()
-{
-	ustring fileName = to_utf8(m_directory);
-
-	if (select_file_name(*this, _("Document To Import"), fileName, true, m_importDirectory) == true)
-	{
-		// Update the location
-#ifdef DEBUG
-		cout << "importDialog::on_selectButton_clicked: location is " << fileName << endl;
-#endif
-		locationEntry->set_text(fileName);
-		ustring::size_type pos = fileName.find_last_of("/");
-		if (pos != string::npos)
-		{
-			// Update m_directory
-			m_directory = locale_from_utf8(fileName.substr(0, pos + 1));
-#ifdef DEBUG
-			cout << "importDialog::on_selectButton_clicked: directory now " << m_directory << endl;
-#endif
-		}
-	}
-}
-
-void importDialog::on_locationEntry_changed()
-{
-	ustring fileName = locationEntry->get_text();
-	bool enableOk = true;
-
-	if (fileName.empty() == false)
-	{
-		unsigned int type = typeCombobox->get_active_row_number();
-
-		// Check the entry makes sense
-		if (type <= 1)
-		{
-			if (fileName[0] != '/')
-			{
-				enableOk = false;
-			}
-		}
-		else
-		{
-			Url urlObj(locale_from_utf8(fileName));
-
-			// Check the URL is valid
-			if (urlObj.getProtocol().empty() == true)
-			{
-				enableOk = false;
-			}
-			// FIXME: be more thorough
-		}
-	}
-	else
-	{
-		enableOk = false;
-	}
-
-	importButton->set_sensitive(enableOk);
 }
 
 void importDialog::on_typeCombobox_changed()
@@ -334,7 +343,150 @@ void importDialog::on_typeCombobox_changed()
 		selectLocation = false;
 	}
 
+	// See whether import should be enabled
+	on_locationEntry_changed();
+
 	// FIXME: this could also apply to URLs !
 	depthSpinbutton->set_sensitive(m_importDirectory);
-	selectButton->set_sensitive(selectLocation);
+	locationButton->set_sensitive(selectLocation);
+}
+
+void importDialog::on_locationEntry_changed()
+{
+	ustring fileName = locationEntry->get_text();
+	bool enableImport = true;
+
+	if (fileName.empty() == false)
+	{
+		unsigned int type = typeCombobox->get_active_row_number();
+
+		// Check the entry makes sense
+		if (type <= 1)
+		{
+			if (fileName[0] != '/')
+			{
+				enableImport = false;
+			}
+		}
+		else
+		{
+			Url urlObj(locale_from_utf8(fileName));
+
+			// Check the URL is valid
+			if (urlObj.getProtocol().empty() == true)
+			{
+				enableImport = false;
+			}
+			// FIXME: be more thorough
+		}
+	}
+	else
+	{
+		enableImport = false;
+	}
+
+	// Keep the button disabled as lon as we are importing
+	if (m_state.m_importing == true)
+	{
+		enableImport = false;
+	}
+	importButton->set_sensitive(enableImport);
+}
+
+void importDialog::on_locationButton_clicked()
+{
+	ustring fileName = to_utf8(m_state.m_defaultDirectory);
+
+	if (select_file_name(*this, _("Document To Import"), fileName, true, m_importDirectory) == true)
+	{
+		// Update the location
+#ifdef DEBUG
+		cout << "importDialog::on_locationButton_clicked: location is " << fileName << endl;
+#endif
+		locationEntry->set_text(fileName);
+		ustring::size_type pos = fileName.find_last_of("/");
+		if (pos != string::npos)
+		{
+			// Update the default directory
+			m_state.m_defaultDirectory = locale_from_utf8(fileName.substr(0, pos + 1));
+#ifdef DEBUG
+			cout << "importDialog::on_locationButton_clicked: directory now "
+				<< m_state.m_defaultDirectory << endl;
+#endif
+		}
+	}
+}
+
+void importDialog::on_importButton_clicked()
+{
+	string location = locale_from_utf8(locationEntry->get_text());
+	unsigned int level = 0;
+
+	// Rudimentary lock
+	if (m_state.m_importing == true)
+	{
+		return;
+	}
+	m_state.m_importing = true;
+
+	importProgressbar->set_fraction(0.0);
+	// Disable the import button
+	importButton->set_sensitive(false);
+
+	// Update the list of MIME types, based on list selection
+	m_mimeTypes.clear();
+	m_mimeTypesBlackList.clear();
+	TreeModel::Children children = m_refMimeTypeList->children();
+	if (children.empty() == false)
+	{
+		for (TreeModel::Children::iterator iter = children.begin();
+			iter != children.end(); ++iter)
+		{
+			TreeModel::Row row = *iter;
+			string mimeType(locale_from_utf8(row[m_mimeTypeColumns.m_type]));
+			bool enabled = row[m_mimeTypeColumns.m_enabled];
+
+			if (enabled == true)
+			{
+				m_mimeTypes.insert(mimeType);
+			}
+			else
+			{
+				m_mimeTypesBlackList.insert(mimeType);
+			}
+		}
+	}
+#ifdef DEBUG
+	cout << "importDialog::on_importButton_clicked: " << m_mimeTypes.size()
+		<< " types, " << m_mimeTypesBlackList.size() << " in blacklist" << endl;
+#endif
+
+	// Title
+	m_title = titleEntry->get_text();
+	// Type
+	if (typeCombobox->get_active_row_number() <= 1)
+	{
+		// Maximum depth
+		unsigned int maxDirLevel = (unsigned int)depthSpinbutton->get_value();
+
+		// Scan the directory and import all its files
+		DirectoryScannerThread *pThread = new DirectoryScannerThread(location,
+			maxDirLevel, &m_state.m_scanMutex, &m_state.m_scanCondVar);
+		pThread->getFileFoundSignal().connect(SigC::slot(*this, &importDialog::on_import_file));
+		start_thread(pThread);
+	}
+	else
+	{
+		on_import_file(location);
+	}
+#ifdef DEBUG
+	cout << "importDialog::on_importButton_clicked: done" << endl;
+#endif
+}
+
+void importDialog::on_importDialog_response(int response_id)
+{
+	// Closing the window should stop everything
+	m_state.stop_threads();
+	m_state.disconnect();
 }

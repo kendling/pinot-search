@@ -24,6 +24,7 @@
 
 #include <string>
 #include <map>
+#include <set>
 
 class TokenizerFactory
 {
@@ -46,6 +47,9 @@ class TokenizerFactory
 
 		/// Returns a Tokenizer that handles the given MIME type; NULL if unavailable.
 		static Tokenizer *getTokenizerByType(const string &type, const Document *pDocument);
+
+		/// Returns all supported MIME types.
+		static void getSupportedTypes(set<string> &types);
 
 		/// Indicates whether a MIME type is supported or not.
 		static bool isSupportedType(const string &type);

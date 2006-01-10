@@ -36,6 +36,7 @@
 #include "IndexedDocument.h"
 #include "TimeConverter.h"
 #include "Url.h"
+#include "TokenizerFactory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderFactory.h"
@@ -58,67 +59,34 @@ using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
 
-// A function object to delete pointers from a set with for_each()
-struct DeleteSetPointer
-{
-	template<typename T>
-	void operator()(const T *ptr) const
-	{
-		delete ptr;
-	}
-};
-
 // FIXME: this ought to be configurable
 unsigned int mainWindow::m_maxDocsCount = 100;
 unsigned int mainWindow::m_maxThreads = 2;
 
-mainWindow::InternalState::InternalState() :
+mainWindow::InternalState::InternalState(mainWindow *pWindow) :
+	ThreadsManager(),
 	m_liveQueryLength(0),
 	m_currentPage(0),
-	m_backgroundThreads(0),
-	m_browsingIndex(false)
+	m_browsingIndex(false),
+	m_pMainWindow(pWindow)
 {
-	pthread_rwlock_init(&m_rwLock, NULL);
 }
 
 mainWindow::InternalState::~InternalState()
 {
-	// Destroy the read/write lock
-	pthread_rwlock_destroy(&m_rwLock);
 }
 
-bool mainWindow::InternalState::readLock(unsigned int where)
+void mainWindow::InternalState::connect(void)
 {
-	if (pthread_rwlock_rdlock(&m_rwLock) == 0)
+	if (m_pMainWindow != NULL)
 	{
+		// Connect the dispatcher
+		m_threadsEndConnection = WorkerThread::getDispatcher().connect(
+			SigC::slot(*m_pMainWindow, &mainWindow::on_thread_end));
 #ifdef DEBUG
-		cout << "mainWindow::InternalState::readLock " << where << endl;
+		cout << "mainWindow::InternalState::connect: connected" << endl;
 #endif
-		return true;
 	}
-
-	return false;
-}
-
-bool mainWindow::InternalState::writeLock(unsigned int where)
-{
-	if (pthread_rwlock_wrlock(&m_rwLock) == 0)
-	{
-#ifdef DEBUG
-		cout << "mainWindow::InternalState::writeLock " << where << endl;
-#endif
-		return true;
-	}
-
-	return false;
-}
-
-void mainWindow::InternalState::unlock(void)
-{
-#ifdef DEBUG
-	cout << "mainWindow::InternalState::unlock" << endl;
-#endif
-	pthread_rwlock_unlock(&m_rwLock);
 }
 
 //
@@ -130,7 +98,8 @@ mainWindow::mainWindow() :
 	m_pNotebook(NULL),
 	m_pIndexMenu(NULL),
 	m_pLabelsMenu(NULL),
-	m_pHtmlView(NULL)
+	m_pHtmlView(NULL),
+	m_state(this)
 {
 	// Reposition and resize the window
 	// Make sure the coordinates and sizes make sense
@@ -243,8 +212,7 @@ mainWindow::mainWindow() :
 	m_tooltips.set_tip(*removeIndexButton, _("Remove index"));
 
 	// Connect to threads' finished signal
-	m_threadsEndConnection = WorkerThread::getFinishedSignal().connect(
-		SigC::slot(*this, &mainWindow::on_thread_end));
+	m_state.connect();
 
 	// FIXME: delete all "ignored" threads when exiting !!!
 	// Fire up a listener thread
@@ -276,11 +244,6 @@ mainWindow::~mainWindow()
 {
 	// Save queries
 	save_queryTreeview();
-
-	if (m_state.m_pThreads.empty() == false)
-	{
-		for_each(m_state.m_pThreads.begin(), m_state.m_pThreads.end(), DeleteSetPointer());
-	}
 
 	// Stop in case we were loading a page
 	NotebookPageBox *pNotebookPage = get_page(_("View"), NotebookPageBox::VIEW_PAGE);
@@ -636,7 +599,7 @@ void mainWindow::on_index_changed(ustring indexName)
 			SigC::slot(*this, &mainWindow::on_indexForwardButton_clicked));
 
 		// Append the page
-		if (m_state.writeLock(1) == true)
+		if (m_state.write_lock(1) == true)
 		{
 			int pageNum = m_pNotebook->append_page(*pIndexPage, *pTab);
 			m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
@@ -752,7 +715,7 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 				pPage->hide();
 			}
 		}
-		else if (m_state.writeLock(2) == true)
+		else if (m_state.write_lock(2) == true)
 		{
 			// Remove the page
 			m_pNotebook->remove_page(pageNum);
@@ -767,30 +730,9 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 //
 void mainWindow::on_thread_end()
 {
-	WorkerThread *pThread = NULL;
 	ustring status;
 
-	// Get the first thread that's finished
-	if (m_state.readLock(3) == true)
-	{
-		for (set<WorkerThread *>::iterator threadIter = m_state.m_pThreads.begin();
-			threadIter != m_state.m_pThreads.end(); ++threadIter)
-		{
-#ifdef DEBUG
-			cout << "mainWindow::on_thread_end: looking for thread" << endl;
-#endif
-			if ((*threadIter)->isDone() == true)
-			{
-				// This one will do...
-				pThread = (*threadIter);
-				// Remove it
-				m_state.m_pThreads.erase(threadIter);
-				break;
-			}
-		}
-
-		m_state.unlock();
-	}
+	WorkerThread *pThread = m_state.on_thread_end();
 	if (pThread == NULL)
 	{
 #ifdef DEBUG
@@ -801,14 +743,9 @@ void mainWindow::on_thread_end()
 #ifdef DEBUG
 	cout << "mainWindow::on_thread_end: end of thread " << pThread->getId() << endl;
 #endif
-	update_threads_status();
 
 	// What type of thread was it ?
 	string type = pThread->getType();
-	if (pThread->isBackground() == true)
-	{
-		m_state.m_backgroundThreads--;
-	}
 	// Did the thread fail for some reason ?
 	string threadStatus = pThread->getStatus();
 	if (threadStatus.empty() == false)
@@ -936,7 +873,7 @@ void mainWindow::on_thread_end()
 				SigC::slot(*this, &mainWindow::on_resultsTreeviewSelection_changed));
 
 			// Append the page
-			if (m_state.writeLock(1) == true)
+			if (m_state.write_lock(3) == true)
 			{
 				pageNum = m_pNotebook->append_page(*pResultsPage, *pTab);
 				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
@@ -1136,7 +1073,7 @@ void mainWindow::on_thread_end()
 			status += to_utf8(url);
 
 			// Update the in-progress list
-			if (m_state.writeLock(4) == true)
+			if (m_state.write_lock(4) == true)
 			{
 				set<string>::iterator urlIter = m_state.m_beingIndexed.find(url);
 				if (urlIter != m_state.m_beingIndexed.end())
@@ -1236,7 +1173,7 @@ void mainWindow::on_thread_end()
 	check_queue();
 
 	// Any threads left to return ?
-	if (get_threads_count() == 0)
+	if (m_state.get_threads_count() == 0)
 	{
 		if (m_timeoutConnection.connected() == true)
 		{
@@ -1370,20 +1307,6 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 }
 
 //
-// Message reception from importDialog
-//
-void mainWindow::on_message_import(DocumentInfo docInfo)
-{
-	string location = docInfo.getLocation();
-
-	if (location.empty() == false)
-	{
-		// Index the selected file
-		queue_index(docInfo, "");
-	}
-}
-
-//
 // Session > Configure menu selected
 //
 void mainWindow::on_configure_activate()
@@ -1403,7 +1326,7 @@ void mainWindow::on_configure_activate()
 	// FIXME: if mail accounts are configured, make sure the MonitorThread
 	// is running and knows about the new accounts
 
-	if (m_state.readLock(5) == true)
+	if (m_state.read_lock(2) == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -1819,13 +1742,35 @@ void mainWindow::on_indexresults_activate()
 //
 void mainWindow::on_import_activate()
 {
-	importDialog importBox(_("Import Document(s)"));
+	set<string> mimeTypes;
+	int width, height;
 
-	importBox.getImportFileSignal().connect(SigC::slot(*this,
-		&mainWindow::on_message_import));
+	TokenizerFactory::getSupportedTypes(mimeTypes);
+	get_size(width, height);
+
+	m_state.disconnect();
+
+	importDialog importBox(_("Import Document(s)"), mimeTypes);
+	importBox.setHeight(height / 2);
 	importBox.show();
 	importBox.run();
-	// Let the signal handler deal with importing stuff
+
+	m_state.connect();
+
+	// Was anything imported ?
+	if (importBox.getDocumentsCount() > 0)
+	{
+		ustring indexName(_("My Documents"));
+
+		// Is the index still being shown ?
+		IndexTree *pIndexTree = NULL;
+		NotebookPageBox *pPage = get_page(indexName, NotebookPageBox::INDEX_PAGE);
+		if (pPage != NULL)
+		{
+			// Refresh
+			browse_index(indexName, 0);
+		}
+	}
 }
 
 //
@@ -2463,9 +2408,9 @@ bool mainWindow::on_queryTreeview_button_press_event(GdkEventButton *ev)
 bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 {
 	// Any thread still running ?
-	if (get_threads_count() > 0)
+	if (m_state.get_threads_count() > 0)
 	{
-		ustring boxTitle = _("At least one background task hasn't been completed yet. Quit now ?");
+		ustring boxTitle = _("At least one task hasn't completed yet. Quit now ?");
 		MessageDialog msgDialog(boxTitle, false, MESSAGE_QUESTION, BUTTONS_YES_NO);
 		msgDialog.set_transient_for(*this);
 		msgDialog.show();
@@ -2475,30 +2420,10 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 			return true;
 		}
 
-		if (m_state.readLock(6) == true)
-		{
-			for (set<WorkerThread *>::iterator threadIter = m_state.m_pThreads.begin();
-				threadIter != m_state.m_pThreads.end(); ++threadIter)
-			{
-#ifdef DEBUG
-				cout << "mainWindow::on_mainWindow_delete_event: stopping thread "
-					<< (*threadIter)->getId() << endl;
-#endif
-				// Stop all non-background threads
-				if ((*threadIter)->isBackground() == false)
-				{
-					// FIXME: what if one thread doesn't stop ? can it corrupt anything ?
-					(*threadIter)->stop();
-				}
-			}
-
-			m_state.unlock();
-		}
+		m_state.stop_threads();
 	}
-
 	// Disconnect the threads' finished signal
-	m_threadsEndConnection.block();
-	m_threadsEndConnection.disconnect();
+	m_state.disconnect();
 
 	// Save the window's position and dimensions now
 	// Don't worry about the gravity, it hasn't been changed
@@ -2520,7 +2445,7 @@ NotebookPageBox *mainWindow::get_current_page(void)
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
-	if (m_state.readLock(7) == true)
+	if (m_state.read_lock(4) == true)
 	{
 		Widget *pPage = m_pNotebook->get_nth_page(m_pNotebook->get_current_page());
 		if (pPage != NULL)
@@ -2541,7 +2466,7 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
-	if (m_state.readLock(8) == true)
+	if (m_state.read_lock(5) == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -2578,7 +2503,7 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 {
 	int pageNumber = -1;
 
-	if (m_state.readLock(9) == true)
+	if (m_state.read_lock(6) == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -2614,9 +2539,9 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 bool mainWindow::queue_index(const DocumentInfo &docInfo,
 	const string &labelName, unsigned int docId)
 {
-	if (get_threads_count() >= m_maxThreads)
+	if (m_state.get_threads_count() >= m_maxThreads)
 	{
-		if (m_state.writeLock(50) == true)
+		if (m_state.write_lock(5) == true)
 		{
 			m_state.m_indexQueue[docInfo] = labelName;
 
@@ -2927,7 +2852,7 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 			docId = index.hasDocument(url);
 		}
 		if ((docId == 0) &&
-			(m_state.writeLock(10) == true))
+			(m_state.write_lock(6) == true))
 		{
 			if (m_state.m_beingIndexed.find(url) == m_state.m_beingIndexed.end())
 			{
@@ -3039,7 +2964,7 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 				pViewPage = manage(new ViewPage(viewName, m_pHtmlView, m_settings));
 
 				// Append the page
-				if (m_state.writeLock(1) == true)
+				if (m_state.write_lock(7) == true)
 				{
 					pageNum = m_pNotebook->append_page(*pViewPage, *pTab);
 					m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
@@ -3074,47 +2999,14 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 //
 // Start of worker thread
 //
-void mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
+bool mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 {
-	static unsigned int nextId = 1;
-	bool insertedThread = false;
-
-	if (pNewThread == NULL)
+	if (m_state.start_thread(pNewThread, inBackground) == false)
 	{
-		return;
-	}
-
-	pNewThread->setId(nextId);
-	if (m_state.writeLock(11) == true)
-	{
-		pair<set<WorkerThread *>::iterator, bool> insertPair = m_state.m_pThreads.insert(pNewThread);
-		insertedThread = insertPair.second;
-
-		m_state.unlock();
-	}
-
-	// Was it inserted ?
-	if (insertedThread == false)
-	{
-		// No, it wasn't : delete the object and return
-		cerr << "mainWindow::start_thread: couldn't start "
-			<< pNewThread->getType() << " " << pNewThread->getId() << endl;
+		// Delete the object
 		delete pNewThread;
-
-		return;
+		return false;
 	}
-
-	// Start the thread
-#ifdef DEBUG
-	cout << "mainWindow::start_thread: start of " << pNewThread->getType()
-		<< " " << pNewThread->getId() << endl;
-#endif
-	if (inBackground == true)
-	{
-		pNewThread->inBackground();
-		++m_state.m_backgroundThreads;
-	}
-	pNewThread->start();
 
 	if (inBackground == false)
 	{
@@ -3124,10 +3016,9 @@ void mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 		m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
 			&mainWindow::on_activity_timeout), 1000);
 		m_timeoutConnection.unblock();
-		// Update the status
-		update_threads_status();
 	}
-	++nextId;
+
+	return true;
 }
 
 //
@@ -3135,7 +3026,7 @@ void mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 //
 bool mainWindow::check_queue(void)
 {
-	if (get_threads_count() >= m_maxThreads)
+	if (m_state.get_threads_count() >= m_maxThreads)
 	{
 #ifdef DEBUG
 		cout << "mainWindow::check_queue: too many threads" << endl;
@@ -3146,7 +3037,7 @@ bool mainWindow::check_queue(void)
 	DocumentInfo docInfo;
 	string labelName;
 
-	if (m_state.writeLock(12) == true)
+	if (m_state.write_lock(9) == true)
 	{
 		if (m_state.m_indexQueue.empty() == false)
 		{
@@ -3191,52 +3082,6 @@ bool mainWindow::check_queue(void)
 }
 
 //
-// Returns the number of non-background threads.
-//
-unsigned int mainWindow::get_threads_count(void)
-{
-	int count = 0;
-
-	if (m_state.readLock(13) == true)
-	{
-		count = m_state.m_pThreads.size() - m_state.m_backgroundThreads;
-		m_state.unlock();
-	}
-#ifdef DEBUG
-	cout << "mainWindow::get_threads_count: " << count << " threads left" << endl;
-#endif
-
-	// A negative count would mean that a background thread returned
-	// without the main thread knowing about it
-	return (unsigned int)max(count , 0);
-}
-
-//
-// Updates the threads status text.
-//
-void mainWindow::update_threads_status(void)
-{
-	ustring text;
-	unsigned int threads = get_threads_count();
-
-	// Update the threads status text for the next call to set_status()
-	if (threads > 0)
-	{
-		char countStr[64];
-		snprintf(countStr, 64, "%d", threads);
-		text = countStr;
-		text += " ";
-		text += _("task(s) running");
-		text += " - ";
-		m_threadStatusText = text;
-	}
-	else
-	{
-		m_threadStatusText = "";
-	}
-}
-
-//
 // Sets the status bar text.
 //
 void mainWindow::set_status(const ustring &text, bool canBeSkipped)
@@ -3252,11 +3097,22 @@ void mainWindow::set_status(const ustring &text, bool canBeSkipped)
 	}
 	lastTime = now;
 	
+	unsigned int threadsCount = m_state.get_threads_count();
+	if (threadsCount > 0)
+	{
+		char threadsCountStr[64];
+
+		snprintf(threadsCountStr, 64, "%u", threadsCount);
+		// Display the number of threads
+		mainProgressbar->set_text(threadsCountStr);
+	}
+	else
+	{
+		// Reset
+		mainProgressbar->set_text("");
+	}
 	// Pop the previous message
 	mainStatusbar->pop();
-	// Append the new message to the threads status text
-	ustring newText = m_threadStatusText;
-	newText += text;
 	// Push
-	mainStatusbar->push(newText);
+	mainStatusbar->push(text);
 }

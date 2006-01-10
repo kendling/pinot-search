@@ -1,19 +1,25 @@
-// generated 2004/3/6 14:15:21 GMT by fabrice@amra.dyndns.org.(none)
-// using glademm V2.0.0
-//
-// newer (non customized) versions of this file go to importDialog.hh_new
-
-// you might replace
-//    class foo : public foo_glade { ... };
-// by
-//    typedef foo_glade foo;
-// if you didn't make any modifications to the widget
+/*
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
 
 #ifndef _IMPORTDIALOG_HH
 #define _IMPORTDIALOG_HH
 
 #include <string>
-#include <vector>
+#include <set>
+#include <pthread.h>
 #include <sigc++/slot.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
@@ -22,6 +28,7 @@
 
 #include "DocumentInfo.h"
 #include "ModelColumns.h"
+#include "WorkerThreads.h"
 #include "importDialog_glade.hh"
 
 class importDialog : public importDialog_glade
@@ -29,37 +36,57 @@ class importDialog : public importDialog_glade
 public:
 	/// Open the dialog box in import mode.
 	importDialog(const Glib::ustring &title,
-		bool selectTitle = true, bool selectDepth = true,
-		bool allowLocalOnly = false);
+		const std::set<std::string> &mimeTypes);
 	virtual ~importDialog();
 
-	Glib::ustring getDocumentTitle(void);
+	void setHeight(int maxHeight);
 
 	unsigned int getDocumentsCount(void);
 
-	/// Returns the import file signal.
-	SigC::Signal1<void, DocumentInfo>& getImportFileSignal(void);
-
 protected:
-	void populate_combobox(bool allowLocalOnly);
-	void scan_file(const std::string &fileName, unsigned int &level);
-	void import_file(const std::string &fileName,
-		const DocumentInfo &docInfo);
+	void populate_typeCombobox(bool localOnly);
+	void populate_mimeTreeview(void);
+	bool start_thread(WorkerThread *pNewThread);
+
+	bool on_import_file(const std::string &fileName);
+	void on_thread_end(void);
 
 private:
+	std::set<std::string> m_mimeTypes;
+	std::set<std::string> m_mimeTypesBlackList;
 	ComboModelColumns m_typeColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refTypeList;
 	Glib::ustring m_title;
 	unsigned int m_docsCount;
 	bool m_importDirectory;
-	unsigned int m_maxDirLevel;
-	SigC::Signal1<void, DocumentInfo> m_signalImportFile;
-	static std::string m_directory;
+	TypeModelColumns m_mimeTypeColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refMimeTypeList;
+	// Internal state
+	class InternalState : public ThreadsManager
+	{
+		public:
+			InternalState(importDialog *pWindow);
+			~InternalState();
 
-	virtual void on_importButton_clicked();
-	virtual void on_selectButton_clicked();
-	virtual void on_locationEntry_changed();
+			void connect(void);
+
+			// Directory scanning
+			bool m_importing;
+			pthread_mutex_t m_scanMutex;
+			pthread_cond_t m_scanCondVar;
+			// The default directory
+			static std::string m_defaultDirectory;
+
+		protected:
+			importDialog *m_pImportWindow;
+
+	} m_state;
+
 	virtual void on_typeCombobox_changed();
+	virtual void on_locationEntry_changed();
+	virtual void on_locationButton_clicked();
+	virtual void on_importButton_clicked();
+	virtual void on_importDialog_response(int response_id);
 
 };
 

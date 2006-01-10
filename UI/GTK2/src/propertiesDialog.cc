@@ -1,14 +1,21 @@
-// generated 2004/8/13 22:59:43 BST by fabrice@amra.dyndns.org.(none)
-// using glademm V2.6.0_cvs
-//
-// newer (non customized) versions of this file go to propertiesDialog.cc_new
-
-// This file is for your program, I won't touch it again!
+/*
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
 
 #include <iostream>
-#include <glibmm/convert.h>
-#include <pangomm/font.h>
-#include <gtkmm/rc.h>
+#include <utility>
 
 #include "config.h"
 #include "NLS.h"
@@ -18,7 +25,6 @@
 
 using namespace std;
 using namespace Glib;
-using namespace Gdk;
 using namespace Gtk;
 
 propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
@@ -100,41 +106,18 @@ void propertiesDialog::setHeight(int maxHeight)
 {
 	// FIXME: there must be a better way to determine how high the tree should be
 	// for all rows to be visible !
-	int labelsCount = m_refLabelsTree->children().size();
-	// By default, the tree is high enough for two rows to be visible
-	if (labelsCount > 2)
+	int rowsCount = m_refLabelsTree->children().size();
+	// By default, the tree is high enough for two rows
+	if (rowsCount > 2)
 	{
 		int width, height;
+
+		// What's the current size ?
 		get_size(width, height);
-
-		RefPtr<Style> refRCStyle = RC::get_style(*labelsTreeview);
-		int fontSize = refRCStyle->get_font().get_size() / Pango::SCALE;
-#ifdef DEBUG
-		cout << "propertiesDialog::setHeight: max " << maxHeight << ", dialog " << height
-			<< ", font " << fontSize << " " << refRCStyle->get_font().get_size() << endl;
-#endif
-		height += fontSize * (labelsCount - 2);
-
-		TreeViewColumn *pColumn = labelsTreeview->get_column(1);
-		if (pColumn != NULL)
-		{
-			Rectangle cell_area;
-			int x_offset, y_offset, cellWidth, cellHeight;
-			pColumn->cell_get_size(cell_area, x_offset, y_offset, cellWidth, cellHeight);
-#ifdef DEBUG
-			cout << "propertiesDialog::setHeight: cell " << cellHeight << " " << y_offset << endl;
-#endif
-			height += cellHeight * (labelsCount - 2);
-		}
-#ifdef DEBUG
-		cout << "propertiesDialog::setHeight: dialog " << height << endl;
-#endif
-
-		if (height > maxHeight)
-		{
-			height = maxHeight;
-		}
-		resize(width, height);
+		// Add enough room for the rows we need to show
+		height += get_column_height(labelsTreeview) * (rowsCount - 2);
+		// Resize
+		resize(width, min(maxHeight, height));
 	}
 }
 

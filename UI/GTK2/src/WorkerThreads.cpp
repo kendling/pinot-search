@@ -15,6 +15,7 @@
  */
 
 #include <sys/types.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -51,14 +52,28 @@ using namespace SigC;
 using namespace Glib;
 using namespace std;
 
-// The Dispatcher object used to signal the UI thread
-Dispatcher WorkerThread::m_signalFinished;
-
-WorkerThread::WorkerThread()
+// A function object to delete pointers from a set with for_each()
+struct DeleteSetPointer
 {
-	m_id = 0;
-	m_background = m_done = false;
-	m_status = "";
+	template<typename T>
+	void operator()(const T *ptr) const
+	{
+		delete ptr;
+	}
+};
+
+Dispatcher WorkerThread::m_dispatcher;
+
+Dispatcher &WorkerThread::getDispatcher(void)
+{
+	return m_dispatcher;
+}
+
+WorkerThread::WorkerThread() :
+	m_id(0),
+	m_background(false),
+	m_done(false)
+{
 }
 
 WorkerThread::~WorkerThread()
@@ -90,11 +105,6 @@ bool WorkerThread::operator<(const WorkerThread &other) const
 	return m_id < other.m_id;
 }
 
-Dispatcher& WorkerThread::getFinishedSignal()
-{
-	return m_signalFinished;
-}
-
 bool WorkerThread::isDone(void) const
 {
 	return m_done;
@@ -116,7 +126,193 @@ void WorkerThread::emitSignal(void)
 	cout << "WorkerThread::emitSignal: end of thread " << m_id << endl;
 #endif
 	m_done = true;
-	m_signalFinished.emit();
+	m_dispatcher.emit();
+}
+
+ThreadsManager::ThreadsManager() :
+	m_nextId(1),
+	m_backgroundThreadsCount(0)
+{
+	pthread_rwlock_init(&m_rwLock, NULL);
+}
+
+ThreadsManager::~ThreadsManager()
+{
+	if (m_threads.empty() == false)
+	{
+		for_each(m_threads.begin(), m_threads.end(), DeleteSetPointer());
+	}
+	// Destroy the read/write lock
+	pthread_rwlock_destroy(&m_rwLock);
+}
+
+bool ThreadsManager::read_lock(unsigned int where)
+{
+	if (pthread_rwlock_rdlock(&m_rwLock) == 0)
+	{
+#ifdef DEBUG
+		cout << "ThreadsManager::read_lock " << where << endl;
+#endif
+		return true;
+	}
+
+	return false;
+}
+
+bool ThreadsManager::write_lock(unsigned int where)
+{
+	if (pthread_rwlock_wrlock(&m_rwLock) == 0)
+	{
+#ifdef DEBUG
+		cout << "ThreadsManager::write_lock " << where << endl;
+#endif
+		return true;
+	}
+
+	return false;
+}
+
+void ThreadsManager::unlock(void)
+{
+#ifdef DEBUG
+	cout << "ThreadsManager::unlock" << endl;
+#endif
+	pthread_rwlock_unlock(&m_rwLock);
+}
+
+WorkerThread *ThreadsManager::on_thread_end(void)
+{
+	WorkerThread *pThread = NULL;
+
+	// Get the first thread that's finished
+	if (read_lock(1) == true)
+	{
+		for (set<WorkerThread *>::iterator threadIter = m_threads.begin();
+			threadIter != m_threads.end(); ++threadIter)
+		{
+			if ((*threadIter)->isDone() == true)
+			{
+				// This one will do...
+				pThread = (*threadIter);
+				// Remove it
+				m_threads.erase(threadIter);
+				break;
+			}
+#ifdef DEBUG
+			cout << "ThreadsManager::on_thread_end: thread "
+				<< (*threadIter)->getId() << " is not done" << endl;
+#endif
+		}
+
+		unlock();
+	}
+
+	if (pThread == NULL)
+	{
+		return NULL;
+	}
+
+	if (pThread->isBackground() == true)
+	{
+		--m_backgroundThreadsCount;
+	}
+
+	return pThread;
+}
+
+bool ThreadsManager::start_thread(WorkerThread *pNewThread, bool inBackground)
+{
+	bool insertedThread = false;
+
+	if (pNewThread == NULL)
+	{
+		return false;
+	}
+
+	pNewThread->setId(m_nextId);
+	if (write_lock(2) == true)
+	{
+		pair<set<WorkerThread *>::iterator, bool> insertPair = m_threads.insert(pNewThread);
+		insertedThread = insertPair.second;
+
+		unlock();
+	}
+
+	// Was it inserted ?
+	if (insertedThread == false)
+	{
+		// No, it wasn't
+#ifdef DEBUG
+		cout << "ThreadsManager::start_thread: couldn't start "
+			<< pNewThread->getType() << endl;
+#endif
+		return false;
+	}
+
+	// Start the thread
+	if (inBackground == true)
+	{
+		pNewThread->inBackground();
+		++m_backgroundThreadsCount;
+	}
+	pNewThread->start();
+	++m_nextId;
+
+	return true;
+}
+
+unsigned int ThreadsManager::get_threads_count(void)
+{
+	int count = 0;
+
+	if (read_lock(3) == true)
+	{
+		count = m_threads.size() - m_backgroundThreadsCount;
+
+		unlock();
+	}
+#ifdef DEBUG
+	cout << "ThreadsManager::get_threads_count: " << count << " threads left" << endl;
+#endif
+
+	// A negative count would mean that a background thread
+	// exited without signaling
+	return (unsigned int)max(count , 0);
+}
+
+bool ThreadsManager::has_threads(void)
+{
+	if (m_threads.empty() == true)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void ThreadsManager::stop_threads(void)
+{
+	if (read_lock(4) == true)
+	{
+		for (set<WorkerThread *>::iterator threadIter = m_threads.begin();
+			threadIter != m_threads.end(); ++threadIter)
+		{
+			// Stop all threads
+			// FIXME: what if one thread doesn't stop ?
+			(*threadIter)->stop();
+		}
+
+		unlock();
+	}
+}
+
+void ThreadsManager::disconnect(void)
+{
+	m_threadsEndConnection.block();
+	m_threadsEndConnection.disconnect();
+#ifdef DEBUG
+	cout << "ThreadsManager::disconnect: disconnected" << endl;
+#endif
 }
 
 IndexBrowserThread::IndexBrowserThread(const string &indexName,
@@ -240,9 +436,7 @@ void IndexBrowserThread::do_browsing()
 			IndexedDocument indexedDoc(docInfo.getTitle(), url, docInfo.getLocation(),
 				type, docInfo.getLanguage());
 			indexedDoc.setTimestamp(date);
-#ifdef DEBUG
-			cout << "IndexBrowserThread::do_browsing: timestamp for " << docId << " is " << date << endl;
-#endif
+
 			// Signal
 			m_signalUpdate(indexedDoc, docId, m_indexName);
 			++numDocs;
@@ -1157,10 +1351,11 @@ void ListenerThread::do_listening()
 		while (m_done == false)
 		{
 			int fdCount = select(fd + 1, &listenSet, NULL, NULL, NULL);
-			if (fdCount < 0)
+			if ((fdCount < 0) &&
+				(errno != EINTR))
 			{
 #ifdef DEBUG
-				perror("ListenerThread::do_listening: select() failed");
+				cout << "ListenerThread::do_listening: select() failed" << endl;
 #endif
 				break;
 			}
@@ -1338,24 +1533,22 @@ void MonitorThread::do_monitoring()
 		selectTimeout.tv_usec = 0;
 
 		int fdCount = select(fd + 1, &listenSet, NULL, NULL, &selectTimeout);
-		if (fdCount < 0)
+		if ((fdCount < 0) &&
+			(errno != EINTR))
 		{
 #ifdef DEBUG
-			perror("MonitorThread::do_monitoring: select() failed");
+			cout << "MonitorThread::do_monitoring: select() failed" << endl;
 #endif
 			break;
 		}
 		else if (FD_ISSET(fd, &listenSet))
 		{
-#ifdef DEBUG
-			cout << "MonitorThread::do_monitoring: select() returned" << endl;
-#endif
 			// There might be more than one event waiting...
 			int pendingEvents = FAMPending(&famConn);
 			if (pendingEvents < 0)
 			{
 #ifdef DEBUG
-				perror("MonitorThread::do_monitoring: FAMPending() failed");
+				cout << "MonitorThread::do_monitoring: FAMPending() failed" << endl;
 #endif
 				break;
 			}
@@ -1462,13 +1655,180 @@ void MonitorThread::do_monitoring()
 			setLocationsToMonitor = true;
 		}
 	}
-#ifdef DEBUG
-	cout << "MonitorThread::do_monitoring: quitting..." << endl;
-#endif
 
 	// Stop monitoring and close the connection
 	FAMCancelMonitor(&famConn, &famReq);
 	FAMClose(&famConn);
+
+	emitSignal();
+}
+
+DirectoryScannerThread::DirectoryScannerThread(const std::string &dirName,
+			unsigned int maxLevel, pthread_mutex_t *pMutex,
+			pthread_cond_t *pCondVar) :
+	WorkerThread(),
+	m_dirName(dirName),
+	m_maxLevel(maxLevel),
+	m_pMutex(pMutex),
+	m_pCondVar(pCondVar)
+{
+}
+
+DirectoryScannerThread::~DirectoryScannerThread()
+{
+}
+
+bool DirectoryScannerThread::start(void)
+{
+	// Create a non-joinable thread
+	Thread::create(slot_class(*this, &DirectoryScannerThread::do_scanning), false);
+
+	return true;
+}
+
+string DirectoryScannerThread::getType(void) const
+{
+	return "DirectoryScannerThread";
+}
+
+bool DirectoryScannerThread::stop(void)
+{
+	m_done = true;
+	m_status = _("Stopped scanning ");
+	m_status += " ";
+	m_status += m_dirName;
+
+	return true;
+}
+
+Signal1<bool, const string&>& DirectoryScannerThread::getFileFoundSignal(void)
+{
+	return m_signalFileFound;
+}
+
+void DirectoryScannerThread::found_file(const string &fileName)
+{
+	if (fileName.empty() == true)
+	{
+		return;
+	}
+
+	if ((m_pMutex != NULL) &&
+		(m_pCondVar != NULL) &&
+		(pthread_mutex_lock(m_pMutex) == 0))
+	{
+		if (m_signalFileFound(fileName) == true)
+		{
+			// Another file is needed right now
+			pthread_mutex_unlock(m_pMutex);
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "DirectoryScannerThread::found_file: waiting" << endl;
+#endif
+			// Don't resume until signaled
+			pthread_cond_wait(m_pCondVar, m_pMutex);
+			pthread_mutex_unlock(m_pMutex);
+#ifdef DEBUG
+			cout << "DirectoryScannerThread::found_file: signaled" << endl;
+#endif
+		}
+	}
+}
+
+void DirectoryScannerThread::do_scanning()
+{
+	struct stat fileStat;
+
+	if ((m_dirName.empty() == true) ||
+		(lstat(m_dirName.c_str(), &fileStat) == -1))
+	{
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::do_scanning: stat failed" << endl;
+#endif
+		return;
+	}
+
+	// Is it a file or a directory ?
+	if (S_ISLNK(fileStat.st_mode))
+	{
+		// Don't follow
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::do_scanning: skipping symlink" << endl;
+#endif
+		return;
+	}
+	else if (S_ISREG(fileStat.st_mode))
+	{
+		// It's actually a file
+		found_file(m_dirName);
+	}
+	else if (S_ISDIR(fileStat.st_mode))
+	{
+		// A directory : scan it
+		DIR *pDir = opendir(m_dirName.c_str());
+		if (pDir == NULL)
+		{
+			return;
+		}
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::do_scanning: entering " << m_dirName << endl;
+#endif
+
+		// Iterate through this directory's entries
+		struct dirent *pDirEntry = readdir(pDir);
+		while ((m_done == false) &&
+			(pDirEntry != NULL))
+		{
+			char *pEntryName = pDirEntry->d_name;
+			if (pEntryName != NULL)
+			{
+				string entryName = m_dirName;
+				if (m_dirName[m_dirName.length() - 1] != '/')
+				{
+					entryName += "/";
+				}
+				entryName += pEntryName;
+
+				// Skip . .. and dotfiles
+				Url urlObj("file://" + entryName);
+				if ((urlObj.getFile() == ".") ||
+					(urlObj.getFile() == "..") ||
+					(urlObj.getFile()[0] == '.') ||
+					(lstat(entryName.c_str(), &fileStat) == -1))
+				{
+					// Next entry
+					pDirEntry = readdir(pDir);
+					continue;
+				}
+
+#ifdef DEBUG
+				cout << "DirectoryScannerThread::do_scanning: stat'ing " << entryName << endl;
+#endif
+				// File or directory
+				if (S_ISREG(fileStat.st_mode))
+				{
+					found_file(entryName);
+				}
+				else if (S_ISDIR(fileStat.st_mode))
+				{
+					// Can we scan this directory ?
+					if (m_currentLevel + 1 < m_maxLevel)
+					{
+						++m_currentLevel;
+						m_dirName = entryName;
+						do_scanning();
+						--m_currentLevel;
+					}
+				}
+			}
+
+			// Next entry
+			pDirEntry = readdir(pDir);
+		}
+		closedir(pDir);
+	}
 
 	emitSignal();
 }

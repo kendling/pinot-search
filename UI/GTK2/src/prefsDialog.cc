@@ -1,9 +1,18 @@
-// generated 2003/5/18 21:15:37 BST by fabrice@amra.dyndns.org.(none)
-// using glademm V2.0.0
-//
-// newer (non customized) versions of this file go to prefsDialog.cc_new
-
-// This file is for your program, I won't touch it again!
+/*
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
 
 #include <stdlib.h>
 #include <iostream>
@@ -20,7 +29,6 @@
 #include "config.h"
 #include "NLS.h"
 #include "PinotUtils.h"
-#include "importDialog.hh"
 #include "prefsDialog.hh"
 
 using namespace std;
@@ -281,33 +289,6 @@ bool prefsDialog::save_mailTreeview()
 	return true;
 }
 
-void prefsDialog::on_message_import(DocumentInfo docInfo)
-{
-	Url urlObj(docInfo.getLocation());
-	string mimeType = docInfo.getType();
-
-	if ((urlObj.getProtocol() == "file") &&
-		(mimeType == "text/x-mail"))
-	{
-		string fileName = urlObj.getLocation();
-		fileName += "/";
-		fileName += urlObj.getFile();
-
-		// Create a new entry in the mail accounts list
-		TreeModel::iterator iter = m_refMailTree->append();
-		TreeModel::Row row = *iter;
-
-		row[m_mailColumns.m_location] = to_utf8(fileName);
-		row[m_mailColumns.m_type] = to_utf8(mimeType);
-		row[m_mailColumns.m_mTime] = 0;
-		row[m_mailColumns.m_minDate] = 0;
-	}
-
-	// Enable these buttons
-	editAccountButton->set_sensitive(true);
-	removeAccountButton->set_sensitive(true);
-}
-
 void prefsDialog::on_prefsOkbutton_clicked()
 {
 	// Synchronise widgets with settings
@@ -448,13 +429,34 @@ bool prefsDialog::on_mailTreeview_button_press_event(GdkEventButton *ev)
 
 void prefsDialog::on_addAccountButton_clicked()
 {
-	importDialog importBox(_("Import Mail Box(es)"), false, true, true);
+	ustring fileName;
 
-	importBox.getImportFileSignal().connect(SigC::slot(*this,
-		&prefsDialog::on_message_import));
-	importBox.show();
-	importBox.run();
-	// Let the signal handler deal with importing mail accounts
+	TreeModel::Children children = m_refMailTree->children();
+	bool wasEmpty = children.empty();
+
+	if (select_file_name(*this, _("Mbox File Location"), fileName, true) == true)
+	{
+		string mimeType = MIMEScanner::scanFile(fileName);
+
+		if (mimeType == "text/x-mail")
+		{
+			// Create a new entry in the mail accounts list
+			TreeModel::iterator iter = m_refMailTree->append();
+			TreeModel::Row row = *iter;
+	
+			row[m_mailColumns.m_location] = to_utf8(fileName);
+			row[m_mailColumns.m_type] = to_utf8(mimeType);
+			row[m_mailColumns.m_mTime] = 0;
+			row[m_mailColumns.m_minDate] = 0;
+
+			if (wasEmpty == true)
+			{
+				// Enable these buttons
+				editAccountButton->set_sensitive(true);
+				removeAccountButton->set_sensitive(true);
+			}
+		}
+	}
 }
 
 void prefsDialog::on_editAccountButton_clicked()

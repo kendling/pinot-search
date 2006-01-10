@@ -20,7 +20,6 @@
 #include <string>
 #include <map>
 #include <set>
-#include <pthread.h>
 #include <sigc++/connection.h>
 #include <glibmm/refptr.h>
 #include <gdkmm/pixbuf.h>
@@ -73,7 +72,6 @@ protected:
 	void on_editindex(Glib::ustring indexName, Glib::ustring location);
 	void on_message_reception(DocumentInfo docInfo, std::string labelName);
 	void on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, std::string indexName);
-	void on_message_import(DocumentInfo docInfo);
 
 	// Handlers inherited from the base class
 	virtual void on_configure_activate();
@@ -130,19 +128,14 @@ protected:
 	void index_document(const DocumentInfo &docInfo, const std::string &labelName,
 		unsigned int docId = 0);
 	bool view_document(const std::string &url, bool internalViewerOnly = false);
-	void start_thread(WorkerThread *pNewThread, bool inBackground = false);
+	bool start_thread(WorkerThread *pNewThread, bool inBackground = false);
 	bool check_queue(void);
 
 	// Status methods
 	bool on_activity_timeout(void);
-	unsigned int get_threads_count(void);
-	void update_threads_status(void);
 	void set_status(const Glib::ustring &text, bool canBeSkipped = false);
 
 private:
-	// Threads
-	SigC::Connection m_threadsEndConnection;
-	Glib::ustring m_threadStatusText;
 	// Global settings
 	PinotSettings &m_settings;
 	// Engine
@@ -167,23 +160,18 @@ private:
 	// Activity timeout
 	SigC::Connection m_timeoutConnection;
 	// Internal state
-	struct InternalState
+	class InternalState : public ThreadsManager
 	{
 		public:
-			InternalState();
+			InternalState(mainWindow *pWindow);
 			~InternalState();
 
-			bool readLock(unsigned int where);
-			bool writeLock(unsigned int where);
-			void unlock(void);
+			void connect(void);
 
 			// Query
 			unsigned int m_liveQueryLength;
 			// Notebook pages
 			int m_currentPage;
-			// Worker threads
-			std::set<WorkerThread *> m_pThreads;
-			unsigned int m_backgroundThreads;
 			// In-progress actions
 			std::set<std::string> m_beingIndexed;
 			bool m_browsingIndex;
@@ -191,8 +179,7 @@ private:
 			std::map<DocumentInfo, string> m_indexQueue;
 
 		protected:
-			// Read/write lock
-			pthread_rwlock_t m_rwLock;
+			mainWindow *m_pMainWindow;
 
 	} m_state;
 	static unsigned int m_maxDocsCount;

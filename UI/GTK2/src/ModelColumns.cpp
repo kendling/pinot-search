@@ -119,3 +119,13 @@ MailAccountModelColumns::MailAccountModelColumns()
 MailAccountModelColumns::~MailAccountModelColumns()
 {
 }
+
+TypeModelColumns::TypeModelColumns()
+{
+	add(m_enabled);
+	add(m_type);
+}
+
+TypeModelColumns::~TypeModelColumns()
+{
+}

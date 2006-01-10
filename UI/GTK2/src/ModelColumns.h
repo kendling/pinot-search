@@ -150,4 +150,16 @@ public:
 
 };
 
+/// Import window, model column for the types tree.
+class TypeModelColumns : public Gtk::TreeModel::ColumnRecord
+{
+public:
+	TypeModelColumns();
+	virtual ~TypeModelColumns();
+
+	Gtk::TreeModelColumn<bool> m_enabled;
+	Gtk::TreeModelColumn<Glib::ustring> m_type;
+
+};
+
 #endif // _MODELCOLUMNS_HH

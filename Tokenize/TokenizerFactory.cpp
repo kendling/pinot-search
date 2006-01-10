@@ -148,7 +148,7 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 				if ((stat(fileName.c_str(), &fileStat) == 0) &&
 					(S_ISREG(fileStat.st_mode)))
 				{
-					void *pHandle = dlopen(fileName.c_str(), RTLD_LAZY);
+					void *pHandle = dlopen(fileName.c_str(), RTLD_LAZY|RTLD_LOCAL);
 					if (pHandle != NULL)
 					{
 						// What type does this support ?
@@ -177,6 +177,9 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 						else cout << "TokenizerFactory::loadTokenizers: couldn't find export getTokenizerType" << endl;
 #endif
 					}
+#ifdef DEBUG
+					else cout << "TokenizerFactory::loadTokenizers: couldn't open " << fileName << endl;
+#endif
 				}
 #ifdef DEBUG
 				else cout << "TokenizerFactory::loadTokenizers: "
@@ -262,6 +265,19 @@ Tokenizer *TokenizerFactory::getTokenizerByType(const string &type, const Docume
 	return pTokenizer;
 }
 
+void TokenizerFactory::getSupportedTypes(set<string> &types)
+{
+	types.clear();
+
+	// List supported types
+	types.insert("text/plain");
+	types.insert("text/html");
+	for (map<string, string>::iterator iter = m_types.begin(); iter != m_types.end(); ++iter)
+	{
+		types.insert(iter->first);
+	}
+}
+
 bool TokenizerFactory::isSupportedType(const string &type)
 {
 	string typeOnly = type;
@@ -292,4 +308,3 @@ bool TokenizerFactory::isSupportedType(const string &type)
 
 	return false;
 }
-

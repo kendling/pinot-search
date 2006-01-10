@@ -15,6 +15,8 @@
  */
 
 #include <iostream>
+#include <pangomm/font.h>
+#include <gtkmm/rc.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/filechooserdialog.h>
 
@@ -27,6 +29,7 @@ using namespace SigC;
 using namespace Glib;
 using namespace Gtk;
 
+/// Open a FileChooserDialog.
 bool select_file_name(Window &parentWindow, const ustring &title,
 	ustring &location, bool openOrCreate, bool directoriesOnly)
 {
@@ -69,6 +72,7 @@ bool select_file_name(Window &parentWindow, const ustring &title,
 	return false;
 }
 
+/// Prepare a FileChooser.
 bool prepare_chooser(FileChooser *pChooser, ustring &location,
 	bool openOrCreate, bool directoriesOnly)
 {
@@ -116,6 +120,40 @@ bool prepare_chooser(FileChooser *pChooser, ustring &location,
 	// FIXME: add FileFilter's
 
 	return false;
+}
+
+/// Get a column height.
+int get_column_height(TreeView *pTree)
+{
+	if (pTree == NULL)
+	{
+		return 0;
+	}
+
+	RefPtr<Style> refRCStyle = RC::get_style(*pTree);
+	int fontSize = refRCStyle->get_font().get_size();
+	int height = fontSize / Pango::SCALE;
+#ifdef DEBUG
+	cout << "get_column_height: font " << height << ", " << fontSize << endl;
+#endif
+
+	TreeViewColumn *pColumn = pTree->get_column(1);
+	if (pColumn != NULL)
+	{
+		Gdk::Rectangle cellArea;
+		int xOffset, yOffset, cellWidth, cellHeight;
+
+		pColumn->cell_get_size(cellArea, xOffset, yOffset, cellWidth, cellHeight);
+		height += cellHeight;
+#ifdef DEBUG
+		cout << "get_column_height: cell " << cellHeight << " " << yOffset << endl;
+#endif
+	}
+#ifdef DEBUG
+	cout << "get_column_height: " << height << endl;
+#endif
+
+	return height;
 }
 
 /// Create a resizable text column.

@@ -22,7 +22,9 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <pthread.h>
 #include <sigc++/slot.h>
+#include <sigc++/connection.h>
 #include <glibmm/dispatcher.h>
 #include <glibmm/ustring.h>
 
@@ -38,6 +40,8 @@ class WorkerThread
 	public:
 		WorkerThread();
 		virtual ~WorkerThread();
+
+		static Glib::Dispatcher &getDispatcher(void);
 
 		void setId(unsigned int id);
 
@@ -55,9 +59,6 @@ class WorkerThread
 
 		virtual bool stop(void) = 0;
 
-		/// Only one thread (the GUI thread) should connect to this, before calling start().
-		static Glib::Dispatcher& getFinishedSignal();
-
 		bool isDone(void) const;
 
 		void reset(void);
@@ -65,8 +66,8 @@ class WorkerThread
 		std::string getStatus(void) const;
 
 	protected:
-		/// Use a Dispatcher, not a Signal, for thread safety
-		static Glib::Dispatcher m_signalFinished;
+		/// Use a Dispatcher for thread safety
+		static Glib::Dispatcher m_dispatcher;
 		unsigned int m_id;
 		bool m_background;
 		bool m_done;
@@ -77,6 +78,42 @@ class WorkerThread
 	private:
 		WorkerThread(const WorkerThread &other);
 		WorkerThread &operator=(const WorkerThread &other);
+
+};
+
+class ThreadsManager
+{
+	public:
+		ThreadsManager();
+		virtual ~ThreadsManager();
+
+		bool read_lock(unsigned int where);
+		bool write_lock(unsigned int where);
+		void unlock(void);
+
+		bool start_thread(WorkerThread *pNewThread, bool inBackground);
+
+		WorkerThread *on_thread_end(void);
+
+		unsigned int get_threads_count(void);
+
+		bool has_threads(void);
+
+		void stop_threads(void);
+
+		virtual void disconnect(void);
+
+	protected:
+		SigC::Connection m_threadsEndConnection;
+		// Read/write lock
+		pthread_rwlock_t m_rwLock;
+		std::set<WorkerThread *> m_threads;
+		unsigned int m_nextId;
+		unsigned int m_backgroundThreadsCount;
+
+	private:
+		ThreadsManager(const ThreadsManager &other);
+		ThreadsManager &operator=(const ThreadsManager &other);
 
 };
 
@@ -384,6 +421,39 @@ class MonitorThread : public WorkerThread
 	private:
 		MonitorThread(const MonitorThread &other);
 		MonitorThread &operator=(const MonitorThread &other);
+
+};
+
+class DirectoryScannerThread : public WorkerThread
+{
+	public:
+		DirectoryScannerThread(const std::string &dirName,
+			unsigned int maxLevel, pthread_mutex_t *pMutex,
+			pthread_cond_t *pCondVar);
+		virtual ~DirectoryScannerThread();
+
+		virtual bool start(void);
+
+		virtual std::string getType(void) const;
+
+		virtual bool stop(void);
+
+		SigC::Signal1<bool, const std::string&>& getFileFoundSignal(void);
+
+	protected:
+		std::string m_dirName;
+		unsigned int m_maxLevel;
+		pthread_mutex_t *m_pMutex;
+		pthread_cond_t *m_pCondVar;
+		unsigned int m_currentLevel;
+		SigC::Signal1<bool, const std::string&> m_signalFileFound;
+
+		void found_file(const std::string &fileName);
+		void do_scanning();
+
+	private:
+		DirectoryScannerThread(const DirectoryScannerThread &other);
+		DirectoryScannerThread &operator=(const DirectoryScannerThread &other);
 
 };
 
