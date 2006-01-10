@@ -22,7 +22,6 @@
 #include <sigc++/class_slot.h>
 #include <glibmm/convert.h>
 #include <gtkmm/stock.h>
-#include <gtkmm/main.h>
 
 #include "config.h"
 #include "MIMEScanner.h"
@@ -34,7 +33,6 @@
 #include "importDialog.hh"
 
 using namespace std;
-using namespace SigC;
 using namespace Glib;
 using namespace Gtk;
 
@@ -120,7 +118,6 @@ importDialog::importDialog(const Glib::ustring &title,
 	// The title field may remain empty
 	importButton->set_sensitive(false);
 	importProgressbar->set_pulse_step(0.10);
-	importProgressbar->set_text(_("Waiting..."));
 }
 
 importDialog::~importDialog()
@@ -133,10 +130,10 @@ void importDialog::populate_typeCombobox(bool localOnly)
 
 	TreeModel::iterator iter = m_refTypeList->append();
 	TreeModel::Row row = *iter;
-	row[m_typeColumns.m_name] = _("Single file");
+	row[m_typeColumns.m_name] = _("File");
 	iter = m_refTypeList->append();
 	row = *iter;
-	row[m_typeColumns.m_name] = _("Whole directory");
+	row[m_typeColumns.m_name] = _("Directory");
 	if (localOnly == false)
 	{
 		iter = m_refTypeList->append();
@@ -176,6 +173,13 @@ bool importDialog::start_thread(WorkerThread *pNewThread)
 	return true;
 }
 
+bool importDialog::on_activity_timeout()
+{
+	importProgressbar->pulse();
+
+	return true;
+}
+
 bool importDialog::on_import_file(const string &fileName)
 {
 	string mimeType = MIMEScanner::scanFile(fileName);
@@ -199,9 +203,6 @@ bool importDialog::on_import_file(const string &fileName)
 		string url("file://" + fileName);
 		string title = locale_from_utf8(m_title);
 		unsigned int docId = 0;
-
-		importProgressbar->pulse();
-		importProgressbar->set_text(to_utf8(fileName));
 
 		if (index.isGood() == true)
 		{
@@ -241,6 +242,7 @@ bool importDialog::on_import_file(const string &fileName)
 void importDialog::on_thread_end()
 {
 	ustring status;
+	bool success = true;
 
 	WorkerThread *pThread = m_state.on_thread_end();
 	if (pThread == NULL)
@@ -261,12 +263,21 @@ void importDialog::on_thread_end()
 		m_state.m_importing = false;
 	}
 
+	// Did the thread fail ?
+	if (pThread->getStatus().empty() == false)
+	{
+#ifdef DEBUG
+		cout << "importDialog::on_thread_end: " << pThread->getStatus() << endl;
+#endif
+		success = false;
+	}
+
 	// What type of thread was it ?
 	string type = pThread->getType();
 	if (type == "IndexingThread")
 	{
 		// Did it succeed ?
-		if (pThread->getStatus().empty() == true)
+		if (success == true)
 		{
 			// Yes, it did
 			++m_docsCount;
@@ -287,17 +298,11 @@ void importDialog::on_thread_end()
 	// Delete the thread
 	delete pThread;
 
-	do
-	{
-#ifdef DEBUG
-		cout << "importDialog::on_thread_end: UI event" << endl;
-#endif
-		Main::iteration(false);
-	} while(Main::events_pending() == true);
-
 	if (m_state.m_importing == false)
 	{
-		importProgressbar->set_text(_("Done"));
+		m_timeoutConnection.block();
+		m_timeoutConnection.disconnect();
+
 		importProgressbar->set_fraction(1.0);
 		importButton->set_sensitive(true);
 	}
@@ -469,6 +474,9 @@ void importDialog::on_importButton_clicked()
 		// Maximum depth
 		unsigned int maxDirLevel = (unsigned int)depthSpinbutton->get_value();
 
+		m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
+			&importDialog::on_activity_timeout), 1000);
+
 		// Scan the directory and import all its files
 		DirectoryScannerThread *pThread = new DirectoryScannerThread(location,
 			maxDirLevel, &m_state.m_scanMutex, &m_state.m_scanCondVar);
@@ -486,6 +494,12 @@ void importDialog::on_importButton_clicked()
 
 void importDialog::on_importDialog_response(int response_id)
 {
+	if (m_timeoutConnection.connected() == true)
+	{
+		m_timeoutConnection.block();
+		m_timeoutConnection.disconnect();
+	}
+
 	// Closing the window should stop everything
 	m_state.stop_threads();
 	m_state.disconnect();

@@ -1326,7 +1326,7 @@ void mainWindow::on_configure_activate()
 	// FIXME: if mail accounts are configured, make sure the MonitorThread
 	// is running and knows about the new accounts
 
-	if (m_state.read_lock(2) == true)
+	if (m_state.read_lock(5) == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -2445,7 +2445,7 @@ NotebookPageBox *mainWindow::get_current_page(void)
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
-	if (m_state.read_lock(4) == true)
+	if (m_state.read_lock(6) == true)
 	{
 		Widget *pPage = m_pNotebook->get_nth_page(m_pNotebook->get_current_page());
 		if (pPage != NULL)
@@ -2466,7 +2466,7 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
-	if (m_state.read_lock(5) == true)
+	if (m_state.read_lock(7) == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -2503,7 +2503,7 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 {
 	int pageNumber = -1;
 
-	if (m_state.read_lock(6) == true)
+	if (m_state.read_lock(8) == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -2541,7 +2541,7 @@ bool mainWindow::queue_index(const DocumentInfo &docInfo,
 {
 	if (m_state.get_threads_count() >= m_maxThreads)
 	{
-		if (m_state.write_lock(5) == true)
+		if (m_state.write_lock(9) == true)
 		{
 			m_state.m_indexQueue[docInfo] = labelName;
 
@@ -2852,7 +2852,7 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 			docId = index.hasDocument(url);
 		}
 		if ((docId == 0) &&
-			(m_state.write_lock(6) == true))
+			(m_state.write_lock(10) == true))
 		{
 			if (m_state.m_beingIndexed.find(url) == m_state.m_beingIndexed.end())
 			{
@@ -2964,7 +2964,7 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 				pViewPage = manage(new ViewPage(viewName, m_pHtmlView, m_settings));
 
 				// Append the page
-				if (m_state.write_lock(7) == true)
+				if (m_state.write_lock(11) == true)
 				{
 					pageNum = m_pNotebook->append_page(*pViewPage, *pTab);
 					m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
@@ -3037,7 +3037,7 @@ bool mainWindow::check_queue(void)
 	DocumentInfo docInfo;
 	string labelName;
 
-	if (m_state.write_lock(9) == true)
+	if (m_state.write_lock(12) == true)
 	{
 		if (m_state.m_indexQueue.empty() == false)
 		{

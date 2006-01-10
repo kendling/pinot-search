@@ -21,6 +21,7 @@
 #include <set>
 #include <pthread.h>
 #include <sigc++/slot.h>
+#include <sigc++/connection.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/button.h>
@@ -48,19 +49,24 @@ protected:
 	void populate_mimeTreeview(void);
 	bool start_thread(WorkerThread *pNewThread);
 
+	bool on_activity_timeout();
 	bool on_import_file(const std::string &fileName);
 	void on_thread_end(void);
 
 private:
 	std::set<std::string> m_mimeTypes;
 	std::set<std::string> m_mimeTypesBlackList;
+	// Type
 	ComboModelColumns m_typeColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refTypeList;
 	Glib::ustring m_title;
 	unsigned int m_docsCount;
 	bool m_importDirectory;
+	// MIME types
 	TypeModelColumns m_mimeTypeColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refMimeTypeList;
+	// Activity timeout
+	SigC::Connection m_timeoutConnection;
 	// Internal state
 	class InternalState : public ThreadsManager
 	{

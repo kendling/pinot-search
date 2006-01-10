@@ -449,6 +449,7 @@ class DirectoryScannerThread : public WorkerThread
 		SigC::Signal1<bool, const std::string&> m_signalFileFound;
 
 		void found_file(const std::string &fileName);
+		bool scan_directory(const std::string &dirName);
 		void do_scanning();
 
 	private:

@@ -805,7 +805,7 @@ void DownloadingThread::do_downloading()
 		}
 		else if (m_done == false)
 		{
-			DocumentInfo docInfo("Document", m_url, "", "");
+			DocumentInfo docInfo("", m_url, "", "");
 
 			m_pDoc = m_downloader->retrieveUrl(docInfo);
 		}
@@ -1670,7 +1670,8 @@ DirectoryScannerThread::DirectoryScannerThread(const std::string &dirName,
 	m_dirName(dirName),
 	m_maxLevel(maxLevel),
 	m_pMutex(pMutex),
-	m_pCondVar(pCondVar)
+	m_pCondVar(pCondVar),
+	m_currentLevel(0)
 {
 }
 
@@ -1737,43 +1738,36 @@ void DirectoryScannerThread::found_file(const string &fileName)
 	}
 }
 
-void DirectoryScannerThread::do_scanning()
+bool DirectoryScannerThread::scan_directory(const string &dirName)
 {
 	struct stat fileStat;
 
-	if ((m_dirName.empty() == true) ||
-		(lstat(m_dirName.c_str(), &fileStat) == -1))
+	if ((dirName.empty() == true) ||
+		(lstat(dirName.c_str(), &fileStat) == -1))
 	{
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::do_scanning: stat failed" << endl;
-#endif
-		return;
+		return false;
 	}
 
 	// Is it a file or a directory ?
 	if (S_ISLNK(fileStat.st_mode))
 	{
-		// Don't follow
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::do_scanning: skipping symlink" << endl;
-#endif
-		return;
+		return false;
 	}
 	else if (S_ISREG(fileStat.st_mode))
 	{
 		// It's actually a file
-		found_file(m_dirName);
+		found_file(dirName);
 	}
 	else if (S_ISDIR(fileStat.st_mode))
 	{
 		// A directory : scan it
-		DIR *pDir = opendir(m_dirName.c_str());
+		DIR *pDir = opendir(dirName.c_str());
 		if (pDir == NULL)
 		{
-			return;
+			return false;
 		}
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::do_scanning: entering " << m_dirName << endl;
+		cout << "DirectoryScannerThread::scan_directory: entering " << dirName << endl;
 #endif
 
 		// Iterate through this directory's entries
@@ -1784,8 +1778,8 @@ void DirectoryScannerThread::do_scanning()
 			char *pEntryName = pDirEntry->d_name;
 			if (pEntryName != NULL)
 			{
-				string entryName = m_dirName;
-				if (m_dirName[m_dirName.length() - 1] != '/')
+				string entryName = dirName;
+				if (dirName[dirName.length() - 1] != '/')
 				{
 					entryName += "/";
 				}
@@ -1804,7 +1798,7 @@ void DirectoryScannerThread::do_scanning()
 				}
 
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::do_scanning: stat'ing " << entryName << endl;
+				cout << "DirectoryScannerThread::scan_directory: stat'ing " << entryName << endl;
 #endif
 				// File or directory
 				if (S_ISREG(fileStat.st_mode))
@@ -1814,11 +1808,15 @@ void DirectoryScannerThread::do_scanning()
 				else if (S_ISDIR(fileStat.st_mode))
 				{
 					// Can we scan this directory ?
-					if (m_currentLevel + 1 < m_maxLevel)
+					if ((m_maxLevel == 0) ||
+						(m_currentLevel + 1 < m_maxLevel))
 					{
 						++m_currentLevel;
-						m_dirName = entryName;
-						do_scanning();
+						scan_directory(entryName);
+#ifdef DEBUG
+						cout << "DirectoryScannerThread::scan_directory: done at level "
+							<< m_currentLevel << endl;
+#endif
 						--m_currentLevel;
 					}
 				}
@@ -1830,5 +1828,15 @@ void DirectoryScannerThread::do_scanning()
 		closedir(pDir);
 	}
 
+	return true;
+}
+
+void DirectoryScannerThread::do_scanning()
+{
+	if (scan_directory(m_dirName) == false)
+	{
+		m_status = _("Couldn't open directory ");
+		m_status += m_dirName;
+	}
 	emitSignal();
 }
