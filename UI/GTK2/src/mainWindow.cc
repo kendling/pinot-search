@@ -2420,6 +2420,7 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 			return true;
 		}
 
+		m_state.disconnect();
 		m_state.stop_threads();
 	}
 	// Disconnect the threads' finished signal

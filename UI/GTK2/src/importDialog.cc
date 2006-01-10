@@ -43,14 +43,10 @@ importDialog::InternalState::InternalState(importDialog *pWindow) :
 	m_importing(false),
 	m_pImportWindow(pWindow)
 {
-	pthread_mutex_init(&m_scanMutex, NULL);
-	pthread_cond_init(&m_scanCondVar, NULL);
 }
 
 importDialog::InternalState::~InternalState()
 {
-	pthread_cond_destroy(&m_scanCondVar);
-	pthread_mutex_destroy(&m_scanMutex);
 }
 
 void importDialog::InternalState::connect(void)
@@ -71,6 +67,7 @@ importDialog::importDialog(const Glib::ustring &title,
 	importDialog_glade(),
 	m_docsCount(0),
 	m_importDirectory(false),
+	m_pScannerThread(NULL),
 	m_state(this)
 {
 	set_title(title);
@@ -173,7 +170,18 @@ bool importDialog::start_thread(WorkerThread *pNewThread)
 	return true;
 }
 
-bool importDialog::on_activity_timeout()
+void importDialog::signal_scanner(void)
+{
+	// Ask the scanner for another file
+	m_state.m_scanMutex.lock();
+	m_state.m_scanCondVar.signal();
+	m_state.m_scanMutex.unlock();
+#ifdef DEBUG
+	cout << "importDialog::signal_scanner: signaled" << endl;
+#endif
+}
+
+bool importDialog::on_activity_timeout(void)
 {
 	importProgressbar->pulse();
 
@@ -229,7 +237,7 @@ bool importDialog::on_import_file(const string &fileName)
 		}
 		else
 		{
-			pThread = new IndexingThread(docInfo, "");
+			pThread = new IndexingThread(docInfo);
 		}
 
 		// Launch the new thread
@@ -274,7 +282,17 @@ void importDialog::on_thread_end()
 
 	// What type of thread was it ?
 	string type = pThread->getType();
-	if (type == "IndexingThread")
+	if (type == "DirectoryScannerThread")
+	{
+		if (m_pScannerThread == dynamic_cast<DirectoryScannerThread *>(pThread))
+		{
+#ifdef DEBUG
+			cout << "importDialog::on_thread_end: reset scanner" << endl;
+#endif
+			m_pScannerThread = NULL;
+		}
+	}
+	else if (type == "IndexingThread")
 	{
 		// Did it succeed ?
 		if (success == true)
@@ -285,13 +303,7 @@ void importDialog::on_thread_end()
 
 		if (m_state.m_importing == true)
 		{
-			// Ask the scanner for another file
-			pthread_mutex_lock(&m_state.m_scanMutex);
-			pthread_cond_signal(&m_state.m_scanCondVar);
-			pthread_mutex_unlock(&m_state.m_scanMutex);
-#ifdef DEBUG
-			cout << "importDialog::on_thread_end: signaled DirectoryScannerThread" << endl;
-#endif
+			signal_scanner();
 		}
 	}
 
@@ -478,10 +490,10 @@ void importDialog::on_importButton_clicked()
 			&importDialog::on_activity_timeout), 1000);
 
 		// Scan the directory and import all its files
-		DirectoryScannerThread *pThread = new DirectoryScannerThread(location,
+		m_pScannerThread = new DirectoryScannerThread(location,
 			maxDirLevel, &m_state.m_scanMutex, &m_state.m_scanCondVar);
-		pThread->getFileFoundSignal().connect(SigC::slot(*this, &importDialog::on_import_file));
-		start_thread(pThread);
+		m_pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &importDialog::on_import_file));
+		start_thread(m_pScannerThread);
 	}
 	else
 	{
@@ -501,6 +513,11 @@ void importDialog::on_importDialog_response(int response_id)
 	}
 
 	// Closing the window should stop everything
-	m_state.stop_threads();
 	m_state.disconnect();
+	if (m_pScannerThread != NULL)
+	{
+		m_pScannerThread->stop();
+		signal_scanner();
+	}
+	m_state.stop_threads();
 }

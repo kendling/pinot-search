@@ -26,7 +26,6 @@
 #include <iostream>
 #include <fstream>
 #include <sigc++/class_slot.h>
-#include <glibmm/thread.h>
 
 #include "HtmlTokenizer.h"
 #include "MIMEScanner.h"
@@ -52,13 +51,18 @@ using namespace SigC;
 using namespace Glib;
 using namespace std;
 
-// A function object to delete pointers from a set with for_each()
-struct DeleteSetPointer
+// A function object to stop and delete threads with for_each()
+struct DeleteMapPointer
 {
-	template<typename T>
-	void operator()(const T *ptr) const
+public:
+	void operator()(map<WorkerThread *, Thread *>::value_type &p)
 	{
-		delete ptr;
+		p.first->stop();
+#ifdef DEBUG
+		cout << "DeleteMapPointer: waiting for thread " << p.first->getId() << endl;
+#endif
+		p.second->join();
+		delete p.first;
 	}
 };
 
@@ -70,6 +74,7 @@ Dispatcher &WorkerThread::getDispatcher(void)
 }
 
 WorkerThread::WorkerThread() :
+	m_joinable(true),
 	m_id(0),
 	m_background(false),
 	m_done(false)
@@ -138,10 +143,7 @@ ThreadsManager::ThreadsManager() :
 
 ThreadsManager::~ThreadsManager()
 {
-	if (m_threads.empty() == false)
-	{
-		for_each(m_threads.begin(), m_threads.end(), DeleteSetPointer());
-	}
+	stop_threads();
 	// Destroy the read/write lock
 	pthread_rwlock_destroy(&m_rwLock);
 }
@@ -182,80 +184,75 @@ void ThreadsManager::unlock(void)
 
 WorkerThread *ThreadsManager::on_thread_end(void)
 {
-	WorkerThread *pThread = NULL;
+	WorkerThread *pWorkerThread = NULL;
 
 	// Get the first thread that's finished
 	if (read_lock(1) == true)
 	{
-		for (set<WorkerThread *>::iterator threadIter = m_threads.begin();
+		for (map<WorkerThread *, Thread *>::iterator threadIter = m_threads.begin();
 			threadIter != m_threads.end(); ++threadIter)
 		{
-			if ((*threadIter)->isDone() == true)
+			if (threadIter->first->isDone() == true)
 			{
 				// This one will do...
-				pThread = (*threadIter);
+				pWorkerThread = threadIter->first;
+				threadIter->second->join();
 				// Remove it
 				m_threads.erase(threadIter);
 				break;
 			}
 #ifdef DEBUG
 			cout << "ThreadsManager::on_thread_end: thread "
-				<< (*threadIter)->getId() << " is not done" << endl;
+				<< threadIter->first->getId() << " is not done" << endl;
 #endif
 		}
 
 		unlock();
 	}
 
-	if (pThread == NULL)
+	if (pWorkerThread == NULL)
 	{
 		return NULL;
 	}
 
-	if (pThread->isBackground() == true)
+	if (pWorkerThread->isBackground() == true)
 	{
 		--m_backgroundThreadsCount;
 	}
 
-	return pThread;
+	return pWorkerThread;
 }
 
-bool ThreadsManager::start_thread(WorkerThread *pNewThread, bool inBackground)
+bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground)
 {
 	bool insertedThread = false;
 
-	if (pNewThread == NULL)
+	if (pWorkerThread == NULL)
 	{
 		return false;
 	}
 
-	pNewThread->setId(m_nextId);
-	if (write_lock(2) == true)
+	pWorkerThread->setId(m_nextId);
+	if (inBackground == true)
 	{
-		pair<set<WorkerThread *>::iterator, bool> insertPair = m_threads.insert(pNewThread);
-		insertedThread = insertPair.second;
-
-		unlock();
-	}
-
-	// Was it inserted ?
-	if (insertedThread == false)
-	{
-		// No, it wasn't
-#ifdef DEBUG
-		cout << "ThreadsManager::start_thread: couldn't start "
-			<< pNewThread->getType() << endl;
-#endif
-		return false;
+		pWorkerThread->inBackground();
+		++m_backgroundThreadsCount;
 	}
 
 	// Start the thread
-	if (inBackground == true)
+	Thread *pThread = pWorkerThread->start();
+	if (pThread == NULL)
 	{
-		pNewThread->inBackground();
-		++m_backgroundThreadsCount;
+		return false;
 	}
-	pNewThread->start();
+
+	// Insert
+	if (write_lock(2) == true)
+	{
+		m_threads[pWorkerThread] = pThread;
+
+		unlock();
+	}
 	++m_nextId;
 
 	return true;
@@ -292,17 +289,15 @@ bool ThreadsManager::has_threads(void)
 
 void ThreadsManager::stop_threads(void)
 {
-	if (read_lock(4) == true)
+	if (m_threads.empty() == false)
 	{
-		for (set<WorkerThread *>::iterator threadIter = m_threads.begin();
-			threadIter != m_threads.end(); ++threadIter)
+		if (read_lock(4) == true)
 		{
-			// Stop all threads
-			// FIXME: what if one thread doesn't stop ?
-			(*threadIter)->stop();
-		}
+			for_each(m_threads.begin(), m_threads.end(), DeleteMapPointer());
+			m_threads.clear();
 
-		unlock();
+			unlock();
+		}
 	}
 }
 
@@ -329,12 +324,9 @@ IndexBrowserThread::~IndexBrowserThread()
 {
 }
 
-bool IndexBrowserThread::start(void)
+Thread *IndexBrowserThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &IndexBrowserThread::do_browsing), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &IndexBrowserThread::do_browsing), m_joinable);
 }
 
 string IndexBrowserThread::getType(void) const
@@ -462,12 +454,9 @@ QueryingThread::~QueryingThread()
 {
 }
 
-bool QueryingThread::start(void)
+Thread  *QueryingThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &QueryingThread::do_querying), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &QueryingThread::do_querying), m_joinable);
 }
 
 string QueryingThread::getType(void) const
@@ -577,12 +566,9 @@ LabelQueryThread::~LabelQueryThread()
 {
 }
 
-bool LabelQueryThread::start(void)
+Thread *LabelQueryThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &LabelQueryThread::do_querying), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &LabelQueryThread::do_querying), m_joinable);
 }
 
 string LabelQueryThread::getType(void) const
@@ -654,12 +640,9 @@ LabelUpdateThread::~LabelUpdateThread()
 {
 }
 
-bool LabelUpdateThread::start(void)
+Thread *LabelUpdateThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &LabelUpdateThread::do_update), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &LabelUpdateThread::do_update), m_joinable);
 }
 
 string LabelUpdateThread::getType(void) const
@@ -735,12 +718,9 @@ DownloadingThread::~DownloadingThread()
 	}
 }
 
-bool DownloadingThread::start(void)
+Thread *DownloadingThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &DownloadingThread::do_downloading), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &DownloadingThread::do_downloading), m_joinable);
 }
 
 string DownloadingThread::getType(void) const
@@ -855,12 +835,9 @@ IndexingThread::~IndexingThread()
 {
 }
 
-bool IndexingThread::start(void)
+Thread *IndexingThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &IndexingThread::do_indexing), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &IndexingThread::do_indexing), m_joinable);
 }
 
 string IndexingThread::getType(void) const
@@ -1042,7 +1019,7 @@ void IndexingThread::do_indexing()
 				m_status += " ";
 				m_status += m_url;
 			}
-			else
+			else if (m_done == false)
 			{
 				// Flush the index
 				index.flush();
@@ -1085,12 +1062,9 @@ UnindexingThread::~UnindexingThread()
 {
 }
 
-bool UnindexingThread::start(void)
+Thread *UnindexingThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &UnindexingThread::do_unindexing), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &UnindexingThread::do_unindexing), m_joinable);
 }
 
 string UnindexingThread::getType(void) const
@@ -1195,12 +1169,9 @@ UpdateDocumentThread::~UpdateDocumentThread()
 {
 }
 
-bool UpdateDocumentThread::start(void)
+Thread *UpdateDocumentThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &UpdateDocumentThread::do_update), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &UpdateDocumentThread::do_update), m_joinable);
 }
 
 string UpdateDocumentThread::getType(void) const
@@ -1275,19 +1246,26 @@ void UpdateDocumentThread::do_update()
 ListenerThread::ListenerThread(const string &fifoFileName) :
 	WorkerThread()
 {
+	int pipeFds[2];
+
+	if (pipe(pipeFds) == 0)
+	{
+		// This pipe will allow to stop select()
+		m_ctrlReadPipe = pipeFds[0];
+		m_ctrlWritePipe = pipeFds[1];
+	}
 	m_fifoFileName = fifoFileName;
 }
 
 ListenerThread::~ListenerThread()
 {
+	close(m_ctrlReadPipe);
+	close(m_ctrlWritePipe);
 }
 
-bool ListenerThread::start(void)
+Thread *ListenerThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &ListenerThread::do_listening), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &ListenerThread::do_listening), m_joinable);
 }
 
 string ListenerThread::getType(void) const
@@ -1298,6 +1276,7 @@ string ListenerThread::getType(void) const
 bool ListenerThread::stop(void)
 {
 	m_done = true;
+	write(m_ctrlWritePipe, "Stop", 4);
 	m_status = _("Stopped listening on");
 	m_status += " ";
 	m_status += m_fifoFileName;
@@ -1346,6 +1325,7 @@ void ListenerThread::do_listening()
 		fd_set listenSet;
 		FD_ZERO(&listenSet);
 		FD_SET(fd, &listenSet);
+		FD_SET(m_ctrlReadPipe, &listenSet);
 
 		// Listen and wait for something to read
 		while (m_done == false)
@@ -1408,6 +1388,14 @@ void ListenerThread::do_listening()
 MonitorThread::MonitorThread(MonitorHandler *pHandler) :
 	WorkerThread()
 {
+	int pipeFds[2];
+
+	if (pipe(pipeFds) == 0)
+	{
+		// This pipe will allow to stop select()
+		m_ctrlReadPipe = pipeFds[0];
+		m_ctrlWritePipe = pipeFds[1];
+	}
 	m_pHandler = pHandler;
 	m_numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
 }
@@ -1419,14 +1407,13 @@ MonitorThread::~MonitorThread()
 	{
 		delete m_pHandler;
 	}
+	close(m_ctrlReadPipe);
+	close(m_ctrlWritePipe);
 }
 
-bool MonitorThread::start(void)
+Thread *MonitorThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &MonitorThread::do_monitoring), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &MonitorThread::do_monitoring), m_joinable);
 }
 
 string MonitorThread::getType(void) const
@@ -1437,6 +1424,7 @@ string MonitorThread::getType(void) const
 bool MonitorThread::stop(void)
 {
 	m_done = true;
+	write(m_ctrlWritePipe, "Stop", 4);
 	m_status = _("Stopped monitoring");
 
 	return true;
@@ -1527,6 +1515,7 @@ void MonitorThread::do_monitoring()
 		fd_set listenSet;
 		FD_ZERO(&listenSet);
 		FD_SET(fd, &listenSet);
+		FD_SET(m_ctrlReadPipe, &listenSet);
 
 		struct timeval selectTimeout;
 		selectTimeout.tv_sec = 60;
@@ -1663,9 +1652,8 @@ void MonitorThread::do_monitoring()
 	emitSignal();
 }
 
-DirectoryScannerThread::DirectoryScannerThread(const std::string &dirName,
-			unsigned int maxLevel, pthread_mutex_t *pMutex,
-			pthread_cond_t *pCondVar) :
+DirectoryScannerThread::DirectoryScannerThread(const string &dirName,
+			unsigned int maxLevel, Mutex *pMutex, Cond *pCondVar) :
 	WorkerThread(),
 	m_dirName(dirName),
 	m_maxLevel(maxLevel),
@@ -1679,12 +1667,9 @@ DirectoryScannerThread::~DirectoryScannerThread()
 {
 }
 
-bool DirectoryScannerThread::start(void)
+Thread *DirectoryScannerThread::start(void)
 {
-	// Create a non-joinable thread
-	Thread::create(slot_class(*this, &DirectoryScannerThread::do_scanning), false);
-
-	return true;
+	return Thread::create(slot_class(*this, &DirectoryScannerThread::do_scanning), m_joinable);
 }
 
 string DirectoryScannerThread::getType(void) const
@@ -1695,7 +1680,7 @@ string DirectoryScannerThread::getType(void) const
 bool DirectoryScannerThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped scanning ");
+	m_status = _("Stopped scanning");
 	m_status += " ";
 	m_status += m_dirName;
 
@@ -1715,13 +1700,13 @@ void DirectoryScannerThread::found_file(const string &fileName)
 	}
 
 	if ((m_pMutex != NULL) &&
-		(m_pCondVar != NULL) &&
-		(pthread_mutex_lock(m_pMutex) == 0))
+		(m_pCondVar != NULL))
 	{
+		m_pMutex->lock();
 		if (m_signalFileFound(fileName) == true)
 		{
 			// Another file is needed right now
-			pthread_mutex_unlock(m_pMutex);
+			m_pMutex->unlock();
 		}
 		else
 		{
@@ -1729,8 +1714,8 @@ void DirectoryScannerThread::found_file(const string &fileName)
 			cout << "DirectoryScannerThread::found_file: waiting" << endl;
 #endif
 			// Don't resume until signaled
-			pthread_cond_wait(m_pCondVar, m_pMutex);
-			pthread_mutex_unlock(m_pMutex);
+			m_pCondVar->wait(*m_pMutex);
+			m_pMutex->unlock();
 #ifdef DEBUG
 			cout << "DirectoryScannerThread::found_file: signaled" << endl;
 #endif
@@ -1835,7 +1820,8 @@ void DirectoryScannerThread::do_scanning()
 {
 	if (scan_directory(m_dirName) == false)
 	{
-		m_status = _("Couldn't open directory ");
+		m_status = _("Couldn't open directory");
+		m_status += " ";
 		m_status += m_dirName;
 	}
 	emitSignal();

@@ -19,7 +19,6 @@
 
 #include <string>
 #include <set>
-#include <pthread.h>
 #include <sigc++/slot.h>
 #include <sigc++/connection.h>
 #include <glibmm/refptr.h>
@@ -48,8 +47,9 @@ protected:
 	void populate_typeCombobox(bool localOnly);
 	void populate_mimeTreeview(void);
 	bool start_thread(WorkerThread *pNewThread);
+	void signal_scanner(void);
 
-	bool on_activity_timeout();
+	bool on_activity_timeout(void);
 	bool on_import_file(const std::string &fileName);
 	void on_thread_end(void);
 
@@ -65,6 +65,8 @@ private:
 	// MIME types
 	TypeModelColumns m_mimeTypeColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refMimeTypeList;
+	// Directory scanner
+	DirectoryScannerThread *m_pScannerThread;
 	// Activity timeout
 	SigC::Connection m_timeoutConnection;
 	// Internal state
@@ -78,8 +80,8 @@ private:
 
 			// Directory scanning
 			bool m_importing;
-			pthread_mutex_t m_scanMutex;
-			pthread_cond_t m_scanCondVar;
+			Glib::Mutex m_scanMutex;
+			Glib::Cond m_scanCondVar;
 			// The default directory
 			static std::string m_defaultDirectory;
 
