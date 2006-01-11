@@ -1702,8 +1702,10 @@ void DirectoryScannerThread::found_file(const string &fileName)
 	if ((m_pMutex != NULL) &&
 		(m_pCondVar != NULL))
 	{
+		string url(string("file://") + fileName);
+
 		m_pMutex->lock();
-		if (m_signalFileFound(fileName) == true)
+		if (m_signalFileFound(url) == true)
 		{
 			// Another file is needed right now
 			m_pMutex->unlock();

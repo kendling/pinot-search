@@ -147,7 +147,7 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 	Url urlObj(location);
 
 	// Index the full URL with prefix U
-	doc.add_term(limitTermLength(string("U") + location));
+	doc.add_term(limitTermLength(string("U") + StringManip::toLowerCase(location)));
 	// ...the host name with prefix H
 	string hostName = urlObj.getHost();
 	doc.add_term(limitTermLength(string("H") + StringManip::toLowerCase(hostName)));
@@ -738,26 +738,29 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 		Xapian::Database *pIndex = pDatabase->readLock();
 		if (pIndex != NULL)
 		{
-			string term("U");
+			string term(string("U") + StringManip::toLowerCase(url));
 
 			// Get documents that have this term
-			term += url;
 			Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
 			if (postingIter != pIndex->postlist_end(term))
 			{
 				// This URL was indexed
 				docId = *postingIter;
+#ifdef DEBUG
+				cout << "XapianIndex::hasDocument: " << term << " in document "
+					<< docId << " " << postingIter.get_wdf() << " time(s)" << endl;
+#endif
 			}
-			// FIXME: what if the term exist in more than one document ?
+			// FIXME: what if the term exists in more than one document ?
 		}
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't delete label: " << error.get_msg() << endl;
+		cerr << "Couldn't look for document: " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't delete label, unknown exception occured" << endl;
+		cerr << "Couldn't look for document, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 

@@ -50,7 +50,7 @@ protected:
 	void signal_scanner(void);
 
 	bool on_activity_timeout(void);
-	bool on_import_file(const std::string &fileName);
+	bool on_import_url(const std::string &location);
 	void on_thread_end(void);
 
 private:

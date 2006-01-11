@@ -26,7 +26,7 @@ MIMEScanner::MIMEScanner()
 {
 }
 
-string MIMEScanner::scanFileType(const std::string &fileName)
+string MIMEScanner::scanFileType(const string &fileName)
 {
 	string::size_type fileExtPos = fileName.find_last_of(".");
 	if (fileExtPos != string::npos)
@@ -108,9 +108,17 @@ string MIMEScanner::scanFile(const string &fileName)
 /// Finds out the given URL's MIME type.
 string MIMEScanner::scanUrl(const Url &urlObj)
 {
-	string fileName = urlObj.getFile();
+	// Is it a local file ?
+	if (urlObj.getProtocol() == "file")
+	{
+		string fileName = urlObj.getLocation();
+		fileName += "/";
+		fileName += urlObj.getFile();
 
-	string mimeType = scanFileType(fileName);
+		return scanFile(fileName);
+	}
+
+	string mimeType = scanFileType(urlObj.getFile());
 	if (mimeType.empty() == true)
 	{
 		mimeType = "text/plain";

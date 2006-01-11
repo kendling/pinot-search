@@ -188,18 +188,22 @@ bool importDialog::on_activity_timeout(void)
 	return true;
 }
 
-bool importDialog::on_import_file(const string &fileName)
+bool importDialog::on_import_url(const string &location)
 {
-	string mimeType = MIMEScanner::scanFile(fileName);
+	Url urlObj(location);
+	string mimeType(MIMEScanner::scanUrl(location));
 	bool askForAnotherFile = false;
 
+#ifdef DEBUG
+	cout << "importDialog::on_import_url: file type is " << mimeType << endl;
+#endif
 	// Check the MIME type
 	if ((m_mimeTypesBlackList.find(mimeType) != m_mimeTypesBlackList.end()) ||
 		((m_mimeTypes.find(mimeType) == m_mimeTypes.end()) &&
 		(strncasecmp(mimeType.c_str(), "text", 4) != 0)))
 	{
 #ifdef DEBUG
-		cout << "importDialog::on_import_file: filtering out type " << mimeType << endl;
+		cout << "importDialog::on_import_url: filtering out" << endl;
 #endif
 		// It's black-listed, or not authorized and not text
 		askForAnotherFile = true;
@@ -208,26 +212,23 @@ bool importDialog::on_import_file(const string &fileName)
 	{
 		XapianIndex index(PinotSettings::getInstance().m_indexLocation);
 		IndexingThread *pThread = NULL;
-		string url("file://" + fileName);
 		string title = locale_from_utf8(m_title);
 		unsigned int docId = 0;
 
 		if (index.isGood() == true)
 		{
-			docId = index.hasDocument(url);
+			docId = index.hasDocument(location);
 		}
 
 		if (m_importDirectory == true)
 		{
-			Url urlObj(url);
-
 			if (title.empty() == false)
 			{
 				title += " ";
 			}
 			title += urlObj.getFile();
 		}
-		DocumentInfo docInfo(title, url, mimeType, "");
+		DocumentInfo docInfo(title, location, mimeType, "");
 
 		if (docId > 0)
 		{
@@ -312,10 +313,17 @@ void importDialog::on_thread_end()
 
 	if (m_state.m_importing == false)
 	{
+		double fractionFilled = 1.0;
+
 		m_timeoutConnection.block();
 		m_timeoutConnection.disconnect();
 
-		importProgressbar->set_fraction(1.0);
+		if (success == false)
+		{
+			// FIXME: there are better ways to show what happened :-)
+			fractionFilled = 0.0;
+		}
+		importProgressbar->set_fraction(fractionFilled);
 		importButton->set_sensitive(true);
 	}
 }
@@ -492,12 +500,20 @@ void importDialog::on_importButton_clicked()
 		// Scan the directory and import all its files
 		m_pScannerThread = new DirectoryScannerThread(location,
 			maxDirLevel, &m_state.m_scanMutex, &m_state.m_scanCondVar);
-		m_pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &importDialog::on_import_file));
+		m_pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &importDialog::on_import_url));
 		start_thread(m_pScannerThread);
 	}
 	else
 	{
-		on_import_file(location);
+		if (on_import_url(location) == true)
+		{
+			// It's asking for another file, so this one couldn't be indexed
+			m_timeoutConnection.block();
+			m_timeoutConnection.disconnect();
+
+			importProgressbar->set_fraction(0.0);
+			importButton->set_sensitive(true);
+		}
 	}
 #ifdef DEBUG
 	cout << "importDialog::on_importButton_clicked: done" << endl;

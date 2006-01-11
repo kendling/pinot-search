@@ -33,90 +33,94 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-	if (argc < 4)
+	bool success = false;
+
+	if (argc < 3)
 	{
-		cerr << "Usage: " << argv[0] << " <index type> <database name> <file name>|CHECK|CREATE" << endl;
+		cerr << "Usage: " << argv[0] << " <index type> <database name> CHECK|CREATE|HASURL=<url>|INDEX=<file name>" << endl;
 		return EXIT_FAILURE;
 	}
 
 	// Check database ?
 	if (strncasecmp(argv[3], "CHECK", 5) == 0)
 	{
-		if (XapianDatabaseFactory::getDatabase(argv[2], true) != NULL)
+		XapianIndex index(argv[2]);
+
+		if (index.isGood() == true)
 		{
-			XapianIndex index(argv[2]);
 			cout << "Index has " << index.getDocumentsCount() << " document(s)" << endl;
-
-			return EXIT_SUCCESS;
+			success = true;
 		}
-
-		return EXIT_FAILURE;
 	}
 	// Create database ?
 	else if (strncasecmp(argv[3], "CREATE", 6) == 0)
 	{
 		if (XapianDatabaseFactory::getDatabase(argv[2], false) != NULL)
 		{
-			return EXIT_SUCCESS;
+			success = true;
 		}
-
-		return EXIT_FAILURE;
 	}
-
-	struct stat fileStat;
-	if ((stat(argv[3], &fileStat) == 0) &&
-		(S_ISREG(fileStat.st_mode)))
+	// Look for an URL ?
+	else if (strncasecmp(argv[3], "HASURL", 6) == 0)
 	{
-		char *buffer = new char[fileStat.st_size + 1];
-		int fd = open(argv[3], O_RDONLY);
-		// Read the file
-		ssize_t readBytes = read(fd, buffer, fileStat.st_size);
-		if (readBytes == -1)
+		XapianIndex index(argv[2]);
+
+		if ((index.isGood() == true) &&
+			(index.hasDocument(argv[3] + 7) > 0))
 		{
-			cerr << "Couldn't read " << argv[3] << " !" << endl;
-			return EXIT_FAILURE;
+			success = true;
 		}
-
-		// Assume file is HTML...
-		Document doc(argv[3], argv[3], "text/html", "");
-		doc.setData(buffer, readBytes);
-		if (doc.isBinary() == true)
-		{
-			cerr << argv[3] << " is binary !" << endl;
-		}
-		else
-		{
-			set<string> labels;
-			unsigned int docId = 0;
-
-			Tokenizer *pTokens = TokenizerFactory::getTokenizer(argv[3], &doc);
-			if (pTokens == NULL)
-			{
-				cerr << "Couldn't obtain tokenizer for " << argv[3] << " !" << endl;
-				return EXIT_FAILURE;
-			}
-
-			// Ignore index type, use a XapianIndex
-			XapianIndex index(argv[2]);
-			index.setStemmingMode(IndexInterface::STORE_BOTH);
-			if (index.indexDocument(*pTokens, labels, docId) == false)
-			{
-				cerr << "Couldn't index " << argv[3] << " !" << endl;
-			}
-			else
-			{
-				cout << "Added " << argv[3] << " to index, document" << docId << endl;
-			}
-
-			delete pTokens;
-		}
-
-		delete[] buffer;
 	}
-	else
+	// Index a file ?
+	else if (strncasecmp(argv[3], "INDEX", 5) == 0)
 	{
-		cerr << "Couldn't stat " << argv[3] << " !" << endl;
+		struct stat fileStat;
+		string fileName(argv[3] + 6);
+
+		if ((stat(fileName.c_str(), &fileStat) == 0) &&
+			(S_ISREG(fileStat.st_mode)))
+		{
+			char *buffer = new char[fileStat.st_size + 1];
+			int fd = open(fileName.c_str(), O_RDONLY);
+			// Read the file
+			ssize_t readBytes = read(fd, buffer, fileStat.st_size);
+			if (readBytes > 0)
+			{
+				// Assume file is HTML...
+				Document doc(fileName, fileName, "text/html", "");
+				doc.setData(buffer, readBytes);
+				if (doc.isBinary() == false)
+				{
+					set<string> labels;
+					unsigned int docId = 0;
+
+					Tokenizer *pTokens = TokenizerFactory::getTokenizer(fileName, &doc);
+					if (pTokens != NULL)
+					{
+						// Ignore index type, use a XapianIndex
+						XapianIndex index(argv[2]);
+						index.setStemmingMode(IndexInterface::STORE_BOTH);
+						if (index.indexDocument(*pTokens, labels, docId) == true)
+						{
+							cout << "Added " << fileName << " to index, document" << docId << endl;
+							success = true;
+						}
+
+						delete pTokens;
+					}
+				}
+
+				delete[] buffer;
+			}
+		}
 	}
 
-	return EXIT_SUCCESS;
+	XapianDatabaseFactory::closeAll();
+
+	if (success == true)
+	{
+		return EXIT_SUCCESS;
+	}
+
+	return EXIT_FAILURE;
 }
