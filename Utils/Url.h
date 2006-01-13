@@ -19,47 +19,48 @@
 
 #include <string>
 
-using std::string;
-
 class Url
 {
 	public:
-		Url(const string &url);
+		Url(const std::string &url);
 		Url(const Url &other);
 		virtual ~Url();
 
-		Url& operator=(const Url& other);
-
-		string getProtocol(void) const;
-		string getUser(void) const;
-		string getPassword(void) const;
-		string getHost(void) const;
-		string getLocation(void) const;
-		string getFile(void) const;
-		string getParameters(void) const;
-
 		/// Canonicalizes an URL.
-		static string canonicalizeUrl(const string &url);
+		static std::string canonicalizeUrl(const std::string &url);
 
 		/// Truncates an URL to the given length by discarding characters in the middle.
-		static string prettifyUrl(const string &url, unsigned int maxLen);
+		static std::string prettifyUrl(const std::string &url, unsigned int maxLen);
 
 		/// Escapes an URL.
-		static string escapeUrl(const string &url);
+		static std::string escapeUrl(const std::string &url);
 
 		/// Unescapes an URL.
-		static string unescapeUrl(const string &escapedUrl);
+		static std::string unescapeUrl(const std::string &escapedUrl);
+
+		std::string getProtocol(void) const;
+		std::string getUser(void) const;
+		std::string getPassword(void) const;
+		std::string getHost(void) const;
+		std::string getLocation(void) const;
+		std::string getFile(void) const;
+		std::string getParameters(void) const;
+		bool isLocal(void) const ;
+
+		Url& operator=(const Url& other);
 
 	protected:
-		string m_protocol;
-		string m_user;
-		string m_password;
-		string m_host;
-		string m_location;
-		string m_file;
-		string m_parameters;
+		std::string m_protocol;
+		std::string m_user;
+		std::string m_password;
+		std::string m_host;
+		std::string m_location;
+		std::string m_file;
+		std::string m_parameters;
 
-		void parse(const string &url);
+		void parse(const std::string &url);
+
+		bool isLocal(const std::string &protocol) const;
 
 };
 

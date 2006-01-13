@@ -434,8 +434,8 @@ class DirectoryScannerThread : public WorkerThread
 {
 	public:
 		DirectoryScannerThread(const std::string &dirName,
-			unsigned int maxLevel, Glib::Mutex *pMutex,
-			Glib::Cond *pCondVar);
+			unsigned int maxLevel, bool followSymLinks,
+			Glib::Mutex *pMutex, Glib::Cond *pCondVar);
 		virtual ~DirectoryScannerThread();
 
 		virtual Glib::Thread *start(void);
@@ -449,6 +449,7 @@ class DirectoryScannerThread : public WorkerThread
 	protected:
 		std::string m_dirName;
 		unsigned int m_maxLevel;
+		bool m_followSymLinks;
 		Glib::Mutex *m_pMutex;
 		Glib::Cond *m_pCondVar;
 		unsigned int m_currentLevel;

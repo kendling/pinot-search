@@ -19,9 +19,9 @@
 
 using namespace std;
 
-DownloaderInterface::DownloaderInterface()
+DownloaderInterface::DownloaderInterface() :
+	m_timeout(60)
 {
-	m_timeout = 15000;
 }
 
 DownloaderInterface::~DownloaderInterface()

@@ -21,7 +21,6 @@
 #include <gtkmm/textbuffer.h>
 
 #include "HtmlTokenizer.h"
-#include "Url.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "config.h"

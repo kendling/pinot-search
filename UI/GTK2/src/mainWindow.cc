@@ -1906,11 +1906,13 @@ void mainWindow::on_showfromindex_activate()
 		vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
 
 		// Get the document ID
-		Url urlObj(docIter->getLocation());
-		docId = (unsigned int)atoi(urlObj.getFile().c_str());
+		docId = docIter->getID();
 
 		if (index.isGood() == true)
 		{
+			// Get the properties from the index because they have been altered
+			// by the tree for display purposes
+			index.getDocumentInfo(docId, docInfo);
 			index.getDocumentLabels(docId, docLabels);
 
 			// Does it match the current label ?
@@ -1920,10 +1922,6 @@ void mainWindow::on_showfromindex_activate()
 				matchedLabel = true;
 			}
 		}
-
-		docInfo = DocumentInfo(docIter->getTitle(), docIter->getOriginalLocation(),
-			docIter->getType(), docIter->getLanguage());
-		docInfo.setTimestamp(docIter->getTimestamp());
 		editTitle = true;
 	}
 	// Else, start with a blank list

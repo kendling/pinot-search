@@ -147,7 +147,7 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 	Url urlObj(location);
 
 	// Index the full URL with prefix U
-	doc.add_term(limitTermLength(string("U") + StringManip::toLowerCase(location)));
+	doc.add_term(limitTermLength(string("U") + Url::canonicalizeUrl(location)));
 	// ...the host name with prefix H
 	string hostName = urlObj.getHost();
 	doc.add_term(limitTermLength(string("H") + StringManip::toLowerCase(hostName)));
@@ -738,7 +738,7 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 		Xapian::Database *pIndex = pDatabase->readLock();
 		if (pIndex != NULL)
 		{
-			string term(string("U") + StringManip::toLowerCase(url));
+			string term(string("U") + Url::canonicalizeUrl(url));
 
 			// Get documents that have this term
 			Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);

@@ -16,7 +16,10 @@
 
 #include <neon/ne_uri.h>
 
+#include "StringManip.h"
 #include "Url.h"
+
+using std::string;
 
 Url::Url(const string &url)
 {
@@ -38,19 +41,6 @@ Url::Url(const Url &other) :
 {
 }
 
-Url& Url::operator=(const Url& other)
-{
-	m_protocol = other.m_protocol;
-	m_user = other.m_user;
-	m_password = other.m_password;
-	m_host = other.m_host;
-	m_location = other.m_location;
-	m_file = other.m_file;
-	m_parameters = other.m_parameters;
-
-	return *this;
-}
-
 void Url::parse(const string &url)
 {
 	string::size_type pos1 =0, pos2 = 0;
@@ -70,8 +60,7 @@ void Url::parse(const string &url)
 		m_protocol = url.substr(0, pos1);
 		pos1 += 3;
 
-		if ((m_protocol == "file") ||
-			(m_protocol == "mailbox"))
+		if (isLocal(m_protocol) == true)
 		{
 			hasHostName = false;
 		}
@@ -170,39 +159,16 @@ void Url::parse(const string &url)
 	}
 }
 
-string Url::getProtocol(void) const
+bool Url::isLocal(const string &protocol) const
 {
-	return m_protocol;
-}
+	if ((protocol == "file") ||
+		(protocol == "mailbox") ||
+		(protocol == "xapian"))
+	{
+		return true;
+	}
 
-string Url::getUser(void) const
-{
-	return m_user;
-}
-
-string Url::getPassword(void) const
-{
-	return m_password;
-}
-
-string Url::getHost(void) const
-{
-	return m_host;
-}
-
-string Url::getLocation(void) const
-{
-	return m_location;
-}
-
-string Url::getFile(void) const
-{
-	return m_file;
-}
-
-string Url::getParameters(void) const
-{
-	return m_parameters;
+	return false;
 }
 
 /// Canonicalizes an URL.
@@ -214,18 +180,25 @@ string Url::canonicalizeUrl(const string &url)
 	}
 
 	Url urlObj(url);
+	string canonicalUrl(url);
 	string location = urlObj.getLocation();
 	string file = urlObj.getFile();
+
+	if (urlObj.isLocal() == false)
+	{
+		// Lower-case it all
+		canonicalUrl = StringManip::toLowerCase(url);
+	}
 
 	// Get rid of the last directory's slash
 	if ((file.empty() == true) &&
 		(location.empty() == false) &&
-		(url[url.length() - 1] == '/'))
+		(canonicalUrl[canonicalUrl.length() - 1] == '/'))
 	{
-		return url.substr(0, url.length() - 1);
+		return canonicalUrl.substr(0, url.length() - 1);
 	}
 
-	return url;
+	return canonicalUrl;
 }
 
 /// Truncates an URL to the given length by discarding characters in the middle.
@@ -327,4 +300,57 @@ string Url::unescapeUrl(const string &escapedUrl)
 	}
 
 	return unescapedUrlStr;
+}
+
+string Url::getProtocol(void) const
+{
+	return m_protocol;
+}
+
+string Url::getUser(void) const
+{
+	return m_user;
+}
+
+string Url::getPassword(void) const
+{
+	return m_password;
+}
+
+string Url::getHost(void) const
+{
+	return m_host;
+}
+
+string Url::getLocation(void) const
+{
+	return m_location;
+}
+
+string Url::getFile(void) const
+{
+	return m_file;
+}
+
+string Url::getParameters(void) const
+{
+	return m_parameters;
+}
+
+bool Url::isLocal(void) const
+{
+	return isLocal(m_protocol);
+}
+
+Url& Url::operator=(const Url& other)
+{
+	m_protocol = other.m_protocol;
+	m_user = other.m_user;
+	m_password = other.m_password;
+	m_host = other.m_host;
+	m_location = other.m_location;
+	m_file = other.m_file;
+	m_parameters = other.m_parameters;
+
+	return *this;
 }

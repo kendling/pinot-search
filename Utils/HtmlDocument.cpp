@@ -61,7 +61,7 @@ void HtmlDocument::parseHead(void)
 		int titleMatches = 3, httpEquivMatches = 3;
 
 		// Look for a title
-		if (regcomp(&titleRegex, "<title([^>]*)>(.*)</title", REG_EXTENDED|REG_ICASE) == 0)
+		if (regcomp(&titleRegex, "<title([^>]*)>([^<>]*)</title", REG_EXTENDED|REG_ICASE) == 0)
 		{
 			if ((regexec(&titleRegex, htmlHead.c_str(), titleMatches,
 					pTitleMatches, REG_NOTBOL|REG_NOTEOL) == 0) &&

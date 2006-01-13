@@ -27,7 +27,6 @@
 #include "Timer.h"
 #include "TimeConverter.h"
 #include "TokenizerFactory.h"
-#include "Url.h"
 #include "FileCollector.h"
 #include "XapianIndex.h"
 #include "XapianEngine.h"

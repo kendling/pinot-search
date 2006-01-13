@@ -25,7 +25,6 @@
 #include "MIMEScanner.h"
 #include "SearchEngineFactory.h"
 #include "QueryHistory.h"
-#include "Url.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotUtils.h"

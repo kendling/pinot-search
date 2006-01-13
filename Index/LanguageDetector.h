@@ -33,6 +33,9 @@ class LanguageDetector
 		void guessLanguage(const char *pData, unsigned int dataLength,
 			std::vector<std::string> &candidates);
 
+	protected:
+		static unsigned int m_maxTextSize;
+
 	private:
 		LanguageDetector(const LanguageDetector &other);
 		LanguageDetector &operator=(const LanguageDetector &other);

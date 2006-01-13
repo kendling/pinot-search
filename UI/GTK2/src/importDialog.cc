@@ -191,7 +191,7 @@ bool importDialog::on_activity_timeout(void)
 bool importDialog::on_import_url(const string &location)
 {
 	Url urlObj(location);
-	string mimeType(MIMEScanner::scanUrl(location));
+	string mimeType(MIMEScanner::scanUrl(urlObj));
 	bool askForAnotherFile = false;
 
 #ifdef DEBUG
@@ -200,12 +200,13 @@ bool importDialog::on_import_url(const string &location)
 	// Check the MIME type
 	if ((m_mimeTypesBlackList.find(mimeType) != m_mimeTypesBlackList.end()) ||
 		((m_mimeTypes.find(mimeType) == m_mimeTypes.end()) &&
-		(strncasecmp(mimeType.c_str(), "text", 4) != 0)))
+		((strncasecmp(mimeType.c_str(), "text/x-", 7) == 0) ||
+		(strncasecmp(mimeType.c_str(), "text", 4) != 0))))
 	{
 #ifdef DEBUG
 		cout << "importDialog::on_import_url: filtering out" << endl;
 #endif
-		// It's black-listed, or not authorized and not text
+		// It's black-listed, or not authorized and not plain-ish text
 		askForAnotherFile = true;
 	}
 	else
@@ -486,6 +487,9 @@ void importDialog::on_importButton_clicked()
 		<< " types, " << m_mimeTypesBlackList.size() << " in blacklist" << endl;
 #endif
 
+	m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
+		&importDialog::on_activity_timeout), 1000);
+
 	// Title
 	m_title = titleEntry->get_text();
 	// Type
@@ -494,12 +498,10 @@ void importDialog::on_importButton_clicked()
 		// Maximum depth
 		unsigned int maxDirLevel = (unsigned int)depthSpinbutton->get_value();
 
-		m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
-			&importDialog::on_activity_timeout), 1000);
-
 		// Scan the directory and import all its files
 		m_pScannerThread = new DirectoryScannerThread(location,
-			maxDirLevel, &m_state.m_scanMutex, &m_state.m_scanCondVar);
+			maxDirLevel, linksCheckbutton->get_active(),
+			&m_state.m_scanMutex, &m_state.m_scanCondVar);
 		m_pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &importDialog::on_import_url));
 		start_thread(m_pScannerThread);
 	}

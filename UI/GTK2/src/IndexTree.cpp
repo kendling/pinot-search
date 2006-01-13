@@ -19,7 +19,6 @@
 #include <gtkmm/textbuffer.h>
 
 #include "HtmlTokenizer.h"
-#include "Url.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "config.h"
@@ -207,11 +206,7 @@ bool IndexTree::appendDocument(const IndexedDocument &docInfo, bool labeled)
 	TreeModel::Row childRow = *newRowIter;
 	string title = docInfo.getTitle();
 
-	if (title.empty() == true)
-	{
-		title = _("No title");
-	}
-	else if (title.length() > 50)
+	if (title.length() > 50)
 	{
 		string truncatedTitle = title.substr(0, 47);
 		truncatedTitle += "...";

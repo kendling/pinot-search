@@ -73,16 +73,27 @@ static pthread_mutex_t locksTable[CRYPTO_NUM_LOCKS];
 // OpenSSL locking functiom
 static void lockingCallback(int mode, int n, const char *file, int line)
 {
-#ifdef DEBUG
-	cout << "lockingCallback: called for mutex " << n << endl;
-#endif
+	int status = 0;
+
 	if (mode & CRYPTO_LOCK)
 	{
-		pthread_mutex_lock(&(locksTable[n]));
+		status = pthread_mutex_lock(&(locksTable[n]));
+#ifdef DEBUG
+		if (status != 0)
+		{
+			cout << "lockingCallback: failed to lock mutex " << n << endl;
+		}
+#endif
 	}
 	else
 	{
-		pthread_mutex_unlock(&(locksTable[n]));
+		status = pthread_mutex_unlock(&(locksTable[n]));
+#ifdef DEBUG
+		if (status != 0)
+		{
+			cout << "lockingCallback: failed to unlock mutex " << n << endl;
+		}
+#endif
 	}
 }
 
@@ -96,10 +107,15 @@ unsigned long idCallback(void)
 void NeonDownloader::initialize(void)
 {
 #ifdef NE_SSL_H
+	pthread_mutexattr_t mutexAttr;
+
+	pthread_mutexattr_init(&mutexAttr);
+	pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_ERRORCHECK);
+
 	// Initialize the OpenSSL mutexes
 	for (unsigned int lockNum = 0; lockNum < CRYPTO_NUM_LOCKS; ++lockNum)
 	{
-		pthread_mutex_init(&(locksTable[lockNum]), NULL);
+		pthread_mutex_init(&(locksTable[lockNum]), &mutexAttr);
 	}
 	// Set the callbacks
 	CRYPTO_set_locking_callback(lockingCallback);
@@ -123,7 +139,9 @@ void NeonDownloader::shutdown(void)
 }
 
 NeonDownloader::NeonDownloader() :
-	m_pSession(NULL), m_pRequest(NULL), DownloaderInterface()
+	DownloaderInterface(),
+	m_pSession(NULL),
+	m_pRequest(NULL)
 {
 	// Pretend to be Mozilla
 	m_userAgent = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.3) Gecko/20041020";

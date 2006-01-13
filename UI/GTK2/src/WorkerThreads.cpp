@@ -910,7 +910,6 @@ void IndexingThread::do_indexing()
 	}
 	else
 	{
-		Url urlObj(m_url);
 		unsigned int urlContentLen;
 		string docType = m_pDoc->getType();
 		const char *urlContent = m_pDoc->getData(urlContentLen);
@@ -1488,6 +1487,10 @@ void MonitorThread::do_monitoring()
 				string fsLocation = fsIter->second;
 				struct stat fileStat;
 
+				if (m_done == true)
+				{
+					break;
+				}
 				if (stat(fsLocation.c_str(), &fileStat) == -1)
 				{
 					continue;
@@ -1653,14 +1656,21 @@ void MonitorThread::do_monitoring()
 }
 
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName,
-			unsigned int maxLevel, Mutex *pMutex, Cond *pCondVar) :
+	unsigned int maxLevel, bool followSymLinks, Mutex *pMutex, Cond *pCondVar) :
 	WorkerThread(),
 	m_dirName(dirName),
 	m_maxLevel(maxLevel),
+	m_followSymLinks(followSymLinks),
 	m_pMutex(pMutex),
 	m_pCondVar(pCondVar),
 	m_currentLevel(0)
 {
+#ifdef DEBUG
+	if (m_followSymLinks == true)
+	{
+		cout << "DirectoryScannerThread: following symlinks" << endl;
+	}
+#endif
 }
 
 DirectoryScannerThread::~DirectoryScannerThread()
@@ -1728,9 +1738,24 @@ void DirectoryScannerThread::found_file(const string &fileName)
 bool DirectoryScannerThread::scan_directory(const string &dirName)
 {
 	struct stat fileStat;
+	int statSuccess = 0;
 
-	if ((dirName.empty() == true) ||
-		(lstat(dirName.c_str(), &fileStat) == -1))
+	if (dirName.empty() == true)
+	{
+		return false;
+	}
+
+	if (m_followSymLinks == false)
+	{
+		statSuccess = lstat(dirName.c_str(), &fileStat);
+	}
+	else
+	{
+		// Stat the files pointed to by symlinks
+		statSuccess = stat(dirName.c_str(), &fileStat);
+	}
+
+	if (statSuccess == -1)
 	{
 		return false;
 	}
@@ -1738,6 +1763,7 @@ bool DirectoryScannerThread::scan_directory(const string &dirName)
 	// Is it a file or a directory ?
 	if (S_ISLNK(fileStat.st_mode))
 	{
+		// This won't happen when m_followSymLinks is true
 		return false;
 	}
 	else if (S_ISREG(fileStat.st_mode))

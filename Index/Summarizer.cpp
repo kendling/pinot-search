@@ -34,7 +34,7 @@ using std::string;
 using std::map;
 using std::min;
 
-unsigned int Summarizer::m_maxTextSize = 500000;
+unsigned int Summarizer::m_maxTextSize = 50000;
 
 Summarizer::Summarizer(const std::string &language, unsigned int wordsCount) :
 	m_wordsCount(wordsCount),
@@ -59,6 +59,9 @@ Summarizer::~Summarizer()
 /// Attempts to summarize the document in wordsCount words.
 string Summarizer::summarize(const char *pText, unsigned int textLen)
 {
+	unsigned char *pSummary = NULL;
+	size_t outputLen = 0;
+
 	if ((pText == NULL) ||
 		(textLen == 0))
 	{
@@ -67,56 +70,45 @@ string Summarizer::summarize(const char *pText, unsigned int textLen)
 
 	m_title.clear();
 
-	// OTS may take too much time with long documents
-	if (textLen < m_maxTextSize)
+#ifdef DEBUG
+	Timer timer;
+	timer.start();
+	cout << "Summarizer::summarize: starting" << endl;
+#endif
+	// Create a new article
+	OtsArticle *pArticle = ots_new_article();
+	if ((pArticle != NULL) &&
+		(ots_load_xml_dictionary(pArticle, m_dictionaryCode.c_str())))
 	{
-		unsigned char *pSummary = NULL;
-		size_t outputLen = 0;
+		// OTS may take too much time with long documents
+		ots_parse_stream((const unsigned char*)pText,
+			min(textLen, m_maxTextSize), pArticle);
+
+		ots_grade_doc(pArticle);
+		ots_highlight_doc_words(pArticle, m_wordsCount);
+
+		// Summarize
+		pSummary = ots_get_doc_text(pArticle, &outputLen);
 #ifdef DEBUG
-		Timer timer;
-		timer.start();
+		cout << "Summarizer::summarize: summarized to " << outputLen << " bytes in "
+			<< timer.stop()/1000 << " ms" << endl;
 #endif
 
-		// Create a new article
-		OtsArticle *pArticle = ots_new_article();
-		if ((pArticle != NULL) &&
-			(ots_load_xml_dictionary(pArticle, m_dictionaryCode.c_str())))
+		// Get the title before freeing the article
+		if (pArticle->title != NULL)
 		{
-			ots_parse_stream((const unsigned char*)pText, textLen, pArticle);
-
-			ots_grade_doc(pArticle);
-			ots_highlight_doc_words(pArticle, m_wordsCount);
-
-			// Summarize
-			pSummary = ots_get_doc_text(pArticle, &outputLen);
-#ifdef DEBUG
-			cout << "Summarizer::summarize: summarized to " << outputLen << " bytes in "
-				<< timer.stop()/1000 << " ms" << endl;
-#endif
-
-			// Get the title before freeing the article
-			if (pArticle->title != NULL)
-			{
-				m_title = pArticle->title;
-			}
-			ots_free_article(pArticle);
+			m_title = pArticle->title;
 		}
-
-		if (pSummary != NULL)
-		{
-			string sum((const char *)pSummary, outputLen);
-
-			free(pSummary);
-
-			return sum;
-		}
+		ots_free_article(pArticle);
 	}
-	else
-	{
-		unsigned int arbitraryLen = min(5 * m_wordsCount, m_maxTextSize / 1000);
 
-		// This is totally arbitray
-		return string(pText, arbitraryLen);
+	if (pSummary != NULL)
+	{
+		string sum((const char *)pSummary, outputLen);
+
+		free(pSummary);
+
+		return sum;
 	}
 
 	return "";

@@ -16,6 +16,7 @@
 
 #include <sys/time.h>
 #include <iostream>
+#include <utility>
 
 extern "C"
 {
@@ -31,6 +32,9 @@ using std::cerr;
 using std::endl;
 using std::string;
 using std::vector;
+using std::min;
+
+unsigned int LanguageDetector::m_maxTextSize = 10000;
 
 LanguageDetector::LanguageDetector()
 {
@@ -64,9 +68,11 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 #ifdef DEBUG
 	Timer timer;
 	timer.start();
+	cout << "LanguageDetector::guessLanguage: starting" << endl;
 #endif
 #ifdef HAVE_TEXTCAT_CAT
-	unsigned int resultNum = textcat_Cat(td, pData, dataLength, catResults, 10);
+	unsigned int resultNum = textcat_Cat(td, pData,
+		min(dataLength, m_maxTextSize), catResults, 10);
 	if (resultNum == 0 )
 	{
 		candidates.push_back("unknown");
@@ -90,7 +96,8 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 		}
 	}
 #else
-	const char *languages = textcat_Classify(td, pData, dataLength);
+	const char *languages = textcat_Classify(td, pData,
+		min(dataLength, m_maxTextSize));
 	if (languages == NULL)
 	{
 		candidates.push_back("unknown");
