@@ -228,3 +228,17 @@ ustring to_utf8(const string &text, const string &charset)
 
 	return "";
 }
+
+/// Converts from UTF-8.
+string from_utf8(const ustring &text)
+{
+	try
+	{
+		return locale_from_utf8(text);
+	}
+	catch (ConvertError &ce)
+	{
+	}
+
+	return "";
+}

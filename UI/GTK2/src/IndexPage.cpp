@@ -233,7 +233,7 @@ void IndexPage::updateButtonsState(unsigned int maxDocsCount)
 	{
 		m_pBackButton->set_sensitive(false);
 	}
-	if (m_docsCount >= m_firstDoc + maxDocsCount)
+	if (m_docsCount > m_firstDoc + maxDocsCount)
 	{
 		m_pForwardButton->set_sensitive(true);
 	}

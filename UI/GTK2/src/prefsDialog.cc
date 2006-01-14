@@ -184,10 +184,10 @@ bool prefsDialog::save_labelsTreeview()
 				(label.m_name != oldName))
 			{
 				// Yes, it was
-				m_renamedLabels[locale_from_utf8(oldName)] = locale_from_utf8(label.m_name);
+				m_renamedLabels[from_utf8(oldName)] = from_utf8(label.m_name);
 			}
 			// Check user didn't recreate this label after having deleted it
-			set<string>::iterator labelIter = m_deletedLabels.find(locale_from_utf8(label.m_name));
+			set<string>::iterator labelIter = m_deletedLabels.find(from_utf8(label.m_name));
 			if (labelIter != m_deletedLabels.end())
 			{
 				m_deletedLabels.erase(labelIter);
@@ -264,7 +264,7 @@ bool prefsDialog::save_mailTreeview()
 				mailAccount.m_lastMessageTime = row[m_mailColumns.m_minDate];
 
 				string mailLabel("mailbox://");
-				mailLabel += locale_from_utf8(mailAccount.m_name);
+				mailLabel += from_utf8(mailAccount.m_name);
 
 				// Check user didn't recreate this mail account after having deleted it
 				set<string>::iterator mailIter = m_deletedMail.find(mailLabel);
@@ -402,7 +402,7 @@ void prefsDialog::on_removeLabelButton_clicked()
 		labelsTreeview->get_selection()->select(path);
 		// Erase
 		TreeModel::Row row = *iter;
-		m_deletedLabels.insert(locale_from_utf8(row[m_labelsColumns.m_name]));
+		m_deletedLabels.insert(from_utf8(row[m_labelsColumns.m_name]));
 		m_refLabelsTree->erase(row);
 
 		TreeModel::Children children = m_refLabelsTree->children();
@@ -492,7 +492,7 @@ void prefsDialog::on_removeAccountButton_clicked()
 
 		// Erase
 		TreeModel::Row row = *iter;
-		mailLabel += locale_from_utf8(row[m_mailColumns.m_location]);
+		mailLabel += from_utf8(row[m_mailColumns.m_location]);
 		m_deletedMail.insert(mailLabel);
 		m_refMailTree->erase(row);
 

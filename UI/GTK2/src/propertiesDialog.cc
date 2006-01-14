@@ -87,7 +87,7 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 		row = *iter;
 
 		row[m_labelsColumns.m_name] = labelIter->m_name;
-		string labelName = locale_from_utf8(labelIter->m_name);
+		string labelName = from_utf8(labelIter->m_name);
 		// Is it in the document labels list ?
 		set<string>::const_iterator iter = find(docLabels.begin(), docLabels.end(), labelName);
 		if (iter != docLabels.end())
@@ -136,7 +136,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 	if (m_editDocument == true)
 	{
 		// Title
-		m_docInfo.setTitle(locale_from_utf8(titleEntry->get_text()));
+		m_docInfo.setTitle(from_utf8(titleEntry->get_text()));
 	}
 	// Go through the labels tree
 	TreeModel::Children children = m_refLabelsTree->children();
@@ -150,7 +150,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 			if (enabled == true)
 			{
 				ustring labelName = row[m_labelsColumns.m_name];
-				m_labels.insert(locale_from_utf8(labelName));
+				m_labels.insert(from_utf8(labelName));
 			}
 		}
 	}

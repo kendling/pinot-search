@@ -313,11 +313,11 @@ bool IndexTree::getSelection(std::vector<IndexedDocument> &documentsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		documentsList.push_back(IndexedDocument(locale_from_utf8(row[m_indexColumns.m_text]),
-			locale_from_utf8(row[m_indexColumns.m_url]),
-			locale_from_utf8(row[m_indexColumns.m_liveUrl]),
-			locale_from_utf8(row[m_indexColumns.m_type]),
-			locale_from_utf8(row[m_indexColumns.m_language])));
+		documentsList.push_back(IndexedDocument(from_utf8(row[m_indexColumns.m_text]),
+			from_utf8(row[m_indexColumns.m_url]),
+			from_utf8(row[m_indexColumns.m_liveUrl]),
+			from_utf8(row[m_indexColumns.m_type]),
+			from_utf8(row[m_indexColumns.m_language])));
 	}
 #ifdef DEBUG
 	cout << "IndexTree::getSelection: " << documentsList.size() << " documents selected" << endl;
@@ -452,8 +452,6 @@ bool IndexTree::deleteSelection(void)
 		m_listingIndex = false;
 		empty = true;
 	}
-
-	refresh();
 
 	return empty;
 }

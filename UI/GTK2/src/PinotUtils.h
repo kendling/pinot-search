@@ -53,4 +53,7 @@ Glib::ustring to_utf8(const std::string &text);
 /// Converts from the given charset to UTF-8.
 Glib::ustring to_utf8(const std::string &text, const std::string &charset);
 
+/// Converts from UTF-8.
+std::string from_utf8(const Glib::ustring &text);
+
 #endif // _PINOTUTILS_HH

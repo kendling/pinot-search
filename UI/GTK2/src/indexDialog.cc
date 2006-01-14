@@ -176,7 +176,7 @@ void indexDialog::on_indexOkbutton_clicked()
 
 	// Look up that index name in the map
 	const std::map<string, string> &indexesMap = settings.getIndexes();
-	std::map<string, string>::const_iterator indexIter = indexesMap.find(locale_from_utf8(name));
+	std::map<string, string>::const_iterator indexIter = indexesMap.find(from_utf8(name));
 	if (indexIter != indexesMap.end())
 	{
 		// This name is in use

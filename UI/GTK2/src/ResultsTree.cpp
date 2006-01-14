@@ -309,7 +309,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			string extract;
 
 			// m_queryName and row[m_resultsColumns.m_queryName] should be equal
-			string url = locale_from_utf8(row[m_resultsColumns.m_url]);
+			string url = from_utf8(row[m_resultsColumns.m_url]);
 			unsigned int engineIds = row[m_resultsColumns.m_engines];
 			unsigned int indexIds = row[m_resultsColumns.m_indexes];
 
@@ -343,7 +343,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 #ifdef DEBUG
 				cout << "ResultsTree::onSelectionSelect: first engine for " << url << " was " << engineName << endl;
 #endif
-				extract = history.getItemExtract(locale_from_utf8(m_queryName), engineName, url);
+				extract = history.getItemExtract(from_utf8(m_queryName), engineName, url);
 			}
 
 			RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
@@ -615,7 +615,7 @@ void ResultsTree::regroupResults(bool groupBySearchEngine)
 				bool success = false;
 
 				// We will need the URL and engines columns in all cases
-				string url = locale_from_utf8(childRow[m_resultsColumns.m_url]);
+				string url = from_utf8(childRow[m_resultsColumns.m_url]);
 				unsigned int engineIds = childRow[m_resultsColumns.m_engines];
 				unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
 
@@ -633,10 +633,10 @@ void ResultsTree::regroupResults(bool groupBySearchEngine)
 						// Add result
 						success = appendResult(childRow[m_resultsColumns.m_text],
 							childRow[m_resultsColumns.m_url],
-							(float)atof(locale_from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
-							locale_from_utf8(childRow[m_resultsColumns.m_language]),
+							(float)atof(from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
+							from_utf8(childRow[m_resultsColumns.m_language]),
 							childRow[m_resultsColumns.m_rankDiff],
-							locale_from_utf8(childRow[m_resultsColumns.m_queryName]),
+							from_utf8(childRow[m_resultsColumns.m_queryName]),
 							engineIds, indexIds, newIter, &(*groupIter), true);
 					}
 				}
@@ -693,10 +693,10 @@ void ResultsTree::regroupResults(bool groupBySearchEngine)
 								// Add result
 								appendResult(childRow[m_resultsColumns.m_text],
 									childRow[m_resultsColumns.m_url],
-									(float)atof(locale_from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
-									locale_from_utf8(childRow[m_resultsColumns.m_language]),
+									(float)atof(from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
+									from_utf8(childRow[m_resultsColumns.m_language]),
 									childRow[m_resultsColumns.m_rankDiff],
-									locale_from_utf8(childRow[m_resultsColumns.m_queryName]),
+									from_utf8(childRow[m_resultsColumns.m_queryName]),
 									engineId, indexId,
 									newIter, &(*groupIter), true);
 #ifdef DEBUG
@@ -810,9 +810,9 @@ bool ResultsTree::getSelection(vector<Result> &resultsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		resultsList.push_back(Result(locale_from_utf8(row[m_resultsColumns.m_url]),
-			locale_from_utf8(row[m_resultsColumns.m_text]),
-			"", locale_from_utf8(row[m_resultsColumns.m_language])));
+		resultsList.push_back(Result(from_utf8(row[m_resultsColumns.m_url]),
+			from_utf8(row[m_resultsColumns.m_text]),
+			"", from_utf8(row[m_resultsColumns.m_language])));
 	}
 #ifdef DEBUG
 	cout << "ResultsTree::getSelection: " << resultsList.size() << " results selected" << endl;
@@ -858,7 +858,7 @@ bool ResultsTree::deleteSelection(void)
 		// This could be a group that's in the map and should be removed first
 		if (row[m_resultsColumns.m_type] != ResultsModelColumns::RESULT_TITLE)
 		{
-			string groupName = locale_from_utf8(row[m_resultsColumns.m_text]);
+			string groupName = from_utf8(row[m_resultsColumns.m_text]);
 			std::map<string, TreeModel::iterator>::iterator mapIter = m_resultsGroups.find(groupName);
 			if (mapIter != m_resultsGroups.end())
 			{

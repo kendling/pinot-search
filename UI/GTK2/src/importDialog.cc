@@ -213,7 +213,7 @@ bool importDialog::on_import_url(const string &location)
 	{
 		XapianIndex index(PinotSettings::getInstance().m_indexLocation);
 		IndexingThread *pThread = NULL;
-		string title = locale_from_utf8(m_title);
+		string title = from_utf8(m_title);
 		unsigned int docId = 0;
 
 		if (index.isGood() == true)
@@ -396,7 +396,7 @@ void importDialog::on_locationEntry_changed()
 		}
 		else
 		{
-			Url urlObj(locale_from_utf8(fileName));
+			Url urlObj(from_utf8(fileName));
 
 			// Check the URL is valid
 			if (urlObj.getProtocol().empty() == true)
@@ -434,7 +434,7 @@ void importDialog::on_locationButton_clicked()
 		if (pos != string::npos)
 		{
 			// Update the default directory
-			m_state.m_defaultDirectory = locale_from_utf8(fileName.substr(0, pos + 1));
+			m_state.m_defaultDirectory = from_utf8(fileName.substr(0, pos + 1));
 #ifdef DEBUG
 			cout << "importDialog::on_locationButton_clicked: directory now "
 				<< m_state.m_defaultDirectory << endl;
@@ -445,7 +445,7 @@ void importDialog::on_locationButton_clicked()
 
 void importDialog::on_importButton_clicked()
 {
-	string location = locale_from_utf8(locationEntry->get_text());
+	string location = from_utf8(locationEntry->get_text());
 	unsigned int level = 0;
 
 	// Rudimentary lock
@@ -469,7 +469,7 @@ void importDialog::on_importButton_clicked()
 			iter != children.end(); ++iter)
 		{
 			TreeModel::Row row = *iter;
-			string mimeType(locale_from_utf8(row[m_mimeTypeColumns.m_type]));
+			string mimeType(from_utf8(row[m_mimeTypeColumns.m_type]));
 			bool enabled = row[m_mimeTypeColumns.m_enabled];
 
 			if (enabled == true)

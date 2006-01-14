@@ -312,7 +312,7 @@ void mainWindow::save_queryTreeview()
 			TreeModel::Row row = *iter;
 
 			// Add this query to the settings
-			string name = locale_from_utf8(row[m_queryColumns.m_name]);
+			string name = from_utf8(row[m_queryColumns.m_name]);
 			QueryProperties queryProps = row[m_queryColumns.m_properties];
 #ifdef DEBUG
 			cout << "mainWindow::save_queryTreeview: " << name << endl;
@@ -457,7 +457,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 	{
 		bool isViewable = true, isIndexable = true, isCached = false;
 
-		Url urlObj(locale_from_utf8(url));
+		Url urlObj(from_utf8(url));
 		string protocol = urlObj.getProtocol();
 		// FIXME: there should be a way to know which protocols can be viewed/indexed
 		if (protocol == "xapian")
@@ -1129,8 +1129,25 @@ void mainWindow::on_thread_end()
 
 		if (pUnindexThread->getDocumentsCount() > 0)
 		{
+			ustring indexName(_("My Documents"));
 			status = _("Unindexed document(s)");
 			set_status(status);
+
+			IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
+			if (pIndexPage != NULL)
+			{
+				unsigned int docsCount = pIndexPage->getDocumentsCount();
+
+				--docsCount;
+				pIndexPage->setDocumentsCount(docsCount);
+				pIndexPage->updateButtonsState(m_maxDocsCount);
+
+				if ((docsCount >= pIndexPage->getFirstDocument() + m_maxDocsCount))
+				{
+					// Refresh this page
+					browse_index(indexName, pIndexPage->getFirstDocument());
+				}
+			}
 		}
 		// Else, stay silent
 	}
@@ -1155,8 +1172,6 @@ void mainWindow::on_thread_end()
 			{
 				pIndexTree->updateDocumentInfo(pUpdateThread->getDocumentID(),
 					pUpdateThread->getDocumentInfo());
-				// Refresh the tree
-				pIndexTree->refresh();
 			}
 		}
 
@@ -1224,9 +1239,9 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 
 		// The only way to edit an index right now is to remove it
 		// first, then add it again
-		if ((m_settings.removeIndex(locale_from_utf8(indexName)) == false) ||
-			(m_settings.addIndex(locale_from_utf8(newName),
-				locale_from_utf8(newLocation)) == false))
+		if ((m_settings.removeIndex(from_utf8(indexName)) == false) ||
+			(m_settings.addIndex(from_utf8(newName),
+				from_utf8(newLocation)) == false))
 		{
 			ustring statusText = _("Couldn't rename index");
 			statusText += " ";
@@ -1299,7 +1314,7 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 
 			if (index.isGood() == true)
 			{
-				hasLabel = index.hasLabel(docId, locale_from_utf8(labelName));
+				hasLabel = index.hasLabel(docId, from_utf8(labelName));
 			}
 		}
 	}
@@ -1381,7 +1396,7 @@ void mainWindow::on_configure_activate()
 	const set<string> &mailLabelsToDelete = prefsBox.getMailLabelsToDelete();
 	if (mailLabelsToDelete.empty() == false)
 	{
-		start_thread(new UnindexingThread(mailLabelsToDelete, locale_from_utf8(m_settings.m_mailIndexLocation)));
+		start_thread(new UnindexingThread(mailLabelsToDelete, from_utf8(m_settings.m_mailIndexLocation)));
 	}
 }
 
@@ -1533,7 +1548,7 @@ void mainWindow::on_paste_activate()
 #endif
 		// Use whatever text is in the clipboard as query name
 		// FIXME: look for \n as query fields separators ?
-		QueryProperties queryProps = QueryProperties(locale_from_utf8(clipText),
+		QueryProperties queryProps = QueryProperties(from_utf8(clipText),
 			"", "", "", "");
 		edit_query(queryProps, true);
 	}
@@ -1656,7 +1671,7 @@ void mainWindow::on_viewresults_activate()
 			if (pResultsTree != NULL)
 			{
 				ustring url = pResultsTree->getFirstSelectionURL();
-				if (view_document(locale_from_utf8(url)) == true)
+				if (view_document(from_utf8(url)) == true)
 				{
 					// We can update the row right now
 					pResultsTree->setFirstSelectionViewedState(true);
@@ -1789,7 +1804,7 @@ void mainWindow::on_viewfromindex_activate()
 		{
 			// View the first document, don't bother about the rest
 			ustring url = pIndexTree->getFirstSelectionLiveURL();
-			view_document(locale_from_utf8(url));
+			view_document(from_utf8(url));
 		}
 	}
 }
@@ -1873,8 +1888,8 @@ void mainWindow::on_showfromindex_activate()
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
-		indexName = locale_from_utf8(pIndexPage->getTitle());
-		labelName = locale_from_utf8(pIndexPage->getLabelName());
+		indexName = from_utf8(pIndexPage->getTitle());
+		labelName = from_utf8(pIndexPage->getLabelName());
 		pIndexTree = pIndexPage->getTree();
 	}
 
@@ -2124,8 +2139,8 @@ void mainWindow::on_addIndexButton_clicked()
 	}
 
 	// Add the new index
-	if (m_settings.addIndex(locale_from_utf8(name),
-			locale_from_utf8(location)) == false)
+	if (m_settings.addIndex(from_utf8(name),
+			from_utf8(location)) == false)
 	{
 		ustring statusText = _("Couldn't add index");
 		statusText += " ";
@@ -2174,7 +2189,7 @@ void mainWindow::on_removeIndexButton_clicked()
 
 		// Remove it
 		// FIXME: ask for confirmation ?
-		if (m_settings.removeIndex(locale_from_utf8(name)) == false)
+		if (m_settings.removeIndex(from_utf8(name)) == false)
 		{
 			ustring statusText = _("Couldn't remove index");
 			statusText += " ";
@@ -2232,7 +2247,7 @@ void mainWindow::on_liveQueryEntry_changed()
 		int termIndex = 0;
 
 		// Get a list of suggestions
-		docsIndex.getCloseTerms(locale_from_utf8(term), suggestedTerms);
+		docsIndex.getCloseTerms(from_utf8(term), suggestedTerms);
 
 		// Populate the list
 		for (set<string>::iterator termIter = suggestedTerms.begin();
@@ -2259,7 +2274,7 @@ void mainWindow::on_findButton_clicked()
 
 	queryProps.setName("Live query");
 	// FIXME: parse the query string !
-	queryProps.setAnyWords(locale_from_utf8(liveQueryEntry->get_text()));
+	queryProps.setAnyWords(from_utf8(liveQueryEntry->get_text()));
 
 	run_search(queryProps);
 }
@@ -2304,7 +2319,7 @@ void mainWindow::on_removeQueryButton_clicked()
 	if (iter)
 	{
 		TreeModel::Row row = *iter;
-		string queryName = locale_from_utf8(row[m_queryColumns.m_name]);
+		string queryName = from_utf8(row[m_queryColumns.m_name]);
 
 		if (m_settings.removeQuery(queryName) == true)
 		{
@@ -2778,8 +2793,8 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 		set_status(status);
 
 		// Spawn a new thread
-		start_thread(new QueryingThread(locale_from_utf8(engineName),
-			locale_from_utf8(engineDisplayableName), engineOption, queryProps));
+		start_thread(new QueryingThread(from_utf8(engineName),
+			from_utf8(engineDisplayableName), engineOption, queryProps));
 	}
 }
 
@@ -2812,7 +2827,7 @@ void mainWindow::browse_index(const ustring &indexName, unsigned int startDoc)
 
 	// Spawn a new thread to browse the index
 	IndexBrowserThread *pBrowseThread = new IndexBrowserThread(
-		locale_from_utf8(indexName), m_maxDocsCount, startDoc);
+		from_utf8(indexName), m_maxDocsCount, startDoc);
 	pBrowseThread->getUpdateSignal().connect(SigC::slot(*this,
 		&mainWindow::on_message_indexupdate));
 	start_thread(pBrowseThread);
@@ -2915,7 +2930,7 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 			return false;
 		}
 
-		string shellCommand = locale_from_utf8(m_settings.m_browserCommand);
+		string shellCommand = from_utf8(m_settings.m_browserCommand);
 		// FIXME: do substitutions
 		shellCommand += " \"";
 		shellCommand += url;

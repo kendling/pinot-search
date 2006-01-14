@@ -150,7 +150,7 @@ bool queryDialog::badName(void) const
 void queryDialog::on_queryOkbutton_clicked()
 {
 	// Name
-	m_properties.setName(locale_from_utf8(nameEntry->get_text()));
+	m_properties.setName(from_utf8(nameEntry->get_text()));
 	m_badName = false;
 	// Did the name change ?
 	if (m_name != m_properties.getName())
@@ -170,10 +170,10 @@ void queryDialog::on_queryOkbutton_clicked()
 	}
 
 	// Query terms
-	m_properties.setAndWords(locale_from_utf8(andEntry->get_text()));
-	m_properties.setPhrase(locale_from_utf8(phraseEntry->get_text()));
-	m_properties.setAnyWords(locale_from_utf8(anyEntry->get_text()));
-	m_properties.setNotWords(locale_from_utf8(notEntry->get_text()));
+	m_properties.setAndWords(from_utf8(andEntry->get_text()));
+	m_properties.setPhrase(from_utf8(phraseEntry->get_text()));
+	m_properties.setAnyWords(from_utf8(anyEntry->get_text()));
+	m_properties.setNotWords(from_utf8(notEntry->get_text()));
 	// Language
 	m_properties.setLanguage("");
 	int chosenLanguage = languageCombobox->get_active_row_number();
@@ -196,13 +196,13 @@ void queryDialog::on_queryOkbutton_clicked()
 	{
 		TreeModel::iterator iter = labelNameCombobox->get_active();
 		TreeModel::Row row = *iter;
-		string labelName = locale_from_utf8(row[m_labelNameColumns.m_name]);
+		string labelName = from_utf8(row[m_labelNameColumns.m_name]);
 
 		m_properties.setLabelName(labelName);
 	}
 	// Filters
-	m_properties.setHostFilter(locale_from_utf8(hostNameEntry->get_text()));
-	m_properties.setFileFilter(locale_from_utf8(fileNameEntry->get_text()));
+	m_properties.setHostFilter(from_utf8(hostNameEntry->get_text()));
+	m_properties.setFileFilter(from_utf8(fileNameEntry->get_text()));
 	// Label filter
 	chosenLabel = labelFilterCombobox->get_active_row_number();
 	m_properties.setLabelFilter("");
@@ -210,7 +210,7 @@ void queryDialog::on_queryOkbutton_clicked()
 	{
 		TreeModel::iterator iter = labelFilterCombobox->get_active();
 		TreeModel::Row row = *iter;
-		string labelName = locale_from_utf8(row[m_labelFilterColumns.m_name]);
+		string labelName = from_utf8(row[m_labelFilterColumns.m_name]);
 
 		m_properties.setLabelFilter(labelName);
 	}
