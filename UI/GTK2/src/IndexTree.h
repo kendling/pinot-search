@@ -88,7 +88,7 @@ class IndexTree : public Gtk::TreeView
 		/// Returns true if the tree is empty.
 		bool isEmpty(void);
 
-		/// Clear the tree.
+		/// Clears the tree.
 		void clear(void);
 
 		/// Returns the document edit signal.

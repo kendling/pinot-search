@@ -96,6 +96,8 @@ class XapianIndex : public IndexInterface
 
 		static std::string limitTermLength(const std::string &term);
 
+		static bool badField(const std::string &field);
+
 		void addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 			const std::string &prefix, Xapian::termcount &termPos, StemmingMode mode) const;
 

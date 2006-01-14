@@ -80,7 +80,10 @@ class ResultsTree : public Gtk::TreeView
 		  */
 		bool deleteSelection(void);
 
-		/// Clear the tree.
+		/// Refreshes the tree.
+		void refresh(void);
+
+		/// Clears the tree.
 		void clear(void);
 
 		/// Shows or hides the extract field.

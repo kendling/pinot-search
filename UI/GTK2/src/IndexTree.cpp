@@ -453,7 +453,7 @@ bool IndexTree::deleteSelection(void)
 		empty = true;
 	}
 
-	columns_autosize();
+	refresh();
 
 	return empty;
 }
@@ -495,7 +495,7 @@ bool IndexTree::isEmpty(void)
 }
 
 //
-// Clear the tree.
+// Clears the tree.
 //
 void IndexTree::clear(void)
 {

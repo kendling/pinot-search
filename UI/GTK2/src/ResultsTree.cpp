@@ -893,13 +893,22 @@ bool ResultsTree::deleteSelection(void)
 	TreeModel::Children children = m_refStore->children();
 	empty = children.empty();
 
-	columns_autosize();
+	refresh();
 
 	return empty;
 }
 
 //
-// Clear the tree.
+// Refreshes the tree.
+//
+void ResultsTree::refresh(void)
+{
+	// FIXME: not sure why, but this helps with refreshing the tree
+	columns_autosize();
+}
+
+//
+// Clears the tree.
 //
 void ResultsTree::clear(void)
 {

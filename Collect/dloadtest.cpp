@@ -23,6 +23,7 @@
 #include "HtmlTokenizer.h"
 #include "Url.h"
 #include "DownloaderFactory.h"
+#include "NeonDownloader.h"
 
 using namespace std;
 
@@ -33,6 +34,8 @@ int main(int argc, char **argv)
 		cerr << "Usage: <downloader name> <URL> [STRIP]" << endl;
 		return EXIT_FAILURE;
 	}
+
+	NeonDownloader::initialize();
 
 	string downloaderName = argv[1];
 	
@@ -45,17 +48,12 @@ int main(int argc, char **argv)
 	cout << "File: " << thisUrl.getFile() << endl;
 	cout << "Parameters: " << thisUrl.getParameters() << endl;
 
-	if (downloaderName == "-")
-	{
-		// Don't go further
-		return EXIT_SUCCESS;
-	}
-
 	// Which Downloader ?
 	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol(),
 		downloaderName);
 	if (myDownloader == NULL)
 	{
+		NeonDownloader::shutdown();
 		cerr << "Couldn't obtain downloader instance (" << thisUrl.getProtocol() << "," << downloaderName << ")" << endl;
 		return EXIT_FAILURE;
 	}
@@ -110,6 +108,8 @@ int main(int argc, char **argv)
 	}
 
 	delete myDownloader;
+
+	NeonDownloader::shutdown();
 
 	return EXIT_SUCCESS;
 }

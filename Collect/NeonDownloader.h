@@ -47,7 +47,6 @@ class NeonDownloader : public DownloaderInterface
 		virtual bool stop(void);
 
 	protected:
-		static bool m_initialized;
 		std::string m_userAgent;
 		ne_session *m_pSession;
 		ne_request *m_pRequest;

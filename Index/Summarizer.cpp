@@ -35,6 +35,7 @@ using std::map;
 using std::min;
 
 unsigned int Summarizer::m_maxTextSize = 50000;
+unsigned int Summarizer::m_maxSummarySize = 1000;
 
 Summarizer::Summarizer(const std::string &language, unsigned int wordsCount) :
 	m_wordsCount(wordsCount),
@@ -80,7 +81,7 @@ string Summarizer::summarize(const char *pText, unsigned int textLen)
 	if ((pArticle != NULL) &&
 		(ots_load_xml_dictionary(pArticle, m_dictionaryCode.c_str())))
 	{
-		// OTS may take too much time with long documents
+		// OTS may take too long with long documents
 		ots_parse_stream((const unsigned char*)pText,
 			min(textLen, m_maxTextSize), pArticle);
 
@@ -104,7 +105,8 @@ string Summarizer::summarize(const char *pText, unsigned int textLen)
 
 	if (pSummary != NULL)
 	{
-		string sum((const char *)pSummary, outputLen);
+		string sum((const char *)pSummary,
+			min(outputLen, m_maxSummarySize));
 
 		free(pSummary);
 

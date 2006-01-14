@@ -1155,6 +1155,8 @@ void mainWindow::on_thread_end()
 			{
 				pIndexTree->updateDocumentInfo(pUpdateThread->getDocumentID(),
 					pUpdateThread->getDocumentInfo());
+				// Refresh the tree
+				pIndexTree->refresh();
 			}
 		}
 
@@ -1485,7 +1487,7 @@ void mainWindow::on_copy_activate()
 					}
 					text += docIter->getTitle();
 					text += " ";
-					text += docIter->getLocation();
+					text += docIter->getOriginalLocation();
 					firstItem = false;
 				}
 			}

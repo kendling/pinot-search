@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <time.h>
+#include <regex.h>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -69,6 +70,28 @@ string XapianIndex::limitTermLength(const string &term)
 	}
 
 	return term;
+}
+
+bool XapianIndex::badField(const string &field)
+{
+	regex_t fieldRegex;
+	regmatch_t pFieldMatches[1];
+	bool isBadField = false;
+
+	// A bad field is one that includes one of our field delimiters
+	if (regcomp(&fieldRegex,
+		"(url|sample|caption|type|timestamp|language)=",
+		REG_EXTENDED|REG_ICASE) == 0)
+	{
+		if (regexec(&fieldRegex, field.c_str(), 1,
+			pFieldMatches, REG_NOTBOL|REG_NOTEOL) == 0)
+		{
+			isBadField = true;
+		}
+	}
+	regfree(&fieldRegex);
+
+	return isBadField;
 }
 
 void XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
@@ -207,7 +230,7 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 		// Fall back on English
 		language = "english";
 	}
-	Summarizer sum(language, 100);
+	Summarizer sum(language, 50);
 	summary = sum.summarize(pData, dataLength);
 
 	// Update the document's properties
@@ -231,16 +254,37 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 void XapianIndex::setDocumentData(Xapian::Document &doc, const DocumentInfo &info, const string &extract,
 	const string &language) const
 {
+	string title(info.getTitle());
+	string timestamp(info.getTimestamp());
 	char timeStr[64];
-	string timestamp = info.getTimestamp();
 
 	// Set the document data omindex-style
 	string record = "url=";
 	record += info.getLocation();
 	record += "\nsample=";
-	record += extract;
+	// Ignore the extract if it contains any of our field delimiters
+	if (badField(extract) == false)
+	{
+		record += extract;
+	}
+#ifdef DEBUG
+	else cout << "XapianIndex::setDocumentData: bad extract" << endl;
+#endif
 	record += "\ncaption=";
-	record += info.getTitle();
+	if (badField(title) == true)
+	{
+		// Modify the title if necessary
+		string::size_type pos = title.find("=");
+		while (pos != string::npos)
+		{
+			title[pos] = ' ';
+			pos = title.find("=", pos + 1);
+		}
+#ifdef DEBUG
+		cout << "XapianIndex::setDocumentData: modified title" << endl;
+#endif
+	}
+	record += title;
 	record += "\ntype=";
 	record += info.getType();
 	// Append a timestamp
@@ -310,12 +354,12 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 
 		string summary = scanDocument(pData, dataLength, docInfo);
 
-#ifdef DEBUG
-		cout << "XapianIndex::indexDocument: adding terms" << endl;
-#endif
 		Xapian::Document doc;
 		Xapian::termcount termPos = 0;
 
+#ifdef DEBUG
+		cout << "XapianIndex::indexDocument: adding terms" << endl;
+#endif
 		// Add the tokenizer's terms to the Xapian document
 		addTermsToDocument(tokens, doc, "", termPos, m_stemMode);
 		// Add labels

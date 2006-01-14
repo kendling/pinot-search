@@ -33,6 +33,7 @@ class Summarizer
 
 	protected:
 		static unsigned int m_maxTextSize;
+		static unsigned int m_maxSummarySize;
 		unsigned int m_wordsCount;
 		std::string m_dictionaryCode;
 		std::string m_title;

@@ -1232,10 +1232,10 @@ void UpdateDocumentThread::do_update()
 		}
 		else
 		{
-			// OK
-			m_status = "";
 			// Flush the index
 			index.flush();
+			// The document properties may have changed
+			index.getDocumentInfo(m_docId, m_docInfo);
 		}
 	}
 

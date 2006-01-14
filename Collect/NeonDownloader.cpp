@@ -64,8 +64,6 @@ static void headerHandler(void *userdata, const char *value)
 	}
 }
 
-bool NeonDownloader::m_initialized = false;
-
 #ifdef NE_SSL_H
 // OpenSSL multi-thread support, required by Neon
 static pthread_mutex_t locksTable[CRYPTO_NUM_LOCKS];
@@ -120,7 +118,10 @@ void NeonDownloader::initialize(void)
 	// Set the callbacks
 	CRYPTO_set_locking_callback(lockingCallback);
 	CRYPTO_set_id_callback(idCallback);
+
+	pthread_mutexattr_destroy(&mutexAttr);
 #endif	// NE_SSL_H
+	ne_sock_init();
 }
 
 /// Shutdown the downloader.
@@ -136,6 +137,7 @@ void NeonDownloader::shutdown(void)
 		pthread_mutex_destroy(&(locksTable[lockNum]));
 	}
 #endif	// NE_SSL_H
+	ne_sock_exit();
 }
 
 NeonDownloader::NeonDownloader() :
@@ -145,11 +147,6 @@ NeonDownloader::NeonDownloader() :
 {
 	// Pretend to be Mozilla
 	m_userAgent = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.3) Gecko/20041020";
-	if (m_initialized == false)
-	{
-		ne_sock_init();
-		m_initialized = true;
-	}
 }
 
 NeonDownloader::~NeonDownloader()
