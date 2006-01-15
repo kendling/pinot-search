@@ -17,7 +17,7 @@
 #include <string.h>
 #include <iostream>
 
-#include "WordTokenizer.h"
+#include "RtfTokenizer.h"
 
 /**
   * This returns the MIME type supported by the library's tokenizer.
@@ -27,9 +27,16 @@ char *getTokenizerType(unsigned int typeNum)
 {
 	if (typeNum == 0)
 	{
+		char *pType = new char[9];
+		strncpy(pType, "text/rtf", 8);
+		pType[8] = '\0';
+		return pType;
+	}
+	else if (typeNum == 1)
+	{
 		char *pType = new char[16];
-		strncpy(pType, "application/msword", 18);
-		pType[18] = '\0';
+		strncpy(pType, "application/rtf", 15);
+		pType[15] = '\0';
 		return pType;
 	}
 
@@ -39,28 +46,28 @@ char *getTokenizerType(unsigned int typeNum)
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument)
 {
-	return new WordTokenizer(pDocument);
+	return new RtfTokenizer(pDocument);
 }
 
-WordTokenizer::WordTokenizer(const Document *pDocument) :
-	Tokenizer(NULL)
+RtfTokenizer::RtfTokenizer(const Document *pDocument) :
+	HtmlTokenizer(NULL)
 {
-	string cmdLine("antiword");
+	string cmdLine("unrtf --nopict --html");
 
 	// Run antiword
 	Document *pOutputDocument = runHelperProgram(pDocument, cmdLine);
 	if (pOutputDocument != NULL)
 	{
 		// Give the result to the parent class
-		setDocument(pOutputDocument);
+		initialize(pOutputDocument);
 	}
 }
 
-WordTokenizer::~WordTokenizer()
+RtfTokenizer::RtfTokenizer() :
+	HtmlTokenizer()
 {
-	if (m_pDocument != NULL)
-	{
-		// This should have been set by setDocument()
-		delete m_pDocument;
-	}
+}
+
+RtfTokenizer::~RtfTokenizer()
+{
 }

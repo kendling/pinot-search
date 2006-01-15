@@ -32,7 +32,7 @@
 #include "TokenizerFactory.h"
 
 #define GETTOKENIZER		"_Z12getTokenizerPK8Document"
-#define GETTOKENIZERTYPE	"_Z16getTokenizerTypev"
+#define GETTOKENIZERTYPE	"_Z16getTokenizerTypej"
 
 using std::cout;
 using std::endl;
@@ -151,26 +151,38 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 					void *pHandle = dlopen(fileName.c_str(), RTLD_LAZY|RTLD_LOCAL);
 					if (pHandle != NULL)
 					{
-						// What type does this support ?
+						// What type(s) does this support ?
 						getTokenizerTypeFunc *pFunc = (getTokenizerTypeFunc *)dlsym(pHandle,
 								GETTOKENIZERTYPE);
 						if (pFunc != NULL)
 						{
-							char *pSupportedType = (*pFunc)();
-							if (pSupportedType != NULL)
-							{
-								// Add records for this tokenizer
-								m_types[pSupportedType] = fileName;
-								m_handles[fileName] = pHandle;
-								++count;
+							unsigned int typeNum = 0;
 
+							while (1)
+							{
+								char *pSupportedType = (*pFunc)(typeNum);
+								if (pSupportedType == NULL)
+								{
+									break;
+								}
+
+								// Add a record for this tokenizer
+								m_types[pSupportedType] = fileName;
 #ifdef DEBUG
 								cout << "TokenizerFactory::loadTokenizers: type "
 									<< pSupportedType << " supported by " << pEntryName << endl;
 #endif
-
 								// It's supposed to have been allocated with new[]
 								delete[] pSupportedType;
+
+								// Next
+								++count;
+								++typeNum;
+							}
+
+							if (typeNum > 0)
+							{
+								m_handles[fileName] = pHandle;
 							}
 						}
 #ifdef DEBUG

@@ -10,9 +10,11 @@ TOKENIZE_OBJS := $(patsubst %.cpp,${OBJ_DIR}/%.o,${TOKENIZE_SRCS})
 TOKENIZER_TEST = ${BIN_DIR}/tokenizertest
 PDF_TOKENIZER_DL = ${LIB_DIR}/pdf_tokenizer.so
 WORD_TOKENIZER_DL = ${LIB_DIR}/word_tokenizer.so
+RTF_TOKENIZER_DL = ${LIB_DIR}/rtf_tokenizer.so
 
 targets : dirs ${TOKENIZE_LIB} ${TOKENIZER_TEST} \
-	${PDF_TOKENIZER_DL} ${WORD_TOKENIZER_DL}
+	${PDF_TOKENIZER_DL} ${WORD_TOKENIZER_DL} \
+	${RTF_TOKENIZER_DL}
 
 clean :
 	@rm -f ${OBJ_DIR}/* ${TOKENIZE_LIB} ${TOKENIZER_TEST} \
@@ -40,3 +42,6 @@ ${WORD_TOKENIZER_DL} : ${OBJ_DIR}/WordTokenizer.o
 	@echo Building ${WORD_TOKENIZER_DL}
 	${LINK} -shared -o ${WORD_TOKENIZER_DL} ${OBJ_DIR}/WordTokenizer.o ${TOKENIZE_LIB} ${UTILS_LIB} ${LIBS} -ldl
 
+${RTF_TOKENIZER_DL} : ${OBJ_DIR}/RtfTokenizer.o
+	@echo Building ${RTF_TOKENIZER_DL}
+	${LINK} -shared -o ${RTF_TOKENIZER_DL} ${OBJ_DIR}/RtfTokenizer.o ${TOKENIZE_LIB} ${UTILS_LIB} ${LIBS} -ldl

@@ -29,6 +29,9 @@ class Tokenizer
 		Tokenizer(const Document *pDocument);
 		virtual ~Tokenizer();
 
+		/// Converts a document using an helper program.
+		static Document *runHelperProgram(const Document *pDocument, const string &cmdLine);
+
 		/// Returns a pointer to the document being tokenized.
 		virtual const Document *getDocument(void);
 

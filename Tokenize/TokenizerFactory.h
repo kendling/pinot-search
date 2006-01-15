@@ -35,7 +35,7 @@ class TokenizerFactory
 		  * This returns the MIME type supported by the library's tokenizer.
 		  * The character string is allocated with new[].
 		  */
-		typedef char *(getTokenizerTypeFunc)(void);
+		typedef char *(getTokenizerTypeFunc)(unsigned int typeNum);
 		/// This returns a pointer to a Tokenizer, allocated with new.
 		typedef Tokenizer *(getTokenizerFunc)(const Document *);
 

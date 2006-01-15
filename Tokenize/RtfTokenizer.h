@@ -14,53 +14,40 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <string.h>
-#include <iostream>
+#ifndef _RTF_TOKENIZER_H
+#define _RTF_TOKENIZER_H
 
-#include "WordTokenizer.h"
+#include <string>
+#include <map>
+#include <utility>
+#include <set>
+
+#include "Document.h"
+#include "HtmlTokenizer.h"
+
+using namespace std;
 
 /**
   * This returns the MIME type supported by the library's tokenizer.
   * The character string is allocated with new[].
   */
-char *getTokenizerType(unsigned int typeNum)
-{
-	if (typeNum == 0)
-	{
-		char *pType = new char[16];
-		strncpy(pType, "application/msword", 18);
-		pType[18] = '\0';
-		return pType;
-	}
-
-	return NULL;
-}
-
+char *getTokenizerType(unsigned int typeNum);
 /// This returns a pointer to a Tokenizer, allocated with new.
-Tokenizer *getTokenizer(const Document *pDocument)
-{
-	return new WordTokenizer(pDocument);
-}
+Tokenizer *getTokenizer(const Document *pDocument);
 
-WordTokenizer::WordTokenizer(const Document *pDocument) :
-	Tokenizer(NULL)
+class RtfTokenizer : public HtmlTokenizer
 {
-	string cmdLine("antiword");
+	public:
+		RtfTokenizer(const Document *pDocument);
+		virtual ~RtfTokenizer();
 
-	// Run antiword
-	Document *pOutputDocument = runHelperProgram(pDocument, cmdLine);
-	if (pOutputDocument != NULL)
-	{
-		// Give the result to the parent class
-		setDocument(pOutputDocument);
-	}
-}
+	protected:
+		RtfTokenizer();
 
-WordTokenizer::~WordTokenizer()
-{
-	if (m_pDocument != NULL)
-	{
-		// This should have been set by setDocument()
-		delete m_pDocument;
-	}
-}
+	private:
+		RtfTokenizer(const RtfTokenizer &other);
+		RtfTokenizer& operator=(const RtfTokenizer& other);
+
+};
+
+#endif // _RTF_TOKENIZER_H

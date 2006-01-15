@@ -26,23 +26,15 @@ Pinot is a metasearch tool for the Free Desktop.  It enables one to query
 sources, display as well as analyze and locally index the returned results.
 It may also be used as a lightweight personal space search tool.
 
-%package pdf
-Summary: PDF tokenizer for Pinot that uses pdftohtml
+%package text-docs 
+Summary: Tokenizers for Pinot that handle various text document formats
 Group: Applications/Internet
 Requires: %{name} = %{version}
-Requires: pdftohtml
+Requires: pdftohtml, antiword, unrtf
+Obsoletes: pinot-pdf, pinot-word
 
-%description pdf
-The included tokenizer enables Pinot to index PDF documents.
-
-%package word 
-Summary: MS Word tokenizer for Pinot that uses antiword
-Group: Applications/Internet
-Requires: %{name} = %{version}
-Requires: antiword
-
-%description word
-The included tokenizer enables Pinot to index MS Word documents.
+%description text-docs 
+The included tokenizers add support for PDF, MS Word and RTF documents.
 
 %package omega 
 Summary: Xapian Omega plugin for Pinot
@@ -124,13 +116,11 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
 %{_datadir}/applications/Amra-%{name}.desktop
 
-%files pdf
+%files text-docs 
 %defattr(-, root, root, -)
 %dir %{_datadir}/pinot/tokenizers/pdf_tokenizer.so
-
-%files word
-%defattr(-, root, root, -)
 %dir %{_datadir}/pinot/tokenizers/word_tokenizer.so
+%dir %{_datadir}/pinot/tokenizers/rtf_tokenizer.so
 
 %files omega
 %defattr(-, root, root, -)

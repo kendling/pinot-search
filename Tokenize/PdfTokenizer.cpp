@@ -14,10 +14,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <string.h>
 #include <iostream>
 
 #include "PdfTokenizer.h"
@@ -26,14 +23,17 @@
   * This returns the MIME type supported by the library's tokenizer.
   * The character string is allocated with new[].
   */
-char *getTokenizerType(void)
+char *getTokenizerType(unsigned int typeNum)
 {
-	char *pType = new char[16];
+	if (typeNum == 0)
+	{
+		char *pType = new char[16];
+		strncpy(pType, "application/pdf", 15);
+		pType[15] = '\0';
+		return pType;
+	}
 
-	strncpy(pType, "application/pdf", 15);
-	pType[15] = '\0';
-
-	return pType;
+	return NULL;
 }
 
 /// This returns a pointer to a Tokenizer, allocated with new.
@@ -45,71 +45,14 @@ Tokenizer *getTokenizer(const Document *pDocument)
 PdfTokenizer::PdfTokenizer(const Document *pDocument) :
 	HtmlTokenizer(NULL)
 {
-	char inTemplate[15] = "/tmp/tokXXXXXX";
-	char outTemplate[15] = "/tmp/tokXXXXXX";
+	string cmdLine("pdftohtml -stdout");
 
-	int inFd = mkstemp(inTemplate);
-	int outFd = mkstemp(outTemplate);
-	if ((inFd != -1) &&
-		(outFd != -1))
+	// Run antiword
+	Document *pOutputDocument = runHelperProgram(pDocument, cmdLine);
+	if (pOutputDocument != NULL)
 	{
-		unsigned int dataLength = 0;
-		const char *pData = pDocument->getData(dataLength);
-
-		// Save the data into a temporary file
-		if (write(inFd, (const void*)pData, dataLength) != -1)
-		{
-			// Run pdftohtml to convert it
-			string cmdLine = "pdftohtml -stdout ";
-			cmdLine += inTemplate;
-			cmdLine += " >";
-			cmdLine += outTemplate;
-			cmdLine += " 2>/dev/null";
-
-			if (system(cmdLine.c_str()) != -1)
-			{
-				struct stat fileStat;
-
-				// Read the output
-				if ((stat(outTemplate, &fileStat) != -1) &&
-					(S_ISREG(fileStat.st_mode)))
-				{
-					unsigned int total, bytes;
-					char *content = new char[fileStat.st_size + 1];
-
-					total = bytes = read(outFd, (void*)content, fileStat.st_size);
-					while ((bytes > 0) &&
-						(total < fileStat.st_size))
-					{
-						bytes = read(outFd, (void*)content, fileStat.st_size - total);
-						total += bytes;
-					}
-
-					// Pass the result to the parent class
-					Document *pHtmlDoc = new Document(pDocument->getTitle(),
-						pDocument->getLocation(), pDocument->getType(),
-						pDocument->getLanguage());
-					pHtmlDoc->setData(content, bytes);
-					initialize(pHtmlDoc);
-#ifdef DEBUG
-					cout << "PdfTokenizer::ctor: set " << bytes << " bytes of data" << endl;
-#endif
-
-					delete[] content;
-				}
-			}
-		}
-	}
-
-	close(outFd);
-	close(inFd);
-
-	if ((unlink(outTemplate) != 0) ||
-		(unlink(inTemplate) != 0))
-	{
-#ifdef DEBUG
-		cerr << "PdfTokenizer::ctor: couldn't delete temporary files" << endl;
-#endif
+		// Give the result to the parent class
+		initialize(pOutputDocument);
 	}
 }
 
