@@ -17,15 +17,8 @@
 #ifndef _PDF_TOKENIZER_H
 #define _PDF_TOKENIZER_H
 
-#include <string>
-#include <map>
-#include <utility>
-#include <set>
-
 #include "Document.h"
 #include "HtmlTokenizer.h"
-
-using namespace std;
 
 /**
   * This returns the MIME type supported by the library's tokenizer.

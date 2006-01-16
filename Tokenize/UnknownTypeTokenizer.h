@@ -19,8 +19,6 @@
 
 #include "Tokenizer.h"
 
-using namespace std;
-
 class UnknownTypeTokenizer : public Tokenizer
 {
 	public:
