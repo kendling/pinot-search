@@ -170,7 +170,7 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 	Url urlObj(location);
 
 	// Index the full URL with prefix U
-	doc.add_term(limitTermLength(string("U") + Url::canonicalizeUrl(location)));
+	doc.add_term(limitTermLength(string("U") + location));
 	// ...the host name with prefix H
 	string hostName = urlObj.getHost();
 	doc.add_term(limitTermLength(string("H") + StringManip::toLowerCase(hostName)));
@@ -351,6 +351,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		DocumentInfo docInfo(pDocument->getTitle(), pDocument->getLocation(),
 			pDocument->getType(), pDocument->getLanguage());
 		docInfo.setTimestamp(pDocument->getTimestamp());
+		docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
 		string summary = scanDocument(pData, dataLength, docInfo);
 
@@ -613,6 +614,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	DocumentInfo docInfo(pDocument->getTitle(), pDocument->getLocation(),
 		pDocument->getType(), pDocument->getLanguage());
 	docInfo.setTimestamp(pDocument->getTimestamp());
+	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
 	string summary = scanDocument(pData, dataLength, docInfo);
 

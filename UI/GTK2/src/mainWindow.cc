@@ -1012,6 +1012,13 @@ void mainWindow::on_thread_end()
 					ustring viewName = _("View");
 
 					// Is there still a view page ?
+					ViewPage *pViewPage = dynamic_cast<ViewPage*>(get_page(viewName, NotebookPageBox::VIEW_PAGE));
+					if (pViewPage != NULL)
+					{
+						// The page may be hidden
+						pViewPage->show();
+					}
+
 					int pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
 					if (pageNum >= 0)
 					{

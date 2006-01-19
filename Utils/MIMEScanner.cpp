@@ -121,7 +121,14 @@ string MIMEScanner::scanUrl(const Url &urlObj)
 	string mimeType = scanFileType(urlObj.getFile());
 	if (mimeType.empty() == true)
 	{
-		mimeType = "text/plain";
+		if (urlObj.getProtocol() == "http")
+		{
+			mimeType = "text/html";
+		}
+		else
+		{
+			mimeType = "text/plain";
+		}
 	}
 
 	return mimeType;

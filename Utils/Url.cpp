@@ -186,8 +186,15 @@ string Url::canonicalizeUrl(const string &url)
 
 	if (urlObj.isLocal() == false)
 	{
-		// Lower-case it all
-		canonicalUrl = StringManip::toLowerCase(url);
+		string host = urlObj.getHost();
+
+		// Lower-case the host name
+		string::size_type pos = canonicalUrl.find(host);
+		if (pos != string::npos)
+		{
+			canonicalUrl.replace(pos, host.length(), StringManip::toLowerCase(host));
+		}
+		canonicalUrl = escapeUrl(canonicalUrl);;
 	}
 
 	// Get rid of the last directory's slash

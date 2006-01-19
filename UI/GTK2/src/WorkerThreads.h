@@ -123,7 +123,7 @@ class IndexBrowserThread : public WorkerThread
 {
 	public:
 		IndexBrowserThread(const std::string &indexName,
-			unsigned int maxDocsCount = 0, unsigned int startDoc = 0);
+			unsigned int maxDocsCount, unsigned int startDoc);
 		~IndexBrowserThread();
 
 		virtual Glib::Thread *start(void);
