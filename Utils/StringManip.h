@@ -44,7 +44,7 @@ class StringManip
 		static std::string removeQuotes(const std::string &str);
 
 		/// Hashes a string.
-		static std::string hashString(std::string &str);
+		static std::string hashString(const std::string &str);
 
 	protected:
 		StringManip();

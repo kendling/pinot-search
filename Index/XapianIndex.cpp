@@ -39,7 +39,7 @@ using std::string;
 using std::set;
 
 // This puts a limit to terms length.
-const unsigned int XapianIndex::m_maxTermLength = 64;
+const unsigned int XapianIndex::m_maxTermLength = 128;
 const string XapianIndex::MAGIC_TERM = "X-MetaSE-Doc";
 
 XapianIndex::XapianIndex(const string &indexName) :
@@ -62,11 +62,23 @@ XapianIndex::~XapianIndex()
 {
 }
 
-string XapianIndex::limitTermLength(const string &term)
+string XapianIndex::limitTermLength(const string &term, bool makeUnique)
 {
 	if (term.length() > XapianIndex::m_maxTermLength)
 	{
-		return term.substr(0, XapianIndex::m_maxTermLength);
+		if (makeUnique == false)
+		{
+			// Truncate
+			return term.substr(0, XapianIndex::m_maxTermLength);
+		}
+		else
+		{
+			string base(term.substr(0, XapianIndex::m_maxTermLength - 30));
+
+			base += StringManip::hashString(term);
+
+			return base;
+		}
 	}
 
 	return term;
@@ -170,15 +182,15 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 	Url urlObj(location);
 
 	// Index the full URL with prefix U
-	doc.add_term(limitTermLength(string("U") + location));
+	doc.add_term(limitTermLength(string("U") + location, true));
 	// ...the host name with prefix H
 	string hostName = urlObj.getHost();
-	doc.add_term(limitTermLength(string("H") + StringManip::toLowerCase(hostName)));
+	doc.add_term(limitTermLength(string("H") + StringManip::toLowerCase(hostName), true));
 	// ...and the file name with prefix F
 	string fileName = urlObj.getFile();
-	doc.add_term(limitTermLength(string("F") + StringManip::toLowerCase(fileName)));
+	doc.add_term(limitTermLength(string("F") + StringManip::toLowerCase(fileName), true));
 	// Finally, add the language with prefix L
-	doc.add_term(limitTermLength(string("L") + StringManip::toLowerCase(m_stemLanguage)));
+	doc.add_term(string("L") + StringManip::toLowerCase(m_stemLanguage));
 
 	setDocumentData(doc, info, summary, m_stemLanguage);
 
@@ -784,7 +796,7 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 		Xapian::Database *pIndex = pDatabase->readLock();
 		if (pIndex != NULL)
 		{
-			string term(string("U") + Url::canonicalizeUrl(url));
+			string term = limitTermLength(string("U") + Url::canonicalizeUrl(url), true);
 
 			// Get documents that have this term
 			Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);

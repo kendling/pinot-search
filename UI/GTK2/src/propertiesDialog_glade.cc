@@ -65,7 +65,7 @@ propertiesDialog_glade::propertiesDialog_glade(
    extractLabel = Gtk::manage(new class Gtk::Label(_("Extract:")));
    languageLabel = Gtk::manage(new class Gtk::Label(_("Language:")));
    languageEntry = Gtk::manage(new class Gtk::Entry());
-   typeLabel = Gtk::manage(new class Gtk::Label(_("Type:")));
+   typeLabel = Gtk::manage(new class Gtk::Label(_("MIME type:")));
    typeEntry = Gtk::manage(new class Gtk::Entry());
    
    Gtk::Table *propertiesTable = Gtk::manage(new class Gtk::Table(2, 2, false));

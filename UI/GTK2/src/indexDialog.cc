@@ -216,34 +216,8 @@ void indexDialog::on_locationButton_clicked()
 
 void indexDialog::on_typeCombobox_changed()
 {
-	bool startsWithSlash = false, isLocal = false;
+	checkFields();
 
-	ustring location = locationEntry->get_text();
-	if ((location.empty() == false) &&
-		(location[0] == '/'))
-	{
-		startsWithSlash = true;
-	}
-
-	// Enable the browser entry field and button only if browsing is enabled
-	if (typeCombobox->get_active_row_number() == 1)
-	{
-		// Remote index
-		portSpinbutton->set_sensitive(true);
-		locationButton->set_sensitive(false);
-	}
-	else
-	{
-		// Local index
-		portSpinbutton->set_sensitive(false);
-		locationButton->set_sensitive(true);
-		isLocal = true;
-	}
-
-	if (startsWithSlash != isLocal)
-	{
-		indexOkbutton->set_sensitive(false);
-	}
 }
 
 void indexDialog::on_nameEntry_changed()

@@ -62,7 +62,7 @@ prefsDialog_glade::prefsDialog_glade(
    Gtk::Label *robotsLabel = Gtk::manage(new class Gtk::Label(_("HTTP crawling:")));
    Gtk::Label *viewLabel = Gtk::manage(new class Gtk::Label(_("View documents:")));
    Gtk::Label *browserLabel = Gtk::manage(new class Gtk::Label(_("Browser:")));
-   apiKeyLabel = Gtk::manage(new class Gtk::Label(_("Google API Key:")));
+   apiKeyLabel = Gtk::manage(new class Gtk::Label(_("Google API key:")));
    apiKeyEntry = Gtk::manage(new class Gtk::Entry());
    viewCombobox = Gtk::manage(new class Gtk::ComboBox());
    ignoreRobotsCheckbutton = Gtk::manage(new class Gtk::CheckButton(_("Ignore robots.txt and Robots META tag")));

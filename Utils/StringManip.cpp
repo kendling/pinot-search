@@ -176,7 +176,7 @@ string StringManip::removeQuotes(const string &str)
 }
 
 /// Hashes a string.
-string StringManip::hashString(string &str)
+string StringManip::hashString(const string &str)
 {
 	if (str.empty() == true)
 	{

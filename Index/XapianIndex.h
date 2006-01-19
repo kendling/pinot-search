@@ -94,7 +94,7 @@ class XapianIndex : public IndexInterface
 		std::string m_databaseName;
 		std::string m_stemLanguage;
 
-		static std::string limitTermLength(const std::string &term);
+		static std::string limitTermLength(const std::string &term, bool makeUnique = false);
 
 		static bool badField(const std::string &field);
 
