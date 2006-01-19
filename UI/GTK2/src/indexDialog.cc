@@ -122,7 +122,16 @@ void indexDialog::checkFields(void)
 
 		if (typeCombobox->get_active_row_number() == 0)
 		{
+			// Local index
+			portSpinbutton->set_sensitive(false);
+			locationButton->set_sensitive(true);
 			isLocal = true;
+		}
+		else
+		{
+			// Remote index
+			portSpinbutton->set_sensitive(true);
+			locationButton->set_sensitive(false);
 		}
 
 		// Disable the OK button if the type+location pair doesn't make sense
