@@ -35,6 +35,7 @@ Collect
 - Support for HTML frames
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
 - Use poppler for the PDF tokenizer
+- Write a basic XML tokenizer that skips tags
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
@@ -43,8 +44,6 @@ Index
 - Interface with libtranslate (http://www.nongnu.org/libtranslate/) ? :-)
 - Xapian lock files can be deleted at startup if no other instance is running
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
-- Catch DatabaseModifiedError exceptions, call reopen()
-- Sort index/database back-end, don't replicate what's in the configuration file, etc...
 - Switch to Xapian's new Flint back-end (set XAPIAN_PREFER_FLINT=1)
 - Write a back-end for CLucene (http://clucene.sourceforge.net/)
 - Flush the index before searching not after modification
@@ -94,8 +93,10 @@ UI
 - Update Last Run after the query has completed
 - Add a Recent Import section that relies on documents timestamps
 - Filter documents by language, similarly to how labels are shown
-- Save query expander and extract field status in config file
+- Save engines groups state in config file
 - Enable to save live queries
 - Clean up method names
 - Prefer ustring to string whenever possible
-- Extend query completion based on a dictionary (use libsexymm's SpellEntry ?)
+- Closing when threads are running gives the impression Pinot has crashed; how do we tell the user
+  we are waiting for something to finish ?
+
