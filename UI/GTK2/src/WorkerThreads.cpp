@@ -957,7 +957,7 @@ void IndexingThread::do_indexing()
 		Tokenizer *pTokens = TokenizerFactory::getTokenizerByType(m_docInfo.getType(), m_pDoc);
 		if (pTokens == NULL)
 		{
-			m_status = _("Couln't tokenize");
+			m_status = _("Couldn't tokenize");
 			m_status += " ";
 			m_status += m_url;
 			emitSignal();

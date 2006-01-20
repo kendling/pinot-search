@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.35\n"
+"Project-Id-Version: pinot 0.40\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2005-12-08 19:20+0800\n"
-"PO-Revision-Date: 2006-01-19 20:22+0800\n"
+"PO-Revision-Date: 2006-01-20 19:44+0800\n"
 "Last-Translator: Fabrice Colin <colinf@chez.com>\n"
 "Language-Team: en_GB <colinf@chez.com>\n"
 "MIME-Version: 1.0\n"
@@ -43,28 +43,28 @@ msgstr "Mon Courrier"
 
 #: UI/GTK2/src/importDialog.cc:104
 msgid "Enabled"
-msgstr "Un fichier"
+msgstr "Active"
 
 #: UI/GTK2/src/importDialog.cc:105 UI/GTK2/src/prefsDialog.cc:78
 msgid "MIME Type"
-msgstr "Un repertoire"
+msgstr "Type MIME"
 
 #: UI/GTK2/src/importDialog.cc:130
 msgid "File"
-msgstr "URL"
+msgstr "Fichier"
 
 #: UI/GTK2/src/importDialog.cc:133
 msgid "Directory"
-msgstr "Document A Importer"
+msgstr "Repertoire"
 
 #: UI/GTK2/src/importDialog.cc:138 UI/GTK2/src/IndexTree.cpp:70
 #: UI/GTK2/src/ResultsTree.cpp:114
 msgid "URL"
-msgstr "Importer"
+msgstr "URL"
 
 #: UI/GTK2/src/importDialog.cc:426
 msgid "Document To Import"
-msgstr "Selectionner"
+msgstr "Document A Importer"
 
 #: UI/GTK2/src/importDialog_glade.cc:66 UI/GTK2/src/indexDialog_glade.cc:68
 msgid "Location:"
@@ -102,9 +102,9 @@ msgstr "Importer"
 
 #: UI/GTK2/src/importDialog_glade.cc:200
 msgid "Import document"
-msgstr "Importation de document"
+msgstr "Import de document"
 
-#: UI/GTK2/src/indexDialog.cc:211
+#: UI/GTK2/src/indexDialog.cc:221
 msgid "Index location"
 msgstr "Location de l'index"
 
@@ -270,7 +270,7 @@ msgstr "La location du resultat est inconnue"
 
 #: UI/GTK2/src/mainWindow.cc:1777
 msgid "Import Document(s)"
-msgstr "Importation de Document(s)"
+msgstr "Import de Document(s)"
 
 #: UI/GTK2/src/mainWindow.cc:1907 UI/GTK2/src/pinot.cc:148
 #: UI/GTK2/src/pinot.cc:153 UI/GTK2/src/WorkerThreads.cpp:371
@@ -317,27 +317,27 @@ msgstr "N'a pas pu enlever l'index"
 
 #: UI/GTK2/src/mainWindow.cc:2435
 msgid "At least one task hasn't completed yet. Quit now ?"
-msgstr "Nom de la recherche"
+msgstr "Au moins une tache n'est pas terminee. Quitter maintenant ?"
 
 #: UI/GTK2/src/mainWindow.cc:2627
 msgid "Query name"
-msgstr "N'a pas pu ajouter la recherche"
+msgstr "Nom de la recherche"
 
 #: UI/GTK2/src/mainWindow.cc:2654
 msgid "Couldn't update query"
-msgstr "Ajoute une nouvelle recherche"
+msgstr "N'a pas pu mettre a jour la recherche"
 
 #: UI/GTK2/src/mainWindow.cc:2662
 msgid "Edited query"
-msgstr "N'a pas pu mettre a jour la recherche"
+msgstr "Edite la recherche"
 
 #: UI/GTK2/src/mainWindow.cc:2669
 msgid "Couldn't add query"
-msgstr "Edite la recherche"
+msgstr "N'a pas pu ajouter la recherche"
 
 #: UI/GTK2/src/mainWindow.cc:2677
 msgid "Added new query"
-msgstr "Au moins une tache n'est pas terminee. Quitter maintenant ?"
+msgstr "Ajoute une nouvelle recherche"
 
 #: UI/GTK2/src/mainWindow.cc:2691
 msgid "Query is not set"
@@ -455,11 +455,11 @@ msgstr "Aide"
 
 #: UI/GTK2/src/mainWindow_glade.cc:356
 msgid "Pinot"
-msgstr "La base des historiques"
+msgstr "Pinot"
 
 #: UI/GTK2/src/pinot.cc:56
 msgid "Couldn't save configuration file"
-msgstr "n'a pas pu etre creee"
+msgstr "N'a pas pu sauve le fichier de configuration"
 
 #: UI/GTK2/src/pinot.cc:117
 msgid "Danish"
@@ -730,7 +730,7 @@ msgstr "Arrete le brouteur"
 #: UI/GTK2/src/WorkerThreads.cpp:893 UI/GTK2/src/WorkerThreads.cpp:1094
 #: UI/GTK2/src/WorkerThreads.cpp:1222
 msgid "Index error on"
-msgstr "Erreur d'index sur"
+msgstr "Erreur sur l'index"
 
 #: UI/GTK2/src/WorkerThreads.cpp:490
 msgid "Stopped querying"
@@ -758,7 +758,7 @@ msgstr "Arrete le telechargement de"
 
 #: UI/GTK2/src/WorkerThreads.cpp:782
 msgid "Couldn't obtain downloader for protocol"
-msgstr "N'a pas pu obtenir un brouteur pour ="
+msgstr "N'a pas pu obtenir un brouteur pour"
 
 #: UI/GTK2/src/WorkerThreads.cpp:796 UI/GTK2/src/WorkerThreads.cpp:907
 msgid "Couldn't retrieve"
@@ -777,8 +777,8 @@ msgid "at"
 msgstr "a"
 
 #: UI/GTK2/src/WorkerThreads.cpp:960
-msgid "Couln't tokenize"
-msgstr "N'a pas pu tokenise"
+msgid "Couldn't tokenize"
+msgstr "N'a pas pu parcourir"
 
 #: UI/GTK2/src/WorkerThreads.cpp:981
 msgid "Robots META tag forbids indexing"

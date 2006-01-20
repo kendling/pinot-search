@@ -106,36 +106,37 @@ void indexDialog::populate_typeCombobox(void)
 
 void indexDialog::checkFields(void)
 {
-	bool enableOkButton = false;
+	bool isLocal = false, enableOkButton = false;
 
-	ustring name = nameEntry->get_text();
-	ustring location = locationEntry->get_text();
-	if ((name.empty() == false) &&
-		(location.empty() == false))
+	if (typeCombobox->get_active_row_number() == 0)
 	{
-		bool startsWithSlash = false, isLocal = false;
+		// Local index
+		portSpinbutton->set_sensitive(false);
+		locationButton->set_sensitive(true);
+		isLocal = true;
+	}
+	else
+	{
+		// Remote index
+		portSpinbutton->set_sensitive(true);
+		locationButton->set_sensitive(false);
+	}
+
+	ustring location = locationEntry->get_text();
+	if (location.empty() == false)
+	{
+		bool startsWithSlash = false;
 
 		if (location[0] == '/')
 		{
 			startsWithSlash = true;
 		}
 
-		if (typeCombobox->get_active_row_number() == 0)
-		{
-			// Local index
-			portSpinbutton->set_sensitive(false);
-			locationButton->set_sensitive(true);
-			isLocal = true;
-		}
-		else
-		{
-			// Remote index
-			portSpinbutton->set_sensitive(true);
-			locationButton->set_sensitive(false);
-		}
-
 		// Disable the OK button if the type+location pair doesn't make sense
-		if (startsWithSlash == isLocal)
+		// or if name is empty
+		ustring name = nameEntry->get_text();
+		if ((name.empty() == false) &&
+			(startsWithSlash == isLocal))
 		{
 			enableOkButton = true;
 		}
