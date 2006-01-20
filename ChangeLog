@@ -1,3 +1,30 @@
+2006/01/20 version_0_4_0
+UI and SQLite :
+ - dropped ActionHistory
+Search :
+ - fixed issues with documents and queries language
+ - detect encoding of results pages
+ - fixed AskJeeves source
+Index :
+ - fixed issues with documents language
+ - limit amount of text parsed by summarization and language guessing
+ - limit terms length
+ - canonicalize URLs
+ - make sure index is always unlocked properly
+Tokenize :
+ - modified tokenizer plugins interface
+ - new RTF tokenizer (requires unrtf)
+UI :
+ - standard About box
+ - better documents importing
+ - better charset conversion
+ - completion on query field, based on terms in the documents index
+ - all notebook tabs are open on a need-to basis and can be closed
+ - fixed several UI inconsistencies
+ - catch signals and signal threads to ensure clean exits
+ - save language names in English, load in current locale
+ - requires gtkmm v2.6
+
 2005/12/18 version_0_3_5
 Xapian + SQLite back-end :
  - dropped unnecessary tables, moved labels and properties into the index
