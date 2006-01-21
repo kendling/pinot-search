@@ -73,8 +73,8 @@ importDialog::importDialog(const Glib::ustring &title,
 	set_title(title);
 
 	// Copy the list of authorized MIME types
-	copy(mimeTypes.begin(), mimeTypes.end(), inserter(m_mimeTypes, m_mimeTypes.begin()));
-	// FIXME: populate the list
+	copy(mimeTypes.begin(), mimeTypes.end(),
+		inserter(m_mimeTypes, m_mimeTypes.begin()));
 
 	// Initialize the default directory
 	if (m_state.m_defaultDirectory.empty() == true)
@@ -86,12 +86,16 @@ importDialog::importDialog(const Glib::ustring &title,
 		}
 	}
 
-	// Associate the columns model to the type combo
+	// Associate the columns model to the label combo
+	m_refLabelNameTree = ListStore::create(m_labelNameColumns);
+	labelNameCombobox->set_model(m_refLabelNameTree);
+	labelNameCombobox->pack_start(m_labelNameColumns.m_name);
+	// ...and to the type combo
 	m_refTypeList = ListStore::create(m_typeColumns);
 	typeCombobox->set_model(m_refTypeList);
 	typeCombobox->pack_start(m_typeColumns.m_name);
 	// Populate
-	populate_typeCombobox(false);
+	populate_comboboxes(false);
 
 	// The default type is not directory
 	// FIXME: this could also apply to URLs !
@@ -121,7 +125,7 @@ importDialog::~importDialog()
 {
 }
 
-void importDialog::populate_typeCombobox(bool localOnly)
+void importDialog::populate_comboboxes(bool localOnly)
 {
 	bool foundLanguage = false;
 
@@ -137,8 +141,22 @@ void importDialog::populate_typeCombobox(bool localOnly)
 		row = *iter;
 		row[m_typeColumns.m_name] = _("URL");
 	}
-
 	typeCombobox->set_active(0);
+
+	iter = m_refLabelNameTree->append();
+	row = *iter;
+	row[m_labelNameColumns.m_name] = _("None");
+	labelNameCombobox->set_active(0);
+	// Add all labels
+	for (set<PinotSettings::Label>::const_iterator labelIter = PinotSettings::getInstance().m_labels.begin();
+		labelIter != PinotSettings::getInstance().m_labels.end(); ++labelIter)
+	{
+		string labelName = labelIter->m_name;
+
+		iter = m_refLabelNameTree->append();
+		row = *iter;
+		row[m_labelNameColumns.m_name] = to_utf8(labelName);
+	}
 }
 
 void importDialog::populate_mimeTreeview(void)
@@ -235,11 +253,11 @@ bool importDialog::on_import_url(const string &location)
 		{
 			// This document needs updating
 			index.getDocumentInfo(docId, docInfo);
-			pThread = new IndexingThread(docInfo, docId);
+			pThread = new IndexingThread(docInfo, m_labelName, docId);
 		}
 		else
 		{
-			pThread = new IndexingThread(docInfo);
+			pThread = new IndexingThread(docInfo, m_labelName);
 		}
 
 		// Launch the new thread
@@ -492,6 +510,15 @@ void importDialog::on_importButton_clicked()
 
 	// Title
 	m_title = titleEntry->get_text();
+	// Label
+	m_labelName.clear();
+	int chosenLabel = labelNameCombobox->get_active_row_number();
+	if (chosenLabel > 0)
+	{
+		TreeModel::iterator iter = labelNameCombobox->get_active();
+		TreeModel::Row row = *iter;
+		m_labelName = from_utf8(row[m_labelNameColumns.m_name]);
+	}
 	// Type
 	if (typeCombobox->get_active_row_number() <= 1)
 	{

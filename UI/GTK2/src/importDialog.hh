@@ -44,7 +44,7 @@ public:
 	unsigned int getDocumentsCount(void);
 
 protected:
-	void populate_typeCombobox(bool localOnly);
+	void populate_comboboxes(bool localOnly);
 	void populate_mimeTreeview(void);
 	bool start_thread(WorkerThread *pNewThread);
 	void signal_scanner(void);
@@ -59,7 +59,11 @@ private:
 	// Type
 	ComboModelColumns m_typeColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refTypeList;
+	// Label
+	ComboModelColumns m_labelNameColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
 	Glib::ustring m_title;
+	std::string m_labelName;
 	unsigned int m_docsCount;
 	bool m_importDirectory;
 	// MIME types

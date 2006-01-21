@@ -278,10 +278,8 @@ class DownloadingThread : public WorkerThread
 class IndexingThread : public DownloadingThread
 {
 	public:
-		/// Index a document.
-		IndexingThread(const DocumentInfo &docInfo, const std::string &labelName = "");
-		/// Update a document.
-		IndexingThread(const DocumentInfo &docInfo, unsigned int docId);
+		IndexingThread(const DocumentInfo &docInfo, const std::string &labelName,
+			unsigned int docId = 0);
 		virtual ~IndexingThread();
 
 		virtual Glib::Thread *start(void);
@@ -300,10 +298,10 @@ class IndexingThread : public DownloadingThread
 
 	protected:
 		DocumentInfo m_docInfo;
-		std::string m_indexLocation;
-		bool m_ignoreRobotsDirectives;
 		std::string m_labelName;
 		unsigned int m_docId;
+		std::string m_indexLocation;
+		bool m_ignoreRobotsDirectives;
 		bool m_update;
 
 		void do_indexing();

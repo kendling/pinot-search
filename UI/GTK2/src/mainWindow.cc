@@ -2078,7 +2078,7 @@ void mainWindow::on_unindex_activate()
 #ifdef DEBUG
 		cout << "mainWindow::on_unindex_activate: " << docIdList.size() << " documents to unindex" << endl;
 #endif
-		queue_unindex(docIdList);
+		start_thread(new UnindexingThread(docIdList));
 	}
 }
 
@@ -2589,17 +2589,6 @@ bool mainWindow::queue_index(const DocumentInfo &docInfo,
 }
 
 //
-// Queues index removals.
-//
-bool mainWindow::queue_unindex(set<unsigned int> &docIdList)
-{
-	// Delete the document(s) right away
-	start_thread(new UnindexingThread(docIdList));
-
-	return false;
-}
-
-//
 // Edits a query
 //
 void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
@@ -2861,7 +2850,7 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 	if (docId > 0)
 	{
 		// Yes, it is
-		start_thread(new IndexingThread(docInfo, docId));
+		start_thread(new IndexingThread(docInfo, labelName, docId));
 	}
 	else
 	{

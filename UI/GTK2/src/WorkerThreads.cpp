@@ -805,28 +805,26 @@ void DownloadingThread::do_downloading()
 	}
 }
 
-IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &labelName) :
-	DownloadingThread(docInfo.getLocation(), false)
+IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &labelName,
+	unsigned int docId) :
+	DownloadingThread(docInfo.getLocation(), false),
+	m_docInfo(docInfo),
+	m_labelName(labelName),
+	m_docId(docId)
 {
-	m_docInfo = docInfo;
 	m_indexLocation = PinotSettings::getInstance().m_indexLocation;
-	m_ignoreRobotsDirectives = PinotSettings::getInstance().m_ignoreRobotsDirectives;
-	m_labelName = labelName;
-	// This is not an update
-	m_update = false;
-	// Don't trigger signal after the document has been downloaded
-	m_signalAfterDownload = false;
-}
-
-IndexingThread::IndexingThread(const DocumentInfo &docInfo, unsigned int docId) :
-	DownloadingThread(docInfo.getLocation(), false)
-{
-	m_docInfo = docInfo;
-	m_indexLocation = PinotSettings::getInstance().m_indexLocation;
-	// Ignore robots directives on updates
-	m_ignoreRobotsDirectives = true;
-	m_docId = docId;
-	m_update = true;
+	if (m_docId > 0)
+	{
+		// Ignore robots directives on updates
+		m_ignoreRobotsDirectives = true;
+		m_update = true;
+	}
+	else
+	{
+		m_ignoreRobotsDirectives = PinotSettings::getInstance().m_ignoreRobotsDirectives;
+		// This is not an update
+		m_update = false;
+	}
 	// Don't trigger signal after the document has been downloaded
 	m_signalAfterDownload = false;
 }
@@ -988,23 +986,37 @@ void IndexingThread::do_indexing()
 
 		if (m_done == false)
 		{
+			set<string> labels;
+
 			index.setStemmingMode(IndexInterface::STORE_BOTH);
 
 			// Update an existing document or add to the index ?
 			if (m_update == true)
 			{
-				success = index.updateDocument(m_docId, *pTokens);
-#ifdef DEBUG
-				cout << "IndexingThread::do_indexing: updated " << m_docId << endl;
-#endif
+				// Get the document's current labels
+				index.getDocumentLabels(m_docId, labels);
+
+				// Update the document
+				if (index.updateDocument(m_docId, *pTokens) == true)
+				{
+					// Add the label if it's a new one
+					if (labels.find(m_labelName) == labels.end())
+					{
+						labels.clear();
+						labels.insert(m_labelName);
+
+						index.setDocumentLabels(m_docId, labels, false);
+					}
+					success = true;
+				}
 			}
 			else
 			{
-				set<string> labels;
 				unsigned int docId = 0;
 
-				// Save the new document ID
 				labels.insert(m_labelName);
+
+				// Index the document
 				success = index.indexDocument(*pTokens, labels, docId);
 				if (success == true)
 				{
