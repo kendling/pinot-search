@@ -2,9 +2,9 @@
 ROOT_DIR = ../../..
 include ${ROOT_DIR}/variables.mk
 
-CXXFLAGS += -DHAVE_CONFIG_H -I. -I.. ${LIBXML_CXXFLAGS} ${GTKMOZ_CXXFLAGS} ${GTKMM_CXXFLAGS}
+CXXFLAGS += -DHAVE_CONFIG_H -I. -I.. ${GTKMOZ_CXXFLAGS} ${GTKMM_CXXFLAGS}
 
-LIBS += ${LIBXML_LIBS} ${GTKMOZ_LIBS} ${GTKMM_LIBS} -lgthread-2.0 -lfam
+LIBS += ${GTKMOZ_LIBS} ${GTKMM_LIBS} -lgthread-2.0 -lfam
 
 UI_GTK2_SRCS = importDialog.cc importDialog_glade.cc \
 	indexDialog.cc indexDialog_glade.cc \

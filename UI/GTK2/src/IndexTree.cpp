@@ -52,7 +52,7 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	m_pIndexScrolledwindow->set_flags(Gtk::CAN_FOCUS);
 	m_pIndexScrolledwindow->set_border_width(4);
 	m_pIndexScrolledwindow->set_shadow_type(Gtk::SHADOW_NONE);
-	m_pIndexScrolledwindow->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS);
+	m_pIndexScrolledwindow->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 	m_pIndexScrolledwindow->property_window_placement().set_value(Gtk::CORNER_TOP_LEFT);
 	m_pIndexScrolledwindow->add(*this);
 

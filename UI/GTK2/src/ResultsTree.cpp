@@ -65,7 +65,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_pResultsScrolledwindow->set_flags(CAN_FOCUS);
 	m_pResultsScrolledwindow->set_border_width(4);
 	m_pResultsScrolledwindow->set_shadow_type(SHADOW_NONE);
-	m_pResultsScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_ALWAYS);
+	m_pResultsScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_AUTOMATIC);
 	m_pResultsScrolledwindow->property_window_placement().set_value(CORNER_TOP_LEFT);
 	m_pResultsScrolledwindow->add(*this);
 

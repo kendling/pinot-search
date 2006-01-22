@@ -229,6 +229,7 @@ bool PinotSettings::load(void)
 bool PinotSettings::loadConfiguration(const std::string &fileName)
 {
 	struct stat fileStat;
+	bool success = true;
 
 	if ((stat(fileName.c_str(), &fileStat) != 0) ||
 		(!S_ISREG(fileStat.st_mode)))
@@ -236,100 +237,115 @@ bool PinotSettings::loadConfiguration(const std::string &fileName)
 		return false;
 	}
 
-	// Parse the configuration file
-	DomParser parser;
-	parser.parse_file(fileName);
-	xmlpp::Document *pDocument = parser.get_document();
-	if (pDocument == NULL)
+	try
 	{
-		return false;
-	}
-
-	Element *pRootElem = pDocument->get_root_node();
-	if (pRootElem == NULL)
-	{
-		return false;
-	}
-	string rootNodeName = getElementContent(pRootElem);
-	// FIXME: check the top-level element is okay
-
-	// Go through the subnodes
-	const Node::NodeList childNodes = pRootElem->get_children();
-	if (childNodes.empty() == false)
-	{
-		for (Node::NodeList::const_iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
+		// Parse the configuration file
+		DomParser parser;
+		parser.set_substitute_entities(true);
+		parser.parse_file(fileName);
+		xmlpp::Document *pDocument = parser.get_document();
+		if (pDocument == NULL)
 		{
-			Node *pNode = (*iter);
-			// All nodes should be elements
-			Element *pElem = dynamic_cast<Element*>(pNode);
-			if (pElem == NULL)
-			{
-				continue;
-			}
+			return false;
+		}
 
-			string nodeName = pElem->get_name();
-			string nodeContent = getElementContent(pElem);
-			if (nodeName == "googleapikey")
+		Element *pRootElem = pDocument->get_root_node();
+		if (pRootElem == NULL)
+		{
+			return false;
+		}
+
+		// Check the top-level element is what we expect
+		ustring rootNodeName = pRootElem->get_name();
+		if (rootNodeName != "pinot")
+		{
+			return false;
+		}
+
+		// Go through the subnodes
+		const Node::NodeList childNodes = pRootElem->get_children();
+		if (childNodes.empty() == false)
+		{
+			for (Node::NodeList::const_iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 			{
-				m_googleAPIKey = nodeContent;
-			}
-			else if (nodeName == "ui")
-			{
-				if (loadUi(pElem) == false)
+				Node *pNode = (*iter);
+				// All nodes should be elements
+				Element *pElem = dynamic_cast<Element*>(pNode);
+				if (pElem == NULL)
 				{
-					cerr << _("Couldn't load ui block") << endl;
+					continue;
 				}
-			}
-			else if (nodeName == "extraindex")
-			{
-				if (loadIndexes(pElem) == false)
+
+				string nodeName = pElem->get_name();
+				string nodeContent = getElementContent(pElem);
+				if (nodeName == "googleapikey")
 				{
-					cerr << _("Couldn't load extraindex block") << endl;
+					m_googleAPIKey = nodeContent;
 				}
-			}
-			else if (nodeName == "storedquery")
-			{
-				if (loadQueries(pElem) == false)
+				else if (nodeName == "ui")
 				{
-					cerr << _("Couldn't load storedquery block") << endl;
+					if (loadUi(pElem) == false)
+					{
+						cerr << _("Couldn't load ui block") << endl;
+					}
 				}
-			}
-			else if (nodeName == "results")
-			{
-				if (loadResults(pElem) == false)
+				else if (nodeName == "extraindex")
 				{
-					cerr << _("Couldn't load results block") << endl;
+					if (loadIndexes(pElem) == false)
+					{
+						cerr << _("Couldn't load extraindex block") << endl;
+					}
 				}
-			}
-			else if (nodeName == "label")
-			{
-				if (loadLabels(pElem) == false)
+				else if (nodeName == "storedquery")
 				{
-					cerr << _("Couldn't load label block") << endl;
+					if (loadQueries(pElem) == false)
+					{
+						cerr << _("Couldn't load storedquery block") << endl;
+					}
 				}
-			}
-			else if (nodeName == "robots")
-			{
-				if (nodeContent == "IGNORE")
+				else if (nodeName == "results")
 				{
-					m_ignoreRobotsDirectives = true;
+					if (loadResults(pElem) == false)
+					{
+						cerr << _("Couldn't load results block") << endl;
+					}
 				}
-				else
+				else if (nodeName == "label")
 				{
-					m_ignoreRobotsDirectives = false;
+					if (loadLabels(pElem) == false)
+					{
+						cerr << _("Couldn't load label block") << endl;
+					}
 				}
-			}
-			else if (nodeName == "mailaccount")
-			{
-				if (loadMailAccounts(pElem) == false)
+				else if (nodeName == "robots")
 				{
-					cerr << _("Couldn't load mailaccount block") << endl;
+					if (nodeContent == "IGNORE")
+					{
+						m_ignoreRobotsDirectives = true;
+					}
+					else
+					{
+						m_ignoreRobotsDirectives = false;
+					}
+				}
+				else if (nodeName == "mailaccount")
+				{
+					if (loadMailAccounts(pElem) == false)
+					{
+						cerr << _("Couldn't load mailaccount block") << endl;
+					}
 				}
 			}
 		}
 	}
+	catch (const std::exception& ex)
+	{
+		cerr << _("Couldn't parse configuration file") << ": "
+			<< ex.what() << endl;
+		success = false;
+	}
 
-	return true;
+	return success;
 }
 
 bool PinotSettings::loadUi(const Element *pElem)
