@@ -14,15 +14,13 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _PLUGIN_PARSER_H
-#define _PLUGIN_PARSER_H
+#ifndef _SHERLOCK_PARSER_H
+#define _SHERLOCK_PARSER_H
 
 #include <string>
 #include <map>
 
 #include "Document.h"
-
-using namespace std;
 
 class PluginProperties
 {
@@ -35,13 +33,13 @@ class PluginProperties
 		}
 
 
-		map<string, string> m_searchParams;
-		map<string, string> m_inputItems;
-		string m_userInput;
-		string m_nextInput;
-		string m_nextFactor;
-		string m_nextValue;
-		map<string, string> m_interpretParams;
+		std::map<std::string, std::string> m_searchParams;
+		std::map<std::string, std::string> m_inputItems;
+		std::string m_userInput;
+		std::string m_nextInput;
+		std::string m_nextFactor;
+		std::string m_nextValue;
+		std::map<std::string, std::string> m_interpretParams;
 
 	private:
 		PluginProperties(const PluginProperties &other);
@@ -49,12 +47,16 @@ class PluginProperties
 
 };
 
-/// A parser for Sherlock plugin files.
-class PluginParser
+/**
+  * A parser for Sherlock plugin files.
+  * See http://developer.apple.com/technotes/tn/tn1141.html
+  * and http://mycroft.mozdev.org/deepdocs/deepdocs.html
+  */
+class SherlockParser
 {
 	public:
-		PluginParser(const Document *pDocument);
-		virtual ~PluginParser();
+		SherlockParser(const Document *pDocument);
+		virtual ~SherlockParser();
 
 		/// Parses the plugin; false if not all could be parsed.
 		bool parse(bool extractSearchParams = false);
@@ -62,17 +64,14 @@ class PluginParser
 		/// Returns the plugin's properties.
 		virtual PluginProperties &getProperties(void);
 
-		/// Returns a pointer to the plugin file's document.
-		virtual const Document *getDocument(void);
-
 	protected:
 		const Document *m_pDocument;
 		PluginProperties m_properties;
 
 	private:
-		PluginParser(const PluginParser &other);
-		PluginParser& operator=(const PluginParser& other);
+		SherlockParser(const SherlockParser &other);
+		SherlockParser& operator=(const SherlockParser& other);
 
 };
 
-#endif // _PLUGIN_PARSER_H
+#endif // _SHERLOCK_PARSER_H

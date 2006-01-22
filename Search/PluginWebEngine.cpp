@@ -20,7 +20,7 @@
 
 #include "Document.h"
 #include "HtmlTokenizer.h"
-#include "PluginParser.h"
+#include "SherlockParser.h"
 #include "StringManip.h"
 #include "Url.h"
 #include "FileCollector.h"
@@ -79,7 +79,7 @@ bool PluginWebEngine::load(const string &fileName)
 		return false;
 	}
 
-	PluginParser parser(pPluginDoc);
+	SherlockParser parser(pPluginDoc);
 	if (parser.parse() == false)
 	{
 		delete pPluginDoc;
@@ -432,7 +432,7 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 		return false;
 	}
 
-	PluginParser parser(pPluginDoc);
+	SherlockParser parser(pPluginDoc);
 	if (parser.parse(true) == false)
 	{
 #ifdef DEBUG

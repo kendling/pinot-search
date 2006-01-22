@@ -15,15 +15,13 @@
  */
 
 #include <stdlib.h>
-#include <string>
-#include <map>
 #include <iostream>
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
 #include <boost/spirit/actor/insert_at_actor.hpp>
 #include <boost/spirit/utility/confix.hpp>
 
-#include "PluginParser.h"
+#include "SherlockParser.h"
 
 using namespace std;
 using namespace boost::spirit;
@@ -210,16 +208,16 @@ struct plugin_grammar : public grammar<plugin_grammar>
 
 };
 
-PluginParser::PluginParser(const Document *pDocument)
-{
-	m_pDocument = pDocument;
-}
-
-PluginParser::~PluginParser()
+SherlockParser::SherlockParser(const Document *pDocument) :
+	m_pDocument(pDocument)
 {
 }
 
-bool PluginParser::parse(bool extractSearchParams)
+SherlockParser::~SherlockParser()
+{
+}
+
+bool SherlockParser::parse(bool extractSearchParams)
 {
 	if (m_pDocument == NULL)
 	{
@@ -252,7 +250,7 @@ bool PluginParser::parse(bool extractSearchParams)
 #ifdef DEBUG
 	if (parseInfo.full == false)
 	{
-		cout << "PluginParser::parse: syntax error near " << parseInfo.stop << endl;
+		cout << "SherlockParser::parse: syntax error near " << parseInfo.stop << endl;
 	}
 #endif
 
@@ -260,13 +258,7 @@ bool PluginParser::parse(bool extractSearchParams)
 }
 
 /// Returns the plugin's properties.
-PluginProperties &PluginParser::getProperties(void)
+PluginProperties &SherlockParser::getProperties(void)
 {
 	return m_properties;
-}
-
-/// Returns a pointer to the plugin file's document.
-const Document *PluginParser::getDocument(void)
-{
-	return m_pDocument;
 }

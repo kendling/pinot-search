@@ -2,20 +2,22 @@
 ROOT_DIR = ..
 include ${ROOT_DIR}/variables.mk
 
-SE_SRCS = PluginWebEngine.cpp QueryProperties.cpp SearchEngineFactory.cpp \
-	SearchEngineInterface.cpp WebEngine.cpp XapianEngine.cpp
+SE_SRCS = OpenSearchParser.cpp PluginWebEngine.cpp QueryProperties.cpp \
+	SherlockParser.cpp SearchEngineFactory.cpp SearchEngineInterface.cpp \
+	SearchPluginProperties.cpp WebEngine.cpp XapianEngine.cpp
 SE_OBJS := $(patsubst %.cpp,${OBJ_DIR}/%.o,${SE_SRCS})
 ifeq (${NEEDS_SOAP},yes)
 SOAPENV_OBJS = ${OBJ_DIR}/stdsoap.o ${OBJ_DIR}/SOAPEnvNS.o ${OBJ_DIR}/SOAPEnvC.o
 else
 SOAPENV_OBJS = 
 endif
+PLUGIN_TEST = ${BIN_DIR}/plugintest
 SE_TEST = ${BIN_DIR}/senginetest
 
-targets : dirs ${SE_LIB} ${SOAPENV_LIB} ${SE_TEST}
+targets : dirs ${SE_LIB} ${SOAPENV_LIB} ${PLUGIN_TEST} ${SE_TEST}
 
 clean :
-	@rm -f ${OBJ_DIR}/* ${SE_LIB} ${SOAPENV_LIB} ${SE_TEST}
+	@rm -f ${OBJ_DIR}/* ${SE_LIB} ${SOAPENV_LIB} ${PLUGIN_TEST} ${SE_TEST}
 
 # SOAP environment
 
@@ -34,6 +36,12 @@ SOAPEnvC.cpp : SOAPEnv.h
 
 ${OBJ_DIR}/SOAPEnvC.o : SOAPEnvC.cpp
 	${CXX} -o ${OBJ_DIR}/SOAPEnvC.o -c SOAPEnvC.cpp ${CXXFLAGS}
+
+# Parser tester
+
+${PLUGIN_TEST} : ${OBJ_DIR}/plugintest.o ${SE_LIBS} ${DL_LIB} ${TOKENIZE_LIB} ${UTILS_LIB}
+	@echo Building ${PLUGIN_TEST}
+	${LINK} -o $@ ${OBJ_DIR}/plugintest.o ${SE_LIBS} ${DL_LIB} ${TOKENIZE_LIB} ${UTILS_LIB} ${LIBS}
 
 # SearchEngine tester
 

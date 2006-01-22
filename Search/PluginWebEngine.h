@@ -29,7 +29,7 @@ using namespace std;
   * A class that implements the Sherlock search plugin standard.
   * See http://developer.apple.com/technotes/tn/tn1141.html
   * and http://mycroft.mozdev.org/deepdocs/deepdocs.html
-  */	  
+  */
 class PluginWebEngine : public WebEngine
 {
 	public:
