@@ -38,6 +38,9 @@ class SearchPluginProperties
 			 COUNT_PARAM,START_INDEX_PARAM, START_PAGE_PARAM, LANGUAGE_PARAM,
 			OUTPUT_ENCODING_PARAM, INPUT_ENCODING_PARAM } Parameter;
 
+		typedef enum { UNKNOWN_RESPONSE = 0, XML_RESPONSE,
+			HTML_RESPONSE } Response;
+
 		// Description
 		std::string m_name;
 		std::string m_longName;
@@ -52,6 +55,23 @@ class SearchPluginProperties
 		std::map<Parameter, std::string> m_parameters;
 		std::string m_parametersRemainder;
 		std::string m_outputType;
+		// Query, next page
+		std::string m_nextTag;
+		unsigned int m_nextFactor;
+		unsigned int m_nextBase;
+		// Response
+		Response m_response;
+		std::string m_resultListStart;
+		std::string m_resultListEnd;
+		std::string m_resultItemStart;
+		std::string m_resultItemEnd;
+		std::string m_resultTitleStart;
+		std::string m_resultTitleEnd;
+		std::string m_resultLinkStart;
+		std::string m_resultLinkEnd;
+		std::string m_resultExtractStart;
+		std::string m_resultExtractEnd;
+		bool m_skipLocal;
 
 };
 

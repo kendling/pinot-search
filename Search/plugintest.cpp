@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	if ((stat(argv[2], &fileStat) == 0) &&
 		(S_ISREG(fileStat.st_mode)))
 	{
+		SearchPluginProperties properties;
 		bool minParser = false;
 
 		if ((argc >= 4) &&
@@ -71,39 +72,7 @@ int main(int argc, char **argv)
 				cout << "Successfully parsed " << argv[2] << endl;
 			}
 
-			PluginProperties &properties = parser.getProperties();
-
-			cout << "SEARCH parameters are :" << endl;
-			for (map<string, string>::iterator iter = properties.m_searchParams.begin();
-				iter != properties.m_searchParams.end(); ++iter)
-			{
-				cout << iter->first << "=" << iter->second << endl;
-			}
-			cout << "End of SEARCH parameters" << endl;
-
-			cout << "INPUT items are :" << endl;
-			for (map<string, string>::iterator iter = properties.m_inputItems.begin();
-				iter != properties.m_inputItems.end(); ++iter)
-			{
-				if (iter->first != properties.m_userInput)
-				{
-					cout << iter->first << "=" << iter->second << endl;
-				}
-				else
-				{
-					cout << iter->first << " USER" << endl;
-				}
-			}
-			cout << "NEXT " << properties.m_nextInput << "=" << properties.m_nextFactor << endl;
-			cout << "End of INPUT items" << endl;
-
-			cout << "INTERPRET parameters are :" << endl;
-			for (map<string, string>::iterator iter = properties.m_interpretParams.begin();
-				iter != properties.m_interpretParams.end(); ++iter)
-			{
-				cout << iter->first << "=" << iter->second << endl;
-			}
-			cout << "End of INTERPRET parameters" << endl;
+			properties = parser.getProperties();
 		}
 		else if (strncasecmp(argv[1], "OPENSEARCH", 10) == 0)
 		{
@@ -114,19 +83,19 @@ int main(int argc, char **argv)
 				cout << "Successfully parsed " << argv[2] << endl;
 			}
 
-			SearchPluginProperties &properties = parser.getProperties();
-
-			cout << "Plugin " << properties.m_name << ": " << properties.m_description << endl;
-			cout << "Channel: " << properties.m_channel << endl;
-			cout << "URL: " << properties.m_baseUrl << endl;
-			cout << "Input parameters are:" << endl;
-			for (map<SearchPluginProperties::Parameter, string>::iterator iter = properties.m_parameters.begin();
-				iter != properties.m_parameters.end(); ++iter)
-			{
-				cout << iter->second << "=" << iter->first << endl;
-			}
-			cout << "Remainder:" << properties.m_parametersRemainder << endl;
+			properties = parser.getProperties();
 		}
+
+		cout << "Plugin " << properties.m_name << ": " << properties.m_description << endl;
+		cout << "Channel: " << properties.m_channel << endl;
+		cout << "URL: " << properties.m_baseUrl << endl;
+		cout << "Input parameters are:" << endl;
+		for (map<SearchPluginProperties::Parameter, string>::iterator iter = properties.m_parameters.begin();
+			iter != properties.m_parameters.end(); ++iter)
+		{
+			cout << iter->second << "=" << iter->first << endl;
+		}
+		cout << "Remainder: " << properties.m_parametersRemainder << endl;
 	}
 	else
 	{

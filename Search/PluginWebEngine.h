@@ -18,12 +18,9 @@
 #define _XML_WEB_ENGINE_H
 
 #include <string>
-#include <set>
-#include <map>
 
+#include "SearchPluginProperties.h"
 #include "WebEngine.h"
-
-using namespace std;
 
 /**
   * A class that implements the Sherlock search plugin standard.
@@ -33,39 +30,21 @@ using namespace std;
 class PluginWebEngine : public WebEngine
 {
 	public:
-		PluginWebEngine(const string &fileName);
+		PluginWebEngine(const std::string &fileName);
 		virtual ~PluginWebEngine();
 
 		/// Utility method that returns a search plugin's name and channel.
-		static bool getDetails(const string &fileName, string &name, string &channel);
+		static bool getDetails(const std::string &fileName, std::string &name, std::string &channel);
 
 		/// Runs a query; true if success.
 		virtual bool runQuery(QueryProperties& queryProps);
 
 	protected:
-		string m_name;
-		string m_baseUrl;
-		string m_channel;
-		map<string, string> m_inputTags;
-		string m_userInputTag;
-		string m_resultListStart;
-		string m_resultListEnd;
-		string m_resultItemStart;
-		string m_resultItemEnd;
-		string m_resultTitleStart;
-		string m_resultTitleEnd;
-		string m_resultLinkStart;
-		string m_resultLinkEnd;
-		string m_resultExtractStart;
-		string m_resultExtractEnd;
-		bool m_skipLocal;
-		string m_nextTag;
-		unsigned int m_nextFactor;
-		unsigned int m_nextBase;
+		SearchPluginProperties m_properties;
 
-		bool load(const string &fileName);
+		bool load(const std::string &fileName);
 
-		bool getPage(const string &formattedQuery);
+		bool getPage(const std::string &formattedQuery);
 
 	private:
 		PluginWebEngine(const PluginWebEngine &other);

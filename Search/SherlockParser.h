@@ -21,31 +21,7 @@
 #include <map>
 
 #include "Document.h"
-
-class PluginProperties
-{
-	public:
-		PluginProperties()
-		{
-		}
-		virtual ~PluginProperties()
-		{
-		}
-
-
-		std::map<std::string, std::string> m_searchParams;
-		std::map<std::string, std::string> m_inputItems;
-		std::string m_userInput;
-		std::string m_nextInput;
-		std::string m_nextFactor;
-		std::string m_nextValue;
-		std::map<std::string, std::string> m_interpretParams;
-
-	private:
-		PluginProperties(const PluginProperties &other);
-		PluginProperties& operator=(const PluginProperties& other);
-
-};
+#include "SearchPluginProperties.h"
 
 /**
   * A parser for Sherlock plugin files.
@@ -62,11 +38,11 @@ class SherlockParser
 		bool parse(bool extractSearchParams = false);
 
 		/// Returns the plugin's properties.
-		virtual PluginProperties &getProperties(void);
+		virtual const SearchPluginProperties &getProperties(void);
 
 	protected:
 		const Document *m_pDocument;
-		PluginProperties m_properties;
+		SearchPluginProperties m_properties;
 
 	private:
 		SherlockParser(const SherlockParser &other);

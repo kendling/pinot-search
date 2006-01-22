@@ -20,38 +20,15 @@
 
 #include "Document.h"
 #include "HtmlTokenizer.h"
-#include "SherlockParser.h"
 #include "StringManip.h"
 #include "Url.h"
 #include "FileCollector.h"
+#include "SherlockParser.h"
 #include "PluginWebEngine.h"
-
-// A function object to lower case map keys with for_each()
-struct LowerAndCopy
-{
-	public:
-		LowerAndCopy(map<string, string> &other) : m_other(other)
-		{
-		}
-
-		void operator()(map<string, string>::value_type &p)
-		{
-			m_other[StringManip::toLowerCase(p.first)] = p.second;
-		}
-
-		map<string, string> &m_other;
-
-};
 
 PluginWebEngine::PluginWebEngine(const string &fileName) :
 	WebEngine()
 {
-	m_skipLocal = true;
-	m_nextFactor = 10;
-	m_nextBase = 0;
-	// SearchEngineInterface members
-	m_maxResultsCount = 10;
-
 	load(fileName);
 }
 
@@ -86,128 +63,9 @@ bool PluginWebEngine::load(const string &fileName)
 
 		return false;
 	}
-	PluginProperties &properties = parser.getProperties();
 
-	map<string, string> searchParams, interpretParams;
-
-	// Lower case these maps' keys
-	LowerAndCopy lowCopy1(searchParams);
-	for_each(properties.m_searchParams.begin(), properties.m_searchParams.end(), lowCopy1);
-	LowerAndCopy lowCopy2(interpretParams);
-	for_each(properties.m_interpretParams.begin(), properties.m_interpretParams.end(), lowCopy2);
-
-	map<string, string>::iterator mapIter = searchParams.find("name");
-	if (mapIter != searchParams.end())
-	{
-		m_name = mapIter->second;
-	}
-
-	mapIter = searchParams.find("action");
-	if (mapIter != searchParams.end())
-	{
-		m_baseUrl = mapIter->second;
-	}
-
-	mapIter = searchParams.find("routetype");
-	if (mapIter != searchParams.end())
-	{
-		m_channel = mapIter->second;
-	}
-
-	copy(properties.m_inputItems.begin(), properties.m_inputItems.end(), inserter(m_inputTags, m_inputTags.begin()));
-	if (properties.m_userInput.empty() == false)
-	{
-		// Remove the user input tag from the input tags map
-		mapIter = m_inputTags.find(properties.m_userInput);
-		if (mapIter != m_inputTags.end())
-		{
-			m_inputTags.erase(mapIter);
-		}
-		m_userInputTag = properties.m_userInput;
-	}
-
-	mapIter = interpretParams.find("resultliststart");
-	if (mapIter != interpretParams.end())
-	{
-		m_resultListStart = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
-	}
-
-	mapIter = interpretParams.find("resultlistend");
-	if (mapIter != interpretParams.end())
-	{
-		m_resultListEnd = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
-	}
-
-	mapIter = interpretParams.find("resultitemstart");
-	if (mapIter != interpretParams.end())
-	{
-		m_resultItemStart = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
-	}
-
-	mapIter = interpretParams.find("resultitemend");
-	if (mapIter != interpretParams.end())
-	{
-		m_resultItemEnd = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
-	}
-
-	mapIter = interpretParams.find("resulttitlestart");
-	if (mapIter != interpretParams.end())
-	{
-		m_resultTitleStart = mapIter->second;
-	}
-
-	mapIter = interpretParams.find("resulttitleend");
-	if (mapIter != interpretParams.end())
-	{
-		
-		m_resultTitleEnd = mapIter->second;
-	}
-
-	mapIter = interpretParams.find("resultlinkstart");
-	if (mapIter != interpretParams.end())
-	{
-		m_resultLinkStart = mapIter->second;
-	}
-
-	mapIter = interpretParams.find("resultlinkend");
-	if (mapIter != interpretParams.end())
-	{
-		m_resultLinkEnd = mapIter->second;
-	}
-
-	mapIter = interpretParams.find("resultextractstart");
-	if (mapIter != interpretParams.end())
-	{
-		m_resultExtractStart = mapIter->second;
-	}
-
-	mapIter = interpretParams.find("resultextractend");
-	if (mapIter != interpretParams.end())
-	{
-		m_resultExtractEnd = mapIter->second;
-	}
-
-	mapIter = interpretParams.find("skiplocal");
-	if (mapIter != interpretParams.end())
-	{
-		if (mapIter->second == "false")
-		{
-			m_skipLocal = false;
-		}
-	}
-
-	m_nextTag = properties.m_nextInput;
-	// Here we differ from how Mozilla uses these parameters
-	// Normally, either factor or value is used, but we use value
-	// as the parameter's initial value
-	if (properties.m_nextFactor.empty() == false)
-	{
-		m_nextFactor = (unsigned int)atoi(properties.m_nextFactor.c_str());
-	}
-	if (properties.m_nextValue.empty() == false)
-	{
-		m_nextBase = (unsigned int)atoi(properties.m_nextValue.c_str());
-	}
+	// Get a copy of the properties
+	m_properties = parser.getProperties();
 
 	delete pPluginDoc;
 
@@ -252,9 +110,11 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 
 	// Extract the results list
 #ifdef DEBUG
-	cout << "PluginWebEngine::getPage: getting results list (" << m_resultListStart << ", " << m_resultListEnd << ")" << endl;
+	cout << "PluginWebEngine::getPage: getting results list ("
+		<< m_properties.m_resultListStart << ", " << m_properties.m_resultListEnd << ")" << endl;
 #endif
-	string resultList = StringManip::extractField(urlContent, m_resultListStart, m_resultListEnd);
+	string resultList = StringManip::extractField(urlContent,
+		m_properties.m_resultListStart, m_properties.m_resultListEnd);
 	if (resultList.empty() == true)
 	{
 		resultList = string(urlContent, urlContentLen);
@@ -263,9 +123,11 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 	// Extract results
 	string::size_type endPos = 0;
 #ifdef DEBUG
-	cout << "PluginWebEngine::getPage: getting first result (" << m_resultItemStart << ", " << m_resultItemEnd << ")" << endl;
+	cout << "PluginWebEngine::getPage: getting first result ("
+		<< m_properties.m_resultItemStart << ", " << m_properties.m_resultItemEnd << ")" << endl;
 #endif
-	string resultItem = StringManip::extractField(resultList, m_resultItemStart, m_resultItemEnd, endPos);
+	string resultItem = StringManip::extractField(resultList,
+		m_properties.m_resultItemStart, m_properties.m_resultItemEnd, endPos);
 	while ((resultItem.empty() == false) &&
 		(m_resultsList.size() <= m_maxResultsCount))
 	{
@@ -354,22 +216,25 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 		{
 			// This is not HTML
 			// Use extended attributes
-			if ((m_resultTitleStart.empty() == false) &&
-				(m_resultTitleEnd.empty() == false))
+			if ((m_properties.m_resultTitleStart.empty() == false) &&
+				(m_properties.m_resultTitleEnd.empty() == false))
 			{
-				name = StringManip::extractField(resultItem, m_resultTitleStart, m_resultTitleEnd);
+				name = StringManip::extractField(resultItem,
+					m_properties.m_resultTitleStart, m_properties.m_resultTitleEnd);
 			}
 
-			if ((m_resultLinkStart.empty() == false) &&
-				(m_resultLinkEnd.empty() == false))
+			if ((m_properties.m_resultLinkStart.empty() == false) &&
+				(m_properties.m_resultLinkEnd.empty() == false))
 			{
-				url = StringManip::extractField(resultItem, m_resultLinkStart, m_resultLinkEnd);
+				url = StringManip::extractField(resultItem,
+					m_properties.m_resultLinkStart, m_properties.m_resultLinkEnd);
 			}
 
-			if ((m_resultExtractStart.empty() == false) &&
-				(m_resultExtractEnd.empty() == false))
+			if ((m_properties.m_resultExtractStart.empty() == false) &&
+				(m_properties.m_resultExtractEnd.empty() == false))
 			{
-				extract = StringManip::extractField(resultItem, m_resultExtractStart, m_resultExtractEnd);
+				extract = StringManip::extractField(resultItem,
+					m_properties.m_resultExtractStart, m_properties.m_resultExtractEnd);
 			}
 		}
 
@@ -404,8 +269,9 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 		}
 
 		// Next
-		endPos += m_resultItemEnd.length();
-		resultItem = StringManip::extractField(resultList, m_resultItemStart, m_resultItemEnd, endPos);
+		endPos += m_properties.m_resultItemEnd.length();
+		resultItem = StringManip::extractField(resultList,
+			m_properties.m_resultItemStart, m_properties.m_resultItemEnd, endPos);
 	}
 	delete pUrlDoc;
 
@@ -442,23 +308,10 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 
 		return false;
 	}
-	PluginProperties &properties = parser.getProperties();
 
-	map<string, string> searchParams;
-
-	LowerAndCopy lowCopy1(searchParams);
-	for_each(properties.m_searchParams.begin(), properties.m_searchParams.end(), lowCopy1);
-
-	map<string, string>::iterator mapIter = searchParams.find("name");
-	if (mapIter != searchParams.end())
-	{
-		name = mapIter->second;
-	}
-	mapIter = searchParams.find("routetype");
-	if (mapIter != searchParams.end())
-	{
-		channel = mapIter->second;
-	}
+	const SearchPluginProperties &properties = parser.getProperties();
+	name = properties.m_name;
+	channel = properties.m_channel;
 
 	delete pPluginDoc;
 
@@ -477,13 +330,6 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 
 	m_resultsList.clear();
 
-	if (m_userInputTag.empty() == true)
-	{
-#ifdef DEBUG
-		cout << "PluginWebEngine::runQuery: no user input tag" << endl;
-#endif
-		return false;
-	}
 	if (queryString.empty() == true)
 	{
 #ifdef DEBUG
@@ -492,40 +338,46 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 		return false;
 	}
 
-	string formattedQuery = m_baseUrl;
+	map<SearchPluginProperties::Parameter, string>::iterator paramIter = m_properties.m_parameters.find(SearchPluginProperties::SEARCH_TERMS_PARAM);
+	if (paramIter == m_properties.m_parameters.end())
+	{
+#ifdef DEBUG
+		cout << "PluginWebEngine::runQuery: no user input tag" << endl;
+#endif
+		return false;
+	}
+
+	string userInputTag(paramIter->second);
+	string formattedQuery = m_properties.m_baseUrl;
 	formattedQuery += "?";
-	formattedQuery += m_userInputTag;
+	formattedQuery += userInputTag;
 	formattedQuery += "=";
 	formattedQuery += queryString;
-	for (map<string, string>::iterator tagIter = m_inputTags.begin(); tagIter != m_inputTags.end(); ++tagIter)
-	{
-		formattedQuery += "&";
-		formattedQuery += tagIter->first;
-		formattedQuery += "=";
-		formattedQuery += tagIter->second;
-	}
+	formattedQuery += "&";
+	formattedQuery += m_properties.m_parametersRemainder;
 
 	setHostNameFilter(queryProps.getHostFilter());
 	setFileNameFilter(queryProps.getFileFilter());
 
 #ifdef DEBUG
-	cout << "PluginWebEngine::runQuery: querying " << m_name << endl;
+	cout << "PluginWebEngine::runQuery: querying "
+		<< m_properties.m_name << endl;
 #endif
 	while (count < m_maxResultsCount)
 	{
 		string pageQuery = formattedQuery;
 
-		if (m_nextTag.empty() == false)
+		if (m_properties.m_nextTag.empty() == false)
 		{
 			char factorStr[64];
 
 			// Is the INPUTNEXT FACTOR set to zero ?
-			if (m_nextFactor == 0)
+			if (m_properties.m_nextFactor == 0)
 			{
 				// Assume INPUTNEXT allows to specify a number of results
 				// Not sure if this is how Sherlock/Mozilla interpret this
 				pageQuery += "&";
-				pageQuery += m_nextTag;
+				pageQuery += m_properties.m_nextTag;
 				pageQuery += "=";
 				snprintf(factorStr, 64, "%u", m_maxResultsCount);
 				pageQuery += factorStr;
@@ -533,9 +385,9 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 			else
 			{
 				pageQuery += "&";
-				pageQuery += m_nextTag;
+				pageQuery += m_properties.m_nextTag;
 				pageQuery += "=";
-				snprintf(factorStr, 64, "%u", currentFactor + m_nextBase);
+				snprintf(factorStr, 64, "%u", currentFactor + m_properties.m_nextBase);
 				pageQuery += factorStr;
 			}
 		}
@@ -545,7 +397,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 			break;
 		}
 
-		if (m_nextFactor == 0)
+		if (m_properties.m_nextFactor == 0)
 		{
 			// That one page should have all the results...
 #ifdef DEBUG
@@ -555,7 +407,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 		}
 		else
 		{
-			if (m_resultsList.size() < count + m_nextFactor)
+			if (m_resultsList.size() < count + m_properties.m_nextFactor)
 			{
 				// We got less than the maximum number of results per page
 				// so there's no point in requesting the next page
@@ -566,7 +418,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 			}
 
 			// Increase factor
-			currentFactor += m_nextFactor;
+			currentFactor += m_properties.m_nextFactor;
 		}
 		count = m_resultsList.size();
 	}
