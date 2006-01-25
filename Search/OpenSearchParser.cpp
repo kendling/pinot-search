@@ -24,6 +24,7 @@
 #include <libxml++/parsers/domparser.h>
 #include <libxml++/nodes/node.h>
 #include <libxml++/nodes/textnode.h>
+#include <libxml++/nodes/cdatanode.h>
 
 #include "StringManip.h"
 #include "OpenSearchParser.h"
@@ -32,24 +33,38 @@ using namespace std;
 using namespace Glib;
 using namespace xmlpp;
 
-static ustring getElementContent(const Element *pElem)
+static ustring getNodeContent(const Node *pNode)
 {
-	if (pElem == NULL)
+	if (pNode == NULL)
 	{
 		return "";
 	}
 
+	// Is it an element ?
+	const Element *pElem = dynamic_cast<const Element*>(pNode);
+	if (pElem != NULL)
+	{
 #ifdef HAS_LIBXMLPP026
-	const TextNode *pText = pElem->get_child_content();
+		const TextNode *pText = pElem->get_child_content();
 #else
-	const TextNode *pText = pElem->get_child_text();
+		const TextNode *pText = pElem->get_child_text();
 #endif
-	if (pText == NULL)
-	{
-		return "";
+		if (pText == NULL)
+		{
+			return "";
+		}
+
+		return pText->get_content();
 	}
 
-	return pText->get_content();
+	// Is it CDATA ?
+	const CdataNode *pContent = dynamic_cast<const CdataNode*>(pNode);
+	if (pContent != NULL)
+	{
+		return pContent->get_content();
+	}
+
+	return "";
 }
 
 OpenSearchResponseParser::OpenSearchResponseParser(bool rssResponse) :
@@ -67,7 +82,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 {
 	float pseudoScore = 100;
 	unsigned int contentLen = 0;
-	bool success = true;
+	bool foundResult = true;
 
 	if ((pResponseDoc == NULL) ||
 		(pResponseDoc->getData(contentLen) == NULL) ||
@@ -155,14 +170,8 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 			iter != childNodes.end(); ++iter)
 		{
 			Node *pNode = (*iter);
-			// All nodes should be elements
-			Element *pElem = dynamic_cast<Element*>(pNode);
-			if (pElem == NULL)
-			{
-				continue;
-			}
 
-			ustring nodeName = pElem->get_name();
+			ustring nodeName = pNode->get_name();
 			if (nodeName != itemNode)
 			{
 				continue;
@@ -170,28 +179,36 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 
 			// Go through the item's subnodes
 			ustring title, url, extract;
-			const Node::NodeList itemChildNodes = pElem->get_children();
+			const Node::NodeList itemChildNodes = pNode->get_children();
 			for (Node::NodeList::const_iterator itemIter = itemChildNodes.begin();
 				itemIter != itemChildNodes.end(); ++itemIter)
 			{
 				Node *pItemNode = (*itemIter);
-				// All nodes should be elements
 				Element *pItemElem = dynamic_cast<Element*>(pItemNode);
 				if (pItemElem == NULL)
 				{
 					continue;
 				}
 
-				ustring itemNodeName = pItemElem->get_name();
+				ustring itemNodeName = pItemNode->get_name();
 				if (itemNodeName == "title")
 				{
-					title = getElementContent(pItemElem);
+					title = getNodeContent(pItemNode);
+					if (title.empty() == true)
+					{
+						// It may be given as CDATA
+						const Node::NodeList titleChildNodes = pItemNode->get_children();
+						if (titleChildNodes.size() == 1)
+						{
+							title = getNodeContent(*titleChildNodes.begin());
+						}
+					}
 				}
 				else if (itemNodeName == "link")
 				{
 					if (m_rssResponse == true)
 					{
-						url = getElementContent(pItemElem);
+						url = getNodeContent(pItemNode);
 					}
 					else
 					{
@@ -204,13 +221,18 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 				}
 				else if (itemNodeName == descriptionNode)
 				{
-					extract = getElementContent(pItemElem);
+					extract = getNodeContent(pItemNode);
 				}
 			}
 
 			resultsList.push_back(Result(url, title, extract, "", pseudoScore));
 			--pseudoScore;
-			success = true;
+			foundResult = true;
+			if (resultsList.size() == maxResultsCount)
+			{
+				// Enough results
+				break;
+			}
 		}
 	}
 	catch (const std::exception& ex)
@@ -218,10 +240,10 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 #ifdef DEBUG
 		cout << "OpenSearchResponseParser::parse: caught exception: " << ex.what() << endl;
 #endif
-		success = false;
+		foundResult = false;
 	}
 
-	return success;
+	return foundResult;
 }
 
 OpenSearchParser::OpenSearchParser(const string &fileName) :
@@ -281,15 +303,14 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 			for (Node::NodeList::const_iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 			{
 				Node *pNode = (*iter);
-				// All nodes should be elements
 				Element *pElem = dynamic_cast<Element*>(pNode);
 				if (pElem == NULL)
 				{
 					continue;
 				}
 
-				ustring nodeName = pElem->get_name();
-				ustring nodeContent = getElementContent(pElem);
+				ustring nodeName = pNode->get_name();
+				ustring nodeContent = getNodeContent(pNode);
 				if (nodeName == "ShortName")
 				{
 					properties.m_name = nodeContent;

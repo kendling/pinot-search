@@ -306,8 +306,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 #endif
 	string resultItem = StringManip::extractField(resultList,
 		m_resultItemStart, m_resultItemEnd, endPos);
-	while ((resultItem.empty() == false) &&
-		(resultsList.size() <= maxResultsCount))
+	while (resultItem.empty() == false)
 	{
 		string contentType, url, name, extract;
 
@@ -444,6 +443,11 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 			resultsList.push_back(Result(url, name, extract, "", pseudoScore));
 			--pseudoScore;
 			foundResult = true;
+			if (resultsList.size() == maxResultsCount)
+			{
+				// Enough results
+				break;
+			}
 		}
 
 		// Next
