@@ -51,17 +51,22 @@ static ustring getNodeContent(const Node *pNode)
 #endif
 		if (pText == NULL)
 		{
+			// Maybe the text is given as CDATA
+			const Node::NodeList childNodes = pNode->get_children();
+			if (childNodes.size() == 1)
+			{
+				// Is it CDATA ?
+				const CdataNode *pContent = dynamic_cast<const CdataNode*>(*childNodes.begin());
+				if (pContent != NULL)
+				{
+					return pContent->get_content();
+				}
+			}
+
 			return "";
 		}
 
 		return pText->get_content();
-	}
-
-	// Is it CDATA ?
-	const CdataNode *pContent = dynamic_cast<const CdataNode*>(pNode);
-	if (pContent != NULL)
-	{
-		return pContent->get_content();
 	}
 
 	return "";
@@ -194,15 +199,6 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 				if (itemNodeName == "title")
 				{
 					title = getNodeContent(pItemNode);
-					if (title.empty() == true)
-					{
-						// It may be given as CDATA
-						const Node::NodeList titleChildNodes = pItemNode->get_children();
-						if (titleChildNodes.size() == 1)
-						{
-							title = getNodeContent(*titleChildNodes.begin());
-						}
-					}
 				}
 				else if (itemNodeName == "link")
 				{
