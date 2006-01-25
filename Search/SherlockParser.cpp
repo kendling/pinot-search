@@ -266,7 +266,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 	unsigned int maxResultsCount) const
 {
 	float pseudoScore = 100;
-	unsigned int contentLen;
+	unsigned int contentLen = 0;
 	bool foundResult = false;
 
 	if ((pResponseDoc == NULL) ||

@@ -59,23 +59,27 @@ int main(int argc, char **argv)
 		}
 
 		// Parse the document
-		if (pParser->parse(minParser) == true)
+		ResponseParserInterface *pResponseParser = pParser->parse(properties, minParser);
+		if (pResponseParser != NULL)
 		{
-			cout << "Successfully parsed " << argv[2] << endl;
-		}
-		properties = pParser->getProperties();
-		delete pParser;
+			delete pResponseParser;
 
-		cout << "Plugin " << properties.m_name << ": " << properties.m_description << endl;
-		cout << "Channel: " << properties.m_channel << endl;
-		cout << "URL: " << properties.m_baseUrl << endl;
-		cout << "Input parameters are:" << endl;
-		for (map<SearchPluginProperties::Parameter, string>::iterator iter = properties.m_parameters.begin();
-			iter != properties.m_parameters.end(); ++iter)
-		{
-			cout << iter->second << "=" << iter->first << endl;
+			cout << "Plugin " << properties.m_name << ": " << properties.m_description << endl;
+			cout << "Channel: " << properties.m_channel << endl;
+			cout << "URL: " << properties.m_baseUrl << endl;
+			cout << "Input parameters are:" << endl;
+			for (map<SearchPluginProperties::Parameter, string>::iterator iter = properties.m_parameters.begin();
+				iter != properties.m_parameters.end(); ++iter)
+			{
+				cout << iter->second << "=" << iter->first << endl;
+			}
+			cout << "Remainder: " << properties.m_parametersRemainder << endl;
 		}
-		cout << "Remainder: " << properties.m_parametersRemainder << endl;
+		else
+		{
+			cout << "Failed to parse " << argv[2] << endl;
+		}
+		delete pParser;
 	}
 	else
 	{

@@ -20,6 +20,7 @@
 #include <iostream>
 #include <glibmm/thread.h>
 #include <glibmm/convert.h>
+#include <libxml/parserInternals.h>
 #include <libxml++/parsers/domparser.h>
 #include <libxml++/nodes/node.h>
 #include <libxml++/nodes/textnode.h>
@@ -51,8 +52,9 @@ static ustring getElementContent(const Element *pElem)
 	return pText->get_content();
 }
 
-OpenSearchResponseParser::OpenSearchResponseParser() :
-	ResponseParserInterface()
+OpenSearchResponseParser::OpenSearchResponseParser(bool rssResponse) :
+	ResponseParserInterface(),
+	m_rssResponse(rssResponse)
 {
 }
 
@@ -63,6 +65,163 @@ OpenSearchResponseParser::~OpenSearchResponseParser()
 bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Result> &resultsList,
 	unsigned int maxResultsCount) const
 {
+	float pseudoScore = 100;
+	unsigned int contentLen = 0;
+	bool success = true;
+
+	if ((pResponseDoc == NULL) ||
+		(pResponseDoc->getData(contentLen) == NULL) ||
+		(contentLen == 0))
+	{
+		return false;
+	}
+
+	const char *pContent = pResponseDoc->getData(contentLen);
+	try
+	{
+		bool loadFeed = false;
+
+		// Parse the configuration file
+		DomParser parser;
+		parser.set_substitute_entities(true);
+		parser.parse_memory_raw((const unsigned char *)pContent, (Parser::size_type)contentLen);
+		xmlpp::Document *pDocument = parser.get_document();
+		if (pDocument == NULL)
+		{
+			return false;
+		}
+
+		Node *pNode = pDocument->get_root_node();
+		Element *pRootElem = dynamic_cast<Element *>(pNode);
+		if (pRootElem == NULL)
+		{
+			return false;
+		}
+		// Check the top-level element is what we expect
+		ustring rootNodeName = pRootElem->get_name();
+		if (m_rssResponse == true)
+		{
+			if (rootNodeName == "rss")
+			{
+				const Node::NodeList rssChildNodes = pRootElem->get_children();
+				for (Node::NodeList::const_iterator rssIter = rssChildNodes.begin();
+					rssIter != rssChildNodes.end(); ++rssIter)
+				{
+					Node *pRssNode = (*rssIter);
+					Element *pRssElem = dynamic_cast<Element*>(pRssNode);
+					if (pRssElem != NULL)
+					{
+						if (pRssElem->get_name() == "channel")
+						{
+							pRootElem = pRssElem;
+							loadFeed = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			if (rootNodeName != "feed")
+			{
+				return false;
+			}
+			loadFeed = true;
+		}
+
+		if (loadFeed == false)
+		{
+#ifdef DEBUG
+			cout << "OpenSearchResponseParser::parse: error on root node "
+				<< rootNodeName << endl;
+#endif
+			return false;
+		}
+
+		// RSS
+		ustring itemNode("item");
+		ustring descriptionNode("description");
+		if (m_rssResponse == false)
+		{
+			// Atom
+			itemNode = "entry";
+			descriptionNode = "content";
+		}
+
+		// Go through the subnodes
+		const Node::NodeList childNodes = pRootElem->get_children();
+		for (Node::NodeList::const_iterator iter = childNodes.begin();
+			iter != childNodes.end(); ++iter)
+		{
+			Node *pNode = (*iter);
+			// All nodes should be elements
+			Element *pElem = dynamic_cast<Element*>(pNode);
+			if (pElem == NULL)
+			{
+				continue;
+			}
+
+			ustring nodeName = pElem->get_name();
+			if (nodeName != itemNode)
+			{
+				continue;
+			}
+
+			// Go through the item's subnodes
+			ustring title, url, extract;
+			const Node::NodeList itemChildNodes = pElem->get_children();
+			for (Node::NodeList::const_iterator itemIter = itemChildNodes.begin();
+				itemIter != itemChildNodes.end(); ++itemIter)
+			{
+				Node *pItemNode = (*itemIter);
+				// All nodes should be elements
+				Element *pItemElem = dynamic_cast<Element*>(pItemNode);
+				if (pItemElem == NULL)
+				{
+					continue;
+				}
+
+				ustring itemNodeName = pItemElem->get_name();
+				if (itemNodeName == "title")
+				{
+					title = getElementContent(pItemElem);
+				}
+				else if (itemNodeName == "link")
+				{
+					if (m_rssResponse == true)
+					{
+						url = getElementContent(pItemElem);
+					}
+					else
+					{
+						Attribute *pAttr = pItemElem->get_attribute("href");
+						if (pAttr != NULL)
+						{
+							url = pAttr->get_value();
+						}
+					}
+				}
+				else if (itemNodeName == descriptionNode)
+				{
+					extract = getElementContent(pItemElem);
+				}
+			}
+
+			resultsList.push_back(Result(url, title, extract, "", pseudoScore));
+			--pseudoScore;
+			success = true;
+		}
+	}
+	catch (const std::exception& ex)
+	{
+#ifdef DEBUG
+		cout << "OpenSearchResponseParser::parse: caught exception: " << ex.what() << endl;
+#endif
+		success = false;
+	}
+
+	return success;
 }
 
 OpenSearchParser::OpenSearchParser(const string &fileName) :
@@ -78,7 +237,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 	bool extractSearchParams)
 {
 	struct stat fileStat;
-	bool success = true;
+	bool rssResponse = true, success = true;
 
 	if ((m_fileName.empty() == true) ||
 		(stat(m_fileName.c_str(), &fileStat) != 0) ||
@@ -142,7 +301,8 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 				else if (nodeName == "Url")
 				{
 					ustring url, type;
-					bool xmlResponse = false, getMethod = true;
+					SearchPluginProperties::Response response = SearchPluginProperties::RSS_RESPONSE;
+					bool getMethod = true;
 
 					// Parse Query Syntax
 					Element::AttributeList attributes = pElem->get_attributes();
@@ -175,32 +335,25 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 						}
 					}
 
+					// Did we get the URL ?
+					if (url.empty() == true)
+					{
+						// It's probably provided as content, v1.0 style
+						url = nodeContent;
+					}
+
 					if (getMethod == true)
 					{
 						string::size_type startPos = 0, pos = url.find("?");
 
-						// Determine if this Url is better than previous ones
-						if ((type == "application/rss+xml") ||
-							(type == "application/atom+xml"))
+						// Do we support that type ?
+						if (type == "application/atom+xml")
 						{
-							// We prefer OpenSearch Response
-							xmlResponse = true;
-#ifdef DEBUG
-							cout << "OpenSearchParser::parse: XML response type" << endl;
-#endif
+							response = SearchPluginProperties::ATOM_RESPONSE;
+							rssResponse = false;
 						}
-						else if (type == "text/html")
-						{
-							// HTML is second best
-#ifdef DEBUG
-							cout << "OpenSearchParser::parse: HTML response type" << endl;
-#endif
-							if (xmlResponse == true)
-							{
-								continue;
-							}
-						}
-						else
+						else if ((type.empty() == false) &&
+							(type != "application/rss+xml"))
 						{
 #ifdef DEBUG
 							cout << "OpenSearchParser::parse: unsupported response type "
@@ -221,8 +374,8 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 #endif
 
 							// Split this into the actual parameters
-							params += "&amp;";
-							pos = params.find("&amp;");
+							params += "&";
+							pos = params.find("&");
 							while (pos != string::npos)
 							{
 								string parameter(params.substr(startPos, pos - startPos));
@@ -281,8 +434,8 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 								}
 
 								// Next
-								startPos = pos + 5;
-								pos = params.find_first_of("&\n", startPos);
+								startPos = pos + 1;
+								pos = params.find_first_of("&", startPos);
 							}
 						}
 
@@ -291,14 +444,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 						// Output type
 						properties.m_outputType = type;
 						// Response
-						if (xmlResponse == true)
-						{
-							properties.m_response = SearchPluginProperties::XML_RESPONSE;
-						}
-						else
-						{
-							properties.m_response = SearchPluginProperties::HTML_RESPONSE;
-						}
+						properties.m_response = response;
 					}
 
 					// We ignore Param as we only support GET
@@ -341,5 +487,5 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 		return NULL;
 	}
 
-	return new OpenSearchResponseParser();
+	return new OpenSearchResponseParser(rssResponse);
 }

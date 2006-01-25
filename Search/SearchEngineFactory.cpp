@@ -38,7 +38,8 @@ SearchEngineInterface *SearchEngineFactory::getSearchEngine(const string &type, 
 	SearchEngineInterface *myEngine = NULL;
 
 	// Choice by type
-	if (type == "sherlock")
+	if ((type == "sherlock") ||
+		(type == "opensearch"))
 	{
 		myEngine = new PluginWebEngine(option);
 	}

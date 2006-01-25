@@ -25,12 +25,15 @@
 class OpenSearchResponseParser : public ResponseParserInterface
 {
 	public:
-		OpenSearchResponseParser();
+		OpenSearchResponseParser(bool rssResponse);
 		virtual ~OpenSearchResponseParser();
 
 		/// Parses the response; false if not all could be parsed.
 		virtual bool parse(const Document *pResponseDoc, std::vector<Result> &resultsList,
 			unsigned int maxResultsCount) const;
+
+	protected:
+		bool m_rssResponse;
 
 	private:
 		OpenSearchResponseParser(const OpenSearchResponseParser &other);

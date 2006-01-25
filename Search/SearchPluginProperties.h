@@ -38,8 +38,8 @@ class SearchPluginProperties
 			 COUNT_PARAM,START_INDEX_PARAM, START_PAGE_PARAM, LANGUAGE_PARAM,
 			OUTPUT_ENCODING_PARAM, INPUT_ENCODING_PARAM } Parameter;
 
-		typedef enum { UNKNOWN_RESPONSE = 0, XML_RESPONSE,
-			HTML_RESPONSE } Response;
+		typedef enum { UNKNOWN_RESPONSE = 0, HTML_RESPONSE,
+			RSS_RESPONSE, ATOM_RESPONSE } Response;
 
 		// Description
 		std::string m_name;
