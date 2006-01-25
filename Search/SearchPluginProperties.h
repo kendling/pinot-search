@@ -61,17 +61,6 @@ class SearchPluginProperties
 		unsigned int m_nextBase;
 		// Response
 		Response m_response;
-		std::string m_resultListStart;
-		std::string m_resultListEnd;
-		std::string m_resultItemStart;
-		std::string m_resultItemEnd;
-		std::string m_resultTitleStart;
-		std::string m_resultTitleEnd;
-		std::string m_resultLinkStart;
-		std::string m_resultLinkEnd;
-		std::string m_resultExtractStart;
-		std::string m_resultExtractEnd;
-		bool m_skipLocal;
 
 };
 

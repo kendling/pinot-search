@@ -19,263 +19,140 @@
 #include <iostream>
 
 #include "Document.h"
-#include "HtmlTokenizer.h"
 #include "StringManip.h"
-#include "Url.h"
-#include "FileCollector.h"
+#include "OpenSearchParser.h"
 #include "SherlockParser.h"
 #include "PluginWebEngine.h"
 
 PluginWebEngine::PluginWebEngine(const string &fileName) :
-	WebEngine()
+	WebEngine(),
+	m_pResponseParser(NULL)
 {
 	load(fileName);
 }
 
 PluginWebEngine::~PluginWebEngine()
 {
+	if (m_pResponseParser != NULL)
+	{
+		delete m_pResponseParser;
+	}
 }
 
-bool PluginWebEngine::load(const string &fileName)
+void PluginWebEngine::load(const string &fileName)
 {
 	if (fileName.empty() == true)
 	{
-		return false;
+		return;
 	}
 
-	// Get the definition file
-	FileCollector fileCollect;
-	DocumentInfo docInfo("Plugin", string("file://") + fileName,
-		"text/plain", "");
-	Document *pPluginDoc = fileCollect.retrieveUrl(docInfo);
-	if (pPluginDoc == NULL)
+	PluginParserInterface *pParser = getPluginParser(fileName);
+	if (pParser == NULL)
 	{
-#ifdef DEBUG
-		cerr << "PluginWebEngine::load: couldn't load " << fileName << endl;
-#endif
-		return false;
+		return;
 	}
 
-	SherlockParser parser(pPluginDoc);
-	if (parser.parse() == false)
-	{
-		delete pPluginDoc;
-
-		return false;
-	}
-
-	// Get a copy of the properties
-	m_properties = parser.getProperties();
-
-	delete pPluginDoc;
-
-	return true;
+	m_pResponseParser = pParser->parse(m_properties);
+	delete pParser;
 }
 
 bool PluginWebEngine::getPage(const string &formattedQuery)
 {
-	bool foundResult = false;
+	if ((m_pResponseParser == NULL) ||
+		(formattedQuery.empty() == true))
+	{
+		return false;
+	}
 
-#ifdef DEBUG
-	cout << "PluginWebEngine::getPage: getting " << formattedQuery << endl;
-#endif
 	DocumentInfo docInfo("Results Page", formattedQuery,
 		"text/html", "");
-	Document *pUrlDoc = downloadPage(docInfo);
-	if (pUrlDoc == NULL)
+	Document *pResponseDoc = downloadPage(docInfo);
+	if (pResponseDoc == NULL)
 	{
 #ifdef DEBUG
-		cerr << "PluginWebEngine::getPage: couldn't download page " << formattedQuery << endl;
+		cerr << "PluginWebEngine::getPage: couldn't download page "
+			<< formattedQuery << endl;
 #endif
 		return false;
 	}
 
-	float pseudoScore = 100;
-	unsigned int urlContentLen;
-	const char *urlContent = pUrlDoc->getData(urlContentLen);
-	if ((urlContent == NULL) ||
-		(urlContentLen == 0))
+	unsigned int contentLen;
+	const char *pContent = pResponseDoc->getData(contentLen);
+	if ((pContent == NULL) ||
+		(contentLen == 0))
 	{
 #ifdef DEBUG
 		cerr << "PluginWebEngine::getPage: downloaded empty page" << endl;
 #endif
-		delete pUrlDoc;
+		delete pResponseDoc;
 		return false;
 	}
 #ifdef DEBUG
 	ofstream pageBackup("PluginWebEngine.html");
-	pageBackup.write(urlContent, urlContentLen);
+	pageBackup.write(pContent, contentLen);
 	pageBackup.close();
 #endif
 
-	// Extract the results list
-#ifdef DEBUG
-	cout << "PluginWebEngine::getPage: getting results list ("
-		<< m_properties.m_resultListStart << ", " << m_properties.m_resultListEnd << ")" << endl;
-#endif
-	string resultList = StringManip::extractField(urlContent,
-		m_properties.m_resultListStart, m_properties.m_resultListEnd);
-	if (resultList.empty() == true)
+	bool success = m_pResponseParser->parse(pResponseDoc, m_resultsList, m_maxResultsCount);
+	vector<Result>::iterator resultIter = m_resultsList.begin();
+	while (resultIter != m_resultsList.end())
 	{
-		resultList = string(urlContent, urlContentLen);
-	}
+		string url(resultIter->getLocation());
 
-	// Extract results
-	string::size_type endPos = 0;
-#ifdef DEBUG
-	cout << "PluginWebEngine::getPage: getting first result ("
-		<< m_properties.m_resultItemStart << ", " << m_properties.m_resultItemEnd << ")" << endl;
-#endif
-	string resultItem = StringManip::extractField(resultList,
-		m_properties.m_resultItemStart, m_properties.m_resultItemEnd, endPos);
-	while ((resultItem.empty() == false) &&
-		(m_resultsList.size() <= m_maxResultsCount))
-	{
-		string contentType, url, name, extract;
-
-#ifdef DEBUG
-		cout << "PluginWebEngine::getPage: candidate chunk \"" << resultItem << "\"" << endl;
-#endif
-		contentType = pUrlDoc->getType();
-		if (strncasecmp(contentType.c_str(), "text/html", 9) == 0)
+		if (processResult(url) == false)
 		{
-			Document chunkDoc("", "", contentType, "");
-			chunkDoc.setData(resultItem.c_str(), resultItem.length());
-			HtmlTokenizer chunkTokens(&chunkDoc);
-			set<Link> &chunkLinks = chunkTokens.getLinks();
-			unsigned int endOfFirstLink = 0, startOfSecondLink = 0, endOfSecondLink = 0, startOfThirdLink = 0;
-
-			// The result's URL and title should be given by the first link
-			for (set<Link>::iterator linkIter = chunkLinks.begin(); linkIter != chunkLinks.end(); ++linkIter)
+			// Remove this result
+			if (resultIter == m_resultsList.begin())
 			{
-				if (linkIter->m_pos == 0)
-				{
-					url = linkIter->m_url;
-					name = linkIter->m_name;
-#ifdef DEBUG
-					cout << "PluginWebEngine::getPage: first link in chunk is " << url << endl;
-#endif
-					endOfFirstLink = linkIter->m_close;
-				}
-				else if (linkIter->m_pos == 1)
-				{
-					startOfSecondLink = linkIter->m_open;
-					endOfSecondLink = linkIter->m_close;
-				}
-				else if (linkIter->m_pos == 2)
-				{
-					startOfThirdLink = linkIter->m_open;
-				}
+				m_resultsList.erase(resultIter);
+				resultIter = m_resultsList.begin();
 			}
-
-			// Chances are the extract is between the first two links
-			if (endOfFirstLink > 0)
+			else
 			{
-				string extractWithMarkup1, extractWithMarkup2;
-				string extractCandidate1, extractCandidate2;
-
-				if (startOfSecondLink > 0)
-				{
-					extractWithMarkup1 = resultItem.substr(endOfFirstLink, startOfSecondLink - endOfFirstLink);
-				}
-				else
-				{
-					extractWithMarkup1 = resultItem.substr(endOfFirstLink);
-				}
-				extractCandidate1 = HtmlTokenizer::stripTags(extractWithMarkup1);
-
-				// ... or between the second and third link :-)
-				if (endOfSecondLink > 0)
-				{
-					if (startOfThirdLink > 0)
-					{
-						extractWithMarkup2 = resultItem.substr(endOfSecondLink, startOfThirdLink - endOfSecondLink);
-					}
-					else
-					{
-						extractWithMarkup2 = resultItem.substr(endOfSecondLink);
-					}
-				}
-				extractCandidate2 = HtmlTokenizer::stripTags(extractWithMarkup2);
-
-				// It seems we can rely on length to determine which is the right one
-				if (extractCandidate1.length() > extractCandidate2.length())
-				{
-					extract = extractCandidate1;
-				}
-				else
-				{
-					extract = extractCandidate2;
-				}
-#ifdef DEBUG
-				cout << "PluginWebEngine::getPage: extract is \"" << extract << "\"" << endl;
-#endif
+				vector<Result>::iterator badResultIter = resultIter;
+				--resultIter;
+				m_resultsList.erase(badResultIter);
 			}
 		}
 		else
 		{
-			// This is not HTML
-			// Use extended attributes
-			if ((m_properties.m_resultTitleStart.empty() == false) &&
-				(m_properties.m_resultTitleEnd.empty() == false))
-			{
-				name = StringManip::extractField(resultItem,
-					m_properties.m_resultTitleStart, m_properties.m_resultTitleEnd);
-			}
-
-			if ((m_properties.m_resultLinkStart.empty() == false) &&
-				(m_properties.m_resultLinkEnd.empty() == false))
-			{
-				url = StringManip::extractField(resultItem,
-					m_properties.m_resultLinkStart, m_properties.m_resultLinkEnd);
-			}
-
-			if ((m_properties.m_resultExtractStart.empty() == false) &&
-				(m_properties.m_resultExtractEnd.empty() == false))
-			{
-				extract = StringManip::extractField(resultItem,
-					m_properties.m_resultExtractStart, m_properties.m_resultExtractEnd);
-			}
+			// Next
+			++resultIter;
 		}
-
-		if (url.empty() == false)
-		{
-			Url urlObj(url);
-
-			// Is this URL relative to the search engine's domain ?
-			// FIXME: look for a interpret/baseurl tag, see https://bugzilla.mozilla.org/show_bug.cgi?id=65453
-			// FIXME: obey m_skipLocal
-			if (urlObj.getHost().empty() == true)
-			{
-				Url baseUrlObj(formattedQuery);
-
-				string tmpUrl = baseUrlObj.getProtocol();
-				tmpUrl += "://";
-				tmpUrl += baseUrlObj.getHost();
-				if (url[0] != '/')
-				{
-					tmpUrl += "/";
-				}
-				tmpUrl += url;
-				url = tmpUrl;
-			}
-
-			if (processResult(url) == true)
-			{
-				m_resultsList.push_back(Result(url, name, extract, "", pseudoScore));
-			}
-			--pseudoScore;
-			foundResult = true;
-		}
-
-		// Next
-		endPos += m_properties.m_resultItemEnd.length();
-		resultItem = StringManip::extractField(resultList,
-			m_properties.m_resultItemStart, m_properties.m_resultItemEnd, endPos);
 	}
-	delete pUrlDoc;
 
-	return foundResult;
+	delete pResponseDoc;
+
+	return success;
+}
+
+PluginParserInterface *PluginWebEngine::getPluginParser(const string &fileName)
+{
+	if (fileName.empty() == true)
+	{
+		return NULL;
+	}
+
+	// What type of plugin is it ?
+	// Look at the file extension
+	string::size_type pos = fileName.find_last_of(".");
+	if (pos == string::npos)
+	{
+		// No way to tell
+		return NULL;
+	}
+
+	string extension(fileName.substr(pos + 1));
+	if (strncasecmp(extension.c_str(), "src", 3) == 0)
+	{
+		return new SherlockParser(fileName);
+	}
+	else if (strncasecmp(extension.c_str(), "xml", 3) == 0)
+	{
+		return new OpenSearchParser(fileName);
+	}
+
+	return NULL;
 }
 
 bool PluginWebEngine::getDetails(const string &fileName, string &name, string &channel)
@@ -285,35 +162,26 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 		return false;
 	}
 
-	// Get the definition file
-	FileCollector fileCollect;
-	DocumentInfo docInfo(name, string("file://") + fileName,
-		"text/plain", "");
-	Document *pPluginDoc = fileCollect.retrieveUrl(docInfo);
-	if (pPluginDoc == NULL)
+	PluginParserInterface *pParser = getPluginParser(fileName);
+	if (pParser == NULL)
 	{
-#ifdef DEBUG
-		cerr << "PluginWebEngine::getDetails: couldn't load " << fileName << endl;
-#endif
 		return false;
 	}
 
-	SherlockParser parser(pPluginDoc);
-	if (parser.parse(true) == false)
+	SearchPluginProperties properties;
+	if (pParser->parse(properties, true) == false)
 	{
 #ifdef DEBUG
 		cerr << "PluginWebEngine::getDetails: couldn't parse " << fileName << endl;
 #endif
-		delete pPluginDoc;
+		delete pParser;
 
 		return false;
 	}
+	delete pParser;
 
-	const SearchPluginProperties &properties = parser.getProperties();
 	name = properties.m_name;
 	channel = properties.m_channel;
-
-	delete pPluginDoc;
 
 	return true;
 }

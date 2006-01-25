@@ -24,8 +24,7 @@ SearchPluginProperties::SearchPluginProperties() :
 	m_method(GET_METHOD),
 	m_nextFactor(10),
 	m_nextBase(0),
-	m_response(UNKNOWN_RESPONSE),
-	m_skipLocal(true)
+	m_response(UNKNOWN_RESPONSE)
 {
 }
 
@@ -41,17 +40,7 @@ SearchPluginProperties::SearchPluginProperties(const SearchPluginProperties &oth
 	m_nextTag(other.m_nextTag),
 	m_nextFactor(other.m_nextFactor),
 	m_nextBase(other.m_nextBase),
-	m_resultListStart(other.m_resultListStart),
-	m_resultListEnd(other.m_resultListEnd),
-	m_resultItemStart(other.m_resultItemStart),
-	m_resultItemEnd(other.m_resultItemEnd),
-	m_resultTitleStart(other.m_resultTitleStart),
-	m_resultTitleEnd(other.m_resultTitleEnd),
-	m_resultLinkStart(other.m_resultLinkStart),
-	m_resultLinkEnd(other.m_resultLinkEnd),
-	m_resultExtractStart(other.m_resultExtractStart),
-	m_resultExtractEnd(other.m_resultExtractEnd),
-	m_skipLocal(other.m_skipLocal)
+	m_response(other.m_response)
 {
 	copy(other.m_languages.begin(), other.m_languages.end(),
 		inserter(m_languages, m_languages.begin()));
@@ -80,17 +69,7 @@ SearchPluginProperties& SearchPluginProperties::operator=(const SearchPluginProp
 	m_nextTag = other.m_nextTag;
 	m_nextFactor = other.m_nextFactor;
 	m_nextBase = other.m_nextBase;
-	m_resultListStart = other.m_resultListStart;
-	m_resultListEnd = other.m_resultListEnd;
-	m_resultItemStart = other.m_resultItemStart;
-	m_resultItemEnd = other.m_resultItemEnd;
-	m_resultTitleStart = other.m_resultTitleStart;
-	m_resultTitleEnd = other.m_resultTitleEnd;
-	m_resultLinkStart = other.m_resultLinkStart;
-	m_resultLinkEnd = other.m_resultLinkEnd;
-	m_resultExtractStart = other.m_resultExtractStart;
-	m_resultExtractEnd = other.m_resultExtractEnd;
-	m_skipLocal = other.m_skipLocal;
+	m_response = other.m_response;
 
 	copy(other.m_languages.begin(), other.m_languages.end(),
 		inserter(m_languages, m_languages.begin()));

@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 {
 	if (argc < 3)
 	{
-		cerr << "Usage: " << argv[0] << " SHERLOCK|OPENSEARCH <file name> [MIN]" << endl;
+		cerr << "Usage: " << argv[0] << " sherlock|opensearch <file name> [MIN]" << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	if ((stat(argv[2], &fileStat) == 0) &&
 		(S_ISREG(fileStat.st_mode)))
 	{
+		PluginParserInterface *pParser = NULL;
 		SearchPluginProperties properties;
 		bool minParser = false;
 
@@ -48,43 +49,22 @@ int main(int argc, char **argv)
 			minParser = true;
 		}
 
-		if (strncasecmp(argv[1], "SHERLOCK", 8) == 0)
+		if (strncasecmp(argv[1], "sherlock", 8) == 0)
 		{
-			char *buffer = new char[fileStat.st_size + 1];
-			int fd = open(argv[2], O_RDONLY);
-
-			// Read the file
-			ssize_t readBytes = read(fd, buffer, fileStat.st_size);
-			if (readBytes == -1)
-			{
-				cerr << "Couldn't read " << argv[2] << " !" << endl;
-				return EXIT_FAILURE;
-			}
-
-			// Put that data into a document
-			Document doc;
-			doc.setData(buffer, readBytes);
-			delete[] buffer;
-
-			SherlockParser parser(&doc);
-			if (parser.parse(minParser) == true)
-			{
-				cout << "Successfully parsed " << argv[2] << endl;
-			}
-
-			properties = parser.getProperties();
+			pParser = new SherlockParser(argv[2]);
 		}
-		else if (strncasecmp(argv[1], "OPENSEARCH", 10) == 0)
+		else if (strncasecmp(argv[1], "opensearch", 10) == 0)
 		{
-			OpenSearchParser parser(argv[2]);
-
-			if (parser.parse(minParser) == true)
-			{
-				cout << "Successfully parsed " << argv[2] << endl;
-			}
-
-			properties = parser.getProperties();
+			pParser = new OpenSearchParser(argv[2]);
 		}
+
+		// Parse the document
+		if (pParser->parse(minParser) == true)
+		{
+			cout << "Successfully parsed " << argv[2] << endl;
+		}
+		properties = pParser->getProperties();
+		delete pParser;
 
 		cout << "Plugin " << properties.m_name << ": " << properties.m_description << endl;
 		cout << "Channel: " << properties.m_channel << endl;

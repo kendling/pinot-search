@@ -19,6 +19,7 @@
 
 #include <string>
 
+#include "PluginParsers.h"
 #include "SearchPluginProperties.h"
 #include "WebEngine.h"
 
@@ -41,10 +42,13 @@ class PluginWebEngine : public WebEngine
 
 	protected:
 		SearchPluginProperties m_properties;
+		ResponseParserInterface *m_pResponseParser;
 
-		bool load(const std::string &fileName);
+		void load(const std::string &fileName);
 
 		bool getPage(const std::string &formattedQuery);
+
+		static PluginParserInterface *getPluginParser(const std::string &fileName);
 
 	private:
 		PluginWebEngine(const PluginWebEngine &other);

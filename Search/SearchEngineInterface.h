@@ -14,8 +14,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _SEARCHENGINE_INTERFACE_H
-#define _SEARCHENGINE_INTERFACE_H
+#ifndef _SEARCH_ENGINE_INTERFACE_H
+#define _SEARCH_ENGINE_INTERFACE_H
 
 #include <time.h>
 #include <string>
@@ -75,4 +75,4 @@ class SearchEngineInterface
 
 };
 
-#endif // _SEARCHENGINE_INTERFACE_H
+#endif // _SEARCH_ENGINE_INTERFACE_H

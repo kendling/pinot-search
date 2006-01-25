@@ -22,6 +22,9 @@
 #include <boost/spirit/utility/confix.hpp>
 
 #include "StringManip.h"
+#include "Url.h"
+#include "HtmlTokenizer.h"
+#include "FileCollector.h"
 #include "SherlockParser.h"
 
 using std::cout;
@@ -249,8 +252,211 @@ struct plugin_grammar : public grammar<plugin_grammar>
 
 };
 
-SherlockParser::SherlockParser(const Document *pDocument) :
-	m_pDocument(pDocument)
+SherlockResponseParser::SherlockResponseParser() :
+	ResponseParserInterface(),
+	m_skipLocal(true)
+{
+}
+
+SherlockResponseParser::~SherlockResponseParser()
+{
+}
+
+bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> &resultsList,
+	unsigned int maxResultsCount) const
+{
+	float pseudoScore = 100;
+	unsigned int contentLen;
+	bool foundResult = false;
+
+	if ((pResponseDoc == NULL) ||
+		(pResponseDoc->getData(contentLen) == NULL) ||
+		(contentLen == 0))
+	{
+		return false;
+	}
+
+	// These two are the minimum we need
+	if ((m_resultItemStart.empty() == true) ||
+		(m_resultItemEnd.empty() == true))
+	{
+#ifdef DEBUG
+		cout << "SherlockResponseParser::parse: incomplete properties" << endl;
+#endif
+		return false;
+	}
+
+	// Extract the results list
+#ifdef DEBUG
+	cout << "SherlockResponseParser::parse: getting results list ("
+		<< m_resultListStart << ", " << m_resultListEnd << ")" << endl;
+#endif
+	const char *pContent = pResponseDoc->getData(contentLen);
+	string resultList = StringManip::extractField(pContent, m_resultListStart, m_resultListEnd);
+	if (resultList.empty() == true)
+	{
+		resultList = string(pContent, contentLen);
+	}
+
+	// Extract results
+	string::size_type endPos = 0;
+#ifdef DEBUG
+	cout << "SherlockResponseParser::parse: getting first result ("
+		<< m_resultItemStart << ", " << m_resultItemEnd << ")" << endl;
+#endif
+	string resultItem = StringManip::extractField(resultList,
+		m_resultItemStart, m_resultItemEnd, endPos);
+	while ((resultItem.empty() == false) &&
+		(resultsList.size() <= maxResultsCount))
+	{
+		string contentType, url, name, extract;
+
+#ifdef DEBUG
+		cout << "SherlockResponseParser::parse: candidate chunk \""
+			<< resultItem << "\"" << endl;
+#endif
+		contentType = pResponseDoc->getType();
+		if (strncasecmp(contentType.c_str(), "text/html", 9) == 0)
+		{
+			Document chunkDoc("", "", contentType, "");
+			chunkDoc.setData(resultItem.c_str(), resultItem.length());
+			HtmlTokenizer chunkTokens(&chunkDoc);
+			set<Link> &chunkLinks = chunkTokens.getLinks();
+			unsigned int endOfFirstLink = 0, startOfSecondLink = 0, endOfSecondLink = 0, startOfThirdLink = 0;
+
+			// The result's URL and title should be given by the first link
+			for (set<Link>::iterator linkIter = chunkLinks.begin(); linkIter != chunkLinks.end(); ++linkIter)
+			{
+				if (linkIter->m_pos == 0)
+				{
+					url = linkIter->m_url;
+					name = linkIter->m_name;
+#ifdef DEBUG
+					cout << "SherlockResponseParser::parse: first link in chunk is "
+						<< url << endl;
+#endif
+					endOfFirstLink = linkIter->m_close;
+				}
+				else if (linkIter->m_pos == 1)
+				{
+					startOfSecondLink = linkIter->m_open;
+					endOfSecondLink = linkIter->m_close;
+				}
+				else if (linkIter->m_pos == 2)
+				{
+					startOfThirdLink = linkIter->m_open;
+				}
+			}
+
+			// Chances are the extract is between the first two links
+			if (endOfFirstLink > 0)
+			{
+				string extractWithMarkup1, extractWithMarkup2;
+				string extractCandidate1, extractCandidate2;
+
+				if (startOfSecondLink > 0)
+				{
+					extractWithMarkup1 = resultItem.substr(endOfFirstLink, startOfSecondLink - endOfFirstLink);
+				}
+				else
+				{
+					extractWithMarkup1 = resultItem.substr(endOfFirstLink);
+				}
+				extractCandidate1 = HtmlTokenizer::stripTags(extractWithMarkup1);
+
+				// ... or between the second and third link :-)
+				if (endOfSecondLink > 0)
+				{
+					if (startOfThirdLink > 0)
+					{
+						extractWithMarkup2 = resultItem.substr(endOfSecondLink, startOfThirdLink - endOfSecondLink);
+					}
+					else
+					{
+						extractWithMarkup2 = resultItem.substr(endOfSecondLink);
+					}
+				}
+				extractCandidate2 = HtmlTokenizer::stripTags(extractWithMarkup2);
+
+				// It seems we can rely on length to determine which is the right one
+				if (extractCandidate1.length() > extractCandidate2.length())
+				{
+					extract = extractCandidate1;
+				}
+				else
+				{
+					extract = extractCandidate2;
+				}
+#ifdef DEBUG
+				cout << "SherlockResponseParser::parse: extract is \""
+					<< extract << "\"" << endl;
+#endif
+			}
+		}
+		else
+		{
+			// This is not HTML
+			// Use extended attributes
+			if ((m_resultTitleStart.empty() == false) &&
+				(m_resultTitleEnd.empty() == false))
+			{
+				name = StringManip::extractField(resultItem,
+					m_resultTitleStart, m_resultTitleEnd);
+			}
+
+			if ((m_resultLinkStart.empty() == false) &&
+				(m_resultLinkEnd.empty() == false))
+			{
+				url = StringManip::extractField(resultItem,
+					m_resultLinkStart, m_resultLinkEnd);
+			}
+
+			if ((m_resultExtractStart.empty() == false) &&
+				(m_resultExtractEnd.empty() == false))
+			{
+				extract = StringManip::extractField(resultItem,
+					m_resultExtractStart, m_resultExtractEnd);
+			}
+		}
+
+		if (url.empty() == false)
+		{
+			Url urlObj(url);
+
+			// Is this URL relative to the search engine's domain ?
+			// FIXME: look for a interpret/baseurl tag, see https://bugzilla.mozilla.org/show_bug.cgi?id=65453
+			// FIXME: obey m_skipLocal
+			if (urlObj.getHost().empty() == true)
+			{
+				Url baseUrlObj(pResponseDoc->getLocation());
+
+				string tmpUrl = baseUrlObj.getProtocol();
+				tmpUrl += "://";
+				tmpUrl += baseUrlObj.getHost();
+				if (url[0] != '/')
+				{
+					tmpUrl += "/";
+				}
+				tmpUrl += url;
+				url = tmpUrl;
+			}
+
+			resultsList.push_back(Result(url, name, extract, "", pseudoScore));
+			--pseudoScore;
+			foundResult = true;
+		}
+
+		// Next
+		endPos += m_resultItemEnd.length();
+		resultItem = StringManip::extractField(resultList,
+			m_resultItemStart, m_resultItemEnd, endPos);
+	}
+
+	return foundResult;
+}
+
+SherlockParser::SherlockParser(const string &fileName) :
+	PluginParserInterface(fileName)
 {
 }
 
@@ -258,19 +464,30 @@ SherlockParser::~SherlockParser()
 {
 }
 
-bool SherlockParser::parse(bool extractSearchParams)
+ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &properties,
+	bool extractSearchParams)
 {
-	if (m_pDocument == NULL)
+	FileCollector fileCollect;
+	DocumentInfo docInfo("Sherlock Source", string("file://") + m_fileName,
+		"text/plain", "");
+
+	// Get the definition file
+	Document *pPluginDoc = fileCollect.retrieveUrl(docInfo);
+	if (pPluginDoc == NULL)
 	{
-		return false;
+#ifdef DEBUG
+		cout << "SherlockParser::parse: couldn't load " << m_fileName << endl;
+#endif
+		return NULL;
 	}
 
 	unsigned int dataLength;
-	const char *pData = m_pDocument->getData(dataLength);
+	const char *pData = pPluginDoc->getData(dataLength);
 	if ((pData == NULL) ||
 		(dataLength == 0))
 	{
-		return false;
+		delete pPluginDoc;
+		return NULL;
 	}
 
 	map<string, string> searchParams, interpretParams, inputItems;
@@ -292,6 +509,11 @@ bool SherlockParser::parse(bool extractSearchParams)
 		parseInfo = boost::spirit::parse(pData, plugin, skip);
 	}
 
+	// We are done with the document
+	delete pPluginDoc;
+
+	SherlockResponseParser *pResponseParser = new SherlockResponseParser();
+
 	if (parseInfo.full == true)
 	{
 		map<string, string> lowSearchParams, lowInterpretParams, lowInputItems;
@@ -304,22 +526,22 @@ bool SherlockParser::parse(bool extractSearchParams)
 		for_each(inputItems.begin(), inputItems.end(), lowCopy3);
 
 		// Response
-		m_properties.m_response = SearchPluginProperties::HTML_RESPONSE;
+		properties.m_response = SearchPluginProperties::HTML_RESPONSE;
 		// Method
-		m_properties.m_method = SearchPluginProperties::GET_METHOD;
+		properties.m_method = SearchPluginProperties::GET_METHOD;
 
 		// Name
 		map<string, string>::iterator mapIter = lowSearchParams.find("name");
 		if (mapIter != lowSearchParams.end())
 		{
-			m_properties.m_name = mapIter->second;
+			properties.m_name = mapIter->second;
 		}
 
 		// Channel
 		mapIter = lowSearchParams.find("routetype");
 		if (mapIter != lowSearchParams.end())
 		{
-			m_properties.m_channel = mapIter->second;
+			properties.m_channel = mapIter->second;
 		}
 
 		if (extractSearchParams == false)
@@ -333,87 +555,87 @@ bool SherlockParser::parse(bool extractSearchParams)
 					lowInputItems.erase(mapIter);
 				}
 
-				m_properties.m_parameters[SearchPluginProperties::SEARCH_TERMS_PARAM] = userInput;
+				properties.m_parameters[SearchPluginProperties::SEARCH_TERMS_PARAM] = userInput;
 			}
 			for (map<string, string>::iterator iter = lowInputItems.begin();
 				iter != lowInputItems.end(); ++iter)
 			{
 				// Append to the remainder
-				if (m_properties.m_parametersRemainder.empty() == false)
+				if (properties.m_parametersRemainder.empty() == false)
 				{
-					m_properties.m_parametersRemainder += "&";
+					properties.m_parametersRemainder += "&";
 				}
-				m_properties.m_parametersRemainder += iter->first;
-				m_properties.m_parametersRemainder += "=";
-				m_properties.m_parametersRemainder += iter->second;
+				properties.m_parametersRemainder += iter->first;
+				properties.m_parametersRemainder += "=";
+				properties.m_parametersRemainder += iter->second;
 			}
 
 			// URL
 			mapIter = lowSearchParams.find("action");
 			if (mapIter != lowSearchParams.end())
 			{
-				m_properties.m_baseUrl = mapIter->second;
+				properties.m_baseUrl = mapIter->second;
 			}
 
 			// Response
 			mapIter = lowInterpretParams.find("resultliststart");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultListStart = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
+				pResponseParser->m_resultListStart = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
 			}
 
 			mapIter = lowInterpretParams.find("resultlistend");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultListEnd = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
+				pResponseParser->m_resultListEnd = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
 			}
 
 			mapIter = lowInterpretParams.find("resultitemstart");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultItemStart = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
+				pResponseParser->m_resultItemStart = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
 			}
 
 			mapIter = lowInterpretParams.find("resultitemend");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultItemEnd = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
+				pResponseParser->m_resultItemEnd = StringManip::replaceSubString(mapIter->second, "\\n", "\n");
 			}
 
 			mapIter = lowInterpretParams.find("resulttitlestart");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultTitleStart = mapIter->second;
+				pResponseParser->m_resultTitleStart = mapIter->second;
 			}
 
 			mapIter = lowInterpretParams.find("resulttitleend");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultTitleEnd = mapIter->second;
+				pResponseParser->m_resultTitleEnd = mapIter->second;
 			}
 
 			mapIter = lowInterpretParams.find("resultlinkstart");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultLinkStart = mapIter->second;
+				pResponseParser->m_resultLinkStart = mapIter->second;
 			}
 
 			mapIter = lowInterpretParams.find("resultlinkend");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultLinkEnd = mapIter->second;
+				pResponseParser->m_resultLinkEnd = mapIter->second;
 			}
 
 			mapIter = lowInterpretParams.find("resultextractstart");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultExtractStart = mapIter->second;
+				pResponseParser->m_resultExtractStart = mapIter->second;
 			}
 
 			mapIter = lowInterpretParams.find("resultextractend");
 			if (mapIter != lowInterpretParams.end())
 			{
-				m_properties.m_resultExtractEnd = mapIter->second;
+				pResponseParser->m_resultExtractEnd = mapIter->second;
 			}
 
 			mapIter = lowInterpretParams.find("skiplocal");
@@ -421,21 +643,21 @@ bool SherlockParser::parse(bool extractSearchParams)
 			{
 				if (mapIter->second == "false")
 				{
-					m_properties.m_skipLocal = false;
+					pResponseParser->m_skipLocal = false;
 				}
 			}
 
-			m_properties.m_nextTag = nextInput;
+			properties.m_nextTag = nextInput;
 			// Here we differ from how Mozilla uses these parameters
 			// Normally, either factor or value is used, but we use value
 			// as the parameter's initial value
 			if (nextFactor.empty() == false)
 			{
-				m_properties.m_nextFactor = (unsigned int)atoi(nextFactor.c_str());
+				properties.m_nextFactor = (unsigned int)atoi(nextFactor.c_str());
 			}
 			if (nextValue.empty() == false)
 			{
-				m_properties.m_nextBase = (unsigned int)atoi(nextValue.c_str());
+				properties.m_nextBase = (unsigned int)atoi(nextValue.c_str());
 			}
 		}
 	}
@@ -443,11 +665,5 @@ bool SherlockParser::parse(bool extractSearchParams)
 	else cout << "SherlockParser::parse: syntax error near " << parseInfo.stop << endl;
 #endif
 
-	return parseInfo.hit;
-}
-
-/// Returns the plugin's properties.
-const SearchPluginProperties &SherlockParser::getProperties(void)
-{
-	return m_properties;
+	return pResponseParser;
 }

@@ -14,61 +14,49 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _SHERLOCK_PARSER_H
-#define _SHERLOCK_PARSER_H
+#ifndef _OPENSEARCH_PARSER_H
+#define _OPENSEARCH_PARSER_H
 
 #include <string>
 
 #include "Document.h"
 #include "PluginParsers.h"
 
-class SherlockResponseParser : public ResponseParserInterface
+class OpenSearchResponseParser : public ResponseParserInterface
 {
 	public:
-		SherlockResponseParser();
-		virtual ~SherlockResponseParser();
+		OpenSearchResponseParser();
+		virtual ~OpenSearchResponseParser();
 
 		/// Parses the response; false if not all could be parsed.
 		virtual bool parse(const Document *pResponseDoc, std::vector<Result> &resultsList,
 			unsigned int maxResultsCount) const;
 
-		std::string m_resultListStart;
-		std::string m_resultListEnd;
-		std::string m_resultItemStart;
-		std::string m_resultItemEnd;
-		std::string m_resultTitleStart;
-		std::string m_resultTitleEnd;
-		std::string m_resultLinkStart;
-		std::string m_resultLinkEnd;
-		std::string m_resultExtractStart;
-		std::string m_resultExtractEnd;
-		bool m_skipLocal;
-
 	private:
-		SherlockResponseParser(const SherlockResponseParser &other);
-		SherlockResponseParser& operator=(const SherlockResponseParser& other);
+		OpenSearchResponseParser(const OpenSearchResponseParser &other);
+		OpenSearchResponseParser& operator=(const OpenSearchResponseParser& other);
 
 };
 
 /**
-  * A parser for Sherlock plugin files.
-  * See http://developer.apple.com/technotes/tn/tn1141.html
-  * and http://mycroft.mozdev.org/deepdocs/deepdocs.html
+  * A parser for OpenSearch Description and Query Syntax, version 1.1.
+  * See http://opensearch.a9.com/spec/1.1/description/
+  * and http://opensearch.a9.com/spec/1.1/querysyntax/
   */
-class SherlockParser : public PluginParserInterface
+class OpenSearchParser : public PluginParserInterface
 {
 	public:
-		SherlockParser(const std::string &fileName);
-		virtual ~SherlockParser();
+		OpenSearchParser(const std::string &fileName);
+		virtual ~OpenSearchParser();
 
 		/// Parses the plugin and returns a response parser.
 		virtual ResponseParserInterface *parse(SearchPluginProperties &properties,
 			bool extractSearchParams = false);
 
 	private:
-		SherlockParser(const SherlockParser &other);
-		SherlockParser& operator=(const SherlockParser& other);
+		OpenSearchParser(const OpenSearchParser &other);
+		OpenSearchParser& operator=(const OpenSearchParser& other);
 
 };
 
-#endif // _SHERLOCK_PARSER_H
+#endif // _OPENSEARCH_PARSER_H
