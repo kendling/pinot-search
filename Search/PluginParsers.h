@@ -36,7 +36,7 @@ class ResponseParserInterface
 
 		/// Parses the response; false if not all could be parsed.
 		virtual bool parse(const Document *pResponseDoc, std::vector<Result> &resultsList,
-			unsigned int maxResultsCount) const = 0;
+			unsigned int &totalResults, unsigned int &firstResultIndex) const = 0;
 
 	protected:
 		ResponseParserInterface()

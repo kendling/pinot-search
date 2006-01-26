@@ -22,7 +22,8 @@ using std::set;
 
 SearchPluginProperties::SearchPluginProperties() :
 	m_method(GET_METHOD),
-	m_nextFactor(10),
+	m_scrolling(PER_PAGE),
+	m_nextIncrement(0),
 	m_nextBase(0),
 	m_response(UNKNOWN_RESPONSE)
 {
@@ -37,8 +38,8 @@ SearchPluginProperties::SearchPluginProperties(const SearchPluginProperties &oth
 	m_method(other.m_method),
 	m_parametersRemainder(other.m_parametersRemainder),
 	m_outputType(other.m_outputType),
-	m_nextTag(other.m_nextTag),
-	m_nextFactor(other.m_nextFactor),
+	m_scrolling(other.m_scrolling),
+	m_nextIncrement(other.m_nextIncrement),
 	m_nextBase(other.m_nextBase),
 	m_response(other.m_response)
 {
@@ -66,8 +67,8 @@ SearchPluginProperties& SearchPluginProperties::operator=(const SearchPluginProp
 	m_method = other.m_method;
 	m_parametersRemainder = other.m_parametersRemainder;
 	m_outputType = other.m_outputType;
-	m_nextTag = other.m_nextTag;
-	m_nextFactor = other.m_nextFactor;
+	m_scrolling = other.m_scrolling;
+	m_nextIncrement = other.m_nextIncrement;
 	m_nextBase = other.m_nextBase;
 	m_response = other.m_response;
 

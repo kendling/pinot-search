@@ -411,53 +411,55 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 			}
 
 			// Query the database
-			if (queryDatabase(queryStack.top()) == true)
+			if (queryDatabase(queryStack.top()) == false)
 			{
-				if (m_resultsList.empty() == true)
-				{
-					// The search did succeed but didn't return anything
-					// Try the next step
-					switch (++searchStep)
-					{
-						case 2:
-							followOperators = true;
-							stemLanguage = queryProps.getLanguage();
-							if (stemLanguage.empty() == false)
-							{
-								break;
-							}
-							++searchStep;
-						case 3:
-							followOperators = false;
-							stemLanguage.clear();
-							break;
-						case 4:
-							followOperators = false;
-							stemLanguage = queryProps.getLanguage();
-							if (stemLanguage.empty() == false)
-							{
-								break;
-							}
-							++searchStep;
-						default:
-							return true;
-					}
+				break;
+			}
 
-					// Empty the stack
-					while (queryStack.empty() == false)
-					{
-						queryStack.pop();
-					}
-#ifdef DEBUG
-					cout << "XapianEngine::runQuery: trying step " << searchStep << endl;
-#endif
-					stackQuery(queryProps, queryStack,
-						Languages::toEnglish(stemLanguage), followOperators);
-					continue;
+			if (m_resultsList.empty() == true)
+			{
+				// The search did succeed but didn't return anything
+				// Try the next step
+				switch (++searchStep)
+				{
+					case 2:
+						followOperators = true;
+						stemLanguage = queryProps.getLanguage();
+						if (stemLanguage.empty() == false)
+						{
+							break;
+						}
+						++searchStep;
+					case 3:
+						followOperators = false;
+						stemLanguage.clear();
+						break;
+					case 4:
+						followOperators = false;
+						stemLanguage = queryProps.getLanguage();
+						if (stemLanguage.empty() == false)
+						{
+							break;
+						}
+						++searchStep;
+					default:
+						return true;
 				}
 
-				return true;
+				// Empty the stack
+				while (queryStack.empty() == false)
+				{
+					queryStack.pop();
+				}
+#ifdef DEBUG
+				cout << "XapianEngine::runQuery: trying step " << searchStep << endl;
+#endif
+				stackQuery(queryProps, queryStack,
+					Languages::toEnglish(stemLanguage), followOperators);
+				continue;
 			}
+
+			return true;
 		}
 	}
 	catch (const Xapian::Error &error)

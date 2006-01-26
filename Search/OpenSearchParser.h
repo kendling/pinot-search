@@ -30,7 +30,7 @@ class OpenSearchResponseParser : public ResponseParserInterface
 
 		/// Parses the response; false if not all could be parsed.
 		virtual bool parse(const Document *pResponseDoc, std::vector<Result> &resultsList,
-			unsigned int maxResultsCount) const;
+			unsigned int &totalResults, unsigned int &firstResultIndex) const;
 
 	protected:
 		bool m_rssResponse;

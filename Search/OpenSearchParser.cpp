@@ -83,16 +83,27 @@ OpenSearchResponseParser::~OpenSearchResponseParser()
 }
 
 bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Result> &resultsList,
-	unsigned int maxResultsCount) const
+	unsigned int &totalResults, unsigned int &firstResultIndex) const
 {
 	float pseudoScore = 100;
 	unsigned int contentLen = 0;
-	bool foundResult = true;
+	bool foundResult = false;
 
 	if ((pResponseDoc == NULL) ||
 		(pResponseDoc->getData(contentLen) == NULL) ||
 		(contentLen == 0))
 	{
+		return false;
+	}
+
+	// Make sure the response MIME type is sensible
+	string mimeType = pResponseDoc->getType();
+	if ((mimeType.empty() == false) &&
+		(mimeType.find("xml") == string::npos))
+	{
+#ifdef DEBUG
+		cout << "OpenSearchResponseParser::parse: response is not XML" << endl;
+#endif
 		return false;
 	}
 
@@ -177,6 +188,33 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 			Node *pNode = (*iter);
 
 			ustring nodeName = pNode->get_name();
+			ustring nodeContent = getNodeContent(pNode);
+
+			// Is this an OpenSearch extension ?
+			// FIXME: make sure namespace is opensearch
+			if (nodeName == "totalResults")
+			{
+				if (nodeContent.empty() == false)
+				{
+					totalResults = min((unsigned int)atoi(nodeContent.c_str()), totalResults);
+#ifdef DEBUG
+					cout << "OpenSearchResponseParser::parse: total results "
+						<< totalResults << endl;
+#endif
+				}
+			}
+			else if (nodeName == "startIndex")
+			{
+				if (nodeContent.empty() == false)
+				{
+					firstResultIndex = (unsigned int)atoi(nodeContent.c_str());
+#ifdef DEBUG
+					cout << "OpenSearchResponseParser::parse: first result index "
+						<< firstResultIndex << endl;
+#endif
+				}
+			}
+
 			if (nodeName != itemNode)
 			{
 				continue;
@@ -224,7 +262,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 			resultsList.push_back(Result(url, title, extract, "", pseudoScore));
 			--pseudoScore;
 			foundResult = true;
-			if (resultsList.size() == maxResultsCount)
+			if (resultsList.size() >= totalResults)
 			{
 				// Enough results
 				break;
@@ -372,6 +410,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 						else if ((type.empty() == false) &&
 							(type != "application/rss+xml"))
 						{
+							response = SearchPluginProperties::UNKNOWN_RESPONSE;
 #ifdef DEBUG
 							cout << "OpenSearchParser::parse: unsupported response type "
 								<< type << endl;
@@ -502,6 +541,18 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 	if (success == false)
 	{
 		return NULL;
+	}
+
+	// Scrolling
+	properties.m_nextIncrement = 1;
+	properties.m_nextBase = 1;
+	if (properties.m_parameters.find(SearchPluginProperties::START_PAGE_PARAM) != properties.m_parameters.end())
+	{
+		properties.m_scrolling = SearchPluginProperties::PER_PAGE;
+	}
+	else
+	{
+		properties.m_scrolling = SearchPluginProperties::PER_INDEX;
 	}
 
 	return new OpenSearchResponseParser(rssResponse);

@@ -93,7 +93,8 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 	pageBackup.close();
 #endif
 
-	bool success = m_pResponseParser->parse(pResponseDoc, m_resultsList, m_maxResultsCount);
+	bool success = m_pResponseParser->parse(pResponseDoc, m_resultsList,
+		m_maxResultsCount, m_properties.m_nextBase);
 	vector<Result>::iterator resultIter = m_resultsList.begin();
 	while (resultIter != m_resultsList.end())
 	{
@@ -169,7 +170,8 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 	}
 
 	SearchPluginProperties properties;
-	if (pParser->parse(properties, true) == false)
+	ResponseParserInterface *pResponseParser = pParser->parse(properties, true);
+	if (pResponseParser == NULL)
 	{
 #ifdef DEBUG
 		cerr << "PluginWebEngine::getDetails: couldn't parse " << fileName << endl;
@@ -178,7 +180,17 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 
 		return false;
 	}
+	delete pResponseParser;
 	delete pParser;
+
+	if (properties.m_response == SearchPluginProperties::UNKNOWN_RESPONSE)
+	{
+#ifdef DEBUG
+		cerr << "PluginWebEngine::getDetails: bad response type for "
+			<< fileName << endl;
+#endif
+		return false;
+	}
 
 	name = properties.m_name;
 	channel = properties.m_channel;
@@ -194,7 +206,8 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 {
 	string queryString = queryProps.toString(false);
-	unsigned int currentFactor = 0, count = 0;
+	char countStr[64];
+	unsigned int currentIncrement = 0, count = 0;
 
 	m_resultsList.clear();
 
@@ -221,8 +234,11 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 	formattedQuery += userInputTag;
 	formattedQuery += "=";
 	formattedQuery += queryString;
-	formattedQuery += "&";
-	formattedQuery += m_properties.m_parametersRemainder;
+	if (m_properties.m_parametersRemainder.empty() == false)
+	{
+		formattedQuery += "&";
+		formattedQuery += m_properties.m_parametersRemainder;
+	}
 
 	setHostNameFilter(queryProps.getHostFilter());
 	setFileNameFilter(queryProps.getFileFilter());
@@ -233,30 +249,44 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 #endif
 	while (count < m_maxResultsCount)
 	{
-		string pageQuery = formattedQuery;
+		string pageQuery(formattedQuery);
 
-		if (m_properties.m_nextTag.empty() == false)
+		// How do we scroll ?
+		if (m_properties.m_scrolling == SearchPluginProperties::PER_INDEX)
 		{
-			char factorStr[64];
-
-			// Is the INPUTNEXT FACTOR set to zero ?
-			if (m_properties.m_nextFactor == 0)
+			paramIter = m_properties.m_parameters.find(SearchPluginProperties::COUNT_PARAM);
+			if (paramIter != m_properties.m_parameters.end())
 			{
-				// Assume INPUTNEXT allows to specify a number of results
-				// Not sure if this is how Sherlock/Mozilla interpret this
+				// Number of results requested
 				pageQuery += "&";
-				pageQuery += m_properties.m_nextTag;
+				pageQuery += paramIter->second;
 				pageQuery += "=";
-				snprintf(factorStr, 64, "%u", m_maxResultsCount);
-				pageQuery += factorStr;
+				snprintf(countStr, 64, "%u", m_maxResultsCount);
+				pageQuery += countStr;
 			}
-			else
+
+			paramIter = m_properties.m_parameters.find(SearchPluginProperties::START_INDEX_PARAM);
+			if (paramIter != m_properties.m_parameters.end())
 			{
+				// The offset of the first result (typically 1 or 0)
 				pageQuery += "&";
-				pageQuery += m_properties.m_nextTag;
+				pageQuery += paramIter->second;
 				pageQuery += "=";
-				snprintf(factorStr, 64, "%u", currentFactor + m_properties.m_nextBase);
-				pageQuery += factorStr;
+				snprintf(countStr, 64, "%u", count + m_properties.m_nextBase);
+				pageQuery += countStr;
+			}
+		}
+		else
+		{
+			paramIter = m_properties.m_parameters.find(SearchPluginProperties::START_PAGE_PARAM);
+			if (paramIter != m_properties.m_parameters.end())
+			{
+				// The offset of the page
+				pageQuery += "&";
+				pageQuery += paramIter->second;
+				pageQuery += "=";
+				snprintf(countStr, 64, "%u", currentIncrement + m_properties.m_nextBase);
+				pageQuery += countStr;
 			}
 		}
 
@@ -265,7 +295,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 			break;
 		}
 
-		if (m_properties.m_nextFactor == 0)
+		if (m_properties.m_nextIncrement == 0)
 		{
 			// That one page should have all the results...
 #ifdef DEBUG
@@ -275,7 +305,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 		}
 		else
 		{
-			if (m_resultsList.size() < count + m_properties.m_nextFactor)
+			if (m_resultsList.size() < count + m_properties.m_nextIncrement)
 			{
 				// We got less than the maximum number of results per page
 				// so there's no point in requesting the next page
@@ -286,7 +316,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 			}
 
 			// Increase factor
-			currentFactor += m_properties.m_nextFactor;
+			currentIncrement += m_properties.m_nextIncrement;
 		}
 		count = m_resultsList.size();
 	}

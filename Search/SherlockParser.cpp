@@ -263,7 +263,7 @@ SherlockResponseParser::~SherlockResponseParser()
 }
 
 bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> &resultsList,
-	unsigned int maxResultsCount) const
+	unsigned int &totalResults, unsigned int &firstResultIndex) const
 {
 	float pseudoScore = 100;
 	unsigned int contentLen = 0;
@@ -443,7 +443,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 			resultsList.push_back(Result(url, name, extract, "", pseudoScore));
 			--pseudoScore;
 			foundResult = true;
-			if (resultsList.size() == maxResultsCount)
+			if (resultsList.size() == totalResults)
 			{
 				// Enough results
 				break;
@@ -651,17 +651,31 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 				}
 			}
 
-			properties.m_nextTag = nextInput;
 			// Here we differ from how Mozilla uses these parameters
 			// Normally, either factor or value is used, but we use value
 			// as the parameter's initial value
 			if (nextFactor.empty() == false)
 			{
-				properties.m_nextFactor = (unsigned int)atoi(nextFactor.c_str());
+				properties.m_parameters[SearchPluginProperties::START_PAGE_PARAM] = nextInput;
+				properties.m_scrolling = SearchPluginProperties::PER_PAGE;
+				// What Sherlock calls a factor is actually an increment
+				properties.m_nextIncrement = (unsigned int)atoi(nextFactor.c_str());
+			}
+			else
+			{
+				// Assume INPUTNEXT allows to specify a number of results
+				// Not sure if this is how Sherlock/Mozilla interpret this
+				properties.m_parameters[SearchPluginProperties::COUNT_PARAM] = nextInput;
+				properties.m_scrolling = SearchPluginProperties::PER_INDEX;
+				properties.m_nextIncrement = 0;
 			}
 			if (nextValue.empty() == false)
 			{
 				properties.m_nextBase = (unsigned int)atoi(nextValue.c_str());
+			}
+			else
+			{
+				properties.m_nextBase = 0;
 			}
 		}
 	}

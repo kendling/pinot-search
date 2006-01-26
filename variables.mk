@@ -1,5 +1,5 @@
 CXX := @g++
-LINK := @libtool --mode=link g++
+LINK := @libtool --tag=CXX --mode=link g++ -fPIC
 AR := @ar
 WSDLC := @${GSOAP_HOME}/wsdl2h
 SOAPC := @${GSOAP_HOME}/soapcpp2 -I${GSOAP_HOME}
@@ -52,8 +52,8 @@ SE_LIBS += ${SOAPENV_LIB}
 endif
 
 # NEON
-NEON_CXXFLAGS = $(shell neon-config --cflags)
-NEON_LIBS = $(shell neon-config --libs)
+NEON_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags neon)
+NEON_LIBS = $(shell /usr/bin/pkg-config --libs neon)
 # OTS
 OTS_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags libots-1)
 OTS_LIBS = $(shell /usr/bin/pkg-config --libs libots-1)
@@ -69,7 +69,7 @@ XAPIAN_LIBS = $(shell xapian-config --libs)
 # SQLite
 SQLITE_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags sqlite3)
 SQLITE_LIBS = $(shell /usr/bin/pkg-config --libs sqlite3)
-# LibXML 2.0
+# LibXML++
 LIBXML_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags libxml++-2.6)
 LIBXML_LIBS = $(shell /usr/bin/pkg-config --libs libxml++-2.6)
 # Mozilla
@@ -85,7 +85,7 @@ MOZILLA_XPCOM_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags mozilla-xpcom)
 MOZILLA_XPCOM_LIBS = -Xlinker -rpath -Xlinker ${MOZILLA_LIB_DIR} $(shell /usr/bin/pkg-config --libs mozilla-xpcom)
 GTKMOZ_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags mozilla-gtkmozembed gtk+-2.0)
 GTKMOZ_LIBS = -Xlinker -rpath -Xlinker ${MOZILLA_LIB_DIR} $(shell /usr/bin/pkg-config --libs mozilla-gtkmozembed gtk+-2.0 mozilla-nss)
-# GTKmm 2.0
+# GTKmm
 GTKMM_CXXFLAGS = $(shell /usr/bin/pkg-config --cflags gtkmm-2.4)
 GTKMM_LIBS = $(shell /usr/bin/pkg-config --libs gtkmm-2.4)
 

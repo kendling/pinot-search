@@ -38,6 +38,8 @@ class SearchPluginProperties
 			 COUNT_PARAM,START_INDEX_PARAM, START_PAGE_PARAM, LANGUAGE_PARAM,
 			OUTPUT_ENCODING_PARAM, INPUT_ENCODING_PARAM } Parameter;
 
+		typedef enum { PER_PAGE = 0, PER_INDEX } Scrolling;
+
 		typedef enum { UNKNOWN_RESPONSE = 0, HTML_RESPONSE,
 			RSS_RESPONSE, ATOM_RESPONSE } Response;
 
@@ -55,9 +57,9 @@ class SearchPluginProperties
 		std::map<Parameter, std::string> m_parameters;
 		std::string m_parametersRemainder;
 		std::string m_outputType;
-		// Query, next page
-		std::string m_nextTag;
-		unsigned int m_nextFactor;
+		// Scrolling
+		Scrolling m_scrolling;
+		unsigned int m_nextIncrement;
 		unsigned int m_nextBase;
 		// Response
 		Response m_response;
