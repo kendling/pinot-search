@@ -1255,7 +1255,9 @@ void UpdateDocumentThread::do_update()
 }
 
 ListenerThread::ListenerThread(const string &fifoFileName) :
-	WorkerThread()
+	WorkerThread(),
+	m_ctrlReadPipe(-1),
+	m_ctrlWritePipe(-1)
 {
 	int pipeFds[2];
 
@@ -1336,12 +1338,15 @@ void ListenerThread::do_listening()
 		fd_set listenSet;
 		FD_ZERO(&listenSet);
 		FD_SET(fd, &listenSet);
-		FD_SET(m_ctrlReadPipe, &listenSet);
+		if (m_ctrlReadPipe >= 0)
+		{
+			FD_SET(m_ctrlReadPipe, &listenSet);
+		}
 
 		// Listen and wait for something to read
 		while (m_done == false)
 		{
-			int fdCount = select(fd + 1, &listenSet, NULL, NULL, NULL);
+			int fdCount = select(max(fd, m_ctrlReadPipe) + 1, &listenSet, NULL, NULL, NULL);
 			if ((fdCount < 0) &&
 				(errno != EINTR))
 			{
@@ -1397,7 +1402,9 @@ void ListenerThread::do_listening()
 }
 
 MonitorThread::MonitorThread(MonitorHandler *pHandler) :
-	WorkerThread()
+	WorkerThread(),
+	m_ctrlReadPipe(-1),
+	m_ctrlWritePipe(-1)
 {
 	int pipeFds[2];
 
@@ -1437,6 +1444,9 @@ bool MonitorThread::stop(void)
 	m_done = true;
 	write(m_ctrlWritePipe, "Stop", 4);
 	m_status = _("Stopped monitoring");
+#ifdef DEBUG
+	cout << "MonitorThread::do_monitoring: stop called" << endl;
+#endif
 
 	return true;
 }
@@ -1462,6 +1472,19 @@ void MonitorThread::do_monitoring()
 	// Wait for something to happen
 	while (m_done == false)
 	{
+		struct timeval selectTimeout;
+		fd_set listenSet;
+		int famFd = -1;
+
+		selectTimeout.tv_sec = 60;
+		selectTimeout.tv_usec = 0;
+
+		FD_ZERO(&listenSet);
+		if (m_ctrlReadPipe >= 0)
+		{
+			FD_SET(m_ctrlReadPipe, &listenSet);
+		}
+
 #ifdef DEBUG
 		cout << "MonitorThread::do_monitoring: checking locations" << endl;
 #endif
@@ -1522,21 +1545,16 @@ void MonitorThread::do_monitoring()
 				cout << "MonitorThread::do_monitoring: added " << fsLocation << ", " << famStatus << endl;
 #endif
 			}
+
+			famFd = FAMCONNECTION_GETFD(&famConn);
+			FD_SET(famFd, &listenSet);
 		}
 		setLocationsToMonitor = false;
 
-		int fd = FAMCONNECTION_GETFD(&famConn);
-
-		fd_set listenSet;
-		FD_ZERO(&listenSet);
-		FD_SET(fd, &listenSet);
-		FD_SET(m_ctrlReadPipe, &listenSet);
-
-		struct timeval selectTimeout;
-		selectTimeout.tv_sec = 60;
-		selectTimeout.tv_usec = 0;
-
-		int fdCount = select(fd + 1, &listenSet, NULL, NULL, &selectTimeout);
+#ifdef DEBUG
+		cout << "MonitorThread::do_monitoring: starting select()" << endl;
+#endif
+		int fdCount = select(max(famFd, m_ctrlReadPipe) + 1, &listenSet, NULL, NULL, &selectTimeout);
 		if ((fdCount < 0) &&
 			(errno != EINTR))
 		{
@@ -1545,7 +1563,8 @@ void MonitorThread::do_monitoring()
 #endif
 			break;
 		}
-		else if (FD_ISSET(fd, &listenSet))
+		else if ((famFd >= 0) &&
+			(FD_ISSET(famFd, &listenSet)))
 		{
 			// There might be more than one event waiting...
 			int pendingEvents = FAMPending(&famConn);

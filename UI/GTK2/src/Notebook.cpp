@@ -53,14 +53,23 @@ NotebookPageBox::PageType NotebookPageBox::getType(void) const
 }
 
 ResultsPage::ResultsPage(const ustring &queryName, ResultsTree *pTree,
-	PinotSettings &settings) :
+	int parentHeight, PinotSettings &settings) :
 	NotebookPageBox(queryName, NotebookPageBox::RESULTS_PAGE, settings),
+	m_pVPaned(NULL),
 	m_pTree(pTree)
 {
 	if (pTree != NULL)
 	{
-		pack_start(*pTree->getResultsScrolledWindow(), Gtk::PACK_EXPAND_WIDGET, 0);
-		pack_start(*pTree->getExtractScrolledWindow(), Gtk::PACK_SHRINK, 0);
+		m_pVPaned = manage(new VPaned());
+		m_pVPaned->set_flags(Gtk::CAN_FOCUS);
+		m_pVPaned->set_position(105);
+		m_pVPaned->pack1(*pTree->getResultsScrolledWindow(), Gtk::EXPAND|Gtk::SHRINK);
+		m_pVPaned->pack2(*pTree->getExtractScrolledWindow(), Gtk::SHRINK);
+		pack_start(*m_pVPaned, Gtk::PACK_EXPAND_WIDGET, 0);
+
+		// Give the extract 2/10th of the height
+		m_pVPaned->set_position((parentHeight * 8) / 10);
+		m_pVPaned->show();
 	}
 
 	show();

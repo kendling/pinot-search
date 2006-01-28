@@ -20,6 +20,7 @@
 #include <sigc++/signal.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/box.h>
+#include <gtkmm/paned.h>
 #include <gtkmm/label.h>
 #include <gtkmm/image.h>
 #if _USE_BUTTON_TAB
@@ -58,13 +59,14 @@ class ResultsPage : public NotebookPageBox
 {
 	public:
 		ResultsPage(const Glib::ustring &queryName, ResultsTree *pTree,
-			PinotSettings &settings);
+			int parentHeight, PinotSettings &settings);
 		virtual ~ResultsPage();
 
 		/// Returns the page's tree.
 		virtual ResultsTree *getTree(void) const;
 
 	protected:
+		Gtk::VPaned *m_pVPaned;
 		ResultsTree *m_pTree;
 
 };
