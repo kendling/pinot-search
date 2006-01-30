@@ -11,12 +11,13 @@
 
 <INPUT NAME="q" USER>
 <INPUT NAME="n" VALUE="search">
+<INPUT NAME="list" VALUE="1">
 <INPUTNEXT NAME="start" FACTOR="1" VALUE="0">
 
 <INTERPRET
 resultListStart=""
 resultListEnd=""
-resultItemStart='<div class=searchres>'
+resultItemStart='<div class="article">'
 resultItemEnd='</div> </div>'
 >
 
