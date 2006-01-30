@@ -507,9 +507,8 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 				}
 				else if (nodeName == "Tags")
 				{
-					// This is a space-delimited list, pick the first tag
-					string::size_type pos = nodeContent.find(" ");
-					properties.m_channel = nodeContent.substr(0, pos);
+					// This is supposed to be a space-delimited list, but use the whole thing as channel
+					properties.m_channel = nodeContent;
 				}
 				else if (nodeName == "LongName")
 				{

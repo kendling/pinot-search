@@ -5,7 +5,7 @@
   <ShortName>Koders</ShortName>
   <LongName>Koders Source Code Search</LongName>
   <Description>Search open source code on Koders.com. Supports languages such as java, c, c++, c#, php, perl, python, and many others.</Description>
-  <Tags>OpenSearch</Tags>
+  <Tags>Source Code</Tags>
   <Image>http://www.koders.com/images/koders_icon64x64.gif</Image>
   <SampleSearch>calculator</SampleSearch>
   <Developer>Koders Inc.</Developer>
