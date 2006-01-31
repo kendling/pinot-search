@@ -52,6 +52,7 @@ install-pinot:
 	install -m 644 textcat_conf.txt $(PREFIX)/usr/share/pinot/
 	@mkdir -p $(PREFIX)/usr/share/locale/fr/LC_MESSAGES/
 	install -m 644 mo/fr_FR.mo $(PREFIX)/usr/share/locale/fr/LC_MESSAGES/pinot.mo
+	@mkdir -p $(PREFIX)/usr/share/locale/es/LC_MESSAGES/
 	install -m 644 mo/es_ES.mo $(PREFIX)/usr/share/locale/es/LC_MESSAGES/pinot.mo
 	@mkdir -p $(PREFIX)/usr/share/icons/hicolor/48x48/apps/
 	install -m 644 UI/GTK2/pinot.png $(PREFIX)/usr/share/icons/hicolor/48x48/apps/
