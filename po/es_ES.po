@@ -103,7 +103,7 @@ msgstr "Seguir los enlaces"
 
 #: UI/GTK2/src/importDialog_glade.cc:83
 msgid "Apply label:"
-msgstr ""
+msgstr "Etiqueta aplicada:"
 
 #: UI/GTK2/src/importDialog_glade.cc:91 UI/GTK2/src/mainWindow_glade.cc:201
 msgid "Import"
@@ -567,11 +567,11 @@ msgstr "o se pudo cargar el bloque label"
 
 #: UI/GTK2/src/PinotSettings.cpp:335
 msgid "Couldn't load mailaccount block"
-msgstr "o se pudo cargar el bloque mailaccount"
+msgstr "No se pudo cargar el bloque mailaccount"
 
 #: UI/GTK2/src/PinotSettings.cpp:343
 msgid "Couldn't parse configuration file"
-msgstr ""
+msgstr "No se pudo procesar el fichero de configuración"
 
 #: UI/GTK2/src/PinotSettings.cpp:732
 msgid "Unclassified"

@@ -165,9 +165,21 @@ int main(int argc, char **argv)
 
 	atexit(closeAll);
 
-	// Create and open the main dialog box
-	mainWindow mainBox;
-	m.run(mainBox);
+	try
+	{
+		// Create and open the main dialog box
+		mainWindow mainBox;
+		m.run(mainBox);
+	}
+	catch (const Glib::Exception &e)
+	{
+		cerr << e.what() << endl;
+		return EXIT_FAILURE;
+	}
+	catch (...)
+	{
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }
