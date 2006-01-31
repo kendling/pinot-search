@@ -186,11 +186,11 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 							}
 						}
 #ifdef DEBUG
-						else cout << "TokenizerFactory::loadTokenizers: couldn't find export getTokenizerType" << endl;
+						else cout << "TokenizerFactory::loadTokenizers: " << dlerror() << endl;
 #endif
 					}
 #ifdef DEBUG
-					else cout << "TokenizerFactory::loadTokenizers: couldn't open " << fileName << endl;
+					else cout << "TokenizerFactory::loadTokenizers: " << dlerror() << endl;
 #endif
 				}
 #ifdef DEBUG
