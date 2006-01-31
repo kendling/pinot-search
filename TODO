@@ -22,9 +22,11 @@ Search
 - Add http://beta.exalead.com/search
 - Add csourcesearch.net
 - Add http://www.patentcommons.org/commons/patentsearch.php
+- Add http://www.podzinger.com/
 - Apply Pinot specific filters (eg "L" for language) on internal indices only
 - Assuming text is tokenized a la omindex, use Xapian's QueryParser, map fields
   (label, language, title) to prefixes, etc...
+- Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -36,6 +38,7 @@ Collect
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
 - Use poppler for the PDF tokenizer
 - Write a basic XML tokenizer that skips tags
+- WordPerfect tokenizer with libwpd
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
@@ -79,13 +82,12 @@ UI
 - Switching back and forth between grouping modes messes up results rankings : check scores
 - When sorting results by host name, give better score to results that appear several times
 - Results and index trees should be sorted when clicking on columns
-- Make sure all operations (eg search engines) and threads can be stopped cleanly
 - Show which threads are running, what they are doing, and allow to stop them selectively
 - Add an history window to edit Index and ViewHistory
 - Automatic indexing of a query's results depending on type, source, size, language
 - Non modal status window to display log of operations
 - Display search engines icons (Gtk::IconSource::set_filename() and Gtk::Style::render_icon())
-- Only show documents that have the selected label
+- Only show documents that have the selected label, merge LabelQueryThread into IndexBrowser
 - Replace Combobox objects with ComboboxText's (glademm support required)
 - Replace glademm with libglademm ?
 - Show extract instead of URL in index list
@@ -99,4 +101,5 @@ UI
 - Prefer ustring to string whenever possible
 - Closing when threads are running gives the impression Pinot has crashed; how do we tell the user
   we are waiting for something to finish ?
+- Try sizing the window optimally on the first startup
 

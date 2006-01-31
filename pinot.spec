@@ -3,7 +3,7 @@
 
 Summary: Metasearch tool
 Name: pinot
-Version: 0.40
+Version: 0.42
 Release: 1
 License: GPL
 Group: Applications/Internet 
@@ -22,7 +22,7 @@ BuildRequires: libxml++-devel >= 2.6
 %endif
 
 %description
-Pinot is a metasearch tool for the Free Desktop.  It enables one to query
+Pinot is a metasearch tool for the Free Desktop. It enables one to query
 sources, display as well as analyze and locally index the returned results.
 It may also be used as a lightweight personal space search tool.
 
@@ -63,7 +63,7 @@ mv $RPM_BUILD_ROOT/%{_datadir}/pinot/engines/AmazonAPI.src $RPM_BUILD_ROOT/%{_da
 # Desktop file
 cat >%{name}.desktop << EOF
 [Desktop Entry]
-Name=Pinot Metasearch tool
+Name=Pinot Metasearch Tool
 Comment=Search the Web and your documents
 Exec=%{_bindir}/pinot
 StartupNotify=true
@@ -102,7 +102,6 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %config(noreplace) %{_datadir}/pinot/engines/BitTorrent.src
 %config(noreplace) %{_datadir}/pinot/engines/Clusty.src
 %config(noreplace) %{_datadir}/pinot/engines/Freshmeat.src
-%config(noreplace) %{_datadir}/pinot/engines/Koders.src
 %config(noreplace) %{_datadir}/pinot/engines/Google.src
 %config(noreplace) %{_datadir}/pinot/engines/Lycos.src
 %config(noreplace) %{_datadir}/pinot/engines/MSN.src
@@ -112,7 +111,10 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %config(noreplace) %{_datadir}/pinot/engines/Yahoo.src
 %config(noreplace) %{_datadir}/pinot/engines/YahooAPI.src
 %config(noreplace) %{_datadir}/pinot/engines/Wikipedia.src
+%config(noreplace) %{_datadir}/pinot/engines/KodersDescription.xml
+%config(noreplace) %{_datadir}/pinot/engines/MozDexDescription.xml
 %{_datadir}/locale/fr/LC_MESSAGES/pinot.mo
+%{_datadir}/locale/es/LC_MESSAGES/pinot.mo
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
 %{_datadir}/applications/Amra-%{name}.desktop
 
@@ -124,6 +126,6 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files omega
 %defattr(-, root, root, -)
-%config(noreplace) %{_datadir}/pinot/engines/Omega.src
+%config(noreplace) %{_datadir}/pinot/engines/OmegaDescription.xml
 
 %changelog

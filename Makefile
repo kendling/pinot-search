@@ -28,6 +28,7 @@ pinot_mo :
 	@mkdir -p mo
 	@msgfmt -o mo/en_GB.mo po/en_GB.po
 	@msgfmt -o mo/fr_FR.mo po/fr_FR.po
+	@msgfmt -o mo/es_ES.mo po/es_ES.po
 
 %_clean :
 	@make -C $(patsubst %_clean, %, $@) clean
@@ -51,6 +52,7 @@ install-pinot:
 	install -m 644 textcat_conf.txt $(PREFIX)/usr/share/pinot/
 	@mkdir -p $(PREFIX)/usr/share/locale/fr/LC_MESSAGES/
 	install -m 644 mo/fr_FR.mo $(PREFIX)/usr/share/locale/fr/LC_MESSAGES/pinot.mo
+	install -m 644 mo/es_ES.mo $(PREFIX)/usr/share/locale/es/LC_MESSAGES/pinot.mo
 	@mkdir -p $(PREFIX)/usr/share/icons/hicolor/48x48/apps/
 	install -m 644 UI/GTK2/pinot.png $(PREFIX)/usr/share/icons/hicolor/48x48/apps/
 

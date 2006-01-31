@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.40\n"
+"Project-Id-Version: pinot 0.42\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2006-01-26 10:20+0800\n"
 "PO-Revision-Date: 2006-01-30 16:44+0800\n"

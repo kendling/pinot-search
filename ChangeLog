@@ -1,3 +1,15 @@
+2006/01/31 version_0_4_2
+Search :
+ - support for OpenSearch Description, Query and Response
+ - replaced Koders and Omega Sherlock plugins with their OpenSearch equivalent
+ - added MozDex
+Index :
+ - queries on an index that cannot be locked no longer loop
+UI :
+ - when no email boxes were being monitored, Pinot wouldn't exit right away
+ - results extract field can be resized
+ - Spanish translation by Jesús Tramullas (jesus at tramullas dot com)
+
 2006/01/20 version_0_4_0
 UI and SQLite :
  - dropped ActionHistory
