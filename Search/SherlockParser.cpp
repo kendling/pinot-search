@@ -158,7 +158,7 @@ struct plugin_grammar : public grammar<plugin_grammar>
 		definition(plugin_grammar const &self)
 		{
 			// Start
-			search_plugin = search_header >> input_elements >> search_footer;
+			search_plugin = search_header >> input_elements >> search_footer >> rest;
 
 			// All items have a name and an optionally-quoted value, separated by =
 			end_of_name = ch_p('=');
@@ -227,10 +227,13 @@ struct plugin_grammar : public grammar<plugin_grammar>
 
 			// SEARCH has a closing tag
 			search_footer =  ch_p('<') >> ch_p('/') >> as_lower_d[str_p("search")] >> ch_p('>');
+
+			// Rest
+			rest = *anychar_p;
 		}
 
 		string unquotedValue, itemName, itemValue;		
-		rule<ScannerT> search_plugin, search_header, search_footer;
+		rule<ScannerT> search_plugin, search_header, search_footer, rest;
 		rule<ScannerT> end_of_name, any_name, any_value_without_quotes, any_value, search_item;
 		rule<ScannerT> input_elements, input_element, inputprev_element, inputnext_element, interpret_element;
 		rule<ScannerT> input_item_name, input_item_value, input_item_user, input_item_factor;
@@ -516,11 +519,13 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 	// We are done with the document
 	delete pPluginDoc;
 
-	SherlockResponseParser *pResponseParser = new SherlockResponseParser();
+	SherlockResponseParser *pResponseParser = NULL;
 
 	if (parseInfo.full == true)
 	{
 		map<string, string> lowSearchParams, lowInterpretParams, lowInputItems;
+
+		pResponseParser = new SherlockResponseParser();
 
 		LowerAndCopy lowCopy1(lowSearchParams);
 		for_each(searchParams.begin(), searchParams.end(), lowCopy1);
@@ -539,6 +544,13 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 		if (mapIter != lowSearchParams.end())
 		{
 			properties.m_name = mapIter->second;
+		}
+
+		// Description
+		mapIter = lowSearchParams.find("description");
+		if (mapIter != lowSearchParams.end())
+		{
+			properties.m_description = mapIter->second;
 		}
 
 		// Channel
@@ -679,9 +691,6 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 			}
 		}
 	}
-#ifdef DEBUG
-	else cout << "SherlockParser::parse: syntax error near " << parseInfo.stop << endl;
-#endif
 
 	return pResponseParser;
 }

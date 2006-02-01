@@ -64,7 +64,8 @@ int main(int argc, char **argv)
 		{
 			delete pResponseParser;
 
-			cout << "Plugin " << properties.m_name << ": " << properties.m_description << endl;
+			cout << "Plugin: " << properties.m_name << endl;
+			cout << "Description: " << properties.m_description << endl;
 			cout << "Channel: " << properties.m_channel << endl;
 			cout << "URL: " << properties.m_baseUrl << endl;
 			cout << "Input parameters are:" << endl;
