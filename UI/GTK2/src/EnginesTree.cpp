@@ -317,6 +317,8 @@ void EnginesTree::populate(bool indexesOnly)
 		row[m_enginesColumns.m_type] = indexType;
 	}
 
+	get_selection()->select(localIter);
+
 	expand_all();
 }
 
