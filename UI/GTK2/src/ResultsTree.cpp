@@ -347,7 +347,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			}
 
 			RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
-			refBuffer->set_text(extract);
+			refBuffer->set_text(to_utf8(extract));
 			// The extract is not editable
 			m_extractTextview->set_editable(false);
 			m_extractTextview->set_cursor_visible(false);

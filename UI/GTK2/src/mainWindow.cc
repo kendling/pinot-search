@@ -280,7 +280,7 @@ void mainWindow::populate_queryTreeview()
 		{
 			lastRun = _("N/A");
 		}
-		row[m_queryColumns.m_lastRun] = lastRun;
+		row[m_queryColumns.m_lastRun] = to_utf8(lastRun);
 		string summary = queryIter->second.toString();
 		if (summary.empty() == false)
 		{
@@ -2279,7 +2279,7 @@ void mainWindow::on_findButton_clicked()
 {
 	QueryProperties queryProps;
 
-	queryProps.setName("Live query");
+	queryProps.setName(_("Live query"));
 	// FIXME: parse the query string !
 	queryProps.setAnyWords(from_utf8(liveQueryEntry->get_text()));
 
@@ -2362,7 +2362,7 @@ void mainWindow::on_findQueryButton_clicked()
 		run_search(queryProps);
 
 		// Update the Last Run column
-		queryRow[m_queryColumns.m_lastRun] = TimeConverter::toTimestamp(time(NULL));
+		queryRow[m_queryColumns.m_lastRun] = to_utf8(TimeConverter::toTimestamp(time(NULL)));
 	}
 }
 
