@@ -163,11 +163,14 @@ void XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &doc,
 	Xapian::termcount &termPos, const std::string &summary) const
 {
+	string title(info.getTitle());
+	string location(info.getLocation());
+	Url urlObj(location);
+
 	// Add a magic term :-)
 	doc.add_term(MAGIC_TERM);
 
 	// Index the title with and without prefix T
-	string title = info.getTitle();
 	if (title.empty() == false)
 	{
 		Document titleDoc;
@@ -178,17 +181,28 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 		addTermsToDocument(titleTokens, doc, "", termPos, m_stemMode);
 	}
 
-	string location = info.getLocation();
-	Url urlObj(location);
-
 	// Index the full URL with prefix U
 	doc.add_term(limitTermLength(string("U") + location, true));
-	// ...the host name with prefix H
-	string hostName = urlObj.getHost();
-	doc.add_term(limitTermLength(string("H") + StringManip::toLowerCase(hostName), true));
+	// ...the host name and included domains with prefix H
+	string hostName(StringManip::toLowerCase(urlObj.getHost()));
+	if (hostName.empty() == false)
+	{
+		doc.add_term(limitTermLength(string("H") + hostName, true));
+		string::size_type dotPos = hostName.find('.');
+		while (dotPos != string::npos)
+		{
+			doc.add_term(limitTermLength(string("H") + hostName.substr(dotPos + 1), true));
+
+			// Next
+			dotPos = hostName.find('.', dotPos + 1);
+		}
+	}
 	// ...and the file name with prefix F
-	string fileName = urlObj.getFile();
-	doc.add_term(limitTermLength(string("F") + StringManip::toLowerCase(fileName), true));
+	string fileName(urlObj.getFile());
+	if (fileName.empty() == false)
+	{
+		doc.add_term(limitTermLength(string("F") + StringManip::toLowerCase(fileName), true));
+	}
 	// Finally, add the language with prefix L
 	doc.add_term(string("L") + StringManip::toLowerCase(m_stemLanguage));
 
