@@ -118,10 +118,6 @@ mainWindow::mainWindow() :
 		mainHpaned->set_position(m_settings.m_panePos);
 	}
 
-	// Set an icon for this and other windows
-	set_icon_from_file("/usr/share/icons/hicolor/48x48/apps/pinot.png");
-	set_default_icon_from_file("/usr/share/icons/hicolor/48x48/apps/pinot.png");
-
 	// Position the engine tree
 	m_pEnginesTree = manage(new EnginesTree(enginesVbox, m_settings));
 	// Connect to the "changed" signal
@@ -2291,7 +2287,7 @@ void mainWindow::on_findButton_clicked()
 //
 void mainWindow::on_addQueryButton_clicked()
 {
-	QueryProperties queryProps = QueryProperties("", "", "", "", "");
+	QueryProperties queryProps = QueryProperties("", "", "", from_utf8(liveQueryEntry->get_text()), "");
 
 	edit_query(queryProps, true);
 }
@@ -2880,7 +2876,8 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 			// This is a new document
 			start_thread(new IndexingThread(docInfo, labelName));
 		}
-		else
+		// Complain about already indexed files only if we aren't going to set a label on them
+		else if (labelName.empty() == true)
 		{
 			ustring status = url;
 			status += " ";
@@ -2993,7 +2990,10 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 				{
 					//viewstop1->set_sensitive(true);
 				}
-				set_status(to_utf8(m_pHtmlView->getLocation()));
+				ustring status = _("Viewing");
+				status += " ";
+				status += to_utf8(m_pHtmlView->getLocation());
+				set_status(status);
 			}
 		}
 	}
@@ -3019,6 +3019,9 @@ bool mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 		delete pNewThread;
 		return false;
 	}
+#ifdef DEBUG
+	cout << "mainWindow::start_thread: started thread " << pNewThread->getId() << endl;
+#endif
 
 	if (inBackground == false)
 	{

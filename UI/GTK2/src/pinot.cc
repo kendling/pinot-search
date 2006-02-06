@@ -168,6 +168,9 @@ int main(int argc, char **argv)
 
 	try
 	{
+		// Set an icon for all windows
+		Gtk::Window::set_default_icon_from_file("/usr/share/icons/hicolor/48x48/apps/pinot.png");
+
 		// Create and open the main dialog box
 		mainWindow mainBox;
 		m.run(mainBox);
