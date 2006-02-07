@@ -64,6 +64,22 @@ SearchEngineInterface *SearchEngineFactory::getSearchEngine(const string &type, 
 	return myEngine;
 }
 
+void SearchEngineFactory::getSupportedEngines(set<string> &engines)
+{
+	engines.clear();
+
+	// List supported engines
+	engines.insert("sherlock");
+	engines.insert("opensearch");
+	engines.insert("xapian");
+#ifdef HAS_GOOGLEAPI
+	engines.insert("googleapi");
+#endif
+#ifdef HAS_OSAPI
+	engines.insert("objectssearchapi");
+#endif
+}
+
 /// Indicates whether a search engine is supported or not.
 bool SearchEngineFactory::isSupported(const string &type)
 {

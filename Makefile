@@ -41,6 +41,7 @@ install: ${INSTALL_TARGETS}
 install-pinot:
 	@mkdir -p $(PREFIX)/usr/bin/
 	install -m 755 ${BIN_DIR}/pinot $(PREFIX)/usr/bin/pinot
+	install -m 755 ${BIN_DIR}/senginetest $(PREFIX)/usr/bin/pinot_search
 	@mkdir -p $(PREFIX)/usr/share/pinot/engines/
 	@mkdir -p $(PREFIX)/usr/share/pinot/tokenizers/
 	install -m 644 index.html $(PREFIX)/usr/share/pinot/

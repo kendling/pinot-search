@@ -21,96 +21,32 @@
 #include <fstream>
 
 #include "SearchEngineFactory.h"
-#ifdef HAS_GOOGLEAPI
-#include "GoogleAPIEngine.h"
-#endif
 #include "DownloaderFactory.h"
 #include "Url.h"
 #include "HtmlTokenizer.h"
 
 using namespace std;
 
-static void fetchCachedPage(const string &url, const string &file, const string &key)
-{
-#ifdef DEBUG
-	cout << "fetchCachedPage: attempting to save " << url << " to " << file << endl;
-#endif
-
-#ifdef HAS_GOOGLEAPI
-	Url thisUrl(url);
-	GoogleAPIEngine googleApiEngine;
-	googleApiEngine.setKey(key);
-
-	Document *urlDoc = googleApiEngine.retrieveCachedUrl(url);
-	if (urlDoc != NULL)
-	{
-		unsigned int urlContentLen;
-		ofstream outputFile;
-		outputFile.open(file.c_str(), ofstream::out | ofstream::trunc);
-		outputFile << urlDoc->getData(urlContentLen);
-		outputFile.close();
-
-		delete urlDoc;
-	}
-	else
-	{
-		cerr << "fetchCachedPage: couldn't get " << url << " !" << endl;
-	}
-#endif
-}
-
-static void fetchPage(const string &url, const string &file)
-{
-#ifdef DEBUG
-	cout << "fetchPage: attempting to save " << url << " to " << file << endl;
-#endif
-
-	// Any type of downloader will do...
-	Url thisUrl(url);
-	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol(), "");
-	if (myDownloader == NULL)
-	{
-		cerr << "fetchPage: couldn't obtain downloader instance (" << thisUrl.getProtocol() << ")" << endl;
-		return;
-	}
-
-	DocumentInfo docInfo("Page", url, "", "");
-	Document *urlDoc = myDownloader->retrieveUrl(docInfo);
-	if (urlDoc != NULL)
-	{
-		unsigned int urlContentLen;
-		ofstream outputFile;
-		outputFile.open(file.c_str(), ofstream::out | ofstream::trunc);
-		outputFile << urlDoc->getData(urlContentLen);
-		outputFile.close();
-
-		delete urlDoc;
-	}
-	else
-	{
-		cerr << "fetchPage: couldn't get " << url << " !" << endl;
-	}
-
-	delete myDownloader;
-}
-
 int main(int argc, char **argv)
 {
 	string type, option;
-	bool bDownloadResults = false;
 
 	if (argc < 5)
 	{
-		cerr << "Usage: " << argv[0] << " <search engine name> <option> <search string> <max results> [DOWNLOAD]" << endl;
-		return EXIT_FAILURE;
-	}
-	if (argc > 5)
-	{
-		string flag = argv[5];
-		if (flag == "DOWNLOAD")
+		set<string> engines;
+
+		cerr << "Usage: " << argv[0] << " <search engine type> <name>|<key> <query string> <max results count>" << endl;
+		cerr << "Example: " << argv[0] << " sherlock /usr/share/pinot/engines/Bozo.src \"clowns\" 10" << endl;
+
+		SearchEngineFactory::getSupportedEngines(engines);
+		cerr << "Supported search engine types:";
+		for (set<string>::iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
 		{
-			bDownloadResults = true;
+			cerr << " " << *engineIter;
 		}
+		cerr << endl;
+
+		return EXIT_FAILURE;
 	}
 
 	// Which SearchEngine ?
@@ -154,28 +90,6 @@ int main(int argc, char **argv)
 				cout << count << " Title    : " << HtmlTokenizer::stripTags((*resultIter).getTitle()) << endl;
 				cout << count << " Extract  : " << HtmlTokenizer::stripTags((*resultIter).getExtract()) << endl;
 				cout << count << " Score    : " << (*resultIter).getScore() << endl;
-
-				if (bDownloadResults == true)
-				{
-					// Set the name of the file to which this page will be saved
-					char num[16];
-					sprintf(num, "%d", count);
-					string url = (*resultIter).getLocation();
-					string file = num;
-					file += "_";
-					file += thisUrl.getHost();
-					file += ".html";
-
-					if (type == "googleapi")
-					{
-						// Fetch the page from the Google cache
-						fetchCachedPage(url, file, option);
-					}
-					else
-					{
-						fetchPage(url, file);
-					}
-				}
 				count++;
 
 				// Next

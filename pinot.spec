@@ -77,6 +77,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %defattr(-, root, root, -)
 %doc ChangeLog COPYING README TODO
 %{_bindir}/pinot
+%{_bindir}/pinot_search
 %{_datadir}/pinot/index.html
 %{_datadir}/pinot/xapian-powered.png
 %{_datadir}/pinot/metase-gtk2.glade
