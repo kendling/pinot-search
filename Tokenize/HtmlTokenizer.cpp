@@ -15,6 +15,7 @@
  */
 
 #include <string.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <regex.h>
 #include <stack>
@@ -150,9 +151,7 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 			int nLinksMatches = 3, nMetaMatches = 3;
 
 			// Found a tag from startPos to pos
-			string tag = str.substr(startPos, pos - startPos);
-			// Lower case the whole thing
-			tag = StringManip::toLowerCase(tag);
+			string tag(str.substr(startPos, pos - startPos));
 			// Push it onto the stack
 			tagsStack.push(tag);
 #ifdef DEBUG_TOKENIZER
@@ -214,7 +213,7 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 			}
 			// Maybe it's the anchor's end ?
 			else if ((extractLinks == true) &&
-				(tag == "/a"))
+				(strncasecmp(tag.c_str(), "/a", 2) == 0))
 			{
 				if (getLinkName == true)
 				{
@@ -248,16 +247,16 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 				{
 					string parentTag = tagsStack.top();
 
-					if ((tag.substr(0, 6) == "script") ||
-						(tag.substr(0, 5) == "style"))
+					if ((strncasecmp(tag.c_str(), "script", 6) == 0) ||
+						(strncasecmp(tag.c_str(), "style", 5) == 0))
 					{
 #ifdef DEBUG_TOKENIZER
 						cout << "HtmlTokenizer::parseHTML: skip script" << endl;
 #endif
 						catText = false;
 					}
-					else if (((tag.substr(0, 7) == "/script") ||
-						(tag.substr(0, 6) == "/style")) &&
+					else if (((strncasecmp(tag.c_str(), "/script", 7) == 0) ||
+						(strncasecmp(tag.c_str(), "/style", 6) == 0)) &&
 						(textBlockStart(parentTag) == false))
 					{
 #ifdef DEBUG_TOKENIZER
@@ -294,8 +293,8 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 /// Returns true if the tag corresponds to a text block.
 bool HtmlTokenizer::textBlockStart(const string &tag)
 {
-	if ((tag.substr(0, 4) == "body") ||
-		(tag.substr(0, 5) == "title"))
+	if ((strncasecmp(tag.c_str(), "body", 4) == 0) ||
+		(strncasecmp(tag.c_str(), "title", 5) == 0))
 	{
 		return true;
 	}
@@ -306,8 +305,8 @@ bool HtmlTokenizer::textBlockStart(const string &tag)
 /// Returns true if the tag corresponds to the end of a text block.
 bool HtmlTokenizer::textBlockEnd(const string &tag)
 {
-	if ((tag.substr(0, 5) == "/body") ||
-		(tag.substr(0, 6) == "/title"))
+	if ((strncasecmp(tag.c_str(), "/body", 5) == 0) ||
+		(strncasecmp(tag.c_str(), "/title", 6) == 0))
 	{
 		return true;
 	}
