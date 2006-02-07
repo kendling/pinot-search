@@ -17,6 +17,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include "Languages.h"
 #include "QueryProperties.h"
 
 QueryProperties::QueryProperties()
@@ -298,7 +299,7 @@ string QueryProperties::toString(bool forPresentation) const
 		if (m_language.empty() == false)
 		{
 			queryString += " +L";
-			queryString += m_language;
+			queryString += Languages::toCode(Languages::toEnglish(m_language));
 		}
 		if (m_hostFilter.empty() == false)
 		{
@@ -307,12 +308,12 @@ string QueryProperties::toString(bool forPresentation) const
 		}
 		if (m_fileFilter.empty() == false)
 		{
-			queryString += " +F";
+			queryString += " +P";
 			queryString += m_fileFilter;
 		}
 		if (m_labelFilter.empty() == false)
 		{
-			queryString += " +C";
+			queryString += " +XLABEL:";
 			queryString += m_labelFilter;
 		}
 	}

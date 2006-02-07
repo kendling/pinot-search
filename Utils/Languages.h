@@ -37,11 +37,14 @@ class Languages
 		/// Returns a language name, in the current locale.
 		static std::string toLocale(const std::string &language);
 
+		/// Returns a language code.
+		static std::string toCode(const std::string &language);
+
 		static unsigned int m_count;
-		static char *m_codes[];
 		static char *m_names[];
 
 	protected:
+		static char *m_codes[];
 		static std::map<unsigned int, std::string> m_intlNames;
 
 		Languages();

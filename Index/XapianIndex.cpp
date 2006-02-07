@@ -20,11 +20,13 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <strings.h>
 #include <time.h>
 #include <regex.h>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <utility>
 
 #include "Languages.h"
 #include "StringManip.h"
@@ -37,6 +39,7 @@
 
 using std::string;
 using std::set;
+using std::min;
 
 // This puts a limit to terms length.
 const unsigned int XapianIndex::m_maxTermLength = 128;
@@ -170,13 +173,13 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 	// Add a magic term :-)
 	doc.add_term(MAGIC_TERM);
 
-	// Index the title with and without prefix T
+	// Index the title with and without prefix S
 	if (title.empty() == false)
 	{
 		Document titleDoc;
 		titleDoc.setData(title.c_str(), title.length());
 		Tokenizer titleTokens(&titleDoc);
-		addTermsToDocument(titleTokens, doc, "T", termPos, STORE_UNSTEM);
+		addTermsToDocument(titleTokens, doc, "S", termPos, STORE_UNSTEM);
 		titleTokens.rewind();
 		addTermsToDocument(titleTokens, doc, "", termPos, m_stemMode);
 	}
@@ -197,14 +200,14 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 			dotPos = hostName.find('.', dotPos + 1);
 		}
 	}
-	// ...and the file name with prefix F
+	// ...and the file name with prefix P
 	string fileName(urlObj.getFile());
 	if (fileName.empty() == false)
 	{
-		doc.add_term(limitTermLength(string("F") + StringManip::toLowerCase(fileName), true));
+		doc.add_term(limitTermLength(string("P") + StringManip::toLowerCase(fileName), true));
 	}
-	// Finally, add the language with prefix L
-	doc.add_term(string("L") + StringManip::toLowerCase(m_stemLanguage));
+	// Finally, add the language code with prefix L
+	doc.add_term(string("L") + Languages::toCode(m_stemLanguage));
 
 	setDocumentData(doc, info, summary, m_stemLanguage);
 
@@ -393,7 +396,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 			++labelIter)
 		{
-			doc.add_term(limitTermLength(string("C") + *labelIter));
+			doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
 		}
 		if (prepareDocument(docInfo, doc, termPos, summary) == true)
 		{
@@ -492,7 +495,7 @@ bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
-			string term("C");
+			string term("XLABEL:");
 
 			// Get documents that have this label
 			// FIXME: would it be faster to get the document's terms ?
@@ -541,16 +544,20 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 		Xapian::Database *pIndex = pDatabase->readLock();
 		if (pIndex != NULL)
 		{
-			for (Xapian::TermIterator termIter = pIndex->termlist_begin(docId);
-				termIter != pIndex->termlist_end(docId); ++termIter)
+			Xapian::TermIterator termIter = pIndex->termlist_begin(docId);
+			if (termIter != pIndex->termlist_end(docId))
 			{
-				// Is this a label ?
-				if ((*termIter)[0] == 'C')
+				for (termIter.skip_to("XLABEL:");
+					termIter != pIndex->termlist_end(docId); ++termIter)
 				{
-					labels.insert((*termIter).substr(1));
+					// Is this a label ?
+					if (strncasecmp((*termIter).c_str(), "XLABEL:", min(7, (int)(*termIter).length())) == 0)
+					{
+						labels.insert((*termIter).substr(7));
+					}
 				}
+				gotLabels = true;
 			}
-			gotLabels = true;
 		}
 	}
 	catch (const Xapian::Error &error)
@@ -584,7 +591,7 @@ bool XapianIndex::getDocumentsWithLabel(const string &name, set<unsigned int> &d
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
-			string term("C");
+			string term("XLABEL:");
 
 			// Get documents that have this label
 			term += name;
@@ -659,7 +666,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 				++labelIter)
 			{
-				doc.add_term(limitTermLength(string("C") + *labelIter));
+				doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
 			}
 		}
 		if (prepareDocument(docInfo, doc, termPos, summary) == true)
@@ -758,13 +765,17 @@ bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &label
 			// Reset existing labels ?
 			if (resetLabels == true)
 			{
-				for (Xapian::TermIterator termIter = doc.termlist_begin();
-					termIter != doc.termlist_end(); ++termIter)
+				Xapian::TermIterator termIter = pIndex->termlist_begin(docId);
+				if (termIter != pIndex->termlist_end(docId))
 				{
-					// Is this a label ?
-					if ((*termIter)[0] == 'C')
+					for (termIter.skip_to("XLABEL:");
+						termIter != pIndex->termlist_end(docId); ++termIter)
 					{
-						doc.remove_term(*termIter);
+						// Is this a label ?
+						if (strncasecmp((*termIter).c_str(), "XLABEL:", min(7, (int)(*termIter).length())) == 0)
+						{
+							doc.remove_term(*termIter);
+						}
 					}
 				}
 			}
@@ -773,7 +784,7 @@ bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &label
 			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 				++labelIter)
 			{
-				doc.add_term(limitTermLength(string("C") + *labelIter));
+				doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
 			}
 
 			pIndex->replace_document(docId, doc);
@@ -901,7 +912,7 @@ bool XapianIndex::unindexDocuments(const string &labelName)
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
-			string term("C");
+			string term("XLABEL:");
 
 			// Delete documents from the index
 			term += labelName;
@@ -996,7 +1007,7 @@ bool XapianIndex::renameLabel(const string &name, const string &newName)
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
-			string term("C");
+			string term("XLABEL:");
 
 			// Get documents that have this label
 			term += name;
@@ -1010,7 +1021,7 @@ bool XapianIndex::renameLabel(const string &name, const string &newName)
 				// Remove the term
 				doc.remove_term(term);
 				// ...add the new one
-				doc.add_term(limitTermLength(string("C") + newName));
+				doc.add_term(limitTermLength(string("XLABEL:") + newName));
 				// ...and update the document
 				pIndex->replace_document(docId, doc);
 			}
@@ -1048,7 +1059,7 @@ bool XapianIndex::deleteLabel(const string &name)
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
-			string term("C");
+			string term("XLABEL:");
 
 			// Get documents that have this label
 			term += name;

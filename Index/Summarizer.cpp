@@ -42,15 +42,7 @@ Summarizer::Summarizer(const std::string &language, unsigned int wordsCount) :
 	m_dictionaryCode("en")
 {
 	// Look up the language code
-	for (unsigned int langNum = 0; langNum < Languages::m_count; ++langNum)
-	{
-		if (strncasecmp(language.c_str(), Languages::m_names[langNum],
-			min(language.length(), strlen(Languages::m_names[langNum]))) == 0)
-		{
-			m_dictionaryCode = Languages::m_codes[langNum];
-			break;
-		}
-	}
+	m_dictionaryCode = Languages::toCode(language);
 }
 
 Summarizer::~Summarizer()

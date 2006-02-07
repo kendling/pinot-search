@@ -287,7 +287,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 	{
 		vector<string> fileTerms;
 
-		term = "F";
+		term = "P";
 		term += StringManip::toLowerCase(queryProps.getFileFilter());
 		fileTerms.push_back(term);
 		if (followOperators == true)
@@ -302,7 +302,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 	{
 		vector<string> labelTerms;
 
-		term = "C";
+		term = "XLABEL:";
 		term += queryProps.getLabelFilter();
 		labelTerms.push_back(term);
 		if (followOperators == true)
@@ -319,7 +319,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		vector<string> languageTerms;
 
 		term = "L";
-		term += StringManip::toLowerCase(Languages::toEnglish(language));
+		term += Languages::toCode(Languages::toEnglish(language));
 #ifdef DEBUG
 		cout << "XapianEngine::stackQuery: filter "  << term << endl;
 #endif

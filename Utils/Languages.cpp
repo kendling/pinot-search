@@ -13,7 +13,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-
+ 
 #include <string.h>
 #include <utility>
 
@@ -92,6 +92,25 @@ string Languages::toLocale(const string &language)
 			{
 				// That's the one !
 				return Languages::getIntlName(langNum);
+			}
+		}
+	}
+
+	return language;
+}
+
+string Languages::toCode(const string &language)
+{
+	if (language.empty() == false)
+	{
+		// Get the language code
+		for (unsigned int langNum = 0; langNum < Languages::m_count; ++langNum)
+		{
+			if (strncasecmp(language.c_str(), Languages::m_names[langNum],
+				min(language.length(), strlen(Languages::m_names[langNum]))) == 0)
+			{
+				// That's the one !
+				return Languages::m_codes[langNum];
 			}
 		}
 	}
