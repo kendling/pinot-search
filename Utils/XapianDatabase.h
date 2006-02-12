@@ -23,9 +23,6 @@
 
 #include <xapian.h>
 
-#include "DocumentInfo.h"
-#include "IndexInterface.h"
-
 class XapianDatabase
 {
 	public:

@@ -70,7 +70,7 @@ AC_SUBST(INDEX_LIBS)
 PKG_CHECK_MODULES(UI, mozilla-xpcom >= 1.4 mozilla-nss >= 1.4 mozilla-gtkmozembed >= 1.4 gtkmm-2.4 >= 2.6 )
 dnl Location of Mozilla's library directory
 MOZILLA_GTKEMBED=`find /usr/lib*/mozilla* -name libgtkembedmoz.so | head -1`
-if [ -z "$MOZILLA_GTKEMBED" ]; then
+if test "$MOZILLA_GTKEMBED" = "" ; then
   MOZILLA_LIB_DIR=/usr/lib/mozilla
 else
   MOZILLA_LIB_DIR=`dirname ${MOZILLA_GTKEMBED}`
