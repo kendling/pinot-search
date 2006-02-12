@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 0.45,[colinf@chez.com.(none)])
+AC_INIT(pinot, 0.45,[colinf@chez.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -26,6 +26,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
 
 dnl Add the languages which your application supports here.
 ALL_LINGUAS="en_GB fr_FR es_ES"
+AM_GNU_GETTEXT([external]) 
 AM_GLIB_GNU_GETTEXT
 
 dnl Set PACKAGE_LOCALE_DIR in config.h.
@@ -83,7 +84,7 @@ AC_CHECK_FUNCS(gettimeofday)
 AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
-AC_OUTPUT(Makefile pinot.spec Utils/Makefile Tokenize/Makefile SQL/Makefile
-	Collect/Makefile Search/Makefile Index/Makefile UI/RenderHTML/Makefile \
-	UI/GTK2/src/Makefile po/Makefile )
+AC_OUTPUT(Makefile pinot.spec Utils/Makefile Tokenize/Makefile SQL/Makefile \
+	po/Makefile Collect/Makefile Search/Makefile Index/Makefile \
+	UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
 
