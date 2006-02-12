@@ -1,0 +1,89 @@
+# generated 2005/12/14 20:48:47 SGT by fabrice@amra.dyndns.org.(none)
+# using glademm V2.6.0
+
+AC_PREREQ(2.50)
+AC_INIT(pinot, 0.45,[colinf@chez.com.(none)])
+AM_INIT_AUTOMAKE
+AC_CONFIG_HEADERS(config.h)
+
+AC_ISC_POSIX
+AC_PROG_CC
+AM_PROG_CC_STDC
+AC_HEADER_STDC
+AC_PROG_CPP
+AC_PROG_CXX
+AC_PROG_CXXCPP
+AM_PROG_LIBTOOL
+
+dnl *************************************************
+dnl gettext support
+dnl *************************************************
+
+GETTEXT_PACKAGE=pinot
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
+		[the gettext domain])
+
+dnl Add the languages which your application supports here.
+ALL_LINGUAS="en_GB fr_FR es_ES"
+AM_GLIB_GNU_GETTEXT
+
+dnl Set PACKAGE_LOCALE_DIR in config.h.
+if test "x${prefix}" = "xNONE"; then
+  AC_DEFINE_UNQUOTED(PACKAGE_LOCALE_DIR, "${ac_default_prefix}/${DATADIRNAME}/locale",
+		[the location of locale files])
+else
+  AC_DEFINE_UNQUOTED(PACKAGE_LOCALE_DIR, "${prefix}/${DATADIRNAME}/locale",
+		[the location of locale files])
+fi
+
+AC_LANG_CPLUSPLUS
+
+dnl Xapian
+AC_PATH_PROG(XAPIAN_CONFIG, xapian-config, no)
+if test "$XAPIAN_CONFIG" = "no" ; then
+   AC_MSG_ERROR([Can't find xapian-config in $PATH.])
+   exit 1
+fi
+XAPIAN_CFLAGS=`$XAPIAN_CONFIG --cxxflags`
+XAPIAN_LIBS=`$XAPIAN_CONFIG --libs`
+
+dnl Other libraries
+PKG_CHECK_MODULES(SQL, sqlite3 >= 3.1 )
+AC_SUBST(SQL_CFLAGS)
+AC_SUBST(SQL_LIBS)
+PKG_CHECK_MODULES(HTTP, neon >= 0.24 )
+AC_SUBST(HTTP_CFLAGS)
+AC_SUBST(HTTP_LIBS)
+PKG_CHECK_MODULES(MIME, gmime-2.0 >= 2.0 )
+AC_SUBST(MIME_CFLAGS)
+AC_SUBST(MIME_LIBS)
+PKG_CHECK_MODULES(XML, libxml++-2.6 >= 2.12 )
+AC_SUBST(XML_CFLAGS)
+AC_SUBST(XML_LIBS)
+PKG_CHECK_MODULES(OTS, libots-1 >= 0.4.2 )
+INDEX_CFLAGS="$XAPIAN_CFLAGS $OTS_CFLAGS"
+INDEX_LIBS="$XAPIAN_LIBS $OTS_LIBS -ltextcat"
+AC_SUBST(INDEX_CFLAGS)
+AC_SUBST(INDEX_LIBS)
+PKG_CHECK_MODULES(UI, mozilla-xpcom >= 1.4 mozilla-nss >= 1.4 mozilla-gtkmozembed >= 1.4 gtkmm-2.4 >= 2.6 )
+dnl Location of Mozilla's library directory
+MOZILLA_GTKEMBED=`find /usr/lib*/mozilla* -name libgtkembedmoz.so | head -1`
+if [ -z "$MOZILLA_GTKEMBED" ]; then
+  MOZILLA_LIB_DIR=/usr/lib/mozilla
+else
+  MOZILLA_LIB_DIR=`dirname ${MOZILLA_GTKEMBED}`
+fi
+UI_LIBS="-lmagic -lpthread -lcrypt -lfam -L${MOZILLA_LIB_DIR} -Xlinker -rpath -Xlinker ${MOZILLA_LIB_DIR} $UI_LIBS"
+AC_SUBST(UI_CFLAGS)
+AC_SUBST(UI_LIBS)
+
+dnl Check for specific functions
+AC_CHECK_FUNCS(gettimeofday)
+AC_CHECK_FUNCS(lstat)
+AC_CHECK_FUNCS(mmap)
+
+AC_OUTPUT(Makefile pinot.spec Utils/Makefile Tokenize/Makefile SQL/Makefile
+	Collect/Makefile Search/Makefile Index/Makefile UI/RenderHTML/Makefile \
+	UI/GTK2/src/Makefile po/Makefile )
+
