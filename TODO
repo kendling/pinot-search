@@ -17,15 +17,11 @@ Search
 - Allow to use "extended" INTERPRET tags selectively 
 - With engines that provide a redirection URL for results (eg Acoona), it looks like
   the query hitory is not saved/checked correctly
-- OR terms if AND search on index doesn't return anything
 - Add Creative Commons (http://search.yahoo.com/cc)
 - Add http://beta.exalead.com/search
 - Add csourcesearch.net
 - Add http://www.patentcommons.org/commons/patentsearch.php
 - Add http://www.podzinger.com/
-- Apply Pinot specific filters (eg "L" for language) on internal indices only
-- Assuming text is tokenized a la omindex, use Xapian's QueryParser, map fields
-  (label, language, title) to prefixes, etc...
 - Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
 
 Collect
@@ -64,7 +60,6 @@ RenderHTML
 - Sort out issues with gtk_embed_moz if possible
 - Replace Mozilla GTK embed with GTK WebCore or latest gtkhtml, or drop altogether ?
 - Is it possible to build against Firefox instead of the Mozilla suite ?
-- Highlight search terms
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -101,5 +96,6 @@ UI
 - Prefer ustring to string whenever possible
 - Closing when threads are running gives the impression Pinot has crashed; how do we tell the user
   we are waiting for something to finish ?
+- ViewHistory should have a Date field to allow expiration/cleanup
 - Try sizing the window optimally on the first startup
 

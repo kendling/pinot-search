@@ -10,7 +10,7 @@ ifeq ($(HAS_OSAPI),yes)
 SOAP_PROJECTS += Search/ObjectsSearch
 endif
 PROJECTS := Utils Tokenize SQL Collect ${SOAP_PROJECTS} Search Index \
-	UI/RenderHTML UI/GTK2/src ${PLUGIN_PROJECTS}
+	UI/RenderHTML UI/GTK2/src
 TARGETS_ALL := $(patsubst %,%_all,${PROJECTS})
 TARGETS_CLEAN := $(patsubst %,%_clean,${PROJECTS})
 

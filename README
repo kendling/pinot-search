@@ -31,10 +31,10 @@ ObjectsSearch API (2)	Search/ObjectsSearch		beta
 
  GSOAP			$GSOAP_HOME			2.6.2
 
-gtkmm >= 2.4.12						gtkmm24-devel-2.6.2-2
+gtkmm							gtkmm24-devel-2.6.2-2
 http://www.gtkmm.org/
 
-libxml++ (3)						libxml++-devel-2.10.0-1
+libxml++ (3)						libxml++-devel-2.12.0-2.fc4
 http://libxmlplusplus.sourceforge.net/
 
  libxml2						libxml2-devel-2.6.16-3

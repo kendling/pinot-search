@@ -1,3 +1,17 @@
+??? version_0_4_5
+Build :
+ - dropped patch for libxml++ v0.26 support
+Search :
+ - include pinot_search to query search engines from the command-line
+ - better parsing of Sherlock plugins with foreign tags
+Index :
+ - URLs of results returned by Sherlock engines were incorrectly lower-cased
+ - Changed term prefixes to conform to conventions used by Omega and other
+  Xapian-based tools. Unfortunately, users will have to update documents and
+  reapply labels !
+UI :
+ - UTF-8 fixes on stored queries dates, results extracts and locale catalogs
+
 2006/01/31 version_0_4_2
 Search :
  - support for OpenSearch Description, Query and Response
