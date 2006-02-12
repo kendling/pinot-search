@@ -59,6 +59,6 @@ AM_CXXFLAGS = -I../../../Utils -I../../../Tokenize -I../../../SQL \
 
 pinot_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL \
         -L../../../Collect -L../../../Search -L../../../Index -L../../RenderHTML \
-	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ \
+	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@ \
 	-lHTML -lIndex -lSearch -lCollect -lSQL -lTokenize -lUtils
 

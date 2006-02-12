@@ -25,7 +25,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
 		[the gettext domain])
 
 dnl Add the languages which your application supports here.
-ALL_LINGUAS="en_GB fr_FR es_ES"
+ALL_LINGUAS="fr_FR es_ES"
 AM_GNU_GETTEXT([external]) 
 AM_GLIB_GNU_GETTEXT
 
@@ -50,6 +50,8 @@ XAPIAN_CFLAGS=`$XAPIAN_CONFIG --cxxflags`
 XAPIAN_LIBS=`$XAPIAN_CONFIG --libs`
 
 dnl Other libraries
+MISC_LIBS="-lmagic -lcrypt"
+AC_SUBST(MISC_LIBS)
 PKG_CHECK_MODULES(SQL, sqlite3 >= 3.1 )
 AC_SUBST(SQL_CFLAGS)
 AC_SUBST(SQL_LIBS)
@@ -75,7 +77,7 @@ if test "$MOZILLA_GTKEMBED" = "" ; then
 else
   MOZILLA_LIB_DIR=`dirname ${MOZILLA_GTKEMBED}`
 fi
-UI_LIBS="-lmagic -lpthread -lcrypt -lfam -L${MOZILLA_LIB_DIR} -Xlinker -rpath -Xlinker ${MOZILLA_LIB_DIR} $UI_LIBS"
+UI_LIBS="-lpthread -lfam -L${MOZILLA_LIB_DIR} -Xlinker -rpath -Xlinker ${MOZILLA_LIB_DIR} $UI_LIBS"
 AC_SUBST(UI_CFLAGS)
 AC_SUBST(UI_LIBS)
 

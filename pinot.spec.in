@@ -42,12 +42,12 @@ The included plugin enables Pinot to use Xapian Omega as a search engine.
 %setup -q
 
 %build
-make DEBUG=yes
-make DEBUG=yes pinot_mo
+%configure
+make
 
 %install
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
-make install PREFIX=$RPM_BUILD_ROOT
+%makeinstall
 # This engine is not usable as it is
 mv $RPM_BUILD_ROOT/%{_datadir}/pinot/engines/AmazonAPI.src $RPM_BUILD_ROOT/%{_datadir}/pinot/
 # Desktop file

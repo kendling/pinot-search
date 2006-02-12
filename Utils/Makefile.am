@@ -34,5 +34,5 @@ libUtils_la_SOURCES = \
 	Url.cpp \
 	XapianDatabaseFactory.cpp
 
-AM_CXXFLAGS = @INDEX_CFLAGS@ @MIME_CFLAGS@
+AM_CXXFLAGS = @HTTP_CFLAGS@ @INDEX_CFLAGS@ @MIME_CFLAGS@
 

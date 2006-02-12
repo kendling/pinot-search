@@ -13,6 +13,8 @@ noinst_HEADERS = \
 
 noinst_LTLIBRARIES = libSearch.la
 
+bin_PROGRAMS = pinot_search
+
 libSearch_la_SOURCES = \
 	OpenSearchParser.cpp \
 	QueryProperties.cpp \
@@ -24,5 +26,13 @@ libSearch_la_SOURCES = \
 	SearchEngineInterface.cpp \
 	SherlockParser.cpp
 
-AM_CXXFLAGS = -I../Utils -I../Tokenize -I../Collect @XML_CFLAGS@
+pinot_search_SOURCES = \
+	senginetest.cpp
+
+pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect \
+	-lSearch -lCollect -lTokenize -lUtils \
+	@INDEX_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+
+AM_CXXFLAGS = -I../Utils -I../Tokenize -I../Collect \
+	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @MIME_CFLAGS@
 
