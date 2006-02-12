@@ -96,7 +96,7 @@ ifeq ($(DEBUG),yes)
 CXXFLAGS += -g -DDEBUG
 endif
 LIBS := -lmagic -lpthread -lcrypt ${NEON_LIBS} ${OTS_LIBS} ${GMIME_LIBS} ${TEXTCAT_LIBS} \
-	${LIBXML_LIBS} ${XAPIAN_LIBS} ${SQLITE_LIBS} ${MOZILLA_XPCOM_LIBS}
+	${LIBXML_LIBS} ${XAPIAN_LIBS} ${SQLITE_LIBS}
 
 # Common targets
 
