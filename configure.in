@@ -86,7 +86,7 @@ AC_CHECK_FUNCS(gettimeofday)
 AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
-AC_OUTPUT( pinot.spec ./Makefile Utils/Makefile Tokenize/Makefile SQL/Makefile \
+AC_OUTPUT( pinot.spec Makefile Utils/Makefile Tokenize/Makefile SQL/Makefile \
 	po/Makefile Collect/Makefile Search/Makefile Index/Makefile \
 	UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
 
