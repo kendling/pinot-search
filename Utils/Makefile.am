@@ -5,6 +5,7 @@ noinst_HEADERS = \
 	HtmlDocument.h \
 	Languages.h \
 	MIMEScanner.h \
+	NLS.h \
 	StringManip.h \
 	Timer.h \
 	XapianDatabase.h \

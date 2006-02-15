@@ -111,9 +111,9 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files text-docs 
 %defattr(-, root, root, -)
-%dir %{_datadir}/pinot/tokenizers/pdf_tokenizer.so
-%dir %{_datadir}/pinot/tokenizers/word_tokenizer.so
-%dir %{_datadir}/pinot/tokenizers/rtf_tokenizer.so
+%{_datadir}/pinot/tokenizers/libpdftokenizer.so
+%{_datadir}/pinot/tokenizers/librtftokenizer.so
+%{_datadir}/pinot/tokenizers/libwordtokenizer.so
 
 %files omega
 %defattr(-, root, root, -)

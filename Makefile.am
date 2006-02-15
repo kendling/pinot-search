@@ -19,6 +19,7 @@ install-data-local:
 	$(INSTALL_DATA) Search/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
 	$(INSTALL_DATA) Search/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot/tokenizers
+	@rm -f $(DESTDIR)$(libdir)/lib*tokenizer.*
 	$(INSTALL_DATA) Tokenize/.libs/*.so $(DESTDIR)$(datadir)/pinot/tokenizers/
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
 	$(INSTALL_DATA) UI/GTK2/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png

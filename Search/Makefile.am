@@ -7,6 +7,7 @@ noinst_HEADERS = \
 	WebEngine.h \
 	SearchEngineFactory.h \
 	XapianEngine.h \
+	PluginParsers.h \
 	PluginWebEngine.h \
 	SearchEngineInterface.h \
 	SherlockParser.h
