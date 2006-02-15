@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 0.45,[colinf@chez.com])
+AC_INIT(pinot, 0.44,[colinf@chez.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -87,6 +87,6 @@ AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
 AC_OUTPUT( pinot.spec Makefile Utils/Makefile Tokenize/Makefile SQL/Makefile \
-	po/Makefile Collect/Makefile Search/Makefile Index/Makefile \
+	po/Makefile.in Collect/Makefile Search/Makefile Index/Makefile \
 	UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
 
