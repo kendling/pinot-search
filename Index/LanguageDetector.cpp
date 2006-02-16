@@ -26,6 +26,7 @@ extern "C"
 #include "StringManip.h"
 #include "Timer.h"
 #include "LanguageDetector.h"
+#include "config.h"
 
 using std::cout;
 using std::cerr;
@@ -51,13 +52,15 @@ LanguageDetector::~LanguageDetector()
 void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 			std::vector<std::string> &candidates)
 {
+	string confFile(PREFIX);
 #ifdef HAVE_TEXTCAT_CAT
 	const char *catResults[10];
 #endif
 
 	candidates.clear();
 
-	void *td = textcat_Init("/usr/share/pinot/textcat_conf.txt");
+	confFile += "/share/pinot/textcat_conf.txt";
+	void *td = textcat_Init(confFile.c_str());
 	if (td == NULL)
 	{
 		candidates.push_back("unknown");

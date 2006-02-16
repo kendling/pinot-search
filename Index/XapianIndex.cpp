@@ -550,6 +550,11 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 				for (termIter.skip_to("XLABEL:");
 					termIter != pIndex->termlist_end(docId); ++termIter)
 				{
+					if ((*termIter).length() < 7)
+					{
+						break;
+					}
+
 					// Is this a label ?
 					if (strncasecmp((*termIter).c_str(), "XLABEL:", min(7, (int)(*termIter).length())) == 0)
 					{

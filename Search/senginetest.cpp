@@ -24,6 +24,7 @@
 #include "DownloaderFactory.h"
 #include "Url.h"
 #include "HtmlTokenizer.h"
+#include "config.h"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ int main(int argc, char **argv)
 		set<string> engines;
 
 		cerr << "Usage: " << argv[0] << " <search engine type> <name>|<key> <query string> <max results count>" << endl;
-		cerr << "Example: " << argv[0] << " sherlock /usr/share/pinot/engines/Bozo.src \"clowns\" 10" << endl;
+		cerr << "Example: " << argv[0] << " sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\" 10" << endl;
 
 		SearchEngineFactory::getSupportedEngines(engines);
 		cerr << "Supported search engine types:";

@@ -25,17 +25,25 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
 		[the gettext domain])
 
 dnl Add the languages which your application supports here.
-ALL_LINGUAS="fr_FR es_ES"
+ALL_LINGUAS="fr es"
 AM_GNU_GETTEXT([external]) 
 AM_GLIB_GNU_GETTEXT
 
 dnl Set PACKAGE_LOCALE_DIR in config.h.
 if test "x${prefix}" = "xNONE"; then
   AC_DEFINE_UNQUOTED(PACKAGE_LOCALE_DIR, "${ac_default_prefix}/${DATADIRNAME}/locale",
-		[the location of locale files])
+		[Define to the location of locale files.])
 else
   AC_DEFINE_UNQUOTED(PACKAGE_LOCALE_DIR, "${prefix}/${DATADIRNAME}/locale",
-		[the location of locale files])
+		[Define to the location of locale files.])
+fi
+dnl And set PREFIX in config.h.
+if test "x${prefix}" = "xNONE"; then
+  AC_DEFINE_UNQUOTED(PREFIX, "${ac_default_prefix}",
+		[Define to the package prefix.])
+else
+  AC_DEFINE_UNQUOTED(PREFIX, "${prefix}",
+		[Define to the package prefix.])
 fi
 
 AC_LANG_CPLUSPLUS

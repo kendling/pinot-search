@@ -23,6 +23,7 @@
 #include <string.h>
 #include <signal.h>
 #include <fam.h>
+#include <exception>
 #include <iostream>
 #include <fstream>
 #include <sigc++/class_slot.h>
@@ -110,6 +111,11 @@ bool WorkerThread::operator<(const WorkerThread &other) const
 	return m_id < other.m_id;
 }
 
+Glib::Thread *WorkerThread::start(void)
+{
+	return Thread::create(slot_class(*this, &WorkerThread::threadHandler), m_joinable);
+}
+
 bool WorkerThread::isDone(void) const
 {
 	return m_done;
@@ -123,6 +129,29 @@ void WorkerThread::reset(void)
 string WorkerThread::getStatus(void) const
 {
 	return m_status;
+}
+
+void WorkerThread::threadHandler(void)
+{
+	try
+	{
+		doWork();
+	}
+	catch (exception &ex)
+	{
+#ifdef DEBUG
+		cout << "Exception in thread " << m_id << ", type " << getType()
+			<< ":" << ex.what() << endl;
+#endif
+	}
+	catch (...)
+	{
+#ifdef DEBUG
+		cout << "Unknown exception in thread " << m_id << ", type " << getType() << endl;
+#endif
+	}
+
+	emitSignal();
 }
 
 void WorkerThread::emitSignal(void)
@@ -324,11 +353,6 @@ IndexBrowserThread::~IndexBrowserThread()
 {
 }
 
-Thread *IndexBrowserThread::start(void)
-{
-	return Thread::create(slot_class(*this, &IndexBrowserThread::do_browsing), m_joinable);
-}
-
 string IndexBrowserThread::getType(void) const
 {
 	return "IndexBrowserThread";
@@ -358,7 +382,7 @@ SigC::Signal3<void, IndexedDocument, unsigned int, string>& IndexBrowserThread::
 	return m_signalUpdate;
 }
 
-void IndexBrowserThread::do_browsing()
+void IndexBrowserThread::doWork(void)
 {
 	set<unsigned int> docIDList;
 	set<string> docLabels;
@@ -373,7 +397,6 @@ void IndexBrowserThread::do_browsing()
 		m_status += m_indexName;
 		m_status += " ";
 		m_status += _("doesn't exist");
-		emitSignal();
 		return;
 	}
 
@@ -384,7 +407,6 @@ void IndexBrowserThread::do_browsing()
 		m_status = _("Index error on");
 		m_status += " ";
 		m_status += mapIter->second;
-		emitSignal();
 		return;
 	}
 
@@ -392,14 +414,13 @@ void IndexBrowserThread::do_browsing()
 	if (m_indexDocsCount == 0)
 	{
 #ifdef DEBUG
-		cout << "IndexBrowserThread::do_browsing: no documents" << endl;
+		cout << "IndexBrowserThread::doWork: no documents" << endl;
 #endif
-		emitSignal();
 		return;
 	}
 
 #ifdef DEBUG
-	cout << "IndexBrowserThread::do_browsing: " << m_maxDocsCount << " off " << m_indexDocsCount
+	cout << "IndexBrowserThread::doWork: " << m_maxDocsCount << " off " << m_indexDocsCount
 		<< " documents to browse, starting at " << m_startDoc << endl;
 #endif
 	index.listDocuments(docIDList, m_maxDocsCount, m_startDoc);
@@ -434,11 +455,9 @@ void IndexBrowserThread::do_browsing()
 			++numDocs;
 		}
 #ifdef DEBUG
-		else cout << "IndexBrowserThread::do_browsing: couldn't retrieve document " << docId << endl;
+		else cout << "IndexBrowserThread::doWork: couldn't retrieve document " << docId << endl;
 #endif
 	}
-
-	emitSignal();
 }
 
 QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
@@ -452,11 +471,6 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 
 QueryingThread::~QueryingThread()
 {
-}
-
-Thread  *QueryingThread::start(void)
-{
-	return Thread::create(slot_class(*this, &QueryingThread::do_querying), m_joinable);
 }
 
 string QueryingThread::getType(void) const
@@ -493,7 +507,7 @@ bool QueryingThread::stop(void)
 	return true;
 }
 
-void QueryingThread::do_querying()
+void QueryingThread::doWork(void)
 {
 	// Get the SearchEngine
 	SearchEngineInterface *engine = SearchEngineFactory::getSearchEngine(m_engineName, m_engineOption);
@@ -502,7 +516,6 @@ void QueryingThread::do_querying()
 		m_status = _("Couldn't create search engine");
 		m_status += " ";
 		m_status += m_engineDisplayableName;
-		emitSignal();
 		return;
 	}
 	// Set the maximum number of results
@@ -551,8 +564,6 @@ void QueryingThread::do_querying()
 		}
 	}
 	delete engine;
-
-	emitSignal();
 }
 
 LabelQueryThread::LabelQueryThread(const string &indexName, const string &labelName) :
@@ -564,11 +575,6 @@ LabelQueryThread::LabelQueryThread(const string &indexName, const string &labelN
 
 LabelQueryThread::~LabelQueryThread()
 {
-}
-
-Thread *LabelQueryThread::start(void)
-{
-	return Thread::create(slot_class(*this, &LabelQueryThread::do_querying), m_joinable);
 }
 
 string LabelQueryThread::getType(void) const
@@ -598,7 +604,7 @@ const set<unsigned int> &LabelQueryThread::getDocumentsList(void) const
 	return m_documentsList;
 }
 
-void LabelQueryThread::do_querying()
+void LabelQueryThread::doWork(void)
 {
 	const map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
 
@@ -610,7 +616,6 @@ void LabelQueryThread::do_querying()
 		m_status += m_indexName;
 		m_status += " ";
 		m_status += _("doesn't exist");
-		emitSignal();
 		return;
 	}
 
@@ -620,13 +625,10 @@ void LabelQueryThread::do_querying()
 		m_status = _("Index error on");
 		m_status += " ";
 		m_status += mapIter->second;
-		emitSignal();
 		return;
 	}
 
 	index.getDocumentsWithLabel(m_labelName, m_documentsList);
-
-	emitSignal();
 }
 
 LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToDelete,
@@ -638,11 +640,6 @@ LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToDelete,
 
 LabelUpdateThread::~LabelUpdateThread()
 {
-}
-
-Thread *LabelUpdateThread::start(void)
-{
-	return Thread::create(slot_class(*this, &LabelUpdateThread::do_update), m_joinable);
 }
 
 string LabelUpdateThread::getType(void) const
@@ -657,7 +654,7 @@ bool LabelUpdateThread::stop(void)
 	return true;
 }
 
-void LabelUpdateThread::do_update()
+void LabelUpdateThread::doWork(void)
 {
 	XapianIndex docsIndex(PinotSettings::getInstance().m_indexLocation);
 	if (docsIndex.isGood() == false)
@@ -665,7 +662,6 @@ void LabelUpdateThread::do_update()
 		m_status = _("Index error on");
 		m_status += " ";
 		m_status += PinotSettings::getInstance().m_indexLocation;
-		emitSignal();
 		return;
 	}
 
@@ -675,7 +671,6 @@ void LabelUpdateThread::do_update()
 		m_status = _("Index error on");
 		m_status += " ";
 		m_status += PinotSettings::getInstance().m_mailIndexLocation;
-		emitSignal();
 		return;
 	}
 
@@ -691,8 +686,6 @@ void LabelUpdateThread::do_update()
 		docsIndex.renameLabel(iter->first, iter->second);
 		mailIndex.renameLabel(iter->first, iter->second);
 	}
-
-	emitSignal();
 }
 
 DownloadingThread::DownloadingThread(const string url, bool fromCache) :
@@ -701,8 +694,6 @@ DownloadingThread::DownloadingThread(const string url, bool fromCache) :
 	m_url = url;
 	m_fromCache = fromCache;
 	m_pDoc = NULL;
-	// This is for sub-classes that need to things after the document has been downloaded
-	m_signalAfterDownload = true;
 	m_downloader = NULL;
 }
 
@@ -716,11 +707,6 @@ DownloadingThread::~DownloadingThread()
 	{
 		delete m_downloader;
 	}
-}
-
-Thread *DownloadingThread::start(void)
-{
-	return Thread::create(slot_class(*this, &DownloadingThread::do_downloading), m_joinable);
 }
 
 string DownloadingThread::getType(void) const
@@ -752,7 +738,7 @@ bool DownloadingThread::stop(void)
 	return false;
 }
 
-void DownloadingThread::do_downloading()
+void DownloadingThread::doWork(void)
 {
 	if (m_downloader != NULL)
 	{
@@ -770,7 +756,7 @@ void DownloadingThread::do_downloading()
 		m_pDoc = googleApiEngine.retrieveCachedUrl(m_url);
 #endif
 #ifdef DEBUG
-		cout << "DownloadingThread::do_downloading: got cached page" << endl;
+		cout << "DownloadingThread::doWork: got cached page" << endl;
 #endif
 	}
 	else
@@ -797,12 +783,6 @@ void DownloadingThread::do_downloading()
 		m_status += " ";
 		m_status += m_url;
 	}
-
-	// Signal ?
-	if (m_signalAfterDownload == true)
-	{
-		emitSignal();
-	}
 }
 
 IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &labelName,
@@ -825,17 +805,10 @@ IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &labelN
 		// This is not an update
 		m_update = false;
 	}
-	// Don't trigger signal after the document has been downloaded
-	m_signalAfterDownload = false;
 }
 
 IndexingThread::~IndexingThread()
 {
-}
-
-Thread *IndexingThread::start(void)
-{
-	return Thread::create(slot_class(*this, &IndexingThread::do_indexing), m_joinable);
 }
 
 string IndexingThread::getType(void) const
@@ -882,7 +855,7 @@ bool IndexingThread::stop(void)
 	return false;
 }
 
-void IndexingThread::do_indexing()
+void IndexingThread::doWork(void)
 {
 	// First things first, get the index
 	XapianIndex index(m_indexLocation);
@@ -891,13 +864,12 @@ void IndexingThread::do_indexing()
 		m_status = _("Index error on");
 		m_status += " ";
 		m_status += m_indexLocation;
-		emitSignal();
 		return;
 	}
 
-	do_downloading();
+	DownloadingThread::doWork();
 #ifdef DEBUG
-	cout << "IndexingThread::do_indexing: downloaded !" << endl;
+	cout << "IndexingThread::doWork: downloaded !" << endl;
 #endif
 
 	if (m_pDoc == NULL)
@@ -933,7 +905,6 @@ void IndexingThread::do_indexing()
 			m_status += _("at");
 			m_status += " ";
 			m_status += m_url;
-			emitSignal();
 			return;
 		}
 
@@ -948,7 +919,7 @@ void IndexingThread::do_indexing()
 			m_docInfo.setTitle(m_pDoc->getTitle());
 		}
 #ifdef DEBUG
-		cout << "IndexingThread::do_indexing: title is " << m_pDoc->getTitle() << endl;
+		cout << "IndexingThread::doWork: title is " << m_pDoc->getTitle() << endl;
 #endif
 
 		// Tokenize this document
@@ -958,7 +929,6 @@ void IndexingThread::do_indexing()
 			m_status = _("Couldn't tokenize");
 			m_status += " ";
 			m_status += m_url;
-			emitSignal();
 			return;
 		}
 
@@ -979,7 +949,6 @@ void IndexingThread::do_indexing()
 				m_status = _("Robots META tag forbids indexing");
 				m_status += " ";
 				m_status += m_url;
-				emitSignal();
 				return;
 			}
 		}
@@ -1042,8 +1011,6 @@ void IndexingThread::do_indexing()
 
 		delete pTokens;
 	}
-
-	emitSignal();
 }
 
 UnindexingThread::UnindexingThread(const set<unsigned int> &docIdList) :
@@ -1073,11 +1040,6 @@ UnindexingThread::~UnindexingThread()
 {
 }
 
-Thread *UnindexingThread::start(void)
-{
-	return Thread::create(slot_class(*this, &UnindexingThread::do_unindexing), m_joinable);
-}
-
 string UnindexingThread::getType(void) const
 {
 	return "UnindexingThread";
@@ -1095,7 +1057,7 @@ bool UnindexingThread::stop(void)
 	return true;
 }
 
-void UnindexingThread::do_unindexing()
+void UnindexingThread::doWork(void)
 {
 	if (m_done == false)
 	{
@@ -1106,7 +1068,6 @@ void UnindexingThread::do_unindexing()
 			m_status = _("Index error on");
 			m_status += " ";
 			m_status += m_indexLocation;
-			emitSignal();
 			return;
 		}
 
@@ -1146,11 +1107,11 @@ void UnindexingThread::do_unindexing()
 					++m_docsCount;
 				}
 #ifdef DEBUG
-				else cout << "UnindexingThread::do_unindexing: couldn't remove " << docId << endl;
+				else cout << "UnindexingThread::doWork: couldn't remove " << docId << endl;
 #endif
 			}
 #ifdef DEBUG
-			cout << "UnindexingThread::do_unindexing: removed " << m_docsCount << " documents" << endl;
+			cout << "UnindexingThread::doWork: removed " << m_docsCount << " documents" << endl;
 #endif
 		}
 
@@ -1163,8 +1124,6 @@ void UnindexingThread::do_unindexing()
 			m_status = "";
 		}
 	}
-
-	emitSignal();
 }
 
 UpdateDocumentThread::UpdateDocumentThread(const string &indexName,
@@ -1178,11 +1137,6 @@ UpdateDocumentThread::UpdateDocumentThread(const string &indexName,
 
 UpdateDocumentThread::~UpdateDocumentThread()
 {
-}
-
-Thread *UpdateDocumentThread::start(void)
-{
-	return Thread::create(slot_class(*this, &UpdateDocumentThread::do_update), m_joinable);
 }
 
 string UpdateDocumentThread::getType(void) const
@@ -1210,7 +1164,7 @@ bool UpdateDocumentThread::stop(void)
 	return true;
 }
 
-void UpdateDocumentThread::do_update()
+void UpdateDocumentThread::doWork(void)
 {
 	if (m_done == false)
 	{
@@ -1223,7 +1177,6 @@ void UpdateDocumentThread::do_update()
 			m_status += m_indexName;
 			m_status += " ";
 			m_status += _("doesn't exist");
-			emitSignal();
 			return;
 		}
 
@@ -1234,7 +1187,6 @@ void UpdateDocumentThread::do_update()
 			m_status = _("Index error on");
 			m_status += " ";
 			m_status += mapIter->second;
-			emitSignal();
 			return;
 		}
 
@@ -1250,8 +1202,6 @@ void UpdateDocumentThread::do_update()
 			index.getDocumentInfo(m_docId, m_docInfo);
 		}
 	}
-
-	emitSignal();
 }
 
 ListenerThread::ListenerThread(const string &fifoFileName) :
@@ -1276,11 +1226,6 @@ ListenerThread::~ListenerThread()
 	close(m_ctrlWritePipe);
 }
 
-Thread *ListenerThread::start(void)
-{
-	return Thread::create(slot_class(*this, &ListenerThread::do_listening), m_joinable);
-}
-
 string ListenerThread::getType(void) const
 {
 	return "ListenerThread";
@@ -1302,19 +1247,19 @@ Signal2<void, DocumentInfo, string>& ListenerThread::getReceptionSignal(void)
 	return m_signalReception;
 }
 
-void ListenerThread::do_listening()
+void ListenerThread::doWork(void)
 {
 	if (unlink(m_fifoFileName.c_str()) != 0)
 	{
 #ifdef DEBUG
-		cout << "ListenerThread::do_listening: couldn't delete FIFO at " << m_fifoFileName << endl;
+		cout << "ListenerThread::doWork: couldn't delete FIFO at " << m_fifoFileName << endl;
 #endif
 	}
 
 	if (mkfifo(m_fifoFileName.c_str(), S_IRUSR|S_IWUSR) != 0)
 	{
 #ifdef DEBUG
-		cout << "ListenerThread::do_listening: couldn't create FIFO at " << m_fifoFileName << endl;
+		cout << "ListenerThread::doWork: couldn't create FIFO at " << m_fifoFileName << endl;
 #endif
 	}
 
@@ -1322,7 +1267,7 @@ void ListenerThread::do_listening()
 	if (sigset(SIGPIPE, SIG_IGN) == SIG_ERR)
 	{
 #ifdef DEBUG
-		cout << "ListenerThread::do_listening: couldn't ignore SIGPIPE" << endl;
+		cout << "ListenerThread::doWork: couldn't ignore SIGPIPE" << endl;
 #endif
 	}
 
@@ -1351,7 +1296,7 @@ void ListenerThread::do_listening()
 				(errno != EINTR))
 			{
 #ifdef DEBUG
-				cout << "ListenerThread::do_listening: select() failed" << endl;
+				cout << "ListenerThread::doWork: select() failed" << endl;
 #endif
 				break;
 			}
@@ -1361,14 +1306,14 @@ void ListenerThread::do_listening()
 				char buffer[1024];
 
 #ifdef DEBUG
-				cout << "ListenerThread::do_listening: reading..." << endl;
+				cout << "ListenerThread::doWork: reading..." << endl;
 #endif
 				ssize_t bytes = read(fd, buffer, 1024);
 				while (bytes > 0)
 				{
 					xmlMsg += string(buffer, bytes);
 #ifdef DEBUG
-					cout << "ListenerThread::do_listening: read " << bytes << " bytes" << endl;
+					cout << "ListenerThread::doWork: read " << bytes << " bytes" << endl;
 #endif
 					bytes = read(fd, buffer, 1024);
 				}
@@ -1381,7 +1326,7 @@ void ListenerThread::do_listening()
 				string labelName = StringManip::extractField(xmlMsg, "<label>", "</label>");
 				string content = StringManip::extractField(xmlMsg, "<content>", "</content>");
 #ifdef DEBUG
-				cout << "ListenerThread::do_listening: " << content.length() << " bytes of content" << endl;
+				cout << "ListenerThread::doWork: " << content.length() << " bytes of content" << endl;
 #endif
 
 				// Signal
@@ -1397,8 +1342,6 @@ void ListenerThread::do_listening()
 		m_status += " ";
 		m_status += m_fifoFileName;
 	}
-
-	emitSignal();
 }
 
 MonitorThread::MonitorThread(MonitorHandler *pHandler) :
@@ -1429,11 +1372,6 @@ MonitorThread::~MonitorThread()
 	close(m_ctrlWritePipe);
 }
 
-Thread *MonitorThread::start(void)
-{
-	return Thread::create(slot_class(*this, &MonitorThread::do_monitoring), m_joinable);
-}
-
 string MonitorThread::getType(void) const
 {
 	return "MonitorThread";
@@ -1445,13 +1383,13 @@ bool MonitorThread::stop(void)
 	write(m_ctrlWritePipe, "Stop", 4);
 	m_status = _("Stopped monitoring");
 #ifdef DEBUG
-	cout << "MonitorThread::do_monitoring: stop called" << endl;
+	cout << "MonitorThread::doWork: stop called" << endl;
 #endif
 
 	return true;
 }
 
-void MonitorThread::do_monitoring()
+void MonitorThread::doWork(void)
 {
 	FAMConnection famConn;
 	FAMRequest famReq;
@@ -1465,7 +1403,6 @@ void MonitorThread::do_monitoring()
 	if (m_pHandler == NULL)
 	{
 		m_status = _("No monitoring handler");
-		emitSignal();
 		return;
 	}
 
@@ -1486,7 +1423,7 @@ void MonitorThread::do_monitoring()
 		}
 
 #ifdef DEBUG
-		cout << "MonitorThread::do_monitoring: checking locations" << endl;
+		cout << "MonitorThread::doWork: checking locations" << endl;
 #endif
 		if ((setLocationsToMonitor == true) &&
 			(m_pHandler->getFileSystemLocations(fsLocations) > 0) &&
@@ -1494,7 +1431,7 @@ void MonitorThread::do_monitoring()
 		{
 			// Tell FAM what we want to monitor
 #ifdef DEBUG
-			cout << "MonitorThread::do_monitoring: change detected" << endl;
+			cout << "MonitorThread::doWork: change detected" << endl;
 #endif
 			if (firstTime == false)
 			{
@@ -1512,7 +1449,6 @@ void MonitorThread::do_monitoring()
 			if (FAMOpen(&famConn) != 0)
 			{
 				m_status = _("Couldn't open FAM connection");
-				emitSignal();
 				return;
 			}
 
@@ -1542,7 +1478,7 @@ void MonitorThread::do_monitoring()
 					famStatus = FAMMonitorDirectory(&famConn, fsLocation.c_str(), &famReq, (void*)(fsIter->first + 1));
 				}
 #ifdef DEBUG
-				cout << "MonitorThread::do_monitoring: added " << fsLocation << ", " << famStatus << endl;
+				cout << "MonitorThread::doWork: added " << fsLocation << ", " << famStatus << endl;
 #endif
 			}
 
@@ -1552,14 +1488,14 @@ void MonitorThread::do_monitoring()
 		setLocationsToMonitor = false;
 
 #ifdef DEBUG
-		cout << "MonitorThread::do_monitoring: starting select()" << endl;
+		cout << "MonitorThread::doWork: starting select()" << endl;
 #endif
 		int fdCount = select(max(famFd, m_ctrlReadPipe) + 1, &listenSet, NULL, NULL, &selectTimeout);
 		if ((fdCount < 0) &&
 			(errno != EINTR))
 		{
 #ifdef DEBUG
-			cout << "MonitorThread::do_monitoring: select() failed" << endl;
+			cout << "MonitorThread::doWork: select() failed" << endl;
 #endif
 			break;
 		}
@@ -1571,7 +1507,7 @@ void MonitorThread::do_monitoring()
 			if (pendingEvents < 0)
 			{
 #ifdef DEBUG
-				cout << "MonitorThread::do_monitoring: FAMPending() failed" << endl;
+				cout << "MonitorThread::doWork: FAMPending() failed" << endl;
 #endif
 				break;
 			}
@@ -1588,7 +1524,7 @@ void MonitorThread::do_monitoring()
 					{
 						// Ignore pending events if the load has become too high
 #ifdef DEBUG
-						cout << "MonitorThread::do_monitoring: cancelling monitoring because of load (" << averageLoad[0] << ")" << endl;
+						cout << "MonitorThread::doWork: cancelling monitoring because of load (" << averageLoad[0] << ")" << endl;
 #endif
 						FAMCancelMonitor(&famConn, &famReq);
 						resumeMonitor = true;
@@ -1605,7 +1541,7 @@ void MonitorThread::do_monitoring()
 					bool updatedIndex = false;
 
 #ifdef DEBUG
-					cout << "MonitorThread::do_monitoring: event " << famEvent.code
+					cout << "MonitorThread::doWork: event " << famEvent.code
 						<< " on " << famEvent.filename << endl;
 #endif
 					if (famEvent.code == FAMEndExist)
@@ -1667,7 +1603,7 @@ void MonitorThread::do_monitoring()
 			{
 				// Resume
 #ifdef DEBUG
-				cout << "MonitorThread::do_monitoring: resuming monitoring" << endl;
+				cout << "MonitorThread::doWork: resuming monitoring" << endl;
 #endif
 				FAMResumeMonitor(&famConn, &famReq);
 				resumeMonitor = false;
@@ -1682,8 +1618,6 @@ void MonitorThread::do_monitoring()
 	// Stop monitoring and close the connection
 	FAMCancelMonitor(&famConn, &famReq);
 	FAMClose(&famConn);
-
-	emitSignal();
 }
 
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName,
@@ -1708,11 +1642,6 @@ DirectoryScannerThread::~DirectoryScannerThread()
 {
 }
 
-Thread *DirectoryScannerThread::start(void)
-{
-	return Thread::create(slot_class(*this, &DirectoryScannerThread::do_scanning), m_joinable);
-}
-
 string DirectoryScannerThread::getType(void) const
 {
 	return "DirectoryScannerThread";
@@ -1733,7 +1662,7 @@ Signal1<bool, const string&>& DirectoryScannerThread::getFileFoundSignal(void)
 	return m_signalFileFound;
 }
 
-void DirectoryScannerThread::found_file(const string &fileName)
+void DirectoryScannerThread::foundFile(const string &fileName)
 {
 	if (fileName.empty() == true)
 	{
@@ -1754,19 +1683,19 @@ void DirectoryScannerThread::found_file(const string &fileName)
 		else
 		{
 #ifdef DEBUG
-			cout << "DirectoryScannerThread::found_file: waiting" << endl;
+			cout << "DirectoryScannerThread::foundFile: waiting" << endl;
 #endif
 			// Don't resume until signaled
 			m_pCondVar->wait(*m_pMutex);
 			m_pMutex->unlock();
 #ifdef DEBUG
-			cout << "DirectoryScannerThread::found_file: signaled" << endl;
+			cout << "DirectoryScannerThread::foundFile: signaled" << endl;
 #endif
 		}
 	}
 }
 
-bool DirectoryScannerThread::scan_directory(const string &dirName)
+bool DirectoryScannerThread::scanDirectory(const string &dirName)
 {
 	struct stat fileStat;
 	int statSuccess = 0;
@@ -1800,7 +1729,7 @@ bool DirectoryScannerThread::scan_directory(const string &dirName)
 	else if (S_ISREG(fileStat.st_mode))
 	{
 		// It's actually a file
-		found_file(dirName);
+		foundFile(dirName);
 	}
 	else if (S_ISDIR(fileStat.st_mode))
 	{
@@ -1811,7 +1740,7 @@ bool DirectoryScannerThread::scan_directory(const string &dirName)
 			return false;
 		}
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::scan_directory: entering " << dirName << endl;
+		cout << "DirectoryScannerThread::scanDirectory: entering " << dirName << endl;
 #endif
 
 		// Iterate through this directory's entries
@@ -1842,12 +1771,12 @@ bool DirectoryScannerThread::scan_directory(const string &dirName)
 				}
 
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scan_directory: stat'ing " << entryName << endl;
+				cout << "DirectoryScannerThread::scanDirectory: stat'ing " << entryName << endl;
 #endif
 				// File or directory
 				if (S_ISREG(fileStat.st_mode))
 				{
-					found_file(entryName);
+					foundFile(entryName);
 				}
 				else if (S_ISDIR(fileStat.st_mode))
 				{
@@ -1856,9 +1785,9 @@ bool DirectoryScannerThread::scan_directory(const string &dirName)
 						(m_currentLevel + 1 < m_maxLevel))
 					{
 						++m_currentLevel;
-						scan_directory(entryName);
+						scanDirectory(entryName);
 #ifdef DEBUG
-						cout << "DirectoryScannerThread::scan_directory: done at level "
+						cout << "DirectoryScannerThread::scanDirectory: done at level "
 							<< m_currentLevel << endl;
 #endif
 						--m_currentLevel;
@@ -1875,13 +1804,12 @@ bool DirectoryScannerThread::scan_directory(const string &dirName)
 	return true;
 }
 
-void DirectoryScannerThread::do_scanning()
+void DirectoryScannerThread::doWork(void)
 {
-	if (scan_directory(m_dirName) == false)
+	if (scanDirectory(m_dirName) == false)
 	{
 		m_status = _("Couldn't open directory");
 		m_status += " ";
 		m_status += m_dirName;
 	}
-	emitSignal();
 }

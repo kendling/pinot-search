@@ -54,7 +54,7 @@ class WorkerThread
 
 		bool operator<(const WorkerThread &other) const;
 
-		virtual Glib::Thread *start(void) = 0;
+		Glib::Thread *start(void);
 
 		virtual std::string getType(void) const = 0;
 
@@ -74,6 +74,10 @@ class WorkerThread
 		bool m_background;
 		bool m_done;
 		std::string m_status;
+
+		void threadHandler(void);
+
+		virtual void doWork(void) = 0;
 
 		void emitSignal(void);
 
@@ -126,8 +130,6 @@ class IndexBrowserThread : public WorkerThread
 			unsigned int maxDocsCount, unsigned int startDoc);
 		~IndexBrowserThread();
 
-		virtual Glib::Thread *start(void);
-
 		std::string getType(void) const;
 
 		std::string getIndexName(void) const;
@@ -145,7 +147,7 @@ class IndexBrowserThread : public WorkerThread
 		unsigned int m_startDoc;
 		SigC::Signal3<void, IndexedDocument, unsigned int, std::string> m_signalUpdate;
 
-		void do_browsing();
+		virtual void doWork(void);
 
 	private:
 		IndexBrowserThread(const IndexBrowserThread &other);
@@ -159,8 +161,6 @@ class QueryingThread : public WorkerThread
 		QueryingThread(const std::string &engineName, const std::string &engineDisplayableName,
 			const std::string &engineOption, const QueryProperties &queryProps);
 		virtual ~QueryingThread();
-
-		virtual Glib::Thread *start(void);
 
 		virtual std::string getType(void) const;
 
@@ -180,7 +180,7 @@ class QueryingThread : public WorkerThread
 		std::vector<Result> m_resultsList;
 		std::string m_resultsCharset;
 
-		void do_querying();
+		virtual void doWork(void);
 
 	private:
 		QueryingThread(const QueryingThread &other);
@@ -193,8 +193,6 @@ class LabelQueryThread : public WorkerThread
 	public:
 		LabelQueryThread(const std::string &indexName, const std::string &labelName);
 		virtual ~LabelQueryThread();
-
-		virtual Glib::Thread *start(void);
 
 		virtual std::string getType(void) const;
 
@@ -211,7 +209,7 @@ class LabelQueryThread : public WorkerThread
 		std::string m_labelName;
 		std::set<unsigned int> m_documentsList;
 
-		void do_querying();
+		virtual void doWork(void);
 
 	private:
 		LabelQueryThread(const LabelQueryThread &other);
@@ -226,8 +224,6 @@ class LabelUpdateThread : public WorkerThread
 			const std::map<std::string, std::string> &labelsToRename);
 		virtual ~LabelUpdateThread();
 
-		virtual Glib::Thread *start(void);
-
 		virtual std::string getType(void) const;
 
 		virtual bool stop(void);
@@ -236,7 +232,7 @@ class LabelUpdateThread : public WorkerThread
 		std::set<std::string> m_labelsToDelete;
 		std::map<std::string, std::string> m_labelsToRename;
 
-		void do_update();
+		virtual void doWork(void);
 
 	private:
 		LabelUpdateThread(const LabelUpdateThread &other);
@@ -250,8 +246,6 @@ class DownloadingThread : public WorkerThread
 		DownloadingThread(const std::string url, bool fromCache);
 		virtual ~DownloadingThread();
 
-		virtual Glib::Thread *start(void);
-
 		virtual std::string getType(void) const;
 
 		std::string getURL(void) const;
@@ -264,10 +258,9 @@ class DownloadingThread : public WorkerThread
 		std::string m_url;
 		bool m_fromCache;
 		Document *m_pDoc;
-		bool m_signalAfterDownload;
 		DownloaderInterface *m_downloader;
 
-		void do_downloading();
+		virtual void doWork(void);
 
 	private:
 		DownloadingThread(const DownloadingThread &other);
@@ -281,8 +274,6 @@ class IndexingThread : public DownloadingThread
 		IndexingThread(const DocumentInfo &docInfo, const std::string &labelName,
 			unsigned int docId = 0);
 		virtual ~IndexingThread();
-
-		virtual Glib::Thread *start(void);
 
 		virtual std::string getType(void) const;
 
@@ -304,7 +295,7 @@ class IndexingThread : public DownloadingThread
 		bool m_ignoreRobotsDirectives;
 		bool m_update;
 
-		void do_indexing();
+		virtual void doWork(void);
 
 	private:
 		IndexingThread(const IndexingThread &other);
@@ -321,8 +312,6 @@ class UnindexingThread : public WorkerThread
 		UnindexingThread(const std::set<std::string> &labelNames, const std::string &indexLocation);
 		virtual ~UnindexingThread();
 
-		virtual Glib::Thread *start(void);
-
 		virtual std::string getType(void) const;
 
 		unsigned int getDocumentsCount(void) const;
@@ -335,7 +324,7 @@ class UnindexingThread : public WorkerThread
 		std::string m_indexLocation;
 		unsigned int m_docsCount;
 
-		void do_unindexing();
+		virtual void doWork(void);
 
 	private:
 		UnindexingThread(const UnindexingThread &other);
@@ -351,8 +340,6 @@ class UpdateDocumentThread : public WorkerThread
 			unsigned int docId, const DocumentInfo &docInfo);
 		virtual ~UpdateDocumentThread();
 
-		virtual Glib::Thread *start(void);
-
 		virtual std::string getType(void) const;
 
 		unsigned int getDocumentID(void) const;
@@ -366,7 +353,7 @@ class UpdateDocumentThread : public WorkerThread
 		unsigned int m_docId;
 		DocumentInfo m_docInfo;
 
-		void do_update();
+		virtual void doWork(void);
 
 	private:
 		UpdateDocumentThread(const UpdateDocumentThread &other);
@@ -380,8 +367,6 @@ class ListenerThread : public WorkerThread
 		ListenerThread(const std::string &fifoFileName);
 		virtual ~ListenerThread();
 
-		virtual Glib::Thread *start(void);
-
 		virtual std::string getType(void) const;
 
 		virtual bool stop(void);
@@ -394,7 +379,7 @@ class ListenerThread : public WorkerThread
 		std::string m_fifoFileName;
 		SigC::Signal2<void, DocumentInfo, std::string> m_signalReception;
 
-		void do_listening();
+		virtual void doWork(void);
 
 	private:
 		ListenerThread(const ListenerThread &other);
@@ -408,8 +393,6 @@ class MonitorThread : public WorkerThread
 		MonitorThread(MonitorHandler *pHandler);
 		virtual ~MonitorThread();
 
-		virtual Glib::Thread *start(void);
-
 		virtual std::string getType(void) const;
 
 		virtual bool stop(void);
@@ -420,7 +403,7 @@ class MonitorThread : public WorkerThread
 		MonitorHandler *m_pHandler;
 		long m_numCPUs;
 
-		void do_monitoring();
+		virtual void doWork(void);
 
 	private:
 		MonitorThread(const MonitorThread &other);
@@ -435,8 +418,6 @@ class DirectoryScannerThread : public WorkerThread
 			unsigned int maxLevel, bool followSymLinks,
 			Glib::Mutex *pMutex, Glib::Cond *pCondVar);
 		virtual ~DirectoryScannerThread();
-
-		virtual Glib::Thread *start(void);
 
 		virtual std::string getType(void) const;
 
@@ -453,9 +434,9 @@ class DirectoryScannerThread : public WorkerThread
 		unsigned int m_currentLevel;
 		SigC::Signal1<bool, const std::string&> m_signalFileFound;
 
-		void found_file(const std::string &fileName);
-		bool scan_directory(const std::string &dirName);
-		void do_scanning();
+		void foundFile(const std::string &fileName);
+		bool scanDirectory(const std::string &dirName);
+		virtual void doWork(void);
 
 	private:
 		DirectoryScannerThread(const DirectoryScannerThread &other);

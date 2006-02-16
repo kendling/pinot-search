@@ -86,6 +86,7 @@ static void quitAll(int sigNum)
 
 int main(int argc, char **argv)
 {
+	string prefixDir(PREFIX);
 	struct sigaction newAction;
 
 #if defined(ENABLE_NLS)
@@ -130,10 +131,10 @@ int main(int argc, char **argv)
 
 	// Load the settings
 	settings.load();
-	settings.loadSearchEngines("/usr/share/pinot/engines");
+	settings.loadSearchEngines(prefixDir + string("/share/pinot/engines"));
 	settings.loadSearchEngines(confDirectory + string("/engines"));
 	// Load tokenizer libraries, if any
-	TokenizerFactory::loadTokenizers("/usr/share/pinot/tokenizers");
+	TokenizerFactory::loadTokenizers(prefixDir + string("/share/pinot/tokenizers"));
 	TokenizerFactory::loadTokenizers(confDirectory + string("/tokenizers"));
 
 	// Catch interrupts
@@ -169,7 +170,7 @@ int main(int argc, char **argv)
 	try
 	{
 		// Set an icon for all windows
-		Gtk::Window::set_default_icon_from_file("/usr/share/icons/hicolor/48x48/apps/pinot.png");
+		Gtk::Window::set_default_icon_from_file(prefixDir + string("/share/icons/hicolor/48x48/apps/pinot.png"));
 
 		// Create and open the main dialog box
 		mainWindow mainBox;

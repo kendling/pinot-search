@@ -174,7 +174,10 @@ mainWindow::mainWindow() :
 	m_pHtmlView = new HtmlView(NULL);
 	if (m_settings.m_browseResults == false)
 	{
-		view_document("file:///usr/share/pinot/index.html", true);
+		string startPage("file://");
+		startPage += PREFIX;
+		startPage += "/share/pinot/index.html";
+		view_document(startPage, true);
 	}
 
 	// Gray out menu items
@@ -1381,8 +1384,12 @@ void mainWindow::on_configure_activate()
 		}
 		else
 		{
-			// Reopen the view page
-			view_document("file:///usr/share/pinot/index.html", true);
+			string startPage("file://");
+
+			// Reopen the start page
+			startPage += PREFIX;
+			startPage += "/share/pinot/index.html";
+			view_document(startPage, true);
 		}
 	}
 
