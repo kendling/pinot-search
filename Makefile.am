@@ -26,5 +26,3 @@ install-data-local:
 
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CXXFLAGS = -fPIC
-

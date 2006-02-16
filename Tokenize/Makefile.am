@@ -18,21 +18,21 @@ libpdftokenizer_la_SOURCES = \
 
 libpdftokenizer_la_LDFLAGS = -L../Utils 
 
-libpdftokenizer_la_LIBADD = libTokenize.la ../Utils/libUtils.la
+libpdftokenizer_la_LIBADD = ../Utils/libUtils.la HtmlTokenizer.o Tokenizer.o
 
 librtftokenizer_la_SOURCES = \
 	RtfTokenizer.cpp
 
 librtftokenizer_la_LDFLAGS = -L../Utils
 
-librtftokenizer_la_LIBADD = libTokenize.la ../Utils/libUtils.la
+librtftokenizer_la_LIBADD = ../Utils/libUtils.la HtmlTokenizer.o Tokenizer.o
 
 libwordtokenizer_la_SOURCES = \
 	WordTokenizer.cpp
 
 libwordtokenizer_la_LDFLAGS = -L../Utils
 
-libwordtokenizer_la_LIBADD = libTokenize.la ../Utils/libUtils.la
+libwordtokenizer_la_LIBADD = ../Utils/libUtils.la Tokenizer.o
 
 libTokenize_la_SOURCES = \
 	HtmlTokenizer.cpp \
