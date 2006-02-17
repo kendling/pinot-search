@@ -87,6 +87,7 @@ static void quitAll(int sigNum)
 int main(int argc, char **argv)
 {
 	string prefixDir(PREFIX);
+	Glib::ustring errorMsg;
 	struct sigaction newAction;
 
 #if defined(ENABLE_NLS)
@@ -145,15 +146,21 @@ int main(int argc, char **argv)
 	sigaction(SIGQUIT, &newAction, NULL);
 
 	// Ensure Xapian will be able to deal with internal indices
-	if (XapianDatabaseFactory::getDatabase(settings.m_indexLocation, false) == NULL)
+	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_indexLocation, false);
+	if ((pDb == NULL) ||
+		(pDb->isOpen() == false))
 	{
-		cerr << _("Index") << " " << settings.m_indexLocation << " "
-			<< _("is not valid, please check") << endl;
+		errorMsg = _("Couldn't open index");
+		errorMsg += " ";
+		errorMsg += settings.m_indexLocation;
 	}
-	if (XapianDatabaseFactory::getDatabase(settings.m_mailIndexLocation, false) == NULL)
+	pDb = XapianDatabaseFactory::getDatabase(settings.m_mailIndexLocation, false);
+	if ((pDb == NULL) ||
+		(pDb->isOpen() == false))
 	{
-		cerr << _("Index") << " " << settings.m_mailIndexLocation << " "
-			<< _("is not valid, please check") << endl;
+		errorMsg = _("Couldn't open index");
+		errorMsg += " ";
+		errorMsg += settings.m_mailIndexLocation;
 	}
 
 	// Do the same for the history database
@@ -161,8 +168,9 @@ int main(int argc, char **argv)
 		(QueryHistory::create(settings.m_historyDatabase) == false) ||
 		(ViewHistory::create(settings.m_historyDatabase) == false))
 	{
-		cerr << _("History database") << " " << settings.m_historyDatabase << " "
-			<< _("couldn't be created") << endl;
+		errorMsg = _("Couldn't create history database");
+		errorMsg += " ";
+		errorMsg += settings.m_historyDatabase;
 	}
 
 	atexit(closeAll);
@@ -174,6 +182,10 @@ int main(int argc, char **argv)
 
 		// Create and open the main dialog box
 		mainWindow mainBox;
+		if (errorMsg.empty() == false)
+		{
+			mainBox.set_status(errorMsg);
+		}
 		m.run(mainBox);
 	}
 	catch (const Glib::Exception &e)

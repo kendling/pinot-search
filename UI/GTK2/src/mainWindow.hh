@@ -52,6 +52,8 @@ public:
 	mainWindow();
 	virtual ~mainWindow();
 
+	void set_status(const Glib::ustring &text, bool canBeSkipped = false);
+
 protected:
 	// Utility methods
 	void populate_queryTreeview();
@@ -132,7 +134,6 @@ protected:
 
 	// Status methods
 	bool on_activity_timeout(void);
-	void set_status(const Glib::ustring &text, bool canBeSkipped = false);
 
 private:
 	// Global settings
