@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.43\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-02-16 21:57+0800\n"
+"POT-Creation-Date: 2006-02-17 20:03+0800\n"
 "PO-Revision-Date: 2006-01-30 16:44+0800\n"
 "Last-Translator: Jesús Tramullas <jesus@tramullas.com>\n"
 "Language-Team: es <jesus@tramullas.com>\n"
@@ -294,8 +294,7 @@ msgstr "Se desconoce la localización del resultado"
 msgid "Import Document(s)"
 msgstr "Importar Documento(s)"
 
-#: UI/GTK2/src/mainWindow.cc:1910 UI/GTK2/src/pinot.cc:150
-#: UI/GTK2/src/pinot.cc:155 UI/GTK2/src/WorkerThreads.cpp:395
+#: UI/GTK2/src/mainWindow.cc:1910 UI/GTK2/src/WorkerThreads.cpp:395
 #: UI/GTK2/src/WorkerThreads.cpp:614 UI/GTK2/src/WorkerThreads.cpp:1175
 msgid "Index"
 msgstr "Índice"
@@ -494,65 +493,63 @@ msgid "Couldn't save configuration file"
 msgstr "No se pudo guardar el fichero de configuración"
 
 #. Localize language names
-#: UI/GTK2/src/pinot.cc:119
+#: UI/GTK2/src/pinot.cc:120
 msgid "Danish"
 msgstr "Danés"
 
-#: UI/GTK2/src/pinot.cc:120
+#: UI/GTK2/src/pinot.cc:121
 msgid "Dutch"
 msgstr "Holandés"
 
-#: UI/GTK2/src/pinot.cc:121
+#: UI/GTK2/src/pinot.cc:122
 msgid "English"
 msgstr "Inglés"
 
-#: UI/GTK2/src/pinot.cc:122
+#: UI/GTK2/src/pinot.cc:123
 msgid "Finnish"
 msgstr "Finlandés"
 
-#: UI/GTK2/src/pinot.cc:123
+#: UI/GTK2/src/pinot.cc:124
 msgid "French"
 msgstr "Francés"
 
-#: UI/GTK2/src/pinot.cc:124
+#: UI/GTK2/src/pinot.cc:125
 msgid "German"
 msgstr "Alemán"
 
-#: UI/GTK2/src/pinot.cc:125
+#: UI/GTK2/src/pinot.cc:126
 msgid "Italian"
 msgstr "Italiano"
 
-#: UI/GTK2/src/pinot.cc:126
+#: UI/GTK2/src/pinot.cc:127
 msgid "Norwegian"
 msgstr "Noruego"
 
-#: UI/GTK2/src/pinot.cc:127
+#: UI/GTK2/src/pinot.cc:128
 msgid "Portuguese"
 msgstr "Portugués"
 
-#: UI/GTK2/src/pinot.cc:128
+#: UI/GTK2/src/pinot.cc:129
 msgid "Russian"
 msgstr "Ruso"
 
-#: UI/GTK2/src/pinot.cc:129
+#: UI/GTK2/src/pinot.cc:130
 msgid "Spanish"
 msgstr "Español"
 
-#: UI/GTK2/src/pinot.cc:130
+#: UI/GTK2/src/pinot.cc:131
 msgid "Swedish"
 msgstr "Sueco"
 
-#: UI/GTK2/src/pinot.cc:151 UI/GTK2/src/pinot.cc:156
-msgid "is not valid, please check"
-msgstr "no es válido, por favor compruébelo"
+#: UI/GTK2/src/pinot.cc:153 UI/GTK2/src/pinot.cc:161
+#, fuzzy
+msgid "Couldn't open index"
+msgstr "No se pudo borrar el índice"
 
-#: UI/GTK2/src/pinot.cc:164
-msgid "History database"
-msgstr "Base de datos del histórico"
-
-#: UI/GTK2/src/pinot.cc:165
-msgid "couldn't be created"
-msgstr "no se pudo crear"
+#: UI/GTK2/src/pinot.cc:171
+#, fuzzy
+msgid "Couldn't create history database"
+msgstr "No se pudo crear un directorio pinot en"
 
 #: UI/GTK2/src/PinotSettings.cpp:106
 msgid "Couldn't create pinot directory at"

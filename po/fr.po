@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.43\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-02-16 21:57+0800\n"
+"POT-Creation-Date: 2006-02-17 20:03+0800\n"
 "PO-Revision-Date: 2006-01-20 19:44+0800\n"
 "Last-Translator: Fabrice Colin <colinf@chez.com>\n"
 "Language-Team: fr <colinf@chez.com>\n"
@@ -72,7 +72,7 @@ msgstr "URL"
 #: UI/GTK2/src/importDialog.cc:148 UI/GTK2/src/IndexPage.cpp:158
 #: UI/GTK2/src/IndexPage.cpp:204 UI/GTK2/src/queryDialog.cc:91
 msgid "None"
-msgstr ""
+msgstr "Aucune"
 
 #: UI/GTK2/src/importDialog.cc:444
 msgid "Document To Import"
@@ -110,7 +110,7 @@ msgstr "Suivre les liens symboliques"
 
 #: UI/GTK2/src/importDialog_glade.cc:83
 msgid "Apply label:"
-msgstr ""
+msgstr "Appliquer l'etiquette:"
 
 #: UI/GTK2/src/importDialog_glade.cc:91 UI/GTK2/src/mainWindow_glade.cc:201
 msgid "Import"
@@ -294,8 +294,7 @@ msgstr "La location du resultat est inconnue"
 msgid "Import Document(s)"
 msgstr "Import de Document(s)"
 
-#: UI/GTK2/src/mainWindow.cc:1910 UI/GTK2/src/pinot.cc:150
-#: UI/GTK2/src/pinot.cc:155 UI/GTK2/src/WorkerThreads.cpp:395
+#: UI/GTK2/src/mainWindow.cc:1910 UI/GTK2/src/WorkerThreads.cpp:395
 #: UI/GTK2/src/WorkerThreads.cpp:614 UI/GTK2/src/WorkerThreads.cpp:1175
 msgid "Index"
 msgstr "L'index"
@@ -494,65 +493,63 @@ msgid "Couldn't save configuration file"
 msgstr "N'a pas pu sauve le fichier de configuration"
 
 #. Localize language names
-#: UI/GTK2/src/pinot.cc:119
+#: UI/GTK2/src/pinot.cc:120
 msgid "Danish"
 msgstr "Danois"
 
-#: UI/GTK2/src/pinot.cc:120
+#: UI/GTK2/src/pinot.cc:121
 msgid "Dutch"
 msgstr "Hollandais"
 
-#: UI/GTK2/src/pinot.cc:121
+#: UI/GTK2/src/pinot.cc:122
 msgid "English"
 msgstr "Anglais"
 
-#: UI/GTK2/src/pinot.cc:122
+#: UI/GTK2/src/pinot.cc:123
 msgid "Finnish"
 msgstr "Finlandais"
 
-#: UI/GTK2/src/pinot.cc:123
+#: UI/GTK2/src/pinot.cc:124
 msgid "French"
 msgstr "Francais"
 
-#: UI/GTK2/src/pinot.cc:124
+#: UI/GTK2/src/pinot.cc:125
 msgid "German"
 msgstr "Allemand"
 
-#: UI/GTK2/src/pinot.cc:125
+#: UI/GTK2/src/pinot.cc:126
 msgid "Italian"
 msgstr "Italien"
 
-#: UI/GTK2/src/pinot.cc:126
+#: UI/GTK2/src/pinot.cc:127
 msgid "Norwegian"
 msgstr "Norvegien"
 
-#: UI/GTK2/src/pinot.cc:127
+#: UI/GTK2/src/pinot.cc:128
 msgid "Portuguese"
 msgstr "Portugais"
 
-#: UI/GTK2/src/pinot.cc:128
+#: UI/GTK2/src/pinot.cc:129
 msgid "Russian"
 msgstr "Russe"
 
-#: UI/GTK2/src/pinot.cc:129
+#: UI/GTK2/src/pinot.cc:130
 msgid "Spanish"
 msgstr "Espagnol"
 
-#: UI/GTK2/src/pinot.cc:130
+#: UI/GTK2/src/pinot.cc:131
 msgid "Swedish"
 msgstr "Suedois"
 
-#: UI/GTK2/src/pinot.cc:151 UI/GTK2/src/pinot.cc:156
-msgid "is not valid, please check"
-msgstr "n'est pas valide, veuillez verifier"
+#: UI/GTK2/src/pinot.cc:153 UI/GTK2/src/pinot.cc:161
+#, fuzzy
+msgid "Couldn't open index"
+msgstr "N'a pas pu enlever l'index"
 
-#: UI/GTK2/src/pinot.cc:164
-msgid "History database"
-msgstr "La base des historiques"
-
-#: UI/GTK2/src/pinot.cc:165
-msgid "couldn't be created"
-msgstr "n'a pas pu etre creee"
+#: UI/GTK2/src/pinot.cc:171
+#, fuzzy
+msgid "Couldn't create history database"
+msgstr "N'a pas pu creer le repertoire a"
 
 #: UI/GTK2/src/PinotSettings.cpp:106
 msgid "Couldn't create pinot directory at"
@@ -600,7 +597,7 @@ msgstr "N'a pas pu charger le bloc mailaccount"
 
 #: UI/GTK2/src/PinotSettings.cpp:343
 msgid "Couldn't parse configuration file"
-msgstr ""
+msgstr "N'a pas pu lire le fichier de configuration"
 
 #: UI/GTK2/src/PinotSettings.cpp:732
 msgid "Unclassified"
