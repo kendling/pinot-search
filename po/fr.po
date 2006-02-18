@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.43\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-02-17 20:03+0800\n"
+"POT-Creation-Date: 2006-02-18 17:52+0800\n"
 "PO-Revision-Date: 2006-01-20 19:44+0800\n"
 "Last-Translator: Fabrice Colin <colinf@chez.com>\n"
 "Language-Team: fr <colinf@chez.com>\n"
@@ -218,11 +218,11 @@ msgstr "Listant"
 
 #: UI/GTK2/src/mainWindow.cc:797
 msgid "off"
-msgstr "de"
+msgstr "documents,"
 
 #: UI/GTK2/src/mainWindow.cc:802
 msgid "documents, starting at"
-msgstr "documents venant de"
+msgstr "au total, a partir de"
 
 #: UI/GTK2/src/mainWindow.cc:836
 msgid "Query"
@@ -267,7 +267,7 @@ msgstr "Desindexe le(s) document(s)"
 
 #: UI/GTK2/src/mainWindow.cc:1235
 msgid "Couldn't rename index, name"
-msgstr "N'a pas pu renommer l'index"
+msgstr "N'a pas pu renommer l'index, le nom"
 
 #: UI/GTK2/src/mainWindow.cc:1239 UI/GTK2/src/mainWindow.cc:2144
 #: UI/GTK2/src/mainWindow.cc:2623
@@ -330,7 +330,7 @@ msgstr "N'a pas pu ajouter l'index"
 
 #: UI/GTK2/src/mainWindow.cc:2169
 msgid "Added new index"
-msgstr "Ajouter un nouvel index"
+msgstr "Ajoute un nouvel index"
 
 #: UI/GTK2/src/mainWindow.cc:2204
 msgid "Couldn't remove index"
@@ -339,7 +339,7 @@ msgstr "N'a pas pu enlever l'index"
 #: UI/GTK2/src/mainWindow.cc:2285
 #, fuzzy
 msgid "Live query"
-msgstr "Edite la recherche"
+msgstr "Recherche"
 
 #: UI/GTK2/src/mainWindow.cc:2438
 msgid "At least one task hasn't completed yet. Quit now ?"
@@ -544,12 +544,12 @@ msgstr "Suedois"
 #: UI/GTK2/src/pinot.cc:153 UI/GTK2/src/pinot.cc:161
 #, fuzzy
 msgid "Couldn't open index"
-msgstr "N'a pas pu enlever l'index"
+msgstr "N'a pas pu ouvrir l'index"
 
 #: UI/GTK2/src/pinot.cc:171
 #, fuzzy
 msgid "Couldn't create history database"
-msgstr "N'a pas pu creer le repertoire a"
+msgstr "N'a pas pu creer la base d'historiques"
 
 #: UI/GTK2/src/PinotSettings.cpp:106
 msgid "Couldn't create pinot directory at"
@@ -601,7 +601,7 @@ msgstr "N'a pas pu lire le fichier de configuration"
 
 #: UI/GTK2/src/PinotSettings.cpp:732
 msgid "Unclassified"
-msgstr "Non classifie"
+msgstr "Sans classification"
 
 #: UI/GTK2/src/prefsDialog.cc:69
 msgid "Name"
@@ -621,7 +621,7 @@ msgstr "Dans le brouteur"
 
 #: UI/GTK2/src/prefsDialog.cc:332
 msgid "Browser location"
-msgstr "Brouter la location"
+msgstr "Location du brouteur"
 
 #: UI/GTK2/src/prefsDialog.cc:343
 msgid "New Label"
@@ -638,7 +638,7 @@ msgstr "Location du Fichier mbox"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:62
 msgid "HTTP crawling:"
-msgstr "Brouteur HTTP:"
+msgstr "Broutage HTTP:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:63
 msgid "View documents:"
@@ -758,7 +758,7 @@ msgstr "Proprietes de la recherche"
 
 #: UI/GTK2/src/WorkerThreads.cpp:374
 msgid "Stopped browsing"
-msgstr "Arrete le brouteur"
+msgstr "Arrete de parcourir l'index"
 
 #: UI/GTK2/src/WorkerThreads.cpp:407 UI/GTK2/src/WorkerThreads.cpp:625
 #: UI/GTK2/src/WorkerThreads.cpp:662 UI/GTK2/src/WorkerThreads.cpp:671
@@ -805,7 +805,7 @@ msgstr "Arrete l'indexation"
 
 #: UI/GTK2/src/WorkerThreads.cpp:901
 msgid "Cannot index document type"
-msgstr "Impossible d'indexer de type de documents"
+msgstr "Impossible d'indexer ce type de documents"
 
 #: UI/GTK2/src/WorkerThreads.cpp:905
 msgid "at"
@@ -833,8 +833,8 @@ msgid "Couldn't unindex document(s)"
 msgstr "N'a pas pu desindexer le(s) document(s)"
 
 #: UI/GTK2/src/WorkerThreads.cpp:1160
-msgid "Stopped document update for "
-msgstr "Arrete la mise a jour pour "
+msgid "Stopped document update for"
+msgstr "Arrete la mise a jour pour"
 
 #: UI/GTK2/src/WorkerThreads.cpp:1195
 msgid "Couldn't update document"

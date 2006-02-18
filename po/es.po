@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.43\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-02-17 20:03+0800\n"
+"POT-Creation-Date: 2006-02-18 17:52+0800\n"
 "PO-Revision-Date: 2006-01-30 16:44+0800\n"
 "Last-Translator: Jesús Tramullas <jesus@tramullas.com>\n"
 "Language-Team: es <jesus@tramullas.com>\n"
@@ -833,8 +833,8 @@ msgid "Couldn't unindex document(s)"
 msgstr "No se pudo desindizar lo(s) documento(s)"
 
 #: UI/GTK2/src/WorkerThreads.cpp:1160
-msgid "Stopped document update for "
-msgstr "Detenida la actualización del documento por "
+msgid "Stopped document update for"
+msgstr "Detenida la actualización del documento por"
 
 #: UI/GTK2/src/WorkerThreads.cpp:1195
 msgid "Couldn't update document"

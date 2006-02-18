@@ -1157,7 +1157,7 @@ const DocumentInfo &UpdateDocumentThread::getDocumentInfo(void) const
 bool UpdateDocumentThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped document update for ");
+	m_status = _("Stopped document update for");
 	m_status += " ";
 	m_status += m_docId;
 
