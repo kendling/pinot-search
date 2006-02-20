@@ -103,6 +103,7 @@ protected:
 	virtual void on_removeIndexButton_clicked();
 
 	virtual void on_liveQueryEntry_changed();
+	virtual void on_liveQueryEntry_activate();
 	virtual void on_findButton_clicked();
 	virtual void on_addQueryButton_clicked();
 	virtual void on_editQueryButton_clicked();

@@ -2276,6 +2276,14 @@ void mainWindow::on_liveQueryEntry_changed()
 }
 
 //
+// Return key pressed in live query entry field
+//
+void mainWindow::on_liveQueryEntry_activate()
+{
+	on_findButton_clicked();
+}
+
+//
 // Find button click
 //
 void mainWindow::on_findButton_clicked()
