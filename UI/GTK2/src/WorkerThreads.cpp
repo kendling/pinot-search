@@ -688,8 +688,6 @@ void LabelUpdateThread::doWork(void)
 	}
 }
 
-pthread_mutex_t DownloadingThread::m_dlLock = PTHREAD_MUTEX_INITIALIZER;
-
 DownloadingThread::DownloadingThread(const string url, bool fromCache) :
 	WorkerThread()
 {
@@ -763,8 +761,6 @@ void DownloadingThread::doWork(void)
 	}
 	else
 	{
-		pthread_mutex_lock(&m_dlLock);
-
 		// Get a Downloader, the default one will do
 		m_downloader = DownloaderFactory::getDownloader(thisUrl.getProtocol(), "");
 		if (m_downloader == NULL)
@@ -779,8 +775,6 @@ void DownloadingThread::doWork(void)
 
 			m_pDoc = m_downloader->retrieveUrl(docInfo);
 		}
-
-		pthread_mutex_unlock(&m_dlLock);
 	}
 
 	if (m_pDoc == NULL)

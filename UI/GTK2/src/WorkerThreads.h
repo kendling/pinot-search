@@ -255,7 +255,6 @@ class DownloadingThread : public WorkerThread
 		virtual bool stop(void);
 
 	protected:
-		static pthread_mutex_t m_dlLock;
 		std::string m_url;
 		bool m_fromCache;
 		Document *m_pDoc;

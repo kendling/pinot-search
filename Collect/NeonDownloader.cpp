@@ -64,6 +64,7 @@ static void headerHandler(void *userdata, const char *value)
 	}
 }
 
+static pthread_mutex_t accessLock = PTHREAD_MUTEX_INITIALIZER;
 #ifdef NE_SSL_H
 // OpenSSL multi-thread support, required by Neon
 static pthread_mutex_t locksTable[CRYPTO_NUM_LOCKS];
@@ -240,6 +241,11 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	string file = urlObj.getFile();
 	string parameters = urlObj.getParameters();
 
+	if (pthread_mutex_lock(&accessLock) != 0)
+	{
+		return NULL;
+	}
+
 	// Create a session
 	m_pSession = ne_session_create(protocol.c_str(), hostName.c_str(), 80); // urlObj.getPort());
 	if (m_pSession == NULL)
@@ -247,6 +253,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 #ifdef DEBUG
 		cerr << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
 #endif
+		pthread_mutex_unlock(&accessLock);
 		return NULL;
 	}
 	// Set the user agent
@@ -275,6 +282,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 
 	// Create a request for this URL
 	m_pRequest = ne_request_create(m_pSession, "GET", fullLocation.c_str());
+	pthread_mutex_unlock(&accessLock);
 	if (m_pRequest == NULL)
 	{
 #ifdef DEBUG
