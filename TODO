@@ -1,9 +1,7 @@
 General
-- Fix dependencies in build system, use autoconf and friends
 - Fix the FIXMEs
 - Get rid of dead code/classes/methods...
 - Advertise service via Rendezvous with Howl (http://www.porchdogsoft.com/products/howl/)
-- Remove hardcoded paths
 - Man page, see help2man (http://www.gnu.org/software/help2man/)
 - Logging should not be all (DEBUG) or nothing (release)
 - Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
@@ -23,6 +21,7 @@ Search
 - Add http://www.patentcommons.org/commons/patentsearch.php
 - Add http://www.podzinger.com/
 - Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
+- Support for Google Buttons
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -48,6 +47,7 @@ Index
 - Flush the index before searching not after modification
 - Hash document data to determine on updates whether documents have changed
 - Allow to monitor imported documents for changes
+- Allow to skip pages whose domain match the search engine's
 
 Browser plugin
 - Write Firefox extension that searches Pinot indexes and indexes the cache
