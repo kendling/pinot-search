@@ -27,7 +27,7 @@ char *getTokenizerType(unsigned int typeNum)
 {
 	if (typeNum == 0)
 	{
-		char *pType = new char[16];
+		char *pType = new char[19];
 		strncpy(pType, "application/msword", 18);
 		pType[18] = '\0';
 		return pType;
