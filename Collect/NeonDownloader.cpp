@@ -96,7 +96,7 @@ static void lockingCallback(int mode, int n, const char *file, int line)
 	}
 }
 
-unsigned long idCallback(void)
+static unsigned long idCallback(void)
 {
 	return (unsigned long)pthread_self();
 }
