@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.43\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-02-18 17:52+0800\n"
+"POT-Creation-Date: 2006-02-23 21:47+0800\n"
 "PO-Revision-Date: 2006-01-20 19:44+0800\n"
 "Last-Translator: Fabrice Colin <colinf@chez.com>\n"
 "Language-Team: fr <colinf@chez.com>\n"
@@ -184,7 +184,7 @@ msgstr "Pret"
 #. Stop in case we were loading a page
 #. Close the existing view page
 #: UI/GTK2/src/mainWindow.cc:248 UI/GTK2/src/mainWindow.cc:1011
-#: UI/GTK2/src/mainWindow.cc:1383 UI/GTK2/src/mainWindow.cc:2960
+#: UI/GTK2/src/mainWindow.cc:1383 UI/GTK2/src/mainWindow.cc:2968
 #: UI/GTK2/src/mainWindow_glade.cc:207
 msgid "View"
 msgstr "Voir"
@@ -228,7 +228,7 @@ msgstr "au total, a partir de"
 msgid "Query"
 msgstr "La recherche"
 
-#: UI/GTK2/src/mainWindow.cc:840 UI/GTK2/src/mainWindow.cc:2789
+#: UI/GTK2/src/mainWindow.cc:840 UI/GTK2/src/mainWindow.cc:2797
 msgid "on"
 msgstr "sur"
 
@@ -270,7 +270,7 @@ msgid "Couldn't rename index, name"
 msgstr "N'a pas pu renommer l'index, le nom"
 
 #: UI/GTK2/src/mainWindow.cc:1239 UI/GTK2/src/mainWindow.cc:2144
-#: UI/GTK2/src/mainWindow.cc:2623
+#: UI/GTK2/src/mainWindow.cc:2631
 msgid "is already in use"
 msgstr "est deja utilise"
 
@@ -336,68 +336,68 @@ msgstr "Ajoute un nouvel index"
 msgid "Couldn't remove index"
 msgstr "N'a pas pu enlever l'index"
 
-#: UI/GTK2/src/mainWindow.cc:2285
+#: UI/GTK2/src/mainWindow.cc:2293
 #, fuzzy
 msgid "Live query"
 msgstr "Recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2438
+#: UI/GTK2/src/mainWindow.cc:2446
 msgid "At least one task hasn't completed yet. Quit now ?"
 msgstr "Au moins une tache n'est pas terminee. Quitter maintenant ?"
 
-#: UI/GTK2/src/mainWindow.cc:2619
+#: UI/GTK2/src/mainWindow.cc:2627
 msgid "Query name"
 msgstr "Nom de la recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2646
+#: UI/GTK2/src/mainWindow.cc:2654
 msgid "Couldn't update query"
 msgstr "N'a pas pu mettre a jour la recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2654
+#: UI/GTK2/src/mainWindow.cc:2662
 msgid "Edited query"
 msgstr "Edite la recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2661
+#: UI/GTK2/src/mainWindow.cc:2669
 msgid "Couldn't add query"
 msgstr "N'a pas pu ajouter la recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2669
+#: UI/GTK2/src/mainWindow.cc:2677
 msgid "Added new query"
 msgstr "Ajoute une nouvelle recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2683
+#: UI/GTK2/src/mainWindow.cc:2691
 msgid "Query is not set"
 msgstr "Recherche indefinie"
 
-#: UI/GTK2/src/mainWindow.cc:2694
+#: UI/GTK2/src/mainWindow.cc:2702
 msgid "No search engine selected"
 msgstr "Pas de moteur selectionne"
 
-#: UI/GTK2/src/mainWindow.cc:2776
+#: UI/GTK2/src/mainWindow.cc:2784
 msgid "Please set the Google API key first"
 msgstr "Configurez la clef de l'API Google "
 
-#: UI/GTK2/src/mainWindow.cc:2785
+#: UI/GTK2/src/mainWindow.cc:2793
 msgid "Running query"
 msgstr "Recherche en cours"
 
-#: UI/GTK2/src/mainWindow.cc:2891
+#: UI/GTK2/src/mainWindow.cc:2899
 msgid "is already indexed or is being indexed"
 msgstr "est deja indexe ou est en cours d'indexation"
 
-#: UI/GTK2/src/mainWindow.cc:2918
+#: UI/GTK2/src/mainWindow.cc:2926
 msgid "No URL to browse"
 msgstr "Pas d'URL a brouter"
 
-#: UI/GTK2/src/mainWindow.cc:2929
+#: UI/GTK2/src/mainWindow.cc:2937
 msgid "No browser configured to view results"
 msgstr "Pas de brouter configure"
 
-#: UI/GTK2/src/mainWindow.cc:2941
+#: UI/GTK2/src/mainWindow.cc:2949
 msgid "Couldn't browse URL:"
 msgstr "N'a pas pu brouter l'URL"
 
-#: UI/GTK2/src/mainWindow.cc:3000
+#: UI/GTK2/src/mainWindow.cc:3008
 #, fuzzy
 msgid "Viewing"
 msgstr "Voir"
