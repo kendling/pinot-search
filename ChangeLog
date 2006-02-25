@@ -1,4 +1,4 @@
-??? version_0_4_3
+2006/02/25 version_0_4_3
 Build :
  - dropped patch for libxml++ v0.26 support
  - use autotools
@@ -6,6 +6,7 @@ Search :
  - include pinot_search to query search engines from the command-line
  - better parsing of Sherlock plugins with foreign tags
  - URLs of results returned by Sherlock engines were incorrectly lower-cased
+ - fix for Topix and Acoona
 Index :
  - Changed term prefixes to conform to conventions used by Omega and other
   Xapian-based tools. Unfortunately, users will have to update documents and
