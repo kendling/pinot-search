@@ -18,7 +18,7 @@
 resultListStart=""
 resultListEnd=""
 resultItemStart='<td class="webtitle" valign="top">'
-resultItemEnd='</span> </td></tr>'
+resultItemEnd='</span></td></tr>'
 >
 
 </SEARCH>
