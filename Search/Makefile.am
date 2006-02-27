@@ -1,6 +1,7 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
+	AbstractGenerator.h \
 	OpenSearchParser.h \
 	QueryProperties.h \
 	SearchPluginProperties.h \
@@ -17,6 +18,7 @@ noinst_LTLIBRARIES = libSearch.la
 bin_PROGRAMS = pinot_search
 
 libSearch_la_SOURCES = \
+	AbstractGenerator.cpp \
 	OpenSearchParser.cpp \
 	QueryProperties.cpp \
 	SearchPluginProperties.cpp \
