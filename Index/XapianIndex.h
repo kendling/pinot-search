@@ -102,13 +102,13 @@ class XapianIndex : public IndexInterface
 			const std::string &prefix, Xapian::termcount &termPos, StemmingMode mode) const;
 
 		bool prepareDocument(const DocumentInfo &info, Xapian::Document &doc,
-			Xapian::termcount &termPos, const std::string &summary) const;
+			Xapian::termcount &termPos) const;
 
-		std::string scanDocument(const char *pData, unsigned int dataLength,
+		void scanDocument(const char *pData, unsigned int dataLength,
 			DocumentInfo &info);
 
 		void setDocumentData(Xapian::Document &doc, const DocumentInfo &info,
-			const std::string &extract, const std::string &language) const;
+			const std::string &language) const;
 
 	private:
 		XapianIndex(const XapianIndex &other);

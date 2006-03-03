@@ -20,8 +20,6 @@
 #include <iostream>
 #include <utility>
 
-#include <ots/libots.h>
-
 #include "Timer.h"
 #include "AbstractGenerator.h"
 
@@ -32,6 +30,7 @@ using std::string;
 using std::vector;
 using std::map;
 
+unsigned int AbstractGenerator::m_maxSeedTerms = 4;
 unsigned int AbstractGenerator::m_minTermPositions = 10;
 
 AbstractGenerator::PositionWindow::PositionWindow() :
@@ -56,18 +55,18 @@ AbstractGenerator::~AbstractGenerator()
 }
 
 /// Attempts to generate an abstract of wordsCount words.
-string AbstractGenerator::generateAbstract(const vector<string> &queryTerms,
+string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 	Xapian::docid docId)
 {
 	map<Xapian::termpos, PositionWindow> abstractWindows;
 	map<Xapian::termpos, string> wordsBuffer;
 	string summary;
 	Xapian::termpos bestPosition = 0, startPosition =0;
-	unsigned int topTermCount = 0, bestWeight = 0;
+	unsigned int seedTermsCount = 0, bestWeight = 0;
 	bool topTerm = true;
 
 	if ((m_pIndex == NULL) ||
-		(queryTerms.empty() == true))
+		(seedTerms.empty() == true))
 	{
 		return "";
 	}
@@ -76,55 +75,71 @@ string AbstractGenerator::generateAbstract(const vector<string> &queryTerms,
 	Timer timer;
 	timer.start();
 #endif
-	for (vector<string>::const_iterator termIter = queryTerms.begin();
-		termIter != queryTerms.end(); ++termIter)
+	for (vector<string>::const_iterator termIter = seedTerms.begin();
+		termIter != seedTerms.end(); ++termIter)
 	{
 		string termName(*termIter);
+
+		if (seedTermsCount >= m_maxSeedTerms)
+		{
+			// Enough terms
+			break;
+		}
 
 #ifdef DEBUG
 		cout << "AbstractGenerator::generateAbstract: term " << termName << endl;
 #endif
-		// Go through that term's position list in the document
-		for (Xapian::PositionIterator positionIter = m_pIndex->positionlist_begin(docId, termName);
-			positionIter != m_pIndex->positionlist_end(docId, termName); ++positionIter)
+		try
 		{
-			Xapian::termpos termPos = *positionIter;
-
-			// Take all the top term's positions into account, and some of 
-			// the other terms' too if the minimum number is not reached
-			if ((topTermCount < m_minTermPositions) ||
-				(topTerm == true))
+			// Go through that term's position list in the document
+			for (Xapian::PositionIterator positionIter = m_pIndex->positionlist_begin(docId, termName);
+				positionIter != m_pIndex->positionlist_end(docId, termName); ++positionIter)
 			{
-				abstractWindows[termPos] = PositionWindow();
-			}
+				Xapian::termpos termPos = *positionIter;
 
-			// Look for other terms close to that position
-			for (map<Xapian::termpos, PositionWindow>::iterator winIter = abstractWindows.begin();
-				winIter != abstractWindows.end(); ++winIter)
-			{
-				// Is this within the number of words we are interested in ?
-				if (winIter->first > termPos)
+				// Take all the top term's positions into account, and some of 
+				// the other terms' too if the minimum number is not reached
+				if ((m_minTermPositions > abstractWindows.size()) ||
+					(topTerm == true))
 				{
-					if (winIter->first - termPos <= m_wordsCount)
+					abstractWindows[termPos] = PositionWindow();
+				}
+
+				// Look for other terms close to that position
+				for (map<Xapian::termpos, PositionWindow>::iterator winIter = abstractWindows.begin();
+					winIter != abstractWindows.end(); ++winIter)
+				{
+					// Is this within the number of words we are interested in ?
+					if (winIter->first > termPos)
 					{
-						++winIter->second.m_backWeight;
+						if (winIter->first - termPos <= m_wordsCount)
+						{
+							++winIter->second.m_backWeight;
+						}
+					}
+					else
+					{
+						if (termPos - winIter->first <= m_wordsCount)
+						{
+							++winIter->second.m_forwardWeight;
+						}
 					}
 				}
-				else
-				{
-					if (termPos - winIter->first <= m_wordsCount)
-					{
-						++winIter->second.m_forwardWeight;
-					}
-				}
 			}
+
+			topTerm = false;
+			++seedTermsCount;
+		}
+		catch (const Xapian::Error &error)
+		{
+#ifdef DEBUG
+			cout << "AbstractGenerator::generateAbstract: " << error.get_msg() << endl;
+#endif
 		}
 
-		topTerm = false;
-		++topTermCount;
 #ifdef DEBUG
 		cout << "AbstractGenerator::generateAbstract: " << abstractWindows.size()
-			<< " positions, " << topTermCount << " terms" << endl;
+			<< " positions, " << seedTermsCount << " terms" << endl;
 #endif
 	}
 
@@ -175,7 +190,7 @@ string AbstractGenerator::generateAbstract(const vector<string> &queryTerms,
 		summary += wordIter->second;
 	}
 #ifdef DEBUG
-	cout << "AbstractGenerator: done in " << timer.stop()/1000 << " ms" << endl;
+	cout << "AbstractGenerator::generateAbstract: summarized document " << docId << " in " << timer.stop()/1000 << " ms" << endl;
 #endif
 
 	return summary;

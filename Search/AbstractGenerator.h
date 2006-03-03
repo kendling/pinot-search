@@ -29,10 +29,11 @@ class AbstractGenerator
 		virtual ~AbstractGenerator();
 
 		/// Attempts to generate an abstract of wordsCount words.
-		std::string generateAbstract(const std::vector<std::string> &queryTerms,
+		std::string generateAbstract(const std::vector<std::string> &seedTerms,
 			Xapian::docid docId);
 
 	protected:
+		static unsigned int m_maxSeedTerms;
 		static unsigned int m_minTermPositions;
 		const Xapian::Database *m_pIndex;
 		unsigned int m_wordsCount;

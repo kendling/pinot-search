@@ -26,9 +26,11 @@
 #include "Tokenizer.h"
 #include "Url.h"
 #include "XapianDatabaseFactory.h"
+#include "AbstractGenerator.h"
 #include "XapianEngine.h"
 
 using std::string;
+using std::multimap;
 using std::vector;
 using std::stack;
 using std::cout;
@@ -126,49 +128,82 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 
 			// Get the top results of the query
 			Xapian::MSet matches = enquire.get_mset(0, m_maxResultsCount);
-
-			// Get the results
-#ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: " << matches.get_matches_estimated() << "/" << m_maxResultsCount << " results found" << endl;
-#endif
-			for (Xapian::MSetIterator mIter = matches.begin(); mIter != matches.end(); ++mIter)
+			if (matches.empty() == false)
 			{
-				// Get the document data
-				string record = mIter.get_document().get_data();
+				multimap<Xapian::weight, string> queryTerms;
+				vector<string> seedTerms;
+				Xapian::weight maxWeight = matches.get_max_attained();
 
-				// Get the title
-				string title = StringManip::extractField(record, "caption=", "\n");
-#ifdef DEBUG
-				cout << "XapianEngine::queryDatabase: found omindex title " << title << endl;
-#endif
-				// Get the URL
-				string url = StringManip::extractField(record, "url=", "\n");
-				if (url.empty() == true)
+				// Sort query terms by weight
+				for (Xapian::TermIterator termIter = query.get_terms_begin();
+					termIter != query.get_terms_end(); ++termIter)
 				{
-					// Hmmm this shouldn't be empty...
-					// Use this instead, even though the document isn't cached in the index
-					url = buildUrl(m_databaseName, *mIter);
-				}
-				else
-				{
+					string termName(*termIter);
+					Xapian::weight termWeight = maxWeight - matches.get_termweight(termName);
+
+					queryTerms.insert(pair<Xapian::weight, string>(termWeight, termName));
 #ifdef DEBUG
-					cout << "XapianEngine::queryDatabase: found omindex URL " << url << endl;
+					cout << "XapianEngine::queryDatabase: term " << termName
+						<< " has weight " << matches.get_termweight(termName) << "/" << maxWeight << endl;
 #endif
-					url = Url::canonicalizeUrl(url);
 				}
 
-				// Get the summary and the type
-				string summary = StringManip::extractField(record, "sample=", "\n");
-#ifdef DEBUG
-				cout << "XapianEngine::queryDatabase: found omindex summary " << summary << endl;
-#endif
-				string type = StringManip::extractField(record, "type=", "\n");
-				// ...and finally the language, if available
-				string language = StringManip::extractField(record, "language=", "\n");
+				for (multimap<Xapian::weight, string>::iterator weightIter = queryTerms.begin();
+					weightIter != queryTerms.end(); ++weightIter)
+				{
+					seedTerms.push_back(weightIter->second);
+				}
 
-				// Add this result
-				Result thisResult(url, title, summary, language, (float)mIter.get_percent());
-				m_resultsList.push_back(thisResult);
+				// Get the results
+#ifdef DEBUG
+				cout << "XapianEngine::queryDatabase: " << matches.get_matches_estimated() << "/" << m_maxResultsCount << " results found" << endl;
+#endif
+				for (Xapian::MSetIterator mIter = matches.begin(); mIter != matches.end(); ++mIter)
+				{
+					Xapian::docid docId = *mIter;
+					Xapian::Document doc(mIter.get_document());
+					string record = doc.get_data();
+
+					// Get the title
+					string title = StringManip::extractField(record, "caption=", "\n");
+#ifdef DEBUG
+					cout << "XapianEngine::queryDatabase: found omindex title " << title << endl;
+#endif
+					// Get the URL
+					string url = StringManip::extractField(record, "url=", "\n");
+					if (url.empty() == true)
+					{
+						// Hmmm this shouldn't be empty...
+						// Use this instead, even though the document isn't cached in the index
+						url = buildUrl(m_databaseName, *mIter);
+					}
+					else
+					{
+#ifdef DEBUG
+						cout << "XapianEngine::queryDatabase: found omindex URL " << url << endl;
+#endif
+						url = Url::canonicalizeUrl(url);
+					}
+
+					// Get the type
+					string type = StringManip::extractField(record, "type=", "\n");
+					// ...and the language, if available
+					string language = StringManip::extractField(record, "language=", "\n");
+
+					// Finally, get a summary
+					string summary = StringManip::extractField(record, "sample=", "\n");
+					if (summary.empty() == true)
+					{
+						AbstractGenerator abstractGen(pIndex, 50);
+
+						// Generate an abstract based on the query's terms
+						summary = abstractGen.generateAbstract(seedTerms, docId);
+					}
+
+					// Add this result
+					Result thisResult(url, title, summary, language, (float)mIter.get_percent());
+					m_resultsList.push_back(thisResult);
+				}
 			}
 
 			bStatus = true;

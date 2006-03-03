@@ -75,9 +75,9 @@ AC_SUBST(MIME_LIBS)
 PKG_CHECK_MODULES(XML, libxml++-2.6 >= 2.12 )
 AC_SUBST(XML_CFLAGS)
 AC_SUBST(XML_LIBS)
-PKG_CHECK_MODULES(OTS, libots-1 >= 0.4.2 )
-INDEX_CFLAGS="$XAPIAN_CFLAGS $OTS_CFLAGS"
-INDEX_LIBS="$XAPIAN_LIBS $OTS_LIBS -ltextcat"
+dnl FIXME: check for libtextcat
+INDEX_CFLAGS="$XAPIAN_CFLAGS"
+INDEX_LIBS="$XAPIAN_LIBS -ltextcat"
 AC_SUBST(INDEX_CFLAGS)
 AC_SUBST(INDEX_LIBS)
 PKG_CHECK_MODULES(UI, mozilla-xpcom >= 1.4 mozilla-nss >= 1.4 mozilla-gtkmozembed >= 1.4 gtkmm-2.4 >= 2.6 )
@@ -98,6 +98,6 @@ AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
 AC_OUTPUT( pinot.spec Makefile Utils/Makefile Tokenize/Makefile SQL/Makefile \
-	po/Makefile.in Collect/Makefile Search/Makefile Index/Makefile \
-	UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
+	po/Makefile.in Collect/Makefile Search/Makefile Search/Google/Makefile \
+	Index/Makefile UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
 

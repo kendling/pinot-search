@@ -3,14 +3,12 @@
 noinst_HEADERS = \
 	IndexInterface.h \
 	LanguageDetector.h \
-	Summarizer.h \
 	XapianIndex.h
 
 noinst_LTLIBRARIES = libIndex.la
 
 libIndex_la_SOURCES = \
 	LanguageDetector.cpp \
-	Summarizer.cpp \
 	XapianIndex.cpp
 
 AM_CXXFLAGS = -I../Utils -I../Tokenize @INDEX_CFLAGS@ 

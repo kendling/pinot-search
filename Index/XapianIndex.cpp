@@ -32,7 +32,6 @@
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
-#include "Summarizer.h"
 #include "LanguageDetector.h"
 #include "XapianDatabaseFactory.h"
 #include "XapianIndex.h"
@@ -164,7 +163,7 @@ void XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 }
 
 bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &doc,
-	Xapian::termcount &termPos, const std::string &summary) const
+	Xapian::termcount &termPos) const
 {
 	string title(info.getTitle());
 	string location(info.getLocation());
@@ -209,17 +208,16 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 	// Finally, add the language code with prefix L
 	doc.add_term(string("L") + Languages::toCode(m_stemLanguage));
 
-	setDocumentData(doc, info, summary, m_stemLanguage);
+	setDocumentData(doc, info, m_stemLanguage);
 
 	return true;
 }
 
-string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
+void XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 	DocumentInfo &info)
 {
 	vector<string> candidates;
 	string language;
-	string summary;
 
 	// Try to determine the document's language
 	LanguageDetector lang;
@@ -253,21 +251,10 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 	cout << "XapianIndex::scanDocument: language now " << m_stemLanguage << endl;
 #endif
 
-	// Get a summary of the document
-	if (language.empty() == true)
-	{
-		// Fall back on English
-		language = "english";
-	}
-	Summarizer sum(language, 50);
-	summary = sum.summarize(pData, dataLength);
-
 	// Update the document's properties
 	string title = info.getTitle();
 	if (title.empty() == true)
 	{
-		// Use the title supplied by the summarizer
-		title = sum.getTitle();
 		// Remove heading spaces
 		while (isspace(title[0]))
 		{
@@ -276,11 +263,9 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 		info.setTitle(title);
 	}
 	info.setLanguage(m_stemLanguage);
-
-	return summary;
 }
 
-void XapianIndex::setDocumentData(Xapian::Document &doc, const DocumentInfo &info, const string &extract,
+void XapianIndex::setDocumentData(Xapian::Document &doc, const DocumentInfo &info,
 	const string &language) const
 {
 	string title(info.getTitle());
@@ -290,15 +275,8 @@ void XapianIndex::setDocumentData(Xapian::Document &doc, const DocumentInfo &inf
 	// Set the document data omindex-style
 	string record = "url=";
 	record += info.getLocation();
+	// The sample will be generated at query time
 	record += "\nsample=";
-	// Ignore the extract if it contains any of our field delimiters
-	if (badField(extract) == false)
-	{
-		record += extract;
-	}
-#ifdef DEBUG
-	else cout << "XapianIndex::setDocumentData: bad extract" << endl;
-#endif
 	record += "\ncaption=";
 	if (badField(title) == true)
 	{
@@ -382,7 +360,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		docInfo.setTimestamp(pDocument->getTimestamp());
 		docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
-		string summary = scanDocument(pData, dataLength, docInfo);
+		scanDocument(pData, dataLength, docInfo);
 
 		Xapian::Document doc;
 		Xapian::termcount termPos = 0;
@@ -398,7 +376,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		{
 			doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
 		}
-		if (prepareDocument(docInfo, doc, termPos, summary) == true)
+		if (prepareDocument(docInfo, doc, termPos) == true)
 		{
 			Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 			if (pIndex != NULL)
@@ -654,7 +632,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	docInfo.setTimestamp(pDocument->getTimestamp());
 	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
-	string summary = scanDocument(pData, dataLength, docInfo);
+	scanDocument(pData, dataLength, docInfo);
 
 	try
 	{
@@ -674,7 +652,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 				doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
 			}
 		}
-		if (prepareDocument(docInfo, doc, termPos, summary) == true)
+		if (prepareDocument(docInfo, doc, termPos) == true)
 		{
 			Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 			if (pIndex != NULL)
@@ -725,11 +703,10 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 
 			// Get the current document data
 			string record = doc.get_data();
-			string extract = StringManip::extractField(record, "sample=", "\n");
 			string language = StringManip::extractField(record, "language=", "");
 
-			// Update the document data with the current extract and language
-			setDocumentData(doc, docInfo, extract, language);
+			// Update the document data with the current language
+			setDocumentData(doc, docInfo, language);
 			pIndex->replace_document(docId, doc);
 			updated = true;
 		}
