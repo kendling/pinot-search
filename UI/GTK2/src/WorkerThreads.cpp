@@ -759,7 +759,7 @@ void DownloadingThread::doWork(void)
 	else
 	{
 		// Get a Downloader, the default one will do
-		m_pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol(), "");
+		m_pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
 		if (m_pDownloader == NULL)
 		{
 			m_status = _("Couldn't obtain downloader for protocol");

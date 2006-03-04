@@ -21,16 +21,14 @@
 
 #include "DownloaderInterface.h"
 
-using std::string;
-
 // Downloader factory class.
 class DownloaderFactory
 {
 	public:
 		virtual ~DownloaderFactory() {};
 
-		/// Returns a Downloader of the specified type; NULL if unavailable.
-		static DownloaderInterface *getDownloader(string protocol, string type);
+		/// Returns a Downloader; NULL if unavailable.
+		static DownloaderInterface *getDownloader(const std::string &protocol);
 
 	protected:
 		DownloaderFactory() {};

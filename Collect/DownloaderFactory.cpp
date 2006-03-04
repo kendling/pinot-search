@@ -26,8 +26,10 @@
 #include "MboxCollector.h"
 #include "DownloaderFactory.h"
 
-/// Returns a Downloader of the specified type; NULL if unavailable.
-DownloaderInterface *DownloaderFactory::getDownloader(string protocol, string type)
+using std::string;
+
+/// Returns a Downloader; NULL if unavailable.
+DownloaderInterface *DownloaderFactory::getDownloader(const string &protocol)
 {
 	DownloaderInterface *pDownloader = NULL;
 

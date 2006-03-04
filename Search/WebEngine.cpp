@@ -41,7 +41,7 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 	m_charset.clear();
 
 	// Any type of downloader will do...
-	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader("http", "");
+	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader("http");
 	if (myDownloader == NULL)
 	{
 		return NULL;

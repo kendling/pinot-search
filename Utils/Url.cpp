@@ -14,18 +14,33 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifdef USE_NEON
-#include <neon/ne_uri.h>
-#else
-#ifdef USE_CURL
-#include <curl/curl.h>
-#endif
-#endif
+#include <iostream>
 
 #include "StringManip.h"
 #include "Url.h"
 
 using std::string;
+using std::cout;
+using std::endl;
+
+static const int g_rfc2396Encoded[] = {
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  /* 0x00 - 0x0f */
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  /* 0x10 - 0x1f */
+	1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*  ' ' - '/'  */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,  /*  '0' - '?'  */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*  '@' - 'O'  */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0,  /*  'P' - '_'  */
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*  '`' - 'o'  */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1,  /*  'p' - 0x7f */
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+};
 
 Url::Url(const string &url)
 {
@@ -281,67 +296,31 @@ string Url::prettifyUrl(const string &url, unsigned int maxLen)
 /// Escapes an URL.
 string Url::escapeUrl(const string &url)
 {
-	string escapedUrl(url);
+	string escapedUrl;
 
-	if (url.empty() == false)
+	if (url.empty() == true)
 	{
-#ifdef USE_NEON
-		char *pEscapedUrl = ne_path_escape(url.c_str());
-		if (pEscapedUrl != NULL)
-		{
-			escapedUrl = pEscapedUrl;
-			free(pEscapedUrl);
-		}
-#else
-#ifdef USE_CURL
-		Url thisUrl(url);
-		string location(thisUrl.getLocation());
-		string file(thisUrl.getFile());
-		string params(thisUrl.getParameters());
+		return "";
+	}
 
-		if (location.empty() == false)
+	for (unsigned int pos = 0; pos < url.length(); ++pos)
+	{
+		// Encode this character ?
+		if (g_rfc2396Encoded[url[pos]] == 1)
 		{
-			char *pEscapedUrl = curl_escape(location.c_str(), location.length());
-			if (pEscapedUrl != NULL)
-			{
-				string::size_type pos = escapedUrl.find(location.c_str());
-				if (pos != string::npos)
-				{
-					escapedUrl.replace(pos, location.length(), pEscapedUrl);
-				}
-				curl_free(pEscapedUrl);
-			}
-		}
+			char currentChar = url[pos];
+			char encodedStr[4];
 
-		if (file.empty() == false)
-		{
-			char *pEscapedUrl = curl_escape(file.c_str(), file.length());
-			if (pEscapedUrl != NULL)
-			{
-				string::size_type pos = escapedUrl.find(file.c_str());
-				if (pos != string::npos)
-				{
-					escapedUrl.replace(pos, file.length(), pEscapedUrl);
-				}
-				curl_free(pEscapedUrl);
-			}
-		}
-
-		if (params.empty() == false)
-		{
-			char *pEscapedUrl = curl_escape(params.c_str(), params.length());
-			if (pEscapedUrl != NULL)
-			{
-				string::size_type pos = escapedUrl.find(params.c_str());
-				if (pos != string::npos)
-				{
-					escapedUrl.replace(pos, params.length(), pEscapedUrl);
-				}
-				curl_free(pEscapedUrl);
-			}
-		}
+			snprintf(encodedStr, 4, "%%%02x", (int)currentChar);
+#ifdef DEBUG
+			cout << "Url::escapeUrl: encoded " << currentChar << " as " << encodedStr << endl;
 #endif
-#endif
+			escapedUrl += encodedStr;
+		}
+		else
+		{
+			escapedUrl += url[pos];
+		}
 	}
 
 	return escapedUrl;
@@ -350,31 +329,38 @@ string Url::escapeUrl(const string &url)
 /// Unescapes an URL.
 string Url::unescapeUrl(const string &escapedUrl)
 {
-	string unescapedUrlStr = "";
+	string unescapedUrl;
+	unsigned int pos = 0;
 
-	if (escapedUrl.empty() == false)
+	if (escapedUrl.empty() == true)
 	{
-#ifdef USE_NEON
-		char *unescapedUrl = ne_path_unescape(escapedUrl.c_str());
-#else
-#ifdef USE_CURL
-		char *unescapedUrl = curl_unescape(escapedUrl.c_str(), escapedUrl.length());
-#endif
-#endif
-		if (unescapedUrl != NULL)
+		return "";
+	}
+
+	while (pos < escapedUrl.length())
+	{
+		if (escapedUrl[pos] == '%')
 		{
-			unescapedUrlStr = unescapedUrl;
-#ifdef USE_NEON
-			free(unescapedUrl);
-#else
-#ifdef USE_CURL
-			curl_free(unescapedUrl);
-#endif
-#endif
+			char numberStr[3];
+			unsigned int number;
+
+			numberStr[0] = escapedUrl[pos + 1];
+			numberStr[1] = escapedUrl[pos + 2];
+			numberStr[2] = '\0';
+			if (sscanf(numberStr, "%x", &number) == 1)
+			{
+				unescapedUrl += (char)(0x0ff & number);
+				pos += 3;
+			}
+		}
+		else
+		{
+			unescapedUrl += escapedUrl[pos];
+			++pos;
 		}
 	}
 
-	return unescapedUrlStr;
+	return unescapedUrl;
 }
 
 string Url::getProtocol(void) const

@@ -20,7 +20,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "HtmlTokenizer.h"
 #include "Url.h"
 #include "DownloaderFactory.h"
 
@@ -28,17 +27,16 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-	if (argc < 3)
+	if (argc < 2)
 	{
-		cerr << "Usage: <downloader name> <URL> [STRIP]" << endl;
+		cerr << "Usage: <URL>" << endl;
 		return EXIT_FAILURE;
 	}
 
 	DownloaderInterface::initialize();
 
-	string downloaderName = argv[1];
-	
-	Url thisUrl(argv[2]);
+	string url(argv[1]);
+	Url thisUrl(url);
 	cout << "Protocol: " << thisUrl.getProtocol() << endl;
 	cout << "User: " << thisUrl.getUser() << endl;
 	cout << "Password: " << thisUrl.getPassword() << endl;
@@ -46,21 +44,19 @@ int main(int argc, char **argv)
 	cout << "Location: " << thisUrl.getLocation() << endl;
 	cout << "File: " << thisUrl.getFile() << endl;
 	cout << "Parameters: " << thisUrl.getParameters() << endl;
-	cout << "Escaped URL: " << Url::escapeUrl(argv[2]) << endl;
 
 	// Which Downloader ?
-	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol(),
-		downloaderName);
+	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
 	if (myDownloader == NULL)
 	{
 		DownloaderInterface::shutdown();
-		cerr << "Couldn't obtain downloader instance (" << thisUrl.getProtocol() << "," << downloaderName << ")" << endl;
+		cerr << "Couldn't obtain downloader for protocol " << thisUrl.getProtocol() << endl;
 		return EXIT_FAILURE;
 	}
 
 	unsigned int urlContentLen;
 	string contentType;
-	DocumentInfo docInfo("Test", argv[2], "", "");
+	DocumentInfo docInfo("Test", url, "", "");
 	Document *urlDoc = myDownloader->retrieveUrl(docInfo);
 	if (urlDoc == NULL)
 	{
@@ -86,17 +82,7 @@ int main(int argc, char **argv)
 			cout << "Saving " << urlContentLen << " bytes to " << fileName << endl;
 
 			ofstream outputFile(fileName.c_str());
-			//outputFile.open(fileName.c_str(), ofstream::out|ofstream::trunc);
-			// Strip tags ?
-			if ((argc >= 3) &&
-				(strncasecmp(argv[2], "STRIP", 5) == 0))
-			{
-				outputFile << HtmlTokenizer::stripTags(urlContent);
-			}
-			else
-			{
-				outputFile.write(urlContent, urlContentLen);
-			}
+			outputFile.write(urlContent, urlContentLen);
 			outputFile.close();
 		}
 		else
