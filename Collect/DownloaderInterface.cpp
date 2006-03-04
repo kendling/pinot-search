@@ -14,10 +14,84 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <pthread.h>
+#include <iostream>
+
+#include <openssl/crypto.h>
+
 #include "HtmlTokenizer.h"
 #include "DownloaderInterface.h"
 
 using namespace std;
+
+// OpenSSL multi-thread support, required by Curl
+static pthread_mutex_t locksTable[CRYPTO_NUM_LOCKS];
+
+// OpenSSL locking functiom
+static void lockingCallback(int mode, int n, const char *file, int line)
+{
+        int status = 0;
+
+        if (mode & CRYPTO_LOCK)
+        {
+                status = pthread_mutex_lock(&(locksTable[n]));
+#ifdef DEBUG
+                if (status != 0)
+                {
+                        cout << "lockingCallback: failed to lock mutex " << n << endl;
+                }
+#endif
+        }
+        else
+        {
+                status = pthread_mutex_unlock(&(locksTable[n]));
+#ifdef DEBUG
+                if (status != 0)
+                {
+                        cout << "lockingCallback: failed to unlock mutex " << n << endl;
+                }
+#endif
+        }
+}
+
+static unsigned long idCallback(void)
+{
+        return (unsigned long)pthread_self();
+}
+
+/// Initialize downloaders.
+void DownloaderInterface::initialize(void)
+{
+	pthread_mutexattr_t mutexAttr;
+
+	pthread_mutexattr_init(&mutexAttr);
+	pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_ERRORCHECK);
+
+	// Initialize the OpenSSL mutexes
+	for (unsigned int lockNum = 0; lockNum < CRYPTO_NUM_LOCKS; ++lockNum)
+	{
+		pthread_mutex_init(&(locksTable[lockNum]), &mutexAttr);
+	}
+	// Set the callbacks
+	CRYPTO_set_locking_callback(lockingCallback);
+	CRYPTO_set_id_callback(idCallback);
+
+	pthread_mutexattr_destroy(&mutexAttr);
+}
+
+/// Shutdown downloaders.
+void DownloaderInterface::shutdown(void)
+{
+	// Reset the OpenSSL callbacks
+	CRYPTO_set_id_callback(NULL);
+	CRYPTO_set_locking_callback(NULL);
+
+	// Free the mutexes
+	for (unsigned int lockNum = 0; lockNum < CRYPTO_NUM_LOCKS; ++lockNum)
+	{
+		pthread_mutex_destroy(&(locksTable[lockNum]));
+	}
+}
 
 DownloaderInterface::DownloaderInterface() :
 	m_timeout(60)
@@ -38,10 +112,4 @@ bool DownloaderInterface::setSetting(const string &name, const string &value)
 void DownloaderInterface::setTimeout(unsigned int milliseconds)
 {
 	m_timeout = milliseconds;
-}
-
-/// Stops the current action.
-bool DownloaderInterface::stop(void)
-{
-	return false;
 }

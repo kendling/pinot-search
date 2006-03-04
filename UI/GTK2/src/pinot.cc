@@ -32,7 +32,7 @@
 #include "XapianDatabaseFactory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
-#include "NeonDownloader.h"
+#include "DownloaderInterface.h"
 #include "MozillaRenderer.h"
 #include "config.h"
 #include "NLS.h"
@@ -74,7 +74,7 @@ static void closeAll(void)
 	outputFile.close();
 
 	MozillaRenderer::shutdown();
-	NeonDownloader::shutdown();
+	DownloaderInterface::shutdown();
 }
 
 static void quitAll(int sigNum)
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 	textdomain(GETTEXT_PACKAGE);
 #endif //ENABLE_NLS
 
-	NeonDownloader::initialize();
+	DownloaderInterface::initialize();
 	MozillaRenderer::initialize();
 	Glib::thread_init();
 	Gtk::Main m(&argc, &argv);

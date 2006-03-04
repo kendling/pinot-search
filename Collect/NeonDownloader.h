@@ -19,10 +19,6 @@
 
 #include <string>
 
-#include <neon/ne_socket.h>
-#include <neon/ne_session.h>
-#include <neon/ne_request.h>
-
 #include "DownloaderInterface.h"
 
 class NeonDownloader : public DownloaderInterface
@@ -31,25 +27,15 @@ class NeonDownloader : public DownloaderInterface
 		NeonDownloader();
 		virtual ~NeonDownloader();
 
-		/// Initializes the downloader.
-		static void initialize(void);
-
-		/// Shutdowns the downloader.
-		static void shutdown(void);
-
 		/// Sets a (name, value) setting; true if success.
 		virtual bool setSetting(const std::string &name, const std::string &value);
 
 		/// Retrieves the specified document; NULL if error. Caller deletes.
 		virtual Document *retrieveUrl(const DocumentInfo &docInfo);
 
-		/// Stops the current action.
-		virtual bool stop(void);
-
 	protected:
+		static unsigned int m_initialized;
 		std::string m_userAgent;
-		ne_session *m_pSession;
-		ne_request *m_pRequest;
 
 		std::string handleRedirection(const char *pBody, unsigned int length);
 

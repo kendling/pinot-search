@@ -14,39 +14,33 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _DOWNLOADER_INTERFACE_H
-#define _DOWNLOADER_INTERFACE_H
+#ifndef _CURL_DOWNLOADER_H
+#define _CURL_DOWNLOADER_H
 
 #include <string>
 
-#include "Document.h"
+#include "DownloaderInterface.h"
 
-/// Interface implemented by downloaders.
-class DownloaderInterface
+class CurlDownloader : public DownloaderInterface
 {
 	public:
-		virtual ~DownloaderInterface();
-
-		/// Initializes downloaders.
-		static void initialize(void);
-
-		/// Shutdowns downloaders.
-		static void shutdown(void);
+		CurlDownloader();
+		virtual ~CurlDownloader();
 
 		/// Sets a (name, value) setting; true if success.
 		virtual bool setSetting(const std::string &name, const std::string &value);
 
-		/// Sets timeout.
-		virtual void setTimeout(unsigned int milliseconds);
-
 		/// Retrieves the specified document; NULL if error. Caller deletes.
-		virtual Document *retrieveUrl(const DocumentInfo &docInfo) = 0;
+		virtual Document *retrieveUrl(const DocumentInfo &docInfo);
 
 	protected:
-		unsigned int m_timeout;
+		static unsigned int m_initialized;
+		std::string m_userAgent;
 
-		DownloaderInterface();
+	private:
+		CurlDownloader(const CurlDownloader &other);
+		CurlDownloader &operator=(const CurlDownloader &other);
 
 };
 
-#endif // _DOWNLOADER_INTERFACE_H
+#endif // _CURL_DOWNLOADER_H
