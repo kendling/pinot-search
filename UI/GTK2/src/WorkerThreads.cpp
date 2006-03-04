@@ -341,12 +341,12 @@ void ThreadsManager::disconnect(void)
 
 IndexBrowserThread::IndexBrowserThread(const string &indexName,
 	unsigned int maxDocsCount, unsigned int startDoc) :
-	WorkerThread()
+	WorkerThread(),
+	m_indexName(indexName),
+	m_indexDocsCount(0),
+	m_maxDocsCount(maxDocsCount),
+	m_startDoc(startDoc)
 {
-	m_indexName = indexName;
-	m_indexDocsCount = 0;
-	m_maxDocsCount = maxDocsCount;
-	m_startDoc = startDoc;
 }
 
 IndexBrowserThread::~IndexBrowserThread()
@@ -462,11 +462,12 @@ void IndexBrowserThread::doWork(void)
 
 QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
 	const string &engineOption, const QueryProperties &queryProps) :
-	m_queryProps(queryProps), WorkerThread()
+	WorkerThread(),
+	m_queryProps(queryProps),
+	m_engineName(engineName),
+	m_engineDisplayableName(engineDisplayableName),
+	m_engineOption(engineOption)
 {
-	m_engineName = engineName;
-	m_engineDisplayableName = engineDisplayableName;
-	m_engineOption = engineOption;
 }
 
 QueryingThread::~QueryingThread()
@@ -567,10 +568,10 @@ void QueryingThread::doWork(void)
 }
 
 LabelQueryThread::LabelQueryThread(const string &indexName, const string &labelName) :
-	WorkerThread()
+	WorkerThread(),
+	m_indexName(indexName),
+	m_labelName(labelName)
 {
-	m_indexName = indexName;
-	m_labelName = labelName;
 }
 
 LabelQueryThread::~LabelQueryThread()
@@ -689,12 +690,12 @@ void LabelUpdateThread::doWork(void)
 }
 
 DownloadingThread::DownloadingThread(const string url, bool fromCache) :
-	WorkerThread()
+	WorkerThread(),
+	m_url(url),
+	m_fromCache(fromCache),
+	m_pDoc(NULL),
+	m_pDownloader(NULL)
 {
-	m_url = url;
-	m_fromCache = fromCache;
-	m_pDoc = NULL;
-	m_downloader = NULL;
 }
 
 DownloadingThread::~DownloadingThread()
@@ -703,9 +704,9 @@ DownloadingThread::~DownloadingThread()
 	{
 		delete m_pDoc;
 	}
-	if (m_downloader != NULL)
+	if (m_pDownloader != NULL)
 	{
-		delete m_downloader;
+		delete m_pDownloader;
 	}
 }
 
@@ -726,24 +727,20 @@ const Document *DownloadingThread::getDocument(void) const
 
 bool DownloadingThread::stop(void)
 {
-	if (m_downloader->stop() == true)
-	{
-		m_done = true;
-		m_status = _("Stopped retrieval of");
-		m_status += " ";
-		m_status += m_url;
-		return true;
-	}
+	m_done = true;
+	m_status = _("Stopped retrieval of");
+	m_status += " ";
+	m_status += m_url;
 
-	return false;
+	return true;
 }
 
 void DownloadingThread::doWork(void)
 {
-	if (m_downloader != NULL)
+	if (m_pDownloader != NULL)
 	{
-		delete m_downloader;
-		m_downloader = NULL;
+		delete m_pDownloader;
+		m_pDownloader = NULL;
 	}
 
 	Url thisUrl(m_url);
@@ -762,8 +759,8 @@ void DownloadingThread::doWork(void)
 	else
 	{
 		// Get a Downloader, the default one will do
-		m_downloader = DownloaderFactory::getDownloader(thisUrl.getProtocol(), "");
-		if (m_downloader == NULL)
+		m_pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol(), "");
+		if (m_pDownloader == NULL)
 		{
 			m_status = _("Couldn't obtain downloader for protocol");
 			m_status += " ";
@@ -773,7 +770,7 @@ void DownloadingThread::doWork(void)
 		{
 			DocumentInfo docInfo("", m_url, "", "");
 
-			m_pDoc = m_downloader->retrieveUrl(docInfo);
+			m_pDoc = m_pDownloader->retrieveUrl(docInfo);
 		}
 	}
 
@@ -1015,24 +1012,21 @@ void IndexingThread::doWork(void)
 
 UnindexingThread::UnindexingThread(const set<unsigned int> &docIdList) :
 	WorkerThread(),
+	m_indexLocation(PinotSettings::getInstance().m_indexLocation),
 	m_docsCount(0)
 {
 	copy(docIdList.begin(), docIdList.end(), inserter(m_docIdList, m_docIdList.begin()));
-	m_indexLocation = PinotSettings::getInstance().m_indexLocation;
 }
 
 UnindexingThread::UnindexingThread(const set<string> &labelNames, const string &indexLocation) :
 	WorkerThread(),
+	m_indexLocation(indexLocation),
 	m_docsCount(0)
 {
 	copy(labelNames.begin(), labelNames.end(), inserter(m_labelNames, m_labelNames.begin()));
 	if (indexLocation.empty() == true)
 	{
 		m_indexLocation = PinotSettings::getInstance().m_indexLocation;
-	}
-	else
-	{
-		m_indexLocation = indexLocation;
 	}
 }
 
@@ -1128,11 +1122,11 @@ void UnindexingThread::doWork(void)
 
 UpdateDocumentThread::UpdateDocumentThread(const string &indexName,
 	unsigned int docId, const DocumentInfo &docInfo) :
-	WorkerThread()
+	WorkerThread(),
+	m_indexName(indexName),
+	m_docId(docId),
+	m_docInfo(docInfo)
 {
-	m_indexName = indexName;
-	m_docId = docId;
-	m_docInfo = docInfo;
 }
 
 UpdateDocumentThread::~UpdateDocumentThread()
@@ -1204,150 +1198,12 @@ void UpdateDocumentThread::doWork(void)
 	}
 }
 
-ListenerThread::ListenerThread(const string &fifoFileName) :
-	WorkerThread(),
-	m_ctrlReadPipe(-1),
-	m_ctrlWritePipe(-1)
-{
-	int pipeFds[2];
-
-	if (pipe(pipeFds) == 0)
-	{
-		// This pipe will allow to stop select()
-		m_ctrlReadPipe = pipeFds[0];
-		m_ctrlWritePipe = pipeFds[1];
-	}
-	m_fifoFileName = fifoFileName;
-}
-
-ListenerThread::~ListenerThread()
-{
-	close(m_ctrlReadPipe);
-	close(m_ctrlWritePipe);
-}
-
-string ListenerThread::getType(void) const
-{
-	return "ListenerThread";
-}
-
-bool ListenerThread::stop(void)
-{
-	m_done = true;
-	write(m_ctrlWritePipe, "Stop", 4);
-	m_status = _("Stopped listening on");
-	m_status += " ";
-	m_status += m_fifoFileName;
-
-	return true;
-}
-
-Signal2<void, DocumentInfo, string>& ListenerThread::getReceptionSignal(void)
-{
-	return m_signalReception;
-}
-
-void ListenerThread::doWork(void)
-{
-	if (unlink(m_fifoFileName.c_str()) != 0)
-	{
-#ifdef DEBUG
-		cout << "ListenerThread::doWork: couldn't delete FIFO at " << m_fifoFileName << endl;
-#endif
-	}
-
-	if (mkfifo(m_fifoFileName.c_str(), S_IRUSR|S_IWUSR) != 0)
-	{
-#ifdef DEBUG
-		cout << "ListenerThread::doWork: couldn't create FIFO at " << m_fifoFileName << endl;
-#endif
-	}
-
-	// Ignore SIGPIPE
-	if (sigset(SIGPIPE, SIG_IGN) == SIG_ERR)
-	{
-#ifdef DEBUG
-		cout << "ListenerThread::doWork: couldn't ignore SIGPIPE" << endl;
-#endif
-	}
-
-	// Open the FIFO
-	int fd = open(m_fifoFileName.c_str(), O_RDWR);
-	if (fd != -1)
-	{
-		// Set the file in non-blocking mode
-		int flags = fcntl(fd, F_GETFL);
-		flags |= O_NONBLOCK;
-		fcntl(fd, F_SETFL, (long)flags);
-
-		fd_set listenSet;
-		FD_ZERO(&listenSet);
-		FD_SET(fd, &listenSet);
-		if (m_ctrlReadPipe >= 0)
-		{
-			FD_SET(m_ctrlReadPipe, &listenSet);
-		}
-
-		// Listen and wait for something to read
-		while (m_done == false)
-		{
-			int fdCount = select(max(fd, m_ctrlReadPipe) + 1, &listenSet, NULL, NULL, NULL);
-			if ((fdCount < 0) &&
-				(errno != EINTR))
-			{
-#ifdef DEBUG
-				cout << "ListenerThread::doWork: select() failed" << endl;
-#endif
-				break;
-			}
-			else if (FD_ISSET(fd, &listenSet))
-			{
-				string xmlMsg;
-				char buffer[1024];
-
-#ifdef DEBUG
-				cout << "ListenerThread::doWork: reading..." << endl;
-#endif
-				ssize_t bytes = read(fd, buffer, 1024);
-				while (bytes > 0)
-				{
-					xmlMsg += string(buffer, bytes);
-#ifdef DEBUG
-					cout << "ListenerThread::doWork: read " << bytes << " bytes" << endl;
-#endif
-					bytes = read(fd, buffer, 1024);
-				}
-
-				// FIXME: ensure the XML is valid, use libxml++ parser
-				string location = StringManip::extractField(xmlMsg, "<location>", "</location>");
-				Url urlObj(location);
-				DocumentInfo docInfo(StringManip::extractField(xmlMsg, "<title>", "</title>"),
-					location, MIMEScanner::scanUrl(urlObj), "");
-				string labelName = StringManip::extractField(xmlMsg, "<label>", "</label>");
-				string content = StringManip::extractField(xmlMsg, "<content>", "</content>");
-#ifdef DEBUG
-				cout << "ListenerThread::doWork: " << content.length() << " bytes of content" << endl;
-#endif
-
-				// Signal
-				m_signalReception(docInfo, labelName);
-			}
-		}
-
-		close(fd);
-	}
-	else
-	{
-		m_status = _("Couldn't read FIFO at");
-		m_status += " ";
-		m_status += m_fifoFileName;
-	}
-}
-
 MonitorThread::MonitorThread(MonitorHandler *pHandler) :
 	WorkerThread(),
 	m_ctrlReadPipe(-1),
-	m_ctrlWritePipe(-1)
+	m_ctrlWritePipe(-1),
+	m_pHandler(pHandler),
+	m_numCPUs(1)
 {
 	int pipeFds[2];
 
@@ -1357,7 +1213,6 @@ MonitorThread::MonitorThread(MonitorHandler *pHandler) :
 		m_ctrlReadPipe = pipeFds[0];
 		m_ctrlWritePipe = pipeFds[1];
 	}
-	m_pHandler = pHandler;
 	m_numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
 }
 
@@ -1422,9 +1277,6 @@ void MonitorThread::doWork(void)
 			FD_SET(m_ctrlReadPipe, &listenSet);
 		}
 
-#ifdef DEBUG
-		cout << "MonitorThread::doWork: checking locations" << endl;
-#endif
 		if ((setLocationsToMonitor == true) &&
 			(m_pHandler->getFileSystemLocations(fsLocations) > 0) &&
 			(m_pHandler->hasNewLocations() == true))
@@ -1487,9 +1339,6 @@ void MonitorThread::doWork(void)
 		}
 		setLocationsToMonitor = false;
 
-#ifdef DEBUG
-		cout << "MonitorThread::doWork: starting select()" << endl;
-#endif
 		int fdCount = select(max(famFd, m_ctrlReadPipe) + 1, &listenSet, NULL, NULL, &selectTimeout);
 		if ((fdCount < 0) &&
 			(errno != EINTR))

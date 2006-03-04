@@ -258,7 +258,7 @@ class DownloadingThread : public WorkerThread
 		std::string m_url;
 		bool m_fromCache;
 		Document *m_pDoc;
-		DownloaderInterface *m_downloader;
+		DownloaderInterface *m_pDownloader;
 
 		virtual void doWork(void);
 
@@ -358,32 +358,6 @@ class UpdateDocumentThread : public WorkerThread
 	private:
 		UpdateDocumentThread(const UpdateDocumentThread &other);
 		UpdateDocumentThread &operator=(const UpdateDocumentThread &other);
-
-};
-
-class ListenerThread : public WorkerThread
-{
-	public:
-		ListenerThread(const std::string &fifoFileName);
-		virtual ~ListenerThread();
-
-		virtual std::string getType(void) const;
-
-		virtual bool stop(void);
-
-		SigC::Signal2<void, DocumentInfo, std::string>& getReceptionSignal(void);
-
-	protected:
-		int m_ctrlReadPipe;
-		int m_ctrlWritePipe;
-		std::string m_fifoFileName;
-		SigC::Signal2<void, DocumentInfo, std::string> m_signalReception;
-
-		virtual void doWork(void);
-
-	private:
-		ListenerThread(const ListenerThread &other);
-		ListenerThread &operator=(const ListenerThread &other);
 
 };
 

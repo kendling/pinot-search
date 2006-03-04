@@ -15,7 +15,13 @@
  */
 
 #include "XapianCollector.h"
+#ifdef USE_NEON
 #include "NeonDownloader.h"
+#else
+#ifdef USE_CURL
+#include "CurlDownloader.h"
+#endif
+#endif
 #include "FileCollector.h"
 #include "MboxCollector.h"
 #include "DownloaderFactory.h"
@@ -23,25 +29,31 @@
 /// Returns a Downloader of the specified type; NULL if unavailable.
 DownloaderInterface *DownloaderFactory::getDownloader(string protocol, string type)
 {
-	DownloaderInterface *myDownloader = NULL;
+	DownloaderInterface *pDownloader = NULL;
 
 	// Choice by protocol
 	if (protocol == "http")
 	{
-		myDownloader = new NeonDownloader();
+#ifdef USE_NEON
+		pDownloader = new NeonDownloader();
+#else
+#ifdef USE_CURL
+		pDownloader = new CurlDownloader();
+#endif
+#endif
 	}
 	else if (protocol == "xapian")
 	{
-		myDownloader = new XapianCollector();
+		pDownloader = new XapianCollector();
 	}
 	else if (protocol == "file")
 	{
-		myDownloader = new FileCollector();
+		pDownloader = new FileCollector();
 	}
 	else if (protocol == "mailbox")
 	{
-		myDownloader = new MboxCollector();
+		pDownloader = new MboxCollector();
 	}
 
-	return myDownloader;
+	return pDownloader;
 }

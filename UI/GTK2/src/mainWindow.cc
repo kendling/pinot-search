@@ -214,13 +214,6 @@ mainWindow::mainWindow() :
 	m_state.connect();
 
 	// FIXME: delete all "ignored" threads when exiting !!!
-	// Fire up a listener thread
-	ListenerThread *pListenThread = new ListenerThread(PinotSettings::getConfigurationDirectory() + string("/fifo"));
-	// Connect to its reception signal
-	pListenThread->getReceptionSignal().connect(
-		SigC::slot(*this, &mainWindow::on_message_reception));
-	start_thread(pListenThread, true);
-
 	// Fire up the mail monitor thread
 	MboxHandler *pMbox = new MboxHandler();
 	// Connect to its update signal
@@ -381,9 +374,6 @@ bool mainWindow::on_queryCompletion_match(const ustring &key, const TreeModel::c
 	TreeModel::Row row = *iter;
 
 	ustring match = row[m_liveQueryColumns.m_name];
-#ifdef DEBUG
-	cout << "mainWindow::on_queryCompletion_match: " << key << ", " << match << endl;
-#endif
 
 	return true;
 }
@@ -1062,6 +1052,9 @@ void mainWindow::on_thread_end()
 		{
 			// Yes, it did
 			status = _("Updated document");
+			status += " ";
+			snprintf(docIdStr, 64, "%u", docId);
+			status += docIdStr;
 
 			if (pIndexTree != NULL)
 			{
@@ -1183,10 +1176,6 @@ void mainWindow::on_thread_end()
 
 		status = _("Updated document");
 		set_status(status);
-	}
-	else if (type == "ListenerThread")
-	{
-		// FIXME: do something about this
 	}
 
 	// Delete the thread

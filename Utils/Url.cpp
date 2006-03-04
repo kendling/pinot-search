@@ -14,7 +14,13 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifdef USE_NEON
 #include <neon/ne_uri.h>
+#else
+#ifdef USE_CURL
+#include <curl/curl.h>
+#endif
+#endif
 
 #include "StringManip.h"
 #include "Url.h"
@@ -194,7 +200,6 @@ string Url::canonicalizeUrl(const string &url)
 		{
 			canonicalUrl.replace(pos, host.length(), StringManip::toLowerCase(host));
 		}
-		canonicalUrl = escapeUrl(canonicalUrl);;
 	}
 
 	// Get rid of the last directory's slash
@@ -276,19 +281,70 @@ string Url::prettifyUrl(const string &url, unsigned int maxLen)
 /// Escapes an URL.
 string Url::escapeUrl(const string &url)
 {
-	string escapedUrlStr = "";
+	string escapedUrl(url);
 
 	if (url.empty() == false)
 	{
-		char *escapedUrl = ne_path_escape(url.c_str());
-		if (escapedUrl != NULL)
+#ifdef USE_NEON
+		char *pEscapedUrl = ne_path_escape(url.c_str());
+		if (pEscapedUrl != NULL)
 		{
-			escapedUrlStr = escapedUrl;
-			free(escapedUrl);
+			escapedUrl = pEscapedUrl;
+			free(pEscapedUrl);
 		}
+#else
+#ifdef USE_CURL
+		Url thisUrl(url);
+		string location(thisUrl.getLocation());
+		string file(thisUrl.getFile());
+		string params(thisUrl.getParameters());
+
+		if (location.empty() == false)
+		{
+			char *pEscapedUrl = curl_escape(location.c_str(), location.length());
+			if (pEscapedUrl != NULL)
+			{
+				string::size_type pos = escapedUrl.find(location.c_str());
+				if (pos != string::npos)
+				{
+					escapedUrl.replace(pos, location.length(), pEscapedUrl);
+				}
+				curl_free(pEscapedUrl);
+			}
+		}
+
+		if (file.empty() == false)
+		{
+			char *pEscapedUrl = curl_escape(file.c_str(), file.length());
+			if (pEscapedUrl != NULL)
+			{
+				string::size_type pos = escapedUrl.find(file.c_str());
+				if (pos != string::npos)
+				{
+					escapedUrl.replace(pos, file.length(), pEscapedUrl);
+				}
+				curl_free(pEscapedUrl);
+			}
+		}
+
+		if (params.empty() == false)
+		{
+			char *pEscapedUrl = curl_escape(params.c_str(), params.length());
+			if (pEscapedUrl != NULL)
+			{
+				string::size_type pos = escapedUrl.find(params.c_str());
+				if (pos != string::npos)
+				{
+					escapedUrl.replace(pos, params.length(), pEscapedUrl);
+				}
+				curl_free(pEscapedUrl);
+			}
+		}
+#endif
+#endif
 	}
 
-	return escapedUrlStr;
+	return escapedUrl;
 }
 
 /// Unescapes an URL.
@@ -298,11 +354,23 @@ string Url::unescapeUrl(const string &escapedUrl)
 
 	if (escapedUrl.empty() == false)
 	{
+#ifdef USE_NEON
 		char *unescapedUrl = ne_path_unescape(escapedUrl.c_str());
+#else
+#ifdef USE_CURL
+		char *unescapedUrl = curl_unescape(escapedUrl.c_str(), escapedUrl.length());
+#endif
+#endif
 		if (unescapedUrl != NULL)
 		{
 			unescapedUrlStr = unescapedUrl;
+#ifdef USE_NEON
 			free(unescapedUrl);
+#else
+#ifdef USE_CURL
+			curl_free(unescapedUrl);
+#endif
+#endif
 		}
 	}
 

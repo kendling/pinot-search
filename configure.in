@@ -48,6 +48,8 @@ fi
 
 AC_LANG_CPLUSPLUS
 
+AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+
 dnl Xapian
 AC_PATH_PROG(XAPIAN_CONFIG, xapian-config, no)
 if test "$XAPIAN_CONFIG" = "no" ; then
@@ -57,16 +59,42 @@ fi
 XAPIAN_CFLAGS=`$XAPIAN_CONFIG --cxxflags`
 XAPIAN_LIBS=`$XAPIAN_CONFIG --libs`
 
+dnl Neon or Curl ?
+AC_MSG_CHECKING(which HTTP library to use)
+AC_ARG_WITH(http, AS_HELP_STRING(--with-http@<:@=neon|curl@:>@,
+	which HTTP library to use (default: neon)))
+httplibrary=$with_http
+if test "x$httplibrary" = "x"; then
+	httplibrary="neon"
+fi
+AC_MSG_RESULT($httplibrary)
+
+case "$httplibrary" in
+neon)
+PKG_CHECK_MODULES(NEON, neon >= 0.24 )
+PKG_CHECK_MODULES(SSL, openssl >= 0.9.7 )
+HTTP_LIBRARY="USE_NEON"
+;;
+curl)
+AC_PATH_PROG(CURL_CONFIG, curl-config, no)
+if test "$CURL_CONFIG" = "no" ; then
+   AC_MSG_ERROR([Can't find curl-config in $PATH.])
+   exit 1
+fi
+CURL_CFLAGS=`$CURL_CONFIG --cflags`
+CURL_LIBS=`$CURL_CONFIG --libs`
+HTTP_LIBRARY="USE_CURL"
+;;
+esac
+
 dnl Other libraries
 MISC_LIBS="-lmagic -lcrypt"
 AC_SUBST(MISC_LIBS)
 PKG_CHECK_MODULES(SQL, sqlite3 >= 3.1 )
 AC_SUBST(SQL_CFLAGS)
 AC_SUBST(SQL_LIBS)
-PKG_CHECK_MODULES(NEON, neon >= 0.24 )
-PKG_CHECK_MODULES(SSL, openssl >= 0.9.7 )
-HTTP_CFLAGS="$NEON_CFLAGS $SSL_CFLAGS"
-HTTP_LIBS="$NEON_LIBS $SSL_LIBS"
+HTTP_CFLAGS="$NEON_CFLAGS $SSL_CFLAGS $CURL_CFLAGS -D$HTTP_LIBRARY"
+HTTP_LIBS="$NEON_LIBS $SSL_LIBS $CURL_LIBS"
 AC_SUBST(HTTP_CFLAGS)
 AC_SUBST(HTTP_LIBS)
 PKG_CHECK_MODULES(MIME, gmime-2.0 >= 2.0 )
@@ -98,6 +126,6 @@ AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
 AC_OUTPUT( pinot.spec Makefile Utils/Makefile Tokenize/Makefile SQL/Makefile \
-	po/Makefile.in Collect/Makefile Search/Makefile Search/Google/Makefile \
+	po/Makefile.in Collect/Makefile Search/Makefile \
 	Index/Makefile UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
 
