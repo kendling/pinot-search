@@ -14,32 +14,24 @@ lib_LTLIBRARIES = libpdftokenizer.la librtftokenizer.la libwordtokenizer.la
 noinst_LTLIBRARIES = libTokenize.la
 
 libpdftokenizer_la_SOURCES = \
-	../Utils/StringManip.cpp \
 	PdfTokenizer.cpp \
 	HtmlTokenizer.cpp \
 	Tokenizer.cpp
 
-libpdftokenizer_la_LDFLAGS =
-
-libpdftokenizer_la_LIBADD =
+libpdftokenizer_la_LIBADD = -L../Utils -lUtils
 
 librtftokenizer_la_SOURCES = \
-	../Utils/StringManip.cpp \
 	RtfTokenizer.cpp \
 	HtmlTokenizer.cpp \
 	Tokenizer.cpp
 
-librtftokenizer_la_LDFLAGS =
-
-librtftokenizer_la_LIBADD =
+librtftokenizer_la_LIBADD = -L../Utils -lUtils
 
 libwordtokenizer_la_SOURCES = \
 	WordTokenizer.cpp \
 	Tokenizer.cpp
 
-libwordtokenizer_la_LDFLAGS =
-
-libwordtokenizer_la_LIBADD =
+libwordtokenizer_la_LIBADD = -L../Utils -lUtils
 
 libTokenize_la_SOURCES = \
 	HtmlTokenizer.cpp \
