@@ -53,9 +53,6 @@ class IndexInterface
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const = 0;
 
-		/// Returns documents that have a label.
-		virtual bool getDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds) const = 0;
-
 		/// Updates the given document.
 		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens) = 0;
 
@@ -92,6 +89,10 @@ class IndexInterface
 
 		/// Lists document IDs.
 		virtual unsigned int listDocuments(std::set<unsigned int> &docIDList,
+			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
+
+		/// Lists documents that have a label.
+		virtual bool listDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
 
 	protected:

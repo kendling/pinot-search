@@ -310,6 +310,56 @@ void XapianIndex::setDocumentData(Xapian::Document &doc, const DocumentInfo &inf
 	doc.add_value(0, timeStr);
 }
 
+bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &docIds,
+	unsigned int maxDocsCount, unsigned int startDoc) const
+{
+	unsigned int docCount = 0;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return 0;
+	}
+
+	docIds.clear();
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+#ifdef DEBUG
+			cout << "XapianIndex::listDocumentsWithTerm: term " << term << endl;
+#endif
+			// Get a list of documents that have the term
+			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
+				(postingIter != pIndex->postlist_end(term)) && (docIds.size() < maxDocsCount);
+				++postingIter)
+			{
+				Xapian::docid docId = *postingIter;
+
+				// We cannot use postingIter->skip_to() because startDoc isn't an ID
+				if (docCount >= startDoc)
+				{
+					docIds.insert(docId);
+				}
+				++docCount;
+			}
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get document list: " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get document list, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+
+	return docIds.size();
+}
+
 //
 // Implementation of IndexInterface
 //
@@ -554,51 +604,6 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 	pDatabase->unlock();
 
 	return gotLabels;
-}
-
-/// Returns documents that have a label.
-bool XapianIndex::getDocumentsWithLabel(const string &name, set<unsigned int> &docIds) const
-{
-	bool lookedForLabel = false;
-
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return false;
-	}
-
-	docIds.clear();
-	try
-	{
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-		if (pIndex != NULL)
-		{
-			string term("XLABEL:");
-
-			// Get documents that have this label
-			term += name;
-			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
-				postingIter != pIndex->postlist_end(term); ++postingIter)
-			{
-				Xapian::docid docId = *postingIter;
-
-				docIds.insert(docId);
-			}
-			lookedForLabel = true;
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't get documents: " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't get documents, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
-
-	return lookedForLabel;
 }
 
 /// Updates the given document; true if success.
@@ -1147,46 +1152,17 @@ unsigned int XapianIndex::getDocumentsCount(void) const
 unsigned int XapianIndex::listDocuments(set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
-	unsigned int docCount = 0;
+	// Get documents that have the magic term
+	return listDocumentsWithTerm(MAGIC_TERM, docIds, maxDocsCount, startDoc);
+}
 
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return 0;
-	}
+/// Lists documents that have a label.
+bool XapianIndex::listDocumentsWithLabel(const string &name, set<unsigned int> &docIds,
+	unsigned int maxDocsCount, unsigned int startDoc) const
+{
+	string term("XLABEL:");
 
-	docIds.clear();
-	try
-	{
-		Xapian::Database *pIndex = pDatabase->readLock();
-		if (pIndex != NULL)
-		{
-			// Get a list of documents that have the magic term
-			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(MAGIC_TERM);
-				(postingIter != pIndex->postlist_end(MAGIC_TERM)) && (docIds.size() < maxDocsCount);
-				++postingIter)
-			{
-				Xapian::docid docId = *postingIter;
-
-				// We cannot use postingIter->skip_to() because startDoc isn't an ID
-				if (docCount >= startDoc)
-				{
-					docIds.insert(docId);
-				}
-				++docCount;
-			}
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't get document list: " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't get document list, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
-
-	return docIds.size();
+	// Get documents that have this label
+	term += name;
+	return listDocumentsWithTerm(term, docIds, maxDocsCount, startDoc);
 }

@@ -47,9 +47,6 @@ class XapianIndex : public IndexInterface
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const;
 
-		/// Returns documents that have a label.
-		virtual bool getDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds) const;
-
 		/// Updates the given document.
 		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens);
 
@@ -88,6 +85,10 @@ class XapianIndex : public IndexInterface
 		virtual unsigned int listDocuments(std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
+		/// Lists documents that have a label.
+		virtual bool listDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds,
+			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
+
 	protected:
 		static const unsigned int m_maxTermLength;
 		static const std::string MAGIC_TERM;
@@ -109,6 +110,9 @@ class XapianIndex : public IndexInterface
 
 		void setDocumentData(Xapian::Document &doc, const DocumentInfo &info,
 			const std::string &language) const;
+
+		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,
+			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
 	private:
 		XapianIndex(const XapianIndex &other);
