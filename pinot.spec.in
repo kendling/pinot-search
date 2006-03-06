@@ -11,8 +11,8 @@ Group: Applications/Internet
 Source: %{name}-%{version}.tar.gz
 URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-Requires: xapian-core-libs >= 0.9.4, neon >= 0.24, gtkmm24 >= 2.6, libxml++ >= 2.12, mozilla >= %{mozilla_ver}, sqlite >= 3.1.2, libtextcat >= 2.2, fam >= 2.6.10, gmime >= 2.1, file
-BuildRequires: xapian-core-devel >= 0.9.4, neon-devel >= 0.24, gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, mozilla-devel >= %{mozilla_ver}, sqlite-devel >= 3.1.2, libtextcat-devel >= 2.2, fam-devel >= 2.6.10, gmime-devel >= 2.1, file, boost-devel >= 1.32, desktop-file-utils
+Requires: xapian-core-libs >= 0.9.4, curl >= 7.13, gtkmm24 >= 2.6, libxml++ >= 2.12, mozilla >= %{mozilla_ver}, sqlite >= 3.1.2, libtextcat >= 2.2, fam >= 2.6.10, gmime >= 2.1, file
+BuildRequires: xapian-core-devel >= 0.9.4, curl-devel >= 7.13, gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, mozilla-devel >= %{mozilla_ver}, sqlite-devel >= 3.1.2, libtextcat-devel >= 2.2, fam-devel >= 2.6.10, gmime-devel >= 2.1, file, boost-devel >= 1.32, desktop-file-utils
 
 %description
 Pinot is a metasearch tool for the Free Desktop. It enables one to query
