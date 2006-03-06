@@ -49,7 +49,7 @@ class IndexTree : public Gtk::TreeView
 		bool addDocuments(const std::vector<IndexedDocument> &documentsList);
 
 		/// Appends a new row in the index tree.
-		bool appendDocument(const IndexedDocument &docInfo, bool labeled);
+		bool appendDocument(const IndexedDocument &docInfo, bool withColour);
 
 		/// Gets the first selected item's URL.
 		Glib::ustring getFirstSelectionURL(void);
@@ -60,18 +60,18 @@ class IndexTree : public Gtk::TreeView
 		/// Gets a list of selected items.
 		bool getSelection(std::vector<IndexedDocument> &documentsList);
 
-		/// Sets the current label colour.
-		void setCurrentLabelColour(unsigned short red, unsigned short green, unsigned short blue,
-			bool showingLabel = true);
+		/// Sets the current background colour.
+		void setCurrentBackgroundColour(unsigned short red, unsigned short green, unsigned short blue,
+			bool isVisible = true);
 
-		/// Sets the documents that match the current label.
-		void setLabel(const std::set<unsigned int> &documentsList);
+		/// Sets the documents that match the current background colour.
+		void setColourDocuments(const std::set<unsigned int> &documentsList);
 
 		/// Updates a document's properties.
 		void updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);
 
-		/// Marks a document as labeled.
-		void setDocumentLabeledState(unsigned int docId, bool labeled);
+		/// Marks a document as coloured.
+		void setDocumentColourState(unsigned int docId, bool withColour);
 
 		/**
 		  * Deletes the current selection.
@@ -106,11 +106,11 @@ class IndexTree : public Gtk::TreeView
 		SigC::Signal1<void, Glib::ustring> m_signalSelectionChanged;
 		PinotSettings &m_settings;
 		IndexModelColumns m_indexColumns;
-		Gdk::Color m_currentLabelColour;
-		bool m_showingLabel;
+		Gdk::Color m_currentBackgroundColour;
+		bool m_visibleColour;
 		bool m_listingIndex;
 
-		void renderLabel(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
+		void renderColour(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
 
 		void onButtonPressEvent(GdkEventButton *ev);
 

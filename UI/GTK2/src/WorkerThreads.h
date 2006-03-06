@@ -126,13 +126,15 @@ class ThreadsManager
 class IndexBrowserThread : public WorkerThread
 {
 	public:
-		IndexBrowserThread(const std::string &indexName,
+		IndexBrowserThread(const std::string &indexName, const std::string &labelName,
 			unsigned int maxDocsCount, unsigned int startDoc);
 		~IndexBrowserThread();
 
 		std::string getType(void) const;
 
 		std::string getIndexName(void) const;
+
+		std::string getLabelName(void) const;
 
 		unsigned int getDocumentsCount(void) const;
 
@@ -142,6 +144,7 @@ class IndexBrowserThread : public WorkerThread
 
 	protected:
 		std::string m_indexName;
+		std::string m_labelName;
 		unsigned int m_indexDocsCount;
 		unsigned int m_maxDocsCount;
 		unsigned int m_startDoc;
@@ -185,35 +188,6 @@ class QueryingThread : public WorkerThread
 	private:
 		QueryingThread(const QueryingThread &other);
 		QueryingThread &operator=(const QueryingThread &other);
-
-};
-
-class LabelQueryThread : public WorkerThread
-{
-	public:
-		LabelQueryThread(const std::string &indexName, const std::string &labelName);
-		virtual ~LabelQueryThread();
-
-		virtual std::string getType(void) const;
-
-		std::string getIndexName(void) const;
-
-		std::string getLabelName(void) const;
-
-		virtual bool stop(void);
-
-		const std::set<unsigned int> &getDocumentsList(void) const;
-
-	protected:
-		std::string m_indexName;
-		std::string m_labelName;
-		std::set<unsigned int> m_documentsList;
-
-		virtual void doWork(void);
-
-	private:
-		LabelQueryThread(const LabelQueryThread &other);
-		LabelQueryThread &operator=(const LabelQueryThread &other);
 
 };
 

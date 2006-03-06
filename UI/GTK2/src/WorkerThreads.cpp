@@ -340,9 +340,10 @@ void ThreadsManager::disconnect(void)
 }
 
 IndexBrowserThread::IndexBrowserThread(const string &indexName,
-	unsigned int maxDocsCount, unsigned int startDoc) :
+	const string &labelName, unsigned int maxDocsCount, unsigned int startDoc) :
 	WorkerThread(),
 	m_indexName(indexName),
+	m_labelName(labelName),
 	m_indexDocsCount(0),
 	m_maxDocsCount(maxDocsCount),
 	m_startDoc(startDoc)
@@ -361,6 +362,11 @@ string IndexBrowserThread::getType(void) const
 string IndexBrowserThread::getIndexName(void) const
 {
 	return m_indexName;
+}
+
+string IndexBrowserThread::getLabelName(void) const
+{
+	return m_labelName;
 }
 
 unsigned int IndexBrowserThread::getDocumentsCount(void) const
@@ -423,7 +429,14 @@ void IndexBrowserThread::doWork(void)
 	cout << "IndexBrowserThread::doWork: " << m_maxDocsCount << " off " << m_indexDocsCount
 		<< " documents to browse, starting at " << m_startDoc << endl;
 #endif
-	index.listDocuments(docIDList, m_maxDocsCount, m_startDoc);
+	if (m_labelName.empty() == true)
+	{
+		index.listDocuments(docIDList, m_maxDocsCount, m_startDoc);
+	}
+	else
+	{
+		index.listDocumentsWithLabel(m_labelName, docIDList, m_maxDocsCount, m_startDoc);
+	}
 	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
 	{
 		if (m_done == true)
@@ -565,71 +578,6 @@ void QueryingThread::doWork(void)
 		}
 	}
 	delete engine;
-}
-
-LabelQueryThread::LabelQueryThread(const string &indexName, const string &labelName) :
-	WorkerThread(),
-	m_indexName(indexName),
-	m_labelName(labelName)
-{
-}
-
-LabelQueryThread::~LabelQueryThread()
-{
-}
-
-string LabelQueryThread::getType(void) const
-{
-	return "LabelQueryThread";
-}
-
-string LabelQueryThread::getIndexName(void) const
-{
-	return m_indexName;
-}
-
-string LabelQueryThread::getLabelName(void) const
-{
-	return m_labelName;
-}
-
-bool LabelQueryThread::stop(void)
-{
-	m_done = true;
-	m_status = _("Stopped querying index labels");
-	return true;
-}
-
-const set<unsigned int> &LabelQueryThread::getDocumentsList(void) const
-{
-	return m_documentsList;
-}
-
-void LabelQueryThread::doWork(void)
-{
-	const map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
-
-	map<string, string>::const_iterator mapIter = indexesMap.find(m_indexName);
-	if (mapIter == indexesMap.end())
-	{
-		m_status = _("Index");
-		m_status += " ";
-		m_status += m_indexName;
-		m_status += " ";
-		m_status += _("doesn't exist");
-		return;
-	}
-
-	XapianIndex index(mapIter->second);
-	if (index.isGood() == false)
-	{
-		m_status = _("Index error on");
-		m_status += " ";
-		m_status += mapIter->second;
-		return;
-	}
-
-	index.getDocumentsWithLabel(m_labelName, m_documentsList);
 }
 
 LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToDelete,

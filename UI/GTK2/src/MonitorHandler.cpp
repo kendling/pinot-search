@@ -234,7 +234,7 @@ bool MboxHandler::deleteMessages(IndexInterface *pIndex, const string &sourceLab
 	}
 
 	// Unindex all documents labeled with this source label
-	if ((pIndex->getDocumentsWithLabel(sourceLabel, docIdList) == true) &&
+	if ((pIndex->listDocumentsWithLabel(sourceLabel, docIdList) == true) &&
 		(docIdList.empty() == false))
 	{
 #ifdef DEBUG

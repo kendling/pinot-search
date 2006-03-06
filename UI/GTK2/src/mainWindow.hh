@@ -126,7 +126,8 @@ protected:
 		unsigned int docId = 0);
 	void edit_query(QueryProperties &queryProps, bool newQuery);
 	void run_search(const QueryProperties &queryProps);
-	void browse_index(const Glib::ustring &indexName, unsigned int startDoc);
+	void browse_index(const Glib::ustring &indexName,
+		const Glib::ustring &labelName, unsigned int startDoc);
 	void index_document(const DocumentInfo &docInfo, const std::string &labelName,
 		unsigned int docId = 0);
 	bool view_document(const std::string &url, bool internalViewerOnly = false);
