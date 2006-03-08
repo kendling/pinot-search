@@ -37,7 +37,7 @@ public:
 protected:
 	std::string m_name;
 	QueryProperties& m_properties;
-	const std::set<PinotSettings::Label> &m_labels;
+	const std::set<std::string> &m_labels;
 	ComboModelColumns m_labelNameColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
 	ComboModelColumns m_languageColumns;

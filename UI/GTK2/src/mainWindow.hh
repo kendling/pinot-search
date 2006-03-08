@@ -168,6 +168,9 @@ private:
 			InternalState(mainWindow *pWindow);
 			~InternalState();
 
+			bool read_lock_lists(unsigned int where);
+			bool write_lock_lists(unsigned int where);
+			void unlock_lists(void);
 			void connect(void);
 
 			// Query
@@ -181,6 +184,7 @@ private:
 			std::map<DocumentInfo, string> m_indexQueue;
 
 		protected:
+			pthread_rwlock_t m_listsLock;
 			mainWindow *m_pMainWindow;
 
 	} m_state;

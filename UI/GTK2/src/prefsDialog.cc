@@ -131,40 +131,36 @@ void prefsDialog::populate_labelsTreeview()
 	TreeModel::iterator iter;
 	TreeModel::Row row;
 
-	if (m_settings.m_labels.empty() == true)
+	const set<string> &labels = m_settings.getLabels();
+	if (labels.empty() == true)
 	{
 		// These buttons will stay disabled until labels are added to the list
-		editLabelButton->set_sensitive(false);
 		removeLabelButton->set_sensitive(false);
 		return;
 	}
 
 	// Populate the tree
-	for (set<PinotSettings::Label>::iterator labelIter = m_settings.m_labels.begin();
-		labelIter != m_settings.m_labels.end();
+	for (set<string>::const_iterator labelIter = labels.begin();
+		labelIter != labels.end();
 		++labelIter)
 	{
 		// Create a new row
 		iter = m_refLabelsTree->append();
 		row = *iter;
-		// Set its name and colour
-		row[m_labelsColumns.m_name] = labelIter->m_name;
-		row[m_labelsColumns.m_oldName] = labelIter->m_name;
-		Color labelColour;
-		labelColour.set_rgb(labelIter->m_red, labelIter->m_green, labelIter->m_blue);
-		row[m_labelsColumns.m_colour] = labelColour;
+		// Set its name
+		row[m_labelsColumns.m_name] = *labelIter;
+		row[m_labelsColumns.m_oldName] = *labelIter;
 		// This allows to differentiate existing labels from new labels the user may create
 		row[m_labelsColumns.m_enabled] = true;
 	}
 
-	editLabelButton->set_sensitive(true);
 	removeLabelButton->set_sensitive(true);
 }
 
 bool prefsDialog::save_labelsTreeview()
 {
 	// Clear the current settings
-	m_settings.m_labels.clear();
+	m_settings.clearLabels();
 
 	// Go through the labels tree
 	TreeModel::Children children = m_refLabelsTree->children();
@@ -176,31 +172,26 @@ bool prefsDialog::save_labelsTreeview()
 			TreeModel::Row row = *iter;
 
 			// Add this new label to the settings
-			PinotSettings::Label label;
-			label.m_name = row[m_labelsColumns.m_name];
+			ustring labelName = row[m_labelsColumns.m_name];
 			ustring oldName = row[m_labelsColumns.m_oldName];
 			// Was this label renamed ?
 			if ((row[m_labelsColumns.m_enabled] == true) &&
-				(label.m_name != oldName))
+				(labelName != oldName))
 			{
 				// Yes, it was
-				m_renamedLabels[from_utf8(oldName)] = from_utf8(label.m_name);
+				m_renamedLabels[from_utf8(oldName)] = from_utf8(labelName);
 			}
 			// Check user didn't recreate this label after having deleted it
-			set<string>::iterator labelIter = m_deletedLabels.find(from_utf8(label.m_name));
+			set<string>::iterator labelIter = m_deletedLabels.find(from_utf8(labelName));
 			if (labelIter != m_deletedLabels.end())
 			{
 				m_deletedLabels.erase(labelIter);
 			}
 
-			Color labelColour = row[m_labelsColumns.m_colour];
-			label.m_red = labelColour.get_red();
-			label.m_green = labelColour.get_green();
-			label.m_blue = labelColour.get_blue();
 #ifdef DEBUG
-			cout << "prefsDialog::save_labelsTreeview: " << label.m_name << endl;
+			cout << "prefsDialog::save_labelsTreeview: " << labelName << endl;
 #endif
-			m_settings.m_labels.insert(label);
+			m_settings.addLabel(labelName);
 		}
 	}
 
@@ -343,49 +334,9 @@ void prefsDialog::on_addLabelButton_clicked()
 	row[m_labelsColumns.m_name] = to_utf8(_("New Label"));
 	// This marks the label as new
 	row[m_labelsColumns.m_enabled] = false;
-	// FIXME: initialize the colour to something meaningful, depending on the current theme perhaps ?
-	Color labelColour;
-	labelColour.set_rgb(0, 0, 0);
-	row[m_labelsColumns.m_colour] = labelColour;
 
 	// Enable these buttons
-	editLabelButton->set_sensitive(true);
 	removeLabelButton->set_sensitive(true);
-}
-
-void prefsDialog::on_editLabelButton_clicked()
-{
-	// Get the selected label in the list
-	TreeModel::iterator iter = labelsTreeview->get_selection()->get_selected();
-	if (iter)
-	{
-		TreeModel::Row row = *iter;
-		ustring dialogTitle = row[m_labelsColumns.m_name];
-		dialogTitle += " ";
-		dialogTitle += _("Colour");
-		Color labelColour = row[m_labelsColumns.m_colour];
-
-		ColorSelectionDialog colorSelector(dialogTitle);
-		ColorSelection *colorSel = colorSelector.get_colorsel();
-		if (colorSel != NULL)
-		{
-			colorSel->set_has_opacity_control(false);
-			colorSel->set_current_color(labelColour);
-		}
-		colorSelector.set_transient_for(*this);
-		colorSelector.show();
-		int result = colorSelector.run();
-		if (result == RESPONSE_OK)
-		{
-			// Retrieve the chosen colour
-			labelColour = colorSel->get_current_color();
-#ifdef DEBUG
-			cout << "prefsDialog::on_editLabelButton_clicked: selected " << labelColour.get_red() << " " << labelColour.get_green() << " " << labelColour.get_blue() << endl;
-#endif
-
-			row[m_labelsColumns.m_colour] = labelColour;
-		}
-	}
 }
 
 void prefsDialog::on_removeLabelButton_clicked()
@@ -409,7 +360,6 @@ void prefsDialog::on_removeLabelButton_clicked()
 		if (children.empty() == true)
 		{
 			// Disable these buttons
-			editLabelButton->set_sensitive(false);
 			removeLabelButton->set_sensitive(false);
 		}
 	}

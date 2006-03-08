@@ -33,7 +33,7 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	queryDialog_glade(),
 	m_name(properties.getName()),
 	m_properties(properties),
-	m_labels(PinotSettings::getInstance().m_labels),
+	m_labels(PinotSettings::getInstance().getLabels()),
 	m_badName(true)
 {
 	string name = m_properties.getName();
@@ -97,9 +97,9 @@ void queryDialog::populate_comboboxes()
 	labelFilterCombobox->set_active(0);
 
 	// Add all labels to both label combos and select the one defined for the query
-	for (set<PinotSettings::Label>::const_iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
+	for (set<string>::const_iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
 	{
-		string labelName = labelIter->m_name;
+		string labelName(*labelIter);
 
 		iter = m_refLabelNameTree->append();
 		row = *iter;

@@ -93,10 +93,6 @@ class ThreadsManager
 		ThreadsManager();
 		virtual ~ThreadsManager();
 
-		bool read_lock(unsigned int where);
-		bool write_lock(unsigned int where);
-		void unlock(void);
-
 		bool start_thread(WorkerThread *pWorkerThread, bool inBackground);
 
 		WorkerThread *on_thread_end(void);
@@ -116,6 +112,10 @@ class ThreadsManager
 		std::map<WorkerThread *, Glib::Thread *> m_threads;
 		unsigned int m_nextId;
 		unsigned int m_backgroundThreadsCount;
+
+		bool read_lock(void);
+		bool write_lock(void);
+		void unlock(void);
 
 	private:
 		ThreadsManager(const ThreadsManager &other);

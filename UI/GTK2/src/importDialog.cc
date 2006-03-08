@@ -148,10 +148,11 @@ void importDialog::populate_comboboxes(bool localOnly)
 	row[m_labelNameColumns.m_name] = _("None");
 	labelNameCombobox->set_active(0);
 	// Add all labels
-	for (set<PinotSettings::Label>::const_iterator labelIter = PinotSettings::getInstance().m_labels.begin();
-		labelIter != PinotSettings::getInstance().m_labels.end(); ++labelIter)
+	const set<string> &labels = PinotSettings::getInstance().getLabels();
+	for (set<string>::const_iterator labelIter = labels.begin();
+		labelIter != labels.end(); ++labelIter)
 	{
-		string labelName = labelIter->m_name;
+		string labelName(*labelIter);
 
 		iter = m_refLabelNameTree->append();
 		row = *iter;

@@ -155,7 +155,7 @@ void IndexPage::onLabelChanged(void)
 #ifdef DEBUG
 		cout << "IndexPage::onLabelChanged: current label now " << m_labelName << endl;
 #endif
-		if (m_labelName == _("None"))
+		if (m_labelName == _("All labels"))
 		{
 			m_labelName.clear();
 		}
@@ -201,12 +201,13 @@ void IndexPage::populateLabelCombobox(void)
 
 	iter = m_refLabelNameTree->append();
 	row = *iter;
-	row[m_labelNameColumns.m_name] = _("None");
+	row[m_labelNameColumns.m_name] = _("All labels");
 
-	for (set<PinotSettings::Label>::const_iterator labelIter = m_settings.m_labels.begin();
-		labelIter != m_settings.m_labels.end(); ++labelIter)
+	const set<string> &labels = m_settings.getLabels();
+	for (set<string>::const_iterator labelIter = labels.begin();
+		labelIter != labels.end(); ++labelIter)
 	{
-		string labelName(labelIter->m_name);
+		string labelName(*labelIter);
 
 		iter = m_refLabelNameTree->append();
 		row = *iter;

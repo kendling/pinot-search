@@ -177,26 +177,20 @@ ThreadsManager::~ThreadsManager()
 	pthread_rwlock_destroy(&m_rwLock);
 }
 
-bool ThreadsManager::read_lock(unsigned int where)
+bool ThreadsManager::read_lock(void)
 {
 	if (pthread_rwlock_rdlock(&m_rwLock) == 0)
 	{
-#ifdef DEBUG
-		cout << "ThreadsManager::read_lock " << where << endl;
-#endif
 		return true;
 	}
 
 	return false;
 }
 
-bool ThreadsManager::write_lock(unsigned int where)
+bool ThreadsManager::write_lock(void)
 {
 	if (pthread_rwlock_wrlock(&m_rwLock) == 0)
 	{
-#ifdef DEBUG
-		cout << "ThreadsManager::write_lock " << where << endl;
-#endif
 		return true;
 	}
 
@@ -205,9 +199,6 @@ bool ThreadsManager::write_lock(unsigned int where)
 
 void ThreadsManager::unlock(void)
 {
-#ifdef DEBUG
-	cout << "ThreadsManager::unlock" << endl;
-#endif
 	pthread_rwlock_unlock(&m_rwLock);
 }
 
@@ -216,7 +207,7 @@ WorkerThread *ThreadsManager::on_thread_end(void)
 	WorkerThread *pWorkerThread = NULL;
 
 	// Get the first thread that's finished
-	if (read_lock(1) == true)
+	if (read_lock() == true)
 	{
 		for (map<WorkerThread *, Thread *>::iterator threadIter = m_threads.begin();
 			threadIter != m_threads.end(); ++threadIter)
@@ -276,7 +267,7 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 	}
 
 	// Insert
-	if (write_lock(2) == true)
+	if (write_lock() == true)
 	{
 		m_threads[pWorkerThread] = pThread;
 
@@ -291,7 +282,7 @@ unsigned int ThreadsManager::get_threads_count(void)
 {
 	int count = 0;
 
-	if (read_lock(3) == true)
+	if (read_lock() == true)
 	{
 		count = m_threads.size() - m_backgroundThreadsCount;
 
@@ -320,7 +311,7 @@ void ThreadsManager::stop_threads(void)
 {
 	if (m_threads.empty() == false)
 	{
-		if (read_lock(4) == true)
+		if (read_lock() == true)
 		{
 			for_each(m_threads.begin(), m_threads.end(), DeleteMapPointer());
 			m_threads.clear();

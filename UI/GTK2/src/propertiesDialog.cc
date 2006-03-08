@@ -79,15 +79,16 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 	TreeModel::Row row;
 
 	// Populate the tree
-	const set<PinotSettings::Label> &sysLabels = PinotSettings::getInstance().m_labels;
-	for (set<PinotSettings::Label>::const_iterator labelIter = sysLabels.begin(); labelIter != sysLabels.end(); ++labelIter)
+	const set<string> &sysLabels = PinotSettings::getInstance().getLabels();
+	for (set<string>::const_iterator labelIter = sysLabels.begin(); labelIter != sysLabels.end(); ++labelIter)
 	{
+		string labelName(*labelIter);
+
 		// Create a new row
 		iter = m_refLabelsTree->append();
 		row = *iter;
 
-		row[m_labelsColumns.m_name] = labelIter->m_name;
-		string labelName = from_utf8(labelIter->m_name);
+		row[m_labelsColumns.m_name] = labelName;
 		// Is it in the document labels list ?
 		set<string>::const_iterator iter = find(docLabels.begin(), docLabels.end(), labelName);
 		if (iter != docLabels.end())

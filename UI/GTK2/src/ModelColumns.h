@@ -20,7 +20,6 @@
 #include <time.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
-#include <gdkmm/color.h>
 #include <gdkmm/event.h>
 #include <gtkmm/treemodel.h>
 #include <gtkmm/treemodelcolumn.h>
@@ -132,7 +131,6 @@ public:
 	Gtk::TreeModelColumn<bool> m_enabled;
 	Gtk::TreeModelColumn<Glib::ustring> m_name;
 	Gtk::TreeModelColumn<Glib::ustring> m_oldName;
-	Gtk::TreeModelColumn<Gdk::Color> m_colour;
 
 };
 

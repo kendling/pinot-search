@@ -107,22 +107,17 @@ class PinotSettings
 		/// Clears the queries map.
 		void clearQueries(void);
 
-		class Label
-		{
-			public:
-				Label();
-				Label(Glib::ustring &name, unsigned short red,
-					unsigned short green, unsigned short blue);
-				~Label();
+		/// Returns the labels list.
+		const std::set<std::string> &getLabels(void) const;
 
-				bool operator<(const Label &other) const;
-				bool operator==(const Label &other) const;
+		/// Adds a new label.
+		bool addLabel(const std::string &name);
 
-				Glib::ustring m_name;
-				unsigned short m_red;
-				unsigned short m_green;
-				unsigned short m_blue;
-		};
+		/// Removes a label.
+		bool removeLabel(const std::string &name);
+
+		/// Clears the labels list.
+		void clearLabels(void);
 
 		class MailAccount
 		{
@@ -152,7 +147,6 @@ class PinotSettings
 		int m_width;
 		int m_height;
 		int m_panePos;
-		std::set<Label> m_labels;
 		bool m_ignoreRobotsDirectives;
 		std::set<MailAccount> m_mailAccounts;
 
@@ -165,6 +159,7 @@ class PinotSettings
 		std::map<unsigned int, std::string> m_engineIds;
 		std::set<std::string> m_engineChannels;
 		std::map<std::string, QueryProperties> m_queries;
+		std::set<std::string> m_labels;
 
 		PinotSettings();
 		bool loadConfiguration(const std::string &fileName);

@@ -70,10 +70,46 @@ mainWindow::InternalState::InternalState(mainWindow *pWindow) :
 	m_browsingIndex(false),
 	m_pMainWindow(pWindow)
 {
+	pthread_rwlock_init(&m_listsLock, NULL);
 }
 
 mainWindow::InternalState::~InternalState()
 {
+	pthread_rwlock_destroy(&m_listsLock);
+}
+
+bool mainWindow::InternalState::read_lock_lists(unsigned int where)
+{
+	if (pthread_rwlock_rdlock(&m_listsLock) == 0)
+	{
+#ifdef DEBUG
+		cout << "mainWindow::read_lock_lists: " << where << endl;
+#endif
+		return true;
+	}
+
+	return false;
+}
+
+bool mainWindow::InternalState::write_lock_lists(unsigned int where)
+{
+	if (pthread_rwlock_wrlock(&m_listsLock) == 0)
+	{
+#ifdef DEBUG
+		cout << "mainWindow::write_lock_lists: " << where << endl;
+#endif
+		return true;
+	}
+
+	return false;
+}
+
+void mainWindow::InternalState::unlock_lists(void)
+{
+	pthread_rwlock_unlock(&m_listsLock);
+#ifdef DEBUG
+	cout << "mainWindow::unlock_lists" << endl;
+#endif
 }
 
 void mainWindow::InternalState::connect(void)
@@ -590,7 +626,7 @@ void mainWindow::on_index_changed(ustring indexName)
 			SigC::slot(*this, &mainWindow::on_indexForwardButton_clicked));
 
 		// Append the page
-		if (m_state.write_lock(1) == true)
+		if (m_state.write_lock_lists(1) == true)
 		{
 			int pageNum = m_pNotebook->append_page(*pIndexPage, *pTab);
 			m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
@@ -599,7 +635,7 @@ void mainWindow::on_index_changed(ustring indexName)
 				foundPage = true;
 			}
 
-			m_state.unlock();
+			m_state.unlock_lists();
 		}
 	}
 
@@ -697,12 +733,12 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 				pPage->hide();
 			}
 		}
-		else if (m_state.write_lock(2) == true)
+		else if (m_state.write_lock_lists(2) == true)
 		{
 			// Remove the page
 			m_pNotebook->remove_page(pageNum);
 
-			m_state.unlock();
+			m_state.unlock_lists();
 		}
 	}
 }
@@ -856,12 +892,12 @@ void mainWindow::on_thread_end()
 				SigC::slot(*this, &mainWindow::on_resultsTreeviewSelection_changed));
 
 			// Append the page
-			if (m_state.write_lock(3) == true)
+			if (m_state.write_lock_lists(3) == true)
 			{
 				pageNum = m_pNotebook->append_page(*pResultsPage, *pTab);
 				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
 
-				m_state.unlock();
+				m_state.unlock_lists();
 			}
 		}
 
@@ -1002,7 +1038,7 @@ void mainWindow::on_thread_end()
 			status += to_utf8(url);
 
 			// Update the in-progress list
-			if (m_state.write_lock(4) == true)
+			if (m_state.write_lock_lists(4) == true)
 			{
 				set<string>::iterator urlIter = m_state.m_beingIndexed.find(url);
 				if (urlIter != m_state.m_beingIndexed.end())
@@ -1010,7 +1046,7 @@ void mainWindow::on_thread_end()
 					m_state.m_beingIndexed.erase(urlIter);
 				}
 
-				m_state.unlock();
+				m_state.unlock_lists();
 			}
 
 			if (pIndexPage != NULL)
@@ -1268,7 +1304,7 @@ void mainWindow::on_configure_activate()
 	// FIXME: if mail accounts are configured, make sure the MonitorThread
 	// is running and knows about the new accounts
 
-	if (m_state.read_lock(5) == true)
+	if (m_state.read_lock_lists(5) == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -1286,7 +1322,7 @@ void mainWindow::on_configure_activate()
 			}
 		}
 
-		m_state.unlock();
+		m_state.unlock_lists();
 	}
 
 	// Do the changes affect the View tab ?
@@ -2394,7 +2430,7 @@ NotebookPageBox *mainWindow::get_current_page(void)
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
-	if (m_state.read_lock(6) == true)
+	if (m_state.read_lock_lists(6) == true)
 	{
 		Widget *pPage = m_pNotebook->get_nth_page(m_pNotebook->get_current_page());
 		if (pPage != NULL)
@@ -2402,7 +2438,7 @@ NotebookPageBox *mainWindow::get_current_page(void)
 			pNotebookPage = dynamic_cast<NotebookPageBox*>(pPage);
 		}
 
-		m_state.unlock();
+		m_state.unlock_lists();
 	}
 
 	return pNotebookPage;
@@ -2415,7 +2451,7 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
-	if (m_state.read_lock(7) == true)
+	if (m_state.read_lock_lists(7) == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -2439,7 +2475,7 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 			}
 		}
 
-		m_state.unlock();
+		m_state.unlock_lists();
 	}
 
 	return pNotebookPage;
@@ -2452,7 +2488,7 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 {
 	int pageNumber = -1;
 
-	if (m_state.read_lock(8) == true)
+	if (m_state.read_lock_lists(8) == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -2476,7 +2512,7 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 			}
 		}
 
-		m_state.unlock();
+		m_state.unlock_lists();
 	}
 
 	return pageNumber;
@@ -2490,11 +2526,11 @@ bool mainWindow::queue_index(const DocumentInfo &docInfo,
 {
 	if (m_state.get_threads_count() >= m_maxThreads)
 	{
-		if (m_state.write_lock(9) == true)
+		if (m_state.write_lock_lists(9) == true)
 		{
 			m_state.m_indexQueue[docInfo] = labelName;
 
-			m_state.unlock();
+			m_state.unlock_lists();
 		}
 
 		return true;
@@ -2791,7 +2827,7 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 			docId = index.hasDocument(url);
 		}
 		if ((docId == 0) &&
-			(m_state.write_lock(10) == true))
+			(m_state.write_lock_lists(10) == true))
 		{
 			if (m_state.m_beingIndexed.find(url) == m_state.m_beingIndexed.end())
 			{
@@ -2799,7 +2835,7 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 				isNewDocument = true;
 			}
 
-			m_state.unlock();
+			m_state.unlock_lists();
 		}
 
 		if (isNewDocument == true)
@@ -2904,12 +2940,12 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 				pViewPage = manage(new ViewPage(viewName, m_pHtmlView, m_settings));
 
 				// Append the page
-				if (m_state.write_lock(11) == true)
+				if (m_state.write_lock_lists(11) == true)
 				{
 					pageNum = m_pNotebook->append_page(*pViewPage, *pTab);
 					m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
 
-					m_state.unlock();
+					m_state.unlock_lists();
 				}
 			}
 
@@ -2983,7 +3019,7 @@ bool mainWindow::check_queue(void)
 	DocumentInfo docInfo;
 	string labelName;
 
-	if (m_state.write_lock(12) == true)
+	if (m_state.write_lock_lists(12) == true)
 	{
 		if (m_state.m_indexQueue.empty() == false)
 		{
@@ -2998,7 +3034,7 @@ bool mainWindow::check_queue(void)
 			}
 		}
 
-		m_state.unlock();
+		m_state.unlock_lists();
 	}
 
 	string location = docInfo.getLocation();

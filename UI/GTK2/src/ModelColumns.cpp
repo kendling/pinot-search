@@ -101,7 +101,6 @@ LabelModelColumns::LabelModelColumns()
 	add(m_enabled);
 	add(m_name);
 	add(m_oldName);
-	add(m_colour);
 }
 
 LabelModelColumns::~LabelModelColumns()

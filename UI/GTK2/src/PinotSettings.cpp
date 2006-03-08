@@ -201,12 +201,9 @@ bool PinotSettings::load(void)
 	// Add default labels on the first run
 	if (m_firstRun == true)
 	{
-		ustring labelName =_("Red");
-		m_labels.insert(Label(labelName, 65535, 0, 0));
-		labelName =_("Blue");
-		m_labels.insert(Label(labelName, 0, 65535, 0));
-		labelName =_("Green");
-		m_labels.insert(Label(labelName, 0, 0, 65535));
+		m_labels.insert(_("Important"));
+		m_labels.insert(_("New"));
+		m_labels.insert(_("Personal"));
 	}
 
 	// Some search engines are hardcoded
@@ -593,8 +590,6 @@ bool PinotSettings::loadLabels(const Element *pElem)
 		return false;
 	}
 
-	Label label;
-
 	// Load the label's properties
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
@@ -610,25 +605,9 @@ bool PinotSettings::loadLabels(const Element *pElem)
 
 		if (nodeName == "name")
 		{
-			label.m_name = nodeContent;
+			m_labels.insert(nodeContent);
 		}
-		else if (nodeName == "red")
-		{
-			label.m_red = (unsigned short)atoi(nodeContent.c_str());
-		}
-		else if (nodeName == "green")
-		{
-			label.m_green = (unsigned short)atoi(nodeContent.c_str());
-		}
-		else if (nodeName == "blue")
-		{
-			label.m_blue = (unsigned short)atoi(nodeContent.c_str());
-		}
-	}
-
-	if (label.m_name.empty() == false)
-	{
-		m_labels.insert(label);
+		// Labels used to have colours...
 	}
 
 	return true;
@@ -828,20 +807,14 @@ bool PinotSettings::save(void)
 	addChildElement(pElem, "viewmode", (m_browseResults ? "BROWSE" : "SOURCE"));
 	addChildElement(pElem, "browser", m_browserCommand);
 	// Labels
-	for (set<Label>::iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
+	for (set<string>::iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
 	{
 		pElem = pRootElem->add_child("label");
 		if (pElem == NULL)
 		{
 			return false;
 		}
-		addChildElement(pElem, "name", labelIter->m_name);
-		sprintf(numStr, "%u", labelIter->m_red);
-		addChildElement(pElem, "red", numStr);
-		sprintf(numStr, "%u", labelIter->m_green);
-		addChildElement(pElem, "green", numStr);
-		sprintf(numStr, "%u", labelIter->m_blue);
-		addChildElement(pElem, "blue", numStr);
+		addChildElement(pElem, "name", *labelIter);
 	}
 	// Ignore robots directives
 	addChildElement(pRootElem, "robots", (m_ignoreRobotsDirectives ? "IGNORE" : "OBEY"));
@@ -1107,6 +1080,34 @@ void PinotSettings::clearQueries(void)
 	m_queries.clear();
 }
 
+/// Returns the labels list.
+const set<string> &PinotSettings::getLabels(void) const
+{
+	return m_labels;
+}
+
+/// Adds a new label.
+bool PinotSettings::addLabel(const string &name)
+{
+	m_labels.insert(name);
+}
+
+/// Removes a label.
+bool PinotSettings::removeLabel(const string &name)
+{
+	set<string>::iterator labelIter = m_labels.find(name);
+	if (labelIter != m_labels.end())
+	{
+		m_labels.erase(labelIter);
+	}
+}
+
+/// Clears the labels list.
+void PinotSettings::clearLabels(void)
+{
+	m_labels.clear();
+}
+
 PinotSettings::Engine::Engine()
 {
 }
@@ -1134,46 +1135,6 @@ bool PinotSettings::Engine::operator<(const PinotSettings::Engine &other) const
 }
 
 bool PinotSettings::Engine::operator==(const Engine &other) const
-{
-	if (m_name == other.m_name)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-PinotSettings::Label::Label() :
-	m_red(0),
-	m_green(0),
-	m_blue(0)
-{
-}
-
-PinotSettings::Label::Label(ustring &name, unsigned short red,
-	unsigned short green, unsigned short blue) :
-	m_name(name),
-	m_red(red),
-	m_green(blue),
-	m_blue(green)
-{
-}
-
-PinotSettings::Label::~Label()
-{
-}
-
-bool PinotSettings::Label::operator<(const PinotSettings::Label &other) const
-{
-	if (m_name < other.m_name)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool PinotSettings::Label::operator==(const Label &other) const
 {
 	if (m_name == other.m_name)
 	{
