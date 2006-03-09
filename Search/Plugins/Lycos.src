@@ -15,7 +15,7 @@
 <INPUT NAME="wfc" VALUE="3">
 <INPUT NAME="query" USER>
 <INPUT NAME="adf" VALUE="off">
-<INPUTNEXT NAME="first" FACTOR="10" VALUE="1">
+<INPUTNEXT NAME="p" FACTOR="1" VALUE="1">
 
 <INTERPRET
 resultListStart=""
