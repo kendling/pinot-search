@@ -76,7 +76,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files
 %defattr(-, root, root, -)
-%doc ChangeLog COPYING README TODO
+%doc ChangeLog COPYING NEWS README TODO
 %{_bindir}/pinot
 %{_bindir}/pinot_search
 %{_datadir}/pinot/index.html

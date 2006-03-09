@@ -22,6 +22,7 @@ Search
 - Add http://www.podzinger.com/
 - Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
 - Support for Google Buttons
+- If the results' domain match the search engine's, extract "<protocol>://(.*)&amp;" from the file part
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -47,7 +48,7 @@ Index
 - Flush the index before searching not after modification
 - Hash document data to determine on updates whether documents have changed
 - Allow to monitor imported documents for changes
-- Allow to skip pages whose domain match the search engine's
+- With non local protocols, allow to skip pages whose domain match the search engine's
 
 Browser plugin
 - Write Firefox extension that searches Pinot indexes and indexes the cache
@@ -82,7 +83,6 @@ UI
 - Automatic indexing of a query's results depending on type, source, size, language
 - Non modal status window to display log of operations
 - Display search engines icons (Gtk::IconSource::set_filename() and Gtk::Style::render_icon())
-- Only show documents that have the selected label, merge LabelQueryThread into IndexBrowser
 - Replace Combobox objects with ComboboxText's (glademm support required)
 - Replace glademm with libglademm ?
 - Show extract instead of URL in index list
