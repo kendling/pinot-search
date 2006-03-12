@@ -1,3 +1,18 @@
+2006/03/12 version_0_4_4
+Build :
+ - fixed building of PDF, RTF and MS Word tokenizer libraries
+ - HTTP library can be selected with "./configure --with-http=curl|neon"
+Collect :
+ - added curl-based downloader, used by default instead of Neon
+Index :
+ - dropped dependency on OTS, abstracts are now generated at search time
+Search :
+ - fixed page browsing with Lycos plugin
+UI :
+ - fixed potential deadlock, eg between saving preferences and listing the index
+ - labels no longer have colours; selecting a label on an index only lists
+  those documents that have the label
+
 2006/02/25 version_0_4_3
 Build :
  - dropped patch for libxml++ v0.26 support
