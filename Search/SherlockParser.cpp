@@ -462,6 +462,8 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 	return foundResult;
 }
 
+pthread_mutex_t SherlockParser::m_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 SherlockParser::SherlockParser(const string &fileName) :
 	PluginParserInterface(fileName)
 {
@@ -500,28 +502,41 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 	map<string, string> searchParams, interpretParams, inputItems;
 	string userInput, nextInput, nextFactor, nextValue;
 	skip_grammar skip;
-	parse_info<> parseInfo;
+	bool fullParsing = false;
 
-	if (extractSearchParams == false)
+#ifdef DEBUG
+	cout << "SherlockParser::parse: starting" << endl;
+#endif
+	if (pthread_mutex_lock(&m_mutex) == 0)
 	{
-		plugin_grammar plugin(searchParams, interpretParams, inputItems,
-			userInput, nextInput, nextFactor, nextValue);
+		if (extractSearchParams == false)
+		{
+			plugin_grammar plugin(searchParams, interpretParams, inputItems,
+				userInput, nextInput, nextFactor, nextValue);
 
-		parseInfo = boost::spirit::parse(pData, plugin, skip);
-	}
-	else
-	{
-		plugin_min_grammar plugin(searchParams);
+			parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
+			fullParsing = parseInfo.full;
+		}
+		else
+		{
+			plugin_min_grammar plugin(searchParams);
 
-		parseInfo = boost::spirit::parse(pData, plugin, skip);
+			parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
+			fullParsing = parseInfo.full;
+		}
+
+		pthread_mutex_unlock(&m_mutex);
 	}
+#ifdef DEBUG
+	cout << "SherlockParser::parse: done" << endl;
+#endif
 
 	// We are done with the document
 	delete pPluginDoc;
 
 	SherlockResponseParser *pResponseParser = NULL;
 
-	if (parseInfo.full == true)
+	if (fullParsing == true)
 	{
 		map<string, string> lowSearchParams, lowInterpretParams, lowInputItems;
 

@@ -17,6 +17,7 @@
 #ifndef _SHERLOCK_PARSER_H
 #define _SHERLOCK_PARSER_H
 
+#include <pthread.h>
 #include <string>
 
 #include "Document.h"
@@ -64,6 +65,9 @@ class SherlockParser : public PluginParserInterface
 		/// Parses the plugin and returns a response parser.
 		virtual ResponseParserInterface *parse(SearchPluginProperties &properties,
 			bool extractSearchParams = false);
+
+	protected:
+		static pthread_mutex_t m_mutex;
 
 	private:
 		SherlockParser(const SherlockParser &other);

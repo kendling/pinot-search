@@ -62,8 +62,6 @@ static void headerHandler(void *userdata, const char *value)
 	}
 }
 
-static pthread_mutex_t g_accessLock = PTHREAD_MUTEX_INITIALIZER;
-
 unsigned int NeonDownloader::m_initialized = 0;
 
 NeonDownloader::NeonDownloader() :
@@ -169,11 +167,6 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	string file = urlObj.getFile();
 	string parameters = urlObj.getParameters();
 
-	if (pthread_mutex_lock(&g_accessLock) != 0)
-	{
-		return NULL;
-	}
-
 	// Create a session
 	ne_session *pSession = ne_session_create(protocol.c_str(), hostName.c_str(), 80); // urlObj.getPort());
 	if (pSession == NULL)
@@ -181,7 +174,6 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 #ifdef DEBUG
 		cerr << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
 #endif
-		pthread_mutex_unlock(&g_accessLock);
 		return NULL;
 	}
 	// Set the user agent
@@ -210,7 +202,6 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 
 	// Create a request for this URL
 	ne_request *pRequest = ne_request_create(pSession, "GET", fullLocation.c_str());
-	pthread_mutex_unlock(&g_accessLock);
 	if (pRequest == NULL)
 	{
 #ifdef DEBUG
