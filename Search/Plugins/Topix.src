@@ -16,7 +16,7 @@
 <INTERPRET
 resultListStart=""
 resultListEnd=""
-resultItemStart='<div class="article">'
+resultItemStart='<div class="article"'
 resultItemEnd='</div> </div>'
 >
 
