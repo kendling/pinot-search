@@ -17,6 +17,7 @@
 #ifndef _VIEW_HISTORY_H
 #define _VIEW_HISTORY_H
 
+#include <time.h>
 #include <string>
 
 #include "SQLiteBase.h"
@@ -40,6 +41,9 @@ class ViewHistory : public SQLiteBase
 
 		/// Deletes an URL.
 		bool deleteItem(const string &url);
+
+		/// Expires items older than the given date.
+		bool expireItems(time_t expiryDate);
 
 	private:
 		ViewHistory(const ViewHistory &other);

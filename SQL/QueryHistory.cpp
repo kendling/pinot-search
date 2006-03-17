@@ -73,9 +73,6 @@ bool QueryHistory::insertItem(const string &queryName, const string &engineName,
 	string escapedUrl = Url::escapeUrl(url);
 	bool success = false;
 
-#ifdef DEBUG
-	cout << "QueryHistory::insertItem: called" << endl;
-#endif
 	SQLiteResults *results = executeStatement("INSERT INTO QueryHistory \
 		VALUES('%q', '%q', '%q', '%q', '%q', '%q', '%q', '%f', '0.0', '%d');",
 		queryName.c_str(), engineName.c_str(), hostName.c_str(),
@@ -122,9 +119,6 @@ bool QueryHistory::updateItem(const string &queryName, const string &engineName,
 {
 	bool success = false;
 
-#ifdef DEBUG
-	cout << "QueryHistory::updateItem: called on " << url << endl;
-#endif
 	SQLiteResults *results = executeStatement("UPDATE QueryHistory SET PrevScore=Score, \
 		Score=%f, Date='%d', Title='%q', Extract='%q', Language='%q' \
 		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q';",
@@ -258,6 +252,21 @@ bool QueryHistory::deleteItems(const string &name, bool isQueryName)
 			WHERE EngineName='%q';", name.c_str());
 	}
 
+	if (results != NULL)
+	{
+		delete results;
+
+		return true;
+	}
+
+	return false;
+}
+
+/// Expires items older than the given date.
+bool QueryHistory::expireItems(time_t expiryDate)
+{
+	SQLiteResults *results = executeStatement("DELETE FROM QueryHistory \
+		WHERE Date<'%d';", expiryDate);
 	if (results != NULL)
 	{
 		delete results;

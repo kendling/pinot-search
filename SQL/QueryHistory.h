@@ -62,6 +62,9 @@ class QueryHistory : public SQLiteBase
 		/// Deletes items.
 		bool deleteItems(const string &name, bool isQueryName);
 
+		/// Expires items older than the given date.
+		bool expireItems(time_t expiryDate);
+
 	private:
 		QueryHistory(const QueryHistory &other);
 		QueryHistory &operator=(const QueryHistory &other);
