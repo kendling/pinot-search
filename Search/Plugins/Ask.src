@@ -2,7 +2,7 @@
 
 <SEARCH
 	version="1.0"
-	name="Ask Jeeves"
+	name="Ask"
 	description="Ask.com Ask Jeeves"
 	method="GET"
 	action="http://www.ask.com/web"
