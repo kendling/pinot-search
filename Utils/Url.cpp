@@ -14,14 +14,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <iostream>
-
 #include "StringManip.h"
 #include "Url.h"
 
 using std::string;
-using std::cout;
-using std::endl;
 
 static const int g_rfc2396Encoded[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  /* 0x00 - 0x0f */
@@ -312,9 +308,6 @@ string Url::escapeUrl(const string &url)
 			char encodedStr[4];
 
 			snprintf(encodedStr, 4, "%%%02x", (int)currentChar);
-#ifdef DEBUG
-			cout << "Url::escapeUrl: encoded " << currentChar << " as " << encodedStr << endl;
-#endif
 			escapedUrl += encodedStr;
 		}
 		else
