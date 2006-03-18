@@ -61,8 +61,7 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	set_model(m_refStore);
 
 	// The score column is used for status icons
-	TreeViewColumn *treeColumn = create_resizable_column_with_icon(_("Title"), m_indexColumns.m_text,
-		SigC::slot(*this, &IndexTree::renderColour));
+	TreeViewColumn *treeColumn = create_resizable_column(_("Title"), m_indexColumns.m_text);
 	if (treeColumn != NULL)
 	{
 		append_column(*manage(treeColumn));
@@ -94,9 +93,6 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	// Initially, don't display the list of indexed documents
 	m_listingIndex = false;
 
-	// By default, no particular colour is selected
-	setCurrentBackgroundColour(0, 0, 0, false);
-
 	// Show all
 	m_pIndexScrolledwindow->show();
 	show();
@@ -104,36 +100,6 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 
 IndexTree::~IndexTree()
 {
-}
-
-void IndexTree::renderColour(CellRenderer *renderer, const TreeModel::iterator &iter)
-{
-	TreeModel::Row row = *iter;
-
-	if (renderer == NULL)
-	{
-		return;
-	}
-
-	CellRendererText *textRenderer = dynamic_cast<CellRendererText*>(renderer);
-	if (textRenderer != NULL)
-	{
-		if ((m_visibleColour == false) &&
-			(row[m_indexColumns.m_labeled] == true))
-		{
-			// Reset this
-			row[m_indexColumns.m_labeled] = false;
-		}
-		else if (row[m_indexColumns.m_labeled] == true)
-		{
-			// Change the row's background
-			textRenderer->property_background_gdk() = m_currentBackgroundColour;
-		}
-		else
-		{
-			textRenderer->property_background_gdk().reset_value();
-		}
-	}
 }
 
 void IndexTree::onButtonPressEvent(GdkEventButton *ev)
@@ -200,7 +166,7 @@ ScrolledWindow *IndexTree::getScrolledWindow(void) const
 //
 // Appends a new row in the index tree.
 //
-bool IndexTree::appendDocument(const IndexedDocument &docInfo, bool withColour)
+bool IndexTree::appendDocument(const IndexedDocument &docInfo)
 {
 	TreeModel::iterator newRowIter = m_refStore->append();
 	TreeModel::Row childRow = *newRowIter;
@@ -219,7 +185,6 @@ bool IndexTree::appendDocument(const IndexedDocument &docInfo, bool withColour)
 	childRow[m_indexColumns.m_type] = to_utf8(docInfo.getType());
 	childRow[m_indexColumns.m_language] = to_utf8(docInfo.getLanguage());
 	childRow[m_indexColumns.m_timestamp] = to_utf8(docInfo.getTimestamp());
-	childRow[m_indexColumns.m_labeled] = withColour;
 	childRow[m_indexColumns.m_id] = docInfo.getID();
 
 	// If the tree was empty, it is no longer
@@ -227,7 +192,6 @@ bool IndexTree::appendDocument(const IndexedDocument &docInfo, bool withColour)
 
 	return true;
 }
-
 
 //
 // Adds a set of documents.
@@ -246,7 +210,7 @@ bool IndexTree::addDocuments(const vector<IndexedDocument> &documentsList)
 		docIter != documentsList.end(); ++docIter)
 	{
 		// Add a row
-		if (appendDocument(*docIter, false) == true)
+		if (appendDocument(*docIter) == true)
 		{
 #ifdef DEBUG
 			cout << "IndexTree::addDocuments: added row for document " << count << endl;
@@ -327,45 +291,6 @@ bool IndexTree::getSelection(std::vector<IndexedDocument> &documentsList)
 }
 
 //
-// Sets the current background colour.
-//
-void IndexTree::setCurrentBackgroundColour(unsigned short red, unsigned short green, unsigned short blue,
-	bool isVisible)
-{
-	m_currentBackgroundColour.set_rgb(red, green, blue);
-	m_visibleColour = isVisible;
-}
-
-//
-// Sets the documents that match the current background colour.
-//
-void IndexTree::setColourDocuments(const set<unsigned int> &documentsList)
-{
-	// Unselect all
-	get_selection()->unselect_all();
-
-	// Go through the list of indexed documents
-	TreeModel::Children children = m_refStore->children();
-	for (TreeModel::Children::iterator iter = children.begin(); iter != children.end(); ++iter)
-	{
-		// Does this document match the colour ?
-		TreeModel::Row row = *iter;
-		unsigned int docId = row[m_indexColumns.m_id];
-
-		set<unsigned int>::iterator docIter = documentsList.find(docId);
-		if (docIter != documentsList.end())
-		{
-			// Yes, it does !
-			row[m_indexColumns.m_labeled] = true;
-		}
-		else
-		{
-			row[m_indexColumns.m_labeled] = false;
-		}
-	}
-}
-
-//
 // Updates a document's properties.
 //
 void IndexTree::updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo)
@@ -387,30 +312,6 @@ void IndexTree::updateDocumentInfo(unsigned int docId, const DocumentInfo &docIn
 			row[m_indexColumns.m_type] = to_utf8(docInfo.getType());
 			row[m_indexColumns.m_language] = to_utf8(docInfo.getLanguage());
 			row[m_indexColumns.m_timestamp] = to_utf8(docInfo.getTimestamp());
-			break;
-		}
-	}
-}
-
-//
-// Marks a document as coloured.
-//
-void IndexTree::setDocumentColourState(unsigned int docId, bool withColour)
-{
-	if (docId == 0)
-	{
-		return;
-	}
-
-	// Go through the list of indexed documents
-	TreeModel::Children children = m_refStore->children();
-	for (TreeModel::Children::iterator iter = children.begin(); iter != children.end(); ++iter)
-	{
-		TreeModel::Row row = *iter;
-
-		if (docId == row[m_indexColumns.m_id])
-		{
-			row[m_indexColumns.m_labeled] = withColour;
 			break;
 		}
 	}

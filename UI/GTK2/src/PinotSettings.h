@@ -23,6 +23,7 @@
 #include <set>
 #include <vector>
 #include <glibmm/ustring.h>
+#include <gdkmm/color.h>
 #include <libxml++/nodes/element.h>
 
 #include "QueryProperties.h"
@@ -148,6 +149,8 @@ class PinotSettings
 		int m_height;
 		int m_panePos;
 		bool m_ignoreRobotsDirectives;
+		bool m_suggestQueryTerms;
+		Gdk::Color m_newResultsColour;
 		std::set<MailAccount> m_mailAccounts;
 
 	protected:
@@ -168,6 +171,7 @@ class PinotSettings
 		bool loadQueries(const xmlpp::Element *pElem);
 		bool loadResults(const xmlpp::Element *pElem);
 		bool loadLabels(const xmlpp::Element *pElem);
+		bool loadColour(const xmlpp::Element *pElem);
 		bool loadMailAccounts(const xmlpp::Element *pElem);
 
 	private:

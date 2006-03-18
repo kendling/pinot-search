@@ -106,7 +106,12 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	iconRenderer = new CellRendererPixbuf();
 	treeColumn->pack_start(*manage(iconRenderer), false);
 	treeColumn->set_cell_data_func(*iconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
-	treeColumn->pack_end(m_resultsColumns.m_text, false);
+	// And a last one for text
+	// ...followed by a text renderer
+	CellRendererText *textCellRenderer = new CellRendererText();
+	treeColumn->pack_start(*manage(textCellRenderer));
+	treeColumn->set_cell_data_func(*textCellRenderer, SigC::slot(*this, &ResultsTree::renderBackgroundColour));
+	treeColumn->add_attribute(textCellRenderer->property_text(), m_resultsColumns.m_text);
 	treeColumn->set_resizable(true);
 	append_column(*manage(treeColumn));
 
@@ -212,23 +217,46 @@ void ResultsTree::renderRanking(CellRenderer *renderer, const TreeModel::iterato
 	CellRendererPixbuf *iconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
 	if (iconRenderer != NULL)
 	{
-		// Is this result new ?
-		if (row[m_resultsColumns.m_rankDiff] == 666)
-		{
-			iconRenderer->property_pixbuf() = m_newIconPixbuf;
-		}
-		// Has its score changed ?
-		else if (row[m_resultsColumns.m_rankDiff] > 0)
+		int rankDiff = row[m_resultsColumns.m_rankDiff];
+
+		// Has this result's score changed ?
+		if ((rankDiff > 0) &&
+			(rankDiff != 666))
 		{
 			iconRenderer->property_pixbuf() = m_upIconPixbuf;
 		}
-		else if (row[m_resultsColumns.m_rankDiff] < 0)
+		else if (rankDiff < 0)
 		{
 			iconRenderer->property_pixbuf() = m_downIconPixbuf;
 		}
 		else
 		{
 			iconRenderer->property_pixbuf().reset_value();
+		}
+	}
+}
+
+void ResultsTree::renderBackgroundColour(CellRenderer *renderer, const TreeModel::iterator &iter)
+{
+	TreeModel::Row row = *iter;
+
+	if (renderer == NULL)
+	{
+		return;
+	}
+
+	CellRendererText *textRenderer = dynamic_cast<CellRendererText*>(renderer);
+	if (textRenderer != NULL)
+	{
+		// Is this result new ?
+		if (row[m_resultsColumns.m_rankDiff] == 666)
+		{
+			// Change the row's background
+			textRenderer->property_background_gdk() = m_settings.m_newResultsColour;
+		}
+		else
+		{
+			textRenderer->property_background_gdk().reset_value();
 		}
 	}
 }

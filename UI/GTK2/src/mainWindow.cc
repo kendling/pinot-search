@@ -1031,7 +1031,6 @@ void mainWindow::on_thread_end()
 		else
 		{
 			string url = pIndexThread->getURL();
-			bool labeled = false;
 
 			status = _("Indexed");
 			status += " ";
@@ -1049,17 +1048,6 @@ void mainWindow::on_thread_end()
 				m_state.unlock_lists();
 			}
 
-			if (pIndexPage != NULL)
-			{
-				// Was the current label applied to that document ?
-				ustring labelName = pIndexPage->getLabelName();
-				if ((labelName.empty() == false) &&
-					(labelName == to_utf8(pIndexThread->getLabelName())))
-				{
-					labeled = true;
-				}
-			}
-
 			if (pIndexTree != NULL)
 			{
 				unsigned int rowsCount = pIndexTree->getRowsCount();
@@ -1074,7 +1062,7 @@ void mainWindow::on_thread_end()
 						docInfo.getLocation(), docInfo.getType(),
 						docInfo.getLanguage());
 					indexedDoc.setTimestamp(docInfo.getTimestamp());
-					pIndexTree->appendDocument(indexedDoc, labeled);
+					pIndexTree->appendDocument(indexedDoc);
 				}
 				pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
 				pIndexPage->updateButtonsState(m_maxDocsCount);
@@ -1263,25 +1251,8 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 	}
 	unsigned int rowsCount = pIndexTree->getRowsCount();
 
-	// Does that document have the current label ?
-	ustring labelName = pIndexPage->getLabelName();
-	if (labelName.empty() == false)
-	{
-		const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
-		std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
-		if (mapIter != indexesMap.end())
-		{
-			XapianIndex index(mapIter->second);
-
-			if (index.isGood() == true)
-			{
-				hasLabel = index.hasLabel(docId, from_utf8(labelName));
-			}
-		}
-	}
-
 	// Add a row
-	pIndexTree->appendDocument(docInfo, hasLabel);
+	pIndexTree->appendDocument(docInfo);
 }
 
 //
@@ -1929,22 +1900,6 @@ void mainWindow::on_showfromindex_activate()
 	if ((documentsList.size() == 1) &&
 		(docId > 0))
 	{
-		bool matchesLabel = false;
-
-		// Does the sole selected document match the current label now ?
-		if ((labelName.empty() == false) &&
-			(find(labels.begin(), labels.end(), labelName) != labels.end()))
-		{
-			matchesLabel = true;
-		}
-
-		// Was there any change ?
-		if (matchesLabel != matchedLabel)
-		{
-			// Update this document to the index tree
-			pIndexTree->setDocumentColourState(docId, matchesLabel);
-		}
-
 		// Did the title change ?
 		string newTitle = propertiesBox.getDocumentInfo().getTitle();
 		if (newTitle != docInfo.getTitle())
@@ -2173,6 +2128,12 @@ void mainWindow::on_removeIndexButton_clicked()
 //
 void mainWindow::on_liveQueryEntry_changed()
 {
+	if (m_settings.m_suggestQueryTerms == false)
+	{
+		// This functionality is disabled
+		return;
+	}
+
 	ustring prefix, term = liveQueryEntry->get_text();
 	unsigned int liveQueryLength = term.length();
 

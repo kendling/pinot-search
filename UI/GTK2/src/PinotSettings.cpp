@@ -89,6 +89,8 @@ PinotSettings::PinotSettings() :
 	m_height(0),
 	m_panePos(-1),
 	m_ignoreRobotsDirectives(false),
+	m_suggestQueryTerms(true),
+	m_newResultsColour("red"),
 	m_firstRun(false)
 {
 	// Find out if there is a .pinot directory
@@ -281,38 +283,23 @@ bool PinotSettings::loadConfiguration(const std::string &fileName)
 				}
 				else if (nodeName == "ui")
 				{
-					if (loadUi(pElem) == false)
-					{
-						cerr << _("Couldn't load ui block") << endl;
-					}
+					loadUi(pElem);
 				}
 				else if (nodeName == "extraindex")
 				{
-					if (loadIndexes(pElem) == false)
-					{
-						cerr << _("Couldn't load extraindex block") << endl;
-					}
+					loadIndexes(pElem);
 				}
 				else if (nodeName == "storedquery")
 				{
-					if (loadQueries(pElem) == false)
-					{
-						cerr << _("Couldn't load storedquery block") << endl;
-					}
+					loadQueries(pElem);
 				}
 				else if (nodeName == "results")
 				{
-					if (loadResults(pElem) == false)
-					{
-						cerr << _("Couldn't load results block") << endl;
-					}
+					loadResults(pElem);
 				}
 				else if (nodeName == "label")
 				{
-					if (loadLabels(pElem) == false)
-					{
-						cerr << _("Couldn't load label block") << endl;
-					}
+					loadLabels(pElem);
 				}
 				else if (nodeName == "robots")
 				{
@@ -325,12 +312,24 @@ bool PinotSettings::loadConfiguration(const std::string &fileName)
 						m_ignoreRobotsDirectives = false;
 					}
 				}
+				else if (nodeName == "suggestterms")
+				{
+					if (nodeContent == "YES")
+					{
+						m_suggestQueryTerms = true;
+					}
+					else
+					{
+						m_suggestQueryTerms = false;
+					}
+				}
+				else if (nodeName == "newresults")
+				{
+					loadColour(pElem);
+				}
 				else if (nodeName == "mailaccount")
 				{
-					if (loadMailAccounts(pElem) == false)
-					{
-						cerr << _("Couldn't load mailaccount block") << endl;
-					}
+					loadMailAccounts(pElem);
 				}
 			}
 		}
@@ -613,6 +612,48 @@ bool PinotSettings::loadLabels(const Element *pElem)
 	return true;
 }
 
+bool PinotSettings::loadColour(const Element *pElem)
+{
+	if (pElem == NULL)
+	{
+		return false;
+	}
+
+	Node::NodeList childNodes = pElem->get_children();
+	if (childNodes.empty() == true)
+	{
+		return false;
+	}
+
+	// Load the colour RGB components
+	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
+	{
+		Node *pNode = (*iter);
+		Element *pElem = dynamic_cast<Element*>(pNode);
+		if (pElem == NULL)
+		{
+			continue;
+		}
+
+		string nodeName = pElem->get_name();
+		string nodeContent = getElementContent(pElem);
+		gushort value = (gushort)atoi(nodeContent.c_str());
+
+		if (nodeName == "red")
+		{
+			m_newResultsColour.set_red(value);
+		}
+		else if (nodeName == "green")
+		{
+			m_newResultsColour.set_green(value);
+		}
+		else if (nodeName == "blue")
+		{
+			m_newResultsColour.set_blue(value);
+		}
+	}
+}
+
 bool PinotSettings::loadMailAccounts(const Element *pElem)
 {
 	if (pElem == NULL)
@@ -818,6 +859,20 @@ bool PinotSettings::save(void)
 	}
 	// Ignore robots directives
 	addChildElement(pRootElem, "robots", (m_ignoreRobotsDirectives ? "IGNORE" : "OBEY"));
+	// New results colour
+	pElem = pRootElem->add_child("newresults");
+	if (pElem == NULL)
+	{
+		return false;
+	}
+	sprintf(numStr, "%u", m_newResultsColour.get_red());
+	addChildElement(pElem, "red", numStr);
+	sprintf(numStr, "%u", m_newResultsColour.get_green());
+	addChildElement(pElem, "green", numStr);
+	sprintf(numStr, "%u", m_newResultsColour.get_blue());
+	addChildElement(pElem, "blue", numStr);
+	// Enable terms suggestion
+	addChildElement(pRootElem, "suggestterms", (m_suggestQueryTerms ? "YES" : "NO"));
 	// Mail accounts
 	for (set<MailAccount>::iterator mailIter = m_mailAccounts.begin(); mailIter != m_mailAccounts.end(); ++mailIter)
 	{

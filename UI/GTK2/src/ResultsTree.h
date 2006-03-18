@@ -117,6 +117,8 @@ class ResultsTree : public Gtk::TreeView
 
 		void renderRanking(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
 
+		void renderBackgroundColour(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
+
 		void onButtonPressEvent(GdkEventButton *ev);
 
 		void onSelectionChanged(void);

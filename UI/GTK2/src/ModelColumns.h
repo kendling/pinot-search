@@ -104,7 +104,6 @@ public:
 	Gtk::TreeModelColumn<Glib::ustring> m_language;
 	Gtk::TreeModelColumn<unsigned int> m_id;
 	Gtk::TreeModelColumn<Glib::ustring> m_timestamp;
-	Gtk::TreeModelColumn<bool> m_labeled;
 
 };
 

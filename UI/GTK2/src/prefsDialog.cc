@@ -62,6 +62,10 @@ prefsDialog::prefsDialog() :
 	// Browser entry field and button
 	browserEntry->set_sensitive(m_settings.m_browseResults);
 	browserButton->set_sensitive(m_settings.m_browseResults);
+	// New results colour
+	newResultsColorbutton->set_color(m_settings.m_newResultsColour);
+	// Enable terms suggestion
+	enableCompletionCheckbutton->set_active(m_settings.m_suggestQueryTerms);
 
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
@@ -296,6 +300,8 @@ void prefsDialog::on_prefsOkbutton_clicked()
 		m_settings.m_browseResults = true;
 	}
 	m_settings.m_browserCommand = browserEntry->get_text();
+	m_settings.m_newResultsColour = newResultsColorbutton->get_color();
+	m_settings.m_suggestQueryTerms = enableCompletionCheckbutton->get_active();
 	m_settings.m_googleAPIKey = apiKeyEntry->get_text();
 
 	// Validate the current labels and mail accounts

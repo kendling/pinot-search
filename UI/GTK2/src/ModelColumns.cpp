@@ -79,7 +79,6 @@ IndexModelColumns::IndexModelColumns()
 	add(m_language);
 	add(m_id);
 	add(m_timestamp);
-	add(m_labeled);
 }
 
 IndexModelColumns::~IndexModelColumns()
