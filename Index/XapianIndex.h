@@ -79,7 +79,7 @@ class XapianIndex : public IndexInterface
 		virtual bool flush(void);
 
 		/// Returns the number of documents.
-		virtual unsigned int getDocumentsCount(void) const;
+		virtual unsigned int getDocumentsCount(const std::string &labelName = "") const;
 
 		/// Lists document IDs.
 		virtual unsigned int listDocuments(std::set<unsigned int> &docIds,

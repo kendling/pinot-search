@@ -771,7 +771,10 @@ bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &label
 			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 				++labelIter)
 			{
-				doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
+				if (labelIter->empty() == false)
+				{
+					doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
+				}
 			}
 
 			pIndex->replace_document(docId, doc);
@@ -1116,7 +1119,7 @@ bool XapianIndex::flush(void)
 }
 
 /// Returns the number of documents.
-unsigned int XapianIndex::getDocumentsCount(void) const
+unsigned int XapianIndex::getDocumentsCount(const string &labelName) const
 {
 	unsigned int docCount = 0;
 
@@ -1132,7 +1135,18 @@ unsigned int XapianIndex::getDocumentsCount(void) const
 		Xapian::Database *pIndex = pDatabase->readLock();
 		if (pIndex != NULL)
 		{
-			docCount = pIndex->get_doccount();
+			if (labelName.empty() == true)
+			{
+				docCount = pIndex->get_doccount();
+			}
+			else
+			{
+				string term("XLABEL:");
+
+				// Each label appears only one per document so the collection frequency
+				// is the number of documents that have this label
+				docCount = pIndex->get_collection_freq(term + labelName);
+			}
 		}
 	}
 	catch (const Xapian::Error &error)

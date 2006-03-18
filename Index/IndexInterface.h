@@ -85,7 +85,7 @@ class IndexInterface
 		virtual bool flush(void) = 0;
 
 		/// Returns the number of documents.
-		virtual unsigned int getDocumentsCount(void) const = 0;
+		virtual unsigned int getDocumentsCount(const std::string &labelName = "") const = 0;
 
 		/// Lists document IDs.
 		virtual unsigned int listDocuments(std::set<unsigned int> &docIDList,
