@@ -407,7 +407,7 @@ void IndexBrowserThread::doWork(void)
 		return;
 	}
 
-	m_indexDocsCount = index.getDocumentsCount();
+	m_indexDocsCount = index.getDocumentsCount(m_labelName);
 	if (m_indexDocsCount == 0)
 	{
 #ifdef DEBUG
@@ -904,13 +904,16 @@ void IndexingThread::doWork(void)
 				// Update the document
 				if (index.updateDocument(m_docId, *pTokens) == true)
 				{
-					// Add the label if it's a new one
-					if (labels.find(m_labelName) == labels.end())
+					if (m_labelName.empty() == false)
 					{
-						labels.clear();
-						labels.insert(m_labelName);
+						// Add the label if it's a new one
+						if (labels.find(m_labelName) == labels.end())
+						{
+							labels.clear();
+							labels.insert(m_labelName);
 
-						index.setDocumentLabels(m_docId, labels, false);
+							index.setDocumentLabels(m_docId, labels, false);
+						}
 					}
 					success = true;
 				}
@@ -919,7 +922,10 @@ void IndexingThread::doWork(void)
 			{
 				unsigned int docId = 0;
 
-				labels.insert(m_labelName);
+				if (m_labelName.empty() == false)
+				{
+					labels.insert(m_labelName);
+				}
 
 				// Index the document
 				success = index.indexDocument(*pTokens, labels, docId);
