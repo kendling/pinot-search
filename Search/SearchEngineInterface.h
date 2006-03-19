@@ -71,7 +71,7 @@ class SearchEngineInterface
 
 		void setFileNameFilter(const string &filter);
 
-		virtual bool processResult(string &resultUrl);
+		virtual bool processResult(const string &queryUrl, string &resultUrl);
 
 };
 

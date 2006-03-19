@@ -289,6 +289,41 @@ string Url::prettifyUrl(const string &url, unsigned int maxLen)
 	return prettyUrl;
 }
 
+/// Reduces a host name to the given TLD level.
+string Url::reduceHost(const string &hostName, unsigned int level)
+{
+	string reducedHost;
+	unsigned int currentLevel = 0;
+
+	if (hostName.empty() == true)
+	{
+		return "";
+	}
+
+	string::size_type endPos = string::npos;
+	string::size_type pos = hostName.find_last_of(".");
+	while ((pos != string::npos) &&
+		(currentLevel < level))
+	{
+		if (endPos == string::npos)
+		{
+			reducedHost = hostName.substr(pos + 1);
+		}
+		else
+		{
+			string level(hostName.substr(pos + 1, endPos - pos));
+			level += reducedHost;
+			reducedHost = level;
+		}
+
+		// Next
+		pos = hostName.find_last_of(".", pos - 1);
+		++currentLevel;
+	}
+
+	return reducedHost;
+}
+
 /// Escapes an URL.
 string Url::escapeUrl(const string &url)
 {

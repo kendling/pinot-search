@@ -123,7 +123,7 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 		struct gapi1__ResultElement *resultElement = searchResult->resultElements->__ptr[i];
 
 		string resultUrl(resultElement->URL);
-		if (processResult(resultUrl) == true)
+		if (processResult("http://www.google.com/", resultUrl) == true)
 		{
 			m_resultsList.push_back(Result(resultUrl, resultElement->title, resultElement->snippet, "", pseudoScore));
 			--pseudoScore;

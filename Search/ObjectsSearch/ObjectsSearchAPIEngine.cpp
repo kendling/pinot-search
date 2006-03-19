@@ -82,7 +82,7 @@ bool ObjectsSearchAPIEngine::makeCall(const string &query)
 						cout << "ObjectsSearchAPIEngine::makeCall: " << *(pElem->title) << endl;
 
 						string resultUrl(*(pElem->URL));
-						if (processResult(resultUrl) == true)
+						if (processResult("http://www.objectssearch.com/", resultUrl) == true)
 						{
 							m_resultsList.push_back(Result(*(pElem->URL), *(pElem->title), *(pElem->summary), "", pseudoScore));
 							--pseudoScore;

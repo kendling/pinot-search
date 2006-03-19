@@ -32,6 +32,9 @@ class Url
 		/// Truncates an URL to the given length by discarding characters in the middle.
 		static std::string prettifyUrl(const std::string &url, unsigned int maxLen);
 
+		/// Reduces a host name to the given TLD level.
+		static std::string reduceHost(const std::string &hostName, unsigned int level);
+
 		/// Escapes an URL.
 		static std::string escapeUrl(const std::string &url);
 

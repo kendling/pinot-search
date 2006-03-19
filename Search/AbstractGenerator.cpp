@@ -175,8 +175,8 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 			Xapian::termpos termPos = *positionIter;
 
 			// ...and get those that fall in the abstract window
-			if ((startPosition <= termPos) &&
-				(termPos <= startPosition + m_wordsCount))
+			if ((startPosition <= termPos + 1) &&
+				(termPos < startPosition + m_wordsCount))
 			{
 				wordsBuffer[termPos] = *termIter;
 			}
@@ -190,7 +190,8 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 		summary += wordIter->second;
 	}
 #ifdef DEBUG
-	cout << "AbstractGenerator::generateAbstract: summarized document " << docId << " in " << timer.stop()/1000 << " ms" << endl;
+	cout << "AbstractGenerator::generateAbstract: summarized document "
+		<< docId << " in " << timer.stop()/1000 << " ms" << endl;
 #endif
 
 	return summary;

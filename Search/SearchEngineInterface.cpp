@@ -80,12 +80,13 @@ void SearchEngineInterface::setFileNameFilter(const string &filter)
 	m_fileFilter = filter;
 }
 
-bool SearchEngineInterface::processResult(string &resultUrl)
+bool SearchEngineInterface::processResult(const string &queryUrl, string &resultUrl)
 {
-	Url urlObj(resultUrl);
+	Url queryUrlObj(queryUrl);
+	Url resultUrlObj(resultUrl);
 
 	if ((m_hostFilter.empty() == false) &&
-		(urlObj.getHost() != m_hostFilter))
+		(resultUrlObj.getHost() != m_hostFilter))
 	{
 #ifdef DEBUG
 		cout << "SearchEngineInterface::processResult: skipping " << resultUrl << endl;
@@ -94,7 +95,7 @@ bool SearchEngineInterface::processResult(string &resultUrl)
 	}
 
 	if ((m_fileFilter.empty() == false) &&
-		(urlObj.getFile() != m_fileFilter))
+		(resultUrlObj.getFile() != m_fileFilter))
 	{
 #ifdef DEBUG
 		cout << "SearchEngineInterface::processResult: skipping " << resultUrl << endl;
@@ -102,8 +103,42 @@ bool SearchEngineInterface::processResult(string &resultUrl)
 		return false;
 	}
 
+	// Is the result's host name the same as the search engine's ?
+	// FIXME: not all TLDs have leafs at level 2
+	if (Url::reduceHost(queryUrlObj.getHost(), 2) == Url::reduceHost(resultUrlObj.getHost(), 2))
+	{
+		string protocol(resultUrlObj.getProtocol());
+
+		if (protocol.empty() == false)
+		{
+			string embeddedUrl;
+
+			string::size_type startPos = resultUrl.find(protocol, protocol.length());
+			if (startPos != string::npos)
+			{
+				string::size_type endPos = resultUrl.find("&amp;", startPos);
+				if (endPos != string::npos)
+				{
+					embeddedUrl = resultUrl.substr(startPos, endPos - startPos);
+				}
+				else
+				{
+					embeddedUrl = resultUrl.substr(startPos);
+				}
+
+				resultUrl = Url::unescapeUrl(embeddedUrl);
+			}
+#ifdef DEBUG
+			else cout << "SearchEngineInterface::processResult: no embedded URL" << endl;
+#endif
+		}
+#ifdef DEBUG
+		else cout << "SearchEngineInterface::processResult: no protocol" << endl;
+#endif
+	}
+
 	// Remove trailing spaces at the end of the URL
-	string trimmedUrl = resultUrl;
+	string trimmedUrl(resultUrl);
 	string::size_type pos = trimmedUrl.find_last_of(" ");
 	while (pos != string::npos)
 	{

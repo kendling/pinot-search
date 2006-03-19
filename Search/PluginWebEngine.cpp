@@ -100,7 +100,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 	{
 		string url(resultIter->getLocation());
 
-		if (processResult(url) == false)
+		if (processResult(formattedQuery, url) == false)
 		{
 			// Remove this result
 			if (resultIter == m_resultsList.begin())
@@ -117,6 +117,8 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 		}
 		else
 		{
+			resultIter->setLocation(url);
+
 			// Next
 			++resultIter;
 		}
