@@ -1,0 +1,26 @@
+# Yahoo! Creative Commons Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="Creative Commons"
+	description="Yahoo.com Creative Commons Search"
+	method="GET"
+	action="http://search.yahoo.com/search"
+	routeType="The Web"
+>
+
+<INPUT NAME="ei" VALUE="UTF-8">
+<INPUT NAME="fr" VALUE="sfp-cc">
+<INPUT NAME="p" USER>
+<INPUT NAME="y" VALUE="Search+CC">
+<INPUT NAME="cc" VALUE="1">
+<INPUTNEXT NAME="b" FACTOR="10" VALUE="1">
+
+<INTERPRET
+resultListStart=""
+resultListEnd=""
+resultItemStart="<li><div>"
+resultItemEnd="</em> "
+>
+
+</SEARCH>
