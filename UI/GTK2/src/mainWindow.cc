@@ -45,7 +45,6 @@
 #include "XapianEngine.h"
 #include "config.h"
 #include "NLS.h"
-#include "IndexPage.h"
 #include "PinotUtils.h"
 #include "mainWindow.hh"
 #include "importDialog.hh"
@@ -1048,25 +1047,23 @@ void mainWindow::on_thread_end()
 				m_state.unlock_lists();
 			}
 
-			if (pIndexTree != NULL)
-			{
-				unsigned int rowsCount = pIndexTree->getRowsCount();
+			unsigned int rowsCount = pIndexTree->getRowsCount();
 
-				// Ensure the last page is being displayed and is not full
-				if ((pIndexPage->getFirstDocument() + rowsCount == pIndexPage->getDocumentsCount()) &&
-					(rowsCount < m_maxDocsCount))
-				{
-					// Add a row to the index tree
-					IndexedDocument indexedDoc(docInfo.getTitle(),
-						XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
-						docInfo.getLocation(), docInfo.getType(),
-						docInfo.getLanguage());
-					indexedDoc.setTimestamp(docInfo.getTimestamp());
-					pIndexTree->appendDocument(indexedDoc);
-				}
-				pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
-				pIndexPage->updateButtonsState(m_maxDocsCount);
+			// Ensure the last page is being displayed and is not full
+			if ((pIndexPage->getFirstDocument() + rowsCount == pIndexPage->getDocumentsCount()) &&
+				(rowsCount < m_maxDocsCount))
+			{
+				// Add a row to the index tree
+				IndexedDocument indexedDoc(docInfo.getTitle(),
+					XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
+					docInfo.getLocation(), docInfo.getType(),
+					docInfo.getLanguage());
+				indexedDoc.setTimestamp(docInfo.getTimestamp());
+
+				append_document(pIndexPage, _("My Documents"), indexedDoc);
 			}
+			pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
+			pIndexPage->updateButtonsState(m_maxDocsCount);
 		}
 
 		set_status(status);
@@ -1230,12 +1227,8 @@ void mainWindow::on_message_reception(DocumentInfo docInfo, string labelName)
 //
 void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, string indexName)
 {
-	IndexPage *pIndexPage = NULL;
-	IndexTree *pIndexTree = NULL;
-	bool hasLabel = false;
-
 	// Find the page for this index
-	pIndexPage = dynamic_cast<IndexPage*>(get_page(to_utf8(indexName), NotebookPageBox::INDEX_PAGE));
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(to_utf8(indexName), NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage == NULL)
 	{
 		// It's probably been closed by the user
@@ -1244,15 +1237,8 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 #endif
 		return;
 	}
-	pIndexTree = pIndexPage->getTree();
-	if (pIndexTree == NULL)
-	{
-		return;
-	}
-	unsigned int rowsCount = pIndexTree->getRowsCount();
 
-	// Add a row
-	pIndexTree->appendDocument(docInfo);
+	append_document(pIndexPage, to_utf8(indexName), docInfo);
 }
 
 //
@@ -2934,6 +2920,52 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 	}
 
 	return true;
+}
+
+//
+// Append a document to the index tree.
+//
+bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName, const IndexedDocument &docInfo)
+{
+	bool appendToList = true;
+
+	if (pIndexPage == NULL)
+	{
+		return false;
+	}
+
+	IndexTree *pIndexTree = pIndexPage->getTree();
+	if (pIndexTree == NULL)
+	{
+		return false;
+	}
+
+	// Does that document have the current label ?
+	ustring labelName = pIndexPage->getLabelName();
+	if (labelName.empty() == false)
+	{
+		const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
+		std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
+		if (mapIter != indexesMap.end())
+		{
+			XapianIndex index(mapIter->second);
+	
+			if (index.isGood() == true)
+			{
+				appendToList = index.hasLabel(docInfo.getID(), from_utf8(labelName));
+			}
+		}
+	}
+
+	if (appendToList == true)
+	{
+		// Add a row
+		pIndexTree->appendDocument(docInfo);
+
+		return true;
+	}
+
+	return false;
 }
 
 //

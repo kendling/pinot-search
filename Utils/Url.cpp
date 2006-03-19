@@ -131,8 +131,12 @@ void Url::parse(const string &url)
 		}
 		else
 		{
-			m_host = url.substr(pos1);
-			return;
+			if (url.find_first_of("?", pos1) == string::npos)
+			{
+				m_host = url.substr(pos1);
+				return;
+			}
+			pos2 = 0;
 		}
 		// FIXME: what about the port number ?
 	}

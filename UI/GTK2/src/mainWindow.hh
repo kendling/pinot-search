@@ -39,6 +39,7 @@
 #include "QueryProperties.h"
 #include "EnginesTree.h"
 #include "HtmlView.h"
+#include "IndexPage.h"
 #include "ModelColumns.h"
 #include "Notebook.h"
 #include "PinotSettings.h"
@@ -131,6 +132,8 @@ protected:
 	void index_document(const DocumentInfo &docInfo, const std::string &labelName,
 		unsigned int docId = 0);
 	bool view_document(const std::string &url, bool internalViewerOnly = false);
+	bool append_document(IndexPage *pIndexPage, const Glib::ustring &indexName,
+		const IndexedDocument &docInfo);
 	bool start_thread(WorkerThread *pNewThread, bool inBackground = false);
 	bool check_queue(void);
 

@@ -84,6 +84,7 @@ bool SearchEngineInterface::processResult(const string &queryUrl, string &result
 {
 	Url queryUrlObj(queryUrl);
 	Url resultUrlObj(resultUrl);
+	string queryHost(Url::reduceHost(queryUrlObj.getHost(), 2));
 
 	if ((m_hostFilter.empty() == false) &&
 		(resultUrlObj.getHost() != m_hostFilter))
@@ -105,7 +106,7 @@ bool SearchEngineInterface::processResult(const string &queryUrl, string &result
 
 	// Is the result's host name the same as the search engine's ?
 	// FIXME: not all TLDs have leafs at level 2
-	if (Url::reduceHost(queryUrlObj.getHost(), 2) == Url::reduceHost(resultUrlObj.getHost(), 2))
+	if (queryHost == Url::reduceHost(resultUrlObj.getHost(), 2))
 	{
 		string protocol(resultUrlObj.getProtocol());
 
