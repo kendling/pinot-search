@@ -140,7 +140,6 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	// Render the icons
 	m_indexedIconPixbuf = render_icon(Stock::INDEX, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_viewededIconPixbuf = render_icon(Stock::YES, ICON_SIZE_MENU, "MetaSE-pinot");
-	m_newIconPixbuf = render_icon(Stock::NEW, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_upIconPixbuf = render_icon(Stock::GO_UP, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_downIconPixbuf = render_icon(Stock::GO_DOWN, ICON_SIZE_MENU, "MetaSE-pinot");
 
@@ -393,7 +392,6 @@ void ResultsTree::onStyleChanged(const RefPtr<Style> &previous_style)
 	// FIXME: find better icons :-)
 	m_indexedIconPixbuf = render_icon(Stock::INDEX, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_viewededIconPixbuf = render_icon(Stock::YES, ICON_SIZE_MENU, "MetaSE-pinot");
-	m_newIconPixbuf = render_icon(Stock::NEW, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_upIconPixbuf = render_icon(Stock::GO_UP, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_downIconPixbuf = render_icon(Stock::GO_DOWN, ICON_SIZE_MENU, "MetaSE-pinot");
 }

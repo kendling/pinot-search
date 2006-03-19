@@ -101,7 +101,6 @@ class ResultsTree : public Gtk::TreeView
 		PinotSettings &m_settings;
 		Glib::RefPtr<Gdk::Pixbuf> m_indexedIconPixbuf;
 		Glib::RefPtr<Gdk::Pixbuf> m_viewededIconPixbuf;
-		Glib::RefPtr<Gdk::Pixbuf> m_newIconPixbuf;
 		Glib::RefPtr<Gdk::Pixbuf> m_upIconPixbuf;
 		Glib::RefPtr<Gdk::Pixbuf> m_downIconPixbuf;
 		std::map<std::string, Gtk::TreeModel::iterator> m_resultsGroups;
