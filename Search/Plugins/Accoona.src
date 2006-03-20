@@ -2,8 +2,8 @@
 
 <SEARCH
 	version="1.0"
-	name="Acoona"
-	description="Acoona.com"
+	name="Accoona"
+	description="Accoona.com"
 	method="GET"
 	action="http://www.accoona.com/search.jsp"
 	routeType="The Web"

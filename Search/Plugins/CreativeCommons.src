@@ -6,7 +6,7 @@
 	description="Yahoo.com Creative Commons Search"
 	method="GET"
 	action="http://search.yahoo.com/search"
-	routeType="The Web"
+	routeType="Content"
 >
 
 <INPUT NAME="ei" VALUE="UTF-8">

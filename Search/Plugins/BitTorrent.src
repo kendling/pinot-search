@@ -6,7 +6,7 @@
 	description="bittorrent.com"
 	method="GET"
 	action="http://search.bittorrent.com/search.jsp"
-	routeType="Media"
+	routeType="Content"
 >
 
 <INPUT NAME="hitsPerPage" VALUE="10">
