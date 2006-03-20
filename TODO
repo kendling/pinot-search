@@ -16,13 +16,10 @@ Search
 - With engines that provide a redirection URL for results (eg Acoona), it looks like
   the query hitory is not saved/checked correctly
 - Add Creative Commons (http://search.yahoo.com/cc)
-- Add http://beta.exalead.com/search
-- Add csourcesearch.net
 - Add http://www.patentcommons.org/commons/patentsearch.php
-- Add http://www.podzinger.com/
 - Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
 - Support for Google Buttons
-- If the results' domain match the search engine's, extract "<protocol>://(.*)&amp;" from the file part
+- Make sure Description files' SyndicationRight is not private or closed
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -85,17 +82,14 @@ UI
 - Display search engines icons (Gtk::IconSource::set_filename() and Gtk::Style::render_icon())
 - Replace Combobox objects with ComboboxText's (glademm support required)
 - Replace glademm with libglademm ?
-- Show extract instead of URL in index list
 - Show activity when mail is being indexed
 - Update Last Run after the query has completed
 - Add a Recent Import section that relies on documents timestamps
 - Filter documents by language, similarly to how labels are shown
 - Save engines groups state in config file
-- Enable to save live queries
 - Clean up method names
 - Prefer ustring to string whenever possible
 - Closing when threads are running gives the impression Pinot has crashed; how do we tell the user
   we are waiting for something to finish ?
-- ViewHistory should have a Date field to allow expiration/cleanup
 - Try sizing the window optimally on the first startup
 

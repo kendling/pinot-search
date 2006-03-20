@@ -1,3 +1,17 @@
+??? version_0_4_5
+Index :
+ - listing a label's documents displays the correct documents count in the status bar
+  and navigation buttons are enabled or disabled accordingly
+Search :
+ - identified and fixed cause of crash when searching several engines simultaneously
+ - Teoma and Ask Jeeves plugins replaced by Ask.com plugin
+ - dropped Altavista and Lycos
+ - added RollYO's Top News, Exalead and Creative Commons sources
+ - fixed results extraction with Topix
+UI :
+ - suggestion of query terms can be disabled
+ - new results are now shown with a background colour of the user's choice
+
 2006/03/12 version_0_4_4
 Build :
  - fixed building of PDF, RTF and MS Word tokenizer libraries
