@@ -1197,7 +1197,7 @@ void MonitorThread::doWork(void)
 	struct stat fileStat;
 	bool setLocationsToMonitor = true;
 	bool firstTime = true;
-	bool resumeMonitor = false;
+	bool closeMonitor = false, resumeMonitor = false;
 	int famStatus = -1;
 
 	if (m_pHandler == NULL)
@@ -1248,6 +1248,7 @@ void MonitorThread::doWork(void)
 				m_status = _("Couldn't open FAM connection");
 				return;
 			}
+			closeMonitor = true;
 
 			// Go through the locations map
 			for (map<unsigned long, string>::const_iterator fsIter = fsLocations.begin(); fsIter != fsLocations.end(); ++fsIter)
@@ -1409,9 +1410,12 @@ void MonitorThread::doWork(void)
 		}
 	}
 
-	// Stop monitoring and close the connection
-	FAMCancelMonitor(&famConn, &famReq);
-	FAMClose(&famConn);
+	if (closeMonitor == true)
+	{
+		// Stop monitoring and close the connection
+		FAMCancelMonitor(&famConn, &famReq);
+		FAMClose(&famConn);
+	}
 }
 
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName,
