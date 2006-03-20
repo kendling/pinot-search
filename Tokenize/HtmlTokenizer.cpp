@@ -124,6 +124,7 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 			if (catText == true)
 			{
 				stripped += replaceEscapedCharacters(text);
+				stripped += " ";
 			}
 
 			// Is this part of the name of the last link we found ?
