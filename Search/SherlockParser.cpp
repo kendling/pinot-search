@@ -501,35 +501,53 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 
 	map<string, string> searchParams, interpretParams, inputItems;
 	string userInput, nextInput, nextFactor, nextValue;
-	skip_grammar skip;
 	bool fullParsing = false;
 
-#ifdef DEBUG
-	cout << "SherlockParser::parse: starting" << endl;
-#endif
 	if (pthread_mutex_lock(&m_mutex) == 0)
 	{
-		if (extractSearchParams == false)
+#ifdef DEBUG
+		cout << "SherlockParser::parse: parsing" << endl;
+#endif
+		try
 		{
-			plugin_grammar plugin(searchParams, interpretParams, inputItems,
-				userInput, nextInput, nextFactor, nextValue);
+			if (extractSearchParams == false)
+			{
+				skip_grammar skip;
+				plugin_grammar plugin(searchParams, interpretParams, inputItems,
+					userInput, nextInput, nextFactor, nextValue);
 
-			parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
-			fullParsing = parseInfo.full;
+				parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
+				fullParsing = parseInfo.full;
+			}
+			else
+			{
+				skip_grammar skip;
+				plugin_min_grammar plugin(searchParams);
+
+				parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
+				fullParsing = parseInfo.full;
+			}
 		}
-		else
+		catch (const exception &e)
 		{
-			plugin_min_grammar plugin(searchParams);
-
-			parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
-			fullParsing = parseInfo.full;
+#ifdef DEBUG
+			cout << "SherlockParser::parse: caught exception ! " << e.what() << endl;
+#endif
+			fullParsing = false;
+		}
+		catch (...)
+		{
+#ifdef DEBUG
+			cout << "SherlockParser::parse: caught unknown exception !" << endl;
+#endif
+			fullParsing = false;
 		}
 
+#ifdef DEBUG
+		cout << "SherlockParser::parse: parsed" << endl;
+#endif
 		pthread_mutex_unlock(&m_mutex);
 	}
-#ifdef DEBUG
-	cout << "SherlockParser::parse: done" << endl;
-#endif
 
 	// We are done with the document
 	delete pPluginDoc;
