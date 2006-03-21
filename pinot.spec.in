@@ -87,7 +87,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/pinot/*.src
 %dir %{_datadir}/pinot/engines/
 %config(noreplace) %{_datadir}/pinot/engines/A9.src
-%config(noreplace) %{_datadir}/pinot/engines/Acoona.src
+%config(noreplace) %{_datadir}/pinot/engines/Accoona.src
 %config(noreplace) %{_datadir}/pinot/engines/Ask.src
 %config(noreplace) %{_datadir}/pinot/engines/BitTorrent.src
 %config(noreplace) %{_datadir}/pinot/engines/Clusty.src
