@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.43\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-03-20 21:33+0800\n"
+"POT-Creation-Date: 2006-03-21 19:33+0800\n"
 "PO-Revision-Date: 2006-01-20 19:44+0800\n"
 "Last-Translator: Fabrice Colin <colinf@chez.com>\n"
 "Language-Team: fr <colinf@chez.com>\n"
@@ -145,7 +145,6 @@ msgid "Show Next"
 msgstr "Suivants"
 
 #: UI/GTK2/src/IndexPage.cpp:158 UI/GTK2/src/IndexPage.cpp:204
-#, fuzzy
 msgid "All labels"
 msgstr "Toutes les etiquettes"
 
@@ -574,7 +573,7 @@ msgstr "Chemin du Fichier mbox"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:62
 msgid "HTTP crawling:"
-msgstr "Broutage HTTP:"
+msgstr "Agent HTTP:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:63
 msgid "View documents:"
@@ -593,12 +592,10 @@ msgid "Ignore robots.txt and Robots META tag"
 msgstr "Ignorer robots.txt et le META tag Robots"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:73
-#, fuzzy
 msgid "New results:"
 msgstr "Nouveaux resultats:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:74
-#, fuzzy
 msgid "Queries:"
 msgstr "Recherches:"
 
@@ -766,11 +763,11 @@ msgstr "a"
 
 #: UI/GTK2/src/WorkerThreads.cpp:865
 msgid "Couldn't tokenize"
-msgstr "N'a pas pu parcourir"
+msgstr "N'a pas pu extraire les termes de"
 
 #: UI/GTK2/src/WorkerThreads.cpp:885
 msgid "Robots META tag forbids indexing"
-msgstr "Le META tag Robots empeche d'indexer"
+msgstr "Le META tag Robots interdit d'indexer"
 
 #: UI/GTK2/src/WorkerThreads.cpp:940
 msgid "Couldn't index"
@@ -804,13 +801,13 @@ msgstr "Pas de moniteur"
 msgid "Couldn't open FAM connection"
 msgstr "N'a pas pu ouvrir la connection FAM"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1447
+#: UI/GTK2/src/WorkerThreads.cpp:1451
 msgid "Stopped scanning"
 msgstr "Arrete de scanner"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1605
+#: UI/GTK2/src/WorkerThreads.cpp:1609
 msgid "Couldn't open directory"
-msgstr "N'a pas pu ovrir le repertoire"
+msgstr "N'a pas pu ouvrir le repertoire"
 
 #~ msgid "Couldn't load ui block"
 #~ msgstr "N'a pas pu charger le bloc ui"

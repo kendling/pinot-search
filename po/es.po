@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.43\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-03-20 21:33+0800\n"
+"POT-Creation-Date: 2006-03-21 19:33+0800\n"
 "PO-Revision-Date: 2006-01-30 16:44+0800\n"
 "Last-Translator: Jesús Tramullas <jesus@tramullas.com>\n"
 "Language-Team: es <jesus@tramullas.com>\n"
@@ -146,7 +146,7 @@ msgstr "Mostrar siguientes"
 
 #: UI/GTK2/src/IndexPage.cpp:158 UI/GTK2/src/IndexPage.cpp:204
 msgid "All labels"
-msgstr "Todos etiquetas"
+msgstr "Todas las etiquetas"
 
 #: UI/GTK2/src/mainWindow.cc:179
 msgid "Query Name"
@@ -236,7 +236,7 @@ msgstr "Documento(s) no indizado(s)"
 
 #: UI/GTK2/src/mainWindow.cc:1175
 msgid "Couldn't rename index, name"
-msgstr "No se podu renombrar el índice, nombre"
+msgstr "No se pudo renombrar índice, nombre"
 
 #: UI/GTK2/src/mainWindow.cc:1179 UI/GTK2/src/mainWindow.cc:2036
 #: UI/GTK2/src/mainWindow.cc:2529
@@ -275,7 +275,7 @@ msgstr "no existe"
 
 #: UI/GTK2/src/mainWindow.cc:1916
 msgid "Delete this document from the index ?"
-msgstr "Enlever ce document de l'index ?"
+msgstr "¿Borrar este documento del índice?"
 
 #: UI/GTK2/src/mainWindow.cc:1935
 msgid "Delete these documents from the index ?"
@@ -307,7 +307,7 @@ msgstr "No se pudo borrar el índice"
 
 #: UI/GTK2/src/mainWindow.cc:2191
 msgid "Live query"
-msgstr "Búsqueda editada"
+msgstr "Búsqueda activa"
 
 #: UI/GTK2/src/mainWindow.cc:2344
 msgid "At least one task hasn't completed yet. Quit now ?"
@@ -359,7 +359,7 @@ msgstr "No hay URL que mostrar"
 
 #: UI/GTK2/src/mainWindow.cc:2836
 msgid "No browser configured to view results"
-msgstr "NO ha configurado un navegador para ver los resultados"
+msgstr "No ha configurado un navegador para ver los resultados"
 
 #: UI/GTK2/src/mainWindow.cc:2848
 msgid "Couldn't browse URL:"
@@ -383,7 +383,7 @@ msgstr "Búsquedas guardadas"
 
 #: UI/GTK2/src/mainWindow_glade.cc:171
 msgid "Search Engine"
-msgstr "Motores de búsqueda"
+msgstr "Motor de búsqueda"
 
 #: UI/GTK2/src/mainWindow_glade.cc:174
 msgid "Host Name"
@@ -423,7 +423,7 @@ msgstr "Actualizar"
 
 #: UI/GTK2/src/mainWindow_glade.cc:213
 msgid "Unindex"
-msgstr "Desindizar"
+msgstr "Des-indizar"
 
 #: UI/GTK2/src/mainWindow_glade.cc:216
 #: UI/GTK2/src/propertiesDialog_glade.cc:171
@@ -508,14 +508,12 @@ msgid "Swedish"
 msgstr "Sueco"
 
 #: UI/GTK2/src/pinot.cc:153 UI/GTK2/src/pinot.cc:161
-#, fuzzy
 msgid "Couldn't open index"
-msgstr "No se pudo borrar el índice"
+msgstr "No se pudo abrir el índice"
 
 #: UI/GTK2/src/pinot.cc:171
-#, fuzzy
 msgid "Couldn't create history database"
-msgstr "No se pudo crear un directorio pinot en"
+msgstr "No se pudo crear la base de datos del histórico"
 
 #: UI/GTK2/src/PinotSettings.cpp:108
 msgid "Couldn't create pinot directory at"
@@ -526,7 +524,6 @@ msgid "Failed to parse configuration file"
 msgstr "Fallo en el fichero de configuración"
 
 #: UI/GTK2/src/PinotSettings.cpp:206
-#, fuzzy
 msgid "Important"
 msgstr "Importante"
 
@@ -576,7 +573,7 @@ msgstr "Localización del fichero mbox"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:62
 msgid "HTTP crawling:"
-msgstr "Navegador HTTP:"
+msgstr "Agente HTTP:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:63
 msgid "View documents:"
@@ -595,18 +592,16 @@ msgid "Ignore robots.txt and Robots META tag"
 msgstr "Ignorar robots.txt y la etiqueta META Robots"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:73
-#, fuzzy
 msgid "New results:"
 msgstr "Nuevos resultados:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:74
-#, fuzzy
 msgid "Queries:"
-msgstr "Búsqueda:"
+msgstr "Búsquedas:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:75
 msgid "Enable search terms suggestion"
-msgstr ""
+msgstr "Activar sugerencia de términos de búsqueda"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:79
 msgid "General"
@@ -630,7 +625,7 @@ msgstr "Etiquetas"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:100
 msgid "Mail boxes of type mbox can be monitored and indexed:"
-msgstr "Lo sbuzones de correo de tipo mbox pueden ser controlados e indizados"
+msgstr "Los buzones de correo de tipo mbox pueden ser controlados e indizados"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:335
 msgid "Preferences"
@@ -768,7 +763,7 @@ msgstr "a"
 
 #: UI/GTK2/src/WorkerThreads.cpp:865
 msgid "Couldn't tokenize"
-msgstr "No se pudo parcourir"
+msgstr "No se pudo extraer cadenas"
 
 #: UI/GTK2/src/WorkerThreads.cpp:885
 msgid "Robots META tag forbids indexing"
@@ -780,11 +775,11 @@ msgstr "No se pudo indizar"
 
 #: UI/GTK2/src/WorkerThreads.cpp:995
 msgid "Stopped unindexing document(s)"
-msgstr "Detenida la desindización de documento(s)"
+msgstr "Detenida la des-indización de documento(s)"
 
 #: UI/GTK2/src/WorkerThreads.cpp:1014
 msgid "Couldn't unindex document(s)"
-msgstr "No se pudo desindizar lo(s) documento(s)"
+msgstr "No se pudo des-indizar lo(s) documento(s)"
 
 #: UI/GTK2/src/WorkerThreads.cpp:1099
 msgid "Stopped document update for"
@@ -806,11 +801,11 @@ msgstr "No hay monitorización"
 msgid "Couldn't open FAM connection"
 msgstr "No se pudo abrir la conexión FAM"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1447
+#: UI/GTK2/src/WorkerThreads.cpp:1451
 msgid "Stopped scanning"
 msgstr "Detenida la exploración"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1605
+#: UI/GTK2/src/WorkerThreads.cpp:1609
 msgid "Couldn't open directory"
 msgstr "No se pudo abrir el directorio"
 
