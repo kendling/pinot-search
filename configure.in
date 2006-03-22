@@ -26,7 +26,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
 
 dnl Add the languages which your application supports here.
 ALL_LINGUAS="fr es"
-AM_GNU_GETTEXT([external]) 
+#AM_GNU_GETTEXT([external]) 
 AM_GLIB_GNU_GETTEXT
 
 dnl Set PACKAGE_LOCALE_DIR in config.h.
@@ -74,6 +74,7 @@ neon)
 PKG_CHECK_MODULES(NEON, neon >= 0.24 )
 PKG_CHECK_MODULES(SSL, openssl >= 0.9.7 )
 HTTP_LIBRARY="USE_NEON"
+HTTP_DOWNLOADER="NeonDownloader"
 ;;
 curl)
 AC_PATH_PROG(CURL_CONFIG, curl-config, no)
@@ -84,8 +85,20 @@ fi
 CURL_CFLAGS=`$CURL_CONFIG --cflags`
 CURL_LIBS=`$CURL_CONFIG --libs`
 HTTP_LIBRARY="USE_CURL"
+HTTP_DOWNLOADER="CurlDownloader"
 ;;
 esac
+AC_SUBST(HTTP_DOWNLOADER)
+
+dnl Mozilla NSS and NSPR
+AC_PATH_PROG(NSS_CONFIG, nss-config, no)
+if test "$NSS_CONFIG" = "no" ; then
+   PKG_CHECK_MODULES(MOZILLANS, mozilla-nss >= 1.4 mozilla-nspr >= 1.4)
+   MOZILLA_NS_DIR="HAS_MOZILLA_NSS"
+else
+   PKG_CHECK_MODULES(MOZILLANS, nss >= 1.4 nspr >= 1.4)
+   MOZILLA_NS_DIR="HAS_NSS"
+fi
 
 dnl Other libraries
 MISC_LIBS="-lmagic -lcrypt"
@@ -108,15 +121,16 @@ INDEX_CFLAGS="$XAPIAN_CFLAGS"
 INDEX_LIBS="$XAPIAN_LIBS -ltextcat"
 AC_SUBST(INDEX_CFLAGS)
 AC_SUBST(INDEX_LIBS)
-PKG_CHECK_MODULES(UI, mozilla-xpcom >= 1.4 mozilla-nss >= 1.4 mozilla-gtkmozembed >= 1.4 gtkmm-2.4 >= 2.6 )
+PKG_CHECK_MODULES(UI, mozilla-xpcom >= 1.4 mozilla-gtkmozembed >= 1.4 gtkmm-2.4 >= 2.6 )
 dnl Location of Mozilla's library directory
 MOZILLA_GTKEMBED=`find /usr/lib*/mozilla* -name libgtkembedmoz.so | head -1`
 if test "$MOZILLA_GTKEMBED" = "" ; then
   MOZILLA_LIB_DIR=/usr/lib/mozilla
 else
-  MOZILLA_LIB_DIR=`dirname ${MOZILLA_GTKEMBED}`
+  MOZILLA_LIB_DIR=`dirname $MOZILLA_GTKEMBED`
 fi
-UI_LIBS="-lpthread -lfam -L${MOZILLA_LIB_DIR} -Xlinker -rpath -Xlinker ${MOZILLA_LIB_DIR} $UI_LIBS"
+UI_CFLAGS="$MOZILLANS_CFLAGS -D$MOZILLA_NS_DIR $UI_CFLAGS"
+UI_LIBS="-lpthread -lfam -L$MOZILLA_LIB_DIR -Xlinker -rpath -Xlinker $MOZILLA_LIB_DIR $UI_LIBS $MOZILLANS_LIBS"
 AC_SUBST(UI_CFLAGS)
 AC_SUBST(UI_LIBS)
 

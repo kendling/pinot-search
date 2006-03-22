@@ -52,5 +52,5 @@ libTokenize_la_SOURCES = \
 	TokenizerFactory.cpp \
 	UnknownTypeTokenizer.cpp
 
-AM_CXXFLAGS = -I../Utils
+AM_CXXFLAGS = -fPIC -I../Utils
 

@@ -15,9 +15,15 @@
  */
  
 #include <iostream>
+#ifdef HAS_MOZILLA_NSS
 #include <nspr/nspr.h>
 #include <nss/nss.h>
 #include <nss/ssl.h>
+#else
+#include <nspr.h>
+#include <nss.h>
+#include <ssl.h>
+#endif
 #include <gtkmozembed.h>
 
 #include "MozillaRenderer.h"
