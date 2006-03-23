@@ -1,7 +1,7 @@
 General
 - Fix the FIXMEs
 - Get rid of dead code/classes/methods...
-- Advertise service via Rendezvous with Howl (http://www.porchdogsoft.com/products/howl/)
+- Advertise service via Rendezvous
 - Man page, see help2man (http://www.gnu.org/software/help2man/)
 - Logging should not be all (DEBUG) or nothing (release)
 - Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
@@ -45,7 +45,6 @@ Index
 - Flush the index before searching not after modification
 - Hash document data to determine on updates whether documents have changed
 - Allow to monitor imported documents for changes
-- With non local protocols, allow to skip pages whose domain match the search engine's
 
 Browser plugin
 - Write Firefox extension that searches Pinot indexes and indexes the cache

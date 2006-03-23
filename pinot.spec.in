@@ -23,7 +23,7 @@ It may also be used as a lightweight personal space search tool.
 Summary: Tokenizers for Pinot that handle various text document formats
 Group: Applications/Internet
 Requires: %{name} = %{version}
-Requires: pdftohtml, antiword, unrtf
+Requires: /usr/bin/pdftohtml, antiword, unrtf
 Obsoletes: pinot-pdf, pinot-word
 
 %description text-docs 

@@ -1,4 +1,6 @@
 ??? version_0_4_5
+Build :
+ - various fixes for building on Fedora Core 5
 Index :
  - listing a label's documents displays the correct documents count in the status bar
   and navigation buttons are enabled or disabled accordingly
@@ -9,6 +11,8 @@ Search :
  - added RollYO's Top News, Exalead and Creative Commons sources
  - fixed results extraction with Topix
 UI :
+ - when no email boxes were being monitored, Pinot could crash at exit time
+  depending on which version of FAM was used
  - suggestion of query terms can be disabled
  - new results are now shown with a background colour of the user's choice
 
