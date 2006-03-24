@@ -92,8 +92,8 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_refStore = TreeStore::create(m_resultsColumns);
 	set_model(m_refStore);
 
-	// The title column is also used for status icons
-	TreeViewColumn *treeColumn = new TreeViewColumn(_("Title"));
+	// The first column is for status icons
+	TreeViewColumn *treeColumn = new TreeViewColumn("");
 	// Pack an icon renderer for the viewed status
 	CellRendererPixbuf *iconRenderer = new CellRendererPixbuf();
 	treeColumn->pack_start(*manage(iconRenderer), false);
@@ -106,8 +106,11 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	iconRenderer = new CellRendererPixbuf();
 	treeColumn->pack_start(*manage(iconRenderer), false);
 	treeColumn->set_cell_data_func(*iconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
-	// And a last one for text
-	// ...followed by a text renderer
+	treeColumn->set_resizable(true);
+	append_column(*manage(treeColumn));
+
+	// This is the title column
+	treeColumn = new TreeViewColumn(_("Title"));
 	CellRendererText *textCellRenderer = new CellRendererText();
 	treeColumn->pack_start(*manage(textCellRenderer));
 	treeColumn->set_cell_data_func(*textCellRenderer, SigC::slot(*this, &ResultsTree::renderBackgroundColour));
