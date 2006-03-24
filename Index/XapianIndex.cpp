@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <strings.h>
 #include <time.h>
+#include <ctype.h>
 #include <regex.h>
 #include <iostream>
 #include <fstream>
@@ -126,6 +127,12 @@ void XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 		if (term.empty() == true)
 		{
 			continue;
+		}
+		// Does it start with a capital letter ?
+		if (isupper((int)term[0]) != 0)
+		{
+			// R-prefix the raw term
+			doc.add_posting(string("R") + term, termPos);
 		}
 		// Lower case the term
 		term = StringManip::toLowerCase(term);

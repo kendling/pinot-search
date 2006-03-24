@@ -15,6 +15,7 @@
  */
 
 #include <string.h>
+#include <ctype.h>
 #include <sys/time.h>
 #include <map>
 #include <iostream>
@@ -169,8 +170,19 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 	for (Xapian::TermIterator termIter = m_pIndex->termlist_begin(docId);
 		termIter != m_pIndex->termlist_end(docId); ++termIter)
 	{
-		for (Xapian::PositionIterator positionIter = m_pIndex->positionlist_begin(docId, *termIter);
-			positionIter != m_pIndex->positionlist_end(docId, *termIter); ++positionIter)
+		string termName(*termIter);
+
+		// Skip prefixed terms
+		if (isupper((int)termName[0]) != 0)
+		{
+#ifdef DEBUG
+			cout << "AbstractGenerator::generateAbstract: skipping " << termName << endl;
+#endif
+			continue;
+		}
+
+		for (Xapian::PositionIterator positionIter = m_pIndex->positionlist_begin(docId, termName);
+			positionIter != m_pIndex->positionlist_end(docId, termName); ++positionIter)
 		{
 			Xapian::termpos termPos = *positionIter;
 
@@ -178,7 +190,7 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 			if ((startPosition <= termPos + 1) &&
 				(termPos < startPosition + m_wordsCount))
 			{
-				wordsBuffer[termPos] = *termIter;
+				wordsBuffer[termPos] = termName;
 			}
 		}
 	}
