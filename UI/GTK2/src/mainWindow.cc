@@ -2190,7 +2190,9 @@ void mainWindow::on_findButton_clicked()
 
 	queryProps.setName(_("Live query"));
 	// FIXME: parse the query string !
-	queryProps.setAnyWords(from_utf8(liveQueryEntry->get_text()));
+	// Since we perform multi-step searches on the index, we might as well start with ANDing terms
+	// For search plugins, this won't make a difference
+	queryProps.setAndWords(from_utf8(liveQueryEntry->get_text()));
 
 	run_search(queryProps);
 }
@@ -2200,6 +2202,8 @@ void mainWindow::on_findButton_clicked()
 //
 void mainWindow::on_addQueryButton_clicked()
 {
+	// Even though live queries terms are now ANDed together,
+	// use them as OR terms when creating a new stored query
 	QueryProperties queryProps = QueryProperties("", "", "", from_utf8(liveQueryEntry->get_text()), "");
 
 	edit_query(queryProps, true);
