@@ -1,4 +1,4 @@
-??? version_0_4_5
+2006/03/25 version_0_4_5
 Build :
  - various fixes for building on Fedora Core 5
 Index :
@@ -10,11 +10,15 @@ Search :
  - dropped Altavista and Lycos
  - added RollYO's Top News, Exalead and Creative Commons sources
  - fixed results extraction with Topix
+ - better URL extraction for those search engines that use redirectors, for
+  instance http://rds.yahoo.com/_ylt=.../**http%3a//some.website.com/here/index.html
+ - tweaked abstract generation
 UI :
  - when no email boxes were being monitored, Pinot could crash at exit time
   depending on which version of FAM was used
  - suggestion of query terms can be disabled
  - new results are now shown with a background colour of the user's choice
+ - since index searches are multi-stepped, live queries' terms are now ANDed together
 
 2006/03/12 version_0_4_4
 Build :

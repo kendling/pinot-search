@@ -5,7 +5,7 @@
 Summary: Metasearch tool
 Name: @PACKAGE@
 Version: @VERSION@
-Release: 1
+Release: 1%{?dist}
 License: GPL
 Group: Applications/Internet 
 Source: %{name}-%{version}.tar.gz

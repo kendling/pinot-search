@@ -45,6 +45,8 @@ Index
 - Flush the index before searching not after modification
 - Hash document data to determine on updates whether documents have changed
 - Allow to monitor imported documents for changes
+- Flush after a properties update; not doing so seems to prevent abstract generation from working
+ correctly, as terms positions can't be obtained
 
 Browser plugin
 - Write Firefox extension that searches Pinot indexes and indexes the cache
