@@ -25,13 +25,13 @@
 class DownloaderFactory
 {
 	public:
-		virtual ~DownloaderFactory() {};
+		virtual ~DownloaderFactory();
 
 		/// Returns a Downloader; NULL if unavailable.
 		static DownloaderInterface *getDownloader(const std::string &protocol);
 
 	protected:
-		DownloaderFactory() {};
+		DownloaderFactory();
 
 	private:
 		DownloaderFactory(const DownloaderFactory &other);

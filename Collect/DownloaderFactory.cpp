@@ -28,6 +28,14 @@
 
 using std::string;
 
+DownloaderFactory::DownloaderFactory()
+{
+}
+
+DownloaderFactory::~DownloaderFactory()
+{
+}
+
 /// Returns a Downloader; NULL if unavailable.
 DownloaderInterface *DownloaderFactory::getDownloader(const string &protocol)
 {
