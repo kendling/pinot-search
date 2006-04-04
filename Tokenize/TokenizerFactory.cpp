@@ -271,6 +271,9 @@ Tokenizer *TokenizerFactory::getTokenizerByType(const string &type, const Docume
 			return new Tokenizer(pDocument);
 		}
 
+#ifdef DEBUG
+		cout << "TokenizerFactory::getTokenizerByType: unknown file type" << endl;
+#endif
 		return new UnknownTypeTokenizer(pDocument);
 	}
 

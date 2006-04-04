@@ -11,12 +11,14 @@ noinst_HEADERS = \
 	HtmlTokenizer.h \
 	PdfTokenizer.h \
 	RtfTokenizer.h \
+	TagLibTokenizer.h \
 	Tokenizer.h \
 	TokenizerFactory.h \
 	UnknownTypeTokenizer.h \
 	WordTokenizer.h
 
-lib_LTLIBRARIES = libpdftokenizer.la librtftokenizer.la libwordtokenizer.la
+lib_LTLIBRARIES = libpdftokenizer.la librtftokenizer.la libwordtokenizer.la \
+	libtaglibtokenizer.la
 
 noinst_LTLIBRARIES = libTokenize.la
 
@@ -25,7 +27,7 @@ libpdftokenizer_la_SOURCES = \
 	HtmlTokenizer.cpp \
 	Tokenizer.cpp
 
-libpdftokenizer_la_LDFLAGS = 
+libpdftokenizer_la_LDFLAGS = -module
 
 libpdftokenizer_la_LIBADD = ${UTILS_OBJS} 
 
@@ -34,7 +36,7 @@ librtftokenizer_la_SOURCES = \
 	HtmlTokenizer.cpp \
 	Tokenizer.cpp
 
-librtftokenizer_la_LDFLAGS = 
+librtftokenizer_la_LDFLAGS = -module
 
 librtftokenizer_la_LIBADD = ${UTILS_OBJS}
 
@@ -42,9 +44,17 @@ libwordtokenizer_la_SOURCES = \
 	WordTokenizer.cpp \
 	Tokenizer.cpp
 
-libwordtokenizer_la_LDFLAGS = 
+libwordtokenizer_la_LDFLAGS = -module
 
 libwordtokenizer_la_LIBADD = ${UTILS_OBJS}
+
+libtaglibtokenizer_la_SOURCES = \
+	TagLibTokenizer.cpp \
+	Tokenizer.cpp
+
+libtaglibtokenizer_la_LDFLAGS = -module @TAGLIB_LIBS@
+
+libtaglibtokenizer_la_LIBADD = ${UTILS_OBJS}
 
 libTokenize_la_SOURCES = \
 	HtmlTokenizer.cpp \
@@ -52,5 +62,5 @@ libTokenize_la_SOURCES = \
 	TokenizerFactory.cpp \
 	UnknownTypeTokenizer.cpp
 
-AM_CXXFLAGS = -fPIC -I../Utils
+AM_CXXFLAGS = -fPIC -I../Utils @TAGLIB_CFLAGS@
 

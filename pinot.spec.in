@@ -12,7 +12,7 @@ Source: %{name}-%{version}.tar.gz
 URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: xapian-core-libs >= 0.9.4, curl >= 7.13, gtkmm24 >= 2.6, libxml++ >= 2.12, mozilla >= %{mozilla_ver}, sqlite >= 3.1.2, libtextcat >= 2.2, fam >= 2.6.10, gmime >= 2.1, file
-BuildRequires: xapian-core-devel >= 0.9.4, curl-devel >= 7.13, gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, mozilla-devel >= %{mozilla_ver}, sqlite-devel >= 3.1.2, libtextcat-devel >= 2.2, fam-devel >= 2.6.10, gmime-devel >= 2.1, file, boost-devel >= 1.32, gettext-devel, desktop-file-utils
+BuildRequires: xapian-core-devel >= 0.9.4, curl-devel >= 7.13, gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, mozilla-devel >= %{mozilla_ver}, sqlite-devel >= 3.1.2, libtextcat-devel >= 2.2, fam-devel >= 2.6.10, gmime-devel >= 2.1, taglib-devel >= 1.4, boost-devel >= 1.32, gettext-devel, desktop-file-utils
 
 %description
 Pinot is a metasearch tool for the Free Desktop. It enables one to query
@@ -28,6 +28,15 @@ Obsoletes: pinot-pdf, pinot-word
 
 %description text-docs 
 The included tokenizers add support for PDF, MS Word and RTF documents.
+
+%package audio-docs 
+Summary: Tokenizers for Pinot that handle various audio document formats
+Group: Applications/Internet
+Requires: %{name} = %{version}
+Requires: taglib >= 1.4
+
+%description audio-docs 
+The included tokenizer adds support for OGG and MP3 files.
 
 %package omega 
 Summary: Xapian Omega plugin for Pinot
@@ -114,6 +123,10 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/pinot/tokenizers/libpdftokenizer.so
 %{_datadir}/pinot/tokenizers/librtftokenizer.so
 %{_datadir}/pinot/tokenizers/libwordtokenizer.so
+
+%files audio-docs 
+%defattr(-, root, root, -)
+%{_datadir}/pinot/tokenizers/libtaglibtokenizer.so
 
 %files omega
 %defattr(-, root, root, -)
