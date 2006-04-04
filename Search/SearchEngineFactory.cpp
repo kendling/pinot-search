@@ -17,9 +17,6 @@
 #ifdef HAS_GOOGLEAPI
 #include "GoogleAPIEngine.h"
 #endif
-#ifdef HAS_OSAPI
-#include "ObjectsSearchAPIEngine.h"
-#endif
 #include "PluginWebEngine.h"
 #include "XapianEngine.h"
 #include "SearchEngineFactory.h"
@@ -54,12 +51,6 @@ SearchEngineInterface *SearchEngineFactory::getSearchEngine(const string &type, 
 		myEngine->setKey(option);
 	}
 #endif
-#ifdef HAS_OSAPI
-	else if (type == "objectssearchapi")
-	{
-		myEngine = new ObjectsSearchAPIEngine();
-	}
-#endif
 
 	return myEngine;
 }
@@ -75,9 +66,6 @@ void SearchEngineFactory::getSupportedEngines(set<string> &engines)
 #ifdef HAS_GOOGLEAPI
 	engines.insert("googleapi");
 #endif
-#ifdef HAS_OSAPI
-	engines.insert("objectssearchapi");
-#endif
 }
 
 /// Indicates whether a search engine is supported or not.
@@ -86,9 +74,6 @@ bool SearchEngineFactory::isSupported(const string &type)
 	if (
 #ifdef HAS_GOOGLEAPI
 		(type == "googleapi") ||
-#endif
-#ifdef HAS_OSAPI
-		(type == "objectssearchapi") ||
 #endif
 		(type == "sherlock") ||
 		(type == "xapian"))

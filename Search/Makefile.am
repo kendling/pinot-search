@@ -11,9 +11,12 @@ noinst_HEADERS = \
 	PluginParsers.h \
 	PluginWebEngine.h \
 	SearchEngineInterface.h \
-	SherlockParser.h
+	SherlockParser.h \
+	SOAPEnv.h
 
-noinst_LTLIBRARIES = libSearch.la
+EXTRA_LTLIBRARIES = libSearch.la libSearchSOAP.la
+
+noinst_LTLIBRARIES = @SEARCH_LTLIBRARIES@
 
 bin_PROGRAMS = pinot_search
 
@@ -29,13 +32,20 @@ libSearch_la_SOURCES = \
 	SearchEngineInterface.cpp \
 	SherlockParser.cpp
 
+libSearchSOAP_la_SOURCES = \
+	SOAPEnvC.cpp \
+	SOAPEnvNS.cpp
+
 pinot_search_SOURCES = \
 	senginetest.cpp
 
-pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect \
-	-lSearch -lCollect -lTokenize -lUtils \
-	@INDEX_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect -LGoogle \
+	@SEARCH_LIBS@ -lCollect -lTokenize -lUtils \
+	@INDEX_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
-AM_CXXFLAGS = -I../Utils -I../Tokenize -I../Collect \
-	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @MIME_CFLAGS@
+SOAPEnvC.cpp : SOAPEnv.h
+	soapcpp2 -pSOAPEnv SOAPEnv.h
+
+AM_CXXFLAGS = -I../Utils -I../Tokenize -I../Collect -IGoogle \
+	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @MIME_CFLAGS@
 

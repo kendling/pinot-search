@@ -14,6 +14,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <iostream>
+
 #include "Url.h"
 #include "MIMEScanner.h"
 
@@ -21,7 +23,8 @@
 #include "GAPIGoogleSearchBindingProxy.h"
 #include "GAPI.nsmap"
 
-using namespace GAPI;
+using std::cout;
+using std::endl;
 
 GoogleAPIEngine::GoogleAPIEngine() :
 	SearchEngineInterface()
@@ -39,14 +42,13 @@ GoogleAPIEngine::~GoogleAPIEngine()
 Document *GoogleAPIEngine::retrieveCachedUrl(const string &url)
 {
 	GoogleSearchBinding soapProxy;
-	struct gapi1__doGetCachedPageResponse cacheOut;
+	xsd__base64Binary base64Page;
 
-	if (soapProxy.gapi1__doGetCachedPage(m_key, url, cacheOut))
+	if (soapProxy.gapi1__doGetCachedPage(m_key, url, base64Page))
 	{
 		return NULL;
 	}
 
-	xsd__base64Binary base64Page = cacheOut.return_;
 	if ((base64Page.__ptr != NULL) &&
 		(base64Page. __size > 0))
 	{
@@ -65,14 +67,14 @@ Document *GoogleAPIEngine::retrieveCachedUrl(const string &url)
 string GoogleAPIEngine::checkSpelling(const string &text)
 {
 	GoogleSearchBinding soapProxy;
-	struct gapi1__doSpellingSuggestionResponse spellOut;
+	string spellOut;
 
 	if (soapProxy.gapi1__doSpellingSuggestion(m_key, text, spellOut))
 	{
 		return "";
 	}
 
-	return spellOut.return_;
+	return spellOut;
 }
 
 //
@@ -90,6 +92,9 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 
 	if (m_key.empty() == true)
 	{
+#ifdef DEBUG
+		cout << "GoogleAPIEngine::runQuery: no key" << endl;
+#endif
 		return false;
 	}
 
@@ -109,9 +114,14 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 	struct gapi1__doGoogleSearchResponse queryOut;
 
 	// No filter, no safe search
-	if (soapProxy.gapi1__doGoogleSearch(m_key, andTerms, 0, (m_maxResultsCount > 10 ? 10 : m_maxResultsCount),
-		((phrase.empty() == false) ? true : false), phrase, false, "", "latin1", "latin1", queryOut))
+	// std::string key, std::string q, int start, int maxResults, bool filter, std::string restrict_, bool safeSearch, std::string lr, std::string ie, std::string oe, struct gapi1__doGoogleSearchResponse &_param_1
+	int soapStatus = soapProxy.gapi1__doGoogleSearch(m_key, andTerms, 0, (int)(m_maxResultsCount > 10 ? 10 : m_maxResultsCount),
+		((phrase.empty() == false) ? true : false), phrase, false, "", "utf-8", "utf-8", queryOut);
+	if (soapStatus != SOAP_OK)
 	{
+#ifdef DEBUG
+		cout << "GoogleAPIEngine::runQuery: search failed with status " << soapStatus << endl;
+#endif
 		return false;
 	}
 

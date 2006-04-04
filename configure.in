@@ -50,22 +50,46 @@ AC_LANG_CPLUSPLUS
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
-dnl Xapian
-AC_PATH_PROG(XAPIAN_CONFIG, xapian-config, no)
-if test "$XAPIAN_CONFIG" = "no" ; then
-   AC_MSG_ERROR([Can't find xapian-config in $PATH.])
-   exit 1
+dnl SOAP API support
+AC_MSG_CHECKING(whether to enable SOAP support)
+AC_ARG_WITH(soap, AS_HELP_STRING(--with-soap@<:@=yes|no@:>@,
+   whether to enable SOAP support (default: no)))
+soapsupport=$with_soap
+if test "x$soapsupport" = "x"; then
+   soapsupport="no"
 fi
-XAPIAN_CFLAGS=`$XAPIAN_CONFIG --cxxflags`
-XAPIAN_LIBS=`$XAPIAN_CONFIG --libs`
+AC_MSG_RESULT($soapsupport)
+
+case "$soapsupport" in
+yes)
+PKG_CHECK_MODULES(SOAP, gsoap)
+SOAP_CFLAGS="-DHAS_GOOGLEAPI $SOAP_CFLAGS"
+SOAP_LIBS="$SOAP_LIBS -lSearchSOAP"
+SOAP_SUBDIRS="Search/Google"
+SEARCH_LTLIBRARIES="libSearch.la libSearchSOAP.la"
+SEARCH_LIBS="-lSearch -lSearchGoogle"
+;;
+no)
+SOAP_CFLAGS=""
+SOAP_LIBS=""
+SOAP_SUBDIRS=""
+SEARCH_LTLIBRARIES="libSearch.la"
+SEARCH_LIBS="-lSearch"
+;;
+esac
+AC_SUBST(SOAP_CFLAGS)
+AC_SUBST(SOAP_LIBS)
+AC_SUBST(SOAP_SUBDIRS)
+AC_SUBST(SEARCH_LTLIBRARIES)
+AC_SUBST(SEARCH_LIBS)
 
 dnl Neon or Curl ?
 AC_MSG_CHECKING(which HTTP library to use)
 AC_ARG_WITH(http, AS_HELP_STRING(--with-http@<:@=neon|curl@:>@,
-	which HTTP library to use (default: curl)))
+   which HTTP library to use (default: curl)))
 httplibrary=$with_http
 if test "x$httplibrary" = "x"; then
-	httplibrary="curl"
+   httplibrary="curl"
 fi
 AC_MSG_RESULT($httplibrary)
 
@@ -89,6 +113,18 @@ HTTP_DOWNLOADER="CurlDownloader"
 ;;
 esac
 AC_SUBST(HTTP_DOWNLOADER)
+
+dnl Textcat
+AC_CHECK_HEADERS(textcat.h)
+
+dnl Xapian
+AC_PATH_PROG(XAPIAN_CONFIG, xapian-config, no)
+if test "$XAPIAN_CONFIG" = "no" ; then
+   AC_MSG_ERROR([Can't find xapian-config in $PATH.])
+   exit 1
+fi
+XAPIAN_CFLAGS=`$XAPIAN_CONFIG --cxxflags`
+XAPIAN_LIBS=`$XAPIAN_CONFIG --libs`
 
 dnl Mozilla NSS and NSPR
 AC_PATH_PROG(NSS_CONFIG, nss-config, no)
@@ -116,7 +152,6 @@ AC_SUBST(MIME_LIBS)
 PKG_CHECK_MODULES(XML, libxml++-2.6 >= 2.12 )
 AC_SUBST(XML_CFLAGS)
 AC_SUBST(XML_LIBS)
-dnl FIXME: check for libtextcat
 INDEX_CFLAGS="$XAPIAN_CFLAGS"
 INDEX_LIBS="$XAPIAN_LIBS -ltextcat"
 AC_SUBST(INDEX_CFLAGS)
@@ -140,6 +175,6 @@ AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
 AC_OUTPUT( pinot.spec Makefile Utils/Makefile Tokenize/Makefile SQL/Makefile \
-	po/Makefile.in Collect/Makefile Search/Makefile \
+	po/Makefile.in Collect/Makefile Search/Makefile Search/Google/Makefile \
 	Index/Makefile UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
 
