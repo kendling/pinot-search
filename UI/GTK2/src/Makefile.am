@@ -53,12 +53,12 @@ pinot_SOURCES = \
 
 bin_PROGRAMS = pinot
 
-AM_CXXFLAGS = -I../../../Utils -I../../../Tokenize -I../../../SQL \
-	-I../../../Collect -I../../../Search -I../../../Index -I../../RenderHTML \
-	@SQL_CFLAGS@ @HTTP_CFLAGS@ @MIME_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @UI_CFLAGS@
+AM_CXXFLAGS = -I../../../Utils -I../../../Tokenize -I../../../SQL -I../../../Collect \
+	-I../../../Search -I../../../Search/Google -I../../../Index -I../../RenderHTML \
+	@SQL_CFLAGS@ @HTTP_CFLAGS@ @MIME_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ @INDEX_CFLAGS@ @UI_CFLAGS@
 
-pinot_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL \
-        -L../../../Collect -L../../../Search -L../../../Index -L../../RenderHTML \
-	-lHTML -lIndex -lSearch -lCollect -lSQL -lTokenize -lUtils \
-	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
+pinot_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL -L../../../Collect \
+	-L../../../Search -L../../../Search/Google -L../../../Index -L../../RenderHTML \
+	-lHTML -lIndex @SEARCH_LIBS@ -lCollect -lSQL -lTokenize -lUtils \
+	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
