@@ -246,7 +246,7 @@ class IndexingThread : public DownloadingThread
 {
 	public:
 		IndexingThread(const DocumentInfo &docInfo, const std::string &labelName,
-			unsigned int docId = 0);
+			unsigned int docId = 0, bool allowAllMIMETypes = false);
 		virtual ~IndexingThread();
 
 		virtual std::string getType(void) const;
@@ -265,6 +265,7 @@ class IndexingThread : public DownloadingThread
 		DocumentInfo m_docInfo;
 		std::string m_labelName;
 		unsigned int m_docId;
+		bool m_allowAllMIMETypes;
 		std::string m_indexLocation;
 		bool m_ignoreRobotsDirectives;
 		bool m_update;

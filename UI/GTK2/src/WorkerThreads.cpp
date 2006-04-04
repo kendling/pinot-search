@@ -245,8 +245,6 @@ WorkerThread *ThreadsManager::on_thread_end(void)
 
 bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground)
 {
-	bool insertedThread = false;
-
 	if (pWorkerThread == NULL)
 	{
 		return false;
@@ -467,10 +465,10 @@ void IndexBrowserThread::doWork(void)
 QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
 	const string &engineOption, const QueryProperties &queryProps) :
 	WorkerThread(),
-	m_queryProps(queryProps),
 	m_engineName(engineName),
 	m_engineDisplayableName(engineDisplayableName),
-	m_engineOption(engineOption)
+	m_engineOption(engineOption),
+	m_queryProps(queryProps)
 {
 }
 
@@ -722,11 +720,12 @@ void DownloadingThread::doWork(void)
 }
 
 IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &labelName,
-	unsigned int docId) :
+	unsigned int docId, bool allowAllMIMETypes) :
 	DownloadingThread(docInfo.getLocation(), false),
 	m_docInfo(docInfo),
 	m_labelName(labelName),
-	m_docId(docId)
+	m_docId(docId),
+	m_allowAllMIMETypes(allowAllMIMETypes)
 {
 	m_indexLocation = PinotSettings::getInstance().m_indexLocation;
 	if (m_docId > 0)
@@ -816,9 +815,7 @@ void IndexingThread::doWork(void)
 	}
 	else
 	{
-		unsigned int urlContentLen;
 		string docType = m_pDoc->getType();
-		const char *urlContent = m_pDoc->getData(urlContentLen);
 		bool success = false;
 
 		// The type may have been obtained when downloading
@@ -831,8 +828,9 @@ void IndexingThread::doWork(void)
 			m_pDoc->setType(m_docInfo.getType());
 		}
 
-		// Skip unsupported types
-		if (TokenizerFactory::isSupportedType(m_docInfo.getType()) == false)
+		// Skip unsupported types ?
+		if ((m_allowAllMIMETypes == false) &&
+			(TokenizerFactory::isSupportedType(m_docInfo.getType()) == false))
 		{
 			m_status = _("Cannot index document type");
 			m_status += " ";
@@ -1194,7 +1192,6 @@ void MonitorThread::doWork(void)
 	FAMConnection famConn;
 	FAMRequest famReq;
 	map<unsigned long, string> fsLocations;
-	struct stat fileStat;
 	bool setLocationsToMonitor = true;
 	bool firstTime = true;
 	bool closeMonitor = false, resumeMonitor = false;
