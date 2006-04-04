@@ -652,6 +652,8 @@ bool PinotSettings::loadColour(const Element *pElem)
 			m_newResultsColour.set_blue(value);
 		}
 	}
+
+	return true;
 }
 
 bool PinotSettings::loadMailAccounts(const Element *pElem)
@@ -883,11 +885,11 @@ bool PinotSettings::save(void)
 		}
 		addChildElement(pElem, "name", mailIter->m_name);
 		addChildElement(pElem, "type", mailIter->m_type);
-		sprintf(numStr, "%u", mailIter->m_modTime);
+		sprintf(numStr, "%d", mailIter->m_modTime);
 		addChildElement(pElem, "mtime", numStr);
-		sprintf(numStr, "%u", mailIter->m_lastMessageTime);
+		sprintf(numStr, "%d", mailIter->m_lastMessageTime);
 		addChildElement(pElem, "mindate", numStr);
-		sprintf(numStr, "%u", mailIter->m_size);
+		sprintf(numStr, "%d", mailIter->m_size);
 		addChildElement(pElem, "size", numStr);
 	}
 
@@ -1142,13 +1144,13 @@ const set<string> &PinotSettings::getLabels(void) const
 }
 
 /// Adds a new label.
-bool PinotSettings::addLabel(const string &name)
+void PinotSettings::addLabel(const string &name)
 {
 	m_labels.insert(name);
 }
 
 /// Removes a label.
-bool PinotSettings::removeLabel(const string &name)
+void PinotSettings::removeLabel(const string &name)
 {
 	set<string>::iterator labelIter = m_labels.find(name);
 	if (labelIter != m_labels.end())

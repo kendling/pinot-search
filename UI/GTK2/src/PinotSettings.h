@@ -112,10 +112,10 @@ class PinotSettings
 		const std::set<std::string> &getLabels(void) const;
 
 		/// Adds a new label.
-		bool addLabel(const std::string &name);
+		void addLabel(const std::string &name);
 
 		/// Removes a label.
-		bool removeLabel(const std::string &name);
+		void removeLabel(const std::string &name);
 
 		/// Clears the labels list.
 		void clearLabels(void);

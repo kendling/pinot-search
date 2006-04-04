@@ -156,8 +156,6 @@ char *MboxParser::extractPart(GMimeObject *part, string &contentType, ssize_t &p
 	// Is this a multipart ?
 	if (GMIME_IS_MULTIPART(part))
 	{
-		ssize_t allPartsLen = 0;
-
 		m_partsCount = g_mime_multipart_get_number(GMIME_MULTIPART(part));
 #ifdef DEBUG
 		cout << "MboxParser::extractPart: message has " << m_partsCount << " parts" << endl;
@@ -336,7 +334,7 @@ bool MboxParser::extractMessage(void)
 				location = "mailbox://";
 				location += m_fileName;
 				location += "?o=";
-				snprintf(posStr, 64, "%u", m_messageStart);
+				snprintf(posStr, 64, "%d", m_messageStart);
 				location += posStr;
 				location += "&p=";
 				snprintf(posStr, 64, "%d", max(m_partNum, 0));
