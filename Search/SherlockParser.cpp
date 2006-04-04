@@ -355,6 +355,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 			{
 				string extractWithMarkup1, extractWithMarkup2;
 				string extractCandidate1, extractCandidate2;
+				bool isBlank = true;
 
 				if (startOfSecondLink > 0)
 				{
@@ -393,6 +394,19 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 				cout << "SherlockResponseParser::parse: extract is \""
 					<< extract << "\"" << endl;
 #endif
+				for (string::size_type pos = 0; pos < extract.length(); ++pos)
+				{
+					if (isspace(extract[pos]) == 0)
+					{
+						isBlank = false;
+						break;
+					}
+				}
+
+				if (isBlank == true)
+				{
+					extract = HtmlTokenizer::stripTags(resultItem);
+				}
 			}
 		}
 		else
