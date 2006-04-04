@@ -83,8 +83,35 @@ void SearchEngineInterface::setFileNameFilter(const string &filter)
 bool SearchEngineInterface::processResult(const string &queryUrl, string &resultUrl)
 {
 	Url queryUrlObj(queryUrl);
-	Url resultUrlObj(resultUrl);
 	string queryHost(Url::reduceHost(queryUrlObj.getHost(), 2));
+
+	if (resultUrl.empty() == true)
+	{
+		return false;
+	}
+
+	if ((resultUrl[0] == '/') ||
+		((resultUrl.length() > 1) &&
+		(resultUrl[0] == '.') &&
+		(resultUrl[1] == '/')))
+	{
+		string fullResultUrl(queryUrlObj.getProtocol());
+
+		fullResultUrl += "://";
+		fullResultUrl += queryUrlObj.getHost();
+		if (resultUrl[0] == '.')
+		{
+			fullResultUrl += resultUrl.substr(1);
+		}
+		else
+		{
+			fullResultUrl += resultUrl;
+		}
+
+		resultUrl = fullResultUrl;
+	}
+
+	Url resultUrlObj(resultUrl);
 
 	if ((m_hostFilter.empty() == false) &&
 		(resultUrlObj.getHost() != m_hostFilter))
