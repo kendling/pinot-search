@@ -65,8 +65,7 @@ int main(int argc, char **argv)
 	myEngine->setMaxResultsCount(count);
 
 	QueryProperties queryProps("senginetest", argv[3], "", "", "");
-	bool bOK = myEngine->runQuery(queryProps);
-	if (bOK == true)
+	if (myEngine->runQuery(queryProps) == true)
 	{
 		string resultsPage;
 

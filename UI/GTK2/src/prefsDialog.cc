@@ -38,7 +38,8 @@ using namespace Gtk;
 unsigned int prefsDialog::m_maxDirLevel = 1;
 
 prefsDialog::prefsDialog() :
-	m_settings(PinotSettings::getInstance()), prefsDialog_glade()
+	prefsDialog_glade(),
+	m_settings(PinotSettings::getInstance())
 {
 	// Associate the columns model to the view combo
 	m_refViewTree = ListStore::create(m_viewColumns);
