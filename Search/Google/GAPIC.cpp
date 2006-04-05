@@ -7,7 +7,7 @@
 
 #include "GAPIH.h"
 
-SOAP_SOURCE_STAMP("@(#) GAPIC.cpp ver 2.7.6e 2006-04-05 04:17:23 GMT")
+SOAP_SOURCE_STAMP("@(#) GAPIC.cpp ver 2.7.6e 2006-04-02 07:31:50 GMT")
 
 
 #ifndef WITH_NOGLOBAL
@@ -2811,16 +2811,16 @@ SOAP_FMAC3 int SOAP_FMAC4 soap_put_gapi1__doGoogleSearch(struct soap *soap, cons
 SOAP_FMAC3 int SOAP_FMAC4 soap_out_gapi1__doGoogleSearch(struct soap *soap, const char *tag, int id, const struct gapi1__doGoogleSearch *a, const char *type)
 {
 	soap_element_begin_out(soap, tag, soap_embedded_id(soap, id, a, SOAP_TYPE_gapi1__doGoogleSearch), type);
-	soap_out_std__string(soap, "key", -1, &a->key, "");
-	soap_out_std__string(soap, "q", -1, &a->q, "");
-	soap_out_int(soap, "start", -1, &a->start, "");
-	soap_out_int(soap, "maxResults", -1, &a->maxResults, "");
-	soap_out_bool(soap, "filter", -1, &a->filter, "");
-	soap_out_std__string(soap, "restrict", -1, &a->restrict_, "");
-	soap_out_bool(soap, "safeSearch", -1, &a->safeSearch, "");
-	soap_out_std__string(soap, "lr", -1, &a->lr, "");
-	soap_out_std__string(soap, "ie", -1, &a->ie, "");
-	soap_out_std__string(soap, "oe", -1, &a->oe, "");
+	soap_out_std__string(soap, "key", -1, &a->key, "xsd:string");
+	soap_out_std__string(soap, "q", -1, &a->q, "xsd:string");
+	soap_out_int(soap, "start", -1, &a->start, "xsd:int");
+	soap_out_int(soap, "maxResults", -1, &a->maxResults, "xsd:int");
+	soap_out_bool(soap, "filter", -1, &a->filter, "xsd:boolean");
+	soap_out_std__string(soap, "restrict", -1, &a->restrict_, "xsd:string");
+	soap_out_bool(soap, "safeSearch", -1, &a->safeSearch, "xsd:boolean");
+	soap_out_std__string(soap, "lr", -1, &a->lr, "xsd:string");
+	soap_out_std__string(soap, "ie", -1, &a->ie, "xsd:string");
+	soap_out_std__string(soap, "oe", -1, &a->oe, "xsd:string");
 	soap_element_end_out(soap, tag);
 	return SOAP_OK;
 }
@@ -3091,8 +3091,8 @@ SOAP_FMAC3 int SOAP_FMAC4 soap_put_gapi1__doSpellingSuggestion(struct soap *soap
 SOAP_FMAC3 int SOAP_FMAC4 soap_out_gapi1__doSpellingSuggestion(struct soap *soap, const char *tag, int id, const struct gapi1__doSpellingSuggestion *a, const char *type)
 {
 	soap_element_begin_out(soap, tag, soap_embedded_id(soap, id, a, SOAP_TYPE_gapi1__doSpellingSuggestion), type);
-	soap_out_std__string(soap, "key", -1, &a->key, "");
-	soap_out_std__string(soap, "phrase", -1, &a->phrase, "");
+	soap_out_std__string(soap, "key", -1, &a->key, "xsd:string");
+	soap_out_std__string(soap, "phrase", -1, &a->phrase, "xsd:string");
 	soap_element_end_out(soap, tag);
 	return SOAP_OK;
 }
@@ -3326,8 +3326,8 @@ SOAP_FMAC3 int SOAP_FMAC4 soap_put_gapi1__doGetCachedPage(struct soap *soap, con
 SOAP_FMAC3 int SOAP_FMAC4 soap_out_gapi1__doGetCachedPage(struct soap *soap, const char *tag, int id, const struct gapi1__doGetCachedPage *a, const char *type)
 {
 	soap_element_begin_out(soap, tag, soap_embedded_id(soap, id, a, SOAP_TYPE_gapi1__doGetCachedPage), type);
-	soap_out_std__string(soap, "key", -1, &a->key, "");
-	soap_out_std__string(soap, "url", -1, &a->url, "");
+	soap_out_std__string(soap, "key", -1, &a->key, "xsd:string");
+	soap_out_std__string(soap, "url", -1, &a->url, "xsd:string");
 	soap_element_end_out(soap, tag);
 	return SOAP_OK;
 }
