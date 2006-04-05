@@ -16,10 +16,10 @@
 <INPUTNEXT NAME="start" FACTOR="10">
 
 <INTERPRET
-resultListStart=''
-resultListEnd=''
-resultItemStart='<span class="titler">'
-resultItemEnd='</span><p><p></div>'
+resultListStart='<div class="searchresults">'
+resultListEnd='<div class="pages">'
+resultItemStart='<div class="d">'
+resultItemEnd='</li>'
 >
 
 </SEARCH>
