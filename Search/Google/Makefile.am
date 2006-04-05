@@ -1,7 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
-	GAPIGoogleSearchBindingObject.h \
 	GAPIGoogleSearchBindingProxy.h \
 	GAPIH.h \
 	GAPIStub.h \
@@ -14,7 +13,7 @@ libSearchGoogle_la_SOURCES = \
 	GAPIClientLib.cpp \
 	GoogleAPIEngine.cpp
 
-GoogleSearch.h : googleapi/GoogleSearch.wsdl
+GoogleSearch.h :
 	wsdl2c -n gapi -o GoogleSearch.h googleapi/GoogleSearch.wsdl
 
 GAPIClientLib.cpp : GoogleSearch.h
