@@ -1,6 +1,7 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
+	GAPI.nsmap \
 	GAPIGoogleSearchBindingProxy.h \
 	GAPIH.h \
 	GAPIStub.h \
