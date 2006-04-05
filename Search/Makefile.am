@@ -12,7 +12,9 @@ noinst_HEADERS = \
 	PluginWebEngine.h \
 	SearchEngineInterface.h \
 	SherlockParser.h \
-	SOAPEnv.h
+	SOAPEnv.h \
+	SOAPEnvH.h \
+	SOAPEnvStub.h
 
 EXTRA_LTLIBRARIES = libSearch.la libSearchSOAP.la
 
