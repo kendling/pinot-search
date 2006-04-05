@@ -10,6 +10,8 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = libSearchGoogle.la
 
 libSearchGoogle_la_SOURCES = \
+	GAPIC.cpp \
+	GAPIClient.cpp \
 	GAPIClientLib.cpp \
 	GoogleAPIEngine.cpp
 
