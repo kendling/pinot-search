@@ -20,7 +20,7 @@ EXTRA_LTLIBRARIES = libSearch.la libSearchSOAP.la
 
 noinst_LTLIBRARIES = @SEARCH_LTLIBRARIES@
 
-bin_PROGRAMS = pinot_search
+bin_PROGRAMS = pinot-search
 
 libSearch_la_SOURCES = \
 	AbstractGenerator.cpp \

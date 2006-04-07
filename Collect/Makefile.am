@@ -10,7 +10,7 @@ noinst_HEADERS = \
 
 noinst_LTLIBRARIES = libCollect.la
 
-bin_PROGRAMS = pinot_collect
+bin_PROGRAMS = pinot-collect
 
 pinot_collect_SOURCES = \
 	dloadtest.cpp

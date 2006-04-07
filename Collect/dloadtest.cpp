@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 {
 	if (argc < 2)
 	{
-		cerr << "Usage: <URL>" << endl;
+		cerr << "Usage: " << argv[0] << " <URL>" << endl;
 		return EXIT_FAILURE;
 	}
 

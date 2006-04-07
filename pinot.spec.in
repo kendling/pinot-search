@@ -36,7 +36,7 @@ Requires: %{name} = %{version}
 Requires: taglib >= 1.4
 
 %description audio-docs 
-The included tokenizer adds support for OGG and MP3 files.
+The included tokenizer adds support for OGG, MP3 and FLAC files.
 
 %package omega 
 Summary: Xapian Omega plugin for Pinot
@@ -87,7 +87,8 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %defattr(-, root, root, -)
 %doc ChangeLog COPYING NEWS README TODO
 %{_bindir}/pinot
-%{_bindir}/pinot_search
+%ghost %{_bindir}/pinot-collect
+%{_bindir}/pinot-search
 %{_datadir}/pinot/index.html
 %{_datadir}/pinot/xapian-powered.png
 %{_datadir}/pinot/metase-gtk2.glade
