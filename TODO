@@ -85,7 +85,6 @@ UI
 - Replace glademm with libglademm ?
 - Show activity when mail is being indexed
 - Update Last Run after the query has completed
-- Add a Recent Import section that relies on documents timestamps
 - Filter documents by language, similarly to how labels are shown
 - Save engines groups state in config file
 - Clean up method names

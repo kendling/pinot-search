@@ -26,13 +26,8 @@ http://www.webdav.org/neon/
 
 Google SOAP API (2)	Search/Google/googleapi		beta2
 
- GSOAP			$GSOAP_HOME			2.6.2
+ GSOAP							2.7.6e
  http://www.cs.fsu.edu/~engelen/soap.html
- eg GSOAP_HOME=/home/fabrice/Projects/gsoap-linux-2.6
-
-ObjectsSearch API (3)	Search/ObjectsSearch		beta
-
- GSOAP			$GSOAP_HOME			2.6.2
 
 gtkmm							2.6.2
 http://www.gtkmm.org/
@@ -52,7 +47,7 @@ http://www.gnome.org/~veillard/gamin/
 gmime							2.1.9
 http://spruce.sourceforge.net/gmime
 
-Mozilla with gtk-mozembed				1.6
+Mozilla's gtk-mozembed (3)				1.4
 http://www.mozilla.org/
 
 boost (4)						1.32.0
@@ -67,12 +62,15 @@ http://www.winfield.demon.nl/
 unrtf							0.19.3
 http://www.gnu.org/software/unrtf/unrtf.html
 
+TagLib							1.4
+http://ktown.kde.org/~wheeler/taglib/
+
 glademm (5)						2.6.0_cvs-SNAP
 http://home.wtal.de/petig/Gtk/index.html
 
 (1) enabled with "./configure --with-http=neon|curl"
-(2) enabled with 'make HAS_GOOGLEAPI=yes'
-(3) enabled with 'make HAS_OSAPI=yes' (now defunct ?)
+(2) enabled with "./configure --with-soap=yes"
+(3) select Mozilla or Firefox with "./configure --with-gecko=mozilla|firefox"
 (4) for building only
 (5) to optionally regenerate the GUI code
 

@@ -1,3 +1,14 @@
+??? version_0_4_6
+Search :
+ - resurrected support for the Google API, enabled with "./configure --with-soap=yes"
+ - tweaked extraction of results' extract and URL
+ - renamed pinot_search to pinot-search
+Tokenize :
+ - new dependency on TagLib to allow extracting track information from MP3, Vorbis
+  and FLAC files
+HTML browser :
+ - can build against Mozilla or Firefox, as set with "./configure --with-gecko=mozilla|firefox"
+
 2006/03/25 version_0_4_5
 Build :
  - various fixes for building on Fedora Core 5
