@@ -104,7 +104,7 @@ else
    MOZILLA_NS_DIR="HAS_NSS"
 fi
 dnl Location of Mozilla's library directory
-MOZILLA_LIB_DIR="`$PKG_CONFIG --variable=libdir $MOZILLA-gtkmozembed`"
+MOZILLA_LIB_DIR="`$PKG_CONFIG --variable=libdir $gecko-gtkmozembed`"
 if test "$MOZILLA_LIB_DIR" = "" ; then
   MOZILLA_LIB_DIR=/usr/lib/mozilla
 fi
