@@ -6,12 +6,12 @@ SUBDIRS = po Utils Tokenize SQL Collect @SOAP_SUBDIRS@ Search \
 
 EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs pinot.spec \
 	Search/Plugins/*src Search/Plugins/*.xml \
-	index.html UI/GTK2/xapian-powered.png UI/GTK2/pinot.png \
+	UI/GTK2/index.html UI/GTK2/xapian-powered.png UI/GTK2/pinot.png \
 	textcat_conf.txt UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot
-	$(INSTALL_DATA) index.html $(DESTDIR)$(datadir)/pinot/index.html
+	$(INSTALL_DATA) UI/GTK2/index.html $(DESTDIR)$(datadir)/pinot/index.html
 	$(INSTALL_DATA) UI/GTK2/xapian-powered.png $(DESTDIR)$(datadir)/pinot/xapian-powered.png
 	$(INSTALL_DATA) UI/GTK2/metase-gtk2.glade $(DESTDIR)$(datadir)/pinot/metase-gtk2.glade
 	$(INSTALL_DATA) UI/GTK2/metase-gtk2.gladep $(DESTDIR)$(datadir)/pinot/metase-gtk2.gladep
