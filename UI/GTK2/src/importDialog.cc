@@ -394,6 +394,7 @@ void importDialog::on_typeCombobox_changed()
 	// FIXME: this could also apply to URLs !
 	depthSpinbutton->set_sensitive(m_importDirectory);
 	locationButton->set_sensitive(selectLocation);
+	linksCheckbutton->set_sensitive(selectLocation);
 }
 
 void importDialog::on_locationEntry_changed()
