@@ -7,6 +7,7 @@
 
 #ifndef GAPIStub_H
 #define GAPIStub_H
+#include <string>
 #include <vector>
 #define WITH_NONAMESPACES
 #include "stdsoap2.h"
