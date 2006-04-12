@@ -65,7 +65,7 @@ MozillaRenderer::MozillaRenderer()
 	if (m_htmlWidget != NULL)
 	{
 		// Turn off all features
-		gtk_moz_embed_set_chrome_mask(GTK_MOZ_EMBED(m_htmlWidget), 0);
+		gtk_moz_embed_set_chrome_mask(GTK_MOZ_EMBED(m_htmlWidget), GTK_MOZ_EMBED_FLAG_SCROLLBARSON);
 #ifdef DEBUG
 		cout << "MozillaRenderer::ctor: embedded Mozilla" << endl;
 #endif
