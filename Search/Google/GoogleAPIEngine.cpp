@@ -114,7 +114,6 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 	struct gapi1__doGoogleSearchResponse queryOut;
 
 	// No filter, no safe search
-	// std::string key, std::string q, int start, int maxResults, bool filter, std::string restrict_, bool safeSearch, std::string lr, std::string ie, std::string oe, struct gapi1__doGoogleSearchResponse &_param_1
 	int soapStatus = soapProxy.gapi1__doGoogleSearch(m_key, andTerms, 0, (int)(m_maxResultsCount > 10 ? 10 : m_maxResultsCount),
 		((phrase.empty() == false) ? true : false), phrase, false, "", "utf-8", "utf-8", queryOut);
 	if (soapStatus != SOAP_OK)
@@ -126,17 +125,22 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 	}
 
 	struct gapi1__GoogleSearchResult *searchResult = queryOut.return_;
-	float pseudoScore = 100;
 
-	for (int i = 0; i < searchResult->resultElements->__size; i++)
+	if ((searchResult != NULL) &&
+		(searchResult->resultElements != NULL))
 	{
-		struct gapi1__ResultElement *resultElement = searchResult->resultElements->__ptr[i];
+		float pseudoScore = 100;
 
-		string resultUrl(resultElement->URL);
-		if (processResult("http://www.google.com/", resultUrl) == true)
+		for (int i = 0; i < searchResult->resultElements->__size; ++i)
 		{
-			m_resultsList.push_back(Result(resultUrl, resultElement->title, resultElement->snippet, "", pseudoScore));
-			--pseudoScore;
+			struct gapi1__ResultElement *resultElement = searchResult->resultElements->__ptr[i];
+
+			string resultUrl(resultElement->URL);
+			if (processResult("http://www.google.com/", resultUrl) == true)
+			{
+				m_resultsList.push_back(Result(resultUrl, resultElement->title, resultElement->snippet, "", pseudoScore));
+				--pseudoScore;
+			}
 		}
 	}
 
