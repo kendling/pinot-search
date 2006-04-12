@@ -18,6 +18,7 @@ install-data-local:
 	$(INSTALL_DATA) textcat_conf.txt $(DESTDIR)$(datadir)/pinot/textcat_conf.txt
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot/engines
 	$(INSTALL_DATA) Search/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
+	mv $(DESTDIR)$(datadir)/pinot/engines/AmazonAPI.src $(DESTDIR)$(datadir)/pinot/
 	$(INSTALL_DATA) Search/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot/tokenizers
 	@rm -f $(DESTDIR)$(libdir)/lib*tokenizer.*
