@@ -42,7 +42,7 @@ using std::set;
 using std::min;
 
 // This puts a limit to terms length.
-const unsigned int XapianIndex::m_maxTermLength = 128;
+const unsigned int XapianIndex::m_maxTermLength = 240;
 const string XapianIndex::MAGIC_TERM = "X-MetaSE-Doc";
 
 XapianIndex::XapianIndex(const string &indexName) :
@@ -76,11 +76,7 @@ string XapianIndex::limitTermLength(const string &term, bool makeUnique)
 		}
 		else
 		{
-			string base(term.substr(0, XapianIndex::m_maxTermLength - 30));
-
-			base += StringManip::hashString(term);
-
-			return base;
+			return StringManip::hashString(term, XapianIndex::m_maxTermLength);
 		}
 	}
 

@@ -46,6 +46,9 @@ class StringManip
 		/// Hashes a string.
 		static std::string hashString(const std::string &str);
 
+		/// Hashes a string so that it is no longer than maxLength.
+		static std::string hashString(const std::string &str, unsigned int maxLength);
+
 	protected:
 		StringManip();
 

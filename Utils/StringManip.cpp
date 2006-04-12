@@ -25,7 +25,7 @@
 using std::string;
 using std::for_each;
 
-#define CRYPT_SALT "$1$ajfpehom$"
+static const unsigned int HASH_LEN = ((4 * 8 + 5) / 6);
 
 // A function object to lower case strings with for_each()
 struct ToLower
@@ -178,24 +178,46 @@ string StringManip::removeQuotes(const string &str)
 /// Hashes a string.
 string StringManip::hashString(const string &str)
 {
+	unsigned long int h = 1;
+
 	if (str.empty() == true)
 	{
 		return "";
 	}
 
-	char *hashedString = crypt(str.c_str(), CRYPT_SALT);
-	if (hashedString == NULL)
+	// The following was lifed from Xapian's xapian-applications/omega/hashterm.cc
+	// and prettified slightly
+	for (string::const_iterator i = str.begin(); i != str.end(); ++i)
 	{
-		return NULL;
+		h += (h << 5) + static_cast<unsigned char>(*i);
 	}
+	// In case sizeof(unsigned long) > 4
+	h &= 0xffffffff;
 
-	if (strlen(hashedString) > strlen(CRYPT_SALT))
+	string hashedString(HASH_LEN, ' ');
+	int i = 0;
+	while (h != 0)
 	{
-		if (strncmp(hashedString, CRYPT_SALT, strlen(CRYPT_SALT)) == 0)
-		{
-			return hashedString + strlen(CRYPT_SALT);
-		}
+		char ch = char((h & 63) + 33);
+		hashedString[i++] = ch;
+		h = h >> 6;
 	}
 
 	return hashedString;
+}
+
+/// Hashes a string so that it is no longer than maxLength.
+string StringManip::hashString(const string &str, unsigned int maxLength)
+{
+	if (str.length() <= maxLength)
+	{
+		return str;
+	}
+
+	string result(str);
+	maxLength -= HASH_LEN;
+	result.replace(maxLength, string::npos,
+		hashString(result.substr(maxLength)));
+
+	return result;
 }
