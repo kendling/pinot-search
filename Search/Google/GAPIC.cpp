@@ -320,12 +320,10 @@ SOAP_FMAC3 int SOAP_FMAC4 soap_ignore_element(struct soap *soap)
 			return soap->error = SOAP_TAG_MISMATCH;
 		if (!*soap->id || !soap_getelement(soap, &t))
 		{	soap->peeked = 0;
-			DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Unknown element '%s' (level=%u, %d)\n", soap->tag, soap->level, soap->body));
 			if (soap->fignore)
 				soap->error = soap->fignore(soap, soap->tag);
 			else
 				soap->error = SOAP_OK;
-			DBGLOG(TEST, if (!soap->error) SOAP_MESSAGE(fdebug, "IGNORING element '%s'\n", soap->tag));
 			if (!soap->error && soap->body)
 			{	soap->level++;
 				while (!soap_ignore_element(soap))
@@ -673,7 +671,7 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_container_insert(struct soap *soap, int st, int 
 {	switch (tt)
 	{
 	default:
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Could not insert type=%d in %d\n", st, tt));
+		break;
 	}
 }
 
@@ -1048,7 +1046,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1__DirectoryCategory(struct soap *soa
 
 SOAP_FMAC3 gapi1__DirectoryCategory * SOAP_FMAC4 soap_instantiate_gapi1__DirectoryCategory(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1__DirectoryCategory(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1__DirectoryCategory, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -1065,13 +1062,11 @@ SOAP_FMAC3 gapi1__DirectoryCategory * SOAP_FMAC4 soap_instantiate_gapi1__Directo
 		for (int i = 0; i < n; i++)
 			((gapi1__DirectoryCategory*)cp->ptr)[i].soap = soap;
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (gapi1__DirectoryCategory*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1__DirectoryCategory(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying gapi1__DirectoryCategory %p -> %p\n", q, p));
 	*(gapi1__DirectoryCategory*)p = *(gapi1__DirectoryCategory*)q;
 }
 
@@ -1215,7 +1210,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1DirectoryCategoryArray(struct soap *
 
 SOAP_FMAC3 gapi1DirectoryCategoryArray * SOAP_FMAC4 soap_instantiate_gapi1DirectoryCategoryArray(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1DirectoryCategoryArray(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1DirectoryCategoryArray, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -1232,13 +1226,11 @@ SOAP_FMAC3 gapi1DirectoryCategoryArray * SOAP_FMAC4 soap_instantiate_gapi1Direct
 		for (int i = 0; i < n; i++)
 			((gapi1DirectoryCategoryArray*)cp->ptr)[i].soap = soap;
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (gapi1DirectoryCategoryArray*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1DirectoryCategoryArray(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying gapi1DirectoryCategoryArray %p -> %p\n", q, p));
 	*(gapi1DirectoryCategoryArray*)p = *(gapi1DirectoryCategoryArray*)q;
 }
 
@@ -1382,7 +1374,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1ResultElementArray(struct soap *soap
 
 SOAP_FMAC3 gapi1ResultElementArray * SOAP_FMAC4 soap_instantiate_gapi1ResultElementArray(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1ResultElementArray(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1ResultElementArray, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -1399,13 +1390,11 @@ SOAP_FMAC3 gapi1ResultElementArray * SOAP_FMAC4 soap_instantiate_gapi1ResultElem
 		for (int i = 0; i < n; i++)
 			((gapi1ResultElementArray*)cp->ptr)[i].soap = soap;
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (gapi1ResultElementArray*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1ResultElementArray(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying gapi1ResultElementArray %p -> %p\n", q, p));
 	*(gapi1ResultElementArray*)p = *(gapi1ResultElementArray*)q;
 }
 
@@ -1582,7 +1571,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1__ResultElement(struct soap *soap, g
 
 SOAP_FMAC3 gapi1__ResultElement * SOAP_FMAC4 soap_instantiate_gapi1__ResultElement(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1__ResultElement(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1__ResultElement, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -1599,13 +1587,11 @@ SOAP_FMAC3 gapi1__ResultElement * SOAP_FMAC4 soap_instantiate_gapi1__ResultEleme
 		for (int i = 0; i < n; i++)
 			((gapi1__ResultElement*)cp->ptr)[i].soap = soap;
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (gapi1__ResultElement*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1__ResultElement(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying gapi1__ResultElement %p -> %p\n", q, p));
 	*(gapi1__ResultElement*)p = *(gapi1__ResultElement*)q;
 }
 
@@ -1793,7 +1779,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1__GoogleSearchResult(struct soap *so
 
 SOAP_FMAC3 gapi1__GoogleSearchResult * SOAP_FMAC4 soap_instantiate_gapi1__GoogleSearchResult(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1__GoogleSearchResult(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1__GoogleSearchResult, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -1810,13 +1795,11 @@ SOAP_FMAC3 gapi1__GoogleSearchResult * SOAP_FMAC4 soap_instantiate_gapi1__Google
 		for (int i = 0; i < n; i++)
 			((gapi1__GoogleSearchResult*)cp->ptr)[i].soap = soap;
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (gapi1__GoogleSearchResult*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1__GoogleSearchResult(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying gapi1__GoogleSearchResult %p -> %p\n", q, p));
 	*(gapi1__GoogleSearchResult*)p = *(gapi1__GoogleSearchResult*)q;
 }
 
@@ -1888,7 +1871,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete__SOAP_ENC__arrayType(struct soap *soap, s
 
 SOAP_FMAC3 std::string * SOAP_FMAC4 soap_instantiate__SOAP_ENC__arrayType(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate__SOAP_ENC__arrayType(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE__SOAP_ENC__arrayType, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -1902,13 +1884,11 @@ SOAP_FMAC3 std::string * SOAP_FMAC4 soap_instantiate__SOAP_ENC__arrayType(struct
 		if (size)
 			*size = n * sizeof(std::string);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (std::string*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy__SOAP_ENC__arrayType(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying std::string %p -> %p\n", q, p));
 	*(std::string*)p = *(std::string*)q;
 }
 
@@ -1981,7 +1961,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_std__string(struct soap *soap, std::strin
 
 SOAP_FMAC3 std::string * SOAP_FMAC4 soap_instantiate_std__string(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_std__string(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_std__string, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -1995,13 +1974,11 @@ SOAP_FMAC3 std::string * SOAP_FMAC4 soap_instantiate_std__string(struct soap *so
 		if (size)
 			*size = n * sizeof(std::string);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (std::string*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_std__string(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying std::string %p -> %p\n", q, p));
 	*(std::string*)p = *(std::string*)q;
 }
 
@@ -2105,7 +2082,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_xsd__base64Binary(struct soap *soap, xsd_
 
 SOAP_FMAC3 xsd__base64Binary * SOAP_FMAC4 soap_instantiate_xsd__base64Binary(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_xsd__base64Binary(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_xsd__base64Binary, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -2122,13 +2098,11 @@ SOAP_FMAC3 xsd__base64Binary * SOAP_FMAC4 soap_instantiate_xsd__base64Binary(str
 		for (int i = 0; i < n; i++)
 			((xsd__base64Binary*)cp->ptr)[i].soap = soap;
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (xsd__base64Binary*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_xsd__base64Binary(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying xsd__base64Binary %p -> %p\n", q, p));
 	*(xsd__base64Binary*)p = *(xsd__base64Binary*)q;
 }
 
@@ -2284,7 +2258,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_SOAP_ENV__Fault(struct soap *soap, struct
 
 SOAP_FMAC3 struct SOAP_ENV__Fault * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Fault(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_SOAP_ENV__Fault(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_SOAP_ENV__Fault, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -2298,13 +2271,11 @@ SOAP_FMAC3 struct SOAP_ENV__Fault * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Fault(
 		if (size)
 			*size = n * sizeof(struct SOAP_ENV__Fault);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct SOAP_ENV__Fault*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_SOAP_ENV__Fault(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct SOAP_ENV__Fault %p -> %p\n", q, p));
 	*(struct SOAP_ENV__Fault*)p = *(struct SOAP_ENV__Fault*)q;
 }
 
@@ -2397,7 +2368,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_SOAP_ENV__Reason(struct soap *soap, struc
 
 SOAP_FMAC3 struct SOAP_ENV__Reason * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Reason(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_SOAP_ENV__Reason(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_SOAP_ENV__Reason, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -2411,13 +2381,11 @@ SOAP_FMAC3 struct SOAP_ENV__Reason * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Reaso
 		if (size)
 			*size = n * sizeof(struct SOAP_ENV__Reason);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct SOAP_ENV__Reason*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_SOAP_ENV__Reason(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct SOAP_ENV__Reason %p -> %p\n", q, p));
 	*(struct SOAP_ENV__Reason*)p = *(struct SOAP_ENV__Reason*)q;
 }
 
@@ -2518,7 +2486,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_SOAP_ENV__Detail(struct soap *soap, struc
 
 SOAP_FMAC3 struct SOAP_ENV__Detail * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Detail(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_SOAP_ENV__Detail(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_SOAP_ENV__Detail, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -2532,13 +2499,11 @@ SOAP_FMAC3 struct SOAP_ENV__Detail * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Detai
 		if (size)
 			*size = n * sizeof(struct SOAP_ENV__Detail);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct SOAP_ENV__Detail*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_SOAP_ENV__Detail(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct SOAP_ENV__Detail %p -> %p\n", q, p));
 	*(struct SOAP_ENV__Detail*)p = *(struct SOAP_ENV__Detail*)q;
 }
 
@@ -2640,7 +2605,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_SOAP_ENV__Code(struct soap *soap, struct 
 
 SOAP_FMAC3 struct SOAP_ENV__Code * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Code(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_SOAP_ENV__Code(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_SOAP_ENV__Code, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -2654,13 +2618,11 @@ SOAP_FMAC3 struct SOAP_ENV__Code * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Code(st
 		if (size)
 			*size = n * sizeof(struct SOAP_ENV__Code);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct SOAP_ENV__Code*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_SOAP_ENV__Code(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct SOAP_ENV__Code %p -> %p\n", q, p));
 	*(struct SOAP_ENV__Code*)p = *(struct SOAP_ENV__Code*)q;
 }
 
@@ -2748,7 +2710,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_SOAP_ENV__Header(struct soap *soap, struc
 
 SOAP_FMAC3 struct SOAP_ENV__Header * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Header(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_SOAP_ENV__Header(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_SOAP_ENV__Header, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -2762,13 +2723,11 @@ SOAP_FMAC3 struct SOAP_ENV__Header * SOAP_FMAC4 soap_instantiate_SOAP_ENV__Heade
 		if (size)
 			*size = n * sizeof(struct SOAP_ENV__Header);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct SOAP_ENV__Header*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_SOAP_ENV__Header(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct SOAP_ENV__Header %p -> %p\n", q, p));
 	*(struct SOAP_ENV__Header*)p = *(struct SOAP_ENV__Header*)q;
 }
 
@@ -2931,7 +2890,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1__doGoogleSearch(struct soap *soap, 
 
 SOAP_FMAC3 struct gapi1__doGoogleSearch * SOAP_FMAC4 soap_instantiate_gapi1__doGoogleSearch(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1__doGoogleSearch(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1__doGoogleSearch, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -2945,13 +2903,11 @@ SOAP_FMAC3 struct gapi1__doGoogleSearch * SOAP_FMAC4 soap_instantiate_gapi1__doG
 		if (size)
 			*size = n * sizeof(struct gapi1__doGoogleSearch);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct gapi1__doGoogleSearch*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1__doGoogleSearch(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct gapi1__doGoogleSearch %p -> %p\n", q, p));
 	*(struct gapi1__doGoogleSearch*)p = *(struct gapi1__doGoogleSearch*)q;
 }
 
@@ -3042,7 +2998,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1__doGoogleSearchResponse(struct soap
 
 SOAP_FMAC3 struct gapi1__doGoogleSearchResponse * SOAP_FMAC4 soap_instantiate_gapi1__doGoogleSearchResponse(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1__doGoogleSearchResponse(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1__doGoogleSearchResponse, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -3056,13 +3011,11 @@ SOAP_FMAC3 struct gapi1__doGoogleSearchResponse * SOAP_FMAC4 soap_instantiate_ga
 		if (size)
 			*size = n * sizeof(struct gapi1__doGoogleSearchResponse);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct gapi1__doGoogleSearchResponse*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1__doGoogleSearchResponse(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct gapi1__doGoogleSearchResponse %p -> %p\n", q, p));
 	*(struct gapi1__doGoogleSearchResponse*)p = *(struct gapi1__doGoogleSearchResponse*)q;
 }
 
@@ -3163,7 +3116,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1__doSpellingSuggestion(struct soap *
 
 SOAP_FMAC3 struct gapi1__doSpellingSuggestion * SOAP_FMAC4 soap_instantiate_gapi1__doSpellingSuggestion(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1__doSpellingSuggestion(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1__doSpellingSuggestion, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -3177,13 +3129,11 @@ SOAP_FMAC3 struct gapi1__doSpellingSuggestion * SOAP_FMAC4 soap_instantiate_gapi
 		if (size)
 			*size = n * sizeof(struct gapi1__doSpellingSuggestion);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct gapi1__doSpellingSuggestion*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1__doSpellingSuggestion(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct gapi1__doSpellingSuggestion %p -> %p\n", q, p));
 	*(struct gapi1__doSpellingSuggestion*)p = *(struct gapi1__doSpellingSuggestion*)q;
 }
 
@@ -3277,7 +3227,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1__doSpellingSuggestionResponse(struc
 
 SOAP_FMAC3 struct gapi1__doSpellingSuggestionResponse * SOAP_FMAC4 soap_instantiate_gapi1__doSpellingSuggestionResponse(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1__doSpellingSuggestionResponse(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1__doSpellingSuggestionResponse, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -3291,13 +3240,11 @@ SOAP_FMAC3 struct gapi1__doSpellingSuggestionResponse * SOAP_FMAC4 soap_instanti
 		if (size)
 			*size = n * sizeof(struct gapi1__doSpellingSuggestionResponse);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct gapi1__doSpellingSuggestionResponse*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1__doSpellingSuggestionResponse(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct gapi1__doSpellingSuggestionResponse %p -> %p\n", q, p));
 	*(struct gapi1__doSpellingSuggestionResponse*)p = *(struct gapi1__doSpellingSuggestionResponse*)q;
 }
 
@@ -3398,7 +3345,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1__doGetCachedPage(struct soap *soap,
 
 SOAP_FMAC3 struct gapi1__doGetCachedPage * SOAP_FMAC4 soap_instantiate_gapi1__doGetCachedPage(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1__doGetCachedPage(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1__doGetCachedPage, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -3412,13 +3358,11 @@ SOAP_FMAC3 struct gapi1__doGetCachedPage * SOAP_FMAC4 soap_instantiate_gapi1__do
 		if (size)
 			*size = n * sizeof(struct gapi1__doGetCachedPage);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct gapi1__doGetCachedPage*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1__doGetCachedPage(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct gapi1__doGetCachedPage %p -> %p\n", q, p));
 	*(struct gapi1__doGetCachedPage*)p = *(struct gapi1__doGetCachedPage*)q;
 }
 
@@ -3512,7 +3456,6 @@ SOAP_FMAC5 void SOAP_FMAC6 soap_delete_gapi1__doGetCachedPageResponse(struct soa
 
 SOAP_FMAC3 struct gapi1__doGetCachedPageResponse * SOAP_FMAC4 soap_instantiate_gapi1__doGetCachedPageResponse(struct soap *soap, int n, const char *type, const char *arrayType, size_t *size)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "soap_instantiate_gapi1__doGetCachedPageResponse(%d, %s, %s)\n", n, type?type:"", arrayType?arrayType:""));
 	struct soap_clist *cp = soap_link(soap, NULL, SOAP_TYPE_gapi1__doGetCachedPageResponse, n, soap_fdelete);
 	if (!cp)
 		return NULL;
@@ -3526,13 +3469,11 @@ SOAP_FMAC3 struct gapi1__doGetCachedPageResponse * SOAP_FMAC4 soap_instantiate_g
 		if (size)
 			*size = n * sizeof(struct gapi1__doGetCachedPageResponse);
 	}
-		DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Instantiated location=%p\n", cp->ptr));
 	return (struct gapi1__doGetCachedPageResponse*)cp->ptr;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_copy_gapi1__doGetCachedPageResponse(struct soap *soap, int st, int tt, void *p, size_t len, const void *q, size_t n)
 {
-	DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Copying struct gapi1__doGetCachedPageResponse %p -> %p\n", q, p));
 	*(struct gapi1__doGetCachedPageResponse*)p = *(struct gapi1__doGetCachedPageResponse*)q;
 }
 
