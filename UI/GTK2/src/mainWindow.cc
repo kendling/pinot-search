@@ -224,7 +224,8 @@ mainWindow::mainWindow() :
 	groupresults1->set_sensitive(false);
 	viewresults1->set_sensitive(false);
 	// Hide the View Cache menu item ?
-	if (SearchEngineFactory::isSupported("googleapi") == false)
+	if ((SearchEngineFactory::isSupported("googleapi") == false) ||
+		(m_settings.m_googleAPIKey.empty() == true))
 	{
 		viewcache1->hide();
 	}
@@ -1280,6 +1281,17 @@ void mainWindow::on_configure_activate()
 		}
 
 		m_state.unlock_lists();
+	}
+
+	// Hide the View Cache menu item ?
+	if ((SearchEngineFactory::isSupported("googleapi") == false) ||
+		(m_settings.m_googleAPIKey.empty() == true))
+	{
+		viewcache1->hide();
+	}
+	else
+	{
+		viewcache1->show();
 	}
 
 	// Do the changes affect the View tab ?
