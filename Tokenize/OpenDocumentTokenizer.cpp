@@ -65,7 +65,7 @@ OpenDocumentTokenizer::OpenDocumentTokenizer(const Document *pDocument) :
 {
 	// FIXME: unzip meta.xml and extract document information
 	// Unip content.xml
-	Document *pOutputDocument = runHelperProgram(pDocument, "unzip -p", "meta.xml");
+	Document *pOutputDocument = runHelperProgram(pDocument, "unzip -p", "content.xml");
 	if (pOutputDocument != NULL)
 	{
 		// Give the result to the parent class
