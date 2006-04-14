@@ -15,12 +15,16 @@
  */
 
 #include <strings.h>
-#include <magic.h>
+#include <utility>
 
-#include "Url.h"
+#include "xdgmime/xdgmime.h"
+
 #include "MIMEScanner.h"
+#include "StringManip.h"
+#include "Url.h"
 
 using std::string;
+using std::min;
 
 MIMEScanner::MIMEScanner()
 {
@@ -28,35 +32,20 @@ MIMEScanner::MIMEScanner()
 
 string MIMEScanner::scanFileType(const string &fileName)
 {
-	string::size_type fileExtPos = fileName.find_last_of(".");
-	if (fileExtPos != string::npos)
+	if (fileName.empty() == true)
 	{
-		string fileExt = fileName.substr(fileExtPos);
-
-		if (strncasecmp(fileExt.c_str(), ".txt", 4) == 0)
-		{
-			return "text/plain";
-		}
-		else if (strncasecmp(fileExt.c_str(), ".html", 5) == 0)
-		{
-			return "text/html";
-		}
-		else if (strncasecmp(fileExt.c_str(), ".xml", 4) == 0)
-		{
-			return "text/xml";
-		}
-		else if (strncasecmp(fileExt.c_str(), ".pdf", 4) == 0)
-		{
-			return "application/pdf";
-		}
-		else if (strncasecmp(fileExt.c_str(), ".ps", 3) == 0)
-		{
-			return "application/postscript";
-		}
+		return "";
 	}
 
-	// Unknown type
-	return "";
+	// Does it have an obvious extension ?
+	const char  *pType = xdg_mime_get_mime_type_from_file_name(fileName.c_str());
+	if ((pType == NULL) ||
+		(strncasecmp(pType, xdg_mime_type_unknown, min(strlen(pType), strlen(xdg_mime_type_unknown))) == 0))
+	{
+		return "";
+	}
+
+	return pType;
 }
 
 /// Finds out the given file's MIME type.
@@ -67,40 +56,19 @@ string MIMEScanner::scanFile(const string &fileName)
 		return "";
 	}
 
-	// Does it have an obvious extension ?
 	string mimeType = scanFileType(fileName);
-	if (mimeType.empty() == false)
+	if (mimeType.empty() == true)
 	{
-		return mimeType;
-	}
-
-	// Open
-	magic_t magicCookie = magic_open(MAGIC_SYMLINK|MAGIC_MIME);
-	if (magicCookie == NULL)
-	{
-		return "";
-	}
-	if (magic_load(magicCookie, NULL) == -1)
-	{
-		magic_close(magicCookie);
-		return "";
-	}
-
-	const char *type = magic_file(magicCookie, fileName.c_str());
-	if (type != NULL)
-	{
-		mimeType = type;
-
-		// The MIME string might be of the form "mime_type; charset=..."
-		string::size_type mimeTypeEnd = mimeType.find(";");
-		if (mimeTypeEnd != string::npos)
+		// Have a peek at the file
+		const char *pType = xdg_mime_get_mime_type_for_file(fileName.c_str(), NULL);
+		if ((pType == NULL) ||
+			(strncasecmp(pType, xdg_mime_type_unknown, min(strlen(pType), strlen(xdg_mime_type_unknown))) == 0))
 		{
-			mimeType.resize(mimeTypeEnd);
+			return "";
 		}
-	}
 
-	// Close
-	magic_close(magicCookie);
+		mimeType = pType;
+	}
 
 	return mimeType;
 }
@@ -108,26 +76,25 @@ string MIMEScanner::scanFile(const string &fileName)
 /// Finds out the given URL's MIME type.
 string MIMEScanner::scanUrl(const Url &urlObj)
 {
-	// Is it a local file ?
-	if (urlObj.getProtocol() == "file")
+	string mimeType = scanFileType(urlObj.getFile());
+	if (mimeType.empty() == true)
 	{
-		string fileName = urlObj.getLocation();
-		fileName += "/";
-		fileName += urlObj.getFile();
+		// Is it a local file ?
+		if (urlObj.getProtocol() == "file")
+		{
+			string fileName = urlObj.getLocation();
+			fileName += "/";
+			fileName += urlObj.getFile();
 
-		return scanFile(fileName);
+			mimeType = scanFile(fileName);
+		}
 	}
 
-	string mimeType = scanFileType(urlObj.getFile());
 	if (mimeType.empty() == true)
 	{
 		if (urlObj.getProtocol() == "http")
 		{
 			mimeType = "text/html";
-		}
-		else
-		{
-			mimeType = "text/plain";
 		}
 	}
 
