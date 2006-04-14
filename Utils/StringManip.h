@@ -33,6 +33,9 @@ class StringManip
 		static std::string extractField(const std::string &str, const std::string &start,
 			const std::string &end, std::string::size_type &endPos);
 
+		/// Replaces entities.
+		static std::string replaceEntities(const std::string &str);
+
 		/// Replaces a sub-string.
 		static std::string replaceSubString(const std::string &str, const std::string &substr,
 			const std::string &rep);
