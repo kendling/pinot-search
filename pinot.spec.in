@@ -11,7 +11,7 @@ Group: Applications/Internet
 Source: %{name}-%{version}.tar.gz
 URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-Requires: xapian-core-libs >= 0.9.4, curl >= 7.13, gtkmm24 >= 2.6, libxml++ >= 2.12, mozilla >= %{mozilla_ver}, sqlite >= 3.1.2, libtextcat >= 2.2, fam >= 2.6.10, gmime >= 2.1, file
+Requires: xapian-core-libs >= 0.9.4, curl >= 7.13, gtkmm24 >= 2.6, libxml++ >= 2.12, mozilla >= %{mozilla_ver}, sqlite >= 3.1.2, libtextcat >= 2.2, fam >= 2.6.10, gmime >= 2.1, shared-mime-info
 BuildRequires: xapian-core-devel >= 0.9.4, curl-devel >= 7.13, gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, mozilla-devel >= %{mozilla_ver}, sqlite-devel >= 3.1.2, libtextcat-devel >= 2.2, fam-devel >= 2.6.10, gmime-devel >= 2.1, taglib-devel >= 1.4, boost-devel >= 1.32, gettext-devel, desktop-file-utils
 %if 0%{?_with_soap:1}
 BuildRequires: gsoap
@@ -26,11 +26,12 @@ It may also be used as a lightweight personal space search tool.
 Summary: Tokenizers for Pinot that handle various text document formats
 Group: Applications/Internet
 Requires: %{name} = %{version}
-Requires: /usr/bin/pdftohtml, antiword, unrtf
+Requires: /usr/bin/unzip, /usr/bin/pdftohtml, antiword, unrtf
 Obsoletes: pinot-pdf, pinot-word
 
 %description text-docs 
-The included tokenizers add support for PDF, MS Word and RTF documents.
+The included tokenizers add support for OpenDocument, Sun StarOffice,
+PDF, MS Word and RTF documents.
 
 %package audio-docs 
 Summary: Tokenizers for Pinot that handle various audio document formats
@@ -122,6 +123,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files text-docs 
 %defattr(-, root, root, -)
+%{_datadir}/pinot/tokenizers/libopendocumenttokenizer.so
 %{_datadir}/pinot/tokenizers/libpdftokenizer.so
 %{_datadir}/pinot/tokenizers/librtftokenizer.so
 %{_datadir}/pinot/tokenizers/libwordtokenizer.so

@@ -4,8 +4,10 @@ Search :
  - tweaked extraction of results' extract and URL
  - renamed pinot_search to pinot-search
 Tokenize :
- - new dependency on TagLib to allow extracting track information from MP3, Vorbis
-  and FLAC files
+ - new tokenizer for MP3, Vorbis and FLAC files that depend on the TagLib library
+ - new XML tokenizer
+ - new tokenizer for StarOffice and OpenDocument files (unzip required)
+ - replaced libmagic with shared-mime-info (xdgmime) for better MIME type detection
 HTML browser :
  - can build against Mozilla or Firefox, as set with "./configure --with-gecko=mozilla|firefox"
 

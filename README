@@ -53,6 +53,9 @@ http://www.mozilla.org/
 boost (4)						1.32.0
 http://www.boost.org/
 
+shared-mime-info					0.17
+http://freedesktop.org/Software/shared-mime-info
+
 pdftohtml						0.36
 http://pdftohtml.sourceforge.net/
 
