@@ -28,14 +28,18 @@
 #include "Tokenizer.h"
 #include "HtmlTokenizer.h"
 #include "UnknownTypeTokenizer.h"
+#include "XmlTokenizer.h"
 #include "Url.h"
 #include "TokenizerFactory.h"
 
+#define GETTOKENIZERTYPES	"_Z17getTokenizerTypesRSt3setISsSt4lessISsESaISsEE"
 #define GETTOKENIZER		"_Z12getTokenizerPK8Document"
-#define GETTOKENIZERTYPE	"_Z16getTokenizerTypej"
 
 using std::cout;
 using std::endl;
+using std::string;
+using std::map;
+using std::set;
 
 map<string, string> TokenizerFactory::m_types;
 map<string, void *> TokenizerFactory::m_handles;
@@ -152,36 +156,26 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 					if (pHandle != NULL)
 					{
 						// What type(s) does this support ?
-						getTokenizerTypeFunc *pFunc = (getTokenizerTypeFunc *)dlsym(pHandle,
-								GETTOKENIZERTYPE);
+						getTokenizerTypesFunc *pFunc = (getTokenizerTypesFunc *)dlsym(pHandle,
+								GETTOKENIZERTYPES);
 						if (pFunc != NULL)
 						{
-							unsigned int typeNum = 0;
+							set<string> types;
+							bool tokenizerOkay = (*pFunc)(types);
 
-							while (1)
+							if (tokenizerOkay == true)
 							{
-								char *pSupportedType = (*pFunc)(typeNum);
-								if (pSupportedType == NULL)
+								for (set<string>::iterator typeIter = types.begin();
+									typeIter != types.end(); ++typeIter)
 								{
-									break;
+									// Add a record for this tokenizer
+									m_types[*typeIter] = fileName;
+#ifdef DEBUG
+									cout << "TokenizerFactory::loadTokenizers: type "
+										<< *typeIter << " supported by " << pEntryName << endl;
+#endif
 								}
 
-								// Add a record for this tokenizer
-								m_types[pSupportedType] = fileName;
-#ifdef DEBUG
-								cout << "TokenizerFactory::loadTokenizers: type "
-									<< pSupportedType << " supported by " << pEntryName << endl;
-#endif
-								// It's supposed to have been allocated with new[]
-								delete[] pSupportedType;
-
-								// Next
-								++count;
-								++typeNum;
-							}
-
-							if (typeNum > 0)
-							{
 								m_handles[fileName] = pHandle;
 							}
 						}
@@ -261,6 +255,11 @@ Tokenizer *TokenizerFactory::getTokenizerByType(const string &type, const Docume
 	{
 		return new Tokenizer(pDocument);
 	}
+	else if ((typeOnly == "text/xml") ||
+		(typeOnly == "application/xml"))
+	{
+		return new XmlTokenizer(pDocument);
+	}
 
 	Tokenizer *pTokenizer = getLibraryTokenizer(typeOnly, pDocument);
 	if (pTokenizer == NULL)
@@ -287,6 +286,8 @@ void TokenizerFactory::getSupportedTypes(set<string> &types)
 	// List supported types
 	types.insert("text/plain");
 	types.insert("text/html");
+	types.insert("text/xml");
+	types.insert("application/xml");
 	for (map<string, string>::iterator iter = m_types.begin(); iter != m_types.end(); ++iter)
 	{
 		types.insert(iter->first);
@@ -309,6 +310,8 @@ bool TokenizerFactory::isSupportedType(const string &type)
 
 	// Is it a built-in type ?
 	if ((typeOnly == "text/html") ||
+		(typeOnly == "text/xml") ||
+		(typeOnly == "application/html") ||
 		(strncasecmp(typeOnly.c_str(), "text", 4) == 0))
 	{
 		return true;

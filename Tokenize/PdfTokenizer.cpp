@@ -19,21 +19,16 @@
 
 #include "PdfTokenizer.h"
 
-/**
-  * This returns the MIME type supported by the library's tokenizer.
-  * The character string is allocated with new[].
-  */
-char *getTokenizerType(unsigned int typeNum)
-{
-	if (typeNum == 0)
-	{
-		char *pType = new char[16];
-		strncpy(pType, "application/pdf", 15);
-		pType[15] = '\0';
-		return pType;
-	}
+using std::string;
+using std::set;
 
-	return NULL;
+/// This returns the MIME types supported by the library's tokenizer.
+bool getTokenizerTypes(set<string> &types)
+{
+	types.clear();
+	types.insert("application/pdf");
+
+	return true;
 }
 
 /// This returns a pointer to a Tokenizer, allocated with new.
@@ -45,10 +40,8 @@ Tokenizer *getTokenizer(const Document *pDocument)
 PdfTokenizer::PdfTokenizer(const Document *pDocument) :
 	HtmlTokenizer(NULL)
 {
-	string cmdLine("pdftohtml -stdout");
-
-	// Run antiword
-	Document *pOutputDocument = runHelperProgram(pDocument, cmdLine);
+	// Run pdftohtml
+	Document *pOutputDocument = runHelperProgram(pDocument, "pdftohtml -stdout");
 	if (pOutputDocument != NULL)
 	{
 		// Give the result to the parent class

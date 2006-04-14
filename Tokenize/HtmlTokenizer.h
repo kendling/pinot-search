@@ -25,12 +25,11 @@
 #include "Document.h"
 #include "Tokenizer.h"
 
-using namespace std;
-
 class Link
 {
 	public:
-		Link(const string &url, const string &name, unsigned int pos, unsigned int openPos, unsigned int closePos);
+		Link(const std::string &url, const std::string &name,
+			unsigned int pos, unsigned int openPos, unsigned int closePos);
 		Link(const Link &other);
 		~Link();
 
@@ -38,8 +37,8 @@ class Link
 		bool operator==(const Link &other) const;
 		bool operator<(const Link &other) const;
 
-		string m_url;
-		string m_name;
+		std::string m_url;
+		std::string m_name;
 		unsigned int m_pos;
 		unsigned int m_open;
 		unsigned int m_close;
@@ -53,35 +52,32 @@ class HtmlTokenizer : public Tokenizer
 		virtual ~HtmlTokenizer();
 
 		/// Gets the specified META tag content; an empty string if it wasn't found.
-		string getMetaTag(const string &name);
+		std::string getMetaTag(const std::string &name);
 
 		/// Gets the links map.
-		set<Link> &getLinks(void);
+		std::set<Link> &getLinks(void);
 
 		/// Utility method that strips HTML tags off; the string without tags.
-		static string stripTags(const string &str);
+		static std::string stripTags(const std::string &str);
 
 	protected:
 		const Document *m_pHtmlDocument;
 		unsigned int m_linkPos;
-		map<string, string> m_metaTags;
-		set<Link> m_links;
+		std::map<std::string, std::string> m_metaTags;
+		std::set<Link> m_links;
 
 		HtmlTokenizer();
 
 		void initialize(const Document *pDocument);
 
 		/// Parses HTML; the string without tags.
-		string parseHTML(const string &str, bool stripAllBlocks = false);
+		std::string parseHTML(const std::string &str, bool stripAllBlocks = false);
 
 		/// Returns true if the tag corresponds to a text block.
-		static bool textBlockStart(const string &tag);
+		static bool textBlockStart(const std::string &tag);
 
 		/// Returns true if the tag corresponds to the end of a text block.
-		static bool textBlockEnd(const string &tag);
-
-		/// Replaces escaped characters
-		static string replaceEscapedCharacters(const string &str);
+		static bool textBlockEnd(const std::string &tag);
 
 };
 

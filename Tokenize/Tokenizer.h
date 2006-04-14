@@ -21,8 +21,6 @@
 
 #include "Document.h"
 
-using namespace std;
-
 class Tokenizer
 {
 	public:
@@ -30,13 +28,14 @@ class Tokenizer
 		virtual ~Tokenizer();
 
 		/// Converts a document using an helper program.
-		static Document *runHelperProgram(const Document *pDocument, const string &cmdLine);
+		static Document *runHelperProgram(const Document *pDocument,
+			const std::string &programName, const std::string &arguments = "");
 
 		/// Returns a pointer to the document being tokenized.
 		virtual const Document *getDocument(void);
 
 		/// Returns the next token; false if all tokens consumed.
-		virtual bool nextToken(string &token);
+		virtual bool nextToken(std::string &token);
 
 		/// Rewinds the tokenizer.
 		virtual void rewind(void);

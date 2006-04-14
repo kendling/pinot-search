@@ -19,21 +19,16 @@
 
 #include "WordTokenizer.h"
 
-/**
-  * This returns the MIME type supported by the library's tokenizer.
-  * The character string is allocated with new[].
-  */
-char *getTokenizerType(unsigned int typeNum)
-{
-	if (typeNum == 0)
-	{
-		char *pType = new char[19];
-		strncpy(pType, "application/msword", 18);
-		pType[18] = '\0';
-		return pType;
-	}
+using std::string;
+using std::set;
 
-	return NULL;
+/// This returns the MIME types supported by the library's tokenizer.
+bool getTokenizerTypes(set<string> &types)
+{
+	types.clear();
+	types.insert("application/msword");
+
+	return true;
 }
 
 /// This returns a pointer to a Tokenizer, allocated with new.
@@ -45,10 +40,8 @@ Tokenizer *getTokenizer(const Document *pDocument)
 WordTokenizer::WordTokenizer(const Document *pDocument) :
 	Tokenizer(NULL)
 {
-	string cmdLine("antiword");
-
 	// Run antiword
-	Document *pOutputDocument = runHelperProgram(pDocument, cmdLine);
+	Document *pOutputDocument = runHelperProgram(pDocument, "antiword");
 	if (pOutputDocument != NULL)
 	{
 		// Give the result to the parent class

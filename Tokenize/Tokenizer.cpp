@@ -26,6 +26,11 @@
 
 //#define DEBUG_TOKENIZER
 
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::string;
+
 Tokenizer::Tokenizer(const Document *pDocument)
 {
 	setDocument(pDocument);
@@ -36,13 +41,15 @@ Tokenizer::~Tokenizer()
 {
 }
 
-Document *Tokenizer::runHelperProgram(const Document *pDocument, const string &cmdLine)
+Document *Tokenizer::runHelperProgram(const Document *pDocument,
+	const string &programName, const string &arguments)
 {
 	Document *pOutputDocument = NULL;
 	char inTemplate[15] = "/tmp/tokXXXXXX";
 	char outTemplate[15] = "/tmp/tokXXXXXX";
 
-	if (cmdLine.empty() == true)
+	if ((pDocument == NULL) ||
+		(programName.empty() == true))
 	{
 		return NULL;
 	}
@@ -58,15 +65,22 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument, const string &c
 		// Save the data into a temporary file
 		if (write(inFd, (const void*)pData, dataLength) != -1)
 		{
-			string cmdLineRedir(cmdLine);
-			cmdLineRedir += " ";
-			cmdLineRedir += inTemplate;
-			cmdLineRedir += " >";
-			cmdLineRedir += outTemplate;
-			cmdLineRedir += " 2>/dev/null";
+			string cmdLine(programName);
+
+			cmdLine += " ";
+			cmdLine += inTemplate;
+			if (arguments.empty() == false)
+			{
+				cmdLine += " ";
+				cmdLine += arguments;
+				cmdLine += " ";
+			}
+			cmdLine += " >";
+			cmdLine += outTemplate;
+			cmdLine += " 2>/dev/null";
 
 			// Run the helper program
-			if (system(cmdLineRedir.c_str()) != -1)
+			if (system(cmdLine.c_str()) != -1)
 			{
 				struct stat fileStat;
 
@@ -99,7 +113,7 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument, const string &c
 				}
 #ifdef DEBUG
 				else cerr << "Tokenizer::runHelperProgram: "
-					<< cmdLineRedir << " failed" << endl;
+					<< cmdLine << " failed" << endl;
 #endif
 			}
 		}

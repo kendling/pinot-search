@@ -9,18 +9,29 @@ UTILS_OBJS = ../Utils/Document.o \
 
 noinst_HEADERS = \
 	HtmlTokenizer.h \
+	OpenDocumentTokenizer.h \
 	PdfTokenizer.h \
 	RtfTokenizer.h \
 	TagLibTokenizer.h \
 	Tokenizer.h \
 	TokenizerFactory.h \
 	UnknownTypeTokenizer.h \
-	WordTokenizer.h
+	WordTokenizer.h \
+	XmlTokenizer.h
 
-lib_LTLIBRARIES = libpdftokenizer.la librtftokenizer.la libwordtokenizer.la \
-	libtaglibtokenizer.la
+lib_LTLIBRARIES = libopendocumenttokenizer.la libpdftokenizer.la librtftokenizer.la \
+	libwordtokenizer.la libtaglibtokenizer.la
 
 noinst_LTLIBRARIES = libTokenize.la
+
+libopendocumenttokenizer_la_SOURCES = \
+	OpenDocumentTokenizer.cpp \
+	XmlTokenizer.cpp \
+	Tokenizer.cpp
+
+libopendocumenttokenizer_la_LDFLAGS = -module
+
+libopendocumenttokenizer_la_LIBADD = ${UTILS_OBJS}
 
 libpdftokenizer_la_SOURCES = \
 	PdfTokenizer.cpp \
@@ -60,7 +71,8 @@ libTokenize_la_SOURCES = \
 	HtmlTokenizer.cpp \
 	Tokenizer.cpp \
 	TokenizerFactory.cpp \
-	UnknownTypeTokenizer.cpp
+	UnknownTypeTokenizer.cpp \
+	XmlTokenizer.cpp
 
 AM_CXXFLAGS = -fPIC -I../Utils @TAGLIB_CFLAGS@
 

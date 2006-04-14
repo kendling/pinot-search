@@ -19,28 +19,17 @@
 
 #include "RtfTokenizer.h"
 
-/**
-  * This returns the MIME type supported by the library's tokenizer.
-  * The character string is allocated with new[].
-  */
-char *getTokenizerType(unsigned int typeNum)
-{
-	if (typeNum == 0)
-	{
-		char *pType = new char[9];
-		strncpy(pType, "text/rtf", 8);
-		pType[8] = '\0';
-		return pType;
-	}
-	else if (typeNum == 1)
-	{
-		char *pType = new char[16];
-		strncpy(pType, "application/rtf", 15);
-		pType[15] = '\0';
-		return pType;
-	}
+using std::string;
+using std::set;
 
-	return NULL;
+/// This returns the MIME types supported by the library's tokenizer.
+bool getTokenizerTypes(set<string> &types)
+{
+	types.clear();
+	types.insert("text/rtf");
+	types.insert("application/rtf");
+
+	return true;
 }
 
 /// This returns a pointer to a Tokenizer, allocated with new.
@@ -52,10 +41,8 @@ Tokenizer *getTokenizer(const Document *pDocument)
 RtfTokenizer::RtfTokenizer(const Document *pDocument) :
 	HtmlTokenizer(NULL)
 {
-	string cmdLine("unrtf --nopict --html");
-
-	// Run antiword
-	Document *pOutputDocument = runHelperProgram(pDocument, cmdLine);
+	// Run unrtf
+	Document *pOutputDocument = runHelperProgram(pDocument, "unrtf --nopict --html");
 	if (pOutputDocument != NULL)
 	{
 		// Give the result to the parent class

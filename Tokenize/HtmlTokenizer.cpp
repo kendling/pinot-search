@@ -27,7 +27,12 @@
 
 //#define DEBUG_TOKENIZER
 
-using namespace std;
+using std::cout;
+using std::endl;
+using std::string;
+using std::map;
+using std::set;
+using std::stack;
 
 HtmlTokenizer::HtmlTokenizer(const Document *pDocument, unsigned int linksStartAtPos) :
 	Tokenizer(NULL),
@@ -123,7 +128,7 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 			string text = str.substr(startPos, pos - startPos);
 			if (catText == true)
 			{
-				stripped += replaceEscapedCharacters(text);
+				stripped += StringManip::replaceEntities(text);
 				stripped += " ";
 			}
 
@@ -276,7 +281,7 @@ string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
 	if ((startPos < str.length()) &&
 		(catText == true))
 	{
-		stripped  += replaceEscapedCharacters(str.substr(startPos));
+		stripped  += StringManip::replaceEntities(str.substr(startPos));
 	}
 
 	// Free the compiled regexps
@@ -313,68 +318,6 @@ bool HtmlTokenizer::textBlockEnd(const string &tag)
 	}
 
 	return false;
-}
-
-/// Replaces escaped characters
-string HtmlTokenizer::replaceEscapedCharacters(const string &str)
-{
-	// FIXME: replace all escaped characters !
-	static const char *escapedChars[] = { "quot", "amp", "lt", "gt", "nbsp", "eacute", "egrave", "agrave", "ccedil"};
-	static const char *unescapedChars[] = { "\"", "&", "<", ">", " ", "e", "e", "a", "c"};
-	static const unsigned int escapedCharsCount = 9;
-	string unescaped;
-	string::size_type startPos = 0, pos = 0;
-
-#ifdef DEBUG_TOKENIZER
-	cout << "HtmlTokenizer::replaceEscapedCharacters: input " << str << endl;
-#endif
-	pos = str.find("&");
-	while (pos != string::npos)
-	{
-		unescaped += str.substr(startPos, pos - startPos);
-
-		startPos = pos + 1;
-		pos = str.find(";", startPos);
-		if ((pos != string::npos) &&
-			(pos < startPos + 10))
-		{
-			string escapedChar = str.substr(startPos, pos - startPos);
-			bool replacedChar = false;
-
-			// See if we can replace this with an actual character
-			for (unsigned int count = 0; count < escapedCharsCount; ++count)
-			{
-				if (escapedChar == escapedChars[count])
-				{
-					unescaped += unescapedChars[count];
-					replacedChar = true;
-					break;
-				}
-			}
-
-			if (replacedChar == false)
-			{
-				// This couldn't be replaced, leave it as it is...
-				unescaped += "&";
-				unescaped += escapedChar;
-				unescaped += ";";
-			}
-
-			startPos = pos + 1;
-		}
-
-		// Next
-		pos = str.find("&", startPos);
-	}
-	if (startPos < str.length())
-	{
-		unescaped  += str.substr(startPos);
-	}
-#ifdef DEBUG_TOKENIZER
-	cout << "HtmlTokenizer::replaceEscapedCharacters: output " << unescaped << endl;
-#endif
-
-	return unescaped;
 }
 
 /// Gets the specified META tag content.

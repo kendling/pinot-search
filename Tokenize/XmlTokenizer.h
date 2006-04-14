@@ -14,30 +14,33 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _WORD_TOKENIZER_H
-#define _WORD_TOKENIZER_H
+#ifndef _XML_TOKENIZER_H
+#define _XML_TOKENIZER_H
 
 #include <string>
-#include <set>
 
 #include "Document.h"
 #include "Tokenizer.h"
 
-/// This returns the MIME types supported by the library's tokenizer.
-bool getTokenizerTypes(std::set<std::string> &types);
-/// This returns a pointer to a Tokenizer, allocated with new.
-Tokenizer *getTokenizer(const Document *pDocument);
-
-class TagLibTokenizer : public Tokenizer
+class XmlTokenizer : public Tokenizer
 {
 	public:
-		TagLibTokenizer(const Document *pDocument);
-		virtual ~TagLibTokenizer();
+		XmlTokenizer(const Document *pDocument);
+		virtual ~XmlTokenizer();
 
-	private:
-		TagLibTokenizer(const TagLibTokenizer &other);
-		TagLibTokenizer& operator=(const TagLibTokenizer& other);
+		/// Utility method that strips XML tags off; the string without tags.
+		static std::string stripTags(const std::string &str);
+
+	protected:
+		const Document *m_pXmlDocument;
+
+		XmlTokenizer();
+
+		void initialize(const Document *pDocument);
+
+		/// Parses XML; the string without tags.
+		std::string parseXML(const std::string &str);
 
 };
 
-#endif // _WORD_TOKENIZER_H
+#endif // _XML_TOKENIZER_H

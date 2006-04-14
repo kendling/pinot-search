@@ -35,35 +35,35 @@ class TokenizerFactory
 		  * This returns the MIME type supported by the library's tokenizer.
 		  * The character string is allocated with new[].
 		  */
-		typedef char *(getTokenizerTypeFunc)(unsigned int typeNum);
+		typedef bool (getTokenizerTypesFunc)(std::set<std::string> &);
 		/// This returns a pointer to a Tokenizer, allocated with new.
 		typedef Tokenizer *(getTokenizerFunc)(const Document *);
 
 		/// Loads the tokenizer libraries in the given directory.
-		static unsigned int loadTokenizers(const string &dirName);
+		static unsigned int loadTokenizers(const std::string &dirName);
 
 		/// Returns a Tokenizer that handles the given file's type; NULL if unavailable.
-		static Tokenizer *getTokenizer(const string &fileName, const Document *pDocument);
+		static Tokenizer *getTokenizer(const std::string &fileName, const Document *pDocument);
 
 		/// Returns a Tokenizer that handles the given MIME type; NULL if unavailable.
-		static Tokenizer *getTokenizerByType(const string &type, const Document *pDocument);
+		static Tokenizer *getTokenizerByType(const std::string &type, const Document *pDocument);
 
 		/// Returns all supported MIME types.
-		static void getSupportedTypes(set<string> &types);
+		static void getSupportedTypes(std::set<std::string> &types);
 
 		/// Indicates whether a MIME type is supported or not.
-		static bool isSupportedType(const string &type);
+		static bool isSupportedType(const std::string &type);
 
 		/// Unloads all tokenizer libraries.
 		static void unloadTokenizers(void);
 
 	protected:
-		static map<string, string> m_types;
-		static map<string, void *> m_handles;
+		static std::map<std::string, std::string> m_types;
+		static std::map<std::string, void *> m_handles;
 
 		TokenizerFactory();
 
-		static Tokenizer *getLibraryTokenizer(const string &type, const Document *pDocument);
+		static Tokenizer *getLibraryTokenizer(const std::string &type, const Document *pDocument);
 
 	private:
 		TokenizerFactory(const TokenizerFactory &other);

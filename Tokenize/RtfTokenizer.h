@@ -17,14 +17,14 @@
 #ifndef _RTF_TOKENIZER_H
 #define _RTF_TOKENIZER_H
 
+#include <string>
+#include <set>
+
 #include "Document.h"
 #include "HtmlTokenizer.h"
 
-/**
-  * This returns the MIME type supported by the library's tokenizer.
-  * The character string is allocated with new[].
-  */
-char *getTokenizerType(unsigned int typeNum);
+/// This returns the MIME types supported by the library's tokenizer.
+bool getTokenizerTypes(std::set<std::string> &types);
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument);
 
