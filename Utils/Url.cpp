@@ -63,30 +63,41 @@ void Url::parse(const string &url)
 	string::size_type pos1 =0, pos2 = 0;
 	bool hasHostName = true;
 
-	// If the URL starts with a slash, don't parse and consider it local
-	if (url[0] == '/')
+	if ((url[0] == '/') ||
+		(url[0] == '.'))
 	{
-		m_location = url;
-		return;
-	}
+		if ((url.length() > 2) &&
+				(url.substr(0, 2) == "./"))
+		{
+			pos2 = 2;
+		}
 
-	// Protocol
-	pos1 = url.find("://");
-	if (pos1 != string::npos)
+		// Assume default protocol
+		m_protocol = "file";
+
+		hasHostName = false;
+	}
+	else
 	{
-		m_protocol = url.substr(0, pos1);
-		pos1 += 3;
+		// Protocol
+		pos1 = url.find("://");
+		if (pos1 != string::npos)
+		{
+			m_protocol = url.substr(0, pos1);
+			pos1 += 3;
+		}
+		else
+		{
+			// Assume default protocol
+			m_protocol = "file";
+			pos1 = 0;
+		}
 
 		if (isLocal(m_protocol) == true)
 		{
 			hasHostName = false;
+			pos2 = pos1;
 		}
-	}
-	else
-	{
-		// Assume default protocol
-		m_protocol = "http";
-		pos1 = 0;
 	}
 
 	if (hasHostName == true)
@@ -143,7 +154,6 @@ void Url::parse(const string &url)
 	else
 	{
 		m_host = "localhost";
-		pos2 = pos1;
 	}
 
 	string locationAndFile = url.substr(pos2);
