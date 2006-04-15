@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Pinot Metasearch Tool
+Comment=Search the Web and your documents
+Exec=pinot
+StartupNotify=true
+Icon=pinot.png
+Terminal=false
+Type=Application
+Categories=Application;Network;
+Encoding=UTF-8

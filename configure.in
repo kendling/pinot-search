@@ -49,6 +49,7 @@ fi
 AC_LANG_CPLUSPLUS
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+AC_PATH_PROG(DESKTOP_INSTALL, desktop-file-install, no)
 
 dnl SOAP API support
 AC_MSG_CHECKING(whether to enable SOAP support)
@@ -140,9 +141,6 @@ HTTP_DOWNLOADER="CurlDownloader"
 esac
 AC_SUBST(HTTP_DOWNLOADER)
 
-dnl Textcat
-AC_CHECK_HEADERS(textcat.h)
-
 dnl Xapian
 AC_PATH_PROG(XAPIAN_CONFIG, xapian-config, no)
 if test "$XAPIAN_CONFIG" = "no" ; then
@@ -153,8 +151,10 @@ XAPIAN_CFLAGS=`$XAPIAN_CONFIG --cxxflags`
 XAPIAN_LIBS=`$XAPIAN_CONFIG --libs`
 
 dnl Other libraries
-MISC_LIBS="-lmagic -lcrypt"
+MISC_LIBS="-lcrypt"
 AC_SUBST(MISC_LIBS)
+AC_CHECK_HEADERS(textcat.h)
+PKG_CHECK_MODULES(MIMEINFO, shared-mime-info >= 0.17 )
 PKG_CHECK_MODULES(TAGLIB, taglib >= 1.4 )
 AC_SUBST(TAGLIB_CFLAGS)
 AC_SUBST(TAGLIB_LIBS)
