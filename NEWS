@@ -3,6 +3,9 @@ Search :
  - resurrected support for the Google API, enabled with "./configure --with-soap=yes"
  - tweaked extraction of results' extract and URL
  - renamed pinot_search to pinot-search
+Index :
+ - changed URL hash algorithm for compatibility with omindex. Reindexing documents
+  with URLs > 128 characters is necessary
 Tokenize :
  - new tokenizer for MP3, Vorbis and FLAC files that depend on the TagLib library
  - new XML tokenizer
@@ -58,7 +61,7 @@ Search :
  - URLs of results returned by Sherlock engines were incorrectly lower-cased
  - fix for Topix and Acoona
 Index :
- - Changed term prefixes to conform to conventions used by Omega and other
+ - changed term prefixes to conform to conventions used by Omega and other
   Xapian-based tools. Unfortunately, users will have to update documents and
   reapply labels !
 UI :

@@ -7,8 +7,7 @@ General
 - Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
 - Change .spec to allow building with Google and ObjectsSearch SOAP APIs support
 - Don't use system(), fork and exec, especially for the external browser
-- Replace libmagic with xdgmime (built in gtk > 2.8), use it to determine which application
-  is for which MIME type too
+- Find out how to determine what application to use for a given MIME type and drop internal browser
 
 Search
 - Write a Spirit-based parser for extracting results from web pages
@@ -26,11 +25,9 @@ Collect
 - Harvest mode grabs all pages on a specific site down to a certain depth
 - Make User-Agent string configurable
 - Make download timeout configurable
-- Investigate replacing neon (and gsoap ?) with libsoup
 - Support for HTML frames
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
 - Use poppler for the PDF tokenizer
-- Write a basic XML tokenizer that skips tags
 - WordPerfect tokenizer with libwpd
 
 Index
@@ -54,11 +51,6 @@ Browser plugin
 - Skip popups and non text documents
 - Use dbus for communication
 - Index browser history in My Web index
-
-RenderHTML
-- Sort out issues with gtk_embed_moz if possible
-- Replace Mozilla GTK embed with GTK WebCore or latest gtkhtml, or drop altogether ?
-- Is it possible to build against Firefox instead of the Mozilla suite ?
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
