@@ -1048,23 +1048,26 @@ void mainWindow::on_thread_end()
 				m_state.unlock_lists();
 			}
 
-			unsigned int rowsCount = pIndexTree->getRowsCount();
-
-			// Ensure the last page is being displayed and is not full
-			if ((pIndexPage->getFirstDocument() + rowsCount == pIndexPage->getDocumentsCount()) &&
-				(rowsCount < m_maxDocsCount))
+			if (pIndexTree != NULL)
 			{
-				// Add a row to the index tree
-				IndexedDocument indexedDoc(docInfo.getTitle(),
-					XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
-					docInfo.getLocation(), docInfo.getType(),
-					docInfo.getLanguage());
-				indexedDoc.setTimestamp(docInfo.getTimestamp());
+				unsigned int rowsCount = pIndexTree->getRowsCount();
 
-				append_document(pIndexPage, _("My Documents"), indexedDoc);
+				// Ensure the last page is being displayed and is not full
+				if ((pIndexPage->getFirstDocument() + rowsCount == pIndexPage->getDocumentsCount()) &&
+					(rowsCount < m_maxDocsCount))
+				{
+					// Add a row to the index tree
+					IndexedDocument indexedDoc(docInfo.getTitle(),
+						XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
+						docInfo.getLocation(), docInfo.getType(),
+						docInfo.getLanguage());
+					indexedDoc.setTimestamp(docInfo.getTimestamp());
+
+					append_document(pIndexPage, _("My Documents"), indexedDoc);
+				}
+				pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
+				pIndexPage->updateButtonsState(m_maxDocsCount);
 			}
-			pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
-			pIndexPage->updateButtonsState(m_maxDocsCount);
 		}
 
 		set_status(status);
@@ -1272,8 +1275,6 @@ void mainWindow::on_configure_activate()
 				IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pPage);
 				if (pIndexPage != NULL)
 				{
-					IndexTree *pIndexTree = pIndexPage->getTree();
-
 					// Synchronize the labels list with the new settings
 					pIndexPage->populateLabelCombobox();
 				}
@@ -1710,7 +1711,6 @@ void mainWindow::on_import_activate()
 		ustring indexName(_("My Documents"));
 
 		// Is the index still being shown ?
-		IndexTree *pIndexTree = NULL;
 		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
