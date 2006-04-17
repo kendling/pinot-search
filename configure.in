@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 0.45,[fabricecolin@users.berlios.de])
+AC_INIT(pinot, 0.46,[fabricecolin@users.berlios.de])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -154,7 +154,7 @@ dnl Other libraries
 MISC_LIBS="-lcrypt"
 AC_SUBST(MISC_LIBS)
 AC_CHECK_HEADERS(textcat.h)
-PKG_CHECK_MODULES(MIMEINFO, shared-mime-info >= 0.17 )
+PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
 PKG_CHECK_MODULES(TAGLIB, taglib >= 1.4 )
 AC_SUBST(TAGLIB_CFLAGS)
 AC_SUBST(TAGLIB_LIBS)

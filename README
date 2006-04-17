@@ -56,6 +56,12 @@ http://www.boost.org/
 shared-mime-info					0.17
 http://freedesktop.org/Software/shared-mime-info
 
+desktop-file-utils					0.10
+http://www.freedesktop.org/software/desktop-file-utils
+
+unzip							5.52
+http://www.info-zip.org/pub/infozip/UnZip.html
+
 pdftohtml						0.36
 http://pdftohtml.sourceforge.net/
 
