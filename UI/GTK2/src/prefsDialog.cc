@@ -250,34 +250,28 @@ bool prefsDialog::save_mailTreeview()
 			TreeModel::Row row = *iter;
 			PinotSettings::MailAccount mailAccount;
 
-			ustring mimeType = row[m_mailColumns.m_type];
-			if (mimeType == "text/x-mail")
+			// FIXME: unlike libmagic, shared-mime-info fails to identify most mbox files
+			// as being of type text/x-mail
+			// Add this new mail account to the settings
+			mailAccount.m_name = row[m_mailColumns.m_location];
+			mailAccount.m_type = row[m_mailColumns.m_type];
+			mailAccount.m_modTime = row[m_mailColumns.m_mTime];
+			mailAccount.m_lastMessageTime = row[m_mailColumns.m_minDate];
+
+			string mailLabel("mailbox://");
+			mailLabel += from_utf8(mailAccount.m_name);
+
+			// Check user didn't recreate this mail account after having deleted it
+			set<string>::iterator mailIter = m_deletedMail.find(mailLabel);
+			if (mailIter != m_deletedMail.end())
 			{
-				// Add this new mail account to the settings
-				mailAccount.m_name = row[m_mailColumns.m_location];
-				mailAccount.m_type = mimeType;
-				mailAccount.m_modTime = row[m_mailColumns.m_mTime];
-				mailAccount.m_lastMessageTime = row[m_mailColumns.m_minDate];
-
-				string mailLabel("mailbox://");
-				mailLabel += from_utf8(mailAccount.m_name);
-
-				// Check user didn't recreate this mail account after having deleted it
-				set<string>::iterator mailIter = m_deletedMail.find(mailLabel);
-				if (mailIter != m_deletedMail.end())
-				{
-					m_deletedMail.erase(mailIter);
-				}
-
-#ifdef DEBUG
-				cout << "prefsDialog::save_mailTreeview: " << mailAccount.m_name << endl;
-#endif
-				m_settings.m_mailAccounts.insert(mailAccount);
+				m_deletedMail.erase(mailIter);
 			}
+
 #ifdef DEBUG
-			else cout << "prefsDialog::save_mailTreeview: format " << mimeType
-				<< ", file " << row[m_mailColumns.m_location] << ", is not supported" << endl;
+			cout << "prefsDialog::save_mailTreeview: " << mailAccount.m_name << endl;
 #endif
+			m_settings.m_mailAccounts.insert(mailAccount);
 		}
 	}
 
@@ -394,23 +388,26 @@ void prefsDialog::on_addAccountButton_clicked()
 	{
 		string mimeType = MIMEScanner::scanFile(fileName);
 
-		if (mimeType == "text/x-mail")
-		{
-			// Create a new entry in the mail accounts list
-			TreeModel::iterator iter = m_refMailTree->append();
-			TreeModel::Row row = *iter;
+#ifdef DEBUG
+		cout << "prefsDialog::on_addAccountButton_clicked: " << fileName
+			<< " has format " << mimeType << endl;
+#endif
+		// FIXME: unlike libmagic, shared-mime-info fails to identify most mbox files
+		// as being of type text/x-mail
+		// Create a new entry in the mail accounts list
+		TreeModel::iterator iter = m_refMailTree->append();
+		TreeModel::Row row = *iter;
 	
-			row[m_mailColumns.m_location] = to_utf8(fileName);
-			row[m_mailColumns.m_type] = to_utf8(mimeType);
-			row[m_mailColumns.m_mTime] = 0;
-			row[m_mailColumns.m_minDate] = 0;
+		row[m_mailColumns.m_location] = to_utf8(fileName);
+		row[m_mailColumns.m_type] = to_utf8(mimeType);
+		row[m_mailColumns.m_mTime] = 0;
+		row[m_mailColumns.m_minDate] = 0;
 
-			if (wasEmpty == true)
-			{
-				// Enable these buttons
-				editAccountButton->set_sensitive(true);
-				removeAccountButton->set_sensitive(true);
-			}
+		if (wasEmpty == true)
+		{
+			// Enable these buttons
+			editAccountButton->set_sensitive(true);
+			removeAccountButton->set_sensitive(true);
 		}
 	}
 }

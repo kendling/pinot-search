@@ -16,6 +16,7 @@
 
 #include <strings.h>
 #include <utility>
+#include <iostream>
 
 #include "xdgmime/xdgmime.h"
 
@@ -23,6 +24,8 @@
 #include "StringManip.h"
 #include "Url.h"
 
+using std::cout;
+using std::endl;
 using std::string;
 using std::min;
 
@@ -42,6 +45,9 @@ string MIMEScanner::scanFileType(const string &fileName)
 	if ((pType == NULL) ||
 		(strncasecmp(pType, xdg_mime_type_unknown, min(strlen(pType), strlen(xdg_mime_type_unknown))) == 0))
 	{
+#ifdef DEBUG
+		cout << "MIMEScanner::scanFileType: couldn't determine type of " << fileName << endl;
+#endif
 		return "";
 	}
 
@@ -61,13 +67,19 @@ string MIMEScanner::scanFile(const string &fileName)
 	{
 		// Have a peek at the file
 		const char *pType = xdg_mime_get_mime_type_for_file(fileName.c_str(), NULL);
-		if ((pType == NULL) ||
-			(strncasecmp(pType, xdg_mime_type_unknown, min(strlen(pType), strlen(xdg_mime_type_unknown))) == 0))
+		if ((pType != NULL) &&
+			(strncasecmp(pType, xdg_mime_type_unknown, min(strlen(pType), strlen(xdg_mime_type_unknown))) != 0))
 		{
-			return "";
+			return pType;
 		}
 
-		mimeType = pType;
+#ifdef DEBUG
+		cout << "MIMEScanner::scanFile: couldn't determine type of " << fileName << endl;
+#endif
+		if (xdg_mime_type_unknown != NULL)
+		{
+			mimeType = xdg_mime_type_unknown;
+		}
 	}
 
 	return mimeType;
@@ -95,6 +107,10 @@ string MIMEScanner::scanUrl(const Url &urlObj)
 		if (urlObj.getProtocol() == "http")
 		{
 			mimeType = "text/html";
+		}
+		else if (xdg_mime_type_unknown != NULL)
+		{
+			mimeType = xdg_mime_type_unknown;
 		}
 	}
 
