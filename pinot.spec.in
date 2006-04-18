@@ -98,7 +98,6 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %config(noreplace) %{_datadir}/pinot/engines/YahooAPI.src
 %config(noreplace) %{_datadir}/pinot/engines/Wikipedia.src
 %config(noreplace) %{_datadir}/pinot/engines/KodersDescription.xml
-%config(noreplace) %{_datadir}/pinot/engines/MozDexDescription.xml
 %{_datadir}/locale/fr/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/es/LC_MESSAGES/pinot.mo
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
