@@ -1,18 +1,24 @@
-??? version_0_4_6
+2006/03/22 version_0_4_6
 Search :
- - resurrected support for the Google API, enabled with "./configure --with-soap=yes"
+ - resurrected support for the Google API, enabled with "./configure --with-soap=yes".
+  This requires the gsoap development toolkit.
  - tweaked extraction of results' extract and URL
  - renamed pinot_search to pinot-search
+ - (temporarily hopefully) removed MozDex plugin 
 Index :
  - changed URL hash algorithm for compatibility with omindex. Reindexing documents
   with URLs > 128 characters is necessary
 Tokenize :
  - new tokenizer for MP3, Vorbis and FLAC files that depend on the TagLib library
  - new XML tokenizer
- - new tokenizer for StarOffice and OpenDocument files (unzip required)
- - replaced libmagic with shared-mime-info (xdgmime) for better MIME type detection
+ - new tokenizer for OpenDocument/StarOffice files (unzip required)
+ - use xdgmime to query shared-mime-info for better MIME type detection
 HTML browser :
- - can build against Mozilla or Firefox, as set with "./configure --with-gecko=mozilla|firefox"
+ - can build against Mozilla or Firefox, set with "./configure --with-gecko=mozilla|firefox"
+UI :
+ - discovered and fixed pretty stupid bug that would cause a crash when indexing
+  search results while the My Documents tab isn't opened
+ - internationalized desktop file
 
 2006/03/25 version_0_4_5
 Build :

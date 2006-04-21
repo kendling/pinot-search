@@ -1,6 +1,10 @@
 [Desktop Entry]
 Name=Pinot Metasearch Tool
+Name[es]=Metabuscador Pinot
+Name[fr]=Pinot Outil De Recherche
 Comment=Search the Web and your documents
+Comment[es]=Busca en el web y en sus documentos
+Comment[fr]=Cherche le Web et vos documents
 Exec=pinot
 StartupNotify=true
 Icon=pinot.png
