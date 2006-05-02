@@ -270,6 +270,9 @@ mainWindow::mainWindow() :
 //
 mainWindow::~mainWindow()
 {
+	// Save engines
+	m_pEnginesTree->save();
+
 	// Save queries
 	save_queryTreeview();
 

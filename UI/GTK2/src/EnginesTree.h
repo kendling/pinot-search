@@ -59,6 +59,9 @@ class EnginesTree : public Gtk::TreeView
 		/// Clear the tree.
 		void clear(void);
 
+		/// Save the tree's state.
+		void save(void);
+
 		/// Returns the index edit signal.
 		SigC::Signal2<void, std::string, std::string>& getEditIndexSignal(void);
 

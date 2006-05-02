@@ -130,13 +130,14 @@ int main(int argc, char **argv)
 	Languages::setIntlName(10, _("Spanish"));
 	Languages::setIntlName(11, _("Swedish"));
 
-	// Load the settings
-	settings.load();
+	// Load search engines
 	settings.loadSearchEngines(prefixDir + string("/share/pinot/engines"));
 	settings.loadSearchEngines(confDirectory + string("/engines"));
 	// Load tokenizer libraries, if any
 	TokenizerFactory::loadTokenizers(prefixDir + string("/share/pinot/tokenizers"));
 	TokenizerFactory::loadTokenizers(confDirectory + string("/tokenizers"));
+	// Load the settings
+	settings.load();
 
 	// Catch interrupts
 	sigemptyset(&newAction.sa_mask);

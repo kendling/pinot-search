@@ -41,7 +41,7 @@ class PinotSettings
 
 		static std::string getCurrentUserName(void);
 
-		bool load(void);
+		bool load(bool reload = false);
 
 		bool loadSearchEngines(const std::string &directoryName);
 
@@ -94,7 +94,7 @@ class PinotSettings
 		void getEngineNames(unsigned int id, std::set<std::string> &names);
 
 		/// Returns the search engines channels.
-		const std::set<std::string> &getSearchEnginesChannels(void) const;
+		std::map<std::string, bool> &getSearchEnginesChannels(void);
 
 		/// Returns the queries map, keyed by name.
 		const std::map<std::string, QueryProperties> &getQueries(void) const;
@@ -160,7 +160,7 @@ class PinotSettings
 		std::map<unsigned int, std::string> m_indexIds;
 		std::set<Engine> m_engines;
 		std::map<unsigned int, std::string> m_engineIds;
-		std::set<std::string> m_engineChannels;
+		std::map<std::string, bool> m_engineChannels;
 		std::map<std::string, QueryProperties> m_queries;
 		std::set<std::string> m_labels;
 
@@ -168,6 +168,7 @@ class PinotSettings
 		bool loadConfiguration(const std::string &fileName);
 		bool loadUi(const xmlpp::Element *pElem);
 		bool loadIndexes(const xmlpp::Element *pElem);
+		bool loadEngineChannels(const xmlpp::Element *pElem);
 		bool loadQueries(const xmlpp::Element *pElem);
 		bool loadResults(const xmlpp::Element *pElem);
 		bool loadLabels(const xmlpp::Element *pElem);

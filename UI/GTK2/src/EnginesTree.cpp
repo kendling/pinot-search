@@ -99,6 +99,32 @@ EnginesTree::~EnginesTree()
 {
 }
 
+void EnginesTree::save(void)
+{
+	std::map<string, bool> &channels = m_settings.getSearchEnginesChannels();
+
+	TreeModel::Children children = m_refStore->children();
+	for (TreeModel::Children::iterator iter = children.begin(); iter != children.end(); ++iter)
+	{
+		TreeModel::Row row = *iter;
+
+		if (row[m_enginesColumns.m_type] == EnginesModelColumns::ENGINE_FOLDER)
+		{
+			ustring channelName(row[m_enginesColumns.m_name]);
+			TreeModel::Path path = m_refStore->get_path(iter);
+
+			std::map<string, bool>::iterator channelIter = channels.find(from_utf8(channelName));
+			if (channelIter != channels.end())
+			{
+#ifdef DEBUG
+				cout << "EnginesTree::save: " << channelName << " is " << row_expanded(path) << endl;
+#endif
+				channelIter->second = row_expanded(path);
+			}
+		}
+	}
+}
+
 void EnginesTree::renderEngineIcon(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter)
 {
 	TreeModel::Row row = *iter;
@@ -231,11 +257,12 @@ void EnginesTree::populate(bool indexesOnly)
 	m_refStore->clear();
 
 	// Populate the tree with search engines
-	const set<string> &channels = m_settings.getSearchEnginesChannels();
-	for (set<string>::const_iterator channelIter = channels.begin();
+	std::map<string, bool> &channels = m_settings.getSearchEnginesChannels();
+	for (std::map<string, bool>::const_iterator channelIter = channels.begin();
 		channelIter != channels.end(); ++channelIter)
 	{
-		string channelName = *channelIter;
+		string channelName(channelIter->first);
+		bool isExpanded(channelIter->second);
 
 		// Enumerate search engines for this channel
 		engines.clear();
@@ -254,7 +281,6 @@ void EnginesTree::populate(bool indexesOnly)
 		row[m_enginesColumns.m_option] = "";
 		row[m_enginesColumns.m_type] = EnginesModelColumns::ENGINE_FOLDER;
 
-		// FIXME: for some reason, without "std::"'s the compiler fails with a parse error before the comma
 		std::set<PinotSettings::Engine>::const_iterator engineIter = engines.begin();
 		for (; engineIter != engines.end(); ++engineIter)
 		{
@@ -283,6 +309,18 @@ void EnginesTree::populate(bool indexesOnly)
 			}
 			row[m_enginesColumns.m_type] = EnginesModelColumns::WEB_ENGINE;
 		}
+
+		TreeModel::Path folderPath = m_refStore->get_path(folderIter);
+		if (isExpanded == true)
+		{
+			// Expand this
+			expand_row(folderPath, true);
+		}
+		else
+		{
+			// Collapse this
+			collapse_row(folderPath);
+		}
 	}
 
 	// Local engines
@@ -293,7 +331,6 @@ void EnginesTree::populate(bool indexesOnly)
 	row[m_enginesColumns.m_option] = "";
 	row[m_enginesColumns.m_type] = EnginesModelColumns::ENGINE_FOLDER;
 
-	// FIXME: for some reason, without "std::"'s the compiler fails with a parse error before the comma
 	std::map<std::string, std::string>::const_iterator indexIter = m_settings.getIndexes().begin();
 	for (; indexIter != m_settings.getIndexes().end(); ++indexIter)
 	{
@@ -317,9 +354,10 @@ void EnginesTree::populate(bool indexesOnly)
 		row[m_enginesColumns.m_type] = indexType;
 	}
 
-	get_selection()->select(localIter);
+	// Expand this
+	expand_row(m_refStore->get_path(localIter), true);
 
-	expand_all();
+	get_selection()->select(localIter);
 }
 
 //

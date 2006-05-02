@@ -178,16 +178,19 @@ string PinotSettings::getCurrentUserName(void)
 	return "";
 }
 
-bool PinotSettings::load(void)
+bool PinotSettings::load(bool reload)
 {
-	// Clear lists
-	m_indexNames.clear();
-	m_indexIds.clear();
-	m_engines.clear();
-	m_engineIds.clear();
-	m_queries.clear();
-	m_labels.clear();
-	m_mailAccounts.clear();
+	if (reload == true)
+	{
+		// Clear lists
+		m_indexNames.clear();
+		m_indexIds.clear();
+		m_engines.clear();
+		m_engineIds.clear();
+		m_queries.clear();
+		m_labels.clear();
+		m_mailAccounts.clear();
+	}
 
 	// Load the configuration file
 	string fileName = getConfigurationFileName();
@@ -212,12 +215,12 @@ bool PinotSettings::load(void)
 #ifdef HAS_GOOGLEAPI
 	m_engineIds[1 << m_engines.size()] = "Google API";
 	m_engines.insert(Engine("Google API", "googleapi", "", "The Web"));
-	m_engineChannels.insert("The Web");
+	m_engineChannels.insert(pair<string, bool>("The Web", true));
 #endif
 #ifdef HAS_OSAPI
 	m_engineIds[1 << m_engines.size()] = "ObjectsSearch API";
 	m_engines.insert(Engine("ObjectsSearch API", "objectssearchapi", "", "The Web"));
-	m_engineChannels.insert("The Web");
+	m_engineChannels.insert(pair<string, bool>("The Web", true));
 #endif
 	m_engineIds[1 << m_engines.size()] = "Xapian";
 	m_engines.insert(Engine("Xapian", "xapian", "", ""));
@@ -288,6 +291,10 @@ bool PinotSettings::loadConfiguration(const std::string &fileName)
 				else if (nodeName == "extraindex")
 				{
 					loadIndexes(pElem);
+				}
+				else if (nodeName == "channel")
+				{
+					loadEngineChannels(pElem);
 				}
 				else if (nodeName == "storedquery")
 				{
@@ -433,6 +440,47 @@ bool PinotSettings::loadIndexes(const Element *pElem)
 		(indexLocation.empty() == false))
 	{
 		addIndex(indexName, indexLocation);
+	}
+
+	return true;
+}
+
+bool PinotSettings::loadEngineChannels(const Element *pElem)
+{
+	if (pElem == NULL)
+	{
+		return false;
+	}
+
+	Node::NodeList childNodes = pElem->get_children();
+	if (childNodes.empty() == true)
+	{
+		return false;
+	}
+
+	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
+	{
+		Node *pNode = (*iter);
+		Element *pElem = dynamic_cast<Element*>(pNode);
+		if (pElem == NULL)
+		{
+			continue;
+		}
+
+		string nodeName = pElem->get_name();
+		string nodeContent = getElementContent(pElem);
+		if (nodeName == "name")
+		{
+			std::map<string, bool>::iterator channelIter = m_engineChannels.find(nodeContent);
+
+			if (channelIter != m_engineChannels.end())
+			{
+				channelIter->second = false;
+			}
+#ifdef DEBUG
+			cout << "PinotSettings::loadEngineChannels: " << nodeContent << " is collapsed" << endl;
+#endif
+		}
 	}
 
 	return true;
@@ -754,7 +802,7 @@ bool PinotSettings::loadSearchEngines(const string &directoryName)
 						engineChannel = _("Unclassified");
 					}
 					m_engines.insert(Engine(engineName, "sherlock", location, engineChannel));
-					m_engineChannels.insert(engineChannel);
+					m_engineChannels.insert(pair<string, bool>(engineChannel, true));
 				}
 			}
 		}
@@ -817,6 +865,24 @@ bool PinotSettings::save(void)
 		addChildElement(pElem, "name", indexIter->first);
 		addChildElement(pElem, "location", indexIter->second);
 	}
+	// Engine channels
+	for (map<string, bool>::iterator channelIter = m_engineChannels.begin();
+		channelIter != m_engineChannels.end(); ++channelIter)
+	{
+		// Only save those whose group was collapsed
+		if (channelIter->second == false)
+		{
+#ifdef DEBUG
+			cout << "PinotSettings::save: " << channelIter->first << " is collapsed" << endl;
+#endif
+			pElem = pRootElem->add_child("channel");
+			if (pElem == NULL)
+			{
+				return false;
+			}
+			addChildElement(pElem, "name", channelIter->first);
+		}
+	}
 	// User-defined queries
 	for (map<string, QueryProperties>::iterator queryIter = m_queries.begin();
 		queryIter != m_queries.end(); ++queryIter)
@@ -827,7 +893,6 @@ bool PinotSettings::save(void)
 			return false;
 		}
 		addChildElement(pElem, "name", queryIter->first);
-		addChildElement(pElem, "type", "FIXED");
 		addChildElement(pElem, "and", queryIter->second.getAndWords());
 		addChildElement(pElem, "phrase", queryIter->second.getPhrase());
 		addChildElement(pElem, "any", queryIter->second.getAnyWords());
@@ -1088,7 +1153,7 @@ void PinotSettings::getEngineNames(unsigned int id, set<string> &names)
 }
 
 /// Returns the search engines channels.
-const set<string> &PinotSettings::getSearchEnginesChannels(void) const
+map<string, bool> &PinotSettings::getSearchEnginesChannels(void)
 {
 	return m_engineChannels;
 }
