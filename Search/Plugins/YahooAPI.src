@@ -6,7 +6,7 @@
 	description="Yahoo! REST API"
 	method="GET"
 	action="http://api.search.yahoo.com/WebSearchService/V1/webSearch"
-	routeType="Web Services"
+	routeType="The Web"
 >
 
 # Edit this field's value to set to your application ID

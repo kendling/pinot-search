@@ -211,13 +211,13 @@ bool PinotSettings::load(void)
 	// Some search engines are hardcoded
 #ifdef HAS_GOOGLEAPI
 	m_engineIds[1 << m_engines.size()] = "Google API";
-	m_engines.insert(Engine("Google API", "googleapi", "", "Web Services"));
-	m_engineChannels.insert("Web Services");
+	m_engines.insert(Engine("Google API", "googleapi", "", "The Web"));
+	m_engineChannels.insert("The Web");
 #endif
 #ifdef HAS_OSAPI
 	m_engineIds[1 << m_engines.size()] = "ObjectsSearch API";
-	m_engines.insert(Engine("ObjectsSearch API", "objectssearchapi", "", "Web Services"));
-	m_engineChannels.insert("Web Services");
+	m_engines.insert(Engine("ObjectsSearch API", "objectssearchapi", "", "The Web"));
+	m_engineChannels.insert("The Web");
 #endif
 	m_engineIds[1 << m_engines.size()] = "Xapian";
 	m_engines.insert(Engine("Xapian", "xapian", "", ""));
