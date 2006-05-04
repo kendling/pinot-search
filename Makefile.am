@@ -5,9 +5,12 @@ SUBDIRS = po Utils Tokenize SQL Collect @SOAP_SUBDIRS@ Search \
 	Index UI/RenderHTML UI/GTK2/src
 
 EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs pinot.desktop \
-	pinot.spec Search/Plugins/*src Search/Plugins/*.xml \
+	pinot.spec textcat_conf.txt Search/Plugins/*src Search/Plugins/*.xml \
+	Collect/pinot-collect.1 Search/pinot-search.1 UI/GTK2/src/pinot.1 \
 	UI/GTK2/index.html UI/GTK2/xapian-powered.png UI/GTK2/pinot.png \
-	textcat_conf.txt UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep
+	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep
+
+man_MANS = Collect/pinot-collect.1 Search/pinot-search.1 UI/GTK2/src/pinot.1
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot

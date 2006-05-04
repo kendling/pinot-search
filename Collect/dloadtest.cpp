@@ -14,6 +14,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -22,14 +23,55 @@
 
 #include "Url.h"
 #include "DownloaderFactory.h"
+#include "config.h"
 
 using namespace std;
 
+static struct option g_longOptions[] = {
+	{"help", 0, 0, 'h'},
+	{"version", 0, 0, 'v'},
+	{0, 0, 0, 0}
+};
+
 int main(int argc, char **argv)
 {
+	int longOptionIndex = 0;
+
+	// Look at the options
+	int optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
+	while (optionChar != -1)
+	{
+		switch (optionChar)
+		{
+			case 'h':
+				// Help
+				cout << "pinot-collect - Download an URL from the command-line\n\n"
+					<< "Usage: pinot-collect [OPTIONS] URL\n\n"
+					<< "Options:\n"
+					<< "  -h, --help		display this help and exit\n"
+					<< "  -v, --version		output version information and exit\n"
+					<< "\nExamples:\n"
+					<< "  pinot-collect http://some.website.com/\n"
+					<< "  pinot-collect xapian:///home/fabrice/.pinot/index/1\n"
+					<< "\nReport bugs to " << PACKAGE_BUGREPORT << endl;
+				return EXIT_SUCCESS;
+			case 'v':
+				cout << "pinot-collect - " << PACKAGE_STRING << "\n\n"
+					<< "This is free software.  You may redistribute copies of it under the terms of\n"
+					<< "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
+				return EXIT_SUCCESS;
+			default:
+				return EXIT_FAILURE;
+		}
+
+		// Next option
+		optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
+	}
+
 	if (argc < 2)
 	{
-		cerr << "Usage: " << argv[0] << " <URL>" << endl;
+		cerr << "Not enough parameters" << endl;
 		return EXIT_FAILURE;
 	}
 

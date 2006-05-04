@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <libintl.h>
+#include <getopt.h>
 #include <iostream>
 #include <fstream>
 #include <glibmm.h>
@@ -44,6 +45,11 @@ using namespace std;
 static ofstream outputFile;
 static streambuf *coutBuf = NULL;
 static streambuf *cerrBuf = NULL;
+static struct option g_longOptions[] = {
+	{"help", 0, 0, 'h'},
+	{"version", 0, 0, 'v'},
+	{0, 0, 0, 0}
+};
 
 static void closeAll(void)
 {
@@ -89,6 +95,36 @@ int main(int argc, char **argv)
 	string prefixDir(PREFIX);
 	Glib::ustring errorMsg;
 	struct sigaction newAction;
+	int longOptionIndex = 0;
+
+	// Look at the options
+	int optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
+	while (optionChar != -1)
+	{
+		switch (optionChar)
+		{
+			case 'h':
+				// Help
+				cout << "pinot - A metasearch tool for the Free Desktop\n\n"
+					<< "Usage: pinot [OPTIONS]\n\n"
+					<< "Options:\n"
+					<< "  -h, --help		display this help and exit\n"
+					<< "  -v, --version		output version information and exit\n"
+					<< "\nReport bugs to " << PACKAGE_BUGREPORT << endl;
+				return EXIT_SUCCESS;
+			case 'v':
+				cout << "pinot - " << PACKAGE_STRING << "\n\n" 
+					<< "This is free software.  You may redistribute copies of it under the terms of\n"
+					<< "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
+				return EXIT_SUCCESS;
+			default:
+				return EXIT_FAILURE;
+		}
+
+		// Next option
+		optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
+	}
 
 #if defined(ENABLE_NLS)
 	bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
