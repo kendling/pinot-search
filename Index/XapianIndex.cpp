@@ -709,12 +709,11 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 		{
 			Xapian::Document doc = pIndex->get_document(docId);
 
-			// Get the current document data
-			string record = doc.get_data();
-			string language = StringManip::extractField(record, "language=", "");
-
+#ifdef DEBUG
+			cout << "XapianIndex::updateDocumentInfo: language is " << docInfo.getLanguage() << endl;
+#endif
 			// Update the document data with the current language
-			setDocumentData(doc, docInfo, language);
+			setDocumentData(doc, docInfo, docInfo.getLanguage());
 			pIndex->replace_document(docId, doc);
 			updated = true;
 		}

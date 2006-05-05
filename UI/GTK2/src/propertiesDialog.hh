@@ -40,11 +40,15 @@ public:
 	const std::set<std::string> &getLabels(void) const;
 
 protected:
+	ComboModelColumns m_languageColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refLanguageTree;
 	LabelModelColumns m_labelsColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
 	std::set<std::string> m_labels;
 	bool m_editDocument;
 	DocumentInfo m_docInfo;
+
+	void populate_languageCombobox(std::string language);
 
 	void populate_labelsTreeview(const std::set<std::string> &docLabels);
 

@@ -1901,11 +1901,18 @@ void mainWindow::on_showfromindex_activate()
 	if ((documentsList.size() == 1) &&
 		(docId > 0))
 	{
-		// Did the title change ?
+		// Did the title or language change ?
 		string newTitle = propertiesBox.getDocumentInfo().getTitle();
-		if (newTitle != docInfo.getTitle())
+		string newLanguage = propertiesBox.getDocumentInfo().getLanguage();
+		if ((newTitle != docInfo.getTitle()) ||
+			(newLanguage != docInfo.getLanguage()))
 		{
 			docInfo.setTitle(newTitle);
+			docInfo.setLanguage(newLanguage);
+#ifdef DEBUG
+			cout << "mainWindow::on_showfromindex_activate: properties changed to "
+				<< newTitle << ", " << newLanguage << endl;
+#endif
 			
 			// Update the document
 			start_thread(new UpdateDocumentThread(indexName, docId, docInfo));

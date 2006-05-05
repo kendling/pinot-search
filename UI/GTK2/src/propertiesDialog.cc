@@ -18,6 +18,7 @@
 #include <utility>
 
 #include "config.h"
+#include "Languages.h"
 #include "NLS.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
@@ -33,6 +34,11 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 	m_editDocument(editDocument),
 	m_docInfo(docInfo)
 {
+	// Associate the columns model to the language combo
+	m_refLanguageTree = ListStore::create(m_languageColumns);
+	languageCombobox->set_model(m_refLanguageTree);
+	languageCombobox->pack_start(m_languageColumns.m_name);
+
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
 	labelsTreeview->set_model(m_refLabelsTree);
@@ -43,14 +49,8 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 
 	if (m_editDocument == true)
 	{
-		ustring language = to_utf8(docInfo.getLanguage());
-
 		titleEntry->set_text(to_utf8(docInfo.getTitle()));
-		if (language.empty() == true)
-		{
-			language = _("Unknown");
-		}
-		languageEntry->set_text(language);
+		populate_languageCombobox(docInfo.getLanguage());
 		typeEntry->set_text(to_utf8(docInfo.getType()));
 	}
 	else
@@ -58,19 +58,47 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 		titleLabel->hide();
 		titleEntry->hide();
 		languageLabel->hide();
-		languageEntry->hide();
+		languageCombobox->hide();
 		typeLabel->hide();
 		typeEntry->hide();
 	}
-	// FIXME: get the extract
-	extractLabel->hide();
-	extractScrolledwindow->hide();
 
 	populate_labelsTreeview(docLabels);
 }
 
 propertiesDialog::~propertiesDialog()
 {
+}
+
+void propertiesDialog::populate_languageCombobox(string language)
+{
+	TreeModel::iterator iter;
+	TreeModel::Row row;
+	unsigned int languageStart = 0;
+
+	if (language.empty() == true)
+	{
+		iter = m_refLanguageTree->append();
+		row = *iter;
+
+		row[m_languageColumns.m_name] = _("Unknown");
+		languageCombobox->set_active(0);
+		languageStart = 1;
+	}
+
+	// Add all supported languages
+	for (unsigned int languageNum = 0; languageNum < Languages::m_count; ++languageNum)
+	{
+		string languageName = Languages::getIntlName(languageNum);
+		iter = m_refLanguageTree->append();
+		row = *iter;
+		row[m_languageColumns.m_name] = languageName;
+
+		if (languageName == language)
+		{
+			languageCombobox->set_active(languageNum + languageStart);
+		}
+	}
 }
 
 void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
@@ -136,8 +164,24 @@ void propertiesDialog::on_labelOkButton_clicked()
 {
 	if (m_editDocument == true)
 	{
+		unsigned int languageStart = 0;
+
 		// Title
 		m_docInfo.setTitle(from_utf8(titleEntry->get_text()));
+
+		// Language
+		if (m_docInfo.getLanguage().empty() == true)
+		{
+			languageStart = 1;
+		}
+		int chosenLanguage = languageCombobox->get_active_row_number();
+		if (chosenLanguage < Languages::m_count + languageStart)
+		{
+			if (chosenLanguage > 0)
+			{
+				m_docInfo.setLanguage(Languages::getIntlName(chosenLanguage - languageStart));
+			}
+		}
 	}
 	// Go through the labels tree
 	TreeModel::Children children = m_refLabelsTree->children();
