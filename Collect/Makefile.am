@@ -13,7 +13,7 @@ noinst_LTLIBRARIES = libCollect.la
 bin_PROGRAMS = pinot-collect
 
 pinot_collect_SOURCES = \
-	dloadtest.cpp
+	pinot-collect.cpp
 
 pinot_collect_LDADD = -L../Utils -L../Tokenize \
 	-lCollect -lTokenize -lUtils \

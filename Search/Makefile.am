@@ -39,7 +39,7 @@ libSearchSOAP_la_SOURCES = \
 	SOAPEnvNS.cpp
 
 pinot_search_SOURCES = \
-	senginetest.cpp
+	pinot-search.cpp
 
 pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect -LGoogle \
 	@SEARCH_LIBS@ -lCollect -lTokenize -lUtils \

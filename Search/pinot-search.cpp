@@ -63,12 +63,12 @@ int main(int argc, char **argv)
 				}
 				cout << "\n\nExamples:\n"
 #ifdef HAS_GOOGLEAPI
-					<< "  pinot-search googleapi mygoogleapikey \"clowns\" 10\n"
+					<< "pinot-search googleapi mygoogleapikey \"clowns\" 10\n\n"
 #endif
-					<< "  pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\" 10\n"
-					<< "  pinot-search sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\" 10\n"
-					<< "  pinot-search xapian ~/.pinot/index \"clowns\" 10\n"
-					<< "  pinot-search xapian somehostname:12345 \"clowns\" 10\n\n"
+					<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\" 10\n\n"
+					<< "pinot-search sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\" 10\n\n"
+					<< "pinot-search xapian ~/.pinot/index \"clowns\" 10\n\n"
+					<< "pinot-search xapian somehostname:12345 \"clowns\" 10\n\n\n"
 					<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 				return EXIT_SUCCESS;
 			case 'v':

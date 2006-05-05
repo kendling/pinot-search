@@ -17,11 +17,14 @@ output version information and exit
 .PP
 Supported search engine types are googleapi opensearch sherlock xapian
 .SH EXAMPLES
-.IP
 pinot\-search googleapi mygoogleapikey "clowns" 10
+.PP
 pinot\-search opensearch /usr/share/pinot/engines/KrustyDescription.xml "clowns" 10
+.PP
 pinot\-search sherlock /usr/share/pinot/engines/Bozo.src "clowns" 10
+.PP
 pinot\-search xapian ~/.pinot/index "clowns" 10
+.PP
 pinot\-search xapian somehostname:12345 "clowns" 10
 .SH "REPORTING BUGS"
 Report bugs to fabricecolin@users.berlios.de
