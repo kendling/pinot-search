@@ -102,6 +102,9 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/locale/es/LC_MESSAGES/pinot.mo
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
 %{_datadir}/applications/Amra-pinot.desktop
+%{_mandir}/man1/pinot.*
+%ghost %{_mandir}/man1/pinot-collect.*
+%{_mandir}/man1/pinot-search.*
 
 %files text-docs 
 %defattr(-, root, root, -)
