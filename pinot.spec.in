@@ -56,7 +56,7 @@ The included plugin enables Pinot to use Xapian Omega as a search engine.
 
 %build
 %configure %{?_with_soap:--with-soap=yes}
-make
+make %{?_with_debug:CXXFLAGS="-g -DDEBUG"}
 
 %install
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
