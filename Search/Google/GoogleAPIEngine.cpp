@@ -84,8 +84,7 @@ string GoogleAPIEngine::checkSpelling(const string &text)
 /// Runs a query; true if success.
 bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 {
-	string andTerms = queryProps.getAndWords();
-	string phrase = queryProps.getPhrase();
+	string queryString = queryProps.toString(false);
 
 	setHostNameFilter(queryProps.getHostFilter());
 	setFileNameFilter(queryProps.getFileFilter());
@@ -98,24 +97,23 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 		return false;
 	}
 
-	// FIXME: find out how m_notWords and m_anyWords could be used
-	if (andTerms.empty() == true)
+	if (queryString.empty() == true)
 	{
-		if (phrase.empty() == true)
-		{
-			return false;
-		}
-		// Use the phrase as search terms then...
-		andTerms = phrase;
-		phrase = "";
+#ifdef DEBUG
+		cout << "GoogleAPIEngine::runQuery: query is empty" << endl;
+#endif
+		return false;
 	}
+#ifdef DEBUG
+	cout << "GoogleAPIEngine::runQuery: query is " << queryString << endl;
+#endif
 
 	GoogleSearchBinding soapProxy;
 	struct gapi1__doGoogleSearchResponse queryOut;
 
 	// No filter, no safe search
-	int soapStatus = soapProxy.gapi1__doGoogleSearch(m_key, andTerms, 0, (int)(m_maxResultsCount > 10 ? 10 : m_maxResultsCount),
-		((phrase.empty() == false) ? true : false), phrase, false, "", "utf-8", "utf-8", queryOut);
+	int soapStatus = soapProxy.gapi1__doGoogleSearch(m_key, queryString, 0, (int)(m_maxResultsCount > 10 ? 10 : m_maxResultsCount),
+		false, "", false, "", "utf-8", "utf-8", queryOut);
 	if (soapStatus != SOAP_OK)
 	{
 #ifdef DEBUG
