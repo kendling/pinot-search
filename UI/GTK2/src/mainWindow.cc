@@ -888,7 +888,7 @@ void mainWindow::on_thread_end()
 				SigC::slot(*this, &mainWindow::on_close_page));
 
 			// Position the results tree
-			pResultsTree = manage(new ResultsTree(queryName, resultsMenuitem->get_submenu(), m_settings));
+			pResultsTree = manage(new ResultsTree(queryProps, resultsMenuitem->get_submenu(), m_settings));
 			pResultsPage = manage(new ResultsPage(queryName, pResultsTree, m_pNotebook->get_height(), m_settings));
 			// Connect to the "changed" signal
 			pResultsTree->getSelectionChangedSignal().connect(

@@ -543,8 +543,9 @@ void QueryingThread::doWork(void)
 		for (vector<Result>::const_iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
 		{
-			string title = _("No title");
-			string extract = HtmlTokenizer::stripTags(resultIter->getExtract());
+			string title(_("No title"));
+			string extract(HtmlTokenizer::stripTags(resultIter->getExtract()));
+			string language(resultIter->getLanguage());
 
 			// The title may contain formatting
 			if (resultIter->getTitle().empty() == false)
@@ -552,10 +553,9 @@ void QueryingThread::doWork(void)
 				title = HtmlTokenizer::stripTags(resultIter->getTitle());
 			}
 
-			string language = resultIter->getLanguage();
+			// Use the query's language if the result's is unknown
 			if (language.empty() == true)
 			{
-				// Use the query's language
 				language = m_queryProps.getLanguage();
 			}
 

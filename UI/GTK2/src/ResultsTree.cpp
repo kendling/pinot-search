@@ -24,6 +24,7 @@
 #include <gtkmm/textbuffer.h>
 
 #include "HtmlTokenizer.h"
+#include "StringManip.h"
 #include "Url.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
@@ -40,10 +41,10 @@ using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
 
-ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
+ResultsTree::ResultsTree(const QueryProperties &queryProps, Menu *pPopupMenu,
 	PinotSettings &settings) :
 	TreeView(),
-	m_queryName(queryName),
+	m_queryProps(queryProps),
 	m_pPopupMenu(pPopupMenu),
 	m_pResultsScrolledwindow(NULL),
 	m_settings(settings),
@@ -87,6 +88,11 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_pExtractScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_AUTOMATIC);
 	m_pExtractScrolledwindow->property_window_placement().set_value(CORNER_TOP_LEFT);
 	m_pExtractScrolledwindow->add(*m_extractTextview);
+
+	// Create a blod text tag to highlight extract terms with
+	RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
+	RefPtr<TextBuffer::Tag> refBoldTag = refBuffer->create_tag("bold-text");
+	refBoldTag->property_weight() = Pango::WEIGHT_BOLD;
 
 	// Associate the columns model to the results tree
 	m_refStore = TreeStore::create(m_resultsColumns);
@@ -145,6 +151,9 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_viewededIconPixbuf = render_icon(Stock::YES, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_upIconPixbuf = render_icon(Stock::GO_UP, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_downIconPixbuf = render_icon(Stock::GO_DOWN, ICON_SIZE_MENU, "MetaSE-pinot");
+
+	// Get the query's terms now, we'll need them later
+	m_queryProps.getTerms(m_queryTerms);
 
 	// Show all
 	show();
@@ -302,7 +311,7 @@ void ResultsTree::onButtonPressEvent(GdkEventButton *ev)
 
 void ResultsTree::onSelectionChanged(void)
 {
-	m_signalSelectionChanged(m_queryName);
+	m_signalSelectionChanged(m_queryProps.getName());
 }
 
 bool ResultsTree::onSearchEqual(const RefPtr<TreeModel>& model, int column,
@@ -338,7 +347,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			set<string> engineNames, indexNames;
 			string extract;
 
-			// m_queryName and row[m_resultsColumns.m_queryName] should be equal
+			// The query name and row[m_resultsColumns.m_queryName] should be equal
 			string url = from_utf8(row[m_resultsColumns.m_url]);
 			unsigned int engineIds = row[m_resultsColumns.m_engines];
 			unsigned int indexIds = row[m_resultsColumns.m_indexes];
@@ -373,11 +382,26 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 #ifdef DEBUG
 				cout << "ResultsTree::onSelectionSelect: first engine for " << url << " was " << engineName << endl;
 #endif
-				extract = history.getItemExtract(from_utf8(m_queryName), engineName, url);
+				extract = history.getItemExtract(from_utf8(m_queryProps.getName()), engineName, url);
 			}
 
 			RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
 			refBuffer->set_text(to_utf8(extract));
+
+			// Highlight the query's terms in the extract
+			string lowerExtract(StringManip::toLowerCase(extract));
+			for (set<string>::iterator termIter = m_queryTerms.begin();
+				termIter != m_queryTerms.end(); ++termIter)
+			{
+				string::size_type pos = lowerExtract.find(StringManip::toLowerCase(*termIter));
+				if (pos != string::npos)
+				{
+					// Apply the tag
+					refBuffer->apply_tag_by_name("bold-text", refBuffer->get_iter_at_offset(pos),
+						refBuffer->get_iter_at_offset(pos + termIter->length()));
+				}
+			}
+
 			// The extract is not editable
 			m_extractTextview->set_editable(false);
 			m_extractTextview->set_cursor_visible(false);
@@ -423,13 +447,12 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 	const vector<Result> &resultsList, const string &charset, bool groupBySearchEngine)
 {
 	std::map<string, TreeModel::iterator> updatedGroups;
-	string registeredEngineName = engineName;
+	string registeredEngineName(engineName);
+	string queryName(queryProps.getName());
+	string language(queryProps.getLanguage());
+	string labelName(queryProps.getLabelName());
 	unsigned int count = 0;
 	ResultsModelColumns::ResultType rootType;
-
-	string queryName = queryProps.getName();
-	string language = queryProps.getLanguage();
-	string labelName = queryProps.getLabelName();
 
 	// Unselect all
 	get_selection()->unselect_all();
@@ -484,9 +507,9 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 	for (vector<Result>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
 	{
-		string title = resultIter->getTitle();
-		string location = resultIter->getLocation();
-		string extract = resultIter->getExtract();
+		string title(resultIter->getTitle());
+		string location(resultIter->getLocation());
+		string extract(resultIter->getExtract());
 		float currentScore = resultIter->getScore();
 		string score;
 		int rankDiff = 0;

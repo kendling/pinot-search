@@ -17,7 +17,9 @@
 #include <iostream>
 #include <algorithm>
 
+#include "Document.h"
 #include "Languages.h"
+#include "Tokenizer.h"
 #include "QueryProperties.h"
 
 QueryProperties::QueryProperties()
@@ -237,6 +239,24 @@ void QueryProperties::setLabelName(const string &labelName)
 string QueryProperties::getLabelName(void) const
 {
 	return m_labelName;
+}
+
+/// Returns the query's terms.
+void QueryProperties::getTerms(set<string> &terms) const
+{
+	Document doc;
+	string termsString(m_andWords + m_phrase + m_anyWords + m_notWords);
+
+	doc.setData(termsString.c_str(), termsString.length());
+	Tokenizer tokens(&doc);
+
+	terms.clear();
+
+	string token;
+	while (tokens.nextToken(token) == true)
+	{
+		terms.insert(token);
+	}
 }
 
 /// Returns a displayable representation of this query's properties.

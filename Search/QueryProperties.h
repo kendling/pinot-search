@@ -18,6 +18,7 @@
 #define _QUERY_PROPERTIES_H
 
 #include <string>
+#include <set>
 
 #include "Result.h"
 
@@ -95,7 +96,10 @@ class QueryProperties
 		/// Gets the name of the label to use for indexed documents.
 		string getLabelName(void) const;
 
-		/// Returns a displayable representation of this query's properties.
+		/// Returns the query's terms.
+		void getTerms(std::set<std::string> &terms) const;
+
+		/// Returns a string representation of this query's properties.
 		string toString(bool forPresentation = true) const;
 
 	protected:
