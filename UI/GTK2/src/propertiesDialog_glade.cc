@@ -86,7 +86,6 @@ propertiesDialog_glade::propertiesDialog_glade(
    titleEntry->set_visibility(true);
    titleEntry->set_editable(true);
    titleEntry->set_max_length(0);
-   titleEntry->set_text("");
    titleEntry->set_has_frame(true);
    titleEntry->set_activates_default(false);
    titleLabel->set_alignment(0,0.5);
@@ -111,7 +110,6 @@ propertiesDialog_glade::propertiesDialog_glade(
    typeEntry->set_visibility(true);
    typeEntry->set_editable(false);
    typeEntry->set_max_length(0);
-   typeEntry->set_text("");
    typeEntry->set_has_frame(true);
    typeEntry->set_activates_default(false);
    propertiesTable->set_row_spacings(0);
