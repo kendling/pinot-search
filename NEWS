@@ -1,3 +1,15 @@
+??? version_0_4_7
+General :
+ - all programs have man pages and support --help and --version
+Search :
+ - the Google API engine is no longer unnecessarily picky about queries parameters
+UI :
+ - merged channel Web Services with The Web
+ - the state of engine channels tree is saved and restored
+ - query terms are highlighted in the extract field
+ - allow editing the language of documents. A subsequent update would use the
+  given language to stem terms.
+
 2006/03/22 version_0_4_6
 Search :
  - resurrected support for the Google API, enabled with "./configure --with-soap=yes".

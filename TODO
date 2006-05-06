@@ -8,6 +8,10 @@ General
 - Change .spec to allow building with Google and ObjectsSearch SOAP APIs support
 - Don't use system(), fork and exec, especially for the external browser
 - Find out how to determine what application to use for a given MIME type and drop internal browser
+  Does xdgmime allow to consult the applications/types mappings in /usr/share/applications/defaults.list
+  and mimeinfo.cache ?
+- MIMEScanner should also return parent types so that we don't filter out types unnecessarily
+- Make sure everything works with URLs/path names that include spaces or unusual characters
 
 Search
 - Write a Spirit-based parser for extracting results from web pages
@@ -19,6 +23,7 @@ Search
 - Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
 - Support for Google Buttons
 - Make sure Description files' SyndicationRight is not private or closed
+- Export search results as OpenSearch Response
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -44,6 +49,10 @@ Index
 - Allow to monitor imported documents for changes
 - Flush after a properties update; not doing so seems to prevent abstract generation from working
  correctly, as terms positions can't be obtained
+- Xapian Query objects will become serializable at some point, this will be useful
+  for stored queries
+- Think about indexing archives (parent documents) and their contents (child documents)
+- Add a "more like this" menu to results from an index to get related documents
 
 Browser plugin
 - Write Firefox extension that searches Pinot indexes and indexes the cache
@@ -84,4 +93,8 @@ UI
 - Closing when threads are running gives the impression Pinot has crashed; how do we tell the user
   we are waiting for something to finish ?
 - Try sizing the window optimally on the first startup
+- Use libnotify to show a popup when a new result is available ?
+- Replace labels with tags (Leaftag, http://www.chipx86.com/wiki/Leaftag)
+- Enable to import all the documents that match a specific tag
+- Double click on a word in the extract field adds it to the live query field
 
