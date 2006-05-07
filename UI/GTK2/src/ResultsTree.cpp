@@ -41,10 +41,10 @@ using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
 
-ResultsTree::ResultsTree(const QueryProperties &queryProps, Menu *pPopupMenu,
+ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	PinotSettings &settings) :
 	TreeView(),
-	m_queryProps(queryProps),
+	m_queryName(queryName),
 	m_pPopupMenu(pPopupMenu),
 	m_pResultsScrolledwindow(NULL),
 	m_settings(settings),
@@ -151,9 +151,6 @@ ResultsTree::ResultsTree(const QueryProperties &queryProps, Menu *pPopupMenu,
 	m_viewededIconPixbuf = render_icon(Stock::YES, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_upIconPixbuf = render_icon(Stock::GO_UP, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_downIconPixbuf = render_icon(Stock::GO_DOWN, ICON_SIZE_MENU, "MetaSE-pinot");
-
-	// Get the query's terms now, we'll need them later
-	m_queryProps.getTerms(m_queryTerms);
 
 	// Show all
 	show();
@@ -311,7 +308,7 @@ void ResultsTree::onButtonPressEvent(GdkEventButton *ev)
 
 void ResultsTree::onSelectionChanged(void)
 {
-	m_signalSelectionChanged(m_queryProps.getName());
+	m_signalSelectionChanged(m_queryName);
 }
 
 bool ResultsTree::onSearchEqual(const RefPtr<TreeModel>& model, int column,
@@ -382,7 +379,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 #ifdef DEBUG
 				cout << "ResultsTree::onSelectionSelect: first engine for " << url << " was " << engineName << endl;
 #endif
-				extract = history.getItemExtract(from_utf8(m_queryProps.getName()), engineName, url);
+				extract = history.getItemExtract(from_utf8(m_queryName), engineName, url);
 			}
 
 			RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
@@ -453,6 +450,9 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 	string labelName(queryProps.getLabelName());
 	unsigned int count = 0;
 	ResultsModelColumns::ResultType rootType;
+
+	// Get this query's terms
+	queryProps.getTerms(m_queryTerms);
 
 	// Unselect all
 	get_selection()->unselect_all();

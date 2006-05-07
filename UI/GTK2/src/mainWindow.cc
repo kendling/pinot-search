@@ -888,7 +888,7 @@ void mainWindow::on_thread_end()
 				SigC::slot(*this, &mainWindow::on_close_page));
 
 			// Position the results tree
-			pResultsTree = manage(new ResultsTree(queryProps, resultsMenuitem->get_submenu(), m_settings));
+			pResultsTree = manage(new ResultsTree(queryName, resultsMenuitem->get_submenu(), m_settings));
 			pResultsPage = manage(new ResultsPage(queryName, pResultsTree, m_pNotebook->get_height(), m_settings));
 			// Connect to the "changed" signal
 			pResultsTree->getSelectionChangedSignal().connect(
@@ -1935,7 +1935,7 @@ void mainWindow::on_showfromindex_activate()
 void mainWindow::on_unindex_activate()
 {
 	vector<IndexedDocument> documentsList;
-	ustring boxTitle = _("Delete this document from the index ?");
+	ustring boxTitle = _("Remove this document from the index ?");
 
 	IndexTree *pIndexTree = NULL;
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
@@ -1954,7 +1954,7 @@ void mainWindow::on_unindex_activate()
 
 	if (documentsList.size() > 1)
 	{
-		boxTitle = _("Delete these documents from the index ?");
+		boxTitle = _("Remove these documents from the index ?");
 	}
 
 	// Ask for confirmation

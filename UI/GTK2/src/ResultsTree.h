@@ -41,7 +41,7 @@
 class ResultsTree : public Gtk::TreeView
 {
 	public:
-		ResultsTree(const QueryProperties &queryProps, Gtk::Menu *pPopupMenu,
+		ResultsTree(const Glib::ustring &queryName, Gtk::Menu *pPopupMenu,
 			PinotSettings &settings);
 		virtual ~ResultsTree();
 
@@ -93,7 +93,7 @@ class ResultsTree : public Gtk::TreeView
 		SigC::Signal1<void, Glib::ustring>& getSelectionChangedSignal(void);
 
 	protected:
-		QueryProperties m_queryProps;
+		Glib::ustring m_queryName;
 		Gtk::Menu *m_pPopupMenu;
 		Gtk::ScrolledWindow *m_pResultsScrolledwindow;
 		Glib::RefPtr<Gtk::TreeStore> m_refStore;
