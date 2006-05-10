@@ -3,24 +3,20 @@
 <SEARCH
 	version="1.0"
 	name="Creative Commons"
-	description="Yahoo.com Creative Commons Search"
+	description="Yahoo! Search for Creative Commons"
 	method="GET"
-	action="http://search.yahoo.com/search"
+	action="http://search.creativecommons.org/"
 	routeType="Content"
 >
 
-<INPUT NAME="ei" VALUE="UTF-8">
-<INPUT NAME="fr" VALUE="sfp-cc">
-<INPUT NAME="p" USER>
-<INPUT NAME="y" VALUE="Search+CC">
-<INPUT NAME="cc" VALUE="1">
-<INPUTNEXT NAME="b" FACTOR="10" VALUE="1">
+<INPUT NAME="q" USER>
+<INPUTNEXT NAME="start" FACTOR="10" VALUE="0">
 
 <INTERPRET
-resultListStart=""
-resultListEnd=""
-resultItemStart="<li><div>"
-resultItemEnd="</em> "
+resultListStart='<!-- start results -->'
+resultListEnd='<!-- end results -->'
+resultItemStart='<p class="resultitem">'
+resultItemEnd='</p>'
 >
 
 </SEARCH>
