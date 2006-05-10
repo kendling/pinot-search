@@ -210,7 +210,7 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 		}
 		catch (const Xapian::Error &error)
 		{
-			cout << "XapianEngine::queryDatabase: couldn't run query: "  << error.get_msg() << endl;
+			cerr << "XapianEngine::queryDatabase: couldn't run query: "  << error.get_msg() << endl;
 		}
 	}
 	pDatabase->unlock();
@@ -398,7 +398,7 @@ bool XapianEngine::runQuery(const string &keyword)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cout << "XapianEngine::runQuery: couldn't run query: "  << error.get_msg() << endl;
+		cerr << "XapianEngine::runQuery: couldn't run query: "  << error.get_msg() << endl;
 	}
 
 	return false;
@@ -499,7 +499,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cout << "XapianEngine::runQuery: couldn't run query: "  << error.get_msg() << endl;
+		cerr << "XapianEngine::runQuery: couldn't run query: "  << error.get_msg() << endl;
 	}
 
 	return false;

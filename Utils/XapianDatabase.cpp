@@ -66,9 +66,7 @@ bool XapianDatabase::openDatabase(void)
 
 		if (m_readOnly == false)
 		{
-#ifdef DEBUG
-			cout << "XapianDatabase::openDatabase: remote databases are read-only" << endl;
-#endif
+			cerr << "XapianDatabase::openDatabase: remote databases are read-only" << endl;
 			return false;
 		}
 

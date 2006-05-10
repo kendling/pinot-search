@@ -37,6 +37,9 @@
 #include "XapianDatabaseFactory.h"
 #include "XapianIndex.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::string;
 using std::set;
 using std::min;
@@ -240,9 +243,7 @@ void XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 		}
 		catch (const Xapian::Error &e)
 		{
-#ifdef DEBUG
-			cout << "XapianIndex::scanDocument: no support for " << *langIter << endl;
-#endif
+			cerr << "XapianIndex::scanDocument: no support for language " << *langIter << endl;
 			continue;
 		}
 

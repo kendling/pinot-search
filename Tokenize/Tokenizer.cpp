@@ -104,17 +104,14 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument,
 						pDocument->getLocation(), pDocument->getType(),
 						pDocument->getLanguage());
 					pOutputDocument->setData(content, bytes);
-#ifdef DEBUG
+#ifdef DEBUG_TOKENIZER
 					cout << "Tokenizer::runHelperProgram: set " << bytes
 						<< " bytes of data" << endl;
 #endif
 
 					delete[] content;
 				}
-#ifdef DEBUG
-				else cerr << "Tokenizer::runHelperProgram: "
-					<< cmdLine << " failed" << endl;
-#endif
+				else cerr << "Tokenizer::runHelperProgram: " << cmdLine << " failed" << endl;
 			}
 		}
 	}
@@ -125,8 +122,8 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument,
 	if ((unlink(outTemplate) != 0) ||
 		(unlink(inTemplate) != 0))
 	{
-#ifdef DEBUG
-		cerr << "Tokenizer::runHelperProgram: couldn't delete temporary files" << endl;
+#ifdef DEBUG_TOKENIZER
+		cout << "Tokenizer::runHelperProgram: couldn't delete temporary files" << endl;
 #endif
 	}
 

@@ -59,7 +59,7 @@ static void closeAll(void)
 	PinotSettings &settings = PinotSettings::getInstance();
 	if (settings.save() == false)
 	{
-		cerr << _("Couldn't save configuration file") << endl;
+		cerr << "Couldn't save configuration file" << endl;
 	}
 
 	// Close all indexes we may have opened

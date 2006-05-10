@@ -27,6 +27,7 @@
 #include "Document.h"
 
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::string;
 
@@ -154,9 +155,7 @@ bool Document::setDataFromFile(const string &fileName)
 	int fd = open(fileName.c_str(), O_RDONLY);
 	if (fd == -1)
 	{
-#ifdef DEBUG
-		cout << "Document::setDataFromFile: " << fileName << " couldn't be opened" << endl;
-#endif
+		cerr << "Document::setDataFromFile: " << fileName << " couldn't be opened" << endl;
 		return false;
 	}
 
@@ -171,9 +170,10 @@ bool Document::setDataFromFile(const string &fileName)
 		m_dataLength = fileStat.st_size;
 		m_isMapped = true;
 	}
-#ifdef DEBUG
-	else	cout << "Document::setDataFromFile: mapping failed" << endl;
-#endif
+	else
+	{
+		cerr << "Document::setDataFromFile: mapping failed" << endl;
+	}
 
 	// Close the file
 	if (close(fd) == -1)

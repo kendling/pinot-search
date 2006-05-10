@@ -335,13 +335,10 @@ bool MboxHandler::fileExists(const string &fileName, bool end)
 	tempSourceLabel += sourceLabel;
 
 	// Get the mail index
-	string indexLocation = PinotSettings::getInstance().m_mailIndexLocation;
-	XapianIndex index(indexLocation);
+	XapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
 	if (index.isGood() == false)
 	{
-#ifdef DEBUG
-		cout << "MboxHandler::fileExists: couldn't get mail index" << endl;
-#endif
+		cerr << "MboxHandler::fileExists: couldn't get mail index" << endl;
 		return false;
 	}
 
@@ -415,13 +412,10 @@ bool MboxHandler::fileChanged(const string &fileName)
 	sourceLabel += fileName;
 
 	// Get the mail index
-	string indexLocation = PinotSettings::getInstance().m_mailIndexLocation;
-	XapianIndex index(indexLocation);
+	XapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
 	if (index.isGood() == false)
 	{
-#ifdef DEBUG
-		cout << "MboxHandler::fileChanged: couldn't get mail index" << endl;
-#endif
+		cerr << "MboxHandler::fileChanged: couldn't get mail index" << endl;
 		return false;
 	}
 
@@ -459,13 +453,10 @@ bool MboxHandler::fileDeleted(const string &fileName)
 	bool unindexedFile = false;
 
 	// Get the mail index
-	string indexLocation = PinotSettings::getInstance().m_mailIndexLocation;
-	XapianIndex index(indexLocation);
+	XapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
 	if (index.isGood() == false)
 	{
-#ifdef DEBUG
-		cout << "MboxHandler::fileDeleted: couldn't get mail index" << endl;
-#endif
+		cerr << "MboxHandler::fileDeleted: couldn't get mail index" << endl;
 		return false;
 	}
 

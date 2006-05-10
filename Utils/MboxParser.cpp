@@ -29,7 +29,8 @@
 #include "Url.h"
 #include "MboxParser.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 MboxParser::MboxParser(const string &fileName, off_t mboxOffset)
 {

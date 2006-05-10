@@ -23,6 +23,9 @@
 
 #include "SQLiteBase.h"
 
+using std::cout;
+using std::endl;
+
 SQLiteRow::SQLiteRow(const vector<string> &rowColumns, int nColumns) :
 	m_nColumns(nColumns)
 {
@@ -233,9 +236,8 @@ bool SQLiteBase::executeSimpleStatement(const string &sql) const
 	{
 		if (errMsg != NULL)
 		{
-#ifdef DEBUG
-			cout << "SQLiteBase::executeSimpleStatement: statement <" << sql << "> failed: " << errMsg << endl;
-#endif
+			cerr << "SQLiteBase::executeSimpleStatement: statement <" << sql << "> failed: " << errMsg << endl;
+
 			sqlite3_free(errMsg);
 		}
 
@@ -311,9 +313,8 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...) const
 	{
 		if (errMsg != NULL)
 		{
-#ifdef DEBUG
-			cout << "SQLiteBase::executeStatement: statement <" << stringBuff << "> failed: " << errMsg << endl;
-#endif
+			cerr << "SQLiteBase::executeStatement: statement <" << stringBuff << "> failed: " << errMsg << endl;
+
 			sqlite3_free(errMsg);
 		}
 	}

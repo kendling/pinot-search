@@ -24,6 +24,7 @@
 #include "GAPI.nsmap"
 
 using std::cout;
+using std::cerr;
 using std::endl;
 
 GoogleAPIEngine::GoogleAPIEngine() :
@@ -91,9 +92,7 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 
 	if (m_key.empty() == true)
 	{
-#ifdef DEBUG
-		cout << "GoogleAPIEngine::runQuery: no key" << endl;
-#endif
+		cerr << "GoogleAPIEngine::runQuery: no key" << endl;
 		return false;
 	}
 
@@ -116,9 +115,7 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 		false, "", false, "", "utf-8", "utf-8", queryOut);
 	if (soapStatus != SOAP_OK)
 	{
-#ifdef DEBUG
-		cout << "GoogleAPIEngine::runQuery: search failed with status " << soapStatus << endl;
-#endif
+		cerr << "GoogleAPIEngine::runQuery: search failed with status " << soapStatus << endl;
 		return false;
 	}
 

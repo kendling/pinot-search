@@ -156,7 +156,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	if (url.empty() == true)
 	{
 #ifdef DEBUG
-		cerr << "NeonDownloader::retrieveUrl: no URL specified !" << endl;
+		cout << "NeonDownloader::retrieveUrl: no URL specified !" << endl;
 #endif
 		return NULL;
 	}
@@ -172,7 +172,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	if (pSession == NULL)
 	{
 #ifdef DEBUG
-		cerr << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
+		cout << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
 #endif
 		return NULL;
 	}
@@ -205,7 +205,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	if (pRequest == NULL)
 	{
 #ifdef DEBUG
-		cerr << "NeonDownloader::retrieveUrl: couldn't create request !" << endl;
+		cout << "NeonDownloader::retrieveUrl: couldn't create request !" << endl;
 #endif
 		ne_session_destroy(pSession);
 		return NULL;
@@ -298,7 +298,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 					if (pSession == NULL)
 					{
 #ifdef DEBUG
-						cerr << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
+						cout << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
 #endif
 						return NULL;
 					}
@@ -326,7 +326,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				if (pRequest == NULL)
 				{
 #ifdef DEBUG
-					cerr << "NeonDownloader::retrieveUrl: couldn't create request !" << endl;
+					cout << "NeonDownloader::retrieveUrl: couldn't create request !" << endl;
 #endif
 					ne_session_destroy(pSession);
 					return NULL;

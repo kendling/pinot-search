@@ -24,6 +24,10 @@
 #include "SherlockParser.h"
 #include "PluginWebEngine.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 PluginWebEngine::PluginWebEngine(const string &fileName) :
 	WebEngine(),
 	m_pResponseParser(NULL)
@@ -69,10 +73,8 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 	Document *pResponseDoc = downloadPage(docInfo);
 	if (pResponseDoc == NULL)
 	{
-#ifdef DEBUG
-		cerr << "PluginWebEngine::getPage: couldn't download page "
+		cerr << "PluginWebEngine::getPage: couldn't download "
 			<< formattedQuery << endl;
-#endif
 		return false;
 	}
 
@@ -82,7 +84,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 		(contentLen == 0))
 	{
 #ifdef DEBUG
-		cerr << "PluginWebEngine::getPage: downloaded empty page" << endl;
+		cout << "PluginWebEngine::getPage: downloaded empty page" << endl;
 #endif
 		delete pResponseDoc;
 		return false;
@@ -175,9 +177,8 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 	ResponseParserInterface *pResponseParser = pParser->parse(properties, true);
 	if (pResponseParser == NULL)
 	{
-#ifdef DEBUG
-		cerr << "PluginWebEngine::getDetails: couldn't parse " << fileName << endl;
-#endif
+		cerr << "PluginWebEngine::getDetails: couldn't parse "
+			<< fileName << endl;
 		delete pParser;
 
 		return false;
@@ -188,7 +189,7 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 	if (properties.m_response == SearchPluginProperties::UNKNOWN_RESPONSE)
 	{
 #ifdef DEBUG
-		cerr << "PluginWebEngine::getDetails: bad response type for "
+		cout << "PluginWebEngine::getDetails: bad response type for "
 			<< fileName << endl;
 #endif
 		return false;

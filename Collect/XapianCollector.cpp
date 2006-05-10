@@ -75,7 +75,7 @@ bool XapianCollector::openDatabase(void)
 	if (stat(m_databaseName.c_str(), &dbStat) == -1)
 	{
 		// Database directory doesn't exist
-		cerr << "XapianCollector::openDatabase: database doesn't exist: " << m_databaseName << endl;
+		cerr << "XapianCollector::openDatabase: " << m_databaseName << " doesn't exist" << endl;
 		return false;
 	}
 	else if (!S_ISDIR(dbStat.st_mode))
@@ -170,7 +170,7 @@ Document *XapianCollector::retrieveUrl(const DocumentInfo &docInfo)
 		string timestamp = StringManip::extractField(record, "timestamp=", "\n");
 		string language = StringManip::extractField(record, "language=", "\n");
 #ifdef DEBUG
-	cout << "XapianCollector::retrieveUrl: " << docId << " was indexed from " << location << " at " << timestamp << endl;
+		cout << "XapianCollector::retrieveUrl: " << docId << " was indexed from " << location << " at " << timestamp << endl;
 #endif
 
 		indexDoc = new IndexedDocument(title, url, location, type, language);

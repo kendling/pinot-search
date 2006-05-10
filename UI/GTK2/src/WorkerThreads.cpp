@@ -139,16 +139,12 @@ void WorkerThread::threadHandler(void)
 	}
 	catch (exception &ex)
 	{
-#ifdef DEBUG
-		cout << "Exception in thread " << m_id << ", type " << getType()
+		cerr << "Exception in thread " << m_id << ", type " << getType()
 			<< ":" << ex.what() << endl;
-#endif
 	}
 	catch (...)
 	{
-#ifdef DEBUG
-		cout << "Unknown exception in thread " << m_id << ", type " << getType() << endl;
-#endif
+		cerr << "Unknown exception in thread " << m_id << ", type " << getType() << endl;
 	}
 
 	emitSignal();

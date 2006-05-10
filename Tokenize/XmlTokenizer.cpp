@@ -83,10 +83,6 @@ string XmlTokenizer::parseXML(const string &str)
 	string::size_type startPos = 0;
 	bool isXml = false, skip = false;
 
-#ifdef DEBUG_TOKENIZER
-	cout << "XmlTokenizer::parseXML: start" << endl;
-#endif
-
 	// Tag start
 	string::size_type pos = str.find("<");
 	while (pos != string::npos)

@@ -101,9 +101,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 	if ((mimeType.empty() == false) &&
 		(mimeType.find("xml") == string::npos))
 	{
-#ifdef DEBUG
-		cout << "OpenSearchResponseParser::parse: response is not XML" << endl;
-#endif
+		cerr << "OpenSearchResponseParser::parse: response is not XML" << endl;
 		return false;
 	}
 

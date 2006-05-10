@@ -36,6 +36,7 @@
 #define GETTOKENIZER		"_Z12getTokenizerPK8Document"
 
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::string;
 using std::map;
@@ -109,10 +110,7 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 
 	if (stat(dirName.c_str(), &fileStat) == -1)
 	{
-#ifdef DEBUG
-		cout << "TokenizerFactory::loadTokenizers: "
-			<< dirName << " doesn't exist" << endl;
-#endif
+		cerr << "TokenizerFactory::loadTokenizers: " << dirName << " doesn't exist" << endl;
 		return 0;
 	}
 
@@ -179,13 +177,9 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 								m_handles[fileName] = pHandle;
 							}
 						}
-#ifdef DEBUG
-						else cout << "TokenizerFactory::loadTokenizers: " << dlerror() << endl;
-#endif
+						else cerr << "TokenizerFactory::loadTokenizers: " << dlerror() << endl;
 					}
-#ifdef DEBUG
-					else cout << "TokenizerFactory::loadTokenizers: " << dlerror() << endl;
-#endif
+					else cerr << "TokenizerFactory::loadTokenizers: " << dlerror() << endl;
 				}
 #ifdef DEBUG
 				else cout << "TokenizerFactory::loadTokenizers: "
@@ -199,10 +193,7 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 
 		closedir(pDir);
 	}
-#ifdef DEBUG
-	else cout << "TokenizerFactory::loadTokenizers: "
-		<< dirName << " is not a directory" << endl;
-#endif
+	else cerr << "TokenizerFactory::loadTokenizers: " << dirName << " is not a directory" << endl;
 
 	return count;
 }

@@ -105,7 +105,7 @@ PinotSettings::PinotSettings() :
 		}
 		else
 		{
-			cerr << _("Couldn't create pinot directory at") << " "
+			cerr << "Couldn't create pinot directory at "
 				<< directoryName << endl;
 		}
 	}
@@ -197,7 +197,7 @@ bool PinotSettings::load(bool reload)
 	if ((m_firstRun == false) &&
 		(loadConfiguration(fileName) == false))
 	{
-		cerr << _("Failed to parse configuration file") << " "
+		cerr << "Failed to parse configuration file "
 			<< fileName << endl;
 	}
 	// Internal indices
@@ -343,7 +343,7 @@ bool PinotSettings::loadConfiguration(const std::string &fileName)
 	}
 	catch (const std::exception& ex)
 	{
-		cerr << _("Couldn't parse configuration file") << ": "
+		cerr << "Couldn't parse configuration file: "
 			<< ex.what() << endl;
 		success = false;
 	}
@@ -477,9 +477,6 @@ bool PinotSettings::loadEngineChannels(const Element *pElem)
 			{
 				channelIter->second = false;
 			}
-#ifdef DEBUG
-			cout << "PinotSettings::loadEngineChannels: " << nodeContent << " is collapsed" << endl;
-#endif
 		}
 	}
 
@@ -872,9 +869,6 @@ bool PinotSettings::save(void)
 		// Only save those whose group was collapsed
 		if (channelIter->second == false)
 		{
-#ifdef DEBUG
-			cout << "PinotSettings::save: " << channelIter->first << " is collapsed" << endl;
-#endif
 			pElem = pRootElem->add_child("channel");
 			if (pElem == NULL)
 			{
