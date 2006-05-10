@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.43\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-05-07 13:59+0800\n"
+"POT-Creation-Date: 2006-05-10 10:43+0800\n"
 "PO-Revision-Date: 2006-01-20 19:44+0800\n"
 "Last-Translator: Fabrice Colin <colinf@chez.com>\n"
 "Language-Team: fr <colinf@chez.com>\n"
@@ -29,14 +29,14 @@ msgstr "Utilisateur"
 #: UI/GTK2/src/mainWindow.cc:1013 UI/GTK2/src/mainWindow.cc:1069
 #: UI/GTK2/src/mainWindow.cc:1089 UI/GTK2/src/mainWindow.cc:1124
 #: UI/GTK2/src/mainWindow.cc:1714 UI/GTK2/src/PinotSettings.cpp:204
-#: UI/GTK2/src/PinotSettings.cpp:976 UI/GTK2/src/PinotSettings.cpp:1032
+#: UI/GTK2/src/PinotSettings.cpp:970 UI/GTK2/src/PinotSettings.cpp:1026
 msgid "My Documents"
 msgstr "Mes Documents"
 
 #: UI/GTK2/src/EnginesTree.cpp:344 UI/GTK2/src/mainWindow.cc:381
 #: UI/GTK2/src/mainWindow.cc:384 UI/GTK2/src/mainWindow.cc:552
 #: UI/GTK2/src/MonitorHandler.cpp:173 UI/GTK2/src/PinotSettings.cpp:205
-#: UI/GTK2/src/PinotSettings.cpp:977 UI/GTK2/src/PinotSettings.cpp:1033
+#: UI/GTK2/src/PinotSettings.cpp:971 UI/GTK2/src/PinotSettings.cpp:1027
 #: UI/GTK2/src/prefsDialog_glade.cc:115
 msgid "My Email"
 msgstr "Mon Courrier"
@@ -263,13 +263,13 @@ msgstr "Le chemin du resultat est inconnu"
 msgid "Import Document(s)"
 msgstr "Import de Document(s)"
 
-#: UI/GTK2/src/mainWindow.cc:1833 UI/GTK2/src/WorkerThreads.cpp:390
-#: UI/GTK2/src/WorkerThreads.cpp:1112
+#: UI/GTK2/src/mainWindow.cc:1833 UI/GTK2/src/WorkerThreads.cpp:386
+#: UI/GTK2/src/WorkerThreads.cpp:1108
 msgid "Index"
 msgstr "L'index"
 
-#: UI/GTK2/src/mainWindow.cc:1837 UI/GTK2/src/WorkerThreads.cpp:394
-#: UI/GTK2/src/WorkerThreads.cpp:1116
+#: UI/GTK2/src/mainWindow.cc:1837 UI/GTK2/src/WorkerThreads.cpp:390
+#: UI/GTK2/src/WorkerThreads.cpp:1112
 msgid "doesn't exist"
 msgstr "n'existe pas"
 
@@ -456,10 +456,6 @@ msgstr "Aide"
 msgid "Pinot"
 msgstr "Pinot"
 
-#: UI/GTK2/src/pinot.cc:62
-msgid "Couldn't save configuration file"
-msgstr "N'a pas pu sauve le fichier de configuration"
-
 #: UI/GTK2/src/pinot.cc:156
 msgid "Danish"
 msgstr "Danois"
@@ -516,14 +512,6 @@ msgstr "N'a pas pu ouvrir l'index"
 msgid "Couldn't create history database"
 msgstr "N'a pas pu creer la base d'historiques"
 
-#: UI/GTK2/src/PinotSettings.cpp:108
-msgid "Couldn't create pinot directory at"
-msgstr "N'a pas pu creer le repertoire a"
-
-#: UI/GTK2/src/PinotSettings.cpp:200
-msgid "Failed to parse configuration file"
-msgstr "N'a pas pu lire le fichier de configuration"
-
 #: UI/GTK2/src/PinotSettings.cpp:209
 msgid "Important"
 msgstr "Important"
@@ -536,11 +524,7 @@ msgstr "Nouveau"
 msgid "Personal"
 msgstr "Personnel"
 
-#: UI/GTK2/src/PinotSettings.cpp:346
-msgid "Couldn't parse configuration file"
-msgstr "N'a pas pu lire le fichier de configuration"
-
-#: UI/GTK2/src/PinotSettings.cpp:802
+#: UI/GTK2/src/PinotSettings.cpp:799
 msgid "Unclassified"
 msgstr "Sans classification"
 
@@ -708,107 +692,104 @@ msgstr "Indexes"
 msgid "Query parameters"
 msgstr "Parametres de la recherche"
 
-#: UI/GTK2/src/WorkerThreads.cpp:369
+#: UI/GTK2/src/WorkerThreads.cpp:365
 msgid "Stopped browsing"
 msgstr "Arrete de parcourir l'index"
 
-#: UI/GTK2/src/WorkerThreads.cpp:402 UI/GTK2/src/WorkerThreads.cpp:600
-#: UI/GTK2/src/WorkerThreads.cpp:609 UI/GTK2/src/WorkerThreads.cpp:799
-#: UI/GTK2/src/WorkerThreads.cpp:1005 UI/GTK2/src/WorkerThreads.cpp:1124
+#: UI/GTK2/src/WorkerThreads.cpp:398 UI/GTK2/src/WorkerThreads.cpp:596
+#: UI/GTK2/src/WorkerThreads.cpp:605 UI/GTK2/src/WorkerThreads.cpp:795
+#: UI/GTK2/src/WorkerThreads.cpp:1001 UI/GTK2/src/WorkerThreads.cpp:1120
 msgid "Index error on"
 msgstr "Erreur sur l'index"
 
-#: UI/GTK2/src/WorkerThreads.cpp:507
+#: UI/GTK2/src/WorkerThreads.cpp:503
 msgid "Stopped querying"
 msgstr "Arrete la recherche"
 
-#: UI/GTK2/src/WorkerThreads.cpp:519
+#: UI/GTK2/src/WorkerThreads.cpp:515
 msgid "Couldn't create search engine"
 msgstr "N'a pas pu creer le moteur"
 
-#: UI/GTK2/src/WorkerThreads.cpp:530
+#: UI/GTK2/src/WorkerThreads.cpp:526
 msgid "Couldn't run query on search engine"
 msgstr "N'a pas pu lancer la recherche sur le moteur"
 
-#: UI/GTK2/src/WorkerThreads.cpp:546
+#: UI/GTK2/src/WorkerThreads.cpp:542
 msgid "No title"
 msgstr "Pas de titre"
 
-#: UI/GTK2/src/WorkerThreads.cpp:591
+#: UI/GTK2/src/WorkerThreads.cpp:587
 msgid "Stopped querying index labels"
 msgstr "Arrete la recherche d'etiquettes"
 
-#: UI/GTK2/src/WorkerThreads.cpp:668
+#: UI/GTK2/src/WorkerThreads.cpp:664
 msgid "Stopped retrieval of"
 msgstr "Arrete le telechargement de"
 
-#: UI/GTK2/src/WorkerThreads.cpp:702
+#: UI/GTK2/src/WorkerThreads.cpp:698
 msgid "Couldn't obtain downloader for protocol"
 msgstr "N'a pas pu obtenir un brouteur pour"
 
-#: UI/GTK2/src/WorkerThreads.cpp:716 UI/GTK2/src/WorkerThreads.cpp:812
+#: UI/GTK2/src/WorkerThreads.cpp:712 UI/GTK2/src/WorkerThreads.cpp:808
 msgid "Couldn't retrieve"
 msgstr "N'a pas pu telecharger"
 
-#: UI/GTK2/src/WorkerThreads.cpp:784
+#: UI/GTK2/src/WorkerThreads.cpp:780
 msgid "Stopped indexing"
 msgstr "Arrete l'indexation"
 
-#: UI/GTK2/src/WorkerThreads.cpp:835
+#: UI/GTK2/src/WorkerThreads.cpp:831
 msgid "Cannot index document type"
 msgstr "Impossible d'indexer ce type de documents"
 
-#: UI/GTK2/src/WorkerThreads.cpp:839
+#: UI/GTK2/src/WorkerThreads.cpp:835
 msgid "at"
 msgstr "a"
 
-#: UI/GTK2/src/WorkerThreads.cpp:863
+#: UI/GTK2/src/WorkerThreads.cpp:859
 msgid "Couldn't tokenize"
 msgstr "N'a pas pu extraire les termes de"
 
-#: UI/GTK2/src/WorkerThreads.cpp:883
+#: UI/GTK2/src/WorkerThreads.cpp:879
 msgid "Robots META tag forbids indexing"
 msgstr "Le META tag Robots interdit d'indexer"
 
-#: UI/GTK2/src/WorkerThreads.cpp:938
+#: UI/GTK2/src/WorkerThreads.cpp:934
 msgid "Couldn't index"
 msgstr "N'a pas pu indexer"
 
-#: UI/GTK2/src/WorkerThreads.cpp:993
+#: UI/GTK2/src/WorkerThreads.cpp:989
 msgid "Stopped unindexing document(s)"
 msgstr "Arrete d'indexer les document(s)"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1012
+#: UI/GTK2/src/WorkerThreads.cpp:1008
 msgid "Couldn't unindex document(s)"
 msgstr "N'a pas pu desindexer le(s) document(s)"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1097
+#: UI/GTK2/src/WorkerThreads.cpp:1093
 msgid "Stopped document update for"
 msgstr "Arrete la mise a jour pour"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1132
+#: UI/GTK2/src/WorkerThreads.cpp:1128
 msgid "Couldn't update document"
 msgstr "N'a pas pu mettre a jour le document"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1182
+#: UI/GTK2/src/WorkerThreads.cpp:1178
 msgid "Stopped monitoring"
 msgstr "Arrete la surveillance"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1202
+#: UI/GTK2/src/WorkerThreads.cpp:1198
 msgid "No monitoring handler"
 msgstr "Pas de moniteur"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1245
+#: UI/GTK2/src/WorkerThreads.cpp:1241
 msgid "Couldn't open FAM connection"
 msgstr "N'a pas pu ouvrir la connection FAM"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1448
+#: UI/GTK2/src/WorkerThreads.cpp:1444
 msgid "Stopped scanning"
 msgstr "Arrete de scanner"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1606
+#: UI/GTK2/src/WorkerThreads.cpp:1602
 msgid "Couldn't open directory"
 msgstr "N'a pas pu ouvrir le repertoire"
-
-#~ msgid "Extract:"
-#~ msgstr "Extrait:"

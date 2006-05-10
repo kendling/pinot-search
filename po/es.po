@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.43\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-05-07 13:59+0800\n"
+"POT-Creation-Date: 2006-05-10 10:43+0800\n"
 "PO-Revision-Date: 2006-01-30 16:44+0800\n"
 "Last-Translator: Jesús Tramullas <jesus@tramullas.com>\n"
 "Language-Team: es <jesus@tramullas.com>\n"
@@ -29,14 +29,14 @@ msgstr "Usuario"
 #: UI/GTK2/src/mainWindow.cc:1013 UI/GTK2/src/mainWindow.cc:1069
 #: UI/GTK2/src/mainWindow.cc:1089 UI/GTK2/src/mainWindow.cc:1124
 #: UI/GTK2/src/mainWindow.cc:1714 UI/GTK2/src/PinotSettings.cpp:204
-#: UI/GTK2/src/PinotSettings.cpp:976 UI/GTK2/src/PinotSettings.cpp:1032
+#: UI/GTK2/src/PinotSettings.cpp:970 UI/GTK2/src/PinotSettings.cpp:1026
 msgid "My Documents"
 msgstr "Mis documentos"
 
 #: UI/GTK2/src/EnginesTree.cpp:344 UI/GTK2/src/mainWindow.cc:381
 #: UI/GTK2/src/mainWindow.cc:384 UI/GTK2/src/mainWindow.cc:552
 #: UI/GTK2/src/MonitorHandler.cpp:173 UI/GTK2/src/PinotSettings.cpp:205
-#: UI/GTK2/src/PinotSettings.cpp:977 UI/GTK2/src/PinotSettings.cpp:1033
+#: UI/GTK2/src/PinotSettings.cpp:971 UI/GTK2/src/PinotSettings.cpp:1027
 #: UI/GTK2/src/prefsDialog_glade.cc:115
 msgid "My Email"
 msgstr "Mi email"
@@ -263,13 +263,13 @@ msgstr "Se desconoce la localización del resultado"
 msgid "Import Document(s)"
 msgstr "Importar Documento(s)"
 
-#: UI/GTK2/src/mainWindow.cc:1833 UI/GTK2/src/WorkerThreads.cpp:390
-#: UI/GTK2/src/WorkerThreads.cpp:1112
+#: UI/GTK2/src/mainWindow.cc:1833 UI/GTK2/src/WorkerThreads.cpp:386
+#: UI/GTK2/src/WorkerThreads.cpp:1108
 msgid "Index"
 msgstr "Índice"
 
-#: UI/GTK2/src/mainWindow.cc:1837 UI/GTK2/src/WorkerThreads.cpp:394
-#: UI/GTK2/src/WorkerThreads.cpp:1116
+#: UI/GTK2/src/mainWindow.cc:1837 UI/GTK2/src/WorkerThreads.cpp:390
+#: UI/GTK2/src/WorkerThreads.cpp:1112
 msgid "doesn't exist"
 msgstr "no existe"
 
@@ -456,10 +456,6 @@ msgstr "Ayuda"
 msgid "Pinot"
 msgstr "Pinot"
 
-#: UI/GTK2/src/pinot.cc:62
-msgid "Couldn't save configuration file"
-msgstr "No se pudo guardar el fichero de configuración"
-
 #: UI/GTK2/src/pinot.cc:156
 msgid "Danish"
 msgstr "Danés"
@@ -516,14 +512,6 @@ msgstr "No se pudo abrir el índice"
 msgid "Couldn't create history database"
 msgstr "No se pudo crear la base de datos del histórico"
 
-#: UI/GTK2/src/PinotSettings.cpp:108
-msgid "Couldn't create pinot directory at"
-msgstr "No se pudo crear un directorio pinot en"
-
-#: UI/GTK2/src/PinotSettings.cpp:200
-msgid "Failed to parse configuration file"
-msgstr "Fallo en el fichero de configuración"
-
 #: UI/GTK2/src/PinotSettings.cpp:209
 msgid "Important"
 msgstr "Importante"
@@ -536,11 +524,7 @@ msgstr "Nuevo"
 msgid "Personal"
 msgstr "Personal"
 
-#: UI/GTK2/src/PinotSettings.cpp:346
-msgid "Couldn't parse configuration file"
-msgstr "No se pudo procesar el fichero de configuración"
-
-#: UI/GTK2/src/PinotSettings.cpp:802
+#: UI/GTK2/src/PinotSettings.cpp:799
 msgid "Unclassified"
 msgstr "No clasificado"
 
@@ -708,155 +692,104 @@ msgstr "Sólo índices"
 msgid "Query parameters"
 msgstr "Parámetros de búsqueda"
 
-#: UI/GTK2/src/WorkerThreads.cpp:369
+#: UI/GTK2/src/WorkerThreads.cpp:365
 msgid "Stopped browsing"
 msgstr "Exploración detenida"
 
-#: UI/GTK2/src/WorkerThreads.cpp:402 UI/GTK2/src/WorkerThreads.cpp:600
-#: UI/GTK2/src/WorkerThreads.cpp:609 UI/GTK2/src/WorkerThreads.cpp:799
-#: UI/GTK2/src/WorkerThreads.cpp:1005 UI/GTK2/src/WorkerThreads.cpp:1124
+#: UI/GTK2/src/WorkerThreads.cpp:398 UI/GTK2/src/WorkerThreads.cpp:596
+#: UI/GTK2/src/WorkerThreads.cpp:605 UI/GTK2/src/WorkerThreads.cpp:795
+#: UI/GTK2/src/WorkerThreads.cpp:1001 UI/GTK2/src/WorkerThreads.cpp:1120
 msgid "Index error on"
 msgstr "Error en el índice"
 
-#: UI/GTK2/src/WorkerThreads.cpp:507
+#: UI/GTK2/src/WorkerThreads.cpp:503
 msgid "Stopped querying"
 msgstr "Búsqueda detenida"
 
-#: UI/GTK2/src/WorkerThreads.cpp:519
+#: UI/GTK2/src/WorkerThreads.cpp:515
 msgid "Couldn't create search engine"
 msgstr "No se pudo crear el motor de búsqueda"
 
-#: UI/GTK2/src/WorkerThreads.cpp:530
+#: UI/GTK2/src/WorkerThreads.cpp:526
 msgid "Couldn't run query on search engine"
 msgstr "No se pudo ejecutar la búsqueda contra el motor"
 
-#: UI/GTK2/src/WorkerThreads.cpp:546
+#: UI/GTK2/src/WorkerThreads.cpp:542
 msgid "No title"
 msgstr "Sin título"
 
-#: UI/GTK2/src/WorkerThreads.cpp:591
+#: UI/GTK2/src/WorkerThreads.cpp:587
 msgid "Stopped querying index labels"
 msgstr "Detenida la búsqueda de etiquetas de índice"
 
-#: UI/GTK2/src/WorkerThreads.cpp:668
+#: UI/GTK2/src/WorkerThreads.cpp:664
 msgid "Stopped retrieval of"
 msgstr "Detenida la recuperación de"
 
-#: UI/GTK2/src/WorkerThreads.cpp:702
+#: UI/GTK2/src/WorkerThreads.cpp:698
 msgid "Couldn't obtain downloader for protocol"
 msgstr "No se pudo usar un recuperador para el protocolo"
 
-#: UI/GTK2/src/WorkerThreads.cpp:716 UI/GTK2/src/WorkerThreads.cpp:812
+#: UI/GTK2/src/WorkerThreads.cpp:712 UI/GTK2/src/WorkerThreads.cpp:808
 msgid "Couldn't retrieve"
 msgstr "No se pudo descargar"
 
-#: UI/GTK2/src/WorkerThreads.cpp:784
+#: UI/GTK2/src/WorkerThreads.cpp:780
 msgid "Stopped indexing"
 msgstr "Detenida la indización"
 
-#: UI/GTK2/src/WorkerThreads.cpp:835
+#: UI/GTK2/src/WorkerThreads.cpp:831
 msgid "Cannot index document type"
 msgstr "No se pudo indizar el tipo de documento"
 
-#: UI/GTK2/src/WorkerThreads.cpp:839
+#: UI/GTK2/src/WorkerThreads.cpp:835
 msgid "at"
 msgstr "a"
 
-#: UI/GTK2/src/WorkerThreads.cpp:863
+#: UI/GTK2/src/WorkerThreads.cpp:859
 msgid "Couldn't tokenize"
 msgstr "No se pudo extraer cadenas"
 
-#: UI/GTK2/src/WorkerThreads.cpp:883
+#: UI/GTK2/src/WorkerThreads.cpp:879
 msgid "Robots META tag forbids indexing"
 msgstr "La etiqueta META Robots prohíbe la indización"
 
-#: UI/GTK2/src/WorkerThreads.cpp:938
+#: UI/GTK2/src/WorkerThreads.cpp:934
 msgid "Couldn't index"
 msgstr "No se pudo indizar"
 
-#: UI/GTK2/src/WorkerThreads.cpp:993
+#: UI/GTK2/src/WorkerThreads.cpp:989
 msgid "Stopped unindexing document(s)"
 msgstr "Detenida la des-indización de documento(s)"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1012
+#: UI/GTK2/src/WorkerThreads.cpp:1008
 msgid "Couldn't unindex document(s)"
 msgstr "No se pudo des-indizar lo(s) documento(s)"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1097
+#: UI/GTK2/src/WorkerThreads.cpp:1093
 msgid "Stopped document update for"
 msgstr "Detenida la actualización del documento por"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1132
+#: UI/GTK2/src/WorkerThreads.cpp:1128
 msgid "Couldn't update document"
 msgstr "No se pudo actualizar el documento"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1182
+#: UI/GTK2/src/WorkerThreads.cpp:1178
 msgid "Stopped monitoring"
 msgstr "Detenida la monitorización"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1202
+#: UI/GTK2/src/WorkerThreads.cpp:1198
 msgid "No monitoring handler"
 msgstr "No hay monitorización"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1245
+#: UI/GTK2/src/WorkerThreads.cpp:1241
 msgid "Couldn't open FAM connection"
 msgstr "No se pudo abrir la conexión FAM"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1448
+#: UI/GTK2/src/WorkerThreads.cpp:1444
 msgid "Stopped scanning"
 msgstr "Detenida la exploración"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1606
+#: UI/GTK2/src/WorkerThreads.cpp:1602
 msgid "Couldn't open directory"
 msgstr "No se pudo abrir el directorio"
-
-#~ msgid "Extract:"
-#~ msgstr "Extraer:"
-
-#~ msgid "Advanced"
-#~ msgstr "Avanzado"
-
-#~ msgid "Couldn't load ui block"
-#~ msgstr "No se pudo cargar el bloque ui"
-
-#~ msgid "Couldn't load extraindex block"
-#~ msgstr "No se pudo cargar el bloque extraindex"
-
-#~ msgid "Couldn't load storedquery block"
-#~ msgstr "No se pudo cargar el bloque storedquery"
-
-#~ msgid "Couldn't load results block"
-#~ msgstr "o se pudo cargar el bloque results"
-
-#~ msgid "Couldn't load label block"
-#~ msgstr "o se pudo cargar el bloque label"
-
-#~ msgid "Couldn't load mailaccount block"
-#~ msgstr "No se pudo cargar el bloque mailaccount"
-
-#~ msgid "Red"
-#~ msgstr "Rojo"
-
-#~ msgid "Blue"
-#~ msgstr "Azul"
-
-#~ msgid "Green"
-#~ msgstr "Verde"
-
-#~ msgid "Colour"
-#~ msgstr "Color"
-
-#~ msgid "No label"
-#~ msgstr "Sin etiqueta"
-
-#~ msgid "matches"
-#~ msgstr "correspondencias"
-
-#~ msgid "document(s)"
-#~ msgstr "documento(s)"
-
-#~ msgid "Stopped listening on"
-#~ msgstr "Detenida la escucha en"
-
-#~ msgid "Couldn't read FIFO at"
-#~ msgstr "No se pudo leer FIFO en"

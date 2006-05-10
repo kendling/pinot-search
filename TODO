@@ -2,10 +2,7 @@ General
 - Fix the FIXMEs
 - Get rid of dead code/classes/methods...
 - Advertise service via Rendezvous
-- Man page, see help2man (http://www.gnu.org/software/help2man/)
-- Logging should not be all (DEBUG) or nothing (release)
 - Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
-- Change .spec to allow building with Google and ObjectsSearch SOAP APIs support
 - Don't use system(), fork and exec, especially for the external browser
 - Find out how to determine what application to use for a given MIME type and drop internal browser
   Does xdgmime allow to consult the applications/types mappings in /usr/share/applications/defaults.list
@@ -18,12 +15,11 @@ Search
 - Allow to use "extended" INTERPRET tags selectively 
 - With engines that provide a redirection URL for results (eg Acoona), it looks like
   the query hitory is not saved/checked correctly
-- Add Creative Commons (http://search.yahoo.com/cc)
 - Add http://www.patentcommons.org/commons/patentsearch.php
 - Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
-- Support for Google Buttons
 - Make sure Description files' SyndicationRight is not private or closed
 - Export search results as OpenSearch Response
+- Support for Google Buttons
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -34,12 +30,12 @@ Collect
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
 - Use poppler for the PDF tokenizer
 - WordPerfect tokenizer with libwpd
+- Spin tokenizers into separate project, a la libextractor
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
 - Allow to import and use omindex-produced indexes  so that they can be used like pinot's internal indexes
 - Write a pseudo-filesystem for indexes with FUSE (http://fuse.sourceforge.net/) or gnome-vfs ?
-- Interface with libtranslate (http://www.nongnu.org/libtranslate/) ? :-)
 - Xapian lock files can be deleted at startup if no other instance is running
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
 - Switch to Xapian's new Flint back-end (set XAPIAN_PREFER_FLINT=1)
@@ -47,8 +43,6 @@ Index
 - Flush the index before searching not after modification
 - Hash document data to determine on updates whether documents have changed
 - Allow to monitor imported documents for changes
-- Flush after a properties update; not doing so seems to prevent abstract generation from working
- correctly, as terms positions can't be obtained
 - Xapian Query objects will become serializable at some point, this will be useful
   for stored queries
 - Think about indexing archives (parent documents) and their contents (child documents)
