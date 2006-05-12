@@ -1,4 +1,4 @@
-??? version_0_4_7
+2006/05/12 version_0_4_7
 General :
  - all programs have man pages and support --help and --version
 Search :
@@ -11,7 +11,7 @@ UI :
  - allow editing the language of documents. A subsequent update would use the
   given language to stem terms.
 
-2006/03/22 version_0_4_6
+2006/04/22 version_0_4_6
 Search :
  - resurrected support for the Google API, enabled with "./configure --with-soap=yes".
   This requires the gsoap development toolkit.
