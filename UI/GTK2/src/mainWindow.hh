@@ -118,6 +118,8 @@ protected:
 	virtual bool on_mainWindow_delete_event(GdkEventAny *ev);
 
 	// Action methods
+	void show_global_menuitems(bool showItems);
+	void show_selectionbased_menuitems(bool showItems);
 	NotebookPageBox *get_current_page(void);
 	NotebookPageBox *get_page(const Glib::ustring &title,
 		NotebookPageBox::PageType type);

@@ -219,25 +219,14 @@ mainWindow::mainWindow() :
 	editQueryButton->set_sensitive(false);
 	removeQueryButton->set_sensitive(false);
 	findQueryButton->set_sensitive(false);
-	clearresults1->set_sensitive(false);
-	showextract1->set_sensitive(false);
-	groupresults1->set_sensitive(false);
-	viewresults1->set_sensitive(false);
+	show_global_menuitems(false);
+	show_selectionbased_menuitems(false);
 	// Hide the View Cache menu item ?
 	if ((SearchEngineFactory::isSupported("googleapi") == false) ||
 		(m_settings.m_googleAPIKey.empty() == true))
 	{
 		viewcache1->hide();
 	}
-	else
-	{
-		viewcache1->set_sensitive(false);
-	}
-	indexresults1->set_sensitive(false);
-	viewfromindex1->set_sensitive(false);
-	refreshindex1->set_sensitive(false);
-	unindex1->set_sensitive(false);
-	showfromindex1->set_sensitive(false);
 	//viewstop1->set_sensitive(false);
 	// ...and buttons
 	removeIndexButton->set_sensitive(false);
@@ -675,40 +664,38 @@ void mainWindow::on_label_changed(ustring indexName, ustring labelName)
 //
 void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 {
+	bool showResultsMenuitems = false;
+
+	NotebookPageBox *pNotebookPage = dynamic_cast<NotebookPageBox*>(m_pNotebook->get_nth_page(p1));
+	if (pNotebookPage != NULL)
+	{
+		NotebookPageBox::PageType type = pNotebookPage->getType();
+		if (type == NotebookPageBox::RESULTS_PAGE)
+		{
+			// Show or hide the extract field
+			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+			if (pResultsPage != NULL)
+			{
+				ResultsTree *pResultsTree = pResultsPage->getTree();
+				if (pResultsTree != NULL)
+				{
+					pResultsTree->showExtract(showextract1->get_active());
+				}
+			}
+
+			showResultsMenuitems = true;
+		}
+#ifdef DEBUG
+		cout << "mainWindow::on_switch_page: page " << p1 << " has type " << type << endl;
+#endif
+	}
+
+	show_global_menuitems(showResultsMenuitems);
+
 	// Did the page change ?
 	if (m_state.m_currentPage != p1)
 	{
-		bool showResultsMenuitems = false;
-
-		NotebookPageBox *pNotebookPage = dynamic_cast<NotebookPageBox*>(m_pNotebook->get_nth_page(p1));
-		if (pNotebookPage != NULL)
-		{
-			NotebookPageBox::PageType type = pNotebookPage->getType();
-			if (type == NotebookPageBox::RESULTS_PAGE)
-			{
-				showResultsMenuitems = true;
-			}
-#ifdef DEBUG
-			cout << "mainWindow::on_switch_page: switched to page " << p1
-				<< ", type " << type << endl;
-#endif
-		}
-
-		// Results menuitems that depend on the page
-		clearresults1->set_sensitive(showResultsMenuitems);
-		showextract1->set_sensitive(showResultsMenuitems);
-		groupresults1->set_sensitive(showResultsMenuitems);
-
-		// Results menuitems that depend on selection
-		viewresults1->set_sensitive(false);
-		viewcache1->set_sensitive(false);
-		indexresults1->set_sensitive(false);
-
-		// Index menuitems that depend on selection
-		viewfromindex1->set_sensitive(false);
-		refreshindex1->set_sensitive(false);
-		unindex1->set_sensitive(false);
-		showfromindex1->set_sensitive(false);
+		show_selectionbased_menuitems(false);
 	}
 	m_state.m_currentPage = (int)p1;
 }
@@ -718,6 +705,8 @@ void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 //
 void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 {
+	int pageDecrement = 0;
+
 #ifdef DEBUG
 	cout << "mainWindow::on_close_page: called for tab " << title << endl;
 #endif
@@ -734,6 +723,7 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 			if (pPage != NULL)
 			{
 				pPage->hide();
+				pageDecrement = 1;
 			}
 		}
 		else if (m_state.write_lock_lists(2) == true)
@@ -743,6 +733,12 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 
 			m_state.unlock_lists();
 		}
+	}
+
+	if (m_pNotebook->get_n_pages() - pageDecrement <= 0)
+	{
+		show_global_menuitems(false);
+		show_selectionbased_menuitems(false);
 	}
 }
 
@@ -890,6 +886,8 @@ void mainWindow::on_thread_end()
 			// Position the results tree
 			pResultsTree = manage(new ResultsTree(queryName, resultsMenuitem->get_submenu(), m_settings));
 			pResultsPage = manage(new ResultsPage(queryName, pResultsTree, m_pNotebook->get_height(), m_settings));
+			// Show or hide the extract field
+			pResultsTree->showExtract(showextract1->get_active());
 			// Connect to the "changed" signal
 			pResultsTree->getSelectionChangedSignal().connect(
 				SigC::slot(*this, &mainWindow::on_resultsTreeviewSelection_changed));
@@ -2394,6 +2392,34 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 
 	Main::quit();
 	return false;
+}
+
+//
+// Show or hide menuitems.
+//
+void mainWindow::show_global_menuitems(bool showItems)
+{
+	// Results menuitems that depend on the page
+	clearresults1->set_sensitive(showItems);
+	showextract1->set_sensitive(showItems);
+	groupresults1->set_sensitive(showItems);
+}
+
+//
+// Show or hide menuitems.
+//
+void mainWindow::show_selectionbased_menuitems(bool showItems)
+{
+	// Results menuitems that depend on selection
+	viewresults1->set_sensitive(false);
+	viewcache1->set_sensitive(false);
+	indexresults1->set_sensitive(false);
+
+	// Index menuitems that depend on selection
+	viewfromindex1->set_sensitive(false);
+	refreshindex1->set_sensitive(false);
+	unindex1->set_sensitive(false);
+	showfromindex1->set_sensitive(false);
 }
 
 //

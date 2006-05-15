@@ -140,7 +140,6 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 
 	// Enable interactive search
 	set_search_column(m_resultsColumns.m_text.index());
-	set_search_equal_func(SigC::slot(*this, &ResultsTree::onSearchEqual));
 	// Control which rows can be selected
 	get_selection()->set_select_function(SigC::slot(*this, &ResultsTree::onSelectionSelect));
 	// Listen for style changes
@@ -309,11 +308,6 @@ void ResultsTree::onButtonPressEvent(GdkEventButton *ev)
 void ResultsTree::onSelectionChanged(void)
 {
 	m_signalSelectionChanged(m_queryName);
-}
-
-bool ResultsTree::onSearchEqual(const RefPtr<TreeModel>& model, int column,
-	const ustring& key, const TreeModel::iterator& iter)
-{
 }
 
 bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,

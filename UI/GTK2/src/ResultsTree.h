@@ -123,9 +123,6 @@ class ResultsTree : public Gtk::TreeView
 
 		void onSelectionChanged(void);
 
-		bool onSearchEqual(const Glib::RefPtr<Gtk::TreeModel>& model, int column,
-			const Glib::ustring& key, const Gtk::TreeModel::iterator& iter);
-
 		bool onSelectionSelect(const Glib::RefPtr<Gtk::TreeModel>& model,
 			const Gtk::TreeModel::Path& path, bool path_currently_selected);
 

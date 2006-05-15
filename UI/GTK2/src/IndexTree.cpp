@@ -86,7 +86,6 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 
 	// Enable interactive search
 	set_search_column(m_indexColumns.m_text.index());
-	set_search_equal_func(SigC::slot(*this, &IndexTree::onSearchEqual));
 	// Control which rows can be selected
 	get_selection()->set_select_function(SigC::slot(*this, &IndexTree::onSelectionSelect));
 
@@ -126,11 +125,6 @@ void IndexTree::onButtonPressEvent(GdkEventButton *ev)
 void IndexTree::onSelectionChanged(void)
 {
 	m_signalSelectionChanged(m_indexName);
-}
-
-bool IndexTree::onSearchEqual(const RefPtr<TreeModel>& model, int column,
-	const ustring& key, const TreeModel::iterator& iter)
-{
 }
 
 bool IndexTree::onSelectionSelect(const RefPtr<TreeModel>& model,
