@@ -187,7 +187,7 @@ AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
 AC_OUTPUT( pinot.spec Makefile Utils/Makefile Tokenize/Makefile )
-AC_OUTPUT( SQL/Makefile po/Makefile.in Collect/Makefile )
+AC_OUTPUT( SQL/Makefile po/Makefile.in Monitor/Makefile Collect/Makefile )
 if test "$SOAP_SUBDIRS" != "" ; then
   AC_OUTPUT( Search/Google/Makefile )
 fi

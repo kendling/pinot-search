@@ -1,0 +1,58 @@
+/*
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#include "TimeConverter.h"
+#include "MonitorEvent.h"
+
+using std::string;
+
+MonitorEvent::MonitorEvent() :
+	m_type(UNKNOWN),
+	m_isDirectory(false)
+{
+}
+
+MonitorEvent::MonitorEvent(const MonitorEvent &other)
+{
+	m_location = other.m_location;
+	m_previousLocation = other.m_previousLocation;
+	m_type = other.m_type;
+	m_isDirectory = other.m_isDirectory;
+}
+
+MonitorEvent::~MonitorEvent()
+{
+}
+
+MonitorEvent& MonitorEvent::operator=(const MonitorEvent& other)
+{
+	m_location = other.m_location;
+	m_previousLocation = other.m_previousLocation;
+	m_type = other.m_type;
+	m_isDirectory = other.m_isDirectory;
+
+	return *this;
+}
+
+bool MonitorEvent::operator<(const MonitorEvent& other) const
+{
+	if (m_location < other.m_location)
+	{
+		return true;
+	}
+
+	return false;
+}
