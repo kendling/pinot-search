@@ -70,5 +70,5 @@ class DocumentInfo
 		std::string m_timestamp;
 
 };
-	
+
 #endif // _DOCUMENT_INFO_H

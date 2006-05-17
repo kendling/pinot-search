@@ -19,12 +19,9 @@
 
 #include <string>
 #include <map>
+#include <set>
 
 #include "Tokenizer.h"
-
-#include <string>
-#include <map>
-#include <set>
 
 class TokenizerFactory
 {

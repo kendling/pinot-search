@@ -54,5 +54,5 @@ class Document : public DocumentInfo
 		void freeData(void);
 
 };
-	
+
 #endif // _DOCUMENT_H
