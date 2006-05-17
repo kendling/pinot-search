@@ -105,7 +105,7 @@ class XapianIndex : public IndexInterface
 		bool prepareDocument(const DocumentInfo &info, Xapian::Document &doc,
 			Xapian::termcount &termPos) const;
 
-		void scanDocument(const char *pData, unsigned int dataLength,
+		std::string scanDocument(const char *pData, unsigned int dataLength,
 			DocumentInfo &info);
 
 		void setDocumentData(Xapian::Document &doc, const DocumentInfo &info,

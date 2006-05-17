@@ -219,7 +219,7 @@ bool XapianIndex::prepareDocument(const DocumentInfo &info, Xapian::Document &do
 	return true;
 }
 
-void XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
+string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 	DocumentInfo &info)
 {
 	vector<string> candidates;
@@ -250,23 +250,14 @@ void XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 		language = *langIter;
 		break;
 	}
-	m_stemLanguage = language;
 #ifdef DEBUG
-	cout << "XapianIndex::scanDocument: language now " << m_stemLanguage << endl;
+	cout << "XapianIndex::scanDocument: language " << language << endl;
 #endif
 
 	// Update the document's properties
-	string title = info.getTitle();
-	if (title.empty() == true)
-	{
-		// Remove heading spaces
-		while (isspace(title[0]))
-		{
-			title.erase(0, 1);
-		}
-		info.setTitle(title);
-	}
-	info.setLanguage(m_stemLanguage);
+	info.setLanguage(language);
+
+	return language;
 }
 
 void XapianIndex::setDocumentData(Xapian::Document &doc, const DocumentInfo &info,
@@ -414,7 +405,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		docInfo.setTimestamp(pDocument->getTimestamp());
 		docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
-		scanDocument(pData, dataLength, docInfo);
+		m_stemLanguage = scanDocument(pData, dataLength, docInfo);
 
 		Xapian::Document doc;
 		Xapian::termcount termPos = 0;
@@ -641,7 +632,12 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	docInfo.setTimestamp(pDocument->getTimestamp());
 	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
-	scanDocument(pData, dataLength, docInfo);
+	// Don't scan the document if a language is specified
+	m_stemLanguage = pDocument->getLanguage();
+	if (m_stemLanguage.empty() == true)
+	{
+		m_stemLanguage = scanDocument(pData, dataLength, docInfo);
+	}
 
 	try
 	{
