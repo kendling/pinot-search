@@ -21,10 +21,14 @@
 #include <map>
 #include <set>
 
+#include "MonitorEvent.h"
+
 class MonitorInterface
 {
 	public:
-		virtual ~MonitorInterface();
+		virtual ~MonitorInterface()
+		{
+		}
 
 		/// Returns the file descriptor to poll for events.
 		virtual int getFileDescriptor(void) const
@@ -32,14 +36,14 @@ class MonitorInterface
 			return m_monitorFd;
 		}
 
-		/// Adds a watch for the specified directory.
-		virtual bool addDirectory(const std::string &directory) = 0;
+		/// Adds a watch for the specified location.
+		virtual bool addLocation(const std::string &directory) = 0;
 
-		/// Removed the watch for the specified directory.
-		virtual bool removeDirectory(const std::string &directory) = 0;
+		/// Removed the watch for the specified location.
+		virtual bool removeLocation(const std::string &directory) = 0;
 
 		/// Retrieves pending events.
-		virtual bool retrievePendingEvents(std::set<MonitorEvent> &events);
+		virtual bool retrievePendingEvents(std::set<MonitorEvent> &events) = 0;
 
 	protected:
 		int m_monitorFd;

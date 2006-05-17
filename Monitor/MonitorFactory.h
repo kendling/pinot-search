@@ -14,38 +14,26 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _INOTIFY_MONITOR_H
-#define _INOTIFY_MONITOR_H
-
-#include <string>
-#include <map>
-#include <set>
+#ifndef _MONITOR_FACTORY_H
+#define _MONITOR_FACTORY_H
 
 #include "MonitorInterface.h"
 
-class INotifyMonitor : public MonitorInterface
+class MonitorFactory
 {
 	public:
-		INotifyMonitor();
-		virtual ~INotifyMonitor();
+		virtual ~MonitorFactory();
 
-		/// Adds a watch for the specified location.
-		virtual bool addLocation(const std::string &directory);
-
-		/// Removed the watch for the specified location.
-		virtual bool removeLocation(const std::string &directory);
-
-		/// Retrieves pending events.
-		virtual bool retrievePendingEvents(std::set<MonitorEvent> &events);
+		/// Returns a Monitor.
+		static MonitorInterface *getMonitor(void);
 
 	protected:
-		std::map<std::string, int> m_watches;
-		std::map<uint32_t, std::string> m_movedFrom;
+		MonitorFactory();
 
 	private:
-		INotifyMonitor(const INotifyMonitor &other);
-		INotifyMonitor &operator=(const INotifyMonitor &other);
+		MonitorFactory(const MonitorFactory &other);
+		MonitorFactory& operator=(const MonitorFactory& other);
 
 };
 
-#endif // _INOTIFY_MONITOR_H
+#endif // _MONITOR_FACTORY_H

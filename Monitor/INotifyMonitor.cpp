@@ -35,10 +35,11 @@ INotifyMonitor::INotifyMonitor() :
 
 INotifyMonitor::~INotifyMonitor()
 {
+	close(m_monitorFd);
 }
 
-/// Starts monitoring a directory.
-bool INotifyMonitor::addDirectory(const string &directory)
+/// Starts monitoring a location.
+bool INotifyMonitor::addLocation(const string &directory)
 {
 	uint32_t eventsMask = IN_CLOSE_WRITE|IN_MOVE|IN_CREATE|IN_DELETE|IN_DELETE_SELF|IN_MOVE_SELF;
 
@@ -49,6 +50,13 @@ bool INotifyMonitor::addDirectory(const string &directory)
 		return false;
 	}
 
+	map<string, int>::iterator watchIter = m_watches.find(directory);
+	if (watchIter != m_watches.end())
+	{
+		// This is already being monitored
+		return true;
+	}
+
 	// FIXME: check the maximum number of watches hasn't been reached (MAX_FILE_WATCHES ?)
 	int dirWd = inotify_add_watch(m_monitorFd, directory.c_str(), eventsMask);
 	if (dirWd >= 0)
@@ -57,13 +65,13 @@ bool INotifyMonitor::addDirectory(const string &directory)
 
 		return true;
 	}
-	cerr << "INotifyMonitor::addDirectory: couldn't monitor " << directory << endl;
+	cerr << "INotifyMonitor::addLocation: couldn't monitor " << directory << endl;
 
 	return false;
 }
 
-/// Stops monitoring a directory.
-bool INotifyMonitor::removeDirectory(const string &directory)
+/// Stops monitoring a location.
+bool INotifyMonitor::removeLocation(const string &directory)
 {
 	if ((directory.empty() == true) ||
 		(m_monitorFd < 0))
@@ -79,7 +87,7 @@ bool INotifyMonitor::removeDirectory(const string &directory)
 
 		return true;
 	}
-	cerr << "INotifyMonitor::removeDirectory: " << directory << " is not being monitored" << endl;
+	cerr << "INotifyMonitor::removeLocation: " << directory << " is not being monitored" << endl;
 
 	return false;
 }
@@ -90,96 +98,103 @@ bool INotifyMonitor::retrievePendingEvents(set<MonitorEvent> &events)
 	char buffer[1024];
 	size_t offset = 0;
 
+	events.clear();
 	if (m_monitorFd < 0)
 	{
 		return false;
 	}
 
+#ifdef DEBUG
+	cout << "INotifyMonitor::retrievePendingEvents: reading events" << endl;
+#endif
 	int bytesRead = read(m_monitorFd, buffer, 1024); 
 	while (bytesRead - offset > 0)
 	{
-		struct inotify_event *pEvent = (struct inotify_event *)(buffer + offset);
+		struct inotify_event *pEvent = (struct inotify_event *)&buffer[offset];
 		size_t eventSize = sizeof(struct inotify_event) + pEvent->len;
 
 		// The length includes the terminating NULL
-		if (pEvent->len > 1)
+		if (pEvent->len < 1)
 		{
-			MonitorEvent monEvent;
-			map<uint32_t, string>::iterator iter = m_movedFrom.end();
+#ifdef DEBUG
+			cout << "INotifyMonitor::retrievePendingEvents: no name for watch "
+				<< pEvent->wd << endl;
+#endif
+			offset += eventSize;
+			continue;
+		}
+		MonitorEvent monEvent;
+		map<uint32_t, string>::iterator iter = m_movedFrom.end();
 
-			// Get the whole event structure
-			pEvent = (struct inotify_event *)malloc(eventSize);
-			if (pEvent != NULL)
-			{
-				memmove((void *)pEvent, (const void *)(buffer + offset), eventSize);
-				monEvent.m_location = pEvent->name;
-			}
-			if (pEvent->mask & IN_ISDIR)
-			{
-				monEvent.m_isDirectory = true;
-			}
+		// Get the whole event structure
+		if (pEvent->name != NULL)
+		{
 #ifdef DEBUG
 			cout << "INotifyMonitor::retrievePendingEvents: event on "
-				<< monEvent.m_location << endl;
+				<< pEvent->name << endl;
 #endif
+			monEvent.m_location = pEvent->name;
+		}
+		if (pEvent->mask & IN_ISDIR)
+		{
+			monEvent.m_isDirectory = true;
+		}
 
-			// What type of event ?
-			switch (pEvent->mask)
-			{
-				case IN_CREATE:
-					// Skip regular files
+		// What type of event ?
+		switch (pEvent->mask)
+		{
+			case IN_CREATE:
+				// Skip regular files
+				if (monEvent.m_isDirectory == true)
+				{
+					monEvent.m_type = MonitorEvent::CREATED;
+				}
+				break;
+			case IN_CLOSE_WRITE:
+				monEvent.m_type = MonitorEvent::WRITE_CLOSED;
+				break;
+			case IN_MOVED_FROM:
+				// Store this until we receive a IN_MOVED_TO event
+				m_movedFrom.insert(pair<uint32_t, string>(pEvent->cookie, monEvent.m_location));
+				break;
+			case IN_MOVED_TO:
+				// What was the previous location ?
+				iter = m_movedFrom.find(pEvent->cookie);
+				if (iter != m_movedFrom.end())
+				{
+					monEvent.m_previousLocation = iter->second;
+					monEvent.m_type = MonitorEvent::MOVED;
+
 					if (monEvent.m_isDirectory == true)
 					{
-						monEvent.m_type = MonitorEvent::CREATED;
-					}
-					break;
-				case IN_CLOSE_WRITE:
-					monEvent.m_type = MonitorEvent::WRITE_CLOSED;
-					break;
-				case IN_MOVED_FROM:
-					// Store this until we receive a IN_MOVED_TO event
-					m_movedFrom.insert(pair<uint32_t, string>(pEvent->cookie, monEvent.m_location));
-					break;
-				case IN_MOVED_TO:
-					// What was the previous location ?
-					iter = m_movedFrom.find(pEvent->cookie);
-					if (iter != m_movedFrom.end())
-					{
-						monEvent.m_previousLocation = iter->second;
-						monEvent.m_type = MonitorEvent::MOVED;
-
-						if (monEvent.m_isDirectory == true)
+						// We can already stop watching the old directory
+						if (removeLocation(monEvent.m_previousLocation) == true)
 						{
-							// We can already stop watching the old directory
-							if (removeDirectory(monEvent.m_previousLocation) == true)
-							{
-								// ...and watch this one instead
-								addDirectory(monEvent.m_location);
-							}
+							// ...and watch this one instead
+							addLocation(monEvent.m_location);
 						}
-						m_movedFrom.erase(iter);
 					}
+					m_movedFrom.erase(iter);
+				}
 #ifdef DEBUG
-					else cout << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
+				else cout << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
 #endif
-					break;
-				case IN_DELETE_SELF:
-					monEvent.m_type = MonitorEvent::DELETED;
-					break;
-				default:
+				break;
+			case IN_DELETE_SELF:
+				monEvent.m_type = MonitorEvent::DELETED;
+				break;
+			default:
 #ifdef DEBUG
-					cout << "INotifyMonitor::retrievePendingEvents: ignoring event" << endl;
+				cout << "INotifyMonitor::retrievePendingEvents: ignoring event "
+					<< pEvent->mask << endl;
 #endif
-					break;
-			}
+				break;
+		}
 
-			free(pEvent);
-
-			// Return event ?
-			if (monEvent.m_type != MonitorEvent::UNKNOWN)
-			{
-				events.insert(monEvent);
-			}
+		// Return event ?
+		if (monEvent.m_type != MonitorEvent::UNKNOWN)
+		{
+			events.insert(monEvent);
 		}
 
 		offset += eventSize;
