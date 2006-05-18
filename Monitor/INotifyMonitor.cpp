@@ -14,7 +14,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <sys/ioctl.h>
 #include <sys/inotify.h>
+#include <string.h>
+#include <errno.h>
 #include <iostream>
 
 #include "INotifyMonitor.h"
@@ -41,7 +44,7 @@ INotifyMonitor::~INotifyMonitor()
 /// Starts monitoring a location.
 bool INotifyMonitor::addLocation(const string &directory)
 {
-	uint32_t eventsMask = IN_CLOSE_WRITE|IN_MOVE|IN_CREATE|IN_DELETE|IN_DELETE_SELF|IN_MOVE_SELF;
+	uint32_t eventsMask = IN_ATTRIB|IN_CLOSE_WRITE|IN_MOVE|IN_CREATE|IN_DELETE|IN_UNMOUNT|IN_MOVE_SELF|IN_DELETE_SELF;
 
 	if ((directory.empty() == true) ||
 		(directory == "/") ||
@@ -50,8 +53,8 @@ bool INotifyMonitor::addLocation(const string &directory)
 		return false;
 	}
 
-	map<string, int>::iterator watchIter = m_watches.find(directory);
-	if (watchIter != m_watches.end())
+	map<string, int>::iterator locationIter = m_locations.find(directory);
+	if (locationIter != m_locations.end())
 	{
 		// This is already being monitored
 		return true;
@@ -61,11 +64,19 @@ bool INotifyMonitor::addLocation(const string &directory)
 	int dirWd = inotify_add_watch(m_monitorFd, directory.c_str(), eventsMask);
 	if (dirWd >= 0)
 	{
-		m_watches.insert(pair<string, int>(directory, dirWd));
+		m_watches.insert(pair<int, string>(dirWd, directory));
+		m_locations.insert(pair<string, int>(directory, dirWd));
+#ifdef DEBUG
+		cout << "INotifyMonitor::addLocation: added watch " << dirWd << " " << directory << endl;
+#endif
 
 		return true;
 	}
-	cerr << "INotifyMonitor::addLocation: couldn't monitor " << directory << endl;
+
+	char errBuffer[1024];
+
+	strerror_r(errno, errBuffer, 1024);
+	cerr << "INotifyMonitor::addLocation: couldn't monitor " << directory << ": " << errBuffer << endl;
 
 	return false;
 }
@@ -79,11 +90,16 @@ bool INotifyMonitor::removeLocation(const string &directory)
 		return false;
 	}
 
-	map<string, int>::iterator watchIter = m_watches.find(directory);
-	if (watchIter != m_watches.end())
+	map<string, int>::iterator locationIter = m_locations.find(directory);
+	if (locationIter != m_locations.end())
 	{
-		inotify_rm_watch(m_monitorFd, watchIter->second);
-		m_watches.erase(watchIter);
+		inotify_rm_watch(m_monitorFd, locationIter->second);
+		map<int, string>::iterator watchIter = m_watches.find(locationIter->second);
+		if (watchIter != m_watches.end())
+		{
+			m_watches.erase(watchIter);
+		}
+		m_locations.erase(locationIter);
 
 		return true;
 	}
@@ -96,6 +112,7 @@ bool INotifyMonitor::removeLocation(const string &directory)
 bool INotifyMonitor::retrievePendingEvents(set<MonitorEvent> &events)
 {
 	char buffer[1024];
+	unsigned int queueLen;
 	size_t offset = 0;
 
 	events.clear();
@@ -104,41 +121,58 @@ bool INotifyMonitor::retrievePendingEvents(set<MonitorEvent> &events)
 		return false;
 	}
 
+    if (ioctl (m_monitorFd, FIONREAD, &queueLen) == 0)
+	{
 #ifdef DEBUG
-	cout << "INotifyMonitor::retrievePendingEvents: reading events" << endl;
+		cout << "INotifyMonitor::retrievePendingEvents: "
+			<< queueLen << " bytes to read" << endl;
 #endif
-	int bytesRead = read(m_monitorFd, buffer, 1024); 
+	}
+
+	int bytesRead = read(m_monitorFd, buffer, 1024);
 	while (bytesRead - offset > 0)
 	{
 		struct inotify_event *pEvent = (struct inotify_event *)&buffer[offset];
 		size_t eventSize = sizeof(struct inotify_event) + pEvent->len;
+		bool isOnWatch = true;
 
-		// The length includes the terminating NULL
-		if (pEvent->len < 1)
+#ifdef DEBUG
+		cout << "INotifyMonitor::retrievePendingEvents: read "
+			<< bytesRead << " bytes at offset " << offset << endl;
+#endif
+		// What location is this event for ?
+		map<int, string>::iterator watchIter = m_watches.find(pEvent->wd);
+		if (watchIter == m_watches.end())
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: no name for watch "
+			cout << "INotifyMonitor::retrievePendingEvents: unknown watch "
 				<< pEvent->wd << endl;
 #endif
 			offset += eventSize;
 			continue;
 		}
-		MonitorEvent monEvent;
-		map<uint32_t, string>::iterator iter = m_movedFrom.end();
 
-		// Get the whole event structure
-		if (pEvent->name != NULL)
-		{
-#ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: event on "
-				<< pEvent->name << endl;
-#endif
-			monEvent.m_location = pEvent->name;
-		}
+		MonitorEvent monEvent;
+
 		if (pEvent->mask & IN_ISDIR)
 		{
 			monEvent.m_isDirectory = true;
 		}
+
+		monEvent.m_location = watchIter->second;
+		// A name is provided if the target is below a location we match
+		if (pEvent->len >= 1)
+		{
+			monEvent.m_location += "/";
+			monEvent.m_location += pEvent->name;
+			isOnWatch = false;
+		}
+#ifdef DEBUG
+		cout << "INotifyMonitor::retrievePendingEvents: event on "
+			<< monEvent.m_location << endl;
+#endif
+
+		map<uint32_t, string>::iterator movedIter = m_movedFrom.end();
 
 		// What type of event ?
 		switch (pEvent->mask)
@@ -159,29 +193,38 @@ bool INotifyMonitor::retrievePendingEvents(set<MonitorEvent> &events)
 				break;
 			case IN_MOVED_TO:
 				// What was the previous location ?
-				iter = m_movedFrom.find(pEvent->cookie);
-				if (iter != m_movedFrom.end())
+				movedIter = m_movedFrom.find(pEvent->cookie);
+				if (movedIter != m_movedFrom.end())
 				{
-					monEvent.m_previousLocation = iter->second;
+					monEvent.m_previousLocation = movedIter->second;
 					monEvent.m_type = MonitorEvent::MOVED;
-
-					if (monEvent.m_isDirectory == true)
-					{
-						// We can already stop watching the old directory
-						if (removeLocation(monEvent.m_previousLocation) == true)
-						{
-							// ...and watch this one instead
-							addLocation(monEvent.m_location);
-						}
-					}
-					m_movedFrom.erase(iter);
+#ifdef DEBUG
+					cout << "INotifyMonitor::retrievePendingEvents: moved from "
+						<< monEvent.m_previousLocation << endl;
+#endif
+					m_movedFrom.erase(movedIter);
 				}
 #ifdef DEBUG
 				else cout << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
 #endif
 				break;
-			case IN_DELETE_SELF:
+			case IN_DELETE:
 				monEvent.m_type = MonitorEvent::DELETED;
+				break;
+			case IN_MOVE_SELF:
+				// FIXME: how do we find out where the watched location was moved to ?
+			case IN_DELETE_SELF:
+#ifdef DEBUG
+				cout << "INotifyMonitor::retrievePendingEvents: watch moved or deleted itself" << endl;
+#endif
+				removeLocation(monEvent.m_location);
+				break;
+			case IN_UNMOUNT:
+				if (isOnWatch == true)
+				{
+					// Watches are removed if the backing filesystem is unmounted
+					removeLocation(monEvent.m_location);
+				}
 				break;
 			default:
 #ifdef DEBUG

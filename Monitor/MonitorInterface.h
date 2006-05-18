@@ -46,6 +46,7 @@ class MonitorInterface
 		virtual bool retrievePendingEvents(std::set<MonitorEvent> &events) = 0;
 
 	protected:
+		std::map<int, std::string> m_watches;
 		int m_monitorFd;
 
 		MonitorInterface() :

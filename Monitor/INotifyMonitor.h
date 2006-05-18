@@ -39,7 +39,7 @@ class INotifyMonitor : public MonitorInterface
 		virtual bool retrievePendingEvents(std::set<MonitorEvent> &events);
 
 	protected:
-		std::map<std::string, int> m_watches;
+		std::map<std::string, int> m_locations;
 		std::map<uint32_t, std::string> m_movedFrom;
 
 	private:
