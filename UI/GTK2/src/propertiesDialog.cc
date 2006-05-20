@@ -175,7 +175,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 			languageStart = 1;
 		}
 		int chosenLanguage = languageCombobox->get_active_row_number();
-		if (chosenLanguage < Languages::m_count + languageStart)
+		if (chosenLanguage < (int)Languages::m_count + languageStart)
 		{
 			if (chosenLanguage > 0)
 			{

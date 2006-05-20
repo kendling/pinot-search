@@ -14,6 +14,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <ctype.h>
 #include <iostream>
 #include <gtkmm/alignment.h>
 #include <gtkmm/box.h>
@@ -386,11 +387,19 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 				termIter != m_queryTerms.end(); ++termIter)
 			{
 				string::size_type pos = lowerExtract.find(StringManip::toLowerCase(*termIter));
-				if (pos != string::npos)
+				while (pos != string::npos)
 				{
-					// Apply the tag
-					refBuffer->apply_tag_by_name("bold-text", refBuffer->get_iter_at_offset(pos),
-						refBuffer->get_iter_at_offset(pos + termIter->length()));
+					if (((pos > 0) && (isspace(lowerExtract[pos - 1]) != 0)) ||
+						((pos + termIter->length() < lowerExtract.length() - 1) &&
+							(isspace(lowerExtract[pos + termIter->length()]) != 0)))
+					{
+						// Apply the tag
+						refBuffer->apply_tag_by_name("bold-text", refBuffer->get_iter_at_offset(pos),
+							refBuffer->get_iter_at_offset(pos + termIter->length()));
+					}
+
+					// Next
+					pos = lowerExtract.find(StringManip::toLowerCase(*termIter), pos + 1);
 				}
 			}
 

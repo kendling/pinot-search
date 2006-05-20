@@ -1134,7 +1134,7 @@ void mainWindow::on_thread_end()
 			}
 		}
 
-		status = _("Updated document");
+		status = _("Updated document properties");
 		set_status(status);
 	}
 
