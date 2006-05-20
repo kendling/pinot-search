@@ -21,7 +21,7 @@ noinst_HEADERS = \
 	WorkerThreads.h \
 	HtmlView.h \
 	IndexTree.h \
-	MboxHandler.cpp \
+	MboxHandler.h \
 	PinotSettings.h \
 	ResultsTree.h
 
