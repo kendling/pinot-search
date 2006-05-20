@@ -5,7 +5,7 @@
 	name="BitTorrent"
 	description="bittorrent.com"
 	method="GET"
-	action="http://search.bittorrent.com/search.jsp"
+	action="http://www.bittorrent.com/search.jsp"
 	routeType="Content"
 >
 
