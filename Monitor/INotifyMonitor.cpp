@@ -24,7 +24,7 @@
 
 using std::string;
 using std::map;
-using std::set;
+using std::queue;
 using std::pair;
 using std::cout;
 using std::cerr;
@@ -109,13 +109,12 @@ bool INotifyMonitor::removeLocation(const string &directory)
 }
 
 /// Retrieves pending events.
-bool INotifyMonitor::retrievePendingEvents(set<MonitorEvent> &events)
+bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 {
 	char buffer[1024];
 	unsigned int queueLen;
 	size_t offset = 0;
 
-	events.clear();
 	if (m_monitorFd < 0)
 	{
 		return false;
@@ -237,7 +236,7 @@ bool INotifyMonitor::retrievePendingEvents(set<MonitorEvent> &events)
 		// Return event ?
 		if (monEvent.m_type != MonitorEvent::UNKNOWN)
 		{
-			events.insert(monEvent);
+			events.push(monEvent);
 		}
 
 		offset += eventSize;

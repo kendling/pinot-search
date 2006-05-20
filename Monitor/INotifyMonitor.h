@@ -19,7 +19,7 @@
 
 #include <string>
 #include <map>
-#include <set>
+#include <queue>
 
 #include "MonitorInterface.h"
 
@@ -36,7 +36,7 @@ class INotifyMonitor : public MonitorInterface
 		virtual bool removeLocation(const std::string &directory);
 
 		/// Retrieves pending events.
-		virtual bool retrievePendingEvents(std::set<MonitorEvent> &events);
+		virtual bool retrievePendingEvents(std::queue<MonitorEvent> &events);
 
 	protected:
 		std::map<std::string, int> m_locations;

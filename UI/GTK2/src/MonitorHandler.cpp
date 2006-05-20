@@ -50,10 +50,9 @@ Signal3<void, IndexedDocument, unsigned int, string>& MonitorHandler::getUpdateS
 }
 
 MboxHandler::MboxHandler() :
-	MonitorHandler()
+	MonitorHandler(),
+	m_locationsCount(0)
 {
-	m_locationsCount = 0;
-	m_hasNewLocations = false;
 }
 
 MboxHandler::~MboxHandler()
@@ -256,72 +255,71 @@ bool MboxHandler::deleteMessages(IndexInterface *pIndex, const string &sourceLab
 	return unindexedMsgs;
 }
 
-unsigned int MboxHandler::getFileSystemLocations(map<unsigned long, string> &fsLocations)
+bool MboxHandler::getLocations(set<string> &newLocations,
+	set<string> &locationsToRemove)
 {
-	// Reset
-	m_hasNewLocations = false;
+	newLocations.clear();
+	locationsToRemove.clear();
 
-	// Get the map of mail accounts
+	copy(m_locations.begin(), m_locations.end(),
+		inserter(locationsToRemove, locationsToRemove.begin()));
+
+	// Get the mail accounts map
 	set<PinotSettings::MailAccount> &mailAccounts = PinotSettings::getInstance().m_mailAccounts;
-
-	if (fsLocations.empty() == true)
-	{
-		m_hasNewLocations = true;
-	}
-	else
-	{
-		unsigned long fileNum = 0;
-
-		// Do a first pass and look for new accounts
-		for (set<PinotSettings::MailAccount>::iterator mailIter = mailAccounts.begin();
-			mailIter != mailAccounts.end(); ++mailIter)
-		{
-			map<unsigned long, string>::iterator fsIter = fsLocations.find(fileNum);
-			if ((fsIter == fsLocations.end()) ||
-				(fsIter->second != mailIter->m_name))
-			{
-				// The mail accounts map has changed
-				m_hasNewLocations = true;
-			}
-
-			++fileNum;
-		}
-
-		fsLocations.clear();
-	}
-
-	// Update the map
-	unsigned long fileNum = 0;
 	for (set<PinotSettings::MailAccount>::iterator mailIter = mailAccounts.begin();
 		mailIter != mailAccounts.end(); ++mailIter)
 	{
-		fsLocations[fileNum] = mailIter->m_name;
-
-		++fileNum;
+		// Is this a known location ?
+		set<string>::iterator locationIter = m_locations.find(mailIter->m_name);
+		if (locationIter == m_locations.end())
+		{
+			// No, it is new
+			m_locations.insert(mailIter->m_name);
+			newLocations.insert(mailIter->m_name);
+		}
+		else
+		{
+			// Since it's a known location, we'd better not remove it
+			set<string>::iterator removeIter = locationsToRemove.find(mailIter->m_name);
+			if (removeIter != locationsToRemove.end())
+			{
+				locationsToRemove.erase(removeIter);
+			}
+		}
 	}
 
-	m_locationsCount = fsLocations.size();
+	// Locations in locationsToRemove have to be removed
+	for (set<string>::iterator removeIter = locationsToRemove.begin();
+		removeIter != locationsToRemove.end(); ++removeIter)
+	{
+		set<string>::iterator locationIter = m_locations.find(*removeIter);
+		if (locationIter != m_locations.end())
+		{
+			m_locations.erase(locationIter);
+		}
+	}
 
-	return fileNum;
+#ifdef DEBUG
+	cout << "MboxHandler::getLocations: " << m_locations.size() << " locations, "
+		<< newLocations.size() << " new, " << locationsToRemove.size() << " to be removed" << endl;
+#endif
+
+	if ((newLocations.empty() == false) ||
+		(locationsToRemove.empty() == false))
+	{
+		return true;
+	}
+
+	return false;
 }
 
-bool MboxHandler::hasNewLocations(void) const
-{
-	return m_hasNewLocations;
-}
-
-bool MboxHandler::fileExists(const string &fileName, bool end)
+bool MboxHandler::fileExists(const string &fileName)
 {
 	PinotSettings::MailAccount mailAccount;
 	off_t previousSize = 0;
 
-	if (end == true)
-	{
-		return false;
-	}
-
 #ifdef DEBUG
-	cout << "MboxHandler::fileExists: " << fileName << " exists" << endl;
+	cout << "MboxHandler::fileExists: " << fileName << endl;
 #endif
 	if (checkMailAccount(fileName, mailAccount, previousSize) == false)
 	{
@@ -374,18 +372,19 @@ bool MboxHandler::fileExists(const string &fileName, bool end)
 	return indexedFile;
 }
 
-void MboxHandler::fileCreated(const string &fileName)
+bool MboxHandler::fileCreated(const string &fileName)
 {
-	// FIXME: if monitoring a directory, index this file
+	// Nothing to do here
+	return true;
 }
 
-bool MboxHandler::fileChanged(const string &fileName)
+bool MboxHandler::fileModified(const string &fileName)
 {
 	PinotSettings::MailAccount mailAccount;
 	off_t previousSize = 0, mboxOffset = 0;
 
 #ifdef DEBUG
-	cout << "MboxHandler::fileChanged: " << fileName << " changed" << endl;
+	cout << "MboxHandler::fileModified: " << fileName << " changed" << endl;
 #endif
 	if (checkMailAccount(fileName, mailAccount, previousSize) == false)
 	{
@@ -396,12 +395,12 @@ bool MboxHandler::fileChanged(const string &fileName)
 	{
 		// Parse the file from the beginning...
 #ifdef DEBUG
-		cout << "MboxHandler::fileChanged: file smaller or same size" << endl;
+		cout << "MboxHandler::fileModified: file smaller or same size" << endl;
 #endif
-		return fileExists(fileName, false);
+		return fileExists(fileName);
 	}
 #ifdef DEBUG
-	else cout << "MboxHandler::fileChanged: file now larger than " << previousSize << endl;
+	else cout << "MboxHandler::fileModified: file now larger than " << previousSize << endl;
 #endif
 
 	// Chances are new messages were added but none removed
@@ -415,7 +414,7 @@ bool MboxHandler::fileChanged(const string &fileName)
 	XapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
 	if (index.isGood() == false)
 	{
-		cerr << "MboxHandler::fileChanged: couldn't get mail index" << endl;
+		cerr << "MboxHandler::fileModified: couldn't get mail index" << endl;
 		return false;
 	}
 
@@ -445,6 +444,12 @@ bool MboxHandler::fileChanged(const string &fileName)
 	mailAccounts.insert(mailAccount);
 
 	return indexedFile;
+}
+
+bool MboxHandler::fileMoved(const string &fileName)
+{
+	// Nothing to do here
+	return true;
 }
 
 bool MboxHandler::fileDeleted(const string &fileName)

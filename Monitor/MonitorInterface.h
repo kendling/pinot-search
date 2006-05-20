@@ -19,7 +19,7 @@
 
 #include <string>
 #include <map>
-#include <set>
+#include <queue>
 
 #include "MonitorEvent.h"
 
@@ -43,7 +43,7 @@ class MonitorInterface
 		virtual bool removeLocation(const std::string &directory) = 0;
 
 		/// Retrieves pending events.
-		virtual bool retrievePendingEvents(std::set<MonitorEvent> &events) = 0;
+		virtual bool retrievePendingEvents(std::queue<MonitorEvent> &events) = 0;
 
 	protected:
 		std::map<int, std::string> m_watches;

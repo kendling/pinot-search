@@ -35,20 +35,21 @@ class MonitorHandler
 		MonitorHandler();
 		virtual ~MonitorHandler();
 
-		/// Returns a map of locations to monitor.
-		virtual unsigned int getFileSystemLocations(std::map<unsigned long, std::string> &fsLocations) = 0;
+		/// Returns locations.
+		virtual bool getLocations(std::set<std::string> &newLocations,
+			std::set<std::string> &locationsToRemove) = 0;
 
-		/// Returns true if the locations map has changed since last time.
-		virtual bool hasNewLocations(void) const = 0;
-
-		/// Handles file exists events.
-		virtual bool fileExists(const std::string &fileName, bool end = false) = 0;
+		/// Handles file existence events.
+		virtual bool fileExists(const string &fileName) = 0;
 
 		/// Handles file creation events.
-		virtual void fileCreated(const std::string &fileName) = 0;
+		virtual bool fileCreated(const std::string &fileName) = 0;
 
-		/// Handles file changed events.
-		virtual bool fileChanged(const std::string &fileName) = 0;
+		/// Handles file modified events.
+		virtual bool fileModified(const std::string &fileName) = 0;
+
+		/// Handles file moved events.
+		virtual bool fileMoved(const std::string &fileName) = 0;
 
 		/// Handles file deleted events.
 		virtual bool fileDeleted(const std::string &fileName) = 0;
@@ -70,21 +71,28 @@ class MboxHandler : public MonitorHandler
 		MboxHandler();
 		virtual ~MboxHandler();
 
-		virtual unsigned int getFileSystemLocations(std::map<unsigned long, std::string> &fsLocations);
+		/// Returns locations.
+		virtual bool getLocations(std::set<std::string> &newLocations,
+			std::set<std::string> &locationsToRemove);
 
-		virtual bool hasNewLocations(void) const;
+		/// Handles file existence events.
+		virtual bool fileExists(const string &fileName);
 
-		virtual bool fileExists(const std::string &fileName, bool end = false);
+		/// Handles file creation events.
+		virtual bool fileCreated(const std::string &fileName);
 
-		virtual void fileCreated(const std::string &fileName);
+		/// Handles file modified events.
+		virtual bool fileModified(const std::string &fileName);
 
-		virtual bool fileChanged(const std::string &fileName);
+		/// Handles file moved events.
+		virtual bool fileMoved(const std::string &fileName);
 
+		/// Handles file deleted events.
 		virtual bool fileDeleted(const std::string &fileName);
 
 	protected:
 		unsigned int m_locationsCount;
-		bool m_hasNewLocations;
+		std::set<std::string> m_locations;
 
 		bool checkMailAccount(const std::string &fileName, PinotSettings::MailAccount &mailAccount,
 			off_t &previousSize);
