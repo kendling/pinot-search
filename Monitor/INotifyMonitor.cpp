@@ -51,7 +51,7 @@ INotifyMonitor::~INotifyMonitor()
 /// Starts monitoring a location.
 bool INotifyMonitor::addLocation(const string &directory)
 {
-	uint32_t eventsMask = IN_ATTRIB|IN_CLOSE_WRITE|IN_MOVE|IN_CREATE|IN_DELETE|IN_UNMOUNT|IN_MOVE_SELF|IN_DELETE_SELF;
+	uint32_t eventsMask = IN_CLOSE_WRITE|IN_MOVE|IN_CREATE|IN_DELETE|IN_UNMOUNT|IN_MOVE_SELF|IN_DELETE_SELF;
 
 	if ((directory.empty() == true) ||
 		(directory == "/") ||

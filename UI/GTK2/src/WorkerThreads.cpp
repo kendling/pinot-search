@@ -1189,8 +1189,6 @@ void MonitorThread::doWork(void)
 	MonitorInterface *pMonitor = MonitorFactory::getMonitor();
 	set<string> newLocations;
 	set<string> locationsToRemove;
-	bool setLocationsToMonitor = true;
-	bool resumeMonitor = false;
 
 	if ((m_pHandler == NULL) ||
 		(pMonitor == NULL))
@@ -1204,7 +1202,6 @@ void MonitorThread::doWork(void)
 	{
 		struct timeval selectTimeout;
 		fd_set listenSet;
-		int monitorFd = -1;
 
 		selectTimeout.tv_sec = 60;
 		selectTimeout.tv_usec = 0;
@@ -1215,44 +1212,37 @@ void MonitorThread::doWork(void)
 			FD_SET(m_ctrlReadPipe, &listenSet);
 		}
 
-		if (setLocationsToMonitor == true)
+		// Did a change occur ?
+		if (m_pHandler->getLocations(newLocations, locationsToRemove) == true)
 		{
-			// Did a change occur ?
-			if (m_pHandler->getLocations(newLocations, locationsToRemove) == true)
-			{
 #ifdef DEBUG
-				cout << "MonitorThread::doWork: change detected" << endl;
+			cout << "MonitorThread::doWork: change detected" << endl;
 #endif
-				resumeMonitor = false;
 
-				// Add new locations
-				for (set<string>::const_iterator locationIter = newLocations.begin();
-					(locationIter != newLocations.end()) && (m_done == false); ++locationIter)
+			// Add new locations
+			for (set<string>::const_iterator locationIter = newLocations.begin();
+				(locationIter != newLocations.end()) && (m_done == false); ++locationIter)
+			{
+				// Monitor this
+				if (pMonitor->addLocation(*locationIter) == true)
 				{
-					// Monitor this
-					if (pMonitor->addLocation(*locationIter) == true)
-					{
-						// Confirm the file exists
-						m_pHandler->fileExists(*locationIter);
-					}
-				}
-
-				// Remove others
-				for (set<string>::const_iterator locationIter = locationsToRemove.begin();
-					(locationIter != locationsToRemove.end()) && (m_done == false); ++locationIter)
-				{
-					// Stop monitoring this
-					pMonitor->removeLocation(*locationIter);
+					// Confirm the file exists
+					m_pHandler->fileExists(*locationIter);
 				}
 			}
 
-			// The file descriptor may change over time so get it when changes occur
-			// rather than just once at the very beginning
-			monitorFd = pMonitor->getFileDescriptor();
-			FD_SET(monitorFd, &listenSet);
+			// Remove others
+			for (set<string>::const_iterator locationIter = locationsToRemove.begin();
+				(locationIter != locationsToRemove.end()) && (m_done == false); ++locationIter)
+			{
+				// Stop monitoring this
+				pMonitor->removeLocation(*locationIter);
+			}
 		}
-		setLocationsToMonitor = false;
 
+		// The file descriptor may change over time
+		int monitorFd = pMonitor->getFileDescriptor();
+		FD_SET(monitorFd, &listenSet);
 		if (monitorFd < 0)
 		{
 			m_status = _("Couldn't initialize file monitor");
@@ -1297,7 +1287,6 @@ void MonitorThread::doWork(void)
 						cout << "MonitorThread::doWork: ignoring events because of load ("
 							<< averageLoad[0] << ")" << endl;
 #endif
-						resumeMonitor = true;
 						break;
 					}
 				}
@@ -1333,21 +1322,6 @@ void MonitorThread::doWork(void)
 				// Next
 				events.pop();
 			}
-		}
-		else
-		{
-			if (resumeMonitor == true)
-			{
-				// Resume
-#ifdef DEBUG
-				cout << "MonitorThread::doWork: resuming monitoring" << endl;
-#endif
-				resumeMonitor = false;
-			}
-
-			// Chances are the timeout expired
-			// See if the locations to monitor have changed
-			setLocationsToMonitor = true;
 		}
 	}
 
