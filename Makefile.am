@@ -1,8 +1,8 @@
 # generated 2005/12/14 20:48:47 SGT by fabrice@amra.dyndns.org.(none)
 # using glademm V2.6.0
 
-SUBDIRS = po Utils Tokenize SQL Monitor Collect @SOAP_SUBDIRS@ Search \
-	Index UI/RenderHTML UI/GTK2/src
+SUBDIRS = po Utils Tokenize SQL Collect @SOAP_SUBDIRS@ Search \
+	Index Monitor UI/RenderHTML UI/GTK2/src
 
 EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs pinot.desktop \
 	pinot.spec textcat_conf.txt Search/Plugins/*src Search/Plugins/*.xml \

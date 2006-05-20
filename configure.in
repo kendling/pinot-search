@@ -175,9 +175,12 @@ INDEX_CFLAGS="$XAPIAN_CFLAGS"
 INDEX_LIBS="$XAPIAN_LIBS -ltextcat"
 AC_SUBST(INDEX_CFLAGS)
 AC_SUBST(INDEX_LIBS)
+PKG_CHECK_MODULES(SIGCPP, sigc++-2.0 >= 2.0 )
+AC_SUBST(SIGCPP_CFLAGS)
+AC_SUBST(SIGCPP_LIBS)
 PKG_CHECK_MODULES(UI, gtkmm-2.4 >= 2.6 )
 UI_CFLAGS="$MOZILLANS_CFLAGS -D$MOZILLA_NS_DIR $GECKO_CFLAGS $UI_CFLAGS"
-UI_LIBS="-lpthread -lfam -L$MOZILLA_LIB_DIR -Xlinker -rpath -Xlinker $MOZILLA_LIB_DIR $GECKO_LIBS $MOZILLANS_LIBS $UI_LIBS"
+UI_LIBS="-lpthread -L$MOZILLA_LIB_DIR -Xlinker -rpath -Xlinker $MOZILLA_LIB_DIR $GECKO_LIBS $MOZILLANS_LIBS $UI_LIBS"
 AC_SUBST(UI_CFLAGS)
 AC_SUBST(UI_LIBS)
 
@@ -187,9 +190,9 @@ AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
 AC_OUTPUT( pinot.spec Makefile Utils/Makefile Tokenize/Makefile )
-AC_OUTPUT( SQL/Makefile po/Makefile.in Monitor/Makefile Collect/Makefile )
+AC_OUTPUT( SQL/Makefile po/Makefile.in Collect/Makefile )
 if test "$SOAP_SUBDIRS" != "" ; then
   AC_OUTPUT( Search/Google/Makefile )
 fi
-AC_OUTPUT( Search/Makefile Index/Makefile UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
+AC_OUTPUT( Search/Makefile Index/Makefile Monitor/Makefile UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
 
