@@ -50,7 +50,8 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_settings(settings),
 	m_pExtractScrolledwindow(NULL),
 	m_extractTextview(NULL),
-	m_showExtract(true)
+	m_showExtract(true),
+	m_groupBySearchEngine(true)
 {
 	m_pResultsScrolledwindow = manage(new ScrolledWindow());
 	m_pExtractScrolledwindow = manage(new ScrolledWindow());
@@ -598,15 +599,26 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 }
 
 //
-// Groups results.
+// Sets how results are grouped.
 //
-void ResultsTree::regroupResults(bool groupBySearchEngine)
+void ResultsTree::setGroupMode(bool groupBySearchEngine)
 {
 	ResultsModelColumns::ResultType currentType, newType;
 
-#ifdef DEBUG
-	cout << "ResultsTree::regroupResults: called" << endl;
-#endif
+	if (m_groupBySearchEngine == groupBySearchEngine)
+	{
+		// No change
+		return;
+	}
+	m_groupBySearchEngine = groupBySearchEngine;
+
+	// Do we need to update the tree ?
+	TreeModel::Children children = m_refStore->children();
+	if (children.empty() == true)
+	{
+		return;
+	}
+
 	// What's the new grouping criteria ?
 	if (groupBySearchEngine == true)
 	{
@@ -619,13 +631,6 @@ void ResultsTree::regroupResults(bool groupBySearchEngine)
 		// By host
 		currentType = ResultsModelColumns::RESULT_ROOT;
 		newType = ResultsModelColumns::RESULT_HOST;
-	}
-
-	// Go through tree rows
-	TreeModel::Children children = m_refStore->children();
-	if (children.empty() == true)
-	{
-		return;
 	}
 
 	// Clear the map

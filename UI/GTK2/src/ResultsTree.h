@@ -59,8 +59,8 @@ class ResultsTree : public Gtk::TreeView
 			const std::vector<Result> &resultsList, const std::string &charset,
 			bool groupBySearchEngine);
 
-		/// Groups results.
-		void regroupResults(bool groupBySearchEngine);
+		/// Sets how results are grouped.
+		void setGroupMode(bool groupBySearchEngine);
 
 		/// Determines if results are selected.
 		bool checkSelection(void);
@@ -109,6 +109,7 @@ class ResultsTree : public Gtk::TreeView
 		Gtk::TextView *m_extractTextview;
 		std::set<std::string> m_indexNames;
 		bool m_showExtract;
+		bool m_groupBySearchEngine;
 		std::set<std::string> m_queryTerms;
 
 		void renderViewStatus(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);

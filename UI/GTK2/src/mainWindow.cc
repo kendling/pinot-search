@@ -45,6 +45,7 @@
 #include "XapianEngine.h"
 #include "config.h"
 #include "NLS.h"
+#include "MboxHandler.h"
 #include "PinotUtils.h"
 #include "mainWindow.hh"
 #include "importDialog.hh"
@@ -679,7 +680,9 @@ void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 				ResultsTree *pResultsTree = pResultsPage->getTree();
 				if (pResultsTree != NULL)
 				{
+					// Sync the results tree with the menuitems
 					pResultsTree->showExtract(showextract1->get_active());
+					pResultsTree->setGroupMode(searchenginegroup1->get_active());
 				}
 			}
 
@@ -886,8 +889,9 @@ void mainWindow::on_thread_end()
 			// Position the results tree
 			pResultsTree = manage(new ResultsTree(queryName, resultsMenuitem->get_submenu(), m_settings));
 			pResultsPage = manage(new ResultsPage(queryName, pResultsTree, m_pNotebook->get_height(), m_settings));
-			// Show or hide the extract field
+			// Sync the results tree with the menuitems
 			pResultsTree->showExtract(showextract1->get_active());
+			pResultsTree->setGroupMode(searchenginegroup1->get_active());
 			// Connect to the "changed" signal
 			pResultsTree->getSelectionChangedSignal().connect(
 				SigC::slot(*this, &mainWindow::on_resultsTreeviewSelection_changed));
@@ -1582,7 +1586,7 @@ void mainWindow::on_groupresults_activate()
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				pResultsTree->regroupResults(searchenginegroup1->get_active());
+				pResultsTree->setGroupMode(searchenginegroup1->get_active());
 			}
 		}
 	}
@@ -2401,8 +2405,6 @@ void mainWindow::show_global_menuitems(bool showItems)
 {
 	// Results menuitems that depend on the page
 	clearresults1->set_sensitive(showItems);
-	showextract1->set_sensitive(showItems);
-	groupresults1->set_sensitive(showItems);
 }
 
 //

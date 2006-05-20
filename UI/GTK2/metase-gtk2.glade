@@ -140,28 +140,6 @@
 		<widget class="GtkMenu" id="resultsMenuitem_menu">
 
 		  <child>
-		    <widget class="GtkImageMenuItem" id="clearresults1">
-		      <property agent="glademm" name="cxx_visibility">protected</property>
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Clear List</property>
-		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_clearresults_activate" last_modification_time="Wed, 03 Mar 2004 19:51:48 GMT"/>
-
-		      <child internal-child="image">
-			<widget class="GtkImage" id="image569">
-			  <property name="visible">True</property>
-			  <property name="stock">gtk-clear</property>
-			  <property name="icon_size">1</property>
-			  <property name="xalign">0.5</property>
-			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
-			</widget>
-		      </child>
-		    </widget>
-		  </child>
-
-		  <child>
 		    <widget class="GtkCheckMenuItem" id="showextract1">
 		      <property agent="glademm" name="cxx_visibility">protected</property>
 		      <property name="visible">True</property>
@@ -203,6 +181,28 @@
 			      <property name="group">searchenginegroup1</property>
 			    </widget>
 			  </child>
+			</widget>
+		      </child>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkImageMenuItem" id="clearresults1">
+		      <property agent="glademm" name="cxx_visibility">protected</property>
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Clear List</property>
+		      <property name="use_underline">True</property>
+		      <signal name="activate" handler="on_clearresults_activate" last_modification_time="Wed, 03 Mar 2004 19:51:48 GMT"/>
+
+		      <child internal-child="image">
+			<widget class="GtkImage" id="image584">
+			  <property name="visible">True</property>
+			  <property name="stock">gtk-clear</property>
+			  <property name="icon_size">1</property>
+			  <property name="xalign">0.5</property>
+			  <property name="yalign">0.5</property>
+			  <property name="xpad">0</property>
+			  <property name="ypad">0</property>
 			</widget>
 		      </child>
 		    </widget>
@@ -276,7 +276,7 @@
 		      <signal name="activate" handler="on_import_activate" last_modification_time="Tue, 02 Mar 2004 22:13:44 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image570">
+			<widget class="GtkImage" id="image585">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-open</property>
 			  <property name="icon_size">1</property>
@@ -314,7 +314,7 @@
 		      <signal name="activate" handler="on_refreshindex_activate" last_modification_time="Fri, 20 Feb 2004 18:57:09 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image571">
+			<widget class="GtkImage" id="image586">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-refresh</property>
 			  <property name="icon_size">1</property>
@@ -336,7 +336,7 @@
 		      <signal name="activate" handler="on_unindex_activate" last_modification_time="Thu, 28 Jul 2005 12:42:23 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image572">
+			<widget class="GtkImage" id="image587">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-delete</property>
 			  <property name="icon_size">1</property>
@@ -358,7 +358,7 @@
 		      <signal name="activate" handler="on_showfromindex_activate" last_modification_time="Sun, 06 Nov 2005 08:43:05 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image573">
+			<widget class="GtkImage" id="image588">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-properties</property>
 			  <property name="icon_size">1</property>
