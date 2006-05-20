@@ -175,12 +175,13 @@ void propertiesDialog::on_labelOkButton_clicked()
 			languageStart = 1;
 		}
 		int chosenLanguage = languageCombobox->get_active_row_number();
-		if (chosenLanguage < (int)Languages::m_count + languageStart)
+		if (chosenLanguage >= languageStart)
 		{
-			if (chosenLanguage > 0)
-			{
-				m_docInfo.setLanguage(Languages::getIntlName(chosenLanguage - languageStart));
-			}
+			TreeModel::iterator iter = languageCombobox->get_active();
+			TreeModel::Row row = *iter;
+			string languageName = from_utf8(row[m_languageColumns.m_name]);
+
+			m_docInfo.setLanguage(languageName);
 		}
 	}
 	// Go through the labels tree

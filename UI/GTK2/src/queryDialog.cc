@@ -177,13 +177,13 @@ void queryDialog::on_queryOkbutton_clicked()
 	// Language
 	m_properties.setLanguage("");
 	int chosenLanguage = languageCombobox->get_active_row_number();
-	if (chosenLanguage < (int)Languages::m_count + 1)
+	if (chosenLanguage > 0)
 	{
-		if (chosenLanguage > 0)
-		{
-			--chosenLanguage;
-			m_properties.setLanguage(Languages::getIntlName(chosenLanguage));
-		}
+		TreeModel::iterator iter = languageCombobox->get_active();
+		TreeModel::Row row = *iter;
+		string languageName = from_utf8(row[m_languageColumns.m_name]);
+
+		m_properties.setLanguage(languageName);
 	}
 	// Maximum number of results
 	m_properties.setMaximumResultsCount((unsigned int)resultsCountSpinbutton->get_value());
