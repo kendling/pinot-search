@@ -22,7 +22,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
-#include <fam.h>
+#include <errno.h>
 #include <exception>
 #include <iostream>
 #include <fstream>
@@ -36,6 +36,7 @@
 #include "Url.h"
 #include "QueryHistory.h"
 #include "IndexedDocument.h"
+#include "MonitorFactory.h"
 #include "DownloaderFactory.h"
 #include "SearchEngineFactory.h"
 #ifdef HAS_GOOGLEAPI
@@ -1185,15 +1186,14 @@ bool MonitorThread::stop(void)
 
 void MonitorThread::doWork(void)
 {
-	FAMConnection famConn;
-	FAMRequest famReq;
-	map<unsigned long, string> fsLocations;
+	MonitorInterface *pMonitor = MonitorFactory::getMonitor();
+	set<string> newLocations;
+	set<string> locationsToRemove;
 	bool setLocationsToMonitor = true;
-	bool firstTime = true;
-	bool closeMonitor = false, resumeMonitor = false;
-	int famStatus = -1;
+	bool resumeMonitor = false;
 
-	if (m_pHandler == NULL)
+	if ((m_pHandler == NULL) ||
+		(pMonitor == NULL))
 	{
 		m_status = _("No monitoring handler");
 		return;
@@ -1204,7 +1204,7 @@ void MonitorThread::doWork(void)
 	{
 		struct timeval selectTimeout;
 		fd_set listenSet;
-		int famFd = -1;
+		int monitorFd = -1;
 
 		selectTimeout.tv_sec = 60;
 		selectTimeout.tv_usec = 0;
@@ -1216,69 +1216,46 @@ void MonitorThread::doWork(void)
 		}
 
 		if ((setLocationsToMonitor == true) &&
-			(m_pHandler->getFileSystemLocations(fsLocations) > 0) &&
-			(m_pHandler->hasNewLocations() == true))
+			(m_pHandler->getLocations(newLocations, locationsToRemove) == true))
 		{
-			// Tell FAM what we want to monitor
+			// Specify what we want to monitor
 #ifdef DEBUG
 			cout << "MonitorThread::doWork: change detected" << endl;
 #endif
-			if (firstTime == false)
-			{
-				// Cancel
-				FAMCancelMonitor(&famConn, &famReq);
-				FAMClose(&famConn);
-			}
-			else
-			{
-				firstTime = false;
-			}
 			resumeMonitor = false;
 
-			// FIXME: opening a new connection every time might be overkill
-			if (FAMOpen(&famConn) != 0)
+			// Add new locations
+			for (set<string>::const_iterator locationIter = newLocations.begin();
+				(locationIter != newLocations.end()) && (m_done == false); ++locationIter)
 			{
-				m_status = _("Couldn't open FAM connection");
-				return;
-			}
-			closeMonitor = true;
-
-			// Go through the locations map
-			for (map<unsigned long, string>::const_iterator fsIter = fsLocations.begin(); fsIter != fsLocations.end(); ++fsIter)
-			{
-				string fsLocation = fsIter->second;
-				struct stat fileStat;
-
-				if (m_done == true)
+				// Monitor this
+				if (pMonitor->addLocation(*locationIter) == true)
 				{
-					break;
+					// Confirm the file exists
+					m_pHandler->fileExists(*locationIter);
 				}
-				if (stat(fsLocation.c_str(), &fileStat) == -1)
-				{
-					continue;
-				}
-
-				// Is that a file or a directory ?
-				if (S_ISREG(fileStat.st_mode))
-				{
-					famStatus = FAMMonitorFile(&famConn, fsLocation.c_str(), &famReq, NULL);
-				}
-				else if (S_ISDIR(fileStat.st_mode))
-				{
-					// FIXME: FAM works one level deep only: monitor sub-directories if there are any...
-					famStatus = FAMMonitorDirectory(&famConn, fsLocation.c_str(), &famReq, (void*)(fsIter->first + 1));
-				}
-#ifdef DEBUG
-				cout << "MonitorThread::doWork: added " << fsLocation << ", " << famStatus << endl;
-#endif
 			}
 
-			famFd = FAMCONNECTION_GETFD(&famConn);
-			FD_SET(famFd, &listenSet);
+			// Remove others
+			for (set<string>::const_iterator locationIter = locationsToRemove.begin();
+				(locationIter != locationsToRemove.end()) && (m_done == false); ++locationIter)
+			{
+				// Stop monitoring this
+				pMonitor->removeLocation(*locationIter);
+			}
+
+			monitorFd = pMonitor->getFileDescriptor();
+			FD_SET(monitorFd, &listenSet);
 		}
 		setLocationsToMonitor = false;
 
-		int fdCount = select(max(famFd, m_ctrlReadPipe) + 1, &listenSet, NULL, NULL, &selectTimeout);
+		if (monitorFd < 0)
+		{
+			m_status = _("Couldn't initialize file monitor");
+			return;
+		}
+
+		int fdCount = select(max(monitorFd, m_ctrlReadPipe) + 1, &listenSet, NULL, NULL, &selectTimeout);
 		if ((fdCount < 0) &&
 			(errno != EINTR))
 		{
@@ -1287,21 +1264,22 @@ void MonitorThread::doWork(void)
 #endif
 			break;
 		}
-		else if ((famFd >= 0) &&
-			(FD_ISSET(famFd, &listenSet)))
+		else if (FD_ISSET(monitorFd, &listenSet))
 		{
+			queue<MonitorEvent> events;
+
 			// There might be more than one event waiting...
-			int pendingEvents = FAMPending(&famConn);
-			if (pendingEvents < 0)
+			if (pMonitor->retrievePendingEvents(events) == false)
 			{
 #ifdef DEBUG
-				cout << "MonitorThread::doWork: FAMPending() failed" << endl;
+				cout << "MonitorThread::doWork: failed to retrieve pending events" << endl;
 #endif
 				break;
 			}
-			while ((pendingEvents >= 1) &&
-				(m_done == false))
+
+			while ((events.empty() == false) && (m_done == false))
 			{
+				MonitorEvent &event = events.front();
 				double averageLoad[3];
 
 				// Get the load averaged over the last minute
@@ -1312,77 +1290,44 @@ void MonitorThread::doWork(void)
 					{
 						// Ignore pending events if the load has become too high
 #ifdef DEBUG
-						cout << "MonitorThread::doWork: cancelling monitoring because of load (" << averageLoad[0] << ")" << endl;
+						cout << "MonitorThread::doWork: ignoring events because of load ("
+							<< averageLoad[0] << ")" << endl;
 #endif
-						FAMCancelMonitor(&famConn, &famReq);
 						resumeMonitor = true;
 						break;
 					}
 				}
 
-				FAMEvent famEvent;
-				if ((FAMNextEvent(&famConn, &famEvent) == 1) &&
-					(famEvent.filename != NULL) &&
-					(strlen(famEvent.filename) > 0))
+				if ((event.m_location.empty() == true) ||
+					(event.m_type == MonitorEvent::UNKNOWN))
 				{
-					string fileName;
-					bool updatedIndex = false;
-
-#ifdef DEBUG
-					cout << "MonitorThread::doWork: event " << famEvent.code
-						<< " on " << famEvent.filename << endl;
-#endif
-					if (famEvent.code == FAMEndExist)
-					{
-						updatedIndex = m_pHandler->fileExists(famEvent.filename, true);
-						// FIXME: accounts for which we didn't receive a FAMExists should
-						// be removed
-					}
-					else
-					{
-						// Are we monitoring a file or a directory ?
-						if (famEvent.userdata != NULL)
-						{
-							// A directory...
-							if (famEvent.filename[0] == '/')
-							{
-								// Not interested in monitored directories...
-								continue;
-							}
-
-							// The event is on a file in that directory
-							map<unsigned long, string>::const_iterator fsIter = fsLocations.find((unsigned long)famEvent.userdata);
-							if (fsIter == fsLocations.end())
-							{
-								continue;
-							}
-							fileName += fsIter->second;
-							fileName += "/";
-						}
-						fileName += famEvent.filename;
-
-						// What's the event code ?
-						if (famEvent.code == FAMExists)
-						{
-							updatedIndex = m_pHandler->fileExists(fileName);
-						}
-						else if (famEvent.code == FAMCreated)
-						{
-							m_pHandler->fileCreated(fileName);
-						}
-						else if (famEvent.code == FAMChanged)
-						{
-							updatedIndex = m_pHandler->fileChanged(fileName);
-						}
-						else if (famEvent.code == FAMDeleted)
-						{
-							updatedIndex = m_pHandler->fileDeleted(fileName);
-						}
-					}
+					// Next
+					events.pop();
+					continue;
 				}
 
-				// Anything else pending ?
-				pendingEvents = FAMPending(&famConn);
+				bool updatedIndex = false;
+
+				// What's the event code ?
+				if (event.m_type == MonitorEvent::CREATED)
+				{
+					m_pHandler->fileCreated(event.m_location);
+				}
+				else if (event.m_type == MonitorEvent::WRITE_CLOSED)
+				{
+					updatedIndex = m_pHandler->fileModified(event.m_location);
+				}
+				else if (event.m_type == MonitorEvent::MOVED)
+				{
+					updatedIndex = m_pHandler->fileMoved(event.m_location);
+				}
+				else if (event.m_type == MonitorEvent::DELETED)
+				{
+					updatedIndex = m_pHandler->fileDeleted(event.m_location);
+				}
+
+				// Next
+				events.pop();
 			}
 		}
 		else
@@ -1393,7 +1338,6 @@ void MonitorThread::doWork(void)
 #ifdef DEBUG
 				cout << "MonitorThread::doWork: resuming monitoring" << endl;
 #endif
-				FAMResumeMonitor(&famConn, &famReq);
 				resumeMonitor = false;
 			}
 
@@ -1403,12 +1347,7 @@ void MonitorThread::doWork(void)
 		}
 	}
 
-	if (closeMonitor == true)
-	{
-		// Stop monitoring and close the connection
-		FAMCancelMonitor(&famConn, &famReq);
-		FAMClose(&famConn);
-	}
+	delete pMonitor;
 }
 
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName,

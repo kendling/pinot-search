@@ -7,7 +7,7 @@
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Library General Public License for more details.
+ *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
@@ -31,23 +31,10 @@
 #include "XapianIndex.h"
 #include "XapianEngine.h"
 #include "PinotUtils.h"
-#include "MonitorHandler.h"
+#include "MboxHandler.h"
 
 using namespace std;
 using namespace SigC;
-
-MonitorHandler::MonitorHandler()
-{
-}
-
-MonitorHandler::~MonitorHandler()
-{
-}
-
-Signal3<void, IndexedDocument, unsigned int, string>& MonitorHandler::getUpdateSignal(void)
-{
-	return m_signalUpdate;
-}
 
 MboxHandler::MboxHandler() :
 	MonitorHandler(),

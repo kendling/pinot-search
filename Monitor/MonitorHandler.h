@@ -17,17 +17,13 @@
 #ifndef _MONITORHANDLER_HH
 #define _MONITORHANDLER_HH
 
-#include <time.h>
 #include <string>
 #include <set>
 #include <map>
+#include <sigc++/compatibility.h>
 #include <sigc++/slot.h>
 
-#include "DocumentInfo.h"
 #include "IndexedDocument.h"
-#include "MboxParser.h"
-#include "IndexInterface.h"
-#include "PinotSettings.h"
 
 class MonitorHandler
 {
@@ -40,7 +36,7 @@ class MonitorHandler
 			std::set<std::string> &locationsToRemove) = 0;
 
 		/// Handles file existence events.
-		virtual bool fileExists(const string &fileName) = 0;
+		virtual bool fileExists(const std::string &fileName) = 0;
 
 		/// Handles file creation events.
 		virtual bool fileCreated(const std::string &fileName) = 0;
@@ -62,50 +58,6 @@ class MonitorHandler
 	private:
 		MonitorHandler(const MonitorHandler &other);
 		MonitorHandler &operator=(const MonitorHandler &other);
-
-};
-
-class MboxHandler : public MonitorHandler
-{
-	public:
-		MboxHandler();
-		virtual ~MboxHandler();
-
-		/// Returns locations.
-		virtual bool getLocations(std::set<std::string> &newLocations,
-			std::set<std::string> &locationsToRemove);
-
-		/// Handles file existence events.
-		virtual bool fileExists(const string &fileName);
-
-		/// Handles file creation events.
-		virtual bool fileCreated(const std::string &fileName);
-
-		/// Handles file modified events.
-		virtual bool fileModified(const std::string &fileName);
-
-		/// Handles file moved events.
-		virtual bool fileMoved(const std::string &fileName);
-
-		/// Handles file deleted events.
-		virtual bool fileDeleted(const std::string &fileName);
-
-	protected:
-		unsigned int m_locationsCount;
-		std::set<std::string> m_locations;
-
-		bool checkMailAccount(const std::string &fileName, PinotSettings::MailAccount &mailAccount,
-			off_t &previousSize);
-
-		bool parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex,
-			time_t &lastMessageTime, const std::string &tempSourceLabel,
-			const std::string &sourceLabel);
-
-		bool deleteMessages(IndexInterface *pIndex, const std::string &sourceLabel);
-
-	private:
-		MboxHandler(const MboxHandler &other);
-		MboxHandler &operator=(const MboxHandler &other);
 
 };
 
