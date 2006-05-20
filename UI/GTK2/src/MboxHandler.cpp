@@ -442,7 +442,6 @@ bool MboxHandler::fileMoved(const string &fileName)
 bool MboxHandler::fileDeleted(const string &fileName)
 {
 	string sourceLabel = string("mailbox://") + fileName;
-	bool unindexedFile = false;
 
 	// Get the mail index
 	XapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);

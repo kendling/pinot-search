@@ -177,7 +177,7 @@ void queryDialog::on_queryOkbutton_clicked()
 	// Language
 	m_properties.setLanguage("");
 	int chosenLanguage = languageCombobox->get_active_row_number();
-	if (chosenLanguage < Languages::m_count + 1)
+	if (chosenLanguage < (int)Languages::m_count + 1)
 	{
 		if (chosenLanguage > 0)
 		{

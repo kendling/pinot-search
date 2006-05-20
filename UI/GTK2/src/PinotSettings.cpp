@@ -944,11 +944,11 @@ bool PinotSettings::save(void)
 		}
 		addChildElement(pElem, "name", mailIter->m_name);
 		addChildElement(pElem, "type", mailIter->m_type);
-		sprintf(numStr, "%d", mailIter->m_modTime);
+		sprintf(numStr, "%ld", mailIter->m_modTime);
 		addChildElement(pElem, "mtime", numStr);
-		sprintf(numStr, "%d", mailIter->m_lastMessageTime);
+		sprintf(numStr, "%ld", mailIter->m_lastMessageTime);
 		addChildElement(pElem, "mindate", numStr);
-		sprintf(numStr, "%d", mailIter->m_size);
+		sprintf(numStr, "%ld", mailIter->m_size);
 		addChildElement(pElem, "size", numStr);
 	}
 
