@@ -1215,35 +1215,39 @@ void MonitorThread::doWork(void)
 			FD_SET(m_ctrlReadPipe, &listenSet);
 		}
 
-		if ((setLocationsToMonitor == true) &&
-			(m_pHandler->getLocations(newLocations, locationsToRemove) == true))
+		if (setLocationsToMonitor == true)
 		{
-			// Specify what we want to monitor
-#ifdef DEBUG
-			cout << "MonitorThread::doWork: change detected" << endl;
-#endif
-			resumeMonitor = false;
-
-			// Add new locations
-			for (set<string>::const_iterator locationIter = newLocations.begin();
-				(locationIter != newLocations.end()) && (m_done == false); ++locationIter)
+			// Did a change occur ?
+			if (m_pHandler->getLocations(newLocations, locationsToRemove) == true)
 			{
-				// Monitor this
-				if (pMonitor->addLocation(*locationIter) == true)
+#ifdef DEBUG
+				cout << "MonitorThread::doWork: change detected" << endl;
+#endif
+				resumeMonitor = false;
+
+				// Add new locations
+				for (set<string>::const_iterator locationIter = newLocations.begin();
+					(locationIter != newLocations.end()) && (m_done == false); ++locationIter)
 				{
-					// Confirm the file exists
-					m_pHandler->fileExists(*locationIter);
+					// Monitor this
+					if (pMonitor->addLocation(*locationIter) == true)
+					{
+						// Confirm the file exists
+						m_pHandler->fileExists(*locationIter);
+					}
+				}
+
+				// Remove others
+				for (set<string>::const_iterator locationIter = locationsToRemove.begin();
+					(locationIter != locationsToRemove.end()) && (m_done == false); ++locationIter)
+				{
+					// Stop monitoring this
+					pMonitor->removeLocation(*locationIter);
 				}
 			}
 
-			// Remove others
-			for (set<string>::const_iterator locationIter = locationsToRemove.begin();
-				(locationIter != locationsToRemove.end()) && (m_done == false); ++locationIter)
-			{
-				// Stop monitoring this
-				pMonitor->removeLocation(*locationIter);
-			}
-
+			// The file descriptor may change over time so get it when changes occur
+			// rather than just once at the very beginning
 			monitorFd = pMonitor->getFileDescriptor();
 			FD_SET(monitorFd, &listenSet);
 		}

@@ -34,6 +34,13 @@ INotifyMonitor::INotifyMonitor() :
 	MonitorInterface()
 {
 	m_monitorFd = inotify_init();
+	if (m_monitorFd < 0)
+	{
+		char errBuffer[1024];
+
+		strerror_r(errno, errBuffer, 1024);
+		cerr << "INotifyMonitor: initialization failed: " << errBuffer << endl;
+	}
 }
 
 INotifyMonitor::~INotifyMonitor()
@@ -72,11 +79,7 @@ bool INotifyMonitor::addLocation(const string &directory)
 
 		return true;
 	}
-
-	char errBuffer[1024];
-
-	strerror_r(errno, errBuffer, 1024);
-	cerr << "INotifyMonitor::addLocation: couldn't monitor " << directory << ": " << errBuffer << endl;
+	cerr << "INotifyMonitor::addLocation: couldn't monitor " << directory << endl;
 
 	return false;
 }
