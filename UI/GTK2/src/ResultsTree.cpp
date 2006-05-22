@@ -382,12 +382,14 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			refBuffer->set_text(to_utf8(extract));
 
 			// Highlight the query's terms in the extract
-			string lowerExtract(StringManip::toLowerCase(extract));
+			ustring lowerExtract(StringManip::toLowerCase(to_utf8(extract)));
 			for (set<string>::iterator termIter = m_queryTerms.begin();
 				termIter != m_queryTerms.end(); ++termIter)
 			{
-				string::size_type pos = lowerExtract.find(StringManip::toLowerCase(*termIter));
-				while (pos != string::npos)
+				ustring term(to_utf8(StringManip::toLowerCase(*termIter)));
+
+				ustring::size_type pos = lowerExtract.find(term);
+				while (pos != ustring::npos)
 				{
 					if (((pos > 0) && (isspace(lowerExtract[pos - 1]) != 0)) ||
 						((pos + termIter->length() < lowerExtract.length() - 1) &&
@@ -399,7 +401,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 					}
 
 					// Next
-					pos = lowerExtract.find(StringManip::toLowerCase(*termIter), pos + 1);
+					pos = lowerExtract.find(term, pos + 1);
 				}
 			}
 
