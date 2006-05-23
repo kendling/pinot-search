@@ -14,8 +14,15 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #include <sys/ioctl.h>
+#ifdef HAVE_LINUX_INOTIFY
+#include <stdint.h>
+#include <linux/inotify.h>
+#include "linux-inotify-syscalls.h"
+#else
 #include <sys/inotify.h>
+#endif
 #include <string.h>
 #include <errno.h>
 #include <iostream>
