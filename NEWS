@@ -1,3 +1,15 @@
+??? version_0_4_8
+Monitor :
+ - replaced FAM/Gamin with inotify
+Search :
+ - fixed BitTorrent source
+UI :
+ - fixed menuitems inconsitencies
+ - always use user-provided language on update !
+ - all query terms are highlighted in the extract !
+ - threads that finish while the import dialog is up are processed when the
+  dialog box is closed
+
 2006/05/12 version_0_4_7
 General :
  - all programs have man pages and support --help and --version
