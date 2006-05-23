@@ -40,26 +40,13 @@ string importDialog::InternalState::m_defaultDirectory = "";
 
 importDialog::InternalState::InternalState(importDialog *pWindow) :
 	ThreadsManager(),
-	m_importing(false),
-	m_pImportWindow(pWindow)
+	m_importing(false)
 {
+	m_onThreadEndSignal.connect(SigC::slot(*pWindow, &importDialog::on_thread_end));
 }
 
 importDialog::InternalState::~InternalState()
 {
-}
-
-void importDialog::InternalState::connect(void)
-{
-	if (m_pImportWindow != NULL)
-	{
-		// Connect the dispatcher
-		m_threadsEndConnection = WorkerThread::getDispatcher().connect(
-			SigC::slot(*m_pImportWindow, &importDialog::on_thread_end));
-#ifdef DEBUG
-		cout << "importDialog::InternalState::connect: connected" << endl;
-#endif
-	}
 }
 
 importDialog::importDialog(const Glib::ustring &title,
@@ -123,6 +110,7 @@ importDialog::importDialog(const Glib::ustring &title,
 
 importDialog::~importDialog()
 {
+	m_state.disconnect();
 }
 
 void importDialog::populate_comboboxes(bool localOnly)
@@ -268,18 +256,13 @@ bool importDialog::on_import_url(const string &location)
 	return askForAnotherFile;
 }
 
-void importDialog::on_thread_end()
+void importDialog::on_thread_end(WorkerThread *pThread)
 {
 	ustring status;
 	bool success = true;
 
-	WorkerThread *pThread = m_state.on_thread_end();
 	if (pThread == NULL)
 	{
-		// It's likely to be a thread that was started by the main window
-#ifdef DEBUG
-		cout << "importDialog::on_thread_end: foreign thread" << endl;
-#endif
 		return;
 	}
 

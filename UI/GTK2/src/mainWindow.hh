@@ -71,7 +71,7 @@ protected:
 	void on_label_changed(Glib::ustring indexName, Glib::ustring labelName);
 	void on_switch_page(GtkNotebookPage *p0, guint p1);
 	void on_close_page(Glib::ustring title, NotebookPageBox::PageType type);
-	void on_thread_end();
+	void on_thread_end(WorkerThread *pThread);
 	void on_editindex(Glib::ustring indexName, Glib::ustring location);
 	void on_message_reception(DocumentInfo docInfo, std::string labelName);
 	void on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, std::string indexName);
@@ -176,7 +176,6 @@ private:
 			bool read_lock_lists(unsigned int where);
 			bool write_lock_lists(unsigned int where);
 			void unlock_lists(void);
-			void connect(void);
 
 			// Query
 			unsigned int m_liveQueryLength;
@@ -190,7 +189,6 @@ private:
 
 		protected:
 			pthread_rwlock_t m_listsLock;
-			mainWindow *m_pMainWindow;
 
 	} m_state;
 	static unsigned int m_maxDocsCount;

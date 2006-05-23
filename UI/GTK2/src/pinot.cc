@@ -232,6 +232,7 @@ int main(int argc, char **argv)
 	}
 	catch (...)
 	{
+		cerr << "Unknown exception" << endl;
 		return EXIT_FAILURE;
 	}
 

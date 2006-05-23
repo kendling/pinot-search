@@ -23,6 +23,7 @@
 #include <set>
 #include <map>
 #include <pthread.h>
+#include <sigc++/object.h>
 #include <sigc++/slot.h>
 #include <sigc++/connection.h>
 #include <glibmm/dispatcher.h>
@@ -87,7 +88,7 @@ class WorkerThread
 
 };
 
-class ThreadsManager
+class ThreadsManager : public SigC::Object
 {
 	public:
 		ThreadsManager();
@@ -95,15 +96,17 @@ class ThreadsManager
 
 		bool start_thread(WorkerThread *pWorkerThread, bool inBackground);
 
-		WorkerThread *on_thread_end(void);
-
 		unsigned int get_threads_count(void);
 
 		bool has_threads(void);
 
 		void stop_threads(void);
 
+		virtual void connect(void);
+
 		virtual void disconnect(void);
+
+		void on_thread_end();
 
 	protected:
 		SigC::Connection m_threadsEndConnection;
@@ -112,10 +115,12 @@ class ThreadsManager
 		std::map<WorkerThread *, Glib::Thread *> m_threads;
 		unsigned int m_nextId;
 		unsigned int m_backgroundThreadsCount;
+		SigC::Signal1<void, WorkerThread *> m_onThreadEndSignal;
 
 		bool read_lock(void);
 		bool write_lock(void);
 		void unlock(void);
+		WorkerThread *get_thread(void);
 
 	private:
 		ThreadsManager(const ThreadsManager &other);

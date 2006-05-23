@@ -51,7 +51,7 @@ protected:
 
 	bool on_activity_timeout(void);
 	bool on_import_url(const std::string &location);
-	void on_thread_end(void);
+	void on_thread_end(WorkerThread *pThread);
 
 private:
 	std::set<std::string> m_mimeTypes;
@@ -80,17 +80,12 @@ private:
 			InternalState(importDialog *pWindow);
 			~InternalState();
 
-			void connect(void);
-
 			// Directory scanning
 			bool m_importing;
 			Glib::Mutex m_scanMutex;
 			Glib::Cond m_scanCondVar;
 			// The default directory
 			static std::string m_defaultDirectory;
-
-		protected:
-			importDialog *m_pImportWindow;
 
 	} m_state;
 

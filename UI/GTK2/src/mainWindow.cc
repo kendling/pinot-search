@@ -67,10 +67,10 @@ mainWindow::InternalState::InternalState(mainWindow *pWindow) :
 	ThreadsManager(),
 	m_liveQueryLength(0),
 	m_currentPage(0),
-	m_browsingIndex(false),
-	m_pMainWindow(pWindow)
+	m_browsingIndex(false)
 {
 	pthread_rwlock_init(&m_listsLock, NULL);
+	m_onThreadEndSignal.connect(SigC::slot(*pWindow, &mainWindow::on_thread_end));
 }
 
 mainWindow::InternalState::~InternalState()
@@ -110,19 +110,6 @@ void mainWindow::InternalState::unlock_lists(void)
 #ifdef DEBUG
 	cout << "mainWindow::unlock_lists" << endl;
 #endif
-}
-
-void mainWindow::InternalState::connect(void)
-{
-	if (m_pMainWindow != NULL)
-	{
-		// Connect the dispatcher
-		m_threadsEndConnection = WorkerThread::getDispatcher().connect(
-			SigC::slot(*m_pMainWindow, &mainWindow::on_thread_end));
-#ifdef DEBUG
-		cout << "mainWindow::InternalState::connect: connected" << endl;
-#endif
-	}
 }
 
 //
@@ -748,16 +735,12 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 //
 // End of worker thread
 //
-void mainWindow::on_thread_end()
+void mainWindow::on_thread_end(WorkerThread *pThread)
 {
 	ustring status;
 
-	WorkerThread *pThread = m_state.on_thread_end();
 	if (pThread == NULL)
 	{
-#ifdef DEBUG
-		cout << "mainWindow::on_thread_end: signalled but couldn't find any thread" << endl;
-#endif
 		return;
 	}
 #ifdef DEBUG

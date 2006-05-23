@@ -161,6 +161,7 @@ void WorkerThread::emitSignal(void)
 }
 
 ThreadsManager::ThreadsManager() :
+	SigC::Object(),
 	m_nextId(1),
 	m_backgroundThreadsCount(0)
 {
@@ -199,7 +200,7 @@ void ThreadsManager::unlock(void)
 	pthread_rwlock_unlock(&m_rwLock);
 }
 
-WorkerThread *ThreadsManager::on_thread_end(void)
+WorkerThread *ThreadsManager::get_thread(void)
 {
 	WorkerThread *pWorkerThread = NULL;
 
@@ -219,7 +220,7 @@ WorkerThread *ThreadsManager::on_thread_end(void)
 				break;
 			}
 #ifdef DEBUG
-			cout << "ThreadsManager::on_thread_end: thread "
+			cout << "ThreadsManager::get_thread: thread "
 				<< threadIter->first->getId() << " is not done" << endl;
 #endif
 		}
@@ -316,6 +317,29 @@ void ThreadsManager::stop_threads(void)
 	}
 }
 
+void ThreadsManager::connect(void)
+{
+	// The previous manager may have been signalled by our threads
+	WorkerThread *pThread = get_thread();
+	while (pThread != NULL)
+	{
+		m_onThreadEndSignal.emit(pThread);
+
+		// Next
+		pThread = get_thread();
+	}
+#ifdef DEBUG
+	cout << "ThreadsManager::connect: connecting" << endl;
+#endif
+
+	// Connect the dispatcher
+	m_threadsEndConnection = WorkerThread::getDispatcher().connect(
+		SigC::slot(*this, &ThreadsManager::on_thread_end));
+#ifdef DEBUG
+	cout << "ThreadsManager::connect: connected" << endl;
+#endif
+}
+
 void ThreadsManager::disconnect(void)
 {
 	m_threadsEndConnection.block();
@@ -323,6 +347,19 @@ void ThreadsManager::disconnect(void)
 #ifdef DEBUG
 	cout << "ThreadsManager::disconnect: disconnected" << endl;
 #endif
+}
+
+void ThreadsManager::on_thread_end()
+{
+	WorkerThread *pThread = get_thread();
+	if (pThread == NULL)
+	{
+#ifdef DEBUG
+		cout << "ThreadsManager::on_thread_end: foreign thread" << endl;
+#endif
+		return;
+	}
+	m_onThreadEndSignal.emit(pThread);
 }
 
 IndexBrowserThread::IndexBrowserThread(const string &indexName,
