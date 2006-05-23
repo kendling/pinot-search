@@ -2,6 +2,9 @@ Pinot is written by :
 
 	Fabrice Colin <fabricecolin at users dot berlios dot de>
 
+The file Monitor/linux-inotify-syscalls.h is originally from libinotify
+(Copyright © 2005 Ryan Lortie <desrt at desrt dot ca>).
+
 Translations provided by :
 
 	Spanish - Jesús Tramullas <jesus at tramullas dot com>

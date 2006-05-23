@@ -5,21 +5,25 @@ General
 - Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
 - Don't use system(), fork and exec, especially for the external browser
 - Find out how to determine what application to use for a given MIME type and drop internal browser
-  Does xdgmime allow to consult the applications/types mappings in /usr/share/applications/defaults.list
-  and mimeinfo.cache ?
+  Consult the applications/types mappings in /usr/share/applications/defaults.list mimeinfo.cache
 - MIMEScanner should also return parent types so that we don't filter out types unnecessarily
 - Make sure everything works with URLs/path names that include spaces or unusual characters
+- Distribute pinot.pot
+- Add link to this to explain why FC5 version is linked against mozilla, not firefox
+  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=149828
 
-Search
-- Write a Spirit-based parser for extracting results from web pages
-- Allow to use "extended" INTERPRET tags selectively 
-- With engines that provide a redirection URL for results (eg Acoona), it looks like
-  the query hitory is not saved/checked correctly
-- Add http://www.patentcommons.org/commons/patentsearch.php
-- Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
-- Make sure Description files' SyndicationRight is not private or closed
-- Export search results as OpenSearch Response
-- Support for Google Buttons
+Tokenize
+- Allow to cache documents that had to be converted ? eg PDF, MS Word
+- PDF tokenizer with poppler
+- HTML tokenizer with liboil
+- WordPerfect tokenizer with libwpd
+- Spin tokenizers into separate project, a la libextractor
+- Check whether pdftohtml flatens text in PDF documents that have columns.
+  Using "pdftops | ps2ascii" may work (seems to work slightly better than
+  "pdf2ps ..." !)
+
+Monitor
+- Use SQLite for email lists in MboxHandler, and not the index
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -27,10 +31,18 @@ Collect
 - Make User-Agent string configurable
 - Make download timeout configurable
 - Support for HTML frames
-- Allow to cache documents that had to be converted ? eg PDF, MS Word
-- Use poppler for the PDF tokenizer
-- WordPerfect tokenizer with libwpd
-- Spin tokenizers into separate project, a la libextractor
+
+Search
+- Write a Spirit or a liboil-based parser for extracting results from web pages
+- Allow to use "extended" INTERPRET tags selectively 
+- With engines that provide a redirection URL for results (eg Acoona), it looks like
+  the query hitory is not saved/checked correctly
+- Add http://www.patentcommons.org/commons/patentsearch.php
+- Replace Accona with Baidu ?
+- Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
+- Make sure Description files' SyndicationRight is not private or closed
+- Export search results as OpenSearch Response
+- Support for Google Buttons
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
@@ -46,7 +58,7 @@ Index
 - Xapian Query objects will become serializable at some point, this will be useful
   for stored queries
 - Think about indexing archives (parent documents) and their contents (child documents)
-- Add a "more like this" menu to results from an index to get related documents
+- Add a "More Like This" menuitem to results from an index to get related documents
 
 Browser plugin
 - Write Firefox extension that searches Pinot indexes and indexes the cache
@@ -81,14 +93,16 @@ UI
 - Show activity when mail is being indexed
 - Update Last Run after the query has completed
 - Filter documents by language, similarly to how labels are shown
-- Save engines groups state in config file
 - Clean up method names
 - Prefer ustring to string whenever possible
 - Closing when threads are running gives the impression Pinot has crashed; how do we tell the user
   we are waiting for something to finish ?
 - Try sizing the window optimally on the first startup
 - Use libnotify to show a popup when a new result is available ?
-- Replace labels with tags (Leaftag, http://www.chipx86.com/wiki/Leaftag)
-- Enable to import all the documents that match a specific tag
+- Replace labels with tags (Leaftag, http://www.chipx86.com/wiki/Leaftag). Enable to import
+  all the documents that match a specific tag
 - Double click on a word in the extract field adds it to the live query field
+- On update, update documents title if different
+- When switching back and forth between results tabs and another tab, why does the
+  result list get shifted right to the Title column ?
 
