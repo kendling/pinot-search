@@ -74,7 +74,5 @@ Document *MboxCollector::retrieveUrl(const DocumentInfo &docInfo)
 	}
 
 	// Copy the message
-	Document *fileDocument = new Document(*pMessage);
-
-	return fileDocument;
+	return new Document(*pMessage);
 }

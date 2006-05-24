@@ -48,6 +48,14 @@ Document::Document(const string &title, const string &location,
 {
 }
 
+Document::Document(const DocumentInfo &info) :
+	DocumentInfo(info),
+	m_pData(NULL),
+	m_dataLength(0),
+	m_isMapped(false)
+{
+}
+
 Document::Document(const Document &other) :
 	DocumentInfo(other),
 	m_pData(NULL),

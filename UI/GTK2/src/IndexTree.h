@@ -54,8 +54,8 @@ class IndexTree : public Gtk::TreeView
 		/// Gets the first selected item's URL.
 		Glib::ustring getFirstSelectionURL(void);
 
-		/// Gets the first selected item's URL.
-		Glib::ustring getFirstSelectionLiveURL(void);
+		/// Gets the first selected item.
+		IndexedDocument getFirstSelection(void);
 
 		/// Gets a list of selected items.
 		bool getSelection(std::vector<IndexedDocument> &documentsList);

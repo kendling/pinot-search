@@ -222,7 +222,7 @@ class LabelUpdateThread : public WorkerThread
 class DownloadingThread : public WorkerThread
 {
 	public:
-		DownloadingThread(const std::string url, bool fromCache);
+		DownloadingThread(const DocumentInfo &docInfo, bool fromCache);
 		virtual ~DownloadingThread();
 
 		virtual std::string getType(void) const;
@@ -234,7 +234,7 @@ class DownloadingThread : public WorkerThread
 		virtual bool stop(void);
 
 	protected:
-		std::string m_url;
+		DocumentInfo m_docInfo;
 		bool m_fromCache;
 		Document *m_pDoc;
 		DownloaderInterface *m_pDownloader;

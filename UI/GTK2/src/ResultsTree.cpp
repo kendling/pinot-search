@@ -838,20 +838,22 @@ bool ResultsTree::checkSelection(void)
 }
 
 //
-// Gets the first selected item's URL.
+// Gets the first selected item.
 //
-ustring ResultsTree::getFirstSelectionURL(void)
+Result ResultsTree::getFirstSelection(void)
 {
 	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
 	if (selectedItems.empty() == true)
 	{
-		return "";
+		return Result("", "", "", "");
 	}
 
 	list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
 	TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 	TreeModel::Row row = *iter;
-	return row[m_resultsColumns.m_url];
+	return Result(from_utf8(row[m_resultsColumns.m_url]),
+		from_utf8(row[m_resultsColumns.m_text]),
+		"", from_utf8(row[m_resultsColumns.m_language]));
 }
 
 //

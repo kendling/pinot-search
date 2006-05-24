@@ -30,9 +30,8 @@ using std::endl;
 using std::string;
 using std::min;
 
-HtmlDocument::HtmlDocument(const string &title, const string &location,
-	const string &type, const string &language) :
-	Document(title, location, type, language)
+HtmlDocument::HtmlDocument(const DocumentInfo &info) :
+	Document(info)
 {
 }
 

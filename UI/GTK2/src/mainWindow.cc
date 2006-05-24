@@ -200,7 +200,9 @@ mainWindow::mainWindow() :
 		string startPage("file://");
 		startPage += PREFIX;
 		startPage += "/share/pinot/index.html";
-		view_document(startPage, true);
+		DocumentInfo docInfo("", startPage, "", "");
+
+		view_document(docInfo, true);
 	}
 
 	// Gray out menu items
@@ -437,7 +439,7 @@ void mainWindow::on_enginesTreeviewSelection_changed()
 //
 void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 {
-	ustring url;
+	string url;
 	bool hasSelection = false;
 
 	NotebookPageBox *pNotebookPage = get_page(queryName, NotebookPageBox::RESULTS_PAGE);
@@ -452,7 +454,8 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 				hasSelection = pResultsTree->checkSelection();
 				if (hasSelection == true)
 				{
-					url = pResultsTree->getFirstSelectionURL();
+					Result selectedResult = pResultsTree->getFirstSelection();
+					url = selectedResult.getLocation();
 				}
 			}
 		}
@@ -460,9 +463,9 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 
 	if (hasSelection == true)
 	{
+		Url urlObj(url);
 		bool isViewable = true, isIndexable = true, isCached = false;
 
-		Url urlObj(from_utf8(url));
 		string protocol = urlObj.getProtocol();
 		// FIXME: there should be a way to know which protocols can be viewed/indexed
 		if (protocol == "xapian")
@@ -1294,11 +1297,12 @@ void mainWindow::on_configure_activate()
 		else
 		{
 			string startPage("file://");
-
-			// Reopen the start page
 			startPage += PREFIX;
 			startPage += "/share/pinot/index.html";
-			view_document(startPage, true);
+			DocumentInfo docInfo("", startPage, "", "");
+
+			// Reopen the start page
+			view_document(docInfo, true);
 		}
 	}
 
@@ -1589,8 +1593,8 @@ void mainWindow::on_viewresults_activate()
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				ustring url = pResultsTree->getFirstSelectionURL();
-				if (view_document(from_utf8(url)) == true)
+				Result selectedResult = pResultsTree->getFirstSelection();
+				if (view_document(selectedResult) == true)
 				{
 					// We can update the row right now
 					pResultsTree->setFirstSelectionViewedState(true);
@@ -1614,9 +1618,9 @@ void mainWindow::on_viewcache_activate()
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				ustring url = pResultsTree->getFirstSelectionURL();
+				Result selectedResult = pResultsTree->getFirstSelection();
 
-				start_thread(new DownloadingThread(url, true));
+				start_thread(new DownloadingThread(selectedResult, true));
 
 				// Update the row now, even though the cached page may not be retrieved
 				pResultsTree->setFirstSelectionViewedState(true);
@@ -1720,9 +1724,11 @@ void mainWindow::on_viewfromindex_activate()
 
 		if (pIndexTree != NULL)
 		{
+			IndexedDocument indexedDoc = pIndexTree->getFirstSelection();
+
 			// View the first document, don't bother about the rest
-			ustring url = pIndexTree->getFirstSelectionLiveURL();
-			view_document(from_utf8(url));
+			indexedDoc.setLocation(indexedDoc.getOriginalLocation());
+			view_document(indexedDoc);
 		}
 	}
 }
@@ -1776,6 +1782,7 @@ void mainWindow::on_refreshindex_activate()
 		}
 #ifdef DEBUG
 		cout << "mainWindow::on_refreshindex_activate: URL is " << url << endl;
+		cout << "mainWindow::on_refreshindex_activate: language is " << docIter->getLanguage() << endl;
 #endif
 
 		// Add this action to the queue
@@ -2855,8 +2862,10 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 //
 // View a document
 //
-bool mainWindow::view_document(const string &url, bool internalViewerOnly)
+bool mainWindow::view_document(const DocumentInfo &docInfo, bool internalViewerOnly)
 {
+	string url(docInfo.getLocation());
+
 	if (url.empty() == true)
 	{
 		set_status(_("No URL to browse"));
@@ -2896,7 +2905,7 @@ bool mainWindow::view_document(const string &url, bool internalViewerOnly)
 		if (urlObj.getProtocol() == "mailbox")
 		{
 			// Get that message
-			start_thread(new DownloadingThread(url, false));
+			start_thread(new DownloadingThread(docInfo, false));
 		}
 		else
 		{

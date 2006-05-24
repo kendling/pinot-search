@@ -177,17 +177,17 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				{
 					if (strstr(pContentType, "html") != NULL)
 					{
-						pDocument = new HtmlDocument(docInfo.getTitle(), url,
-							pContentType, docInfo.getLanguage());
+						pDocument = new HtmlDocument(docInfo);
 					}
 					else
 					{
-						pDocument = new Document(docInfo.getTitle(), url,
-							pContentType, docInfo.getLanguage());
+						pDocument = new Document(docInfo);
 					}
 
 					// ...and copy the content into it
 					pDocument->setData(pContentInfo->m_pContent, pContentInfo->m_contentLen);
+					pDocument->setLocation(url);
+					pDocument->setType(pContentType);
 
 #ifdef DEBUG
 					cout << "CurlDownloader::retrieveUrl: document size is " << pContentInfo->m_contentLen << endl;

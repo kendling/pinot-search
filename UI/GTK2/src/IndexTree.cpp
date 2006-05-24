@@ -237,20 +237,25 @@ ustring IndexTree::getFirstSelectionURL(void)
 }
 
 //
-// Gets the first selected item's URL.
+// Gets the first selected item.
 //
-ustring IndexTree::getFirstSelectionLiveURL(void)
+IndexedDocument IndexTree::getFirstSelection(void)
 {
 	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
 	if (selectedItems.empty() == true)
 	{
-		return "";
+		return IndexedDocument("", "", "", "", "");
 	}
 
 	list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
 	TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 	TreeModel::Row row = *iter;
-	return row[m_indexColumns.m_liveUrl];
+
+	return IndexedDocument(from_utf8(row[m_indexColumns.m_text]),
+		from_utf8(row[m_indexColumns.m_url]),
+		from_utf8(row[m_indexColumns.m_liveUrl]),
+		from_utf8(row[m_indexColumns.m_type]),
+		from_utf8(row[m_indexColumns.m_language]));
 }
 
 //
@@ -306,6 +311,9 @@ void IndexTree::updateDocumentInfo(unsigned int docId, const DocumentInfo &docIn
 			row[m_indexColumns.m_type] = to_utf8(docInfo.getType());
 			row[m_indexColumns.m_language] = to_utf8(docInfo.getLanguage());
 			row[m_indexColumns.m_timestamp] = to_utf8(docInfo.getTimestamp());
+#ifdef DEBUG
+			cout << "IndexTree::updateDocumentInfo: language now " << docInfo.getLanguage() << endl;
+#endif
 			break;
 		}
 	}

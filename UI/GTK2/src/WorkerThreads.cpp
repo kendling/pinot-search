@@ -660,9 +660,9 @@ void LabelUpdateThread::doWork(void)
 	}
 }
 
-DownloadingThread::DownloadingThread(const string url, bool fromCache) :
+DownloadingThread::DownloadingThread(const DocumentInfo &docInfo, bool fromCache) :
 	WorkerThread(),
-	m_url(url),
+	m_docInfo(docInfo),
 	m_fromCache(fromCache),
 	m_pDoc(NULL),
 	m_pDownloader(NULL)
@@ -688,7 +688,7 @@ string DownloadingThread::getType(void) const
 
 string DownloadingThread::getURL(void) const
 {
-	return m_url;
+	return m_docInfo.getLocation();
 }
 
 const Document *DownloadingThread::getDocument(void) const
@@ -701,7 +701,7 @@ bool DownloadingThread::stop(void)
 	m_done = true;
 	m_status = _("Stopped retrieval of");
 	m_status += " ";
-	m_status += m_url;
+	m_status += m_docInfo.getLocation();
 
 	return true;
 }
@@ -714,14 +714,14 @@ void DownloadingThread::doWork(void)
 		m_pDownloader = NULL;
 	}
 
-	Url thisUrl(m_url);
+	Url thisUrl(m_docInfo.getLocation());
 
 	if (m_fromCache == true)
 	{
 #ifdef HAS_GOOGLEAPI
 		GoogleAPIEngine googleApiEngine;
 		googleApiEngine.setKey(PinotSettings::getInstance().m_googleAPIKey);
-		m_pDoc = googleApiEngine.retrieveCachedUrl(m_url);
+		m_pDoc = googleApiEngine.retrieveCachedUrl(m_docInfo.getLocation());
 #endif
 #ifdef DEBUG
 		cout << "DownloadingThread::doWork: got cached page" << endl;
@@ -739,9 +739,7 @@ void DownloadingThread::doWork(void)
 		}
 		else if (m_done == false)
 		{
-			DocumentInfo docInfo("", m_url, "", "");
-
-			m_pDoc = m_pDownloader->retrieveUrl(docInfo);
+			m_pDoc = m_pDownloader->retrieveUrl(m_docInfo);
 		}
 	}
 
@@ -749,13 +747,13 @@ void DownloadingThread::doWork(void)
 	{
 		m_status = _("Couldn't retrieve");
 		m_status += " ";
-		m_status += m_url;
+		m_status += m_docInfo.getLocation();
 	}
 }
 
 IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &labelName,
 	unsigned int docId, bool allowAllMIMETypes) :
-	DownloadingThread(docInfo.getLocation(), false),
+	DownloadingThread(docInfo, false),
 	m_docInfo(docInfo),
 	m_labelName(labelName),
 	m_docId(docId),
@@ -817,7 +815,7 @@ bool IndexingThread::stop(void)
 		m_done = true;
 		m_status = _("Stopped indexing");
 		m_status += " ";
-		m_status += m_url;
+		m_status += m_docInfo.getLocation();
 		return true;
 	}
 
@@ -841,13 +839,7 @@ void IndexingThread::doWork(void)
 	cout << "IndexingThread::doWork: downloaded !" << endl;
 #endif
 
-	if (m_pDoc == NULL)
-	{
-		m_status = _("Couldn't retrieve");
-		m_status += " ";
-		m_status += m_url;
-	}
-	else
+	if (m_pDoc != NULL)
 	{
 		string docType = m_pDoc->getType();
 		bool success = false;
@@ -872,7 +864,7 @@ void IndexingThread::doWork(void)
 			m_status += " ";
 			m_status += _("at");
 			m_status += " ";
-			m_status += m_url;
+			m_status += m_docInfo.getLocation();
 			return;
 		}
 
@@ -896,7 +888,7 @@ void IndexingThread::doWork(void)
 		{
 			m_status = _("Couldn't tokenize");
 			m_status += " ";
-			m_status += m_url;
+			m_status += m_docInfo.getLocation();
 			return;
 		}
 
@@ -916,7 +908,7 @@ void IndexingThread::doWork(void)
 				delete pTokens;
 				m_status = _("Robots META tag forbids indexing");
 				m_status += " ";
-				m_status += m_url;
+				m_status += m_docInfo.getLocation();
 				return;
 			}
 		}
@@ -971,7 +963,7 @@ void IndexingThread::doWork(void)
 			{
 				m_status = _("Couldn't index");
 				m_status += " ";
-				m_status += m_url;
+				m_status += m_docInfo.getLocation();
 			}
 			else if (m_done == false)
 			{
@@ -1308,7 +1300,8 @@ void MonitorThread::doWork(void)
 				break;
 			}
 
-			while ((events.empty() == false) && (m_done == false))
+			while ((events.empty() == false) &&
+				(m_done == false))
 			{
 				MonitorEvent &event = events.front();
 				double averageLoad[3];

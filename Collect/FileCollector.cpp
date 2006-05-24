@@ -41,7 +41,7 @@ FileCollector::~FileCollector()
 /// Retrieves the specified document; NULL if error.
 Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 {
-	Document *fileDocument = NULL;
+	Document *pDocument = NULL;
 	Url thisUrl(docInfo.getLocation());
 	string protocol = thisUrl.getProtocol();
 
@@ -62,19 +62,19 @@ Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 	// Is it an HTML type ?
 	if (fileType.find("html") != string::npos)
 	{
-		fileDocument = new HtmlDocument(docInfo.getTitle(),
-			docInfo.getLocation(), fileType, docInfo.getLanguage());
+		pDocument = new HtmlDocument(docInfo);
 	}
 	else
 	{
-		fileDocument = new Document(docInfo.getTitle(),
-			docInfo.getLocation(), fileType, docInfo.getLanguage());
+		pDocument = new Document(docInfo);
 	}
-	if (fileDocument->setDataFromFile(fileLocation) == false)
+
+	pDocument->setType(fileType);
+	if (pDocument->setDataFromFile(fileLocation) == false)
 	{
-		delete fileDocument;
+		delete pDocument;
 		return NULL;
 	}
 
-	return fileDocument;
+	return pDocument;
 }

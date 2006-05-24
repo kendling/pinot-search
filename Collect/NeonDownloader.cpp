@@ -354,16 +354,17 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 			// Is it an HTML type ?
 			if (g_contentTypeHeaderValue.find("html") != string::npos)
 			{
-				pDocument = new HtmlDocument(docInfo.getTitle(), url,
-					g_contentTypeHeaderValue, docInfo.getLanguage());
+				pDocument = new HtmlDocument(docInfo);
 			}
 			else
 			{
-				pDocument = new Document(docInfo.getTitle(), url,
-					g_contentTypeHeaderValue, docInfo.getLanguage());
+				pDocument = new Document(docInfo);
 			}
+
 			// ...and copy the content into it
 			pDocument->setData(pContent, contentLen);
+			pDocument->setLocation(url);
+			pDocument->setType(g_contentTypeHeaderValue);
 #ifdef DEBUG
 			cout << "NeonDownloader::retrieveUrl: document size is " << contentLen << endl;
 #endif

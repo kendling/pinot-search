@@ -24,8 +24,7 @@
 class HtmlDocument : public Document
 {
 	public:
-		HtmlDocument(const std::string &title, const std::string &location,
-			const std::string &type, const std::string &language);
+		HtmlDocument(const DocumentInfo &info);
 		HtmlDocument(const HtmlDocument &other);
 		virtual ~HtmlDocument();
 

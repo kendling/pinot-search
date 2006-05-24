@@ -65,8 +65,8 @@ class ResultsTree : public Gtk::TreeView
 		/// Determines if results are selected.
 		bool checkSelection(void);
 
-		/// Gets the first selected item's URL.
-		Glib::ustring getFirstSelectionURL(void);
+		/// Gets the first selected item.
+		Result getFirstSelection(void);
 
 		/// Gets a list of selected items.
 		bool getSelection(std::vector<Result> &resultsList);

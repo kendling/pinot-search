@@ -151,7 +151,7 @@ Document *XapianCollector::retrieveUrl(const DocumentInfo &docInfo)
 		return NULL;
 	}
 
-	IndexedDocument *indexDoc = NULL;
+	IndexedDocument *pIndexedDoc = NULL;
 
 	try
 	{
@@ -173,8 +173,8 @@ Document *XapianCollector::retrieveUrl(const DocumentInfo &docInfo)
 		cout << "XapianCollector::retrieveUrl: " << docId << " was indexed from " << location << " at " << timestamp << endl;
 #endif
 
-		indexDoc = new IndexedDocument(title, url, location, type, language);
-		indexDoc->setTimestamp(timestamp);
+		pIndexedDoc = new IndexedDocument(title, url, location, type, language);
+		pIndexedDoc->setTimestamp(timestamp);
 
 		// Extract document's data ?
 		if (m_getDocData == true)
@@ -184,7 +184,7 @@ Document *XapianCollector::retrieveUrl(const DocumentInfo &docInfo)
 #ifdef DEBUG
 			cout << "XapianCollector::retrieveUrl: found omindex summary " << summary << endl;
 #endif
-			indexDoc->setData(summary.c_str(), summary.length());
+			pIndexedDoc->setData(summary.c_str(), summary.length());
 		}
 	}
 	catch (const Xapian::Error &error)
@@ -192,5 +192,5 @@ Document *XapianCollector::retrieveUrl(const DocumentInfo &docInfo)
 		cerr << "Couldn't retrieve document: " << error.get_msg() << endl;
 	}
 
-	return indexDoc;
+	return pIndexedDoc;
 }

@@ -27,6 +27,7 @@ class Document : public DocumentInfo
 		Document();
 		Document(const std::string &title, const std::string &location,
 			const std::string &type, const std::string &language);
+		Document(const DocumentInfo &info);
 		Document(const Document &other);
 		virtual ~Document();
 

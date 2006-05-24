@@ -133,7 +133,7 @@ protected:
 		const Glib::ustring &labelName, unsigned int startDoc);
 	void index_document(const DocumentInfo &docInfo, const std::string &labelName,
 		unsigned int docId = 0);
-	bool view_document(const std::string &url, bool internalViewerOnly = false);
+	bool view_document(const DocumentInfo &docInfo, bool internalViewerOnly = false);
 	bool append_document(IndexPage *pIndexPage, const Glib::ustring &indexName,
 		const IndexedDocument &docInfo);
 	bool start_thread(WorkerThread *pNewThread, bool inBackground = false);
