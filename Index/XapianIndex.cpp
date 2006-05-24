@@ -117,7 +117,7 @@ void XapianIndex::addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 	// Do we know what language to use for stemming ?
 	if (m_stemLanguage.empty() == false)
 	{
-		pStemmer = new Xapian::Stem(m_stemLanguage);
+		pStemmer = new Xapian::Stem(StringManip::toLowerCase(m_stemLanguage));
 	}
 
 	// Get the terms
@@ -633,7 +633,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
 	// Don't scan the document if a language is specified
-	m_stemLanguage = pDocument->getLanguage();
+	m_stemLanguage = Languages::toEnglish(pDocument->getLanguage());
 	if (m_stemLanguage.empty() == true)
 	{
 		m_stemLanguage = scanDocument(pData, dataLength, docInfo);
