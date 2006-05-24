@@ -130,16 +130,22 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		return false;
 	}
 
-    if (ioctl (m_monitorFd, FIONREAD, &queueLen) == 0)
+	if (ioctl (m_monitorFd, FIONREAD, &queueLen) == 0)
 	{
 #ifdef DEBUG
 		cout << "INotifyMonitor::retrievePendingEvents: "
 			<< queueLen << " bytes to read" << endl;
 #endif
+		if (queueLen == 0)
+		{
+			// Nothing to read
+			return true;
+		}
 	}
 
 	int bytesRead = read(m_monitorFd, buffer, 1024);
-	while (bytesRead - offset > 0)
+	while ((bytesRead > 0) &&
+		(bytesRead - offset > 0))
 	{
 		struct inotify_event *pEvent = (struct inotify_event *)&buffer[offset];
 		size_t eventSize = sizeof(struct inotify_event) + pEvent->len;
