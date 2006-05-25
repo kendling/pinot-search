@@ -5,7 +5,8 @@ noinst_HEADERS = \
 	MonitorEvent.h \
 	MonitorFactory.h \
 	MonitorHandler.h \
-	MonitorInterface.h
+	MonitorInterface.h \
+	linux-inotify-syscalls.h
 
 noinst_LTLIBRARIES = libMonitor.la
 
