@@ -1,4 +1,4 @@
-??? version_0_4_8
+2006/05/25 version_0_4_8
 Monitor :
  - replaced FAM/Gamin with inotify
 Search :
