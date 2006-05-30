@@ -29,6 +29,7 @@
 #include <sigc++/class_slot.h>
 
 #include "HtmlTokenizer.h"
+#include "XmlTokenizer.h"
 #include "MIMEScanner.h"
 #include "TokenizerFactory.h"
 #include "StringManip.h"
@@ -578,14 +579,17 @@ void QueryingThread::doWork(void)
 			resultIter != resultsList.end(); ++resultIter)
 		{
 			string title(_("No title"));
-			string extract(HtmlTokenizer::stripTags(resultIter->getExtract()));
+			string extract(XmlTokenizer::stripTags(resultIter->getExtract()));
 			string language(resultIter->getLanguage());
 
 			// The title may contain formatting
 			if (resultIter->getTitle().empty() == false)
 			{
-				title = HtmlTokenizer::stripTags(resultIter->getTitle());
+				title = XmlTokenizer::stripTags(resultIter->getTitle());
 			}
+#ifdef DEBUG
+			cout << "QueryingThread::doWork: title is " << title << endl;
+#endif
 
 			// Use the query's language if the result's is unknown
 			if (language.empty() == true)
