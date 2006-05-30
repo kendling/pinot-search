@@ -49,8 +49,7 @@ importDialog::InternalState::~InternalState()
 {
 }
 
-importDialog::importDialog(const Glib::ustring &title,
-	const set<string> &mimeTypes) :
+importDialog::importDialog(const Glib::ustring &title) :
 	importDialog_glade(),
 	m_docsCount(0),
 	m_importDirectory(false),
@@ -58,10 +57,6 @@ importDialog::importDialog(const Glib::ustring &title,
 	m_state(this)
 {
 	set_title(title);
-
-	// Copy the list of authorized MIME types
-	copy(mimeTypes.begin(), mimeTypes.end(),
-		inserter(m_mimeTypes, m_mimeTypes.begin()));
 
 	// Initialize the default directory
 	if (m_state.m_defaultDirectory.empty() == true)
@@ -88,16 +83,6 @@ importDialog::importDialog(const Glib::ustring &title,
 	// FIXME: this could also apply to URLs !
 	depthSpinbutton->set_sensitive(false);
 	depthSpinbutton->set_value(1);
-
-	// Associate the columns model to the MIME types tree
-	m_refMimeTypeList = ListStore::create(m_mimeTypeColumns);
-	mimeTreeview->set_model(m_refMimeTypeList);
-	mimeTreeview->append_column_editable(_("Enabled"), m_mimeTypeColumns.m_enabled);
-	mimeTreeview->append_column(_("MIME Type"), m_mimeTypeColumns.m_type);
-	// Allow only single selection
-	mimeTreeview->get_selection()->set_mode(SELECTION_SINGLE);
-	// Populate
-	populate_mimeTreeview();
 
 	// Connect to threads' finished signal
 	m_state.connect();
@@ -148,20 +133,6 @@ void importDialog::populate_comboboxes(bool localOnly)
 	}
 }
 
-void importDialog::populate_mimeTreeview(void)
-{
-	// Add all MIME types
-	for (set<string>::const_iterator typeIter = m_mimeTypes.begin();
-		typeIter != m_mimeTypes.end(); ++typeIter)
-	{
-		TreeModel::iterator iter = m_refMimeTypeList->append();
-		TreeModel::Row row = *iter;
-
-		row[m_mimeTypeColumns.m_enabled] = true;
-		row[m_mimeTypeColumns.m_type] = to_utf8(*typeIter);
-	}
-}
-
 bool importDialog::start_thread(WorkerThread *pNewThread)
 {
 	if (m_state.start_thread(pNewThread, false) == false)
@@ -198,62 +169,42 @@ bool importDialog::on_activity_timeout(void)
 bool importDialog::on_import_url(const string &location)
 {
 	Url urlObj(location);
-	string mimeType(MIMEScanner::scanUrl(urlObj));
-	bool askForAnotherFile = false;
 
-#ifdef DEBUG
-	cout << "importDialog::on_import_url: file type is " << mimeType << endl;
-#endif
-	// Check the MIME type
-	if ((m_mimeTypesBlackList.find(mimeType) != m_mimeTypesBlackList.end()) ||
-		((m_mimeTypes.find(mimeType) == m_mimeTypes.end()) &&
-		((strncasecmp(mimeType.c_str(), "text/x-", 7) == 0) ||
-		(strncasecmp(mimeType.c_str(), "text", 4) != 0))))
+	XapianIndex index(PinotSettings::getInstance().m_indexLocation);
+	IndexingThread *pThread = NULL;
+	string title = from_utf8(m_title);
+	unsigned int docId = 0;
+
+	if (index.isGood() == true)
 	{
-#ifdef DEBUG
-		cout << "importDialog::on_import_url: filtering out" << endl;
-#endif
-		// It's black-listed, or not authorized and not plain-ish text
-		askForAnotherFile = true;
+		docId = index.hasDocument(location);
+	}
+
+	if (m_importDirectory == true)
+	{
+		if (title.empty() == false)
+		{
+			title += " ";
+		}
+		title += urlObj.getFile();
+	}
+	DocumentInfo docInfo(title, location, MIMEScanner::scanUrl(urlObj), "");
+
+	if (docId > 0)
+	{
+		// This document needs updating
+		index.getDocumentInfo(docId, docInfo);
+		pThread = new IndexingThread(docInfo, m_labelName, docId);
 	}
 	else
 	{
-		XapianIndex index(PinotSettings::getInstance().m_indexLocation);
-		IndexingThread *pThread = NULL;
-		string title = from_utf8(m_title);
-		unsigned int docId = 0;
-
-		if (index.isGood() == true)
-		{
-			docId = index.hasDocument(location);
-		}
-
-		if (m_importDirectory == true)
-		{
-			if (title.empty() == false)
-			{
-				title += " ";
-			}
-			title += urlObj.getFile();
-		}
-		DocumentInfo docInfo(title, location, mimeType, "");
-
-		if (docId > 0)
-		{
-			// This document needs updating
-			index.getDocumentInfo(docId, docInfo);
-			pThread = new IndexingThread(docInfo, m_labelName, docId);
-		}
-		else
-		{
-			pThread = new IndexingThread(docInfo, m_labelName);
-		}
-
-		// Launch the new thread
-		start_thread(pThread);
+		pThread = new IndexingThread(docInfo, m_labelName);
 	}
 
-	return askForAnotherFile;
+	// Launch the new thread
+	start_thread(pThread);
+
+	return false;
 }
 
 void importDialog::on_thread_end(WorkerThread *pThread)
@@ -328,25 +279,6 @@ void importDialog::on_thread_end(WorkerThread *pThread)
 		}
 		importProgressbar->set_fraction(fractionFilled);
 		importButton->set_sensitive(true);
-	}
-}
-
-void importDialog::setHeight(int maxHeight)
-{
-	// FIXME: there must be a better way to determine how high the tree should be
-	// for all rows to be visible !
-	int rowsCount = m_refTypeList->children().size();
-	// By default, the tree is high enough for one row
-	if (rowsCount > 1)
-	{
-		int width, height;
-
-		// What's the current size ?
-		get_size(width, height);
-		// Add enough room for the rows we need to show
-		height += get_column_height(mimeTreeview) * (rowsCount - 1);
-		// Resize
-		resize(width, min(maxHeight, height));
 	}
 }
 
@@ -461,34 +393,6 @@ void importDialog::on_importButton_clicked()
 	importProgressbar->set_fraction(0.0);
 	// Disable the import button
 	importButton->set_sensitive(false);
-
-	// Update the list of MIME types, based on list selection
-	m_mimeTypes.clear();
-	m_mimeTypesBlackList.clear();
-	TreeModel::Children children = m_refMimeTypeList->children();
-	if (children.empty() == false)
-	{
-		for (TreeModel::Children::iterator iter = children.begin();
-			iter != children.end(); ++iter)
-		{
-			TreeModel::Row row = *iter;
-			string mimeType(from_utf8(row[m_mimeTypeColumns.m_type]));
-			bool enabled = row[m_mimeTypeColumns.m_enabled];
-
-			if (enabled == true)
-			{
-				m_mimeTypes.insert(mimeType);
-			}
-			else
-			{
-				m_mimeTypesBlackList.insert(mimeType);
-			}
-		}
-	}
-#ifdef DEBUG
-	cout << "importDialog::on_importButton_clicked: " << m_mimeTypes.size()
-		<< " types, " << m_mimeTypesBlackList.size() << " in blacklist" << endl;
-#endif
 
 	m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
 		&importDialog::on_activity_timeout), 1000);

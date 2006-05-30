@@ -35,8 +35,7 @@ class importDialog : public importDialog_glade
 {  
 public:
 	/// Open the dialog box in import mode.
-	importDialog(const Glib::ustring &title,
-		const std::set<std::string> &mimeTypes);
+	importDialog(const Glib::ustring &title);
 	virtual ~importDialog();
 
 	void setHeight(int maxHeight);
@@ -45,7 +44,6 @@ public:
 
 protected:
 	void populate_comboboxes(bool localOnly);
-	void populate_mimeTreeview(void);
 	bool start_thread(WorkerThread *pNewThread);
 	void signal_scanner(void);
 
@@ -54,8 +52,6 @@ protected:
 	void on_thread_end(WorkerThread *pThread);
 
 private:
-	std::set<std::string> m_mimeTypes;
-	std::set<std::string> m_mimeTypesBlackList;
 	// Type
 	ComboModelColumns m_typeColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refTypeList;
@@ -66,9 +62,6 @@ private:
 	std::string m_labelName;
 	unsigned int m_docsCount;
 	bool m_importDirectory;
-	// MIME types
-	TypeModelColumns m_mimeTypeColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refMimeTypeList;
 	// Directory scanner
 	DirectoryScannerThread *m_pScannerThread;
 	// Activity timeout

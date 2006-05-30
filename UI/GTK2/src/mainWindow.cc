@@ -1682,16 +1682,9 @@ void mainWindow::on_indexresults_activate()
 //
 void mainWindow::on_import_activate()
 {
-	set<string> mimeTypes;
-	int width, height;
-
-	TokenizerFactory::getSupportedTypes(mimeTypes);
-	get_size(width, height);
-
 	m_state.disconnect();
 
-	importDialog importBox(_("Import Document(s)"), mimeTypes);
-	importBox.setHeight(height / 2);
+	importDialog importBox(_("Import Document(s)"));
 	importBox.show();
 	importBox.run();
 
