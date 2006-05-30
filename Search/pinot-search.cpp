@@ -24,7 +24,6 @@
 #include "SearchEngineFactory.h"
 #include "DownloaderFactory.h"
 #include "Url.h"
-#include "HtmlTokenizer.h"
 #include "config.h"
 
 using namespace std;
@@ -121,16 +120,16 @@ int main(int argc, char **argv)
 			vector<Result>::const_iterator resultIter = resultsList.begin();
 			while (resultIter != resultsList.end())
 			{
-				string rawUrl = (*resultIter).getLocation();
+				string rawUrl(resultIter->getLocation());
 				Url thisUrl(rawUrl);
 
 				cout << count << " Raw URL  : '" << rawUrl << "'"<< endl;
 				cout << count << " Protocol : " << thisUrl.getProtocol() << endl;
 				cout << count << " Host     : " << thisUrl.getHost() << endl;
 				cout << count << " Location : " << thisUrl.getLocation() << "/" << thisUrl.getFile() << endl;
-				cout << count << " Title    : " << HtmlTokenizer::stripTags((*resultIter).getTitle()) << endl;
-				cout << count << " Extract  : " << HtmlTokenizer::stripTags((*resultIter).getExtract()) << endl;
-				cout << count << " Score    : " << (*resultIter).getScore() << endl;
+				cout << count << " Title    : " << resultIter->getTitle() << endl;
+				cout << count << " Extract  : " << resultIter->getExtract() << endl;
+				cout << count << " Score    : " << resultIter->getScore() << endl;
 				count++;
 
 				// Next

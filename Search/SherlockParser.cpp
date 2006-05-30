@@ -24,6 +24,7 @@
 #include "StringManip.h"
 #include "Url.h"
 #include "HtmlTokenizer.h"
+#include "XmlTokenizer.h"
 #include "FileCollector.h"
 #include "SherlockParser.h"
 
@@ -329,7 +330,10 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 			// The result's URL and title should be given by the first link
 			for (set<Link>::iterator linkIter = chunkLinks.begin(); linkIter != chunkLinks.end(); ++linkIter)
 			{
-				if (linkIter->m_pos == 0)
+#ifdef DEBUG
+				cout << "SherlockResponseParser::parse: checking link " << linkIter->m_index << endl;
+#endif
+				if (linkIter->m_index == 0)
 				{
 					url = linkIter->m_url;
 					name = linkIter->m_name;
@@ -337,21 +341,29 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 					cout << "SherlockResponseParser::parse: first link in chunk is "
 						<< url << endl;
 #endif
-					endOfFirstLink = linkIter->m_close;
+					endOfFirstLink = linkIter->m_endPos;
 				}
-				else if (linkIter->m_pos == 1)
+				else if (linkIter->m_index == 1)
 				{
-					startOfSecondLink = linkIter->m_open;
-					endOfSecondLink = linkIter->m_close;
+					startOfSecondLink = linkIter->m_startPos;
+					endOfSecondLink = linkIter->m_endPos;
 				}
-				else if (linkIter->m_pos == 2)
+				else if (linkIter->m_index == 2)
 				{
-					startOfThirdLink = linkIter->m_open;
+					startOfThirdLink = linkIter->m_startPos;
 				}
 			}
 
+			// Positions apply to text only
+			resultItem = XmlTokenizer::stripTags(resultItem);
+#ifdef DEBUG
+			cout << "SherlockResponseParser::parse: tag-less chunk is \""
+				<< resultItem << "\"" << endl;
+#endif
+
 			// Chances are the extract is between the first two links
-			if (endOfFirstLink > 0)
+			if ((endOfFirstLink > 0) &&
+				(endOfFirstLink < resultItem.length()))
 			{
 				string extractWithMarkup1, extractWithMarkup2;
 				string extractCandidate1, extractCandidate2;
@@ -365,10 +377,11 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 				{
 					extractWithMarkup1 = resultItem.substr(endOfFirstLink);
 				}
-				extractCandidate1 = HtmlTokenizer::stripTags(extractWithMarkup1);
+				extractCandidate1 = XmlTokenizer::stripTags(extractWithMarkup1);
 
 				// ... or between the second and third link :-)
-				if (endOfSecondLink > 0)
+				if ((endOfSecondLink > 0) &&
+					(endOfSecondLink < resultItem.length()))
 				{
 					if (startOfThirdLink > 0)
 					{
@@ -379,9 +392,9 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 						extractWithMarkup2 = resultItem.substr(endOfSecondLink);
 					}
 				}
-				extractCandidate2 = HtmlTokenizer::stripTags(extractWithMarkup2);
+				extractCandidate2 = XmlTokenizer::stripTags(extractWithMarkup2);
 
-				// It seems we can rely on length to determine which is the right one
+				// It seems we can rely on length to determine which is the best one
 				if (extractCandidate1.length() > extractCandidate2.length())
 				{
 					extract = extractCandidate1;
@@ -405,7 +418,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 
 				if (isBlank == true)
 				{
-					extract = HtmlTokenizer::stripTags(resultItem);
+					extract = resultItem;
 				}
 			}
 		}
