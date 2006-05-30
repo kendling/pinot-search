@@ -17,36 +17,425 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/types.h>
-#include <regex.h>
-#include <stack>
+#include <libxml/xmlerror.h>
+#include <libxml/HTMLparser.h>
 #include <iostream>
-#include <algorithm>
 
 #include "StringManip.h"
+#include "XmlTokenizer.h"
 #include "HtmlTokenizer.h"
 
-//#define DEBUG_TOKENIZER
-
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::string;
 using std::map;
 using std::set;
-using std::stack;
 
-HtmlTokenizer::HtmlTokenizer(const Document *pDocument, unsigned int linksStartAtPos) :
-	Tokenizer(NULL),
-	m_pHtmlDocument(NULL),
-	m_linkPos(linksStartAtPos)
+Link::Link() :
+	m_index(0),
+	m_startPos(0),
+	m_endPos(0)
 {
-	initialize(pDocument);
 }
 
-HtmlTokenizer::HtmlTokenizer() :
-	Tokenizer(NULL),
-	m_pHtmlDocument(NULL),
-	m_linkPos(0)
+Link::Link(const Link &other) :
+	m_url(other.m_url),
+	m_name(other.m_name),
+	m_index(other.m_index),
+	m_startPos(other.m_startPos),
+	m_endPos(other.m_endPos)
 {
+}
+
+Link::~Link()
+{
+}
+
+Link& Link::operator=(const Link& other)
+{
+	m_url = other.m_url;
+	m_name = other.m_name;
+	m_index = other.m_index;
+	m_startPos = other.m_startPos;
+	m_endPos = other.m_endPos;
+
+	return *this;
+}
+
+bool Link::operator==(const Link &other) const
+{
+	return m_url == other.m_url;
+}
+
+bool Link::operator<(const Link &other) const
+{
+	return m_index < other.m_index;
+}
+
+HtmlTokenizer::ParserState::ParserState() :
+	m_textPos(0),
+	m_inHead(false),
+	m_foundHead(false),
+	m_appendToTitle(false),
+	m_appendToText(false),
+	m_appendToLink(false),
+	m_skip(0)
+{
+}
+
+HtmlTokenizer::ParserState::~ParserState()
+{
+}
+
+static void startHandler(void *pData, const char *pElementName, const char **pAttributes)
+{
+	if ((pData == NULL) ||
+		(pElementName == NULL) ||
+		(strlen(pElementName) == 0))
+	{
+		return;
+	}
+
+	HtmlTokenizer::ParserState *pState = (HtmlTokenizer::ParserState *)pData;
+	if (pState == NULL)
+	{
+		return;
+	}
+
+	// Reset the text hash
+	pState->m_lastHash.clear();
+
+	// What tag is this ?
+	string tagName(StringManip::toLowerCase(pElementName));
+	if ((pState->m_foundHead == false) &&
+		(tagName == "head"))
+	{
+		// Expect to find META tags and a title
+		pState->m_inHead = true;
+		// One head is enough :-)
+		pState->m_foundHead = true;
+	}
+	else if ((pState->m_inHead == true) &&
+		(tagName == "meta"))
+	{
+		string metaName, metaContent;
+
+		// Get the META tag's name and content
+		for (unsigned int attrNum = 0;
+			(pAttributes[attrNum] != NULL) && (pAttributes[attrNum + 1]); attrNum += 2)
+		{
+			if (strncasecmp(pAttributes[attrNum], "name", 4) == 0)
+			{
+				metaName = pAttributes[attrNum + 1];
+			}
+			else if (strncasecmp(pAttributes[attrNum], "content", 7) == 0)
+			{
+				metaContent = pAttributes[attrNum + 1];
+			}
+		}
+
+		if ((metaName.empty() == false) &&
+			(metaContent.empty() == false))
+		{
+			// Store this META tag
+			pState->m_metaTags[metaName] = metaContent;
+		}
+	}
+	else if ((pState->m_inHead == true) &&
+		(tagName == "title"))
+	{
+		// Extract title
+		pState->m_appendToTitle = true;
+	}
+	else if (tagName == "body")
+	{
+		// Index text
+		pState->m_appendToText = true;
+	}
+	else if (tagName == "a")
+	{
+		pState->m_currentLink.m_url.clear();
+		pState->m_currentLink.m_name.clear();
+
+		// Get the href
+		for (unsigned int attrNum = 0;
+			(pAttributes[attrNum] != NULL) && (pAttributes[attrNum + 1]); attrNum += 2)
+		{
+			if (strncasecmp(pAttributes[attrNum], "href", 4) == 0)
+			{
+				pState->m_currentLink.m_url = pAttributes[attrNum + 1];
+				break;
+			}
+		}
+
+		if (pState->m_currentLink.m_url.empty() == false)
+		{
+			// FIXME: get the NodeInfo to find out the position of this link
+			pState->m_currentLink.m_startPos = pState->m_textPos;
+#ifdef DEBUG
+			cout << "HtmlTokenizer::startHandler: found link to " << pState->m_currentLink.m_url << endl;
+#endif
+
+			// Extract link
+			pState->m_appendToLink = true;
+		}
+	}
+	else if (tagName == "frame")
+	{
+		Link frame;
+
+		// Get the name and source
+		for (unsigned int attrNum = 0;
+			(pAttributes[attrNum] != NULL) && (pAttributes[attrNum + 1]); attrNum += 2)
+		{
+			if (strncasecmp(pAttributes[attrNum], "name", 4) == 0)
+			{
+				frame.m_name = pAttributes[attrNum + 1];
+			}
+			else if (strncasecmp(pAttributes[attrNum], "src", 3) == 0)
+			{
+				frame.m_url = pAttributes[attrNum + 1];
+			}
+		}
+
+		if (frame.m_url.empty() == false)
+		{
+			// Store this frame
+			pState->m_frames.insert(frame);
+		}
+	}
+	else if ((tagName == "frameset") ||
+		(tagName == "script") ||
+		(tagName == "style"))
+	{
+		// Skip
+		++pState->m_skip;
+	}
+}
+
+static void endHandler(void *pData, const char *pElementName)
+{
+	if ((pData == NULL) ||
+		(pElementName == NULL) ||
+		(strlen(pElementName) == 0))
+	{
+		return;
+	}
+
+	HtmlTokenizer::ParserState *pState = (HtmlTokenizer::ParserState *)pData;
+	if (pState == NULL)
+	{
+		return;
+	}
+
+	// Reset state
+	string tagName(StringManip::toLowerCase(pElementName));
+	if (tagName == "head")
+	{
+		pState->m_inHead = false;
+	}
+	else if (tagName == "title")
+	{
+		StringManip::removeCharacters(pState->m_title, "\t\r\n");
+#ifdef DEBUG
+		cout << "HtmlTokenizer::endHandler: title is " << pState->m_title << endl;
+#endif
+		pState->m_appendToTitle = false;
+	}
+	else if (tagName == "body")
+	{
+		pState->m_appendToText = false;
+	}
+	else if (tagName == "a")
+	{
+		if (pState->m_currentLink.m_url.empty() == false)
+		{
+			// FIXME: get the NodeInfo to find out the position of this link
+			pState->m_currentLink.m_endPos = pState->m_textPos;
+
+			// Store this link
+			pState->m_links.insert(pState->m_currentLink);
+			++pState->m_currentLink.m_index;
+#ifdef DEBUG
+			cout << "HtmlTokenizer::endHandler: link was " << pState->m_currentLink.m_name << endl;
+#endif
+		}
+
+		pState->m_appendToLink = false;
+	}
+	else if ((tagName == "frameset") ||
+		(tagName == "script") ||
+		(tagName == "style"))
+	{
+		--pState->m_skip;
+	}
+}
+
+static void charactersHandler(void *pData, const char *pText, int textLen)
+{
+	if ((pData == NULL) ||
+		(pText == NULL) ||
+		(textLen == 0))
+	{
+		return;
+	}
+
+	HtmlTokenizer::ParserState *pState = (HtmlTokenizer::ParserState *)pData;
+	if (pState == NULL)
+	{
+		return;
+	}
+
+	pState->m_textPos += textLen;
+	if (pState->m_skip > 0)
+	{
+		// Skip this
+		return;
+	}
+
+	string text(pText, textLen);
+
+	// For some reason, this handler might be called twice for the same text !
+	// See http://mail.gnome.org/archives/xml/2002-September/msg00089.html
+	string textHash(StringManip::hashString(text));
+	if (pState->m_lastHash == textHash)
+	{
+		// Ignore this
+#ifdef DEBUG
+		cout << "HtmlTokenizer::charactersHandler: ignoring duplicate text" << endl;
+#endif
+		return;
+	}
+	pState->m_lastHash = textHash;
+
+	// Append current text
+	// FIXME: convert to UTF-8 or Latin 1 ?
+	if (pState->m_appendToTitle == true)
+	{
+		pState->m_title += text;
+	}
+	else
+	{
+		if (pState->m_appendToText == true)
+		{
+			pState->m_text += text;
+		}
+
+		// Appending to text and to link are not mutually exclusive operations
+		if (pState->m_appendToLink == true)
+		{
+			pState->m_currentLink.m_name += text;
+		}
+	}
+}
+
+static void cDataHandler(void *pData, const char *pText, int textLen)
+{
+	// Nothing to do
+}
+
+static void whitespaceHandler(void *pData, const xmlChar *pText, int txtLen)
+{
+	if (pData == NULL)
+	{
+		return;
+	}
+
+	HtmlTokenizer::ParserState *pState = (HtmlTokenizer::ParserState *)pData;
+	if (pState == NULL)
+	{
+		return;
+	}
+
+	if (pState->m_skip > 0)
+	{
+		// Skip this
+		return;
+	}
+
+	// Append a single space
+	if (pState->m_appendToTitle == true)
+	{
+		pState->m_title += " ";
+	}
+	else
+	{
+		if (pState->m_appendToText == true)
+		{
+			pState->m_text += " ";
+		}
+
+		// Appending to text and to link are not mutually exclusive operations
+		if (pState->m_appendToLink == true)
+		{
+			pState->m_currentLink.m_name += " ";
+		}
+	}
+}
+
+static void commentHandler(void *pData, const char *pText)
+{
+	// FIXME: take comments into account, eg on terms position ?
+}
+
+static void errorHandler(void *pData, const char *pMsg, ...)
+{
+	va_list args;
+	char pErr[1000];
+
+	va_start(args, pMsg);
+	vsnprintf(pErr, 1000, pMsg, args );
+	va_end(args);
+
+	cerr << "HtmlTokenizer::errorHandler: " << pErr << endl;
+
+	// Be lenient as much as possible
+	xmlResetLastError();
+}
+
+static void warningHandler(void *pData, const char *pMsg, ...)
+{
+	va_list args;
+	char pErr[1000];
+
+	va_start(args, pMsg);
+	vsnprintf(pErr, 1000, pMsg, args );
+	va_end(args);
+
+	cerr << "HtmlTokenizer::warningHandler: " << pErr << endl;
+}
+
+HtmlTokenizer::HtmlTokenizer(const Document *pDocument, unsigned int linksStartAtPos) :
+	Tokenizer(NULL)
+{
+	if (pDocument != NULL)
+	{
+		unsigned int length = 0;
+		const char *pData = pDocument->getData(length);
+
+		if ((pData != NULL) &&
+			(length > 0) &&
+			(parseHTML(pData) == true))
+		{
+			// Append META keywords, if any were found
+			m_state.m_text += getMetaTag("keywords");
+
+			// Did we find a title ?
+			if (m_state.m_title.empty() == true)
+			{
+				m_state.m_title = pDocument->getTitle();
+			}
+
+			// Pass the result to the parent class
+			Document *pStrippedDoc = new Document(m_state.m_title,
+				pDocument->getLocation(), pDocument->getType(),
+				pDocument->getLanguage());
+			pStrippedDoc->setData(m_state.m_text.c_str(), m_state.m_text.length());
+
+			setDocument(pStrippedDoc);
+		}
+	}
 }
 
 HtmlTokenizer::~HtmlTokenizer()
@@ -59,265 +448,91 @@ HtmlTokenizer::~HtmlTokenizer()
 	}
 }
 
-void HtmlTokenizer::initialize(const Document *pDocument)
+bool HtmlTokenizer::parseHTML(const string &str)
 {
-	unsigned int length = 0;
+	string htmlChunk(str);
+	htmlSAXHandler saxHandler;
 
-	if (pDocument == NULL)
+	if (str.empty() == true)
 	{
-		return;
+#ifdef DEBUG
+		cout << "HtmlTokenizer::parseHTML: no input" << endl;
+#endif
+		return false;
 	}
 
-	const char *data = pDocument->getData(length);
-	if ((data != NULL) &&
-		(length > 0))
+	xmlInitParser();
+
+	// Setup the SAX handler
+	memset((void*)&saxHandler, 0, sizeof(htmlSAXHandler));
+	saxHandler.startElement = (startElementSAXFunc)&startHandler;
+	saxHandler.endElement = (endElementSAXFunc)&endHandler;
+	saxHandler.characters = (charactersSAXFunc)&charactersHandler;
+	saxHandler.cdataBlock = (charactersSAXFunc)&cDataHandler;
+	saxHandler.ignorableWhitespace = (ignorableWhitespaceSAXFunc)&whitespaceHandler;
+	saxHandler.comment = (commentSAXFunc)&commentHandler;
+	saxHandler.fatalError = (fatalErrorSAXFunc)&errorHandler;
+	saxHandler.error = (errorSAXFunc)&errorHandler;
+	saxHandler.warning = (warningSAXFunc)&warningHandler;
+
+	// Try to cope with pages that have scripts or other rubbish prepended
+	string::size_type htmlPos = htmlChunk.find("<!DOCTYPE");
+	if (htmlPos == string::npos)
 	{
-		// Remove HTML tags
-		string strippedData = parseHTML(data);
-		// Append META keywords, if any were found
-		strippedData += getMetaTag("keywords");
-
-		// Pass the result to the parent class
-		Document *pStrippedDoc = new Document(pDocument->getTitle(),
-			pDocument->getLocation(), pDocument->getType(),
-			pDocument->getLanguage());
-		pStrippedDoc->setData(strippedData.c_str(), strippedData.length());
-		setDocument(pStrippedDoc);
-
-		m_pHtmlDocument = pDocument;
+		htmlPos = htmlChunk.find("<!doctype");
 	}
-}
-
-/// Parses HTML; the string without tags.
-string HtmlTokenizer::parseHTML(const string &str, bool stripAllBlocks)
-{
-	stack<string> tagsStack;
-	string stripped, link, linkName;
-	string::size_type startPos = 0, linkOpenPos = 0;
-	regex_t linksRegex, metaRegex;
-	bool isHtml = false, skip = false, catText = stripAllBlocks;
-	bool extractLinks = true, extractMetaTags = true, getLinkName = false;
-
-#ifdef DEBUG_TOKENIZER
-	cout << "HtmlTokenizer::parseHTML: start" << endl;
-#endif
-	// Prepare the regexps
-	if (regcomp(&linksRegex, "a(.*)href=(.*)", REG_EXTENDED|REG_ICASE) != 0)
+	if ((htmlPos != string::npos) &&
+		(htmlPos > 0))
 	{
-#ifdef DEBUG_TOKENIZER
-		cout << "HtmlTokenizer::parseHTML: couldn't compile links regexp" << endl;
+		htmlChunk.erase(0, htmlPos);
+#ifdef DEBUG
+		cout << "HtmlTokenizer::parseHTML: removed " << htmlPos << " characters" << endl;
 #endif
-		extractLinks = false;
-	}
-	if (regcomp(&metaRegex, "meta name=(.*) content=(.*)", REG_EXTENDED|REG_ICASE) != 0)
-	{
-#ifdef DEBUG_TOKENIZER
-		cout << "HtmlTokenizer::parseHTML: couldn't compile meta tag regexp" << endl;
-#endif
-		extractMetaTags = false;
 	}
 
-	// Tag start
-	string::size_type pos = str.find("<");
-	while (pos != string::npos)
+	// Wrap input with a dummy tag to avoid the characters handler being called with twice the same text
+	htmlPos = htmlChunk.find("<HTML");
+	if (htmlPos == string::npos)
 	{
-		isHtml = true;
-
-		if (skip == false)
-		{
-			string text = str.substr(startPos, pos - startPos);
-			if (catText == true)
-			{
-				stripped += StringManip::replaceEntities(text);
-				stripped += " ";
-			}
-
-			// Is this part of the name of the last link we found ?
-			if (getLinkName == true)
-			{
-				linkName += text;
-#ifdef DEBUG_TOKENIZER
-				cout << "HtmlTokenizer::parseHTML: adding to name " << text << endl;
-#endif
-			}
-
-			startPos = pos + 1;
-			// Tag end
-			if (str[pos] == '<')
-			{
-				pos = str.find(">", startPos);
-			}
-			// Skip stuff in the tag
-			skip = true;
-		}
-		else
-		{
-			regmatch_t pLinksMatches[3];
-			regmatch_t pMetaMatches[3];
-			int nLinksMatches = 3, nMetaMatches = 3;
-
-			// Found a tag from startPos to pos
-			string tag(str.substr(startPos, pos - startPos));
-			// Push it onto the stack
-			tagsStack.push(tag);
-#ifdef DEBUG_TOKENIZER
-			cout << "HtmlTokenizer::parseHTML: found " << tag << endl;
-#endif
-
-			if ((extractMetaTags == true) &&
-				(regexec(&metaRegex, tag.c_str(), nMetaMatches, pMetaMatches, 
-					REG_NOTBOL|REG_NOTEOL) == 0) &&
-				(pMetaMatches[nMetaMatches - 1].rm_so != -1))
-			{
-				string tmp, metaName, metaContent;
-
-				// META tag name
-				tmp = tag.substr(pMetaMatches[1].rm_so,
-					pMetaMatches[1].rm_eo - pMetaMatches[1].rm_so);
-				// Remove quotes
-				metaName = StringManip::removeQuotes(tmp);
-
-				// META tag content
-				tmp = tag.substr(pMetaMatches[2].rm_so,
-					pMetaMatches[2].rm_eo - pMetaMatches[2].rm_so);
-				// Remove quotes
-				metaContent = StringManip::removeQuotes(tmp);
-#ifdef DEBUG_TOKENIZER
-				cout << "HtmlTokenizer::parseHTML: found META tag " << metaName << ": " << metaContent << endl;
-#endif
-				m_metaTags[metaName] = metaContent;
-			}
-			// See if this tag is an anchor
-			// pLinksMatches[0] will be something like 'a href="blah"', pLinksMatches[1] will be ' ' and [2] will be '"blah"'
-			else if ((extractLinks == true) &&
-				(regexec(&linksRegex, tag.c_str(), nLinksMatches, pLinksMatches, REG_NOTBOL|REG_NOTEOL) == 0) &&
-				(pLinksMatches[nLinksMatches - 1].rm_so != -1))
-			{
-				string quotedLink = tag.substr(pLinksMatches[2].rm_so,
-					pLinksMatches[2].rm_eo - pLinksMatches[2].rm_so);
-
-#ifdef DEBUG_TOKENIZER
-				cout << "HtmlTokenizer::parseHTML: found link start " << tag << endl;
-#endif
-				if (link.empty() == false)
-				{
-					// The previous link's anchor's end couldn't be found ?
-					m_links.insert(Link(stripTags(link), linkName, m_linkPos, linkOpenPos, startPos - 1));
-					m_linkPos++;
-					linkName = "";
-#ifdef DEBUG_TOKENIZER
-					cout << "HtmlTokenizer::parseHTML: previous link wasn't closed properly" << endl;
-#endif
-				}
-
-				// Remove quotes
-				link = StringManip::removeQuotes(quotedLink);
-				linkOpenPos = startPos - 1;
-
-				// Remember to get the name of the link
-				getLinkName = true;
-			}
-			// Maybe it's the anchor's end ?
-			else if ((extractLinks == true) &&
-				(strncasecmp(tag.c_str(), "/a", 2) == 0))
-			{
-				if (getLinkName == true)
-				{
-#ifdef DEBUG_TOKENIZER
-					cout << "HtmlTokenizer::parseHTML: " << pos << " link " << m_linkPos << " is " << link << ", name " << linkName << endl;
-#endif
-					// New link
-					m_links.insert(Link(stripTags(link), linkName, m_linkPos, linkOpenPos, pos + 1));
-					m_linkPos++;
-					getLinkName = false;
-					link = linkName = "";
-				}
-			}
-			else if (stripAllBlocks == false)
-			{
-				if (textBlockStart(tag) == true)
-				{
-					catText = true;
-#ifdef DEBUG_TOKENIZER
-					cout << "HtmlTokenizer::parseHTML: start text cat" << endl;
-#endif
-				}
-				else if (textBlockEnd(tag) == true)
-				{
-					catText = false;
-#ifdef DEBUG_TOKENIZER
-					cout << "HtmlTokenizer::parseHTML: end text cat" << endl;
-#endif
-				}
-				else
-				{
-					string parentTag = tagsStack.top();
-
-					if ((strncasecmp(tag.c_str(), "script", 6) == 0) ||
-						(strncasecmp(tag.c_str(), "style", 5) == 0))
-					{
-#ifdef DEBUG_TOKENIZER
-						cout << "HtmlTokenizer::parseHTML: skip script" << endl;
-#endif
-						catText = false;
-					}
-					else if (((strncasecmp(tag.c_str(), "/script", 7) == 0) ||
-						(strncasecmp(tag.c_str(), "/style", 6) == 0)) &&
-						(textBlockStart(parentTag) == false))
-					{
-#ifdef DEBUG_TOKENIZER
-						cout << "HtmlTokenizer::parseHTML: stop skip script" << endl;
-#endif
-						catText = true;
-					}
-				}
-			}
-
-			startPos = pos + 1;
-			pos = str.find("<", startPos);
-			skip = false;
-		}
+		htmlPos = htmlChunk.find("<html");
 	}
-	if ((startPos < str.length()) &&
-		(catText == true))
+	if (htmlPos == string::npos)
 	{
-		stripped  += StringManip::replaceEntities(str.substr(startPos));
+		string dummyHtml("<html>");
+		dummyHtml += htmlChunk;
+		dummyHtml += "</html>";
+		htmlChunk = dummyHtml;
+#ifdef DEBUG
+		cout << "HtmlTokenizer::parseHTML: wrapped input" << endl;
+#endif
 	}
 
-	// Free the compiled regexps
-	regfree(&linksRegex);
-	regfree(&metaRegex);
-
-	if (isHtml == false)
+#ifndef _DONT_USE_PUSH_INTERFACE
+	htmlParserCtxtPtr pContext = htmlCreatePushParserCtxt(&saxHandler, (void*)&m_state,
+		htmlChunk.c_str(), (int)htmlChunk.length(), "", XML_CHAR_ENCODING_NONE);
+	if (pContext != NULL)
 	{
-		return str;
+		// Parse
+		htmlParseChunk(pContext, htmlChunk.c_str(), (int)htmlChunk.length(), 0);
+
+		// Free
+		htmlParseChunk(pContext, NULL, 0, 1);
+		htmlFreeParserCtxt(pContext);
 	}
-
-	return stripped;
-}
-
-/// Returns true if the tag corresponds to a text block.
-bool HtmlTokenizer::textBlockStart(const string &tag)
-{
-	if ((strncasecmp(tag.c_str(), "body", 4) == 0) ||
-		(strncasecmp(tag.c_str(), "title", 5) == 0))
+#else
+	htmlDocPtr pDoc = htmlSAXParseDoc((xmlChar *)htmlChunk.c_str(), "", &saxHandler, (void*)&m_state);
+	if (pDoc != NULL)
 	{
-		return true;
+		xmlFreeDoc(pDoc);
 	}
-
-	return false;
-}
-
-/// Returns true if the tag corresponds to the end of a text block.
-bool HtmlTokenizer::textBlockEnd(const string &tag)
-{
-	if ((strncasecmp(tag.c_str(), "/body", 5) == 0) ||
-		(strncasecmp(tag.c_str(), "/title", 6) == 0))
+#endif
+	else
 	{
-		return true;
+		cerr << "HtmlTokenizer::parseHTML: couldn't create parser context" << endl;
 	}
+	xmlCleanupParser();
 
-	return false;
+	return true;
 }
 
 /// Gets the specified META tag content.
@@ -328,8 +543,8 @@ string HtmlTokenizer::getMetaTag(const string &name)
 		return "";
 	}
 
-	map<string, string>::const_iterator iter = m_metaTags.find(name);
-	if (iter != m_metaTags.end())
+	map<string, string>::const_iterator iter = m_state.m_metaTags.find(name);
+	if (iter != m_state.m_metaTags.end())
 	{
 		return iter->second;
 	}
@@ -340,56 +555,5 @@ string HtmlTokenizer::getMetaTag(const string &name)
 /// Gets the links map.
 set<Link> &HtmlTokenizer::getLinks(void)
 {
-	return m_links;
-}
-
-/// Utility method that strips HTML tags off; the string without tags.
-string HtmlTokenizer::stripTags(const string &str)
-{
-	HtmlTokenizer tokens;
-
-	return tokens.parseHTML(str, true);
-}
-
-Link::Link(const string &url, const string &name, unsigned int pos, unsigned int openPos, unsigned int closePos) :
-	m_url(url),
-	m_name(name),
-	m_pos(pos),
-	m_open(openPos),
-	m_close(closePos)
-{
-}
-
-Link::Link(const Link &other) :
-	m_url(other.m_url),
-	m_name(other.m_name),
-	m_pos(other.m_pos),
-	m_open(other.m_open),
-	m_close(other.m_close)
-{
-}
-
-Link::~Link()
-{
-}
-
-Link& Link::operator=(const Link& other)
-{
-	m_url = other.m_url;
-	m_name = other.m_name;
-	m_pos = other.m_pos;
-	m_open = other.m_open;
-	m_close = other.m_close;
-
-	return *this;
-}
-
-bool Link::operator==(const Link &other) const
-{
-	return m_url == other.m_url;
-}
-
-bool Link::operator<(const Link &other) const
-{
-	return m_pos < other.m_pos;
+	return m_state.m_links;
 }

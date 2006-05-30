@@ -27,16 +27,27 @@
 using std::string;
 
 XmlTokenizer::XmlTokenizer(const Document *pDocument) :
-	Tokenizer(NULL),
-	m_pXmlDocument(NULL)
+	Tokenizer(NULL)
 {
-	initialize(pDocument);
-}
+	if (pDocument != NULL)
+	{
+		unsigned int length = 0;
+		const char *data = pDocument->getData(length);
 
-XmlTokenizer::XmlTokenizer() :
-	Tokenizer(NULL),
-	m_pXmlDocument(NULL)
-{
+		if ((data != NULL) &&
+			(length > 0))
+		{
+			// Remove XML tags
+			string strippedData = parseXML(data);
+
+			// Pass the result to the parent class
+			Document *pStrippedDoc = new Document(pDocument->getTitle(),
+				pDocument->getLocation(), pDocument->getType(),
+				pDocument->getLanguage());
+			pStrippedDoc->setData(strippedData.c_str(), strippedData.length());
+			setDocument(pStrippedDoc);
+		}
+	}
 }
 
 XmlTokenizer::~XmlTokenizer()
@@ -46,33 +57,6 @@ XmlTokenizer::~XmlTokenizer()
 		// This should have been set by setDocument(),
 		// called in initialize()
 		delete m_pDocument;
-	}
-}
-
-void XmlTokenizer::initialize(const Document *pDocument)
-{
-	unsigned int length = 0;
-
-	if (pDocument == NULL)
-	{
-		return;
-	}
-
-	const char *data = pDocument->getData(length);
-	if ((data != NULL) &&
-		(length > 0))
-	{
-		// Remove XML tags
-		string strippedData = parseXML(data);
-
-		// Pass the result to the parent class
-		Document *pStrippedDoc = new Document(pDocument->getTitle(),
-			pDocument->getLocation(), pDocument->getType(),
-			pDocument->getLanguage());
-		pStrippedDoc->setData(strippedData.c_str(), strippedData.length());
-		setDocument(pStrippedDoc);
-
-		m_pXmlDocument = pDocument;
 	}
 }
 
@@ -128,7 +112,5 @@ string XmlTokenizer::parseXML(const string &str)
 /// Utility method that strips XML tags off; the string without tags.
 string XmlTokenizer::stripTags(const string &str)
 {
-	XmlTokenizer tokens;
-
-	return tokens.parseXML(str);
+	return parseXML(str);
 }

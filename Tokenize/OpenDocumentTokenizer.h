@@ -34,9 +34,6 @@ class OpenDocumentTokenizer : public XmlTokenizer
 		OpenDocumentTokenizer(const Document *pDocument);
 		virtual ~OpenDocumentTokenizer();
 
-	protected:
-		OpenDocumentTokenizer();
-
 	private:
 		OpenDocumentTokenizer(const OpenDocumentTokenizer &other);
 		OpenDocumentTokenizer& operator=(const OpenDocumentTokenizer& other);

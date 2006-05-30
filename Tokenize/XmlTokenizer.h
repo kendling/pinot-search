@@ -32,14 +32,10 @@ class XmlTokenizer : public Tokenizer
 		static std::string stripTags(const std::string &str);
 
 	protected:
-		const Document *m_pXmlDocument;
-
-		XmlTokenizer();
-
 		void initialize(const Document *pDocument);
 
 		/// Parses XML; the string without tags.
-		std::string parseXML(const std::string &str);
+		static std::string parseXML(const std::string &str);
 
 };
 

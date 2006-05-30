@@ -36,8 +36,6 @@ class RtfTokenizer : public HtmlTokenizer
 
 	protected:
 		RtfTokenizer();
-
-	private:
 		RtfTokenizer(const RtfTokenizer &other);
 		RtfTokenizer& operator=(const RtfTokenizer& other);
 

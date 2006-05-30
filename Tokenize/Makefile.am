@@ -1,7 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
 UTILS_OBJS = ../Utils/Document.o \
-	../Utils/HtmlDocument.o \
 	../Utils/StringManip.o \
 	../Utils/DocumentInfo.o \
 	../Utils/TimeConverter.o \
@@ -74,5 +73,5 @@ libTokenize_la_SOURCES = \
 	UnknownTypeTokenizer.cpp \
 	XmlTokenizer.cpp
 
-AM_CXXFLAGS = -fPIC -I../Utils @TAGLIB_CFLAGS@
+AM_CXXFLAGS = -fPIC -I../Utils @XML_CFLAGS@ @TAGLIB_CFLAGS@
 

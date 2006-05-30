@@ -22,6 +22,7 @@
 #include <string>
 
 #include "HtmlTokenizer.h"
+#include "XmlTokenizer.h"
 #include "UnknownTypeTokenizer.h"
 #include "TokenizerFactory.h"
 #include "StringManip.h"
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
 		const char *pData = doc.getData(length);
 
 		cout << "Stripped text is :" << endl;
-		cout << HtmlTokenizer::stripTags(string(pData, length)) << endl;
+		cout << XmlTokenizer::stripTags(string(pData, length)) << endl;
 	}
 	else if ((strncmp(argv[2], "LISTLINKS", 9) == 0) &&
 		(pHtmlTokens != NULL))

@@ -34,9 +34,6 @@ class PdfTokenizer : public HtmlTokenizer
 		PdfTokenizer(const Document *pDocument);
 		virtual ~PdfTokenizer();
 
-	protected:
-		PdfTokenizer();
-
 	private:
 		PdfTokenizer(const PdfTokenizer &other);
 		PdfTokenizer& operator=(const PdfTokenizer& other);

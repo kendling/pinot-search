@@ -38,19 +38,7 @@ Tokenizer *getTokenizer(const Document *pDocument)
 }
 
 PdfTokenizer::PdfTokenizer(const Document *pDocument) :
-	HtmlTokenizer(NULL)
-{
-	// Run pdftohtml
-	Document *pOutputDocument = runHelperProgram(pDocument, "pdftohtml -stdout");
-	if (pOutputDocument != NULL)
-	{
-		// Give the result to the parent class
-		initialize(pOutputDocument);
-	}
-}
-
-PdfTokenizer::PdfTokenizer() :
-	HtmlTokenizer()
+	HtmlTokenizer(runHelperProgram(pDocument, "pdftohtml -stdout"))
 {
 }
 

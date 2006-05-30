@@ -39,19 +39,7 @@ Tokenizer *getTokenizer(const Document *pDocument)
 }
 
 RtfTokenizer::RtfTokenizer(const Document *pDocument) :
-	HtmlTokenizer(NULL)
-{
-	// Run unrtf
-	Document *pOutputDocument = runHelperProgram(pDocument, "unrtf --nopict --html");
-	if (pOutputDocument != NULL)
-	{
-		// Give the result to the parent class
-		initialize(pOutputDocument);
-	}
-}
-
-RtfTokenizer::RtfTokenizer() :
-	HtmlTokenizer()
+	HtmlTokenizer(runHelperProgram(pDocument, "unrtf --nopict --html"))
 {
 }
 

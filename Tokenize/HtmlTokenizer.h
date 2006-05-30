@@ -28,8 +28,7 @@
 class Link
 {
 	public:
-		Link(const std::string &url, const std::string &name,
-			unsigned int pos, unsigned int openPos, unsigned int closePos);
+		Link();
 		Link(const Link &other);
 		~Link();
 
@@ -39,9 +38,9 @@ class Link
 
 		std::string m_url;
 		std::string m_name;
-		unsigned int m_pos;
-		unsigned int m_open;
-		unsigned int m_close;
+		unsigned int m_index;
+		unsigned int m_startPos;
+		unsigned int m_endPos;
 
 };
 
@@ -57,27 +56,32 @@ class HtmlTokenizer : public Tokenizer
 		/// Gets the links map.
 		std::set<Link> &getLinks(void);
 
-		/// Utility method that strips HTML tags off; the string without tags.
-		static std::string stripTags(const std::string &str);
+		class ParserState
+		{
+			public:
+				ParserState();
+				~ParserState();
+
+				unsigned int m_textPos;
+				std::string m_lastHash;
+				bool m_inHead;
+				bool m_foundHead;
+				bool m_appendToTitle;
+				bool m_appendToText;
+				bool m_appendToLink;
+				unsigned int m_skip;
+				std::string m_title;
+				std::string m_text;
+				Link m_currentLink;
+				std::set<Link> m_links;
+				std::set<Link> m_frames;
+				std::map<std::string, std::string> m_metaTags;
+		};
 
 	protected:
-		const Document *m_pHtmlDocument;
-		unsigned int m_linkPos;
-		std::map<std::string, std::string> m_metaTags;
-		std::set<Link> m_links;
+		ParserState m_state;
 
-		HtmlTokenizer();
-
-		void initialize(const Document *pDocument);
-
-		/// Parses HTML; the string without tags.
-		std::string parseHTML(const std::string &str, bool stripAllBlocks = false);
-
-		/// Returns true if the tag corresponds to a text block.
-		static bool textBlockStart(const std::string &tag);
-
-		/// Returns true if the tag corresponds to the end of a text block.
-		static bool textBlockEnd(const std::string &tag);
+		bool parseHTML(const std::string &str);
 
 };
 
