@@ -187,7 +187,9 @@ unsigned int StringManip::removeCharacters(string &str, const string &characters
 	while (charPos != string::npos)
 	{
 		str.erase(charPos, 1);
-		charPos = str.find_first_of(characters.c_str(), charPos - 1);
+		++count;
+
+		charPos = str.find_first_of(characters.c_str(), charPos);
 	}
 
 	return count;	

@@ -2,7 +2,6 @@
 
 noinst_HEADERS = \
 	Document.h \
-	HtmlDocument.h \
 	Languages.h \
 	MIMEScanner.h \
 	NLS.h \
@@ -28,7 +27,6 @@ noinst_LTLIBRARIES = libUtils.la
 
 libUtils_la_SOURCES = \
 	Document.cpp \
-	HtmlDocument.cpp \
 	Languages.cpp \
 	MIMEScanner.cpp \
 	StringManip.cpp \
