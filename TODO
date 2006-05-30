@@ -15,7 +15,7 @@ General
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
 - PDF tokenizer with poppler
-- HTML tokenizer with liboil
+- HTML tokenizer with libtidy or libxml2
 - WordPerfect tokenizer with libwpd
 - Spin tokenizers into separate project, a la libextractor
 - Check whether pdftohtml flatens text in PDF documents that have columns.
@@ -33,7 +33,7 @@ Collect
 - Support for HTML frames
 
 Search
-- Write a Spirit or a liboil-based parser for extracting results from web pages
+- Write a parser for extracting results from web pages
 - Allow to use "extended" INTERPRET tags selectively 
 - With engines that provide a redirection URL for results (eg Acoona), it looks like
   the query hitory is not saved/checked correctly
