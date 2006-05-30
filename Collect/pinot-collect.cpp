@@ -99,23 +99,23 @@ int main(int argc, char **argv)
 	unsigned int urlContentLen;
 	string contentType;
 	DocumentInfo docInfo("Test", url, "", "");
-	Document *urlDoc = myDownloader->retrieveUrl(docInfo);
-	if (urlDoc == NULL)
+	Document *pDoc = myDownloader->retrieveUrl(docInfo);
+	if (pDoc == NULL)
 	{
 		cerr << "Download operation failed !" << endl;
 	}
 	else
 	{
-		cout << "Document type is " << urlDoc->getType() << endl;
+		cout << "Type: " << pDoc->getType() << endl;
 
-		unsigned int urlContentLen;
-		const char *urlContent = urlDoc->getData(urlContentLen);
+		unsigned int contentLen;
+		const char *pContent = pDoc->getData(contentLen);
 
-		if ((urlContent != NULL) &&
-			(urlContentLen > 0))
+		if ((pContent != NULL) &&
+			(contentLen > 0))
 		{
-			// Save the content to a file
-			string fileName = thisUrl.getFile();
+			string fileName(thisUrl.getFile());
+
 			if (fileName.empty() == true)
 			{
 				fileName = "index.html";
@@ -123,8 +123,9 @@ int main(int argc, char **argv)
 
 			cout << "Saving " << urlContentLen << " bytes to " << fileName << endl;
 
+			// Save the content to a file
 			ofstream outputFile(fileName.c_str());
-			outputFile.write(urlContent, urlContentLen);
+			outputFile.write(pContent, contentLen);
 			outputFile.close();
 		}
 		else
@@ -132,7 +133,7 @@ int main(int argc, char **argv)
 			cout << "Document is empty" << endl;
 		}
 
-		delete urlDoc;
+		delete pDoc;
 	}
 
 	delete myDownloader;

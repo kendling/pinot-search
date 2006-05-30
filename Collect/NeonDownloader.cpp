@@ -25,7 +25,6 @@
 #include <neon/ne_request.h>
 
 #include "HtmlTokenizer.h"
-#include "HtmlDocument.h"
 #include "Url.h"
 #include "NeonDownloader.h"
 
@@ -351,17 +350,8 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	{
 		if (statusCode < 400)
 		{
-			// Is it an HTML type ?
-			if (g_contentTypeHeaderValue.find("html") != string::npos)
-			{
-				pDocument = new HtmlDocument(docInfo);
-			}
-			else
-			{
-				pDocument = new Document(docInfo);
-			}
-
-			// ...and copy the content into it
+			// Copy the document content
+			pDocument = new Document(docInfo);
 			pDocument->setData(pContent, contentLen);
 			pDocument->setLocation(url);
 			pDocument->setType(g_contentTypeHeaderValue);

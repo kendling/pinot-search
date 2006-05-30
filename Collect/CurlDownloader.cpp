@@ -22,7 +22,6 @@
 #include <curl/curl.h>
 
 #include "HtmlTokenizer.h"
-#include "HtmlDocument.h"
 #include "Url.h"
 #include "CurlDownloader.h"
 
@@ -170,32 +169,29 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 			{
 				char *pContentType = NULL;
 
+				// Copy the document content
+				pDocument = new Document(docInfo);
+				pDocument->setData(pContentInfo->m_pContent, pContentInfo->m_contentLen);
+				pDocument->setLocation(url);
+
 				// What's the Content-Type ?
 				res = curl_easy_getinfo(pCurlHandler, CURLINFO_CONTENT_TYPE, &pContentType);
 				if ((res == CURLE_OK) &&
 					(pContentType != NULL))
 				{
-					if (strstr(pContentType, "html") != NULL)
-					{
-						pDocument = new HtmlDocument(docInfo);
-					}
-					else
-					{
-						pDocument = new Document(docInfo);
-					}
-
-					// ...and copy the content into it
-					pDocument->setData(pContentInfo->m_pContent, pContentInfo->m_contentLen);
-					pDocument->setLocation(url);
 					pDocument->setType(pContentType);
+				}
 
 #ifdef DEBUG
-					cout << "CurlDownloader::retrieveUrl: document size is " << pContentInfo->m_contentLen << endl;
+				cout << "CurlDownloader::retrieveUrl: document size is " << pContentInfo->m_contentLen << endl;
 #endif
-				}
 			}
 		}
 
+		if (pContentInfo->m_pContent != NULL)
+		{
+			free(pContentInfo->m_pContent);
+		}
 		delete pContentInfo;
 
 		// Cleanup

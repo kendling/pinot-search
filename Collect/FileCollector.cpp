@@ -17,7 +17,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include "HtmlDocument.h"
 #include "HtmlTokenizer.h"
 #include "MIMEScanner.h"
 #include "Url.h"
@@ -41,7 +40,6 @@ FileCollector::~FileCollector()
 /// Retrieves the specified document; NULL if error.
 Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 {
-	Document *pDocument = NULL;
 	Url thisUrl(docInfo.getLocation());
 	string protocol = thisUrl.getProtocol();
 
@@ -57,19 +55,10 @@ Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 	fileLocation += "/";
 	fileLocation += fileName;
 
-	// Determine the file type
-	string fileType = MIMEScanner::scanFile(fileLocation);
-	// Is it an HTML type ?
-	if (fileType.find("html") != string::npos)
-	{
-		pDocument = new HtmlDocument(docInfo);
-	}
-	else
-	{
-		pDocument = new Document(docInfo);
-	}
+	Document *pDocument = new Document(docInfo);
 
-	pDocument->setType(fileType);
+	// Determine the file type
+	pDocument->setType(MIMEScanner::scanFile(fileLocation));
 	if (pDocument->setDataFromFile(fileLocation) == false)
 	{
 		delete pDocument;
