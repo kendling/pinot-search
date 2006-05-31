@@ -195,6 +195,38 @@ unsigned int StringManip::removeCharacters(string &str, const string &characters
 	return count;	
 }
 
+/// Trims spaces at the start and end of a string.
+unsigned int StringManip::trimSpaces(string &str)
+{
+	unsigned int count = 0;
+
+	for (unsigned int pos = 0;
+		(str.empty() == false) && (pos < str.length()); ++pos)
+	{
+		if (isspace(str[pos]) == 0)
+		{
+			break;
+		}
+
+		str.erase(pos);
+		++count;
+	}
+
+	for (unsigned int pos = str.length() - 1;
+		(str.empty() == false) && (pos >= 0); --pos)
+	{
+		if (isspace(str[pos]) == 0)
+		{
+			break;
+		}
+
+		str.erase(pos);
+		++count;
+	}
+
+	return count;
+}
+
 /// Removes double and single quotes in links or any other attribute.
 string StringManip::removeQuotes(const string &str)
 {

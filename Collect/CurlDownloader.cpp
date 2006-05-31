@@ -66,9 +66,6 @@ size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *p
 	memcpy(pInfo->m_pContent + pInfo->m_contentLen, pData, totalSize);
 	pInfo->m_contentLen += totalSize;
 	pInfo->m_pContent[pInfo->m_contentLen] = '\0';
-#ifdef DEBUG
-	cout << "writeCallback: copied " << totalSize << " bytes into buffer" << endl;
-#endif
 
 	return totalSize;
 }

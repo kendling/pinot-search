@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+#include "StringManip.h"
 #include "Url.h"
 #include "SearchEngineInterface.h"
 
@@ -165,25 +166,11 @@ bool SearchEngineInterface::processResult(const string &queryUrl, string &result
 #endif
 	}
 
-	// Remove trailing spaces at the end of the URL
+	// Trim spaces
 	string trimmedUrl(resultUrl);
-	string::size_type pos = trimmedUrl.find_last_of(" ");
-	while (pos != string::npos)
-	{
-		int len = trimmedUrl.length();
-#ifdef DEBUG
-		cout << "SearchEngineInterface::processResult: trimming space at " << pos << endl;
-#endif
-		if (pos == len - 1)
-		{
-			trimmedUrl.resize(pos);
-			pos = trimmedUrl.find_last_of(" ");
-		}
-		else
-		{
-			break;
-		}
-	}
+	StringManip::trimSpaces(trimmedUrl);
+
+	// Return a canonical form
 	resultUrl = Url::canonicalizeUrl(trimmedUrl);
 
 	return true;

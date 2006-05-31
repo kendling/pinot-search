@@ -46,6 +46,9 @@ class StringManip
 		/// Removes double and single quotes.
 		static std::string removeQuotes(const std::string &str);
 
+		/// Trims spaces at the start and end of a string.
+		static unsigned int trimSpaces(std::string &str);
+
 		/// Hashes a string.
 		static std::string hashString(const std::string &str);
 
