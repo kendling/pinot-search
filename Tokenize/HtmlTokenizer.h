@@ -47,14 +47,17 @@ class Link
 class HtmlTokenizer : public Tokenizer
 {
 	public:
-		HtmlTokenizer(const Document *pDocument, unsigned int linksStartAtPos = 0);
+		HtmlTokenizer(const Document *pDocument, bool findAbstract = false);
 		virtual ~HtmlTokenizer();
 
 		/// Gets the specified META tag content; an empty string if it wasn't found.
-		std::string getMetaTag(const std::string &name);
+		std::string getMetaTag(const std::string &name) const;
 
 		/// Gets the links map.
 		std::set<Link> &getLinks(void);
+
+		/// Gets the abstract.
+		std::string getAbstract(void) const;
 
 		class ParserState
 		{
@@ -62,6 +65,7 @@ class HtmlTokenizer : public Tokenizer
 				ParserState();
 				~ParserState();
 
+				bool m_findAbstract;
 				unsigned int m_textPos;
 				std::string m_lastHash;
 				bool m_inHead;
@@ -72,6 +76,7 @@ class HtmlTokenizer : public Tokenizer
 				unsigned int m_skip;
 				std::string m_title;
 				std::string m_text;
+				std::string m_abstract;
 				Link m_currentLink;
 				std::set<Link> m_links;
 				std::set<Link> m_frames;

@@ -32,60 +32,55 @@ using std::string;
 using std::map;
 using std::set;
 
-Link::Link() :
-	m_index(0),
-	m_startPos(0),
-	m_endPos(0)
+static bool getInBetweenLinksText(HtmlTokenizer::ParserState *pState,
+	unsigned int currentLinkIndex)
 {
-}
+	if (pState == NULL)
+	{
+		return false;
+	}
 
-Link::Link(const Link &other) :
-	m_url(other.m_url),
-	m_name(other.m_name),
-	m_index(other.m_index),
-	m_startPos(other.m_startPos),
-	m_endPos(other.m_endPos)
-{
-}
+	if ((pState->m_links.empty() == true) ||
+		(pState->m_currentLink.m_index == 0))
+	{
+		pState->m_abstract = pState->m_text;
 
-Link::~Link()
-{
-}
+		return true;
+	}
 
-Link& Link::operator=(const Link& other)
-{
-	m_url = other.m_url;
-	m_name = other.m_name;
-	m_index = other.m_index;
-	m_startPos = other.m_startPos;
-	m_endPos = other.m_endPos;
+	// Get the text between the current link and the previous one
+	for (set<Link>::const_iterator linkIter = pState->m_links.begin();
+		linkIter != pState->m_links.end(); ++linkIter)
+	{
+		// Is this the previous link ?
+		if (linkIter->m_index == currentLinkIndex - 1)
+		{
+			// Is there text in between ?
+			if (linkIter->m_endPos + 1 < pState->m_textPos)
+			{
+				unsigned int abstractLen = pState->m_textPos - linkIter->m_endPos - 1;
+				string abstract(pState->m_text.substr(linkIter->m_endPos, abstractLen));
 
-	return *this;
-}
+				StringManip::trimSpaces(abstract);
 
-bool Link::operator==(const Link &other) const
-{
-	return m_url == other.m_url;
-}
+				// The longer, the better
+				if (abstract.length() > pState->m_abstract.length())
+				{
+					pState->m_abstract = abstract;
+#ifdef DEBUG
+					cout << "HtmlTokenizer::getInBetweenLinksText: abstract after link "
+						<< linkIter->m_index << endl;
+#endif
 
-bool Link::operator<(const Link &other) const
-{
-	return m_index < other.m_index;
-}
+					return true;
+				}
+			}
 
-HtmlTokenizer::ParserState::ParserState() :
-	m_textPos(0),
-	m_inHead(false),
-	m_foundHead(false),
-	m_appendToTitle(false),
-	m_appendToText(false),
-	m_appendToLink(false),
-	m_skip(0)
-{
-}
+			break;
+		}
+	}
 
-HtmlTokenizer::ParserState::~ParserState()
-{
+	return false;
 }
 
 static void startHandler(void *pData, const char *pElementName, const char **pAttributes)
@@ -174,8 +169,14 @@ static void startHandler(void *pData, const char *pElementName, const char **pAt
 			// FIXME: get the NodeInfo to find out the position of this link
 			pState->m_currentLink.m_startPos = pState->m_textPos;
 #ifdef DEBUG
-			cout << "HtmlTokenizer::startHandler: found link to " << pState->m_currentLink.m_url << endl;
+			cout << "HtmlTokenizer::parseHTML: link starts at position " << pState->m_textPos << endl;
 #endif
+
+			// Find abstract ?
+			if (pState->m_findAbstract == true)
+			{
+				getInBetweenLinksText(pState, pState->m_currentLink.m_index);
+			}
 
 			// Extract link
 			pState->m_appendToLink = true;
@@ -253,13 +254,13 @@ static void endHandler(void *pData, const char *pElementName)
 		{
 			// FIXME: get the NodeInfo to find out the position of this link
 			pState->m_currentLink.m_endPos = pState->m_textPos;
-
+#ifdef DEBUG
+			cout << "HtmlTokenizer::parseHTML: link ends at position " << pState->m_textPos << endl;
+#endif
+				
 			// Store this link
 			pState->m_links.insert(pState->m_currentLink);
 			++pState->m_currentLink.m_index;
-#ifdef DEBUG
-			cout << "HtmlTokenizer::endHandler: link was " << pState->m_currentLink.m_name << endl;
-#endif
 		}
 
 		pState->m_appendToLink = false;
@@ -287,7 +288,6 @@ static void charactersHandler(void *pData, const char *pText, int textLen)
 		return;
 	}
 
-	pState->m_textPos += textLen;
 	if (pState->m_skip > 0)
 	{
 		// Skip this
@@ -302,9 +302,6 @@ static void charactersHandler(void *pData, const char *pText, int textLen)
 	if (pState->m_lastHash == textHash)
 	{
 		// Ignore this
-#ifdef DEBUG
-		cout << "HtmlTokenizer::charactersHandler: ignoring duplicate text" << endl;
-#endif
 		return;
 	}
 	pState->m_lastHash = textHash;
@@ -320,6 +317,7 @@ static void charactersHandler(void *pData, const char *pText, int textLen)
 		if (pState->m_appendToText == true)
 		{
 			pState->m_text += text;
+			pState->m_textPos += textLen;
 		}
 
 		// Appending to text and to link are not mutually exclusive operations
@@ -406,13 +404,73 @@ static void warningHandler(void *pData, const char *pMsg, ...)
 	cerr << "HtmlTokenizer::warningHandler: " << pErr << endl;
 }
 
-HtmlTokenizer::HtmlTokenizer(const Document *pDocument, unsigned int linksStartAtPos) :
+Link::Link() :
+	m_index(0),
+	m_startPos(0),
+	m_endPos(0)
+{
+}
+
+Link::Link(const Link &other) :
+	m_url(other.m_url),
+	m_name(other.m_name),
+	m_index(other.m_index),
+	m_startPos(other.m_startPos),
+	m_endPos(other.m_endPos)
+{
+}
+
+Link::~Link()
+{
+}
+
+Link& Link::operator=(const Link& other)
+{
+	m_url = other.m_url;
+	m_name = other.m_name;
+	m_index = other.m_index;
+	m_startPos = other.m_startPos;
+	m_endPos = other.m_endPos;
+
+	return *this;
+}
+
+bool Link::operator==(const Link &other) const
+{
+	return m_url == other.m_url;
+}
+
+bool Link::operator<(const Link &other) const
+{
+	return m_index < other.m_index;
+}
+
+HtmlTokenizer::ParserState::ParserState() :
+	m_findAbstract(false),
+	m_textPos(0),
+	m_inHead(false),
+	m_foundHead(false),
+	m_appendToTitle(false),
+	m_appendToText(false),
+	m_appendToLink(false),
+	m_skip(0)
+{
+}
+
+HtmlTokenizer::ParserState::~ParserState()
+{
+}
+
+HtmlTokenizer::HtmlTokenizer(const Document *pDocument, bool findAbstract) :
 	Tokenizer(NULL)
 {
 	if (pDocument != NULL)
 	{
 		unsigned int length = 0;
 		const char *pData = pDocument->getData(length);
+
+		// Attempt to find an abstract ?
+		m_state.m_findAbstract = findAbstract;
 
 		if ((pData != NULL) &&
 			(length > 0) &&
@@ -425,6 +483,12 @@ HtmlTokenizer::HtmlTokenizer(const Document *pDocument, unsigned int linksStartA
 			if (m_state.m_title.empty() == true)
 			{
 				m_state.m_title = pDocument->getTitle();
+			}
+
+			// The text after the last link might make a good abstract
+			if (m_state.m_findAbstract == true)
+			{
+				getInBetweenLinksText(&m_state, m_state.m_currentLink.m_index);
 			}
 
 			// Pass the result to the parent class
@@ -502,9 +566,6 @@ bool HtmlTokenizer::parseHTML(const string &str)
 		dummyHtml += htmlChunk;
 		dummyHtml += "</html>";
 		htmlChunk = dummyHtml;
-#ifdef DEBUG
-		cout << "HtmlTokenizer::parseHTML: wrapped input" << endl;
-#endif
 	}
 
 #ifndef _DONT_USE_PUSH_INTERFACE
@@ -536,7 +597,7 @@ bool HtmlTokenizer::parseHTML(const string &str)
 }
 
 /// Gets the specified META tag content.
-string HtmlTokenizer::getMetaTag(const string &name)
+string HtmlTokenizer::getMetaTag(const string &name) const
 {
 	if (name.empty() == true)
 	{
@@ -556,4 +617,10 @@ string HtmlTokenizer::getMetaTag(const string &name)
 set<Link> &HtmlTokenizer::getLinks(void)
 {
 	return m_state.m_links;
+}
+
+/// Gets the abstract.
+std::string HtmlTokenizer::getAbstract(void) const
+{
+	return m_state.m_abstract;
 }

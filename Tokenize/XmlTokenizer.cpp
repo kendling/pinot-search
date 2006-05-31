@@ -63,47 +63,37 @@ XmlTokenizer::~XmlTokenizer()
 /// Parses XML; the string without tags.
 string XmlTokenizer::parseXML(const string &str)
 {
-	string stripped;
-	string::size_type startPos = 0;
-	bool isXml = false, skip = false;
+	if (str.empty() == true)
+	{
+		return "";
+	}
+
+	string stripped(StringManip::replaceEntities(str));
 
 	// Tag start
-	string::size_type pos = str.find("<");
-	while (pos != string::npos)
+	string::size_type startPos = stripped.find("<");
+	while (startPos != string::npos)
 	{
-		isXml = true;
-
-		if (skip == false)
+		string::size_type endPos = stripped.find(">", startPos);
+		if (endPos != string::npos)
 		{
-			string text = str.substr(startPos, pos - startPos);
-
-			stripped += StringManip::replaceEntities(text);
-			stripped += " ";
-
-			startPos = pos + 1;
-			// Tag end
-			if (str[pos] == '<')
-			{
-				pos = str.find(">", startPos);
-			}
-			// Skip stuff in the tag
-			skip = true;
+			stripped.erase(startPos, endPos - startPos + 1);
 		}
-		else
-		{
-			startPos = pos + 1;
-			pos = str.find("<", startPos);
-			skip = false;
-		}
-	}
-	if (startPos < str.length())
-	{
-		stripped  += StringManip::replaceEntities(str.substr(startPos));
+
+		// Next
+		startPos = stripped.find("<");
 	}
 
-	if (isXml == false)
+	// The input may contain partial tags, eg "a>...</a><b>...</b>...<c"
+	string::size_type pos = stripped.find(">");
+	if (pos != string::npos)
 	{
-		return str;
+		stripped.erase(0, pos + 1);
+	}
+	pos = stripped.find("<");
+	if (pos != string::npos)
+	{
+		stripped.erase(pos);
 	}
 
 	return stripped;
