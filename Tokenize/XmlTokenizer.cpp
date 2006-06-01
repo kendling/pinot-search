@@ -75,10 +75,12 @@ string XmlTokenizer::parseXML(const string &str)
 	while (startPos != string::npos)
 	{
 		string::size_type endPos = stripped.find(">", startPos);
-		if (endPos != string::npos)
+		if (endPos == string::npos)
 		{
-			stripped.erase(startPos, endPos - startPos + 1);
+			break;
 		}
+
+		stripped.erase(startPos, endPos - startPos + 1);
 
 		// Next
 		startPos = stripped.find("<");

@@ -21,9 +21,10 @@
 #include <string>
 #include <fstream>
 
+#include "Url.h"
+#include "XmlTokenizer.h"
 #include "SearchEngineFactory.h"
 #include "DownloaderFactory.h"
-#include "Url.h"
 #include "config.h"
 
 using namespace std;
@@ -128,7 +129,7 @@ int main(int argc, char **argv)
 				cout << count << " Host     : " << thisUrl.getHost() << endl;
 				cout << count << " Location : " << thisUrl.getLocation() << "/" << thisUrl.getFile() << endl;
 				cout << count << " Title    : " << resultIter->getTitle() << endl;
-				cout << count << " Extract  : " << resultIter->getExtract() << endl;
+				cout << count << " Extract  : " << XmlTokenizer::stripTags(resultIter->getExtract()) << endl;
 				cout << count << " Score    : " << resultIter->getScore() << endl;
 				count++;
 
