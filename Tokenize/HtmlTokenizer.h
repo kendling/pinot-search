@@ -47,8 +47,12 @@ class Link
 class HtmlTokenizer : public Tokenizer
 {
 	public:
-		HtmlTokenizer(const Document *pDocument, bool findAbstract = false);
+		HtmlTokenizer(const Document *pDocument,
+			bool validateOnly, bool findAbstract = false);
 		virtual ~HtmlTokenizer();
+
+		/// Determines whether the document is properly formed.
+		bool isDocumentValid(void) const;
 
 		/// Gets the specified META tag content; an empty string if it wasn't found.
 		std::string getMetaTag(const std::string &name) const;
@@ -65,6 +69,7 @@ class HtmlTokenizer : public Tokenizer
 				ParserState();
 				~ParserState();
 
+				bool m_isValid;
 				bool m_findAbstract;
 				unsigned int m_textPos;
 				std::string m_lastHash;
@@ -85,8 +90,10 @@ class HtmlTokenizer : public Tokenizer
 
 	protected:
 		ParserState m_state;
+		bool m_isFragment;
+		std::string m_charset;
 
-		bool parseHTML(const std::string &str);
+		bool parseHTML(const Document *pDocument);
 
 };
 

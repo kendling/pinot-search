@@ -240,7 +240,7 @@ Tokenizer *TokenizerFactory::getTokenizerByType(const string &type, const Docume
 
 	if (typeOnly == "text/html")
 	{
-		return new HtmlTokenizer(pDocument);
+		return new HtmlTokenizer(pDocument, false);
 	}
 	else if (typeOnly == "text/plain")
 	{

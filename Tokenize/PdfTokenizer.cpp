@@ -38,8 +38,24 @@ Tokenizer *getTokenizer(const Document *pDocument)
 }
 
 PdfTokenizer::PdfTokenizer(const Document *pDocument) :
-	HtmlTokenizer(runHelperProgram(pDocument, "pdftohtml -stdout"))
+	HtmlTokenizer(NULL, false)
 {
+	Document *pHtmlDocument = runHelperProgram(pDocument, "pdftohtml -stdout");
+	if (pHtmlDocument != NULL)
+	{
+		if (parseHTML(pHtmlDocument) == true)
+		{
+			// Pass the result to the parent class
+			Document *pStrippedDoc = new Document(pHtmlDocument->getTitle(),
+				pHtmlDocument->getLocation(), pHtmlDocument->getType(),
+				pHtmlDocument->getLanguage());
+			pStrippedDoc->setData(m_state.m_text.c_str(), m_state.m_text.length());
+
+			setDocument(pStrippedDoc);
+		}
+
+		delete pHtmlDocument;
+	}
 }
 
 PdfTokenizer::~PdfTokenizer()

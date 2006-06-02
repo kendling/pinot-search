@@ -128,13 +128,17 @@ static void startHandler(void *pData, const char *pElementName, const char **pAt
 			{
 				metaContent = pAttributes[attrNum + 1];
 			}
+			else if (strncasecmp(pAttributes[attrNum], "http-equiv", 10) == 0)
+			{
+				metaName = pAttributes[attrNum + 1];
+			}
 		}
 
 		if ((metaName.empty() == false) &&
 			(metaContent.empty() == false))
 		{
 			// Store this META tag
-			pState->m_metaTags[metaName] = metaContent;
+			pState->m_metaTags[StringManip::toLowerCase(metaName)] = metaContent;
 		}
 	}
 	else if ((pState->m_inHead == true) &&
@@ -169,7 +173,7 @@ static void startHandler(void *pData, const char *pElementName, const char **pAt
 			// FIXME: get the NodeInfo to find out the position of this link
 			pState->m_currentLink.m_startPos = pState->m_textPos;
 #ifdef DEBUG
-			cout << "HtmlTokenizer::parseHTML: link starts at position " << pState->m_textPos << endl;
+			cout << "HtmlTokenizer::startHandler: link starts at position " << pState->m_textPos << endl;
 #endif
 
 			// Find abstract ?
@@ -255,7 +259,7 @@ static void endHandler(void *pData, const char *pElementName)
 			// FIXME: get the NodeInfo to find out the position of this link
 			pState->m_currentLink.m_endPos = pState->m_textPos;
 #ifdef DEBUG
-			cout << "HtmlTokenizer::parseHTML: link ends at position " << pState->m_textPos << endl;
+			cout << "HtmlTokenizer::endHandler: link ends at position " << pState->m_textPos << endl;
 #endif
 				
 			// Store this link
@@ -379,6 +383,17 @@ static void commentHandler(void *pData, const char *pText)
 
 static void errorHandler(void *pData, const char *pMsg, ...)
 {
+	if (pData == NULL)
+	{
+		return;
+	}
+
+	HtmlTokenizer::ParserState *pState = (HtmlTokenizer::ParserState *)pData;
+	if (pState == NULL)
+	{
+		return;
+	}
+
 	va_list args;
 	char pErr[1000];
 
@@ -390,6 +405,8 @@ static void errorHandler(void *pData, const char *pMsg, ...)
 
 	// Be lenient as much as possible
 	xmlResetLastError();
+	// ...but remember the document had errors
+	pState->m_isValid = false;
 }
 
 static void warningHandler(void *pData, const char *pMsg, ...)
@@ -446,6 +463,7 @@ bool Link::operator<(const Link &other) const
 }
 
 HtmlTokenizer::ParserState::ParserState() :
+	m_isValid(true),
 	m_findAbstract(false),
 	m_textPos(0),
 	m_inHead(false),
@@ -461,44 +479,36 @@ HtmlTokenizer::ParserState::~ParserState()
 {
 }
 
-HtmlTokenizer::HtmlTokenizer(const Document *pDocument, bool findAbstract) :
+HtmlTokenizer::HtmlTokenizer(const Document *pDocument,
+	bool validateOnly, bool findAbstract) :
 	Tokenizer(NULL)
 {
-	if (pDocument != NULL)
+	if (validateOnly == true)
 	{
-		unsigned int length = 0;
-		const char *pData = pDocument->getData(length);
-
+		// This will ensure text is skipped
+		++m_state.m_skip;
+	}
+	else
+	{
 		// Attempt to find an abstract ?
 		m_state.m_findAbstract = findAbstract;
+	}
 
-		if ((pData != NULL) &&
-			(length > 0) &&
-			(parseHTML(pData) == true))
+	if (parseHTML(pDocument) == true)
+	{
+		// Did we find a title ?
+		if (m_state.m_title.empty() == true)
 		{
-			// Append META keywords, if any were found
-			m_state.m_text += getMetaTag("keywords");
-
-			// Did we find a title ?
-			if (m_state.m_title.empty() == true)
-			{
-				m_state.m_title = pDocument->getTitle();
-			}
-
-			// The text after the last link might make a good abstract
-			if (m_state.m_findAbstract == true)
-			{
-				getInBetweenLinksText(&m_state, m_state.m_currentLink.m_index);
-			}
-
-			// Pass the result to the parent class
-			Document *pStrippedDoc = new Document(m_state.m_title,
-				pDocument->getLocation(), pDocument->getType(),
-				pDocument->getLanguage());
-			pStrippedDoc->setData(m_state.m_text.c_str(), m_state.m_text.length());
-
-			setDocument(pStrippedDoc);
+			m_state.m_title = pDocument->getTitle();
 		}
+
+		// Pass the result to the parent class
+		Document *pStrippedDoc = new Document(m_state.m_title,
+			pDocument->getLocation(), pDocument->getType(),
+			pDocument->getLanguage());
+		pStrippedDoc->setData(m_state.m_text.c_str(), m_state.m_text.length());
+
+		setDocument(pStrippedDoc);
 	}
 }
 
@@ -506,24 +516,31 @@ HtmlTokenizer::~HtmlTokenizer()
 {
 	if (m_pDocument != NULL)
 	{
-		// This should have been set by setDocument(),
-		// called in initialize()
+		// This should have been set by setDocument()
 		delete m_pDocument;
 	}
 }
 
-bool HtmlTokenizer::parseHTML(const string &str)
+bool HtmlTokenizer::parseHTML(const Document *pDocument)
 {
-	string htmlChunk(str);
-	htmlSAXHandler saxHandler;
+	if (pDocument == NULL)
+	{
+		return false;
+	}
 
-	if (str.empty() == true)
+	unsigned int dataLength = 0;
+	const char *pData = pDocument->getData(dataLength);
+	if ((pData == NULL) ||
+		(dataLength == 0))
 	{
 #ifdef DEBUG
 		cout << "HtmlTokenizer::parseHTML: no input" << endl;
 #endif
 		return false;
 	}
+
+	string htmlChunk(pData, dataLength);
+	htmlSAXHandler saxHandler;
 
 	xmlInitParser();
 
@@ -554,20 +571,6 @@ bool HtmlTokenizer::parseHTML(const string &str)
 #endif
 	}
 
-	// Wrap input with a dummy tag to avoid the characters handler being called with twice the same text
-	htmlPos = htmlChunk.find("<HTML");
-	if (htmlPos == string::npos)
-	{
-		htmlPos = htmlChunk.find("<html");
-	}
-	if (htmlPos == string::npos)
-	{
-		string dummyHtml("<html>");
-		dummyHtml += htmlChunk;
-		dummyHtml += "</html>";
-		htmlChunk = dummyHtml;
-	}
-
 #ifndef _DONT_USE_PUSH_INTERFACE
 	htmlParserCtxtPtr pContext = htmlCreatePushParserCtxt(&saxHandler, (void*)&m_state,
 		htmlChunk.c_str(), (int)htmlChunk.length(), "", XML_CHAR_ENCODING_NONE);
@@ -593,7 +596,22 @@ bool HtmlTokenizer::parseHTML(const string &str)
 	}
 	xmlCleanupParser();
 
+	// The text after the last link might make a good abstract
+	if (m_state.m_findAbstract == true)
+	{
+		getInBetweenLinksText(&m_state, m_state.m_currentLink.m_index);
+	}
+
+	// Append META keywords, if any were found
+	m_state.m_text += getMetaTag("keywords");
+
 	return true;
+}
+
+/// Determines whether the document is properly formed.
+bool HtmlTokenizer::isDocumentValid(void) const
+{
+	return m_state.m_isValid;
 }
 
 /// Gets the specified META tag content.
@@ -604,7 +622,7 @@ string HtmlTokenizer::getMetaTag(const string &name) const
 		return "";
 	}
 
-	map<string, string>::const_iterator iter = m_state.m_metaTags.find(name);
+	map<string, string>::const_iterator iter = m_state.m_metaTags.find(StringManip::toLowerCase(name));
 	if (iter != m_state.m_metaTags.end())
 	{
 		return iter->second;

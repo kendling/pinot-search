@@ -39,8 +39,24 @@ Tokenizer *getTokenizer(const Document *pDocument)
 }
 
 RtfTokenizer::RtfTokenizer(const Document *pDocument) :
-	HtmlTokenizer(runHelperProgram(pDocument, "unrtf --nopict --html"))
+	HtmlTokenizer(NULL, false)
 {
+	Document *pHtmlDocument = runHelperProgram(pDocument, "unrtf --nopict --html");
+	if (pHtmlDocument != NULL)
+	{
+		if (parseHTML(pHtmlDocument) == true)
+		{
+			// Pass the result to the parent class
+			Document *pStrippedDoc = new Document(pHtmlDocument->getTitle(),
+				pHtmlDocument->getLocation(), pHtmlDocument->getType(),
+				pHtmlDocument->getLanguage());
+			pStrippedDoc->setData(m_state.m_text.c_str(), m_state.m_text.length());
+
+			setDocument(pStrippedDoc);
+		}
+
+		delete pHtmlDocument;
+	}
 }
 
 RtfTokenizer::~RtfTokenizer()
