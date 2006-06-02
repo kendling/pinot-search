@@ -43,7 +43,10 @@ static bool getInBetweenLinksText(HtmlTokenizer::ParserState *pState,
 	if ((pState->m_links.empty() == true) ||
 		(pState->m_currentLink.m_index == 0))
 	{
-		pState->m_abstract = pState->m_text;
+		string abstract(pState->m_text);
+
+		StringManip::trimSpaces(abstract);
+		pState->m_abstract = abstract;
 
 		return true;
 	}
@@ -173,7 +176,8 @@ static void startHandler(void *pData, const char *pElementName, const char **pAt
 			// FIXME: get the NodeInfo to find out the position of this link
 			pState->m_currentLink.m_startPos = pState->m_textPos;
 #ifdef DEBUG
-			cout << "HtmlTokenizer::startHandler: link starts at position " << pState->m_textPos << endl;
+			cout << "HtmlTokenizer::endHandler: link " << pState->m_currentLink.m_index
+				<< " starts at position " << pState->m_textPos << endl;
 #endif
 
 			// Find abstract ?
@@ -242,7 +246,7 @@ static void endHandler(void *pData, const char *pElementName)
 	}
 	else if (tagName == "title")
 	{
-		StringManip::removeCharacters(pState->m_title, "\t\r\n");
+		StringManip::trimSpaces(pState->m_title);
 #ifdef DEBUG
 		cout << "HtmlTokenizer::endHandler: title is " << pState->m_title << endl;
 #endif
@@ -256,12 +260,13 @@ static void endHandler(void *pData, const char *pElementName)
 	{
 		if (pState->m_currentLink.m_url.empty() == false)
 		{
-			// FIXME: get the NodeInfo to find out the position of this link
+			StringManip::trimSpaces(pState->m_currentLink.m_name);
 			pState->m_currentLink.m_endPos = pState->m_textPos;
 #ifdef DEBUG
-			cout << "HtmlTokenizer::endHandler: link ends at position " << pState->m_textPos << endl;
+			cout << "HtmlTokenizer::endHandler: link " << pState->m_currentLink.m_index
+				<< " ends at position " << pState->m_textPos << endl;
 #endif
-				
+
 			// Store this link
 			pState->m_links.insert(pState->m_currentLink);
 			++pState->m_currentLink.m_index;

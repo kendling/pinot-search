@@ -198,17 +198,18 @@ unsigned int StringManip::removeCharacters(string &str, const string &characters
 /// Trims spaces at the start and end of a string.
 unsigned int StringManip::trimSpaces(string &str)
 {
+	unsigned int pos = 0;
 	unsigned int count = 0;
 
-	for (unsigned int pos = 0;
-		(str.empty() == false) && (pos < str.length()); ++pos)
+	while ((str.empty() == false) && (pos < str.length()))
 	{
 		if (isspace(str[pos]) == 0)
 		{
+			++pos;
 			break;
 		}
 
-		str.erase(pos);
+		str.erase(pos, 1);
 		++count;
 	}
 
@@ -220,7 +221,7 @@ unsigned int StringManip::trimSpaces(string &str)
 			break;
 		}
 
-		str.erase(pos);
+		str.erase(pos, 1);
 		++count;
 	}
 
