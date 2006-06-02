@@ -21,7 +21,6 @@
 
 #include <curl/curl.h>
 
-#include "HtmlTokenizer.h"
 #include "Url.h"
 #include "CurlDownloader.h"
 

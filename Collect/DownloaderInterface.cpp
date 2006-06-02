@@ -19,7 +19,6 @@
 
 #include <openssl/crypto.h>
 
-#include "HtmlTokenizer.h"
 #include "DownloaderInterface.h"
 
 using namespace std;

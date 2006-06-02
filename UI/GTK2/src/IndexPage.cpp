@@ -20,7 +20,6 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/textbuffer.h>
 
-#include "HtmlTokenizer.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "config.h"

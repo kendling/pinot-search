@@ -17,7 +17,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include "HtmlTokenizer.h"
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "FileCollector.h"

@@ -24,7 +24,6 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/textbuffer.h>
 
-#include "HtmlTokenizer.h"
 #include "StringManip.h"
 #include "Url.h"
 #include "QueryHistory.h"
