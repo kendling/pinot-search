@@ -322,8 +322,43 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 		if (strncasecmp(contentType.c_str(), "text/html", 9) == 0)
 		{
 			Document chunkDoc("", "", contentType, "");
-			chunkDoc.setData(resultItem.c_str(), resultItem.length());
-			HtmlTokenizer chunkTokens(&chunkDoc, true);
+			string htmlChunk(resultItem);
+
+			// The chunk may contain truncated tags, get rid of them !
+			string::size_type firstOpen = htmlChunk.find('<');
+			string::size_type firstClose = htmlChunk.find('>');
+			if (firstClose != string::npos)
+			{
+				if ((firstOpen == string::npos) ||
+					(firstClose < firstOpen))
+				{
+					htmlChunk.erase(0, firstClose + 1);
+				}
+			}
+			string::size_type lastClose = htmlChunk.find_last_of(">");
+			string::size_type lastOpen = htmlChunk.find_last_of("<");
+			if (lastOpen != string::npos)
+			{
+				if ((lastClose == string::npos) ||
+					(lastOpen > lastClose))
+				{
+					htmlChunk.erase(lastOpen);
+				}
+			}
+
+			// Wrap input
+			string dummyHtml("<html><head><meta HTTP-EQUIV=\"content-type\" CONTENT=\"");
+			dummyHtml += pResponseDoc->getType();
+			dummyHtml += "\"></head><body>";
+			dummyHtml += htmlChunk;
+			dummyHtml += "</body></html>";
+#ifdef DEBUG
+			cout << "SherlockResponseParser::parse: wrapped chunk \""
+				<< dummyHtml << "\"" << endl;
+#endif
+			chunkDoc.setData(dummyHtml.c_str(), dummyHtml.length());
+
+			HtmlTokenizer chunkTokens(&chunkDoc, false, true);
 			set<Link> &chunkLinks = chunkTokens.getLinks();
 			unsigned int endOfFirstLink = 0, startOfSecondLink = 0, endOfSecondLink = 0, startOfThirdLink = 0;
 
@@ -351,6 +386,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 				}
 			}
 
+			// Any extract ?
 			extract = chunkTokens.getAbstract();
 			if (extract.empty() == true)
 			{

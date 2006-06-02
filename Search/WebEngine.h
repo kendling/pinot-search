@@ -18,12 +18,9 @@
 #define _WEB_ENGINE_H
 
 #include <string>
-#include <set>
 
 #include "SearchEngineInterface.h"
 #include "Document.h"
-
-using namespace std;
 
 class WebEngine : public SearchEngineInterface
 {
@@ -32,8 +29,8 @@ class WebEngine : public SearchEngineInterface
 		virtual ~WebEngine();
 
 	protected:
-		string m_hostFilter;
-		string m_fileFilter;
+		std::string m_hostFilter;
+		std::string m_fileFilter;
 
 		Document *downloadPage(const DocumentInfo &docInfo);
 

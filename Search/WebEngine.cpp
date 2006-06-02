@@ -17,14 +17,30 @@
 #include <string.h>
 #include <sys/types.h>
 #include <regex.h>
-#include <iostream>
-#include <algorithm>
+#include <string>
 
-#include "HtmlTokenizer.h"
 #include "StringManip.h"
 #include "Url.h"
+#include "HtmlTokenizer.h"
 #include "DownloaderFactory.h"
 #include "WebEngine.h"
+
+using std::string;
+
+static string getCharset(const string &contentType)
+{
+	if (contentType.empty() == false)
+	{
+		// Is a charset specified ?
+		string::size_type pos = contentType.find("charset=");
+		if (pos != string::npos)
+		{
+			return StringManip::removeQuotes(contentType.substr(pos + 8));
+		}
+	}
+
+	return "";
+}
 
 WebEngine::WebEngine() :
 	SearchEngineInterface()
@@ -41,25 +57,34 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 	m_charset.clear();
 
 	// Any type of downloader will do...
-	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader("http");
-	if (myDownloader == NULL)
+	DownloaderInterface *pDownloader = DownloaderFactory::getDownloader("http");
+	if (pDownloader == NULL)
 	{
 		return NULL;
 	}
 
-	Document *urlDoc = myDownloader->retrieveUrl(docInfo);
-	if (urlDoc != NULL)
+	Document *pDoc = pDownloader->retrieveUrl(docInfo);
+	if (pDoc != NULL)
 	{
-		string contentType = urlDoc->getType();
+		string contentType(pDoc->getType());
 
-		// Was a charset specified ?
-		string::size_type pos = contentType.find("charset=");
-		if (pos != string::npos)
+		// Found a charset ?
+		m_charset = getCharset(contentType);
+		if (m_charset.empty() == true)
 		{
-			m_charset = StringManip::removeQuotes(contentType.substr(pos + 8));
+			HtmlTokenizer tokens(pDoc, true);
+
+			// Content-Type might be specified as a META tag 
+			contentType = tokens.getMetaTag("Content-Type");
+			m_charset = getCharset(contentType);
+			if (m_charset.empty() == false)
+			{
+				// Reset the document's type
+				pDoc->setType(contentType);
+			}
 		}
 	}
-	delete myDownloader;
+	delete pDownloader;
 
-	return urlDoc;
+	return pDoc;
 }
