@@ -530,7 +530,7 @@ const vector<Result> &QueryingThread::getResults(string &charset) const
 {
 	charset = m_resultsCharset;
 #ifdef DEBUG
-	cout << "QueryingThread::getResults: charset is " << charset << endl;
+	cout << "QueryingThread::getResults: charset for " << m_engineDisplayableName << " is " << charset << endl;
 #endif
 
 	return m_resultsList;

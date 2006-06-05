@@ -512,9 +512,9 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 	for (vector<Result>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
 	{
-		string title(resultIter->getTitle());
-		string location(resultIter->getLocation());
-		string extract(resultIter->getExtract());
+		ustring title(to_utf8(resultIter->getTitle(), charset));
+		ustring location(to_utf8(resultIter->getLocation(), charset));
+		ustring extract(to_utf8(resultIter->getExtract(), charset));
 		float currentScore = resultIter->getScore();
 		string score;
 		int rankDiff = 0;
@@ -546,14 +546,14 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 			{
 				// Update this result whatever the current and previous rankings were
 				history.updateItem(queryName, registeredEngineName, location,
-					title, to_utf8(extract, charset).c_str(), language, currentScore);
+					title, extract, language, currentScore);
 				rankDiff = (int)(currentScore - previousScore);
 			}
 			else
 			{
 				// No, this is a new result
 				history.insertItem(queryName, registeredEngineName, location,
-					resultIter->getTitle(), to_utf8(extract, charset).c_str(), language, currentScore);
+					resultIter->getTitle(), extract, language, currentScore);
 				// New results are displayed as such only if the query has already been run on the engine
 				if (isNewQuery == false)
 				{
@@ -563,9 +563,8 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 			}
 
 			++count;
-			if (appendResult(to_utf8(title, charset), to_utf8(location, charset),
-				currentScore, language, rankDiff, queryName, engineId, indexId,
-				titleIter, &(*groupIter), true) == true)
+			if (appendResult(title, location, currentScore, language, rankDiff,
+				queryName, engineId, indexId, titleIter, &(*groupIter), true) == true)
 			{
 #ifdef DEBUG
 				cout << "ResultsTree::addResults: added row for result " << count << endl;

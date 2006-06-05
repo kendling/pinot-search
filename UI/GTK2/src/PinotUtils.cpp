@@ -215,7 +215,7 @@ ustring to_utf8(const string &text, const string &charset)
 	{
 		if (charset.empty() == false)
 		{
-			return convert_with_fallback(text, "UTF-8", charset);
+			return convert_with_fallback(text, "UTF-8", charset, " ");
 		}
 		else
 		{
@@ -224,6 +224,13 @@ ustring to_utf8(const string &text, const string &charset)
 	}
 	catch (ConvertError &ce)
 	{
+#ifdef DEBUG
+		cout << "to_utf8: cannot convert from " << charset << ": " << ce.what() << endl;
+#endif
+		if (charset.empty() == false)
+		{
+			return to_utf8(text);
+		}
 	}
 
 	return "";
@@ -238,6 +245,9 @@ string from_utf8(const ustring &text)
 	}
 	catch (ConvertError &ce)
 	{
+#ifdef DEBUG
+		cout << "from_utf8: " << ce.what() << endl;
+#endif
 	}
 
 	return "";
