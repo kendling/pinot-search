@@ -227,10 +227,11 @@ void importDialog::on_thread_end(WorkerThread *pThread)
 	}
 
 	// Did the thread fail ?
-	if (pThread->getStatus().empty() == false)
+	status = pThread->getStatus();
+	if (status.empty() == false)
 	{
 #ifdef DEBUG
-		cout << "importDialog::on_thread_end: " << pThread->getStatus() << endl;
+		cout << "importDialog::on_thread_end: " << status << endl;
 #endif
 		success = false;
 	}
@@ -274,7 +275,7 @@ void importDialog::on_thread_end(WorkerThread *pThread)
 
 		if (success == false)
 		{
-			// FIXME: there are better ways to show what happened :-)
+			importProgressbar->set_text(status);
 			fractionFilled = 0.0;
 		}
 		importProgressbar->set_fraction(fractionFilled);
