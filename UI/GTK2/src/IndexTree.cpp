@@ -163,16 +163,8 @@ bool IndexTree::appendDocument(const IndexedDocument &docInfo)
 {
 	TreeModel::iterator newRowIter = m_refStore->append();
 	TreeModel::Row childRow = *newRowIter;
-	string title = docInfo.getTitle();
 
-	if (title.length() > 50)
-	{
-		string truncatedTitle = title.substr(0, 47);
-		truncatedTitle += "...";
-		title = truncatedTitle;
-	}
-
-	childRow[m_indexColumns.m_text] = to_utf8(title);
+	childRow[m_indexColumns.m_text] = to_utf8(docInfo.getTitle());
 	childRow[m_indexColumns.m_url] = to_utf8(docInfo.getLocation());
 	childRow[m_indexColumns.m_liveUrl] = to_utf8(docInfo.getOriginalLocation());
 	childRow[m_indexColumns.m_type] = to_utf8(docInfo.getType());
