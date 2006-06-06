@@ -190,7 +190,7 @@ mainWindow::mainWindow() :
 	m_pNotebook->set_tab_pos(Gtk::POS_TOP);
 	m_pNotebook->set_scrollable(false);
 	rightVbox->pack_start(*m_pNotebook, Gtk::PACK_EXPAND_WIDGET, 4);
-	m_pNotebook->signal_switch_page().connect(
+	m_pageSwitchConnection = m_pNotebook->signal_switch_page().connect(
 		SigC::slot(*this, &mainWindow::on_switch_page), false);
 
 	// Create an HTML renderer
@@ -683,11 +683,10 @@ void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 #endif
 	}
 
-	show_global_menuitems(showResultsMenuitems);
-
 	// Did the page change ?
 	if (m_state.m_currentPage != p1)
 	{
+		show_global_menuitems(showResultsMenuitems);
 		show_selectionbased_menuitems(false);
 	}
 	m_state.m_currentPage = (int)p1;
@@ -2365,8 +2364,13 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 		m_state.disconnect();
 		m_state.stop_threads();
 	}
-	// Disconnect the threads' finished signal
-	m_state.disconnect();
+	else
+	{
+		m_state.disconnect();
+	}
+
+	// Disconnect UI signals
+	m_pageSwitchConnection.disconnect();
 
 	// Save the window's position and dimensions now
 	// Don't worry about the gravity, it hasn't been changed

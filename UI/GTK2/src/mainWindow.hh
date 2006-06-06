@@ -164,6 +164,8 @@ private:
 	HtmlView *m_pHtmlView;
 	// Tooltips
 	Gtk::Tooltips m_tooltips;
+	// Page switching
+	SigC::Connection m_pageSwitchConnection;
 	// Activity timeout
 	SigC::Connection m_timeoutConnection;
 	// Internal state
