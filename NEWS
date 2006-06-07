@@ -1,3 +1,15 @@
+??? version_0_4_9
+General :
+ - able to find the default application for a given MIME type
+Tokenize :
+ - better HTML tokenizer
+UI :
+ - fixed exit time crash when View is the tab being shown
+ - titles in documents lists are no longer truncated
+ - if import fails, the progress bar displays the error message
+ - the internal viewer is used only for HTML; for all other types, the default
+  application is launched
+
 2006/05/25 version_0_4_8
 Monitor :
  - replaced FAM/Gamin with inotify
