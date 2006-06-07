@@ -352,7 +352,7 @@ mainWindow_glade::mainWindow_glade(
    rightVbox->pack_start(*liveQueryHbox, Gtk::PACK_SHRINK, 0);
    rightVbox->pack_start(*queryExpander, Gtk::PACK_SHRINK, 0);
    mainHpaned->set_flags(Gtk::CAN_FOCUS);
-   mainHpaned->set_position(105);
+   mainHpaned->set_position(200);
    mainHpaned->pack1(*leftVbox, Gtk::SHRINK);
    mainHpaned->pack2(*rightVbox, Gtk::EXPAND|Gtk::SHRINK);
    mainHbox->pack_start(*mainProgressbar, Gtk::PACK_SHRINK, 0);
@@ -362,7 +362,7 @@ mainWindow_glade::mainWindow_glade(
    vbox1->pack_start(*mainHbox, Gtk::PACK_SHRINK, 0);
    mainWindow->set_events(Gdk::BUTTON_PRESS_MASK);
    mainWindow->set_title(_("Pinot"));
-   mainWindow->set_default_size(400,-1);
+   mainWindow->set_default_size(680,500);
    mainWindow->set_modal(false);
    mainWindow->property_window_position().set_value(Gtk::WIN_POS_NONE);
    mainWindow->set_resizable(true);
