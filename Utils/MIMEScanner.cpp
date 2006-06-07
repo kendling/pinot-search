@@ -34,46 +34,29 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::map;
+using std::pair;
 
-static MIMEAction getTypeAction(const string &desktopFile)
+static string getKeyValue(GKeyFile *pDesktopFile, const string &key)
 {
-	MIMEAction typeAction;
-	GKeyFile *pDesktopFile = g_key_file_new();
-	GError *pError = NULL;
+	string value;
 
-	if (pDesktopFile == NULL)
+	if ((pDesktopFile == NULL) ||
+		(key.empty() == true))
 	{
-		return typeAction;
+		return "";
 	}
 
-	g_key_file_load_from_file(pDesktopFile, (const gchar *)desktopFile.c_str(),
-		G_KEY_FILE_NONE, &pError);
+	GError *pError = NULL;
+	gchar *pKeyValue = g_key_file_get_string(pDesktopFile,
+		"Desktop Entry", key.c_str(), &pError);
+
 	if (pError == NULL)
 	{
-		gchar *pExecKey = g_key_file_get_string(pDesktopFile,
-			"Desktop Entry", "Exec", &pError);
-
-		if (pError == NULL)
+		if (pKeyValue != NULL)
 		{
-			if (pExecKey != NULL)
-			{
-				typeAction.m_exec = pExecKey;
+			value = pKeyValue;
 
-				// Does it support URLs as parameter, as described here ?
-				// http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s06.html
-				if ((typeAction.m_exec.find("%u") != string::npos) ||
-					(typeAction.m_exec.find("%U") != string::npos))
-				{
-					// It does, therefore it's not exclusively local
-					typeAction.m_localOnly = false;
-				}
-
-				g_free(pExecKey);
-			}
-		}
-		else
-		{
-			g_error_free(pError);
+			g_free(pKeyValue);
 		}
 	}
 	else
@@ -81,17 +64,64 @@ static MIMEAction getTypeAction(const string &desktopFile)
 		g_error_free(pError);
 	}
 
-	g_key_file_free(pDesktopFile);
-
-	return typeAction;
+	return value;
 }
 
 MIMEAction::MIMEAction() :
+	m_multipleArgs(false),
 	m_localOnly(true)
 {
 }
 
+MIMEAction::MIMEAction(const string &desktopFile) :
+	m_multipleArgs(false),
+	m_localOnly(true),
+	m_location(desktopFile)
+{
+	GKeyFile *pDesktopFile = g_key_file_new();
+	GError *pError = NULL;
+
+	if (pDesktopFile != NULL)
+	{
+		g_key_file_load_from_file(pDesktopFile, (const gchar *)desktopFile.c_str(),
+			G_KEY_FILE_NONE, &pError);
+		if (pError == NULL)
+		{
+			m_name = getKeyValue(pDesktopFile, "Name");
+			// This may contain parameters described here :
+			// http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s06.html
+			m_exec = getKeyValue(pDesktopFile, "Exec");
+			m_icon = getKeyValue(pDesktopFile, "Icon");
+			m_device = getKeyValue(pDesktopFile, "Device");
+
+			// Does it support multiple arguments ?
+			if ((m_exec.find("%U") != string::npos) ||
+				(m_exec.find("%F") != string::npos) ||
+				(m_exec.find("%D") != string::npos) ||
+				(m_exec.find("%N") != string::npos))
+			{
+				// Yes, it does
+				m_multipleArgs = true;
+			}
+			// What about URLs as parameters ?
+			if ((m_exec.find("%u") != string::npos) ||
+				(m_exec.find("%U") != string::npos))
+			{
+				// It does, therefore it's not exclusively local
+				m_localOnly = false;
+			}
+		}
+		else
+		{
+			g_error_free(pError);
+		}
+
+		g_key_file_free(pDesktopFile);
+	}
+}
+
 MIMEAction::MIMEAction(const MIMEAction &other) :
+	m_multipleArgs(other.m_multipleArgs),
 	m_localOnly(other.m_localOnly),
 	m_exec(other.m_exec)
 {
@@ -103,6 +133,7 @@ MIMEAction::~MIMEAction()
 
 MIMEAction &MIMEAction::operator=(const MIMEAction &other)
 {
+	m_multipleArgs = other.m_multipleArgs;
 	m_localOnly = other.m_localOnly;
 	m_exec = other.m_exec;
 
@@ -170,15 +201,11 @@ void MIMEScanner::initialize(void)
 					// Register the last application
 					if (pDesktopFiles[defaultApp] != NULL)
 					{
-						MIMEAction typeAction(getTypeAction(desktopFilesDirectory + string(pDesktopFiles[defaultApp])));
+						MIMEAction typeAction(desktopFilesDirectory + string(pDesktopFiles[defaultApp]));
 
 						if (typeAction.m_exec.empty() == false)
 						{
-#ifdef DEBUG
-							cout << "MIMEScanner::initialize: default for " << pMimeTypes[i]
-								<< " is " << typeAction.m_exec << endl;
-#endif
-							m_defaultActions[pMimeTypes[i]] = typeAction;
+							m_defaultActions.insert(pair<string, MIMEAction>(pMimeTypes[i], typeAction));
 						}
 					}
 

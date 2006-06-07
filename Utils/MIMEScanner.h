@@ -26,13 +26,19 @@ class MIMEAction
 {
 	public:
 		MIMEAction();
+		MIMEAction(const std::string &desktopFile);
 		MIMEAction(const MIMEAction &other);
 		virtual ~MIMEAction();
 
 		MIMEAction &operator=(const MIMEAction &other);
 
+		bool m_multipleArgs;
 		bool m_localOnly;
+		std::string m_name;
+		std::string m_location;
 		std::string m_exec;
+		std::string m_icon;
+		std::string m_device;
 
 };
 

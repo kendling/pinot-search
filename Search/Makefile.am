@@ -43,11 +43,11 @@ pinot_search_SOURCES = \
 
 pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect -LGoogle \
 	@SEARCH_LIBS@ -lCollect -lTokenize -lUtils \
-	@INDEX_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+	@GLIBMM_LIBS@ @INDEX_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 SOAPEnvC.cpp : SOAPEnv.h
 	soapcpp2 -pSOAPEnv SOAPEnv.h
 
 AM_CXXFLAGS = -I../Utils -I../Tokenize -I../Collect -IGoogle \
-	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @MIME_CFLAGS@
+	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @MIME_CFLAGS@ @GLIBMM_CFLAGS@
 

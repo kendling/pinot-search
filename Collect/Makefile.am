@@ -12,13 +12,6 @@ noinst_LTLIBRARIES = libCollect.la
 
 bin_PROGRAMS = pinot-collect
 
-pinot_collect_SOURCES = \
-	pinot-collect.cpp
-
-pinot_collect_LDADD = -L../Utils -L../Tokenize \
-	-lCollect -lTokenize -lUtils \
-	@INDEX_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
-
 libCollect_la_SOURCES = \
 	@HTTP_DOWNLOADER@.cpp \
 	DownloaderFactory.cpp \
@@ -27,6 +20,13 @@ libCollect_la_SOURCES = \
 	MboxCollector.cpp \
 	XapianCollector.cpp
 
+pinot_collect_SOURCES = \
+	pinot-collect.cpp
+
+pinot_collect_LDADD = -L../Utils -L../Tokenize \
+	-lCollect -lTokenize -lUtils \
+	@GLIBMM_LIBS@ @INDEX_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+
 AM_CXXFLAGS = -I../Utils -I../Tokenize \
-	@INDEX_CFLAGS@ @XML_CFLAGS@ @HTTP_CFLAGS@ @MIME_CFLAGS@
+	@INDEX_CFLAGS@ @XML_CFLAGS@ @HTTP_CFLAGS@ @MIME_CFLAGS@ @GLIBMM_CFLAGS@
 

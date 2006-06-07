@@ -1,6 +1,7 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
+	CommandLine.h \
 	Document.h \
 	Languages.h \
 	MIMEScanner.h \
@@ -26,6 +27,7 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = libUtils.la
 
 libUtils_la_SOURCES = \
+	CommandLine.cpp \
 	Document.cpp \
 	Languages.cpp \
 	MIMEScanner.cpp \
@@ -48,5 +50,5 @@ libUtils_la_SOURCES = \
 	xdgmime/xdgmimeparent.c
 
 AM_CFLAGS = -fPIC -DXDG_PREFIX=pinot_xdg
-AM_CXXFLAGS = -fPIC @HTTP_CFLAGS@ @INDEX_CFLAGS@ @MIME_CFLAGS@ -DXDG_PREFIX=pinot_xdg
+AM_CXXFLAGS = -fPIC @HTTP_CFLAGS@ @INDEX_CFLAGS@ @MIME_CFLAGS@ @GLIBMM_CFLAGS@ -DXDG_PREFIX=pinot_xdg
 
