@@ -21,6 +21,7 @@
 #include <string>
 #include <fstream>
 
+#include "MIMEScanner.h"
 #include "Url.h"
 #include "XmlTokenizer.h"
 #include "SearchEngineFactory.h"
@@ -91,6 +92,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	MIMEScanner::initialize();
+	DownloaderInterface::initialize();
+
 	// Which SearchEngine ?
 	type = argv[1];
 	option = argv[2];
@@ -98,6 +102,10 @@ int main(int argc, char **argv)
 	if (myEngine == NULL)
 	{
 		cerr << "Couldn't obtain search engine instance" << endl;
+
+		DownloaderInterface::shutdown();
+		MIMEScanner::shutdown();
+
 		return EXIT_FAILURE;
 	}
 
@@ -148,6 +156,9 @@ int main(int argc, char **argv)
 	}
 
 	delete myEngine;
+
+	DownloaderInterface::shutdown();
+	MIMEScanner::shutdown();
 
 	return EXIT_SUCCESS;
 }

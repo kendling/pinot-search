@@ -18,19 +18,47 @@
 #define _MIME_SCANNER_H
 
 #include <string>
+#include <map>
 
 #include "Url.h"
+
+class MIMEAction
+{
+	public:
+		MIMEAction();
+		MIMEAction(const MIMEAction &other);
+		virtual ~MIMEAction();
+
+		MIMEAction &operator=(const MIMEAction &other);
+
+		bool m_localOnly;
+		std::string m_exec;
+
+};
 
 class MIMEScanner
 {
 	public:
+		~MIMEScanner();
+
+		/// Initializes the MIME system.
+		static void initialize(void);
+
+		/// Shutdowns the MIME system.
+		static void shutdown(void);
+
 		/// Finds out the given file's MIME type.
 		static std::string scanFile(const std::string &fileName);
 
 		/// Finds out the given URL's MIME type.
 		static std::string scanUrl(const Url &urlObj);
 
+		/// Determines the default action for the given type.
+		static bool getDefaultAction(const std::string &mimeType, MIMEAction &typeAction);
+
 	protected:
+		static std::map<std::string, MIMEAction> m_defaultActions;
+
 		MIMEScanner();
 
 		static std::string scanFileType(const std::string &fileName);

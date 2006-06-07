@@ -29,6 +29,7 @@
 
 #include "TokenizerFactory.h"
 #include "Languages.h"
+#include "MIMEScanner.h"
 #include "XapianDatabase.h"
 #include "XapianDatabaseFactory.h"
 #include "QueryHistory.h"
@@ -81,6 +82,7 @@ static void closeAll(void)
 
 	MozillaRenderer::shutdown();
 	DownloaderInterface::shutdown();
+	MIMEScanner::shutdown();
 }
 
 static void quitAll(int sigNum)
@@ -132,6 +134,7 @@ int main(int argc, char **argv)
 	textdomain(GETTEXT_PACKAGE);
 #endif //ENABLE_NLS
 
+	MIMEScanner::initialize();
 	DownloaderInterface::initialize();
 	MozillaRenderer::initialize();
 	Glib::thread_init();

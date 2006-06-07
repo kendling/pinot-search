@@ -21,6 +21,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "MIMEScanner.h"
 #include "Url.h"
 #include "DownloaderFactory.h"
 #include "config.h"
@@ -75,6 +76,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	MIMEScanner::initialize();
 	DownloaderInterface::initialize();
 
 	string url(argv[1]);
@@ -91,8 +93,11 @@ int main(int argc, char **argv)
 	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
 	if (myDownloader == NULL)
 	{
-		DownloaderInterface::shutdown();
 		cerr << "Couldn't obtain downloader for protocol " << thisUrl.getProtocol() << endl;
+
+		DownloaderInterface::shutdown();
+		MIMEScanner::shutdown();
+
 		return EXIT_FAILURE;
 	}
 
@@ -139,6 +144,7 @@ int main(int argc, char **argv)
 	delete myDownloader;
 
 	DownloaderInterface::shutdown();
+	MIMEScanner::shutdown();
 
 	return EXIT_SUCCESS;
 }
