@@ -32,9 +32,11 @@
 #include <gtkmm/clipboard.h>
 #include <gtkmm/main.h>
 
+#include "CommandLine.h"
 #include "HtmlTokenizer.h"
 #include "IndexedDocument.h"
 #include "TimeConverter.h"
+#include "MIMEScanner.h"
 #include "Url.h"
 #include "TokenizerFactory.h"
 #include "QueryHistory.h"
@@ -195,15 +197,11 @@ mainWindow::mainWindow() :
 
 	// Create an HTML renderer
 	m_pHtmlView = new HtmlView(NULL);
-	if (m_settings.m_browseResults == false)
-	{
-		string startPage("file://");
-		startPage += PREFIX;
-		startPage += "/share/pinot/index.html";
-		DocumentInfo docInfo("", startPage, "", "");
-
-		view_document(docInfo, true);
-	}
+	string startPage("file://");
+	startPage += PREFIX;
+	startPage += "/share/pinot/index.html";
+	DocumentInfo docInfo("", startPage, "", "");
+	view_document(docInfo, true);
 
 	// Gray out menu items
 	editQueryButton->set_sensitive(false);
@@ -475,13 +473,10 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 
 		// Enable these menu items
 		viewresults1->set_sensitive(isViewable);
-		if (m_settings.m_browseResults == false)
+		if ((protocol == "http") ||
+			(protocol == "https"))
 		{
-			if ((protocol == "http") ||
-				(protocol == "https"))
-			{
-				isCached = true;
-			}
+			isCached = true;
 		}
 		viewcache1->set_sensitive(isCached);
 		indexresults1->set_sensitive(isIndexable);
@@ -522,19 +517,13 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 		(pIndexTree->getSelection(documentsList) == true))
 	{
 		bool isDocumentsIndex = true;
-		bool canViewDocument = true;
 
 		// Enable these menu items, unless the index is not the documents index
 		if (indexName != _("My Documents"))
 		{
 			isDocumentsIndex = false;
 		}
-		if ((indexName == _("My Email")) &&
-			(m_settings.m_browseResults == true))
-		{
-			canViewDocument = false;
-		}
-		viewfromindex1->set_sensitive(canViewDocument);
+		viewfromindex1->set_sensitive(true);
 		refreshindex1->set_sensitive(isDocumentsIndex);
 		unindex1->set_sensitive(isDocumentsIndex);
 		showfromindex1->set_sensitive(true);
@@ -951,31 +940,27 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			if ((pData != NULL) &&
 				(dataLength > 0))
 			{
-				// Make sure settings haven't changed in the meantime
-				if (m_settings.m_browseResults == false)
+				ustring viewName = _("View");
+
+				// Is there still a view page ?
+				ViewPage *pViewPage = dynamic_cast<ViewPage*>(get_page(viewName, NotebookPageBox::VIEW_PAGE));
+				if (pViewPage != NULL)
 				{
-					ustring viewName = _("View");
+					// The page may be hidden
+					pViewPage->show();
+				}
 
-					// Is there still a view page ?
-					ViewPage *pViewPage = dynamic_cast<ViewPage*>(get_page(viewName, NotebookPageBox::VIEW_PAGE));
-					if (pViewPage != NULL)
+				int pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
+				if (pageNum >= 0)
+				{
+					// Display the URL in the View tab
+					if (m_pHtmlView->renderData(pData, dataLength, url) == true)
 					{
-						// The page may be hidden
-						pViewPage->show();
+						//viewstop1->set_sensitive(true);
+						set_status(to_utf8(url));
 					}
 
-					int pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
-					if (pageNum >= 0)
-					{
-						// Display the URL in the View tab
-						if (m_pHtmlView->renderData(pData, dataLength, url) == true)
-						{
-							//viewstop1->set_sensitive(true);
-							set_status(to_utf8(url));
-						}
-
-						m_pNotebook->set_current_page(pageNum);
-					}
+					m_pNotebook->set_current_page(pageNum);
 				}
 			}
 		}
@@ -1240,8 +1225,6 @@ void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int do
 //
 void mainWindow::on_configure_activate()
 {
-	bool useExternalBrowser = m_settings.m_browseResults;
-
 	prefsDialog prefsBox;
 	prefsBox.show();
 	if (prefsBox.run() != RESPONSE_OK)
@@ -1283,26 +1266,6 @@ void mainWindow::on_configure_activate()
 	else
 	{
 		viewcache1->show();
-	}
-
-	// Do the changes affect the View tab ?
-	if (useExternalBrowser != m_settings.m_browseResults)
-	{
-		if (m_settings.m_browseResults == true)
-		{
-			// Close the existing view page
-			on_close_page(_("View"), NotebookPageBox::VIEW_PAGE);
-		}
-		else
-		{
-			string startPage("file://");
-			startPage += PREFIX;
-			startPage += "/share/pinot/index.html";
-			DocumentInfo docInfo("", startPage, "", "");
-
-			// Reopen the start page
-			view_document(docInfo, true);
-		}
 	}
 
 	// Any labels to delete or rename ?
@@ -2862,6 +2825,7 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 bool mainWindow::view_document(const DocumentInfo &docInfo, bool internalViewerOnly)
 {
 	string url(docInfo.getLocation());
+	string mimeType(docInfo.getType());
 
 	if (url.empty() == true)
 	{
@@ -2869,89 +2833,96 @@ bool mainWindow::view_document(const DocumentInfo &docInfo, bool internalViewerO
 		return false;
 	}
 
-	// Is browsing enabled ?
-	if ((internalViewerOnly == false) &&
-		(m_settings.m_browseResults == true))
+	if (mimeType.empty() == true)
 	{
-		// Point user-defined browser to that URL
-		if (m_settings.m_browserCommand.empty() == true)
+		Url docUrl(url);
+
+		// Scan for the MIME type
+		mimeType = MIMEScanner::scanUrl(docUrl);
+	}
+
+	Url urlObj(url);
+
+	// FIXME: there should be a way to know which protocols can be viewed/indexed
+	if (urlObj.getProtocol() == "mailbox")
+	{
+		// Get that message
+		start_thread(new DownloadingThread(docInfo, false));
+	}
+	else if ((internalViewerOnly == true) ||
+		(mimeType.find("/html") != string::npos))
+	{
+		ViewPage *pViewPage = NULL;
+		ustring viewName = _("View");
+		int pageNum = -1;
+
+		// Is there already a view page ?
+		pViewPage = dynamic_cast<ViewPage*>(get_page(viewName, NotebookPageBox::VIEW_PAGE));
+		if (pViewPage != NULL)
 		{
-			set_status(_("No browser configured to view results"));
-			return false;
+			pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
+			// The page may be hidden
+			pViewPage->show();
+			// FIXME: reorder pages
+		}
+		else
+		{
+			NotebookTabBox *pTab = manage(new NotebookTabBox(viewName,
+				NotebookPageBox::VIEW_PAGE));
+			pTab->getCloseSignal().connect(
+				SigC::slot(*this, &mainWindow::on_close_page));
+
+			// Position everything
+			pViewPage = manage(new ViewPage(viewName, m_pHtmlView, m_settings));
+
+			// Append the page
+			if (m_state.write_lock_lists(11) == true)
+			{
+				pageNum = m_pNotebook->append_page(*pViewPage, *pTab);
+				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+
+				m_state.unlock_lists();
+			}
 		}
 
-		string shellCommand = from_utf8(m_settings.m_browserCommand);
-		// FIXME: do substitutions
-		shellCommand += " \"";
-		shellCommand += url;
-		shellCommand += "\" &";
-		if ((url.empty() == true) ||
-			(system(shellCommand.c_str()) == -1))
+		if (pageNum >= 0)
 		{
-			ustring status = _("Couldn't browse URL:");
+			// Display the URL
+			m_pNotebook->set_current_page(pageNum);
+			if (m_pHtmlView->renderUrl(url) == true)
+			{
+				//viewstop1->set_sensitive(true);
+			}
+			ustring status = _("Viewing");
 			status += " ";
-			status += Glib::strerror(errno);
+			status += to_utf8(m_pHtmlView->getLocation());
 			set_status(status);
 		}
 	}
 	else
 	{
-		Url urlObj(url);
+		vector<string> arguments;
+		MIMEAction action;
 
-		// FIXME: there should be a way to know which protocols can be viewed/indexed
-		if (urlObj.getProtocol() == "mailbox")
+		if (MIMEScanner::getDefaultAction(mimeType, action) == false)
 		{
-			// Get that message
-			start_thread(new DownloadingThread(docInfo, false));
+			ustring status = _("No application defined for type ");
+			status += " ";
+			status += mimeType;
+			set_status(status);
+			return false;
 		}
-		else
+
+		arguments.push_back(url);
+
+		// Run the default program for this type
+		if (CommandLine::runAsync(action, arguments) == false)
 		{
-			ViewPage *pViewPage = NULL;
-			ustring viewName = _("View");
-			int pageNum = -1;
-
-			// Is there already a view page ?
-			pViewPage = dynamic_cast<ViewPage*>(get_page(viewName, NotebookPageBox::VIEW_PAGE));
-			if (pViewPage != NULL)
-			{
-				pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
-				// The page may be hidden
-				pViewPage->show();
-				// FIXME: reorder pages
-			}
-			else
-			{
-				NotebookTabBox *pTab = manage(new NotebookTabBox(viewName,
-					NotebookPageBox::VIEW_PAGE));
-				pTab->getCloseSignal().connect(
-					SigC::slot(*this, &mainWindow::on_close_page));
-
-				// Position everything
-				pViewPage = manage(new ViewPage(viewName, m_pHtmlView, m_settings));
-
-				// Append the page
-				if (m_state.write_lock_lists(11) == true)
-				{
-					pageNum = m_pNotebook->append_page(*pViewPage, *pTab);
-					m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
-
-					m_state.unlock_lists();
-				}
-			}
-
-			if (pageNum >= 0)
-			{
-				// Display the URL
-				m_pNotebook->set_current_page(pageNum);
-				if (m_pHtmlView->renderUrl(url) == true)
-				{
-					//viewstop1->set_sensitive(true);
-				}
-				ustring status = _("Viewing");
-				status += " ";
-				status += to_utf8(m_pHtmlView->getLocation());
-				set_status(status);
-			}
+			ustring status = _("Couldn't view ");
+			status += " ";
+			status += url;
+			set_status(status);
+			return false;
 		}
 	}
 
