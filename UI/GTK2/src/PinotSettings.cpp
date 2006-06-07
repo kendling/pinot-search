@@ -82,7 +82,6 @@ static Element *addChildElement(Element *pElem, const string &nodeName, const st
 PinotSettings PinotSettings::m_instance;
 
 PinotSettings::PinotSettings() :
-	m_browseResults(false),
 	m_xPos(0),
 	m_yPos(0),
 	m_width(0),
@@ -299,10 +298,6 @@ bool PinotSettings::loadConfiguration(const std::string &fileName)
 				else if (nodeName == "storedquery")
 				{
 					loadQueries(pElem);
-				}
-				else if (nodeName == "results")
-				{
-					loadResults(pElem);
 				}
 				else if (nodeName == "label")
 				{
@@ -572,50 +567,6 @@ bool PinotSettings::loadQueries(const Element *pElem)
 	if (queryProps.getName().empty() == false)
 	{
 		m_queries[queryProps.getName()] = queryProps;
-	}
-
-	return true;
-}
-
-bool PinotSettings::loadResults(const Element *pElem)
-{
-	if (pElem == NULL)
-	{
-		return false;
-	}
-
-	Node::NodeList childNodes = pElem->get_children();
-	if (childNodes.empty() == true)
-	{
-		return false;
-	}
-
-	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
-	{
-		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
-		{
-			continue;
-		}
-
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
-		if (nodeName == "viewmode")
-		{
-			if (nodeContent == "SOURCE")
-			{
-				m_browseResults = false;
-			}
-			else
-			{
-				m_browseResults = true;
-			}
-		}
-		else if (nodeName == "browser")
-		{
-			m_browserCommand = nodeContent;
-		}
 	}
 
 	return true;
@@ -900,14 +851,6 @@ bool PinotSettings::save(void)
 		addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
 		addChildElement(pElem, "label", queryIter->second.getLabelName());
 	}
-	pElem = pRootElem->add_child("results");
-	if (pElem == NULL)
-	{
-		return false;
-	}
-	// Results view options
-	addChildElement(pElem, "viewmode", (m_browseResults ? "BROWSE" : "SOURCE"));
-	addChildElement(pElem, "browser", m_browserCommand);
 	// Labels
 	for (set<string>::iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
 	{

@@ -141,8 +141,6 @@ class PinotSettings
 		Glib::ustring m_indexLocation;
 		Glib::ustring m_mailIndexLocation;
 		Glib::ustring m_historyDatabase;
-		bool m_browseResults;
-		Glib::ustring m_browserCommand;
 		int m_xPos;
 		int m_yPos;
 		int m_width;
@@ -170,7 +168,6 @@ class PinotSettings
 		bool loadIndexes(const xmlpp::Element *pElem);
 		bool loadEngineChannels(const xmlpp::Element *pElem);
 		bool loadQueries(const xmlpp::Element *pElem);
-		bool loadResults(const xmlpp::Element *pElem);
 		bool loadLabels(const xmlpp::Element *pElem);
 		bool loadColour(const xmlpp::Element *pElem);
 		bool loadMailAccounts(const xmlpp::Element *pElem);

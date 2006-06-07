@@ -42,8 +42,6 @@ public:
 
 protected:
 	virtual void on_prefsOkbutton_clicked();
-	virtual void on_viewCombobox_changed();
-	virtual void on_browserButton_clicked();
 	virtual void on_addLabelButton_clicked();
 	virtual void on_removeLabelButton_clicked();
 	virtual bool on_mailTreeview_button_press_event(GdkEventButton *ev);
@@ -51,7 +49,6 @@ protected:
 	virtual void on_editAccountButton_clicked();
 	virtual void on_removeAccountButton_clicked();
 
-	void populate_comboboxes();
 	void populate_labelsTreeview();
 	bool save_labelsTreeview();
 	void populate_mailTreeview();

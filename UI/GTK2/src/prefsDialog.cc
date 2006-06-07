@@ -41,28 +41,14 @@ prefsDialog::prefsDialog() :
 	prefsDialog_glade(),
 	m_settings(PinotSettings::getInstance())
 {
-	// Associate the columns model to the view combo
-	m_refViewTree = ListStore::create(m_viewColumns);
-	viewCombobox->set_model(m_refViewTree);
-	viewCombobox->pack_start(m_viewColumns.m_name);
-	// Populate
-	populate_comboboxes();
-
 	// Initialize widgets
 	// Ignore robots directives
 	ignoreRobotsCheckbutton->set_active(m_settings.m_ignoreRobotsDirectives);
+	// Google API key
 	if (m_settings.m_googleAPIKey.empty() == false)
 	{
 		apiKeyEntry->set_text(m_settings.m_googleAPIKey);
 	}
-	// Browser command
-	if (m_settings.m_browserCommand.empty() == false)
-	{
-		browserEntry->set_text(m_settings.m_browserCommand);
-	}
-	// Browser entry field and button
-	browserEntry->set_sensitive(m_settings.m_browseResults);
-	browserButton->set_sensitive(m_settings.m_browseResults);
 	// New results colour
 	newResultsColorbutton->set_color(m_settings.m_newResultsColour);
 	// Enable terms suggestion
@@ -110,25 +96,6 @@ const map<string, string> &prefsDialog::getLabelsToRename(void) const
 const set<string> &prefsDialog::getMailLabelsToDelete(void) const
 {
 	return m_deletedMail;
-}
-
-void prefsDialog::populate_comboboxes()
-{
-	TreeModel::iterator iter = m_refViewTree->append();
-	TreeModel::Row row = *iter;
-	row[m_viewColumns.m_name] = _("In internal viewer");
-	iter = m_refViewTree->append();
-	row = *iter;
-	row[m_viewColumns.m_name] = _("In browser");
-	// Default results view
-	if (m_settings.m_browseResults == false)
-	{
-		viewCombobox->set_active(0);
-	}
-	else
-	{
-		viewCombobox->set_active(1);
-	}
 }
 
 void prefsDialog::populate_labelsTreeview()
@@ -282,19 +249,6 @@ void prefsDialog::on_prefsOkbutton_clicked()
 {
 	// Synchronise widgets with settings
 	m_settings.m_ignoreRobotsDirectives = ignoreRobotsCheckbutton->get_active();
-	// Default results view mode
-	int viewMode = viewCombobox->get_active_row_number();
-	if (viewMode == 0)
-	{
-		// Source
-		m_settings.m_browseResults = false;
-	}
-	else
-	{
-		// Browser
-		m_settings.m_browseResults = true;
-	}
-	m_settings.m_browserCommand = browserEntry->get_text();
 	m_settings.m_newResultsColour = newResultsColorbutton->get_color();
 	m_settings.m_suggestQueryTerms = enableCompletionCheckbutton->get_active();
 	m_settings.m_googleAPIKey = apiKeyEntry->get_text();
@@ -302,29 +256,6 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	// Validate the current labels and mail accounts
 	save_labelsTreeview();
 	save_mailTreeview();
-}
-
-void prefsDialog::on_viewCombobox_changed()
-{
-	bool browseResults = true;
-
-	// Enable the browser entry field and button only if browsing is enabled
-	if (viewCombobox->get_active_row_number() == 0)
-	{
-		browseResults = false;
-	}
-
-	browserEntry->set_sensitive(browseResults);
-	browserButton->set_sensitive(browseResults);
-}
-
-void prefsDialog::on_browserButton_clicked()
-{
-	ustring browserCmd = browserEntry->get_text();
-	if (select_file_name(*this, _("Browser location"), browserCmd, true) == true)
-	{
-		browserEntry->set_text(browserCmd);
-	}
 }
 
 void prefsDialog::on_addLabelButton_clicked()
