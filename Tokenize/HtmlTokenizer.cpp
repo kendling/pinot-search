@@ -46,6 +46,7 @@ static bool getInBetweenLinksText(HtmlTokenizer::ParserState *pState,
 		string abstract(pState->m_text);
 
 		StringManip::trimSpaces(abstract);
+
 		pState->m_abstract = abstract;
 
 		return true;
@@ -115,7 +116,8 @@ static void startHandler(void *pData, const char *pElementName, const char **pAt
 		pState->m_foundHead = true;
 	}
 	else if ((pState->m_inHead == true) &&
-		(tagName == "meta"))
+		(tagName == "meta") &&
+		(pAttributes != NULL))
 	{
 		string metaName, metaContent;
 
@@ -155,7 +157,8 @@ static void startHandler(void *pData, const char *pElementName, const char **pAt
 		// Index text
 		pState->m_appendToText = true;
 	}
-	else if (tagName == "a")
+	else if ((tagName == "a") &&
+		(pAttributes != NULL))
 	{
 		pState->m_currentLink.m_url.clear();
 		pState->m_currentLink.m_name.clear();
@@ -190,7 +193,8 @@ static void startHandler(void *pData, const char *pElementName, const char **pAt
 			pState->m_appendToLink = true;
 		}
 	}
-	else if (tagName == "frame")
+	else if ((tagName == "frame") &&
+		(pAttributes != NULL))
 	{
 		Link frame;
 
@@ -247,6 +251,7 @@ static void endHandler(void *pData, const char *pElementName)
 	else if (tagName == "title")
 	{
 		StringManip::trimSpaces(pState->m_title);
+		StringManip::removeCharacters(pState->m_title, "\r\n");
 #ifdef DEBUG
 		cout << "HtmlTokenizer::endHandler: title is " << pState->m_title << endl;
 #endif
@@ -261,6 +266,8 @@ static void endHandler(void *pData, const char *pElementName)
 		if (pState->m_currentLink.m_url.empty() == false)
 		{
 			StringManip::trimSpaces(pState->m_currentLink.m_name);
+			StringManip::removeCharacters(pState->m_currentLink.m_name, "\r\n");
+
 			pState->m_currentLink.m_endPos = pState->m_textPos;
 #ifdef DEBUG
 			cout << "HtmlTokenizer::endHandler: link " << pState->m_currentLink.m_index
