@@ -28,15 +28,15 @@
 #else
 #include <gtkmm/eventbox.h>
 #endif
+#include <gtkmm/textview.h>
 
-#include "HtmlView.h"
 #include "PinotSettings.h"
 #include "ResultsTree.h"
 
 class NotebookPageBox : public Gtk::VBox
 {
 	public:
-		typedef enum { RESULTS_PAGE = 0, INDEX_PAGE, VIEW_PAGE } PageType;
+		typedef enum { RESULTS_PAGE = 0, INDEX_PAGE } PageType;
 
 		NotebookPageBox(const Glib::ustring &title, PageType type,
 			PinotSettings &settings);
@@ -68,21 +68,6 @@ class ResultsPage : public NotebookPageBox
 	protected:
 		Gtk::VPaned *m_pVPaned;
 		ResultsTree *m_pTree;
-
-};
-
-class ViewPage : public NotebookPageBox
-{
-	public:
-		ViewPage(const Glib::ustring &viewName, HtmlView *pView,
-			PinotSettings &settings);
-		virtual ~ViewPage();
-
-		/// Returns the page's view.
-		virtual HtmlView *getView(void) const;
-
-	protected:
-		HtmlView *m_pView;
 
 };
 

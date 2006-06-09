@@ -35,7 +35,6 @@
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
-#include "MozillaRenderer.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -80,7 +79,6 @@ static void closeAll(void)
 	}
 	outputFile.close();
 
-	MozillaRenderer::shutdown();
 	DownloaderInterface::shutdown();
 	MIMEScanner::shutdown();
 }
@@ -136,7 +134,6 @@ int main(int argc, char **argv)
 
 	MIMEScanner::initialize();
 	DownloaderInterface::initialize();
-	MozillaRenderer::initialize();
 	Glib::thread_init();
 	Gtk::Main m(&argc, &argv);
 

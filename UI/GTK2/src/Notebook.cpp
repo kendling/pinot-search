@@ -87,35 +87,6 @@ ResultsTree *ResultsPage::getTree(void) const
 	return m_pTree;
 }
 
-ViewPage::ViewPage(const ustring &viewName, HtmlView *pView,
-	PinotSettings &settings) :
-	NotebookPageBox(viewName, NotebookPageBox::VIEW_PAGE, settings),
-	m_pView(pView)
-{
-	if (pView != NULL)
-	{
-		Widget *pViewWidget = pView->getWidget();
-		if (pViewWidget != NULL)
-		{
-			pack_start(*pViewWidget);
-		}
-	}
-
-	show();
-}
-
-ViewPage::~ViewPage()
-{
-}
-
-//
-// Returns the page's view.
-//
-HtmlView *ViewPage::getView(void) const
-{
-	return m_pView;
-}
-
 NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::PageType type) :
 	HBox(),
 	m_title(title),
