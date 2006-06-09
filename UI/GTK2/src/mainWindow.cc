@@ -201,13 +201,6 @@ mainWindow::mainWindow() :
 	findQueryButton->set_sensitive(false);
 	show_global_menuitems(false);
 	show_selectionbased_menuitems(false);
-	// Hide the View Cache menu item ?
-	if ((SearchEngineFactory::isSupported("googleapi") == false) ||
-		(m_settings.m_googleAPIKey.empty() == true))
-	{
-		viewcache1->hide();
-	}
-	//viewstop1->set_sensitive(false);
 	// ...and buttons
 	removeIndexButton->set_sensitive(false);
 
@@ -424,6 +417,7 @@ void mainWindow::on_enginesTreeviewSelection_changed()
 //
 void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 {
+	vector<DocumentInfo> resultsList;
 	string url;
 	bool hasSelection = false;
 
@@ -436,11 +430,9 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				hasSelection = pResultsTree->checkSelection();
-				if (hasSelection == true)
+				if (pResultsTree->checkSelection() == true)
 				{
-					Result selectedResult = pResultsTree->getFirstSelection();
-					url = selectedResult.getLocation();
+					hasSelection = pResultsTree->getSelection(resultsList);
 				}
 			}
 		}
@@ -448,31 +440,46 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 
 	if (hasSelection == true)
 	{
-		Url urlObj(url);
-		bool isViewable = true, isIndexable = true, isCached = false;
+		bool firstResult = true, isViewable = true, isIndexable = true, isCached = false;
 
-		string protocol = urlObj.getProtocol();
-		// FIXME: there should be a way to know which protocols can be viewed/indexed
-		if (protocol == "xapian")
+		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
+			resultIter != resultsList.end(); ++resultIter)
 		{
-			isViewable = isIndexable = false;
+			string url(resultIter->getLocation());
+			Url urlObj(url);
+			string protocol(urlObj.getProtocol());
+
+			if (firstResult == true)
+			{
+				// Show the URL of the first result in the status bar
+				ustring statusText = _("Result location is");
+				statusText += " ";
+				statusText += url;
+				set_status(statusText, true);
+				firstResult = false;
+			}
+
+			// FIXME: there should be a way to know which protocols can be viewed/indexed
+			if (protocol == "xapian")
+			{
+#ifdef DEBUG
+				cout << "mainWindow::on_resultsTreeviewSelection_changed: internal URL" << endl;
+#endif
+				isViewable = isIndexable = isCached = false;
+				break;
+			}
+			else if ((protocol == "http") ||
+				(protocol == "https"))
+			{
+				// One document on http is good enough
+				isCached = true;
+			}
 		}
 
 		// Enable these menu items
 		viewresults1->set_sensitive(isViewable);
-		if ((protocol == "http") ||
-			(protocol == "https"))
-		{
-			isCached = true;
-		}
 		viewcache1->set_sensitive(isCached);
 		indexresults1->set_sensitive(isIndexable);
-
-		// Show the URL in the status bar
-		ustring statusText = _("Result location is");
-		statusText += " ";
-		statusText += url;
-		set_status(statusText, true);
 	}
 	else
 	{
@@ -845,6 +852,8 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			{
 				pageNum = m_pNotebook->append_page(*pResultsPage, *pTab);
 				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+				// Switch to this new page
+				m_pNotebook->set_current_page(pageNum);
 
 				m_state.unlock_lists();
 			}
@@ -1233,17 +1242,6 @@ void mainWindow::on_configure_activate()
 		m_state.unlock_lists();
 	}
 
-	// Hide the View Cache menu item ?
-	if ((SearchEngineFactory::isSupported("googleapi") == false) ||
-		(m_settings.m_googleAPIKey.empty() == true))
-	{
-		viewcache1->hide();
-	}
-	else
-	{
-		viewcache1->show();
-	}
-
 	// Any labels to delete or rename ?
 	const set<string> &labelsToDelete = prefsBox.getLabelsToDelete();
 	const std::map<string, string> &labelsToRename = prefsBox.getLabelsToRename();
@@ -1521,7 +1519,7 @@ void mainWindow::on_viewresults_activate()
 				{
 					view_documents(resultsList);
 
-					// We can update the row right now
+					// We can update the rows right now
 					pResultsTree->setSelectionViewedState(true);
 				}
 			}
@@ -1534,8 +1532,8 @@ void mainWindow::on_viewresults_activate()
 //
 void mainWindow::on_viewcache_activate()
 {
-// FIXME: find a way to view cached pages in external applications
-#if 0
+	string googleCache("http://www.google.com/search?q=cache:");
+
 	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
@@ -1545,16 +1543,47 @@ void mainWindow::on_viewcache_activate()
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				Result selectedResult = pResultsTree->getFirstSelection();
+				vector<DocumentInfo> resultsList;
 
-				start_thread(new DownloadingThread(selectedResult, true));
+				if (pResultsTree->getSelection(resultsList) == true)
+				{
+					for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
+						resultIter != resultsList.end(); ++resultIter)
+					{
+						string url(resultIter->getLocation());
+						Url urlObj(url);
+						string protocol(urlObj.getProtocol());
 
-				// Update the row now, even though the cached page may not be retrieved
-				pResultsTree->setFirstSelectionViewedState(true);
+#ifdef DEBUG
+						cout << "mainWindow::on_viewcache_activate: " << url << endl;
+#endif
+						if ((protocol == "http") ||
+							(protocol == "https"))
+						{
+							// Rewrite the URL
+							string::size_type pos = url.find("://");
+							if ((pos != string::npos) &&
+								(pos + 3 < url.length()))
+							{
+								resultIter->setLocation(googleCache + url.substr(pos + 3));
+#ifdef DEBUG
+								cout << "mainWindow::on_viewcache_activate: rewritten "
+									<< url << " to " << resultIter->getLocation() << endl;
+#endif
+							}
+						}
+
+						// Other document will be open in place
+					}
+				}
+
+				view_documents(resultsList);
+
+				// Update the rows right now
+				pResultsTree->setSelectionViewedState(true);
 			}
 		}
 	}
-#endif
 }
 
 //
