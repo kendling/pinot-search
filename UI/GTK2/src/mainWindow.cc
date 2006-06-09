@@ -141,6 +141,7 @@ mainWindow::mainWindow() :
 	{
 		mainHpaned->set_position(m_settings.m_panePos);
 	}
+	queryExpander->set_expanded(m_settings.m_expandQueries);
 
 	// Position the engine tree
 	m_pEnginesTree = manage(new EnginesTree(enginesVbox, m_settings));
@@ -2279,10 +2280,10 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 	m_pageSwitchConnection.disconnect();
 
 	// Save the window's position and dimensions now
-	// Don't worry about the gravity, it hasn't been changed
 	get_position(m_settings.m_xPos, m_settings.m_yPos);
 	get_size(m_settings.m_width, m_settings.m_height);
 	m_settings.m_panePos = mainHpaned->get_position();
+	m_settings.m_expandQueries = queryExpander->get_expanded();
 #ifdef DEBUG
 	cout << "mainWindow::on_mainWindow_delete_event: quitting" << endl;
 #endif

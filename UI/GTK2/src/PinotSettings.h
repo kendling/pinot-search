@@ -146,6 +146,7 @@ class PinotSettings
 		int m_width;
 		int m_height;
 		int m_panePos;
+		bool m_expandQueries;
 		bool m_ignoreRobotsDirectives;
 		bool m_suggestQueryTerms;
 		Gdk::Color m_newResultsColour;
