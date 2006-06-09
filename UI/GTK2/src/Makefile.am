@@ -19,7 +19,6 @@ noinst_HEADERS = \
 	Notebook.h \
 	PinotUtils.h \
 	WorkerThreads.h \
-	HtmlView.h \
 	IndexTree.h \
 	MboxHandler.h \
 	PinotSettings.h \
@@ -45,7 +44,6 @@ pinot_SOURCES = \
 	Notebook.cpp \
 	PinotUtils.cpp \
 	WorkerThreads.cpp \
-	HtmlView.cpp \
 	IndexTree.cpp \
 	MboxHandler.cpp \
 	PinotSettings.cpp \
@@ -55,12 +53,11 @@ bin_PROGRAMS = pinot
 
 AM_CXXFLAGS = -I../../../Utils -I../../../Tokenize -I../../../SQL \
 	-I../../../Monitor -I../../../Collect -I../../../Search \
-	-I../../../Search/Google -I../../../Index -I../../RenderHTML \
+	-I../../../Search/Google -I../../../Index \
 	@SQL_CFLAGS@ @HTTP_CFLAGS@ @MIME_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ @INDEX_CFLAGS@ @UI_CFLAGS@
 
 pinot_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL -L../../../Monitor \
 	-L../../../Collect -L../../../Search -L../../../Search/Google \
-	-L../../../Index -L../../RenderHTML \
-	-lHTML -lIndex @SEARCH_LIBS@ -lMonitor -lCollect -lSQL -lTokenize -lUtils \
+	-L../../../Index -lIndex @SEARCH_LIBS@ -lMonitor -lCollect -lSQL -lTokenize -lUtils \
 	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 

@@ -84,32 +84,6 @@ AC_SUBST(SOAP_SUBDIRS)
 AC_SUBST(SEARCH_LTLIBRARIES)
 AC_SUBST(SEARCH_LIBS)
 
-dnl Mozilla
-AC_MSG_CHECKING([which Gecko engine to use])
-AC_ARG_WITH(gecko, AS_HELP_STRING(--with-gecko@<:@=mozilla|firefox@:>@,
-   which Gecko engine to use (default: mozilla)))
-gecko=$with_gecko
-if test "x$gecko" = "x"; then
-   gecko="mozilla"
-fi
-AC_MSG_RESULT([$gecko])
-
-PKG_CHECK_MODULES(GECKO, $gecko-xpcom >= 1.4 $gecko-gtkmozembed >= 1.4 )
-dnl Mozilla NSS and NSPR
-AC_PATH_PROG(NSS_CONFIG, nss-config, no)
-if test "$NSS_CONFIG" = "no" ; then
-   PKG_CHECK_MODULES(MOZILLANS, $gecko-nss >= 1.4 $gecko-nspr >= 1.4)
-   MOZILLA_NS_DIR="HAS_MOZILLA_NSS"
-else
-   PKG_CHECK_MODULES(MOZILLANS, nss >= 1.4 nspr >= 1.4)
-   MOZILLA_NS_DIR="HAS_NSS"
-fi
-dnl Location of Mozilla's library directory
-MOZILLA_LIB_DIR="`$PKG_CONFIG --variable=libdir $gecko-gtkmozembed`"
-if test "$MOZILLA_LIB_DIR" = "" ; then
-  MOZILLA_LIB_DIR=/usr/lib/mozilla
-fi
-
 dnl Neon or Curl ?
 AC_MSG_CHECKING(which HTTP library to use)
 AC_ARG_WITH(http, AS_HELP_STRING(--with-http@<:@=neon|curl@:>@,
@@ -195,8 +169,7 @@ PKG_CHECK_MODULES(GLIBMM, glibmm-2.4 >= 2.6 )
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
 PKG_CHECK_MODULES(UI, gtkmm-2.4 >= 2.6 )
-UI_CFLAGS="$MOZILLANS_CFLAGS -D$MOZILLA_NS_DIR $GECKO_CFLAGS $UI_CFLAGS"
-UI_LIBS="-lpthread -L$MOZILLA_LIB_DIR -Xlinker -rpath -Xlinker $MOZILLA_LIB_DIR $GECKO_LIBS $MOZILLANS_LIBS $UI_LIBS"
+UI_LIBS="-lpthread $UI_LIBS"
 AC_SUBST(UI_CFLAGS)
 AC_SUBST(UI_LIBS)
 
@@ -210,5 +183,5 @@ AC_OUTPUT( SQL/Makefile po/Makefile.in Collect/Makefile )
 if test "$SOAP_SUBDIRS" != "" ; then
   AC_OUTPUT( Search/Google/Makefile )
 fi
-AC_OUTPUT( Search/Makefile Index/Makefile Monitor/Makefile UI/RenderHTML/Makefile UI/GTK2/src/Makefile )
+AC_OUTPUT( Search/Makefile Index/Makefile Monitor/Makefile UI/GTK2/src/Makefile )
 
