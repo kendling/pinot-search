@@ -1,7 +1,4 @@
 # @configure_input@
-# We need an explicit dependency on mozilla as the so files don't have a version number 
-%define mozilla_ver %(pkg-config --modversion mozilla-gtkmozembed)
-
 Summary: Metasearch tool
 Name: @PACKAGE@
 Version: @VERSION@
@@ -11,8 +8,8 @@ Group: Applications/Internet
 Source: %{name}-%{version}.tar.gz
 URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-Requires: xapian-core-libs >= 0.9.4, curl >= 7.13, gtkmm24 >= 2.6, libxml++ >= 2.12, mozilla >= %{mozilla_ver}, sqlite >= 3.1.2, libtextcat >= 2.2, gmime >= 2.1, shared-mime-info
-BuildRequires: xapian-core-devel >= 0.9.4, curl-devel >= 7.13, gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, mozilla-devel >= %{mozilla_ver}, sqlite-devel >= 3.1.2, libtextcat-devel >= 2.2, gmime-devel >= 2.1, taglib-devel >= 1.4, boost-devel >= 1.32, gettext-devel, desktop-file-utils
+Requires: xapian-core-libs >= 0.9.4, curl >= 7.13, gtkmm24 >= 2.6, libxml++ >= 2.12, sqlite >= 3.1.2, libtextcat >= 2.2, gmime >= 2.1, shared-mime-info
+BuildRequires: xapian-core-devel >= 0.9.4, curl-devel >= 7.13, gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, sqlite-devel >= 3.1.2, libtextcat-devel >= 2.2, gmime-devel >= 2.1, taglib-devel >= 1.4, boost-devel >= 1.32, gettext-devel, desktop-file-utils
 %if 0%{?_with_soap:1}
 BuildRequires: gsoap
 %endif
@@ -55,8 +52,8 @@ The included plugin enables Pinot to use Xapian Omega as a search engine.
 %setup -q
 
 %build
-%configure %{?_with_soap:--with-soap=yes}
-make %{?_with_debug:CXXFLAGS="-g -DDEBUG"}
+%configure %{?_with_soap:--with-soap=yes} %{?_with_debug:CXXFLAGS="-g -DDEBUG"}
+make
 
 %install
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
@@ -74,7 +71,6 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_bindir}/pinot
 %ghost %{_bindir}/pinot-collect
 %{_bindir}/pinot-search
-%{_datadir}/pinot/index.html
 %{_datadir}/pinot/xapian-powered.png
 %{_datadir}/pinot/metase-gtk2.glade
 %{_datadir}/pinot/metase-gtk2.gladep
