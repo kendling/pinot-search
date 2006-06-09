@@ -123,7 +123,6 @@ mainWindow::mainWindow() :
 	m_pNotebook(NULL),
 	m_pIndexMenu(NULL),
 	m_pLabelsMenu(NULL),
-	m_pHtmlView(NULL),
 	m_state(this)
 {
 	// Reposition and resize the window
@@ -195,14 +194,6 @@ mainWindow::mainWindow() :
 	m_pageSwitchConnection = m_pNotebook->signal_switch_page().connect(
 		SigC::slot(*this, &mainWindow::on_switch_page), false);
 
-	// Create an HTML renderer
-	m_pHtmlView = new HtmlView(NULL);
-	string startPage("file://");
-	startPage += PREFIX;
-	startPage += "/share/pinot/index.html";
-	DocumentInfo docInfo("", startPage, "", "");
-	view_document(docInfo, true);
-
 	// Gray out menu items
 	editQueryButton->set_sensitive(false);
 	removeQueryButton->set_sensitive(false);
@@ -240,6 +231,9 @@ mainWindow::mainWindow() :
 	set_status(_("Ready"));
 	m_pNotebook->show();
 	show();
+
+	// Browse the index
+	on_index_changed(_("My Documents"));
 }
 
 //
@@ -252,14 +246,6 @@ mainWindow::~mainWindow()
 
 	// Save queries
 	save_queryTreeview();
-
-	// Stop in case we were loading a page
-	NotebookPageBox *pNotebookPage = get_page(_("View"), NotebookPageBox::VIEW_PAGE);
-	if (pNotebookPage != NULL)
-	{
-		m_pHtmlView->stop();
-	}
-	delete m_pHtmlView;
 }
 
 //
@@ -504,8 +490,6 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 //
 void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 {
-	vector<IndexedDocument> documentsList;
-
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage == NULL)
 	{
@@ -513,26 +497,30 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 	}
 
 	IndexTree *pIndexTree = pIndexPage->getTree();
-	if ((pIndexTree != NULL) &&
-		(pIndexTree->getSelection(documentsList) == true))
+	if (pIndexTree != NULL)
 	{
-		bool isDocumentsIndex = true;
+		string url(pIndexTree->getFirstSelectionURL());
 
-		// Enable these menu items, unless the index is not the documents index
-		if (indexName != _("My Documents"))
+		if (url.empty() == false)
 		{
-			isDocumentsIndex = false;
-		}
-		viewfromindex1->set_sensitive(true);
-		refreshindex1->set_sensitive(isDocumentsIndex);
-		unindex1->set_sensitive(isDocumentsIndex);
-		showfromindex1->set_sensitive(true);
+			bool isDocumentsIndex = true;
 
-		// Show the URL in the status bar
-		ustring statusText = _("Document location is");
-		statusText += " ";
-		statusText += pIndexTree->getFirstSelectionURL();
-		set_status(statusText, true);
+			// Enable these menu items, unless the index is not the documents index
+			if (indexName != _("My Documents"))
+			{
+				isDocumentsIndex = false;
+			}
+			viewfromindex1->set_sensitive(true);
+			refreshindex1->set_sensitive(isDocumentsIndex);
+			unindex1->set_sensitive(isDocumentsIndex);
+			showfromindex1->set_sensitive(true);
+
+			// Show the URL in the status bar
+			ustring statusText = _("Document location is");
+			statusText += " ";
+			statusText += pIndexTree->getFirstSelectionURL();
+			set_status(statusText, true);
+		}
 	}
 	else
 	{
@@ -694,20 +682,7 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 	int pageNum = get_page_number(title, type);
 	if (pageNum >= 0)
 	{
-		if (type == NotebookPageBox::VIEW_PAGE)
-		{
-			// Stop rendering
-			m_pHtmlView->stop();
-
-			// Hide, don't close the page
-			Widget *pPage = m_pNotebook->get_nth_page(pageNum);
-			if (pPage != NULL)
-			{
-				pPage->hide();
-				pageDecrement = 1;
-			}
-		}
-		else if (m_state.write_lock_lists(2) == true)
+		if (m_state.write_lock_lists(2) == true)
 		{
 			// Remove the page
 			m_pNotebook->remove_page(pageNum);
@@ -770,43 +745,40 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		ustring labelName = to_utf8(pBrowseThread->getLabelName());
 
 		// Find the page for this index
+		// It may have been closed by the user
 		pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
-		if (pIndexPage == NULL)
+		if (pIndexPage != NULL)
 		{
-			// It's probably been closed by the user
-			return;
-		}
-		pIndexTree = pIndexPage->getTree();
-		if (pIndexTree == NULL)
-		{
-			return;
-		}
+			pIndexTree = pIndexPage->getTree();
+			if (pIndexTree != NULL)
+			{
+				pIndexPage->setDocumentsCount(pBrowseThread->getDocumentsCount());
+				pIndexPage->updateButtonsState(m_maxDocsCount);
 
-		pIndexPage->setDocumentsCount(pBrowseThread->getDocumentsCount());
-		pIndexPage->updateButtonsState(m_maxDocsCount);
+				status = _("Showing");
+				status += " ";
+				snprintf(docsCountStr, 64, "%u", pIndexTree->getRowsCount());
+				status += docsCountStr;
+				status += " ";
+				status += _("off");
+				status += " ";
+				snprintf(docsCountStr, 64, "%u", pIndexPage->getDocumentsCount());
+				status += docsCountStr;
+				status += " ";
+				status += _("documents, starting at");
+				status += " ";
+				snprintf(docsCountStr, 64, "%u", pIndexPage->getFirstDocument());
+				status += docsCountStr;
+				set_status(status);
 
-		status = _("Showing");
-		status += " ";
-		snprintf(docsCountStr, 64, "%u", pIndexTree->getRowsCount());
-		status += docsCountStr;
-		status += " ";
-		status += _("off");
-		status += " ";
-		snprintf(docsCountStr, 64, "%u", pIndexPage->getDocumentsCount());
-		status += docsCountStr;
-		status += " ";
-		status += _("documents, starting at");
-		status += " ";
-		snprintf(docsCountStr, 64, "%u", pIndexPage->getFirstDocument());
-		status += docsCountStr;
-		set_status(status);
-
-		if (pIndexPage->getDocumentsCount() > 0)
-		{
-			// Refresh the tree
-			pIndexTree->refresh();
+				if (pIndexPage->getDocumentsCount() > 0)
+				{
+					// Refresh the tree
+					pIndexTree->refresh();
+				}
+				m_state.m_browsingIndex = false;
+			}
 		}
-		m_state.m_browsingIndex = false;
 	}
 	else if (type == "QueryingThread")
 	{
@@ -846,10 +818,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		if (pResultsPage != NULL)
 		{
 			pResultsTree = pResultsPage->getTree();
-			if (pResultsTree == NULL)
-			{
-				return;
-			}
+
 			pageNum = get_page_number(queryName, NotebookPageBox::RESULTS_PAGE);
 		}
 		else
@@ -880,14 +849,13 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			}
 		}
 
-		if (pageNum >= 0)
+		if ((pageNum >= 0) &&
+			(pResultsTree != NULL))
 		{
 			// Add the results to the tree
 			pResultsTree->addResults(queryProps, engineName,
 				resultsList, resultsCharset,
 				searchenginegroup1->get_active());
-			// Switch to that page
-			m_pNotebook->set_current_page(pageNum);
 		}
 
 		// Index results ?
@@ -935,32 +903,39 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		if (pDoc != NULL)
 		{
 			unsigned int dataLength = 0;
-
 			const char *pData = pDoc->getData(dataLength);
+
 			if ((pData != NULL) &&
 				(dataLength > 0))
 			{
-				ustring viewName = _("View");
+				char inTemplate[21] = "/tmp/pinottempXXXXXX";
+				int inFd = mkstemp(inTemplate);
+				bool viewDoc = false;
 
-				// Is there still a view page ?
-				ViewPage *pViewPage = dynamic_cast<ViewPage*>(get_page(viewName, NotebookPageBox::VIEW_PAGE));
-				if (pViewPage != NULL)
+				if (inFd != -1)
 				{
-					// The page may be hidden
-					pViewPage->show();
-				}
-
-				int pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
-				if (pageNum >= 0)
-				{
-					// Display the URL in the View tab
-					if (m_pHtmlView->renderData(pData, dataLength, url) == true)
+					// Save the data into a temporary file
+					if (write(inFd, (const void*)pData, dataLength) != -1)
 					{
-						//viewstop1->set_sensitive(true);
-						set_status(to_utf8(url));
+						viewDoc = true;
 					}
 
-					m_pNotebook->set_current_page(pageNum);
+					close(inFd);
+				}
+
+				if (viewDoc == true)
+				{
+					DocumentInfo docInfo(*pDoc);
+					string fileName("file://");
+
+					fileName += inTemplate;
+					docInfo.setLocation(fileName);
+
+					// View this document
+					vector<DocumentInfo> documentsList;
+					documentsList.push_back(docInfo);
+					view_documents(documentsList);
+					// FIXME: how do we know when to delete this document ?
 				}
 			}
 		}
@@ -1332,12 +1307,12 @@ void mainWindow::on_copy_activate()
 		NotebookPageBox *pNotebookPage = get_current_page();
 		if (pNotebookPage != NULL)
 		{
+			vector<DocumentInfo> documentsList;
+			bool firstItem = true;
+
 			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
 			if (pResultsPage != NULL)
 			{
-				vector<Result> resultsList;
-				bool firstItem = true;
-
 #ifdef DEBUG
 				cout << "mainWindow::on_copy_activate: results tree" << endl;
 #endif
@@ -1345,29 +1320,13 @@ void mainWindow::on_copy_activate()
 				if (pResultsTree != NULL)
 				{
 					// Get the current results selection
-					pResultsTree->getSelection(resultsList);
-				}
-
-				for (vector<Result>::const_iterator resultIter = resultsList.begin();
-					resultIter != resultsList.end(); ++resultIter)
-				{
-					if (firstItem == false)
-					{
-						text += "\n";
-					}
-					text += resultIter->getTitle();
-					text += " ";
-					text += resultIter->getLocation();
-					firstItem = false;
+					pResultsTree->getSelection(documentsList);
 				}
 			}
 
 			IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pNotebookPage);
 			if (pIndexPage != NULL)
 			{
-				vector<IndexedDocument> documentsList;
-				bool firstItem = true;
-
 #ifdef DEBUG
 				cout << "mainWindow::on_copy_activate: index tree" << endl;
 #endif
@@ -1377,19 +1336,19 @@ void mainWindow::on_copy_activate()
 					// Get the current documents selection
 					pIndexTree->getSelection(documentsList);
 				}
+			}
 
-				for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
-					docIter != documentsList.end(); ++docIter)
+			for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
+				docIter != documentsList.end(); ++docIter)
+			{
+				if (firstItem == false)
 				{
-					if (firstItem == false)
-					{
-						text += "\n";
-					}
-					text += docIter->getTitle();
-					text += " ";
-					text += docIter->getOriginalLocation();
-					firstItem = false;
+					text += "\n";
 				}
+				text += docIter->getTitle();
+				text += " ";
+				text += docIter->getLocation();
+				firstItem = false;
 			}
 		}
 
@@ -1555,11 +1514,14 @@ void mainWindow::on_viewresults_activate()
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				Result selectedResult = pResultsTree->getFirstSelection();
-				if (view_document(selectedResult) == true)
+				vector<DocumentInfo> resultsList;
+
+				if (pResultsTree->getSelection(resultsList) == true)
 				{
+					view_documents(resultsList);
+
 					// We can update the row right now
-					pResultsTree->setFirstSelectionViewedState(true);
+					pResultsTree->setSelectionViewedState(true);
 				}
 			}
 		}
@@ -1571,6 +1533,8 @@ void mainWindow::on_viewresults_activate()
 //
 void mainWindow::on_viewcache_activate()
 {
+// FIXME: find a way to view cached pages in external applications
+#if 0
 	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
@@ -1589,6 +1553,7 @@ void mainWindow::on_viewcache_activate()
 			}
 		}
 	}
+#endif
 }
 
 //
@@ -1596,7 +1561,7 @@ void mainWindow::on_viewcache_activate()
 //
 void mainWindow::on_indexresults_activate()
 {
-	vector<Result> resultsList;
+	vector<DocumentInfo> resultsList;
 
 	// Make sure this has been configured
 	if (m_settings.m_indexLocation.empty() == true)
@@ -1620,22 +1585,13 @@ void mainWindow::on_indexresults_activate()
 	}
 
 	// Go through selected results
-	for (vector<Result>::const_iterator resultIter = resultsList.begin();
+	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
 	{
-		// Get the actual URL to download
-		string url = resultIter->getLocation();
-	
-		if (url.empty() == true)
-		{
-			set_status(_("Result location is unknown"));
-			return;
-		}
 #ifdef DEBUG
-		cout << "mainWindow::on_indexresults_activate: URL is " << url << endl;
+		cout << "mainWindow::on_indexresults_activate: URL is " << resultIter->getLocation() << endl;
 #endif
-		queue_index(DocumentInfo(resultIter->getTitle(), url,
-			resultIter->getType(), resultIter->getLanguage()), "");
+		queue_index(*resultIter, "");
 	}
 }
 
@@ -1679,11 +1635,12 @@ void mainWindow::on_viewfromindex_activate()
 
 		if (pIndexTree != NULL)
 		{
-			IndexedDocument indexedDoc = pIndexTree->getFirstSelection();
+			vector<DocumentInfo> documentsList;
 
-			// View the first document, don't bother about the rest
-			indexedDoc.setLocation(indexedDoc.getOriginalLocation());
-			view_document(indexedDoc);
+			if (pIndexTree->getSelection(documentsList) == true)
+			{
+				view_documents(documentsList);
+			}
 		}
 	}
 }
@@ -1722,22 +1679,16 @@ void mainWindow::on_refreshindex_activate()
 	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
 	{
-		// The document ID
+		string url(docIter->getOriginalLocation());
 		unsigned int docId = docIter->getID();
-		if (docId == 0)
-		{
-			continue;
-		}
 
-		// The URL to download, ie the original location of the document
-		string url = docIter->getOriginalLocation();
-		if (url.empty() == true)
+		if ((docId == 0) ||
+			(url.empty() == true))
 		{
 			continue;
 		}
 #ifdef DEBUG
 		cout << "mainWindow::on_refreshindex_activate: URL is " << url << endl;
-		cout << "mainWindow::on_refreshindex_activate: language is " << docIter->getLanguage() << endl;
 #endif
 
 		// Add this action to the queue
@@ -1921,14 +1872,6 @@ void mainWindow::on_unindex_activate()
 	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
 	{
-		// Get the actual URL of the document to delete
-		string url = docIter->getLocation();
-		string liveUrl = docIter->getOriginalLocation();
-		if (url.empty() == true)
-		{
-			continue;
-		}
-
 		unsigned int docId = docIter->getID();
 		if (docId > 0)
 		{
@@ -2820,120 +2763,127 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 }
 
 //
-// View a document
+// View documents
 //
-bool mainWindow::view_document(const DocumentInfo &docInfo, bool internalViewerOnly)
+void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 {
-	string url(docInfo.getLocation());
-	string mimeType(docInfo.getType());
+	multimap<string, string> locationsByType;
+	vector<DocumentInfo>::iterator docIter = documentsList.begin();
 
-	if (url.empty() == true)
+	for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
+		docIter != documentsList.end(); ++docIter)
 	{
-		set_status(_("No URL to browse"));
-		return false;
-	}
+		string url(docIter->getLocation());
+		string mimeType(docIter->getType());
 
-	if (mimeType.empty() == true)
-	{
-		Url docUrl(url);
-
-		// Scan for the MIME type
-		mimeType = MIMEScanner::scanUrl(docUrl);
-	}
-
-	Url urlObj(url);
-
-	// FIXME: there should be a way to know which protocols can be viewed/indexed
-	if (urlObj.getProtocol() == "mailbox")
-	{
-		// Get that message
-		start_thread(new DownloadingThread(docInfo, false));
-	}
-	else if ((internalViewerOnly == true) ||
-		(mimeType.find("/html") != string::npos))
-	{
-		ViewPage *pViewPage = NULL;
-		ustring viewName = _("View");
-		int pageNum = -1;
-
-		// Is there already a view page ?
-		pViewPage = dynamic_cast<ViewPage*>(get_page(viewName, NotebookPageBox::VIEW_PAGE));
-		if (pViewPage != NULL)
+		if (url.empty() == true)
 		{
-			pageNum = get_page_number(viewName, NotebookPageBox::VIEW_PAGE);
-			// The page may be hidden
-			pViewPage->show();
-			// FIXME: reorder pages
+			continue;
 		}
-		else
+
+		// What's the MIME type ?
+		if (mimeType.empty() == true)
 		{
-			NotebookTabBox *pTab = manage(new NotebookTabBox(viewName,
-				NotebookPageBox::VIEW_PAGE));
-			pTab->getCloseSignal().connect(
-				SigC::slot(*this, &mainWindow::on_close_page));
+			Url urlObj(url);
 
-			// Position everything
-			pViewPage = manage(new ViewPage(viewName, m_pHtmlView, m_settings));
+			// Scan for the MIME type
+			mimeType = MIMEScanner::scanUrl(urlObj);
+		}
 
-			// Append the page
-			if (m_state.write_lock_lists(11) == true)
+		// Remove the charset, if any
+		string::size_type semiColonPos = mimeType.find(";");
+		if (semiColonPos != string::npos)
+		{
+			mimeType.erase(semiColonPos);
+		}
+
+#ifdef DEBUG
+		cout << "mainWindow::view_documents: " << url << " has type " << mimeType << endl;
+#endif
+		locationsByType.insert(pair<string, string>(mimeType, url));
+	}
+
+	MIMEAction action;
+	vector<string> arguments;
+	string currentType;
+
+	arguments.reserve(documentsList.size());
+
+	for (multimap<string, string>::iterator locationIter = locationsByType.begin();
+		locationIter != locationsByType.end(); ++locationIter)
+	{
+		if (locationIter->first != currentType)
+		{
+			if (arguments.empty() == false)
 			{
-				pageNum = m_pNotebook->append_page(*pViewPage, *pTab);
-				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+#ifdef DEBUG
+				cout << "mainWindow::view_documents: " << arguments.size()
+					<< " arguments for type " << currentType << endl;
+#endif
+				// Run the default program for this type
+				if (CommandLine::runAsync(action, arguments) == false)
+				{
+#ifdef DEBUG
+					cout << "mainWindow::view_documents: couldn't view type "
+						<< currentType << endl;
+#endif
+				}
 
-				m_state.unlock_lists();
+				// Clear the list of arguments
+				arguments.clear();
+			}
+
+			// Get the action for this MIME type
+			if (MIMEScanner::getDefaultAction(locationIter->first, action) == false)
+			{
+#ifdef DEBUG
+				cout << "mainWindow::view_documents: no default application defined for type "
+					<< locationIter->first << endl;
+#endif
+				continue;
 			}
 		}
+		currentType = locationIter->first;
 
-		if (pageNum >= 0)
-		{
-			// Display the URL
-			m_pNotebook->set_current_page(pageNum);
-			if (m_pHtmlView->renderUrl(url) == true)
-			{
-				//viewstop1->set_sensitive(true);
-			}
-			ustring status = _("Viewing");
-			status += " ";
-			status += to_utf8(m_pHtmlView->getLocation());
-			set_status(status);
-		}
-	}
-	else
-	{
-		vector<string> arguments;
-		MIMEAction action;
+		string url(locationIter->second);
+		Url urlObj(url);
 
-		if (MIMEScanner::getDefaultAction(mimeType, action) == false)
+		// FIXME: there should be a way to know which protocols can be viewed/indexed
+		if (urlObj.getProtocol() == "mailbox")
 		{
-			ustring status = _("No application defined for type ");
-			status += " ";
-			status += mimeType;
-			set_status(status);
-			return false;
+			DocumentInfo docInfo("", url, "", "");
+
+			// Get that message
+			start_thread(new DownloadingThread(docInfo, false));
+			// FIXME: at this time, only one mail message can be viewed at any one time
+			break;
 		}
 
 		arguments.push_back(url);
 
-		// Run the default program for this type
-		if (CommandLine::runAsync(action, arguments) == false)
+		// Record this into the history now, even though it may fail
+		ViewHistory viewHistory(m_settings.m_historyDatabase);
+		if (viewHistory.hasItem(url) == false)
 		{
-			ustring status = _("Couldn't view ");
-			status += " ";
-			status += url;
-			set_status(status);
-			return false;
+			viewHistory.insertItem(url);
 		}
 	}
 
-	// Record this into the history
-	ViewHistory viewHistory(m_settings.m_historyDatabase);
-	if (viewHistory.hasItem(url) == false)
+	if (arguments.empty() == false)
 	{
-		viewHistory.insertItem(url);
+#ifdef DEBUG
+		cout << "mainWindow::view_documents: " << arguments.size()
+			<< " arguments for type " << currentType << endl;
+#endif
+		// Run the default program for this type
+		if (CommandLine::runAsync(action, arguments) == false)
+		{
+#ifdef DEBUG
+			cout << "mainWindow::view_documents: couldn't view type "
+				<< currentType << endl;
+#endif
+		}
 	}
-
-	return true;
 }
 
 //

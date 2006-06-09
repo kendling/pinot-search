@@ -38,7 +38,6 @@
 #include "IndexedDocument.h"
 #include "QueryProperties.h"
 #include "EnginesTree.h"
-#include "HtmlView.h"
 #include "IndexPage.h"
 #include "ModelColumns.h"
 #include "Notebook.h"
@@ -133,7 +132,7 @@ protected:
 		const Glib::ustring &labelName, unsigned int startDoc);
 	void index_document(const DocumentInfo &docInfo, const std::string &labelName,
 		unsigned int docId = 0);
-	bool view_document(const DocumentInfo &docInfo, bool internalViewerOnly = false);
+	void view_documents(std::vector<DocumentInfo> &documentsList);
 	bool append_document(IndexPage *pIndexPage, const Glib::ustring &indexName,
 		const IndexedDocument &docInfo);
 	bool start_thread(WorkerThread *pNewThread, bool inBackground = false);
@@ -160,8 +159,6 @@ private:
 	Gtk::Menu *m_pLabelsMenu;
 	ComboModelColumns m_indexNameColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refIndexNameTree;
-	// View
-	HtmlView *m_pHtmlView;
 	// Tooltips
 	Gtk::Tooltips m_tooltips;
 	// Page switching
