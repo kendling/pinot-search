@@ -62,6 +62,7 @@ Document::Document(const Document &other) :
 	m_dataLength(0),
 	m_isMapped(false)
 {
+	// Copying does a deep copy
 	setData(other.m_pData, other.m_dataLength);
 }
 
@@ -72,8 +73,10 @@ Document::~Document()
 
 Document& Document::operator=(const Document& other)
 {
+	// Copying does a deep copy
 	DocumentInfo::operator=(other);
 	setData(other.m_pData, other.m_dataLength);
+	m_isMapped = false;
 
 	return *this;
 }

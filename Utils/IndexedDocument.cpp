@@ -21,15 +21,15 @@ using std::string;
 
 IndexedDocument::IndexedDocument(const string &title, const string &location,
 	const string &originalLocation, const string &type, const string &language) :
-	Document(title, location, type, language)
+	Document(title, location, type, language),
+	m_originalLocation(originalLocation)
 {
-	m_originalLocation = originalLocation;
 }
 
 IndexedDocument::IndexedDocument(const IndexedDocument &other) :
-	Document(other)
+	Document(other),
+	m_originalLocation(other.m_originalLocation)
 {
-	m_originalLocation = other.m_originalLocation;
 }
 
 IndexedDocument::~IndexedDocument()
