@@ -175,9 +175,6 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 		// Skip prefixed terms
 		if (isupper((int)termName[0]) != 0)
 		{
-#ifdef DEBUG
-			cout << "AbstractGenerator::generateAbstract: skipping " << termName << endl;
-#endif
 			continue;
 		}
 
