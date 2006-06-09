@@ -614,7 +614,7 @@
 		  <property agent="glademm" name="cxx_visibility">protected</property>
 		  <property name="visible">True</property>
 		  <property name="can_focus">True</property>
-		  <property name="expanded">False</property>
+		  <property name="expanded">True</property>
 		  <property name="spacing">0</property>
 
 		  <child>

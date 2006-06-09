@@ -342,7 +342,7 @@ mainWindow_glade::mainWindow_glade(
    queryLabel->set_selectable(false);
    queryExpander->set_flags(Gtk::CAN_FOCUS);
 #if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>=3
-   queryExpander->set_expanded(false);
+   queryExpander->set_expanded(true);
    queryExpander->set_spacing(0);
 #endif //
    queryExpander->add(*queryHbox);
