@@ -4,11 +4,8 @@ General
 - Advertise service via Rendezvous
 - Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
 - Replace calls to system() with CommandLine::runAsync()
-- Drop internal browser
 - MIMEScanner should also return parent types so that we don't filter out types unnecessarily
 - Distribute pinot.pot
-- Add link to this to explain why FC5 version is linked against mozilla, not firefox
-  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=149828
 
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
@@ -88,7 +85,6 @@ UI
 - Replace Combobox objects with ComboboxText's (glademm support required)
 - Replace glademm with libglademm ?
 - Show activity when mail is being indexed
-- Update Last Run after the query has completed
 - Filter documents by language, similarly to how labels are shown
 - Clean up method names
 - Prefer ustring to string whenever possible
