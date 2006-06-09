@@ -44,15 +44,22 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 	{
 		return false;
 	}
+#ifdef DEBUG
+	cout << "CommandLine::runAsync: " << arguments.size() << " arguments for application '"
+		<< action.m_exec << "'" << endl;
+#endif
 
-	if (arguments.empty() == false)
+	// We may have to spawn several copies of the same program if it doesn't support multiple arguments
+	vector<string>::const_iterator firstArg = arguments.begin();
+	while (firstArg != arguments.end())
 	{
-		vector<string>::const_iterator firstArg = arguments.begin();
 		Url firstUrl(*firstArg);
 		bool foundParam = false;
+		bool noArgument = true;
+		bool oneArgumentOnly = true;
 
 		// Expand parameters
-		// We assume that arguments are URLs
+		// We assume that all arguments are full-blown URLs
 		string::size_type paramPos = commandLine.find('%');
 		while ((paramPos != string::npos) &&
 				(paramPos + 1 < commandLine.length()))
@@ -65,26 +72,31 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 				// Single parameter arguments
 				case 'u':
 					replacement = *firstArg;
+					noArgument = false;
 					break;
 				case 'f':
-					if (firstUrl.isLocal() == true)
+					if (firstUrl.getProtocol() != "file")
 					{
 						replacement = firstUrl.getLocation();
 						replacement += "/";
 						replacement += firstUrl.getFile();
 					}
+					noArgument = false;
 					break;
 				case 'd':
-					if (firstUrl.isLocal() == true)
+					if (firstUrl.getProtocol() != "file")
 					{
 						replacement = firstUrl.getLocation();
 					}
+					noArgument = false;
 					break;
 				case 'n':
-					if (firstUrl.isLocal() == true)
+					if (firstUrl.getProtocol() != "file")
 					{
 						replacement = firstUrl.getFile();
 					}
+					noArgument = false;
+					break;
 				// Multiple parameters arguments
 				case 'U':
 					for (vector<string>::const_iterator argIter = firstArg; argIter != arguments.end(); ++argIter)
@@ -95,6 +107,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 						}
 						replacement += *argIter;
 					}
+					noArgument = oneArgumentOnly = false;
 					break;
 				case 'F':
 					for (vector<string>::const_iterator argIter = firstArg; argIter != arguments.end(); ++argIter)
@@ -112,6 +125,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 							replacement += argUrl.getFile();
 						}
 					}
+					noArgument = oneArgumentOnly = false;
 					break;
 				case 'D':
 					for (vector<string>::const_iterator argIter = firstArg; argIter != arguments.end(); ++argIter)
@@ -127,6 +141,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 							replacement += argUrl.getLocation();
 						}
 					}
+					noArgument = oneArgumentOnly = false;
 					break;
 				case 'N':
 					for (vector<string>::const_iterator argIter = firstArg; argIter != arguments.end(); ++argIter)
@@ -142,6 +157,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 							replacement += argUrl.getFile();
 						}
 					}
+					noArgument = oneArgumentOnly = false;
 					break;
 				// Other parameters
 				case 'i':
@@ -170,14 +186,33 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 		if (foundParam == false)
 		{
 			// If no parameter was found, assume %f
-			commandLine += *firstArg;
+			if (firstUrl.getProtocol() != "file")
+			{
+				commandLine += firstUrl.getLocation();
+				commandLine += "/";
+				commandLine += firstUrl.getFile();
+			}
 		}
-	}
+
 #ifdef DEBUG
 		cout << "CommandLine::runAsync: spawning '" << commandLine << "'" << endl;
 #endif
+		Glib::spawn_command_line_async(commandLine);
 
-	Glib::spawn_command_line_async(commandLine);
+		if ((noArgument == true) ||
+			(oneArgumentOnly == false))
+		{
+			// No or all arguments were processed
+			break;
+		}
+		else
+		{
+			// Only the first argument was processed
+			commandLine = action.m_exec;
+			++firstArg;
+		}
+
+	}
 
 	return true;
 }

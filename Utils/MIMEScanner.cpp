@@ -123,7 +123,11 @@ MIMEAction::MIMEAction(const string &desktopFile) :
 MIMEAction::MIMEAction(const MIMEAction &other) :
 	m_multipleArgs(other.m_multipleArgs),
 	m_localOnly(other.m_localOnly),
-	m_exec(other.m_exec)
+	m_name(other.m_name),
+	m_location(other.m_location),
+	m_exec(other.m_exec),
+	m_icon(other.m_icon),
+	m_device(other.m_device)
 {
 }
 
@@ -135,7 +139,11 @@ MIMEAction &MIMEAction::operator=(const MIMEAction &other)
 {
 	m_multipleArgs = other.m_multipleArgs;
 	m_localOnly = other.m_localOnly;
+	m_name = other.m_name;
+	m_location = other.m_location;
 	m_exec = other.m_exec;
+	m_icon = other.m_icon;
+	m_device = other.m_device;
 
 	return *this;
 }
@@ -181,7 +189,6 @@ void MIMEScanner::initialize(void)
 				{
 					gchar **pDesktopFiles = g_key_file_get_string_list(pDefaults,
 						MIME_DEFAULTS_SECTION, pMimeTypes[i], NULL, &pError);
-					unsigned int defaultApp = 0;
 
 					if (pDesktopFiles == NULL)
 					{
@@ -195,17 +202,13 @@ void MIMEScanner::initialize(void)
 
 					for (unsigned int j = 0; pDesktopFiles[j] != NULL; ++j)
 					{
-						defaultApp = j;
-					}
+						MIMEAction typeAction(desktopFilesDirectory + string(pDesktopFiles[j]));
 
-					// Register the last application
-					if (pDesktopFiles[defaultApp] != NULL)
-					{
-						MIMEAction typeAction(desktopFilesDirectory + string(pDesktopFiles[defaultApp]));
-
+						// Register the first application
 						if (typeAction.m_exec.empty() == false)
 						{
 							m_defaultActions.insert(pair<string, MIMEAction>(pMimeTypes[i], typeAction));
+							break;
 						}
 					}
 
