@@ -69,10 +69,10 @@ class ResultsTree : public Gtk::TreeView
 		Result getFirstSelection(void);
 
 		/// Gets a list of selected items.
-		bool getSelection(std::vector<Result> &resultsList);
+		bool getSelection(std::vector<DocumentInfo> &resultsList);
 
-		/// Sets the first selected item's viewed state.
-		void setFirstSelectionViewedState(bool viewed);
+		/// Sets the selected items' viewed state.
+		void setSelectionViewedState(bool viewed);
 
 		/**
 		  * Deletes the current selection.

@@ -252,6 +252,36 @@ IndexedDocument IndexTree::getFirstSelection(void)
 //
 // Gets a list of selected items.
 //
+bool IndexTree::getSelection(std::vector<DocumentInfo> &documentsList)
+{
+	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
+	if (selectedItems.empty() == true)
+	{
+		return false;
+	}
+
+	// Go through selected items
+	for (list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
+		itemPath != selectedItems.end(); ++itemPath)
+	{
+		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
+		TreeModel::Row row = *iter;
+
+		documentsList.push_back(DocumentInfo(from_utf8(row[m_indexColumns.m_text]),
+			from_utf8(row[m_indexColumns.m_liveUrl]),
+			from_utf8(row[m_indexColumns.m_type]),
+			from_utf8(row[m_indexColumns.m_language])));
+	}
+#ifdef DEBUG
+	cout << "IndexTree::getSelection: " << documentsList.size() << " documents selected" << endl;
+#endif
+
+	return true;
+}
+
+//
+// Gets a list of selected items.
+//
 bool IndexTree::getSelection(std::vector<IndexedDocument> &documentsList)
 {
 	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();

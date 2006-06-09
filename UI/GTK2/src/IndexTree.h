@@ -58,6 +58,9 @@ class IndexTree : public Gtk::TreeView
 		IndexedDocument getFirstSelection(void);
 
 		/// Gets a list of selected items.
+		bool getSelection(std::vector<DocumentInfo> &documentsList);
+
+		/// Gets a list of selected items.
 		bool getSelection(std::vector<IndexedDocument> &documentsList);
 
 		/// Updates a document's properties.

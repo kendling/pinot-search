@@ -857,7 +857,7 @@ Result ResultsTree::getFirstSelection(void)
 //
 // Gets a list of selected items.
 //
-bool ResultsTree::getSelection(vector<Result> &resultsList)
+bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList)
 {
 	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
 	if (selectedItems.empty() == true)
@@ -872,8 +872,8 @@ bool ResultsTree::getSelection(vector<Result> &resultsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		resultsList.push_back(Result(from_utf8(row[m_resultsColumns.m_url]),
-			from_utf8(row[m_resultsColumns.m_text]),
+		resultsList.push_back(DocumentInfo(from_utf8(row[m_resultsColumns.m_text]),
+			from_utf8(row[m_resultsColumns.m_url]),
 			"", from_utf8(row[m_resultsColumns.m_language])));
 	}
 #ifdef DEBUG
@@ -884,9 +884,9 @@ bool ResultsTree::getSelection(vector<Result> &resultsList)
 }
 
 //
-// Sets the first selected item's viewed state.
+// Sets the selected items' viewed state.
 //
-void ResultsTree::setFirstSelectionViewedState(bool viewed)
+void ResultsTree::setSelectionViewedState(bool viewed)
 {
 	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
 	if (selectedItems.empty() == true)
@@ -894,10 +894,15 @@ void ResultsTree::setFirstSelectionViewedState(bool viewed)
 		return;
 	}
 
-	list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
-	TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
-	TreeModel::Row row = *iter;
-	row[m_resultsColumns.m_viewed] = viewed;
+	// Go through selected items
+	for (list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
+		itemPath != selectedItems.end(); ++itemPath)
+	{
+		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
+		TreeModel::Row row = *iter;
+
+		row[m_resultsColumns.m_viewed] = viewed;
+	}
 }
 
 //
