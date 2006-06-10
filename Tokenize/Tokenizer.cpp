@@ -17,11 +17,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ctype.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
 
+#include "CommandLine.h"
 #include "Tokenizer.h"
 
 //#define DEBUG_TOKENIZER
@@ -46,7 +46,6 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument,
 {
 	Document *pOutputDocument = NULL;
 	char inTemplate[15] = "/tmp/tokXXXXXX";
-	char outTemplate[15] = "/tmp/tokXXXXXX";
 
 	if ((pDocument == NULL) ||
 		(programName.empty() == true))
@@ -55,9 +54,7 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument,
 	}
 
 	int inFd = mkstemp(inTemplate);
-	int outFd = mkstemp(outTemplate);
-	if ((inFd != -1) &&
-		(outFd != -1))
+	if (inFd != -1)
 	{
 		unsigned int dataLength = 0;
 		const char *pData = pDocument->getData(dataLength);
@@ -66,6 +63,7 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument,
 		if (write(inFd, (const void*)pData, dataLength) != -1)
 		{
 			string cmdLine(programName);
+			string output;
 
 			cmdLine += " ";
 			cmdLine += inTemplate;
@@ -75,55 +73,30 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument,
 				cmdLine += arguments;
 				cmdLine += " ";
 			}
-			cmdLine += " >";
-			cmdLine += outTemplate;
-			cmdLine += " 2>/dev/null";
 
 			// Run the helper program
-			if (system(cmdLine.c_str()) != -1)
+			if ((CommandLine::runSync(cmdLine, output) == true) &&
+				(output.empty() == false))
 			{
-				struct stat fileStat;
-
-				// Read the output
-				if ((stat(outTemplate, &fileStat) != -1) &&
-					(S_ISREG(fileStat.st_mode)))
-				{
-					unsigned int total, bytes;
-					char *content = new char[fileStat.st_size + 1];
-
-					total = bytes = read(outFd, (void*)content, fileStat.st_size);
-					while ((bytes > 0) &&
-						(total < fileStat.st_size))
-					{
-						bytes = read(outFd, (void*)content, fileStat.st_size - total);
-						total += bytes;
-					}
-
-					// Pass the result to the parent class
-					pOutputDocument = new Document(pDocument->getTitle(),
-						pDocument->getLocation(), pDocument->getType(),
-						pDocument->getLanguage());
-					pOutputDocument->setData(content, bytes);
+				// Pass the result to the parent class
+				pOutputDocument = new Document(pDocument->getTitle(),
+					pDocument->getLocation(), pDocument->getType(),
+					pDocument->getLanguage());
+				pOutputDocument->setData(output.c_str(), output.length());
 #ifdef DEBUG_TOKENIZER
-					cout << "Tokenizer::runHelperProgram: set " << bytes
-						<< " bytes of data" << endl;
+				cout << "Tokenizer::runHelperProgram: set " << output.length()
+					<< " bytes of data" << endl;
 #endif
-
-					delete[] content;
-				}
-				else cerr << "Tokenizer::runHelperProgram: " << cmdLine << " failed" << endl;
 			}
 		}
 	}
 
-	close(outFd);
 	close(inFd);
 
-	if ((unlink(outTemplate) != 0) ||
-		(unlink(inTemplate) != 0))
+	if (unlink(inTemplate) != 0)
 	{
 #ifdef DEBUG_TOKENIZER
-		cout << "Tokenizer::runHelperProgram: couldn't delete temporary files" << endl;
+		cout << "Tokenizer::runHelperProgram: couldn't delete temporary file" << endl;
 #endif
 	}
 

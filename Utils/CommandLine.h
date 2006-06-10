@@ -27,6 +27,9 @@ class CommandLine
 	public:
 		~CommandLine();
 
+		/// Runs a command synchronously.
+		static bool runSync(const std::string &commandLine, std::string &output);
+
 		/// Runs a command asynchronously.
 		static bool runAsync(const MIMEAction &action, const std::vector<std::string> &arguments);
 

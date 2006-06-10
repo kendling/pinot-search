@@ -35,6 +35,28 @@ CommandLine::~CommandLine()
 {
 }
 
+/// Runs a command synchronously.
+bool CommandLine::runSync(const string &commandLine, string &output)
+{
+	int exitStatus = 0;
+
+	if (commandLine.empty() == true)
+	{
+		return false;
+	}
+
+	Glib::spawn_command_line_sync(commandLine, &output, NULL, &exitStatus);
+	if (exitStatus == 0)
+	{
+		return true;
+	}
+#ifdef DEBUG
+	cout << "CommandLine::runSync: exit status is " << exitStatus << endl;
+#endif
+
+	return false;
+}
+
 /// Runs a command asynchronously.
 bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &arguments)
 {

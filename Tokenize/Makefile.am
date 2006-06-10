@@ -1,6 +1,7 @@
 # Process this file with automake to produce Makefile.in
 
-UTILS_OBJS = ../Utils/Document.o \
+UTILS_OBJS = ../Utils/CommandLine.o \
+	../Utils/Document.o \
 	../Utils/StringManip.o \
 	../Utils/DocumentInfo.o \
 	../Utils/TimeConverter.o \
