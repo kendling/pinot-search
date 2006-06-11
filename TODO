@@ -3,9 +3,7 @@ General
 - Get rid of dead code/classes/methods...
 - Advertise service via Rendezvous
 - Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
-- Replace calls to system() with CommandLine::runAsync()
 - MIMEScanner should also return parent types so that we don't filter out types unnecessarily
-- Distribute pinot.pot
 
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
@@ -96,4 +94,6 @@ UI
 - Double click on a word in the extract field adds it to the live query field
 - When switching back and forth between results tabs and another tab, why does the
   result list get shifted right to the Title column ?
-
+- Use other cache services
+  MirrorDot http://www.mirrordot.com/find-mirror.html?
+  WayBack machine http://web.archive.org/web/*/
