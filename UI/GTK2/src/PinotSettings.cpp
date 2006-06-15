@@ -32,6 +32,7 @@
 #include "config.h"
 #include "Languages.h"
 #include "NLS.h"
+#include "StringManip.h"
 #include "PluginWebEngine.h"
 #include "PinotSettings.h"
 
@@ -178,31 +179,43 @@ string PinotSettings::getCurrentUserName(void)
 	return "";
 }
 
-bool PinotSettings::load(bool reload)
+void PinotSettings::clear(void)
 {
-	if (reload == true)
+	// Clear lists
+	m_indexNames.clear();
+	m_indexIds.clear();
+	m_engines.clear();
+	m_engineIds.clear();
+	m_queries.clear();
+	m_labels.clear();
+	m_mailAccounts.clear();
+	m_cacheProviders.clear();
+}
+
+bool PinotSettings::loadGlobal(const string &fileName)
+{
+	if (loadConfiguration(fileName, true) == false)
 	{
-		// Clear lists
-		m_indexNames.clear();
-		m_indexIds.clear();
-		m_engines.clear();
-		m_engineIds.clear();
-		m_queries.clear();
-		m_labels.clear();
-		m_mailAccounts.clear();
+		return false;
 	}
 
+	return true;
+}
+
+
+bool PinotSettings::load(void)
+{
 	// Load the configuration file
 	string fileName = getConfigurationFileName();
-	if ((m_firstRun == false) &&
-		(loadConfiguration(fileName) == false))
+	if (m_firstRun == false)
 	{
-		cerr << "Failed to parse configuration file "
-			<< fileName << endl;
+		loadConfiguration(fileName, false);
 	}
+
 	// Internal indices
 	addIndex(_("My Documents"), m_indexLocation);
 	addIndex(_("My Email"), m_mailIndexLocation);
+
 	// Add default labels on the first run
 	if (m_firstRun == true)
 	{
@@ -217,18 +230,13 @@ bool PinotSettings::load(bool reload)
 	m_engines.insert(Engine("Google API", "googleapi", "", "The Web"));
 	m_engineChannels.insert(pair<string, bool>("The Web", true));
 #endif
-#ifdef HAS_OSAPI
-	m_engineIds[1 << m_engines.size()] = "ObjectsSearch API";
-	m_engines.insert(Engine("ObjectsSearch API", "objectssearchapi", "", "The Web"));
-	m_engineChannels.insert(pair<string, bool>("The Web", true));
-#endif
 	m_engineIds[1 << m_engines.size()] = "Xapian";
 	m_engines.insert(Engine("Xapian", "xapian", "", ""));
 
 	return true;
 }
 
-bool PinotSettings::loadConfiguration(const std::string &fileName)
+bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal)
 {
 	struct stat fileStat;
 	bool success = true;
@@ -236,6 +244,7 @@ bool PinotSettings::loadConfiguration(const std::string &fileName)
 	if ((stat(fileName.c_str(), &fileStat) != 0) ||
 		(!S_ISREG(fileStat.st_mode)))
 	{
+		cerr << "Couldn' open configuration file " << fileName << endl;
 		return false;
 	}
 
@@ -278,9 +287,21 @@ bool PinotSettings::loadConfiguration(const std::string &fileName)
 					continue;
 				}
 
-				string nodeName = pElem->get_name();
-				string nodeContent = getElementContent(pElem);
-				if (nodeName == "googleapikey")
+				string nodeName(pElem->get_name());
+				string nodeContent(getElementContent(pElem));
+				if (isGlobal == true)
+				{
+					if (nodeName == "cache")
+					{
+						loadCacheProviders(pElem);
+					}
+					else
+					{
+						// Unsupported element
+						continue;
+					}
+				}
+				else if (nodeName == "googleapikey")
 				{
 					m_googleAPIKey = nodeContent;
 				}
@@ -717,6 +738,75 @@ bool PinotSettings::loadMailAccounts(const Element *pElem)
 	if (mailAccount.m_name.empty() == false)
 	{
 		m_mailAccounts.insert(mailAccount);
+	}
+
+	return true;
+}
+
+bool PinotSettings::loadCacheProviders(const Element *pElem)
+{
+	if (pElem == NULL)
+	{
+		return false;
+	}
+
+	Node::NodeList childNodes = pElem->get_children();
+	if (childNodes.empty() == true)
+	{
+		return false;
+	}
+
+	CacheProvider cacheProvider;
+
+	// Load the cache provider's properties
+	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
+	{
+		Node *pNode = (*iter);
+		Element *pElem = dynamic_cast<Element*>(pNode);
+		if (pElem == NULL)
+		{
+			continue;
+		}
+
+		string nodeName = pElem->get_name();
+		string nodeContent = getElementContent(pElem);
+
+		if (nodeName == "name")
+		{
+			cacheProvider.m_name = nodeContent;
+		}
+		else if (nodeName == "location")
+		{
+			cacheProvider.m_location = nodeContent;
+		}
+		else if (nodeName == "protocols")
+		{
+			nodeContent += ",";
+
+			ustring::size_type previousPos = 0, commaPos = nodeContent.find(",");
+			while (commaPos != ustring::npos)
+			{
+				string protocol(nodeContent.substr(previousPos,
+                                        commaPos - previousPos));
+
+				StringManip::trimSpaces(protocol);
+				cacheProvider.m_protocols.insert(protocol);
+
+				// Next
+				previousPos = commaPos + 1;
+				commaPos = nodeContent.find(",", previousPos);
+			}
+		}
+	}
+
+	if ((cacheProvider.m_name.empty() == false) &&
+		(cacheProvider.m_location.empty() == false))
+	{
+		m_cacheProviders.push_back(cacheProvider);
+
+		// Copy the list of protocols supported by this cache provider
+		copy(cacheProvider.m_protocols.begin(), cacheProvider.m_protocols.end(),
+			inserter(m_cacheProtocols, m_cacheProtocols.begin()));
 	}
 
 	return true;
@@ -1222,17 +1312,28 @@ PinotSettings::MailAccount::MailAccount()
 	m_size = 0;
 }
 
-PinotSettings::MailAccount::MailAccount(const MailAccount &other)
+PinotSettings::MailAccount::MailAccount(const MailAccount &other) :
+	m_name(other.m_name),
+	m_type(other.m_type),
+	m_modTime(other.m_modTime),
+	m_lastMessageTime(other.m_lastMessageTime),
+	m_size(other.m_size)
+{
+}
+
+PinotSettings::MailAccount::~MailAccount()
+{
+}
+
+PinotSettings::MailAccount &PinotSettings::MailAccount::operator=(const MailAccount &other)
 {
 	m_name = other.m_name;
 	m_type = other.m_type;
 	m_modTime = other.m_modTime;
 	m_lastMessageTime = other.m_lastMessageTime;
 	m_size = other.m_size;
-}
 
-PinotSettings::MailAccount::~MailAccount()
-{
+	return *this;
 }
 
 bool PinotSettings::MailAccount::operator<(const MailAccount &other) const
@@ -1246,6 +1347,54 @@ bool PinotSettings::MailAccount::operator<(const MailAccount &other) const
 }
 
 bool PinotSettings::MailAccount::operator==(const MailAccount &other) const
+{
+	if (m_name == other.m_name)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+PinotSettings::CacheProvider::CacheProvider()
+{
+}
+
+PinotSettings::CacheProvider::CacheProvider(const CacheProvider &other) :
+	m_name(other.m_name),
+	m_location(other.m_location)
+{
+	m_protocols.clear();
+	copy(other.m_protocols.begin(), other.m_protocols.end(),
+		inserter(m_protocols, m_protocols.begin()));
+}
+
+PinotSettings::CacheProvider::~CacheProvider()
+{
+}
+
+PinotSettings::CacheProvider &PinotSettings::CacheProvider::operator=(const CacheProvider &other)
+{
+	m_name = other.m_name;
+	m_location = other.m_location;
+	m_protocols.clear();
+	copy(other.m_protocols.begin(), other.m_protocols.end(),
+		inserter(m_protocols, m_protocols.begin()));
+
+	return *this;
+}
+
+bool PinotSettings::CacheProvider::operator<(const CacheProvider &other) const
+{
+	if (m_name < other.m_name)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool PinotSettings::CacheProvider::operator==(const CacheProvider &other) const
 {
 	if (m_name == other.m_name)
 	{

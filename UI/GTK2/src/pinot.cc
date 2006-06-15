@@ -173,6 +173,7 @@ int main(int argc, char **argv)
 	TokenizerFactory::loadTokenizers(prefixDir + string("/share/pinot/tokenizers"));
 	TokenizerFactory::loadTokenizers(confDirectory + string("/tokenizers"));
 	// Load the settings
+	settings.loadGlobal(prefixDir + string("/share/pinot/globalconfig.xml"));
 	settings.load();
 
 	// Catch interrupts

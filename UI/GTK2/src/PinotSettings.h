@@ -19,6 +19,7 @@
 
 #include <sys/types.h>
 #include <string>
+#include <vector>
 #include <map>
 #include <set>
 #include <vector>
@@ -41,7 +42,11 @@ class PinotSettings
 
 		static std::string getCurrentUserName(void);
 
-		bool load(bool reload = false);
+		void clear(void);
+
+		bool loadGlobal(const std::string &fileName);
+
+		bool load(void);
 
 		bool loadSearchEngines(const std::string &directoryName);
 
@@ -127,6 +132,7 @@ class PinotSettings
 				MailAccount(const MailAccount &other);
 				~MailAccount();
 
+				MailAccount &operator=(const MailAccount &other);
 				bool operator<(const MailAccount &other) const;
 				bool operator==(const MailAccount &other) const;
 
@@ -135,6 +141,22 @@ class PinotSettings
 				time_t m_modTime;
 				time_t m_lastMessageTime;
 				off_t m_size;
+		};
+
+		class CacheProvider
+		{
+			public:
+				CacheProvider();
+				CacheProvider(const CacheProvider &other);
+				~CacheProvider();
+
+				CacheProvider &operator=(const CacheProvider &other);
+				bool operator<(const CacheProvider &other) const;
+				bool operator==(const CacheProvider &other) const;
+
+				Glib::ustring m_name;
+				Glib::ustring m_location;
+				std::set<Glib::ustring> m_protocols;
 		};
 
 		Glib::ustring m_googleAPIKey;
@@ -151,6 +173,8 @@ class PinotSettings
 		bool m_suggestQueryTerms;
 		Gdk::Color m_newResultsColour;
 		std::set<MailAccount> m_mailAccounts;
+		std::vector<CacheProvider> m_cacheProviders;
+		std::set<Glib::ustring> m_cacheProtocols;
 
 	protected:
 		static PinotSettings m_instance;
@@ -164,7 +188,7 @@ class PinotSettings
 		std::set<std::string> m_labels;
 
 		PinotSettings();
-		bool loadConfiguration(const std::string &fileName);
+		bool loadConfiguration(const std::string &fileName, bool isGlobal);
 		bool loadUi(const xmlpp::Element *pElem);
 		bool loadIndexes(const xmlpp::Element *pElem);
 		bool loadEngineChannels(const xmlpp::Element *pElem);
@@ -172,6 +196,7 @@ class PinotSettings
 		bool loadLabels(const xmlpp::Element *pElem);
 		bool loadColour(const xmlpp::Element *pElem);
 		bool loadMailAccounts(const xmlpp::Element *pElem);
+		bool loadCacheProviders(const xmlpp::Element *pElem);
 
 	private:
 		PinotSettings(const PinotSettings &other);
