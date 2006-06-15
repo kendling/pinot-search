@@ -231,7 +231,6 @@
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">View Cache</property>
 		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_viewcache_activate" last_modification_time="Fri, 18 Mar 2005 19:14:33 GMT"/>
 		    </widget>
 		  </child>
 

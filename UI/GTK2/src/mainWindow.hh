@@ -56,9 +56,9 @@ public:
 
 protected:
 	// Utility methods
-	void populate_queryTreeview();
+	void populate_queryTreeview(const std::string &selectedQueryName);
 	void save_queryTreeview();
-	void populate_indexMenu();
+	void populate_menus();
 
 	// Handlers
 	bool on_queryCompletion_match(const Glib::ustring &key, const Gtk::TreeModel::const_iterator &iter);
@@ -67,6 +67,7 @@ protected:
 	void on_resultsTreeviewSelection_changed(Glib::ustring queryName);
 	void on_indexTreeviewSelection_changed(Glib::ustring indexName);
 	void on_index_changed(Glib::ustring indexName);
+	void on_cache_changed(PinotSettings::CacheProvider cacheProvider);
 	void on_label_changed(Glib::ustring indexName, Glib::ustring labelName);
 	void on_switch_page(GtkNotebookPage *p0, guint p1);
 	void on_close_page(Glib::ustring title, NotebookPageBox::PageType type);
@@ -88,7 +89,6 @@ protected:
 	virtual void on_showextract_activate();
 	virtual void on_groupresults_activate();
 	virtual void on_viewresults_activate();
-	virtual void on_viewcache_activate();
 	virtual void on_indexresults_activate();
 
 	virtual void on_import_activate();
@@ -156,7 +156,7 @@ private:
 	Gtk::Notebook *m_pNotebook;
 	// Index
 	Gtk::Menu *m_pIndexMenu;
-	Gtk::Menu *m_pLabelsMenu;
+	Gtk::Menu *m_pCacheMenu;
 	ComboModelColumns m_indexNameColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refIndexNameTree;
 	// Tooltips

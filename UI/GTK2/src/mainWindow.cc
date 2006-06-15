@@ -122,7 +122,7 @@ mainWindow::mainWindow() :
 	m_pEnginesTree(NULL),
 	m_pNotebook(NULL),
 	m_pIndexMenu(NULL),
-	m_pLabelsMenu(NULL),
+	m_pCacheMenu(NULL),
 	m_state(this)
 {
 	// Reposition and resize the window
@@ -179,10 +179,10 @@ mainWindow::mainWindow() :
 	queryTreeview->get_selection()->signal_changed().connect(
 		SigC::slot(*this, &mainWindow::on_queryTreeviewSelection_changed));
 	// Populate
-	populate_queryTreeview();
+	populate_queryTreeview("");
 
-	// Populate the index menu
-	populate_indexMenu();
+	// Populate the menus
+	populate_menus();
 
 	// Create a notebook, without any page initially
 	m_pNotebook = manage(new Notebook());
@@ -245,7 +245,7 @@ mainWindow::~mainWindow()
 //
 // Load user-defined queries
 //
-void mainWindow::populate_queryTreeview()
+void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 {
 	QueryHistory history(m_settings.m_historyDatabase);
 	const std::map<string, QueryProperties> &queries = m_settings.getQueries();
@@ -279,6 +279,14 @@ void mainWindow::populate_queryTreeview()
 			row[m_queryColumns.m_summary] = _("<undefined>");
 		}
 		row[m_queryColumns.m_properties] = queryIter->second;
+
+		if ((selectedQueryName.empty() == false) &&
+			(queryName == selectedQueryName))
+		{
+			// Select this query
+			TreeModel::Path path = m_refQueryTree->get_path(iter);
+			queryTreeview->get_selection()->select(path);
+		}
 	}
 }
 
@@ -311,13 +319,13 @@ void mainWindow::save_queryTreeview()
 }
 
 //
-// Populate the index menu
+// Populate menus
 //
-void mainWindow::populate_indexMenu()
+void mainWindow::populate_menus()
 {
 	if (m_pIndexMenu == NULL)
 	{
-		m_pIndexMenu = new Menu();
+		m_pIndexMenu = manage(new Menu());
 		list1->set_submenu(*m_pIndexMenu);
 	}
 	else
@@ -340,6 +348,39 @@ void mainWindow::populate_indexMenu()
 	// Bind the callback's parameter to the index name
 	SigC::Slot0<void> emailActivateSlot = sigc::bind(indexSlot, _("My Email"));
 	pMenuItem->signal_activate().connect(emailActivateSlot);
+
+	if (m_pCacheMenu == NULL)
+	{
+		m_pCacheMenu = manage(new Menu());
+		viewcache1->set_submenu(*m_pCacheMenu);
+	}
+	else
+	{
+		// Clear the submenu
+		m_pCacheMenu->items().clear();
+	}
+
+	SigC::Slot1<void, PinotSettings::CacheProvider> cacheSlot = SigC::slot(*this, &mainWindow::on_cache_changed);
+
+	if (m_settings.m_cacheProviders.empty() == true)
+	{
+		// Hide the submenu
+		viewcache1->hide();
+	}
+	else
+	{
+		// Populate the submenu
+		for (vector<PinotSettings::CacheProvider>::iterator cacheIter = m_settings.m_cacheProviders.begin();
+			cacheIter != m_settings.m_cacheProviders.end(); ++cacheIter)
+		{
+			m_pCacheMenu->items().push_back(Menu_Helpers::MenuElem(cacheIter->m_name));
+			MenuItem *pMenuItem = &m_pCacheMenu->items().back();
+
+			// Bind the callback's parameter to the cache provider
+			SigC::Slot0<void> documentsActivateSlot = sigc::bind(cacheSlot, (*cacheIter));
+			pMenuItem->signal_activate().connect(documentsActivateSlot);
+		}
+	}
 }
 
 //
@@ -468,10 +509,9 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 				isViewable = isIndexable = isCached = false;
 				break;
 			}
-			else if ((protocol == "http") ||
-				(protocol == "https"))
+			else if (m_settings.m_cacheProtocols.find(protocol) != m_settings.m_cacheProtocols.end())
 			{
-				// One document on http is good enough
+				// One document with a supported protocol is good enough
 				isCached = true;
 			}
 		}
@@ -541,7 +581,7 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 }
 
 //
-// Index > List menu selected
+// Index > List Contents Of menu selected
 //
 void mainWindow::on_index_changed(ustring indexName)
 {
@@ -614,7 +654,86 @@ void mainWindow::on_index_changed(ustring indexName)
 }
 
 //
-// Index > labels combo selection changed
+// Results > View Cache menu selected
+//
+void mainWindow::on_cache_changed(PinotSettings::CacheProvider cacheProvider)
+{
+	if (cacheProvider.m_name.empty() == true)
+	{
+		return;
+	}
+
+	NotebookPageBox *pNotebookPage = get_current_page();
+	if (pNotebookPage != NULL)
+	{
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				vector<DocumentInfo> resultsList;
+
+				if (pResultsTree->getSelection(resultsList) == true)
+				{
+					for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
+						resultIter != resultsList.end(); ++resultIter)
+					{
+						string url(resultIter->getLocation());
+						Url urlObj(url);
+						string protocol(urlObj.getProtocol());
+
+						// Is this protocol supported ?
+						if (cacheProvider.m_protocols.find(protocol) == cacheProvider.m_protocols.end())
+						{
+							// No, it isn't... This document will be open in place
+							continue;
+						}
+
+						// Rewrite the URL
+						ustring location(cacheProvider.m_location);
+						ustring::size_type argPos = location.find("%url0");
+						if (argPos != ustring::npos)
+						{
+							string::size_type pos = url.find("://");
+							if ((pos != string::npos) &&
+								(pos + 3 < url.length()))
+							{
+								// URL without protocol
+								location.replace(argPos, 5, url.substr(pos + 3));
+							}
+						}
+						else
+						{
+							argPos = location.find("%url");
+							if (argPos != ustring::npos)
+							{
+								// Full protocol
+								location.replace(argPos, 4, url);
+							}
+						}
+
+						resultIter->setLocation(location);
+#ifdef DEBUG
+						cout << "mainWindow::on_cache_changed: rewritten "
+							<< url << " to " << location << endl;
+#endif
+					}
+
+				}
+
+				view_documents(resultsList);
+
+				// Update the rows right now
+				pResultsTree->setSelectionViewedState(true);
+			}
+		}
+	}
+}
+
+
+//
+// Index labels combo selection changed
 //
 void mainWindow::on_label_changed(ustring indexName, ustring labelName)
 {
@@ -1522,65 +1641,6 @@ void mainWindow::on_viewresults_activate()
 					// We can update the rows right now
 					pResultsTree->setSelectionViewedState(true);
 				}
-			}
-		}
-	}
-}
-
-//
-// Results > View Cache menu selected
-//
-void mainWindow::on_viewcache_activate()
-{
-	string googleCache("http://www.google.com/search?q=cache:");
-
-	NotebookPageBox *pNotebookPage = get_current_page();
-	if (pNotebookPage != NULL)
-	{
-		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-		if (pResultsPage != NULL)
-		{
-			ResultsTree *pResultsTree = pResultsPage->getTree();
-			if (pResultsTree != NULL)
-			{
-				vector<DocumentInfo> resultsList;
-
-				if (pResultsTree->getSelection(resultsList) == true)
-				{
-					for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
-						resultIter != resultsList.end(); ++resultIter)
-					{
-						string url(resultIter->getLocation());
-						Url urlObj(url);
-						string protocol(urlObj.getProtocol());
-
-#ifdef DEBUG
-						cout << "mainWindow::on_viewcache_activate: " << url << endl;
-#endif
-						if ((protocol == "http") ||
-							(protocol == "https"))
-						{
-							// Rewrite the URL
-							string::size_type pos = url.find("://");
-							if ((pos != string::npos) &&
-								(pos + 3 < url.length()))
-							{
-								resultIter->setLocation(googleCache + url.substr(pos + 3));
-#ifdef DEBUG
-								cout << "mainWindow::on_viewcache_activate: rewritten "
-									<< url << " to " << resultIter->getLocation() << endl;
-#endif
-							}
-						}
-
-						// Other document will be open in place
-					}
-				}
-
-				view_documents(resultsList);
-
-				// Update the rows right now
-				pResultsTree->setSelectionViewedState(true);
 			}
 		}
 	}
@@ -2552,7 +2612,7 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 		set_status(_("Added new query"));
 	}
 
-	populate_queryTreeview();
+	populate_queryTreeview(queryProps.getName());
 }
 
 //

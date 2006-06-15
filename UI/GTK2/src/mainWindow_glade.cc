@@ -445,7 +445,6 @@ mainWindow_glade::mainWindow_glade(
    searchenginegroup1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_groupresults_activate), false);
    clearresults1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_clearresults_activate), false);
    viewresults1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_viewresults_activate), false);
-   viewcache1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_viewcache_activate), false);
    indexresults1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_indexresults_activate), false);
    import1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_import_activate), false);
    viewfromindex1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_viewfromindex_activate), false);

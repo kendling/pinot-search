@@ -117,7 +117,6 @@ private:
         virtual void on_groupresults_activate() = 0;
         virtual void on_clearresults_activate() = 0;
         virtual void on_viewresults_activate() = 0;
-        virtual void on_viewcache_activate() = 0;
         virtual void on_indexresults_activate() = 0;
         virtual void on_import_activate() = 0;
         virtual void on_viewfromindex_activate() = 0;
