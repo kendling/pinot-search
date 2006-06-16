@@ -20,7 +20,6 @@
 #include <time.h>
 #include <string>
 #include <set>
-#include <map>
 #include <sigc++/slot.h>
 
 #include "IndexedDocument.h"
@@ -61,11 +60,13 @@ class MboxHandler : public MonitorHandler
 		bool checkMailAccount(const std::string &fileName, PinotSettings::MailAccount &mailAccount,
 			off_t &previousSize);
 
-		bool parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex,
-			time_t &lastMessageTime, const std::string &tempSourceLabel,
-			const std::string &sourceLabel);
+		bool indexMessages(const std::string &fileName, PinotSettings::MailAccount &mailAccount,
+			off_t mboxOffset);
 
-		bool deleteMessages(IndexInterface *pIndex, const std::string &sourceLabel);
+		bool parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex,
+			time_t &lastMessageTime, const std::string &sourceLabel);
+
+		bool deleteMessages(IndexInterface *pIndex, std::set<unsigned int> &docIdList);
 
 	private:
 		MboxHandler(const MboxHandler &other);
