@@ -23,7 +23,7 @@ It may also be used as a lightweight personal space search tool.
 Summary: Tokenizers for Pinot that handle various text document formats
 Group: Applications/Internet
 Requires: %{name} = %{version}
-Requires: /usr/bin/unzip, /usr/bin/pdftohtml, antiword, unrtf
+Requires: unzip, poppler-utils, antiword, unrtf
 Obsoletes: pinot-pdf, pinot-word
 
 %description text-docs 
@@ -71,6 +71,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_bindir}/pinot
 %ghost %{_bindir}/pinot-collect
 %{_bindir}/pinot-search
+%{_datadir}/pinot/globalconfig.xml
 %{_datadir}/pinot/xapian-powered.png
 %{_datadir}/pinot/metase-gtk2.glade
 %{_datadir}/pinot/metase-gtk2.gladep
