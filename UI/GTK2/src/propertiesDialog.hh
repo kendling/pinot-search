@@ -48,7 +48,7 @@ protected:
 	bool m_editDocument;
 	DocumentInfo m_docInfo;
 
-	void populate_languageCombobox(std::string language);
+	void populate_languageCombobox(const std::string &language, bool notALanguageName);
 
 	void populate_labelsTreeview(const std::set<std::string> &docLabels);
 

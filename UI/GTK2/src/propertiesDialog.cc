@@ -34,6 +34,9 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 	m_editDocument(editDocument),
 	m_docInfo(docInfo)
 {
+	string language(docInfo.getLanguage());
+	bool notALanguageName = false;
+
 	// Associate the columns model to the language combo
 	m_refLanguageTree = ListStore::create(m_languageColumns);
 	languageCombobox->set_model(m_refLanguageTree);
@@ -50,19 +53,28 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 	if (m_editDocument == true)
 	{
 		titleEntry->set_text(to_utf8(docInfo.getTitle()));
-		populate_languageCombobox(docInfo.getLanguage());
 		typeEntry->set_text(to_utf8(docInfo.getType()));
+		if (language.empty() == true)
+		{
+			language = _("Unknown");
+			notALanguageName = true;
+		}
 	}
 	else
 	{
+		if (language.empty() == true)
+		{
+			language = _("Per document"); 
+			notALanguageName = true;
+		}
+
 		titleLabel->hide();
 		titleEntry->hide();
-		languageLabel->hide();
-		languageCombobox->hide();
 		typeLabel->hide();
 		typeEntry->hide();
 	}
 
+	populate_languageCombobox(language, notALanguageName);
 	populate_labelsTreeview(docLabels);
 }
 
@@ -70,18 +82,19 @@ propertiesDialog::~propertiesDialog()
 {
 }
 
-void propertiesDialog::populate_languageCombobox(string language)
+void propertiesDialog::populate_languageCombobox(const string &language, bool notALanguageName)
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
 	unsigned int languageStart = 0;
 
-	if (language.empty() == true)
+	if (notALanguageName == true)
 	{
 		iter = m_refLanguageTree->append();
 		row = *iter;
 
-		row[m_languageColumns.m_name] = _("Unknown");
+		// This is not a language name as such
+		row[m_languageColumns.m_name] = language;
 		languageCombobox->set_active(0);
 		languageStart = 1;
 	}
@@ -94,7 +107,8 @@ void propertiesDialog::populate_languageCombobox(string language)
 		row = *iter;
 		row[m_languageColumns.m_name] = languageName;
 
-		if (languageName == language)
+		if ((notALanguageName == false) &&
+			(languageName == language))
 		{
 			languageCombobox->set_active(languageNum + languageStart);
 		}
@@ -162,28 +176,28 @@ const set<string> &propertiesDialog::getLabels(void) const
 
 void propertiesDialog::on_labelOkButton_clicked()
 {
+	unsigned int languageStart = 0;
 	if (m_editDocument == true)
 	{
-		unsigned int languageStart = 0;
-
 		// Title
 		m_docInfo.setTitle(from_utf8(titleEntry->get_text()));
-
-		// Language
-		if (m_docInfo.getLanguage().empty() == true)
-		{
-			languageStart = 1;
-		}
-		int chosenLanguage = languageCombobox->get_active_row_number();
-		if (chosenLanguage >= languageStart)
-		{
-			TreeModel::iterator iter = languageCombobox->get_active();
-			TreeModel::Row row = *iter;
-			string languageName = from_utf8(row[m_languageColumns.m_name]);
-
-			m_docInfo.setLanguage(languageName);
-		}
 	}
+
+	// Did we add an extra string to the languages list ?
+	if (m_docInfo.getLanguage().empty() == true)
+	{
+		languageStart = 1;
+	}
+	int chosenLanguage = languageCombobox->get_active_row_number();
+	if (chosenLanguage >= languageStart)
+	{
+		TreeModel::iterator iter = languageCombobox->get_active();
+		TreeModel::Row row = *iter;
+		string languageName = from_utf8(row[m_languageColumns.m_name]);
+
+		m_docInfo.setLanguage(languageName);
+	}
+
 	// Go through the labels tree
 	TreeModel::Children children = m_refLabelsTree->children();
 	if (children.empty() == false)

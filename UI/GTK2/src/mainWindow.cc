@@ -1800,7 +1800,7 @@ void mainWindow::on_showfromindex_activate()
 	DocumentInfo docInfo;
 	unsigned int docId = 0;
 	int width, height;
-	bool matchedLabel = false, editTitle = false;
+	bool matchedLabel = false, editDocument = false;
 
 #ifdef DEBUG
 	cout << "mainWindow::on_showfromindex_activate: called" << endl;
@@ -1841,7 +1841,7 @@ void mainWindow::on_showfromindex_activate()
 	// If there's only one document selected, get its labels
 	if (documentsList.size() == 1)
 	{
-		vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
+		vector<IndexedDocument>::iterator docIter = documentsList.begin();
 
 		// Get the document ID
 		docId = docIter->getID();
@@ -1860,13 +1860,32 @@ void mainWindow::on_showfromindex_activate()
 				matchedLabel = true;
 			}
 		}
-		editTitle = true;
+		editDocument = true;
 	}
-	// Else, start with a blank list
+	else
+	{
+		// If all documents are of the same language, show it
+		for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
+			docIter != documentsList.end(); ++docIter)
+		{
+			if (docInfo.getLanguage().empty() == true)
+			{
+				docInfo.setLanguage(docIter->getLanguage());
+			}
+			if (docIter->getLanguage() != docInfo.getLanguage())
+			{
+				// They aren't
+				docInfo.setLanguage("");
+				break;
+			}
+		}
+
+		// Show a blank labels list
+	}
 
 	// Let the user set the labels
 	get_size(width, height);
-	propertiesDialog propertiesBox(docLabels, docInfo, editTitle);
+	propertiesDialog propertiesBox(docLabels, docInfo, editDocument);
 	propertiesBox.setHeight(height / 2);
 	propertiesBox.show();
 	if (propertiesBox.run() != RESPONSE_OK)
@@ -1874,11 +1893,17 @@ void mainWindow::on_showfromindex_activate()
 		return;
 	}
 	const set<string> &labels = propertiesBox.getLabels();
+	string newTitle(propertiesBox.getDocumentInfo().getTitle());
+	string newLanguage(propertiesBox.getDocumentInfo().getLanguage());
+#ifdef DEBUG
+	cout << "mainWindow::on_showfromindex_activate: properties changed to "
+		<< newTitle << ", " << newLanguage << endl;
+#endif
 
 	if (index.isGood() == true)
 	{
 		// Now apply these labels to all the documents
-		for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
+		for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
 			docIter != documentsList.end(); ++docIter)
 		{
 			// Set the document's labels list
@@ -1890,24 +1915,31 @@ void mainWindow::on_showfromindex_activate()
 		(docId > 0))
 	{
 		// Did the title or language change ?
-		string newTitle = propertiesBox.getDocumentInfo().getTitle();
-		string newLanguage = propertiesBox.getDocumentInfo().getLanguage();
 		if ((newTitle != docInfo.getTitle()) ||
 			(newLanguage != docInfo.getLanguage()))
 		{
 			docInfo.setTitle(newTitle);
 			docInfo.setLanguage(newLanguage);
-#ifdef DEBUG
-			cout << "mainWindow::on_showfromindex_activate: properties changed to "
-				<< newTitle << ", " << newLanguage << endl;
-#endif
-			
+
 			// Update the document
 			start_thread(new UpdateDocumentThread(indexName, docId, docInfo));
 		}
 	}
 	else
 	{
+		// Was the language changed ?
+		if (newLanguage.empty() == false)
+		{
+			// Update all documents
+			for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
+				docIter != documentsList.end(); ++docIter)
+			{
+				docIter->setLanguage(newLanguage);
+
+				start_thread(new UpdateDocumentThread(indexName, docIter->getID(), *docIter));
+			}
+		}
+
 		if (labelName.empty() == false)
 		{
 			// The current label may have been applied to or removed from
