@@ -62,9 +62,6 @@ class ResultsTree : public Gtk::TreeView
 		/// Sets how results are grouped.
 		void setGroupMode(bool groupBySearchEngine);
 
-		/// Determines if results are selected.
-		bool checkSelection(void);
-
 		/// Gets the first selected item.
 		Result getFirstSelection(void);
 
@@ -80,6 +77,9 @@ class ResultsTree : public Gtk::TreeView
 		  */
 		bool deleteSelection(void);
 
+		/// Deletes results.
+		bool deleteResults(QueryProperties &queryProps, const std::string &engineName);
+
 		/// Refreshes the tree.
 		void refresh(void);
 
@@ -92,12 +92,16 @@ class ResultsTree : public Gtk::TreeView
 		/// Returns the changed selection signal.
 		SigC::Signal1<void, Glib::ustring>& getSelectionChangedSignal(void);
 
+		/// Returns the view results signal.
+		SigC::Signal0<void>& getViewResultsSignal(void);
+
 	protected:
 		Glib::ustring m_queryName;
 		Gtk::Menu *m_pPopupMenu;
 		Gtk::ScrolledWindow *m_pResultsScrolledwindow;
 		Glib::RefPtr<Gtk::TreeStore> m_refStore;
 		SigC::Signal1<void, Glib::ustring> m_signalSelectionChanged;
+		SigC::Signal0<void> m_signalViewResults;
 		PinotSettings &m_settings;
 		Glib::RefPtr<Gdk::Pixbuf> m_indexedIconPixbuf;
 		Glib::RefPtr<Gdk::Pixbuf> m_viewededIconPixbuf;
