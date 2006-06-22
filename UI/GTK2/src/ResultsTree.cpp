@@ -317,7 +317,6 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			set<string> engineNames, indexNames;
 			string extract;
 
-			// The query name and row[m_resultsColumns.m_queryName] should be equal
 			string url = from_utf8(row[m_resultsColumns.m_url]);
 			unsigned int engineIds = row[m_resultsColumns.m_engines];
 			unsigned int indexIds = row[m_resultsColumns.m_indexes];
@@ -428,8 +427,6 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 {
 	std::map<string, TreeModel::iterator> updatedGroups;
 	string queryName(queryProps.getName());
-	string language(queryProps.getLanguage());
-	string labelName(queryProps.getLabelName());
 	unsigned int count = 0;
 	ResultsModelColumns::ResultType rootType;
 
@@ -519,15 +516,15 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 			if (previousScore > 0)
 			{
 				// Update this result whatever the current and previous rankings were
-				history.updateItem(queryName, engineName, location,
-					title, extract, language, currentScore);
+				history.updateItem(m_queryName, engineName, location,
+					title, extract, "", currentScore);
 				rankDiff = (int)(currentScore - previousScore);
 			}
 			else
 			{
 				// No, this is a new result
-				history.insertItem(queryName, engineName, location,
-					resultIter->getTitle(), extract, language, currentScore);
+				history.insertItem(m_queryName, engineName, location,
+					resultIter->getTitle(), extract, "", currentScore);
 				// New results are displayed as such only if the query has already been run on the engine
 				if (isNewQuery == false)
 				{
@@ -537,8 +534,8 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 			}
 
 			++count;
-			if (appendResult(title, location, currentScore, language, rankDiff,
-				queryName, engineId, indexId, titleIter, &(*groupIter), true) == true)
+			if (appendResult(title, location, currentScore, rankDiff,
+				engineId, indexId, titleIter, &(*groupIter), true) == true)
 			{
 #ifdef DEBUG
 				cout << "ResultsTree::addResults: added row for result " << count << endl;
@@ -668,9 +665,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 						success = appendResult(childRow[m_resultsColumns.m_text],
 							childRow[m_resultsColumns.m_url],
 							(float)atof(from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
-							from_utf8(childRow[m_resultsColumns.m_language]),
 							childRow[m_resultsColumns.m_rankDiff],
-							from_utf8(childRow[m_resultsColumns.m_queryName]),
 							engineIds, indexIds, newIter, &(*groupIter), true);
 					}
 				}
@@ -728,9 +723,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 								appendResult(childRow[m_resultsColumns.m_text],
 									childRow[m_resultsColumns.m_url],
 									(float)atof(from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
-									from_utf8(childRow[m_resultsColumns.m_language]),
 									childRow[m_resultsColumns.m_rankDiff],
-									from_utf8(childRow[m_resultsColumns.m_queryName]),
 									engineId, indexId,
 									newIter, &(*groupIter), true);
 #ifdef DEBUG
@@ -791,7 +784,7 @@ Result ResultsTree::getFirstSelection(void)
 	TreeModel::Row row = *iter;
 	return Result(from_utf8(row[m_resultsColumns.m_url]),
 		from_utf8(row[m_resultsColumns.m_text]),
-		"", from_utf8(row[m_resultsColumns.m_language]));
+		"", "");
 }
 
 //
@@ -819,7 +812,7 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList)
 
 		resultsList.push_back(DocumentInfo(from_utf8(row[m_resultsColumns.m_text]),
 			from_utf8(row[m_resultsColumns.m_url]),
-			"", from_utf8(row[m_resultsColumns.m_language])));
+			"", ""));
 	}
 #ifdef DEBUG
 	cout << "ResultsTree::getSelection: " << resultsList.size() << " results selected" << endl;
@@ -829,9 +822,9 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList)
 }
 
 //
-// Sets the selected items' viewed state.
+// Sets the selected items' state.
 //
-void ResultsTree::setSelectionViewedState(bool viewed)
+void ResultsTree::setSelectionState(bool viewed, bool indexed)
 {
 	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
 	if (selectedItems.empty() == true)
@@ -851,7 +844,14 @@ void ResultsTree::setSelectionViewedState(bool viewed)
 			continue;
 		}
 
-		row[m_resultsColumns.m_viewed] = viewed;
+		if (viewed == true)
+		{
+			row[m_resultsColumns.m_viewed] = true;
+		}
+		if (indexed == true)
+		{
+			row[m_resultsColumns.m_indexed] = true;
+		}
 	}
 }
 
@@ -956,7 +956,6 @@ bool ResultsTree::deleteResults(QueryProperties &queryProps, const string &engin
 			row = *iter;
 
 			if ((row[m_resultsColumns.m_type] == ResultsModelColumns::RESULT_TITLE) &&
-				(row[m_resultsColumns.m_queryName] == queryName) &&
 				(row[m_resultsColumns.m_engines] == engineId) &&
 				(row[m_resultsColumns.m_indexes] == indexId))
 			{
@@ -1071,8 +1070,7 @@ Signal0<void>& ResultsTree::getViewResultsSignal(void)
 // Adds a new row in the results tree.
 //
 bool ResultsTree::appendResult(const ustring &text, const ustring &url,
-	float score, const string &language, int rankDiff,
-	const string &queryName, unsigned int engineId, unsigned int indexId,
+	float score, int rankDiff, unsigned int engineId, unsigned int indexId,
 	TreeModel::iterator &newRowIter, const TreeModel::Row *parentRow, bool noDuplicates)
 {
 	if (parentRow == NULL)
@@ -1094,8 +1092,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 					childIter != children.end(); ++childIter)
 				{
 					TreeModel::Row row = *childIter;
-					if ((row[m_resultsColumns.m_url] == to_utf8(url)) &&
-						(row[m_resultsColumns.m_queryName] == to_utf8(queryName)))
+					if (row[m_resultsColumns.m_url] == to_utf8(url))
 					{
 						// Update the engines column...
 						row[m_resultsColumns.m_engines] = row[m_resultsColumns.m_engines] | engineId;
@@ -1138,7 +1135,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 
 	TreeModel::Row childRow = *newRowIter;
 	updateRow(childRow, text, url, scoreStr,
-		to_utf8(language), to_utf8(queryName), engineId, indexId,
+		engineId, indexId,
 		ResultsModelColumns::RESULT_TITLE, isIndexed,
 		wasViewed, rankDiff);
 
@@ -1161,7 +1158,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::Resu
 		groupIter = m_refStore->append();
 		TreeModel::Row groupRow = *groupIter;
 		updateRow(groupRow, to_utf8(groupName),
-			"", "", "", "", 0, 0, groupType,
+			"", "", 0, 0, groupType,
 			false, false, false);
 
 		// Update the map
@@ -1215,15 +1212,13 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 // Updates a row.
 //
 void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
-	const ustring &url, const ustring &score, const ustring &language,
-	const ustring &queryName, unsigned int engineId,  unsigned int indexId,
+	const ustring &url, const ustring &score,
+	unsigned int engineId,  unsigned int indexId,
 	ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff)
 {
 	row[m_resultsColumns.m_text] = text;
 	row[m_resultsColumns.m_url] = url;
 	row[m_resultsColumns.m_score] = score;
-	row[m_resultsColumns.m_language] = language;
-	row[m_resultsColumns.m_queryName] = queryName;
 	row[m_resultsColumns.m_engines] = engineId;
 	row[m_resultsColumns.m_indexes] = indexId;
 	row[m_resultsColumns.m_type] = type;

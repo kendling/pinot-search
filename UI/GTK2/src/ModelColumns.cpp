@@ -59,8 +59,6 @@ ResultsModelColumns::ResultsModelColumns()
 	add(m_viewed);
 	add(m_rankDiff);
 	add(m_score);
-	add(m_language);
-	add(m_queryName);
 	add(m_engines);
 	add(m_indexes);
 	add(m_type);

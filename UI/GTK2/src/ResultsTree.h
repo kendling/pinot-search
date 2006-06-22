@@ -68,8 +68,8 @@ class ResultsTree : public Gtk::TreeView
 		/// Gets a list of selected items.
 		bool getSelection(std::vector<DocumentInfo> &resultsList);
 
-		/// Sets the selected items' viewed state.
-		void setSelectionViewedState(bool viewed);
+		/// Sets the selected items' state.
+		void setSelectionState(bool viewed, bool indexed);
 
 		/**
 		  * Deletes the current selection.
@@ -140,8 +140,7 @@ class ResultsTree : public Gtk::TreeView
 
 		/// Adds a new row in the results tree.
 		bool appendResult(const Glib::ustring &text, const Glib::ustring &url,
-			float score, const std::string &language, int rankDiff,
-			const std::string &queryName, unsigned int engineId, unsigned int indexId,
+			float score, int rankDiff, unsigned int engineId, unsigned int indexId,
 			Gtk::TreeModel::iterator &newRowIter,
 			const Gtk::TreeModel::Row *parentRow = NULL, bool noDuplicates = false);
 
@@ -150,8 +149,8 @@ class ResultsTree : public Gtk::TreeView
 
 		/// Updates a row.
 		void updateRow(Gtk::TreeModel::Row &row, const Glib::ustring &text,
-			const Glib::ustring &url, const Glib::ustring &score, const Glib::ustring &language,
-			const Glib::ustring &queryName, unsigned int engineId, unsigned int indexId,
+			const Glib::ustring &url, const Glib::ustring &score,
+			unsigned int engineId, unsigned int indexId,
 			ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff);
 
 	private:
