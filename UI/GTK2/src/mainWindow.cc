@@ -1027,7 +1027,6 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		{
 			string queryName(_("More Like"));
 			string moreLike;
-			bool newQuery = true;
 
 			if (queryProps.getName().empty() == true)
 			{
@@ -1064,14 +1063,19 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 				if (queryName == from_utf8(row[m_queryColumns.m_name]))
 				{
-					newQuery = false;
+					m_settings.removeQuery(queryName);
 					break;
 				}
 			}
 
-			// Add these terms and edit the new query
+			// Add these terms
 			queryProps.setAnyWords(queryProps.getAnyWords() + moreLike);
-			edit_query(queryProps, newQuery);
+
+			// Update everything
+			if (m_settings.addQuery(queryProps) == true)
+			{
+				populate_queryTreeview(queryName);
+			}
 		}
 	}
 	else if (type == "LabelUpdateThread")
