@@ -153,18 +153,19 @@ int main(int argc, char **argv)
 	cerr.rdbuf(outputFile.rdbuf());
 
 	// Localize language names
-	Languages::setIntlName(0, _("Danish"));
-	Languages::setIntlName(1, _("Dutch"));
-	Languages::setIntlName(2, _("English"));
-	Languages::setIntlName(3, _("Finnish"));
-	Languages::setIntlName(4, _("French"));
-	Languages::setIntlName(5, _("German"));
-	Languages::setIntlName(6, _("Italian"));
-	Languages::setIntlName(7, _("Norwegian"));
-	Languages::setIntlName(8, _("Portuguese"));
-	Languages::setIntlName(9, _("Russian"));
-	Languages::setIntlName(10, _("Spanish"));
-	Languages::setIntlName(11, _("Swedish"));
+	Languages::setIntlName(0, _("Unknown"));
+	Languages::setIntlName(1, _("Danish"));
+	Languages::setIntlName(2, _("Dutch"));
+	Languages::setIntlName(3, _("English"));
+	Languages::setIntlName(4, _("Finnish"));
+	Languages::setIntlName(5, _("French"));
+	Languages::setIntlName(6, _("German"));
+	Languages::setIntlName(7, _("Italian"));
+	Languages::setIntlName(8, _("Norwegian"));
+	Languages::setIntlName(9, _("Portuguese"));
+	Languages::setIntlName(10, _("Russian"));
+	Languages::setIntlName(11, _("Spanish"));
+	Languages::setIntlName(12, _("Swedish"));
 
 	// Load search engines
 	settings.loadSearchEngines(prefixDir + string("/share/pinot/engines"));

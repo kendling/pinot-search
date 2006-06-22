@@ -24,13 +24,13 @@ using std::map;
 using std::pair;
 using std::min;
 
-unsigned int Languages::m_count = 12;
+unsigned int Languages::m_count = 13;
 
-char *Languages::m_names[] = {"Danish", "Dutch", "English", "Finnish", \
-	"French", "German", "Italian", "Norwegian", "Portuguese", "Russian", \
-	"Spanish", "Swedish" };
+char *Languages::m_names[] = { "Unknown", "Danish", "Dutch", "English",
+	"Finnish", "French", "German", "Italian", "Norwegian", "Portuguese",
+	"Russian", "Spanish", "Swedish" };
 
-char *Languages::m_codes[] = { "da", "nl", "en", "fi", "fr", "de", \
+char *Languages::m_codes[] = { "", "da", "nl", "en", "fi", "fr", "de", \
 	"it", "nn", "pt", "ru", "es", "sv" };
 
 map<unsigned int, string> Languages::m_intlNames;

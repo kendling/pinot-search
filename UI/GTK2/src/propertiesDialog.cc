@@ -54,11 +54,6 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 	{
 		titleEntry->set_text(to_utf8(docInfo.getTitle()));
 		typeEntry->set_text(to_utf8(docInfo.getType()));
-		if (language.empty() == true)
-		{
-			language = _("Unknown");
-			notALanguageName = true;
-		}
 	}
 	else
 	{
@@ -87,6 +82,7 @@ void propertiesDialog::populate_languageCombobox(const string &language, bool no
 	TreeModel::iterator iter;
 	TreeModel::Row row;
 	unsigned int languageStart = 0;
+	bool foundLanguage = false;
 
 	if (notALanguageName == true)
 	{
@@ -111,7 +107,15 @@ void propertiesDialog::populate_languageCombobox(const string &language, bool no
 			(languageName == language))
 		{
 			languageCombobox->set_active(languageNum + languageStart);
+			foundLanguage = true;
 		}
+	}
+
+	// Did we find the given language ?
+	if (foundLanguage == false)
+	{
+		// Select the first language in the list
+		languageCombobox->set_active(languageStart);
 	}
 }
 
