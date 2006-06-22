@@ -69,9 +69,6 @@ class XapianIndex : public IndexInterface
 		/// Gets terms with the same root.
 		virtual unsigned int getCloseTerms(const std::string &term, std::set<std::string> &suggestions);
 
-		/// Gets expand terms.
-		virtual unsigned int getExpandTerms(const std::set<unsigned int> &docIds, std::set<std::string> &suggestions);
-
 		/// Renames a label.
 		virtual bool renameLabel(const std::string &name, const std::string &newName);
 
