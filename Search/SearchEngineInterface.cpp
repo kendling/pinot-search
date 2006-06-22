@@ -34,12 +34,6 @@ SearchEngineInterface::~SearchEngineInterface()
 {
 }
 
-/// Indicates if the search engine is available in several languages/countries.
-bool SearchEngineInterface::isInternational(void) const
-{
-	return false;
-}
-
 /// Sets the search engine's key, if applicable.
 void SearchEngineInterface::setKey(const string &key)
 {
@@ -59,6 +53,13 @@ void SearchEngineInterface::setMaxResultsCount(unsigned int count)
 	m_maxResultsCount = count;
 }
 
+/// Sets whether the query should be expanded.
+bool SearchEngineInterface::setQueryExpansion(set<unsigned int> &relevantDocuments)
+{
+	// Not all engines support this
+	return false;
+}
+
 /// Returns the results for the previous query.
 const vector<Result> &SearchEngineInterface::getResults(void) const
 {
@@ -69,6 +70,12 @@ const vector<Result> &SearchEngineInterface::getResults(void) const
 string SearchEngineInterface::getResultsCharset(void) const
 {
 	return m_charset;
+}
+
+/// Returns expand terms from the previous query.
+const set<string> &SearchEngineInterface::getExpandTerms(void) const
+{
+	return m_expandTerms;
 }
 
 void SearchEngineInterface::setHostNameFilter(const string &filter)

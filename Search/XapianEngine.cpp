@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 #include "Languages.h"
 #include "StringManip.h"
@@ -36,6 +37,7 @@ using std::stack;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::inserter;
 
 static bool extractWords(const string &text, const string &stemLanguage, vector<string> &wordsList)
 {
@@ -203,6 +205,33 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 					// Add this result
 					Result thisResult(url, title, summary, language, (float)mIter.get_percent());
 					m_resultsList.push_back(thisResult);
+				}
+			}
+
+			m_expandTerms.clear();
+
+			// Expand the query ?
+			if (m_relevantDocuments.empty() == false)
+			{
+				Xapian::RSet relevantDocs;
+				unsigned int count = 0;
+
+				for (set<unsigned int>::const_iterator docIter = m_relevantDocuments.begin();
+					docIter != m_relevantDocuments.end(); ++docIter)
+				{
+					relevantDocs.add_document(*docIter);
+				}
+
+				// Get 10 non-prefixed terms
+				Xapian::ESet expandTerms = enquire.get_eset(20, relevantDocs);
+				for (Xapian::ESetIterator termIter = expandTerms.begin();
+					(termIter != expandTerms.end()) && (count < 10); ++termIter)
+				{
+					if (isupper((int)((*termIter)[0])) == 0)
+					{
+						m_expandTerms.insert(*termIter);
+						++count;
+					}
 				}
 			}
 
@@ -407,6 +436,15 @@ bool XapianEngine::runQuery(const string &keyword)
 //
 // Implementation of SearchEngineInterface
 //
+
+/// Sets whether the query should be expanded.
+bool XapianEngine::setQueryExpansion(set<unsigned int> &relevantDocuments)
+{
+	copy(relevantDocuments.begin(), relevantDocuments.end(),
+		inserter(m_relevantDocuments, m_relevantDocuments.begin()));
+
+        return true;
+}
 
 /// Runs a query; true if success.
 bool XapianEngine::runQuery(QueryProperties& queryProps)

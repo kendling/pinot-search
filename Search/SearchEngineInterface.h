@@ -19,6 +19,7 @@
 
 #include <time.h>
 #include <string>
+#include <set>
 #include <vector>
 
 #include "QueryProperties.h"
@@ -34,9 +35,6 @@ class SearchEngineInterface
 	public:
 		virtual ~SearchEngineInterface();
 
-		/// Indicates if the search engine is available in several languages/countries.
-		virtual bool isInternational(void) const;
-
 		/// Sets the search engine's key, if applicable.
 		virtual void setKey(const string &key);
 
@@ -45,6 +43,9 @@ class SearchEngineInterface
 
 		/// Sets the maximum number of results to return.
 		virtual void setMaxResultsCount(unsigned int count);
+
+		/// Sets whether the query should be expanded.
+		virtual bool setQueryExpansion(set<unsigned int> &relevantDocuments);
 
 		/// Runs a query; true if success.
 		virtual bool runQuery(QueryProperties& queryProps) = 0;
@@ -55,15 +56,20 @@ class SearchEngineInterface
 		/// Returns the charset for the previous query's results.
 		virtual string getResultsCharset(void) const;
 
+		/// Returns expand terms from the previous query.
+		virtual const set<string> &getExpandTerms(void) const;
+
 	protected:
 		string m_key;
 		unsigned int m_callsCount;
 		time_t m_startTime;
 		unsigned int m_maxResultsCount;
+		bool m_expandQueries;
 		string m_hostFilter;
 		string m_fileFilter;
 		vector<Result> m_resultsList;
 		string m_charset;
+		set<string> m_expandTerms;
 
 		SearchEngineInterface();
 

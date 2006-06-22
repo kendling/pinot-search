@@ -946,9 +946,8 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 				unsigned int count = 0;
 
 				// Get the next 10 terms
-				termIter.skip_to(baseTerm);
-				while ((termIter != pIndex->allterms_end()) &&
-					(count < 10))
+				for (termIter.skip_to(baseTerm);
+					(termIter != pIndex->allterms_end()) && (count < 10); ++termIter)
 				{
 					string suggestedTerm(*termIter);
 
@@ -958,60 +957,7 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 						break;
 					}
 					suggestions.insert(*termIter);
-
-					// Next
 					++count;
-					++termIter;
-				}
-			}
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't get terms: " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't get terms, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
-
-	return suggestions.size();
-}
-
-/// Gets expand terms.
-unsigned int XapianIndex::getExpandTerms(const set<unsigned int> &docIds, set<string> &suggestions)
-{
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return 0;
-	}
-
-	suggestions.clear();
-	try
-	{
-		Xapian::Database *pIndex = pDatabase->readLock();
-		if (pIndex != NULL)
-		{
-			Xapian::Enquire enquire(*pIndex);
-			Xapian::RSet relevantDocs;
-
-			for (set<unsigned int>::const_iterator docIter = docIds.begin();
-				docIter != docIds.end(); ++docIter)
-			{
-				relevantDocs.add_document(*docIter);
-			}
-
-			// Get 10 terms
-			Xapian::ESet expandTerms = enquire.get_eset(10, relevantDocs);
-			for (Xapian::ESetIterator termIter = expandTerms.begin();
-				termIter != expandTerms.end(); ++termIter)
-			{
-				if (isupper((int)((*termIter)[0])) == 0)
-				{
-					suggestions.insert(*termIter);
 				}
 			}
 		}

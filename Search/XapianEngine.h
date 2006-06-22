@@ -18,6 +18,7 @@
 #define _XAPIAN_ENGINE_H
 
 #include <string>
+#include <set>
 #include <vector>
 #include <stack>
 
@@ -31,6 +32,9 @@ class XapianEngine : public SearchEngineInterface
 	public:
 		XapianEngine(const std::string &database);
 		virtual ~XapianEngine();
+
+		/// Sets whether the query should be expanded.
+		bool setQueryExpansion(std::set<unsigned int> &relevantDocuments);
 
 		/// Runs a boolean query; true if success.
 		virtual bool runQuery(const std::string &keyword);
@@ -46,6 +50,7 @@ class XapianEngine : public SearchEngineInterface
 
 	protected:
 		std::string m_databaseName;
+		std::set<unsigned int> m_relevantDocuments;
 
 		bool queryDatabase(Xapian::Query &query);
 
