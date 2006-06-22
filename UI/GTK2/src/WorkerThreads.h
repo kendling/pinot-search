@@ -168,6 +168,9 @@ class QueryingThread : public WorkerThread
 	public:
 		QueryingThread(const std::string &engineName, const std::string &engineDisplayableName,
 			const std::string &engineOption, const QueryProperties &queryProps);
+		QueryingThread(const std::string &engineName, const std::string &engineDisplayableName,
+			const std::string &engineOption, const QueryProperties &queryProps,
+			const std::set<unsigned int> &relevantDocs);
 		virtual ~QueryingThread();
 
 		virtual std::string getType(void) const;
@@ -178,6 +181,8 @@ class QueryingThread : public WorkerThread
 
 		const std::vector<Result> &getResults(std::string &charset) const;
 
+		const std::set<std::string> &getExpandTerms(void) const;
+
 		virtual bool stop(void);
 
 	protected:
@@ -185,8 +190,10 @@ class QueryingThread : public WorkerThread
 		std::string m_engineDisplayableName;
 		std::string m_engineOption;
 		QueryProperties m_queryProps;
+		std::set<unsigned int> m_relevantDocs;
 		std::vector<Result> m_resultsList;
 		std::string m_resultsCharset;
+		std::set<std::string> m_expandTerms;
 
 		virtual void doWork(void);
 

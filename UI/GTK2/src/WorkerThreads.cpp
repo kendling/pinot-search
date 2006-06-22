@@ -507,6 +507,19 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 {
 }
 
+QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
+	const string &engineOption, const QueryProperties &queryProps,
+	const set<unsigned int> &relevantDocs) :
+	WorkerThread(),
+	m_engineName(engineName),
+	m_engineDisplayableName(engineDisplayableName),
+	m_engineOption(engineOption),
+	m_queryProps(queryProps)
+{
+	copy(relevantDocs.begin(), relevantDocs.end(),
+		inserter(m_relevantDocs, m_relevantDocs.begin()));
+}
+
 QueryingThread::~QueryingThread()
 {
 }
@@ -536,6 +549,11 @@ const vector<Result> &QueryingThread::getResults(string &charset) const
 	return m_resultsList;
 }
 
+const set<string> &QueryingThread::getExpandTerms(void) const
+{
+	return m_expandTerms;
+}
+
 bool QueryingThread::stop(void)
 {
 	m_done = true;
@@ -548,19 +566,25 @@ bool QueryingThread::stop(void)
 void QueryingThread::doWork(void)
 {
 	// Get the SearchEngine
-	SearchEngineInterface *engine = SearchEngineFactory::getSearchEngine(m_engineName, m_engineOption);
-	if (engine == NULL)
+	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(m_engineName, m_engineOption);
+	if (pEngine == NULL)
 	{
 		m_status = _("Couldn't create search engine");
 		m_status += " ";
 		m_status += m_engineDisplayableName;
 		return;
 	}
+
 	// Set the maximum number of results
-	engine->setMaxResultsCount(m_queryProps.getMaximumResultsCount());
+	pEngine->setMaxResultsCount(m_queryProps.getMaximumResultsCount());
+	if (m_relevantDocs.empty() == false)
+	{
+		// Set whether to expand the query
+		pEngine->setQueryExpansion(m_relevantDocs);
+	}
 
 	// Run the query
-	if (engine->runQuery(m_queryProps) == false)
+	if (pEngine->runQuery(m_queryProps) == false)
 	{
 		m_status = _("Couldn't run query on search engine");
 		m_status += " ";
@@ -568,11 +592,11 @@ void QueryingThread::doWork(void)
 	}
 	else
 	{
-		const vector<Result> &resultsList = engine->getResults();
+		const vector<Result> &resultsList = pEngine->getResults();
 
 		m_resultsList.clear();
 		m_resultsList.reserve(resultsList.size());
-		m_resultsCharset = engine->getResultsCharset();
+		m_resultsCharset = pEngine->getResultsCharset();
 
 		// Copy the results list
 		for (vector<Result>::const_iterator resultIter = resultsList.begin();
@@ -603,8 +627,14 @@ void QueryingThread::doWork(void)
 				language,
 				resultIter->getScore()));
 		}
+
+		// Copy the expand terms
+		const set<string> &expandTerms = pEngine->getExpandTerms();
+		copy(expandTerms.begin(), expandTerms.end(),
+			inserter(m_expandTerms, m_expandTerms.begin()));
 	}
-	delete engine;
+
+	delete pEngine;
 }
 
 LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToDelete,

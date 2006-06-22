@@ -89,13 +89,14 @@ protected:
 	virtual void on_showextract_activate();
 	virtual void on_groupresults_activate();
 	virtual void on_viewresults_activate();
+	virtual void on_morelikethis_activate();
 	virtual void on_indexresults_activate();
 
 	virtual void on_import_activate();
 	virtual void on_viewfromindex_activate();
 	virtual void on_refreshindex_activate();
-	virtual void on_showfromindex_activate();
 	virtual void on_unindex_activate();
+	virtual void on_showfromindex_activate();
 
 	virtual void on_about_activate();
 
@@ -124,8 +125,7 @@ protected:
 		NotebookPageBox::PageType type);
 	int get_page_number(const Glib::ustring &title,
 		NotebookPageBox::PageType type);
-	bool queue_index(const DocumentInfo &docInfo, const std::string &labelName,
-		unsigned int docId = 0);
+	bool queue_index(const DocumentInfo &docInfo, const std::string &labelName);
 	void edit_query(QueryProperties &queryProps, bool newQuery);
 	void run_search(const QueryProperties &queryProps);
 	void browse_index(const Glib::ustring &indexName,

@@ -255,8 +255,8 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 	m_refQueryTree->clear();
 
 	// Add all user-defined queries
-	std::map<string, QueryProperties>::const_iterator queryIter = queries.begin();
-	for (; queryIter != queries.end(); ++queryIter)
+	for (std::map<string, QueryProperties>::const_iterator queryIter = queries.begin();
+		queryIter != queries.end(); ++queryIter)
 	{
 		TreeModel::iterator iter = m_refQueryTree->append();
 		TreeModel::Row row = *iter;
@@ -471,17 +471,16 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				if (pResultsTree->checkSelection() == true)
-				{
-					hasSelection = pResultsTree->getSelection(resultsList);
-				}
+				hasSelection = pResultsTree->getSelection(resultsList);
 			}
 		}
 	}
 
-	if (hasSelection == true)
+	if ((hasSelection == true) &&
+		(resultsList.empty() == false))
 	{
-		bool firstResult = true, isViewable = true, isIndexable = true, isCached = false;
+		XapianIndex docsIndex(m_settings.m_indexLocation);
+		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = false;
 
 		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
@@ -490,6 +489,9 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 			Url urlObj(url);
 			string protocol(urlObj.getProtocol());
 
+#ifdef DEBUG
+			cout << "mainWindow::on_resultsTreeviewSelection_changed: " << url << endl;
+#endif
 			if (firstResult == true)
 			{
 				// Show the URL of the first result in the status bar
@@ -503,22 +505,31 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 			// FIXME: there should be a way to know which protocols can be viewed/indexed
 			if (protocol == "xapian")
 			{
-#ifdef DEBUG
-				cout << "mainWindow::on_resultsTreeviewSelection_changed: internal URL" << endl;
-#endif
-				isViewable = isIndexable = isCached = false;
+				isViewable = isCached = isIndexed = isIndexable = false;
 				break;
 			}
-			else if (m_settings.m_cacheProtocols.find(protocol) != m_settings.m_cacheProtocols.end())
+			else
 			{
-				// One document with a supported protocol is good enough
-				isCached = true;
+				if (m_settings.m_cacheProtocols.find(protocol) != m_settings.m_cacheProtocols.end())
+				{
+					// One document with a supported protocol is good enough
+					isCached = true;
+				}
+
+				if (docsIndex.isGood() == true)
+				{
+					if (docsIndex.hasDocument(url) > 0)
+					{
+						isIndexed = true;
+					}
+				}
 			}
 		}
 
 		// Enable these menu items
 		viewresults1->set_sensitive(isViewable);
 		viewcache1->set_sensitive(isCached);
+		morelikethis1->set_sensitive(isIndexed);
 		indexresults1->set_sensitive(isIndexable);
 	}
 	else
@@ -526,6 +537,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 		// Disable these menu items
 		viewresults1->set_sensitive(false);
 		viewcache1->set_sensitive(false);
+		morelikethis1->set_sensitive(false);
 		indexresults1->set_sensitive(false);
 
 		// Reset
@@ -720,12 +732,11 @@ void mainWindow::on_cache_changed(PinotSettings::CacheProvider cacheProvider)
 #endif
 					}
 
+					view_documents(resultsList);
+
+					// Update the rows right now
+					pResultsTree->setSelectionState(true, false);
 				}
-
-				view_documents(resultsList);
-
-				// Update the rows right now
-				pResultsTree->setSelectionViewedState(true);
 			}
 		}
 	}
@@ -965,6 +976,9 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			// Connect to the "changed" signal
 			pResultsTree->getSelectionChangedSignal().connect(
 				SigC::slot(*this, &mainWindow::on_resultsTreeviewSelection_changed));
+			// Connect to the view results signal
+			pResultsTree->getViewResultsSignal().connect(
+				SigC::slot(*this, &mainWindow::on_viewresults_activate));
 
 			// Append the page
 			if (m_state.write_lock_lists(3) == true)
@@ -982,6 +996,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			(pResultsTree != NULL))
 		{
 			// Add the results to the tree
+			pResultsTree->deleteResults(queryProps, engineName);
 			pResultsTree->addResults(queryProps, engineName,
 				resultsList, resultsCharset,
 				searchenginegroup1->get_active());
@@ -1004,6 +1019,59 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 					resultIter->getType(), resultIter->getLanguage()),
 					labelName);
 			}
+		}
+
+		// Any expand terms ?
+		const set<string> &expandTerms = pQueryThread->getExpandTerms();
+		if (expandTerms.empty() == false)
+		{
+			string queryName(_("More Like"));
+			string moreLike;
+			bool newQuery = true;
+
+			if (queryProps.getName().empty() == true)
+			{
+				queryName += "...";
+			}
+			else
+			{
+				queryName += " ";
+				queryName += queryProps.getName();
+			}
+			queryProps.setName(queryName);
+
+			moreLike.clear();
+			if (queryProps.getAnyWords().empty() == false)
+			{
+				moreLike = " ";
+			}
+			for (set<string>::const_iterator termIter = expandTerms.begin();
+				termIter != expandTerms.end(); ++termIter)
+			{
+				if (moreLike.empty() == false)
+				{
+					moreLike += " ";
+				}
+				moreLike += *termIter;
+			}
+
+			// Does such a query already exist ?
+			TreeModel::Children children = m_refQueryTree->children();
+			for (TreeModel::Children::iterator iter = children.begin();
+				iter != children.end(); ++iter)
+			{
+				TreeModel::Row row = *iter;
+
+				if (queryName == from_utf8(row[m_queryColumns.m_name]))
+				{
+					newQuery = false;
+					break;
+				}
+			}
+
+			// Add these terms and edit the new query
+			queryProps.setAnyWords(queryProps.getAnyWords() + moreLike);
+			edit_query(queryProps, newQuery);
 		}
 	}
 	else if (type == "LabelUpdateThread")
@@ -1639,11 +1707,91 @@ void mainWindow::on_viewresults_activate()
 					view_documents(resultsList);
 
 					// We can update the rows right now
-					pResultsTree->setSelectionViewedState(true);
+					pResultsTree->setSelectionState(true, false);
 				}
 			}
 		}
 	}
+}
+
+//
+// Results > More Like This menu selected
+//
+void mainWindow::on_morelikethis_activate()
+{
+	QueryProperties queryProps;
+	vector<DocumentInfo> resultsList;
+	string queryName;
+
+	NotebookPageBox *pNotebookPage = get_current_page();
+	if (pNotebookPage != NULL)
+	{
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				pResultsTree->getSelection(resultsList);
+			}
+
+			queryName = from_utf8(pResultsPage->getTitle());
+		}
+	}
+
+	// Find this query
+	if (queryName == _("Live query"))
+	{
+		queryProps.setAndWords(from_utf8(liveQueryEntry->get_text()));
+	}
+	else
+	{
+		bool foundQuery = false;
+
+		TreeModel::Children children = m_refQueryTree->children();
+		for (TreeModel::Children::iterator iter = children.begin();
+			iter != children.end(); ++iter)
+		{
+			TreeModel::Row row = *iter;
+
+			if (queryName == from_utf8(row[m_queryColumns.m_name]))
+			{
+				queryProps = row[m_queryColumns.m_properties];
+				foundQuery = true;
+				break;
+			}
+		}
+
+		// Maybe the query was deleted
+		if (foundQuery == false)
+		{
+			ustring status(_("Couldn't find query"));
+			status += " ";
+			status += queryName;
+			set_status(status);
+			return;
+		}
+	}
+
+        XapianIndex docsIndex(m_settings.m_indexLocation);
+        set<unsigned int> docIdList;
+
+        if (docsIndex.isGood() == true)
+        {
+                for (vector<DocumentInfo>::const_iterator docIter = resultsList.begin();
+                        docIter != resultsList.end(); ++docIter)
+                {
+                        unsigned int docId = docsIndex.hasDocument(docIter->getLocation());
+                        if (docId > 0)
+                        {
+                                docIdList.insert(docId);
+                        }
+                }
+
+		// Spawn a new thread
+		start_thread(new QueryingThread("xapian", _("My Documents"),
+			m_settings.m_indexLocation, queryProps, docIdList));
+        }
 }
 
 //
@@ -1670,18 +1818,21 @@ void mainWindow::on_indexresults_activate()
 			if (pResultsTree != NULL)
 			{
 				pResultsTree->getSelection(resultsList);
+
+				// Go through selected results
+				for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
+					resultIter != resultsList.end(); ++resultIter)
+				{
+#ifdef DEBUG
+					cout << "mainWindow::on_indexresults_activate: URL is " << resultIter->getLocation() << endl;
+#endif
+					queue_index(*resultIter, "");
+				}
+
+				// We can update the rows right now
+				pResultsTree->setSelectionState(false, true);
 			}
 		}
-	}
-
-	// Go through selected results
-	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
-		resultIter != resultsList.end(); ++resultIter)
-	{
-#ifdef DEBUG
-		cout << "mainWindow::on_indexresults_activate: URL is " << resultIter->getLocation() << endl;
-#endif
-		queue_index(*resultIter, "");
 	}
 }
 
@@ -1785,7 +1936,7 @@ void mainWindow::on_refreshindex_activate()
 		DocumentInfo docInfo(docIter->getTitle(), url,
 			docIter->getType(), docIter->getLanguage());
 		docInfo.setTimestamp(docIter->getTimestamp());
-		queue_index(docInfo, "", docId);
+		queue_index(docInfo, "");
 	}
 }
 
@@ -2428,15 +2579,16 @@ void mainWindow::show_global_menuitems(bool showItems)
 void mainWindow::show_selectionbased_menuitems(bool showItems)
 {
 	// Results menuitems that depend on selection
-	viewresults1->set_sensitive(false);
-	viewcache1->set_sensitive(false);
-	indexresults1->set_sensitive(false);
+	viewresults1->set_sensitive(showItems);
+	viewcache1->set_sensitive(showItems);
+	morelikethis1->set_sensitive(showItems);
+	indexresults1->set_sensitive(showItems);
 
 	// Index menuitems that depend on selection
-	viewfromindex1->set_sensitive(false);
-	refreshindex1->set_sensitive(false);
-	unindex1->set_sensitive(false);
-	showfromindex1->set_sensitive(false);
+	viewfromindex1->set_sensitive(showItems);
+	refreshindex1->set_sensitive(showItems);
+	unindex1->set_sensitive(showItems);
+	showfromindex1->set_sensitive(showItems);
 }
 
 //
@@ -2538,7 +2690,7 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 // Queues additions to the index.
 //
 bool mainWindow::queue_index(const DocumentInfo &docInfo,
-	const string &labelName, unsigned int docId)
+	const string &labelName)
 {
 	if (m_state.get_threads_count() >= m_maxThreads)
 	{
@@ -2552,14 +2704,16 @@ bool mainWindow::queue_index(const DocumentInfo &docInfo,
 		return true;
 	}
 
+	// Is it an update ?
+	XapianIndex docsIndex(m_settings.m_indexLocation);
+	unsigned int docId = docsIndex.hasDocument(docInfo.getLocation());
 	if (docId > 0)
 	{
-		// Update the document
+		// Yes, it is
 		index_document(docInfo, labelName, docId);
 	}
 	else
 	{
-		// Index the document
 		index_document(docInfo, labelName);
 	}
 
@@ -2814,36 +2968,53 @@ void mainWindow::browse_index(const ustring &indexName,
 void mainWindow::index_document(const DocumentInfo &docInfo,
 	const string &labelName, unsigned int docId)
 {
-	Url urlObj(docInfo.getLocation());
-	string indexLocation = m_settings.m_indexLocation;
+	string location(docInfo.getLocation());
 
-	// If the document is mail, we need to check My Email
+	if (location.empty() == true)
+	{
+		// Nothing to do
+#ifdef DEBUG
+		cout << "mainWindow::index_document: empty queue" << endl;
+#endif
+		return;
+	}
+
+	Url urlObj(location);
+	string indexLocation(m_settings.m_indexLocation);
+
+	// If the document is mail, we need the My Email index
 	if (urlObj.getProtocol() == "mailbox")
 	{
 		indexLocation = m_settings.m_mailIndexLocation;
 	}
-
-	XapianIndex index(indexLocation);
 
 	// Is it an update ?
 	if (docId > 0)
 	{
 		// Yes, it is
 		start_thread(new IndexingThread(docInfo, labelName, docId));
+
+		// We may have to update its labels
+		if (labelName.empty() == false)
+		{
+			XapianIndex index(indexLocation);
+			set<string> docLabels;
+
+			// Add this new label
+	#ifdef DEBUG
+			cout << "mainWindow::index_document: applying label " << labelName << " to document " << docId << endl;
+	#endif
+			docLabels.insert(labelName);
+			index.setDocumentLabels(docId, docLabels, false);
+		}
 	}
 	else
 	{
 		string url(docInfo.getLocation());
 		bool isNewDocument = false;
 
-		// No : see if the document is already indexed
-		// or is being indexed
-		if (index.isGood() == true)
-		{
-			docId = index.hasDocument(url);
-		}
-		if ((docId == 0) &&
-			(m_state.write_lock_lists(10) == true))
+		// Is the document being indexed ?
+		if (m_state.write_lock_lists(10) == true)
 		{
 			if (m_state.m_beingIndexed.find(url) == m_state.m_beingIndexed.end())
 			{
@@ -2868,20 +3039,6 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 			set_status(status);
 		}
 	}
-
-	// If the document is indexed, we may have to update its labels
-	if ((docId > 0) &&
-		(labelName.empty() == false))
-	{
-		set<string> docLabels;
-
-		// Add this new label
-#ifdef DEBUG
-		cout << "mainWindow::index_document: applying label " << labelName << " to document " << docId << endl;
-#endif
-		docLabels.insert(labelName);
-		index.setDocumentLabels(docId, docLabels, false);
-	}
 }
 
 //
@@ -2889,6 +3046,7 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 //
 void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 {
+	ViewHistory viewHistory(m_settings.m_historyDatabase);
 	multimap<string, string> locationsByType;
 	vector<DocumentInfo>::iterator docIter = documentsList.begin();
 
@@ -2900,6 +3058,24 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 
 		if (url.empty() == true)
 		{
+			continue;
+		}
+
+		Url urlObj(url);
+
+		// FIXME: there should be a way to know which protocols can be viewed/indexed
+		if (urlObj.getProtocol() == "mailbox")
+		{
+			DocumentInfo docInfo("", url, "", "");
+
+			// Get that message
+			start_thread(new DownloadingThread(docInfo, false));
+
+			// Record this into the history now, even though it may fail
+			if (viewHistory.hasItem(url) == false)
+			{
+				viewHistory.insertItem(url);
+			}
 			continue;
 		}
 
@@ -2934,14 +3110,12 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 	for (multimap<string, string>::iterator locationIter = locationsByType.begin();
 		locationIter != locationsByType.end(); ++locationIter)
 	{
+		string url(locationIter->second);
+
 		if (locationIter->first != currentType)
 		{
 			if (arguments.empty() == false)
 			{
-#ifdef DEBUG
-				cout << "mainWindow::view_documents: " << arguments.size()
-					<< " arguments for type " << currentType << endl;
-#endif
 				// Run the default program for this type
 				if (CommandLine::runAsync(action, arguments) == false)
 				{
@@ -2967,24 +3141,9 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 		}
 		currentType = locationIter->first;
 
-		string url(locationIter->second);
-		Url urlObj(url);
-
-		// FIXME: there should be a way to know which protocols can be viewed/indexed
-		if (urlObj.getProtocol() == "mailbox")
-		{
-			DocumentInfo docInfo("", url, "", "");
-
-			// Get that message
-			start_thread(new DownloadingThread(docInfo, false));
-			// FIXME: at this time, only one mail message can be viewed at any one time
-			break;
-		}
-
 		arguments.push_back(url);
 
 		// Record this into the history now, even though it may fail
-		ViewHistory viewHistory(m_settings.m_historyDatabase);
 		if (viewHistory.hasItem(url) == false)
 		{
 			viewHistory.insertItem(url);
@@ -2993,10 +3152,6 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 
 	if (arguments.empty() == false)
 	{
-#ifdef DEBUG
-		cout << "mainWindow::view_documents: " << arguments.size()
-			<< " arguments for type " << currentType << endl;
-#endif
 		// Run the default program for this type
 		if (CommandLine::runAsync(action, arguments) == false)
 		{
@@ -3097,6 +3252,7 @@ bool mainWindow::check_queue(void)
 
 	DocumentInfo docInfo;
 	string labelName;
+	bool foundItem = false;
 
 	if (m_state.write_lock_lists(12) == true)
 	{
@@ -3108,6 +3264,7 @@ bool mainWindow::check_queue(void)
 			{
 				docInfo = queueIter->first;
 				labelName = queueIter->second;
+				foundItem = true;
 
 				m_state.m_indexQueue.erase(queueIter);
 			}
@@ -3116,19 +3273,15 @@ bool mainWindow::check_queue(void)
 		m_state.unlock_lists();
 	}
 
-	string location = docInfo.getLocation();
-	if (location.empty() == true)
+	if (foundItem == false)
 	{
 		// Nothing to do
-#ifdef DEBUG
-		cout << "mainWindow::check_queue: empty queue" << endl;
-#endif
 		return false;
 	}
 
 	// Is it an update ?
 	XapianIndex docsIndex(m_settings.m_indexLocation);
-	unsigned int docId = docsIndex.hasDocument(location);
+	unsigned int docId = docsIndex.hasDocument(docInfo.getLocation());
 	if (docId > 0)
 	{
 		// Yes, it is
