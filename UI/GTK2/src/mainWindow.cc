@@ -480,7 +480,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 		(resultsList.empty() == false))
 	{
 		XapianIndex docsIndex(m_settings.m_indexLocation);
-		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = false;
+		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = true;
 
 		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
@@ -2089,9 +2089,12 @@ void mainWindow::on_showfromindex_activate()
 			for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
 				docIter != documentsList.end(); ++docIter)
 			{
+				unsigned int docId = docIter->getID();
+
+				docIter->setLocation(docIter->getOriginalLocation());
 				docIter->setLanguage(newLanguage);
 
-				start_thread(new UpdateDocumentThread(indexName, docIter->getID(), *docIter));
+				start_thread(new UpdateDocumentThread(indexName, docId, *docIter));
 			}
 		}
 
@@ -3005,9 +3008,9 @@ void mainWindow::index_document(const DocumentInfo &docInfo,
 			set<string> docLabels;
 
 			// Add this new label
-	#ifdef DEBUG
+#ifdef DEBUG
 			cout << "mainWindow::index_document: applying label " << labelName << " to document " << docId << endl;
-	#endif
+#endif
 			docLabels.insert(labelName);
 			index.setDocumentLabels(docId, docLabels, false);
 		}
