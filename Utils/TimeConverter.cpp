@@ -119,7 +119,7 @@ time_t TimeConverter::fromTimestamp(const string &timestamp, bool inGMTime)
 		}
 		else
 		{
-			gmTime = timelocal(&timeTm);
+			gmTime = mktime(&timeTm);
 		}
 
 #ifndef _STRPTIME_COPES_WITH_TIMEZONE
