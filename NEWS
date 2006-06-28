@@ -1,3 +1,19 @@
+??? version_0_5_0
+Tokenize :
+ - switched to pdftotext, which seems to support more files than pdftohtml
+Search :
+ - can search for documents with language "Unknown" (ie those for which
+  language detection failed)
+UI :
+ - multiple user-configurable cache services. They are defined in
+  $PREFIX/share/pinot/globalconfig.xml and listed under the View Cache menu.
+ - allow to change the language of several documents at once
+ - after editing a query, don't change selection in the queries list
+ - More Like This extracts representative terms from the selected documents
+  (if they are indexed) and creates a "More Like ..." query
+ - set the indexed status icon when results are indexed
+ - view results on double clicks
+
 2006/06/11 version_0_4_9
 General :
  - able to find the default application for a given MIME type
