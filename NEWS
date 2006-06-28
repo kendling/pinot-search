@@ -1,6 +1,8 @@
 ??? version_0_5_0
 Tokenize :
  - switched to pdftotext, which seems to support more files than pdftohtml
+SQL :
+ - remove history items older than one month at startup
 Search :
  - can search for documents with language "Unknown" (ie those for which
   language detection failed)
@@ -13,6 +15,9 @@ UI :
   (if they are indexed) and creates a "More Like ..." query
  - set the indexed status icon when results are indexed
  - view results on double clicks
+ - most tree columns can be sorted at last ! :-)
+ - work-around for bizarre bug that causes a segfault when creating a query
+  that indexes and labels results based on a language filter
 
 2006/06/11 version_0_4_9
 General :
