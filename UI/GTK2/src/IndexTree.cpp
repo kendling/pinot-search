@@ -60,17 +60,21 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	set_model(m_refStore);
 
 	// The score column is used for status icons
-	TreeViewColumn *treeColumn = create_resizable_column(_("Title"), m_indexColumns.m_text);
-	if (treeColumn != NULL)
+	TreeViewColumn *pColumn = create_column(_("Title"), m_indexColumns.m_text, true, true);
+	if (pColumn != NULL)
 	{
-		append_column(*manage(treeColumn));
+		append_column(*manage(pColumn));
 	}
-	treeColumn = create_resizable_column(_("URL"), m_indexColumns.m_liveUrl);
-	if (treeColumn != NULL)
+	pColumn = create_column(_("URL"), m_indexColumns.m_liveUrl, true, true);
+	if (pColumn != NULL)
 	{
-		append_column(*manage(treeColumn));
+		append_column(*manage(pColumn));
 	}
-	append_column(_("Timestamp"), m_indexColumns.m_timestamp);
+	pColumn = create_column(_("Timestamp"), m_indexColumns.m_timestamp, false, true);
+	if (pColumn != NULL)
+	{
+		append_column(*manage(pColumn));
+	}
 
 	// Make headers clickable
 	set_headers_clickable(true);

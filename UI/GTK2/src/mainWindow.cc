@@ -166,12 +166,16 @@ mainWindow::mainWindow() :
 	// Associate the columns model to the query tree
 	m_refQueryTree = ListStore::create(m_queryColumns);
 	queryTreeview->set_model(m_refQueryTree);
-	TreeViewColumn *treeColumn = create_resizable_column(_("Query Name"), m_queryColumns.m_name);
-	if (treeColumn != NULL)
+	TreeViewColumn *pColumn = create_column(_("Query Name"), m_queryColumns.m_name, true, true);
+	if (pColumn != NULL)
 	{
-		queryTreeview->append_column(*manage(treeColumn));
+		queryTreeview->append_column(*manage(pColumn));
 	}
-	queryTreeview->append_column(_("Last Run"), m_queryColumns.m_lastRun);
+	pColumn = create_column(_("Last Run"), m_queryColumns.m_lastRun, true, true);
+	if (pColumn != NULL)
+	{
+		queryTreeview->append_column(*manage(pColumn));
+	}
 	queryTreeview->append_column(_("Summary"), m_queryColumns.m_summary);
 	// Allow only single selection
 	queryTreeview->get_selection()->set_mode(SELECTION_SINGLE);

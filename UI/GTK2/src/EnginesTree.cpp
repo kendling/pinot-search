@@ -63,13 +63,13 @@ EnginesTree::EnginesTree(VBox *enginesVbox, PinotSettings &settings) :
 	m_refStore = TreeStore::create(m_enginesColumns);
 	set_model(m_refStore);
 
-	TreeViewColumn *treeColumn = new TreeViewColumn(_("Search Engines"));
+	TreeViewColumn *pColumn = new TreeViewColumn(_("Search Engines"));
 	// Pack an icon renderer for engines icons
-	CellRendererPixbuf *iconRenderer = new CellRendererPixbuf();
-	treeColumn->pack_start(*manage(iconRenderer), false);
-	treeColumn->set_cell_data_func(*iconRenderer, SigC::slot(*this, &EnginesTree::renderEngineIcon));
-	treeColumn->pack_end(m_enginesColumns.m_name, false);
-	append_column(*manage(treeColumn));
+	CellRendererPixbuf *pIconRenderer = new CellRendererPixbuf();
+	pColumn->pack_start(*manage(pIconRenderer), false);
+	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &EnginesTree::renderEngineIcon));
+	pColumn->pack_end(m_enginesColumns.m_name, false);
+	append_column(*manage(pColumn));
 
 	// Make headers clickable
 	set_headers_clickable(true);
@@ -133,17 +133,17 @@ void EnginesTree::renderEngineIcon(Gtk::CellRenderer *renderer, const Gtk::TreeM
 		return;
 	}
 
-	CellRendererPixbuf *iconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
-	if (iconRenderer != NULL)
+	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
+	if (pIconRenderer != NULL)
 	{
 		// Is this an engine folder ?
 		if (row[m_enginesColumns.m_type] == EnginesModelColumns::ENGINE_FOLDER)
 		{
-			iconRenderer->property_pixbuf() = m_engineFolderIconPixbuf;
+			pIconRenderer->property_pixbuf() = m_engineFolderIconPixbuf;
 		}
 		else
 		{
-			iconRenderer->property_pixbuf().reset_value();
+			pIconRenderer->property_pixbuf().reset_value();
 		}
 	}
 }

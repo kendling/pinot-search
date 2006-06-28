@@ -38,14 +38,16 @@ bool prepare_chooser(Gtk::FileChooser *pChooser, Glib::ustring &location,
 /// Get a column height.
 int get_column_height(Gtk::TreeView *pTree);
 
-/// Create a resizable text column.
-Gtk::TreeViewColumn *create_resizable_column(const Glib::ustring &title,
-	const Gtk::TreeModelColumnBase& modelColumn);
-
-/// Create a resizable icon and text column, rendered by renderTextAndIconCell.
-Gtk::TreeViewColumn *create_resizable_column_with_icon(const Glib::ustring &title,
+/// Create a text column.
+Gtk::TreeViewColumn *create_column(const Glib::ustring &title,
 	const Gtk::TreeModelColumnBase& modelColumn,
-	const  Gtk::TreeViewColumn::SlotCellData &renderTextAndIconCell);
+	bool isResizable, bool isSortable);
+
+/// Create an icon and text column, rendered by renderTextAndIconCell.
+Gtk::TreeViewColumn *create_column_with_icon(const Glib::ustring &title,
+	const Gtk::TreeModelColumnBase& modelColumn,
+	const Gtk::TreeViewColumn::SlotCellData &renderTextAndIconCell,
+	bool isResizable, bool isSortable);
 
 /// Converts to UTF-8.
 Glib::ustring to_utf8(const std::string &text);

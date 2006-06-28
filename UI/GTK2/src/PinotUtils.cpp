@@ -156,38 +156,48 @@ int get_column_height(TreeView *pTree)
 	return height;
 }
 
-/// Create a resizable text column.
-TreeViewColumn *create_resizable_column(const ustring &title, const TreeModelColumnBase& modelColumn)
+/// Create a text column.
+TreeViewColumn *create_column(const ustring &title, const TreeModelColumnBase& modelColumn,
+	bool isResizable, bool isSortable)
 {
-	TreeViewColumn *treeColumn = new TreeViewColumn(title);
+	TreeViewColumn *pColumn = new TreeViewColumn(title);
 
-	CellRendererText *textCellRenderer = new CellRendererText();
-	treeColumn->pack_start(*manage(textCellRenderer));
-	treeColumn->add_attribute(textCellRenderer->property_text(), modelColumn);
-	treeColumn->set_resizable(true);
+	CellRendererText *pTextRenderer = new CellRendererText();
+	pColumn->pack_start(*manage(pTextRenderer));
+	pColumn->add_attribute(pTextRenderer->property_text(), modelColumn);
+	pColumn->set_resizable(isResizable);
+	if (isSortable == true)
+	{
+		pColumn->set_sort_column(modelColumn);
+	}
 
-	return treeColumn;
+	return pColumn;
 }
 
-/// Create a resizable icon and text column, rendered by renderTextAndIconCell.
-TreeViewColumn *create_resizable_column_with_icon(const ustring &title,
-	const TreeModelColumnBase& modelColumn, const TreeViewColumn::SlotCellData &renderTextAndIconCell)
+/// Create an icon and text column, rendered by renderTextAndIconCell.
+TreeViewColumn *create_column_with_icon(const ustring &title, const TreeModelColumnBase& modelColumn,
+	const TreeViewColumn::SlotCellData &renderTextAndIconCell,
+	bool isResizable, bool isSortable)
 {
-	TreeViewColumn *treeColumn = new TreeViewColumn(title);
+	TreeViewColumn *pColumn = new TreeViewColumn(title);
 
 	// Pack an icon renderer in the column
-	CellRendererPixbuf *iconRenderer = new CellRendererPixbuf();
-	treeColumn->pack_start(*manage(iconRenderer), false);
-	treeColumn->set_cell_data_func(*iconRenderer, renderTextAndIconCell);
+	CellRendererPixbuf *pIconRenderer = new CellRendererPixbuf();
+	pColumn->pack_start(*manage(pIconRenderer), false);
+	pColumn->set_cell_data_func(*pIconRenderer, renderTextAndIconCell);
 	// ...followed by a text renderer
-	CellRendererText *textCellRenderer = new CellRendererText();
-	treeColumn->pack_start(*manage(textCellRenderer));
-	treeColumn->set_cell_data_func(*textCellRenderer, renderTextAndIconCell);
+	CellRendererText *pTextRenderer = new CellRendererText();
+	pColumn->pack_start(*manage(pTextRenderer));
+	pColumn->set_cell_data_func(*pTextRenderer, renderTextAndIconCell);
 
-	treeColumn->add_attribute(textCellRenderer->property_text(), modelColumn);
-	treeColumn->set_resizable(true);
+	pColumn->add_attribute(pTextRenderer->property_text(), modelColumn);
+	pColumn->set_resizable(isResizable);
+	if (isSortable == true)
+	{
+		pColumn->set_sort_column(modelColumn);
+	}
 
-	return treeColumn;
+	return pColumn;
 }
 
 /// Converts to UTF-8.

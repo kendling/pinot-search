@@ -99,34 +99,40 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_refStore = TreeStore::create(m_resultsColumns);
 	set_model(m_refStore);
 
-	// The first column is for status icons
-	TreeViewColumn *treeColumn = new TreeViewColumn("");
+	// The first column is for the score and status icons
+	TreeViewColumn *pColumn = new TreeViewColumn("");
 	// Pack an icon renderer for the viewed status
-	CellRendererPixbuf *iconRenderer = new CellRendererPixbuf();
-	treeColumn->pack_start(*manage(iconRenderer), false);
-	treeColumn->set_cell_data_func(*iconRenderer, SigC::slot(*this, &ResultsTree::renderViewStatus));
+	CellRendererPixbuf *pIconRenderer = new CellRendererPixbuf();
+	pColumn->pack_start(*manage(pIconRenderer), false);
+	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderViewStatus));
 	// Pack a second icon renderer for the indexed status
-	iconRenderer = new CellRendererPixbuf();
-	treeColumn->pack_start(*manage(iconRenderer), false);
-	treeColumn->set_cell_data_func(*iconRenderer, SigC::slot(*this, &ResultsTree::renderIndexStatus));
+	pIconRenderer = new CellRendererPixbuf();
+	pColumn->pack_start(*manage(pIconRenderer), false);
+	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderIndexStatus));
 	// And a third one for the ranking
-	iconRenderer = new CellRendererPixbuf();
-	treeColumn->pack_start(*manage(iconRenderer), false);
-	treeColumn->set_cell_data_func(*iconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
-	treeColumn->set_resizable(true);
-	append_column(*manage(treeColumn));
+	pIconRenderer = new CellRendererPixbuf();
+	pColumn->pack_start(*manage(pIconRenderer), false);
+	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
+	pColumn->set_resizable(true);
+	pColumn->set_sort_column(m_resultsColumns.m_score);
+	append_column(*manage(pColumn));
 
 	// This is the title column
-	treeColumn = new TreeViewColumn(_("Title"));
+	pColumn = new TreeViewColumn(_("Title"));
 	CellRendererText *textCellRenderer = new CellRendererText();
-	treeColumn->pack_start(*manage(textCellRenderer));
-	treeColumn->set_cell_data_func(*textCellRenderer, SigC::slot(*this, &ResultsTree::renderBackgroundColour));
-	treeColumn->add_attribute(textCellRenderer->property_text(), m_resultsColumns.m_text);
-	treeColumn->set_resizable(true);
-	append_column(*manage(treeColumn));
+	pColumn->pack_start(*manage(textCellRenderer));
+	pColumn->set_cell_data_func(*textCellRenderer, SigC::slot(*this, &ResultsTree::renderBackgroundColour));
+	pColumn->add_attribute(textCellRenderer->property_text(), m_resultsColumns.m_text);
+	pColumn->set_resizable(true);
+	pColumn->set_sort_column(m_resultsColumns.m_text);
+	append_column(*manage(pColumn));
 
 	// The last column is for the URL
-	append_column(_("URL"), m_resultsColumns.m_url);
+	pColumn = create_column(_("URL"), m_resultsColumns.m_url, false, true);
+	if (pColumn != NULL)
+	{
+		append_column(*manage(pColumn));
+	}
 
 	// Make headers clickable
 	set_headers_clickable(true);
@@ -172,18 +178,18 @@ void ResultsTree::renderViewStatus(CellRenderer *renderer, const TreeModel::iter
 		return;
 	}
 
-	CellRendererPixbuf *iconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
-	if (iconRenderer != NULL)
+	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
+	if (pIconRenderer != NULL)
 	{
 		// Has this result been already viewed ?
 		if ((row[m_resultsColumns.m_viewed] == true) &&
 			(m_viewededIconPixbuf))
 		{
-			iconRenderer->property_pixbuf() = m_viewededIconPixbuf;
+			pIconRenderer->property_pixbuf() = m_viewededIconPixbuf;
 		}
 		else
 		{
-			iconRenderer->property_pixbuf().reset_value();
+			pIconRenderer->property_pixbuf().reset_value();
 		}
 	}
 }
@@ -197,18 +203,18 @@ void ResultsTree::renderIndexStatus(CellRenderer *renderer, const TreeModel::ite
 		return;
 	}
 
-	CellRendererPixbuf *iconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
-	if (iconRenderer != NULL)
+	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
+	if (pIconRenderer != NULL)
 	{
 		// Is this result indexed ?
 		if ((row[m_resultsColumns.m_indexed] == true) &&
 			(m_indexedIconPixbuf))
 		{
-			iconRenderer->property_pixbuf() = m_indexedIconPixbuf;
+			pIconRenderer->property_pixbuf() = m_indexedIconPixbuf;
 		}
 		else
 		{
-			iconRenderer->property_pixbuf().reset_value();
+			pIconRenderer->property_pixbuf().reset_value();
 		}
 	}
 }
@@ -222,8 +228,8 @@ void ResultsTree::renderRanking(CellRenderer *renderer, const TreeModel::iterato
 		return;
 	}
 
-	CellRendererPixbuf *iconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
-	if (iconRenderer != NULL)
+	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
+	if (pIconRenderer != NULL)
 	{
 		int rankDiff = row[m_resultsColumns.m_rankDiff];
 
@@ -231,15 +237,15 @@ void ResultsTree::renderRanking(CellRenderer *renderer, const TreeModel::iterato
 		if ((rankDiff > 0) &&
 			(rankDiff != 666))
 		{
-			iconRenderer->property_pixbuf() = m_upIconPixbuf;
+			pIconRenderer->property_pixbuf() = m_upIconPixbuf;
 		}
 		else if (rankDiff < 0)
 		{
-			iconRenderer->property_pixbuf() = m_downIconPixbuf;
+			pIconRenderer->property_pixbuf() = m_downIconPixbuf;
 		}
 		else
 		{
-			iconRenderer->property_pixbuf().reset_value();
+			pIconRenderer->property_pixbuf().reset_value();
 		}
 	}
 }
@@ -253,18 +259,18 @@ void ResultsTree::renderBackgroundColour(CellRenderer *renderer, const TreeModel
 		return;
 	}
 
-	CellRendererText *textRenderer = dynamic_cast<CellRendererText*>(renderer);
-	if (textRenderer != NULL)
+	CellRendererText *pTextRenderer = dynamic_cast<CellRendererText*>(renderer);
+	if (pTextRenderer != NULL)
 	{
 		// Is this result new ?
 		if (row[m_resultsColumns.m_rankDiff] == 666)
 		{
 			// Change the row's background
-			textRenderer->property_background_gdk() = m_settings.m_newResultsColour;
+			pTextRenderer->property_background_gdk() = m_settings.m_newResultsColour;
 		}
 		else
 		{
-			textRenderer->property_background_gdk().reset_value();
+			pTextRenderer->property_background_gdk().reset_value();
 		}
 	}
 }
