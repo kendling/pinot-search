@@ -199,10 +199,11 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 					break;
 			}
 
-			commandLine.replace(paramPos, 2, Glib::shell_quote(replacement));
+			string shellReplacement(Glib::shell_quote(replacement));
+			commandLine.replace(paramPos, 2, shellReplacement);
 
 			// Next
-			paramPos = commandLine.find('%', paramPos + 1);
+			paramPos = commandLine.find('%', paramPos + shellReplacement.length());
 		}
 
 		if (foundParam == false)
