@@ -1764,7 +1764,6 @@
 
 	  <child>
 	    <widget class="GtkButton" id="queryCancelbutton">
-	      <property agent="glademm" name="cxx_visibility">protected</property>
 	      <property name="visible">True</property>
 	      <property name="can_default">True</property>
 	      <property name="can_focus">True</property>

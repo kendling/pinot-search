@@ -131,13 +131,10 @@ void queryDialog::populate_comboboxes()
 		string languageName = Languages::getIntlName(languageNum);
 		iter = m_refLanguageTree->append();
 		row = *iter;
-		row[m_languageColumns.m_name] = languageName;
+		row[m_languageColumns.m_name] = to_utf8(languageName);
 
 		if (languageName == m_properties.getLanguage())
 		{
-#ifdef DEBUG
-			cout << "queryDialog::populate_comboboxes: found at " << languageNum << endl;
-#endif
 			languageCombobox->set_active(languageNum + 1);
 		}
 	}
@@ -147,6 +144,7 @@ bool queryDialog::badName(void) const
 {
 	return m_badName;
 }
+
 void queryDialog::on_queryOkbutton_clicked()
 {
 	// Name
@@ -190,8 +188,8 @@ void queryDialog::on_queryOkbutton_clicked()
 	// Index all results
 	m_properties.setIndexResults(indexCheckbutton->get_active());
 	// Index label
-	int chosenLabel = labelNameCombobox->get_active_row_number();
 	m_properties.setLabelName("");
+	int chosenLabel = labelNameCombobox->get_active_row_number();
 	if (chosenLabel > 0)
 	{
 		TreeModel::iterator iter = labelNameCombobox->get_active();
@@ -204,8 +202,8 @@ void queryDialog::on_queryOkbutton_clicked()
 	m_properties.setHostFilter(from_utf8(hostNameEntry->get_text()));
 	m_properties.setFileFilter(from_utf8(fileNameEntry->get_text()));
 	// Label filter
-	chosenLabel = labelFilterCombobox->get_active_row_number();
 	m_properties.setLabelFilter("");
+	chosenLabel = labelFilterCombobox->get_active_row_number();
 	if (chosenLabel > 0)
 	{
 		TreeModel::iterator iter = labelFilterCombobox->get_active();
@@ -213,6 +211,18 @@ void queryDialog::on_queryOkbutton_clicked()
 		string labelName = from_utf8(row[m_labelFilterColumns.m_name]);
 
 		m_properties.setLabelFilter(labelName);
+	}
+
+	// Workaround for bizarre bug that would cause a crash when creating a query
+	// that indexes and labels results based on a language filter
+	if (queryNotebook->get_current_page() == 0)
+	{
+		queryNotebook->next_page();
+	}
+	else
+	{
+		queryNotebook->prev_page();
+		queryNotebook->next_page();
 	}
 }
 
