@@ -211,6 +211,16 @@ int main(int argc, char **argv)
 		errorMsg += " ";
 		errorMsg += settings.m_historyDatabase;
 	}
+	else
+	{
+		QueryHistory queryHistory(settings.m_historyDatabase);
+		ViewHistory viewHistory(settings.m_historyDatabase);
+		time_t timeNow = time(NULL);
+
+		// Expire items older than a month
+		queryHistory.expireItems(timeNow - 2592000);
+		viewHistory.expireItems(timeNow - 2592000);
+	}
 
 	atexit(closeAll);
 
