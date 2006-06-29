@@ -3125,7 +3125,8 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 
 		if (locationIter->first != currentType)
 		{
-			if (arguments.empty() == false)
+			if ((action.m_exec.empty() == false) &&
+				(arguments.empty() == false))
 			{
 				// Run the default program for this type
 				if (CommandLine::runAsync(action, arguments) == false)
@@ -3143,10 +3144,10 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 			// Get the action for this MIME type
 			if (MIMEScanner::getDefaultAction(locationIter->first, action) == false)
 			{
-#ifdef DEBUG
-				cout << "mainWindow::view_documents: no default application defined for type "
-					<< locationIter->first << endl;
-#endif
+				ustring statusText = _("No default application defined for type");
+				statusText += " ";
+				statusText += locationIter->first;
+				set_status(statusText);
 				continue;
 			}
 		}
@@ -3161,7 +3162,8 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 		}
 	}
 
-	if (arguments.empty() == false)
+	if ((action.m_exec.empty() == false) &&
+		(arguments.empty() == false))
 	{
 		// Run the default program for this type
 		if (CommandLine::runAsync(action, arguments) == false)
