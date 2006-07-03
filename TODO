@@ -10,9 +10,7 @@ Tokenize
 - PDF tokenizer with poppler
 - WordPerfect tokenizer with libwpd
 - Spin tokenizers into separate project, a la libextractor
-- Check whether pdftohtml flattens text in PDF documents that have columns.
-  Using "pdftops | ps2ascii" may work (seems to work slightly better than
-  "pdf2ps ..." !)
+- Check whether pdftotext flattens text in PDF documents that have columns
 
 Monitor
 - Use SQLite for email lists in MboxHandler, and not the index
@@ -50,14 +48,6 @@ Index
 - Xapian Query objects will become serializable at some point, this will be useful
   for stored queries
 - Think about indexing archives (parent documents) and their contents (child documents)
-- Find documents similar to a given one, "More Like This" style
-
-Browser plugin
-- Write Firefox extension that searches Pinot indexes and indexes the cache
-- Borrow code from beagle's Firefox plugin
-- Skip popups and non text documents
-- Use dbus for communication
-- Index browser history in My Web index
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -91,9 +81,6 @@ UI
 - Use libnotify to show a popup when a new result is available ?
 - Replace labels with tags (Leaftag, http://www.chipx86.com/wiki/Leaftag). Enable to import
   all the documents that match a specific tag
-- Double click on a word in the extract field adds it to the live query field
 - When switching back and forth between results tabs and another tab, why does the
   result list get shifted right to the Title column ?
-- Use other cache services
-  MirrorDot http://www.mirrordot.com/find-mirror.html?
-  WayBack machine http://web.archive.org/web/*/
+
