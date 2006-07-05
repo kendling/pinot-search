@@ -1,4 +1,4 @@
-??? version_0_5_0
+2006/07/05 version_0_5_0
 Tokenize :
  - switched to pdftotext, which seems to support more files than pdftohtml
 SQL :
@@ -15,6 +15,7 @@ UI :
   (if they are indexed) and creates a "More Like ..." query
  - set the indexed status icon when results are indexed
  - view results on double clicks
+ - show a message if there is no application defined for a file's type
  - most tree columns can be sorted at last ! :-)
  - work-around for bizarre bug that causes a segfault when creating a query
   that indexes and labels results based on a language filter
