@@ -1,9 +1,9 @@
-Pinot, http://pinot.berlios.de/
+Pinot http://pinot.berlios.de/
 
-Pinot is a metasearch tool for the X-Window desktop. It acts as a front-end for
-search engines such as Google (with support for the SOAP API), All The Web,
-Ask Jeeves, etc.. and allows one to index relevant results locally and query
-the index.
+Pinot is a metasearch tool for the Free Desktop. It acts as a front-end
+for search engines such as Google (with support for the SOAP API), Yahoo!,
+MSN, etc... and allows one to index relevant results locally and query the
+index.
 It was developed and tested on GNU/Linux and should work on other Unix-like systems.
 
 Dependencies :
@@ -53,8 +53,9 @@ http://www.freedesktop.org/software/desktop-file-utils
 unzip							5.52
 http://www.info-zip.org/pub/infozip/UnZip.html
 
-pdftohtml						0.36
-http://pdftohtml.sourceforge.net/
+pdftotext						3.00
+http://www.foolabs.com/xpdf/
+http://poppler.freedesktop.org/
 
 antiword						0.36.1
 http://www.winfield.demon.nl/
@@ -65,13 +66,9 @@ http://www.gnu.org/software/unrtf/unrtf.html
 TagLib							1.4
 http://ktown.kde.org/~wheeler/taglib/
 
-glademm (4)						2.12.0 cvs
-http://home.wtal.de/petig/Gtk/index.html
-
 (1) enabled with "./configure --with-http=neon|curl"
 (2) enabled with "./configure --with-soap=yes"
 (3) for building only
-(4) to optionally regenerate the GUI code
 
 FAQ :
 -----
