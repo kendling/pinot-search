@@ -136,6 +136,7 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 #ifdef DEBUG
 			cout << "AbstractGenerator::generateAbstract: " << error.get_msg() << endl;
 #endif
+			return "";
 		}
 
 #ifdef DEBUG
@@ -166,30 +167,40 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 		<< bestPosition << ":" << startPosition << " with weight " << bestWeight << endl;
 #endif
 
-	// Go through the position list of each term
-	for (Xapian::TermIterator termIter = m_pIndex->termlist_begin(docId);
-		termIter != m_pIndex->termlist_end(docId); ++termIter)
+	try
 	{
-		string termName(*termIter);
-
-		// Skip prefixed terms
-		if (isupper((int)termName[0]) != 0)
+		// Go through the position list of each term
+		for (Xapian::TermIterator termIter = m_pIndex->termlist_begin(docId);
+			termIter != m_pIndex->termlist_end(docId); ++termIter)
 		{
-			continue;
-		}
+			string termName(*termIter);
 
-		for (Xapian::PositionIterator positionIter = m_pIndex->positionlist_begin(docId, termName);
-			positionIter != m_pIndex->positionlist_end(docId, termName); ++positionIter)
-		{
-			Xapian::termpos termPos = *positionIter;
-
-			// ...and get those that fall in the abstract window
-			if ((startPosition <= termPos + 1) &&
-				(termPos < startPosition + m_wordsCount))
+			// Skip prefixed terms
+			if (isupper((int)termName[0]) != 0)
 			{
-				wordsBuffer[termPos] = termName;
+				continue;
+			}
+
+			for (Xapian::PositionIterator positionIter = m_pIndex->positionlist_begin(docId, termName);
+				positionIter != m_pIndex->positionlist_end(docId, termName); ++positionIter)
+			{
+				Xapian::termpos termPos = *positionIter;
+
+				// ...and get those that fall in the abstract window
+				if ((startPosition <= termPos + 1) &&
+					(termPos < startPosition + m_wordsCount))
+				{
+					wordsBuffer[termPos] = termName;
+				}
 			}
 		}
+	}
+	catch (const Xapian::Error &error)
+	{
+#ifdef DEBUG
+		cout << "AbstractGenerator::generateAbstract: " << error.get_msg() << endl;
+#endif
+		return "";
 	}
 
 	for (map<Xapian::termpos, string>::iterator wordIter = wordsBuffer.begin();
