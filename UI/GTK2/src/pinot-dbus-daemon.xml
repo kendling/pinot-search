@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<node name="/de/berlios/Pinot">
+  <interface name="de.berlios.Pinot">
+    <method name="Index">
+      <annotation name="de.berlios.Pinot.Index" value="pinotDBus"/>
+      <arg type="s" name="title" direction="in"/>
+      <arg type="s" name="location" direction="in"/>
+      <arg type="s" name="type" direction="in"/>
+      <arg type="s" name="language" direction="in"/>
+      <arg type="s" name="label" direction="in"/>
+      <arg type="u" name="currentId" direction="in"/>
+      <arg type="u" name="newId" direction="out"/>
+    </method>
+  </interface>
+</node>

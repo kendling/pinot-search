@@ -75,6 +75,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/pinot/xapian-powered.png
 %{_datadir}/pinot/metase-gtk2.glade
 %{_datadir}/pinot/metase-gtk2.gladep
+%{_datadir}/pinot/pinot-dbus-daemon.xml
 %{_datadir}/pinot/textcat_conf.txt
 %{_datadir}/pinot/*.src
 %dir %{_datadir}/pinot/engines/

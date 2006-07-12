@@ -12,6 +12,7 @@ UI/GTK2/src/ModelColumns.cpp
 UI/GTK2/src/MboxHandler.cpp
 UI/GTK2/src/Notebook.cpp
 UI/GTK2/src/pinot.cc
+UI/GTK2/src/pinot-dbus-daemon.cc
 UI/GTK2/src/PinotSettings.cpp
 UI/GTK2/src/PinotUtils.cpp
 UI/GTK2/src/prefsDialog.cc
