@@ -35,7 +35,16 @@ XapianDatabase::XapianDatabase(const string &databaseName, bool readOnly) :
 	m_isOpen(false)
 {
 	pthread_rwlock_init(&m_rwLock, NULL);
-	m_isOpen = openDatabase();
+	openDatabase();
+}
+
+XapianDatabase::XapianDatabase(const XapianDatabase &other) :
+	m_databaseName(other.m_databaseName),
+	m_readOnly(other.m_readOnly),
+	m_pDatabase(other.m_pDatabase),
+	m_isOpen(other.m_isOpen)
+{
+	pthread_rwlock_init(&m_rwLock, NULL);
 }
 
 XapianDatabase::~XapianDatabase()
@@ -47,13 +56,36 @@ XapianDatabase::~XapianDatabase()
 	pthread_rwlock_destroy(&m_rwLock);
 }
 
-bool XapianDatabase::openDatabase(void)
+XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
+{
+	m_databaseName = other.m_databaseName;
+	m_readOnly = other.m_readOnly;
+	if (m_pDatabase != NULL)
+	{
+		delete m_pDatabase;
+	}
+	m_pDatabase = other.m_pDatabase;
+	m_isOpen = other.m_isOpen;
+
+	return *this;
+}
+
+void XapianDatabase::openDatabase(void)
 {
 	struct stat dbStat;
 
 	if (m_databaseName.empty() == true)
 	{
-		return false;
+		return;
+	}
+
+	// Assume things will fail
+	m_isOpen = false;
+
+	if (m_pDatabase != NULL)
+	{
+		delete m_pDatabase;
+		m_pDatabase = NULL;
 	}
 
 	// Is it a remote database ?
@@ -67,7 +99,7 @@ bool XapianDatabase::openDatabase(void)
 		if (m_readOnly == false)
 		{
 			cerr << "XapianDatabase::openDatabase: remote databases are read-only" << endl;
-			return false;
+			return;
 		}
 
 		try
@@ -78,8 +110,9 @@ bool XapianDatabase::openDatabase(void)
 #endif
 			Xapian::Database remoteDatabase = Xapian::Remote::open(hostName, port);
 			m_pDatabase = new Xapian::Database(remoteDatabase);
+			m_isOpen = true;
 
-			return true;
+			return;
 		}
 		catch (const Xapian::Error &error)
 		{
@@ -87,7 +120,7 @@ bool XapianDatabase::openDatabase(void)
 				<< error.get_msg() << endl;
 		}
 
-		return false;		
+		return;		
 	}
 
 	// It's a local database : the specified path must be a directory
@@ -97,7 +130,7 @@ bool XapianDatabase::openDatabase(void)
 		{
 			cerr << "XapianDatabase::openDatabase: database " << m_databaseName
 				<< " doesn't exist" << endl;
-			return false;
+			return;
 		}
 
 		// Database directory doesn't exist, create it (mode 755)
@@ -105,14 +138,14 @@ bool XapianDatabase::openDatabase(void)
 		{
 			cerr << "XapianDatabase::openDatabase: couldn't create database directory "
 				<< m_databaseName << endl;
-			return false;
+			return;
 		}
 	}
 	else if (!S_ISDIR(dbStat.st_mode))
 	{
 		cerr << "XapianDatabase::openDatabase: " << m_databaseName
 			<< " is not a directory" << endl;
-		return false;
+		return;
 	}
 
 	// Try opening it now, creating if if necessary
@@ -126,8 +159,9 @@ bool XapianDatabase::openDatabase(void)
 		{
 			m_pDatabase = new Xapian::WritableDatabase(m_databaseName, Xapian::DB_CREATE_OR_OPEN);
 		}
+		m_isOpen = true;
 
-		return true;
+		return;
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -135,7 +169,7 @@ bool XapianDatabase::openDatabase(void)
 			<< error.get_msg() << endl;
 	}
 
-	return false;
+	return;
 }
 
 /// Returns false if the database couldn't be opened.
@@ -152,6 +186,11 @@ Xapian::Database *XapianDatabase::readLock(void)
 #endif
 	if (pthread_rwlock_rdlock(&m_rwLock) == 0)
 	{
+		if (m_pDatabase == NULL)
+		{
+			// Try again
+			openDatabase();
+		}
 		return m_pDatabase;
 	}
 
@@ -174,6 +213,11 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 #endif
 	if (pthread_rwlock_wrlock(&m_rwLock) == 0)
 	{
+		if (m_pDatabase == NULL)
+		{
+			// Try again
+			openDatabase();
+		}
 		return dynamic_cast<Xapian::WritableDatabase *>(m_pDatabase);
 	}
 

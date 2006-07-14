@@ -51,7 +51,7 @@ class XapianDatabase
 		Xapian::Database *m_pDatabase;
 		bool m_isOpen;
 
-		bool openDatabase(void);
+		void openDatabase(void);
 
 };
 
