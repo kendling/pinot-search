@@ -80,7 +80,8 @@ public:
 	Gtk::TreeModelColumn<bool> m_indexed;
 	Gtk::TreeModelColumn<bool> m_viewed;
 	Gtk::TreeModelColumn<int> m_rankDiff;
-	Gtk::TreeModelColumn<Glib::ustring> m_score;
+	Gtk::TreeModelColumn<int> m_score;
+	Gtk::TreeModelColumn<Glib::ustring> m_scoreText;
 	Gtk::TreeModelColumn<unsigned int> m_engines;
 	Gtk::TreeModelColumn<unsigned int> m_indexes;
 	typedef enum { RESULT_ROOT = 0, RESULT_TITLE, RESULT_HOST, RESULT_OTHER } ResultType;

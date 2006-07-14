@@ -23,6 +23,7 @@
 #include <gtkmm/label.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/textbuffer.h>
+#include <gtkmm/cellrendererprogress.h>
 
 #include "StringManip.h"
 #include "Url.h"
@@ -99,7 +100,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_refStore = TreeStore::create(m_resultsColumns);
 	set_model(m_refStore);
 
-	// The first column is for the score and status icons
+	// The first column is for the status icons
 	TreeViewColumn *pColumn = new TreeViewColumn("");
 	// Pack an icon renderer for the viewed status
 	CellRendererPixbuf *pIconRenderer = new CellRendererPixbuf();
@@ -114,15 +115,24 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn->pack_start(*manage(pIconRenderer), false);
 	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
 	pColumn->set_resizable(true);
+	append_column(*manage(pColumn));
+
+	// This is the score column
+	pColumn = new TreeViewColumn(_("Score"));
+	CellRendererProgress *pProgressRenderer = new CellRendererProgress();
+	pColumn->pack_start(*manage(pProgressRenderer));
+	pColumn->add_attribute(pProgressRenderer->property_text(), m_resultsColumns.m_scoreText);
+	pColumn->add_attribute(pProgressRenderer->property_value(), m_resultsColumns.m_score);
+	pColumn->set_resizable(true);
 	pColumn->set_sort_column(m_resultsColumns.m_score);
 	append_column(*manage(pColumn));
 
 	// This is the title column
 	pColumn = new TreeViewColumn(_("Title"));
-	CellRendererText *textCellRenderer = new CellRendererText();
-	pColumn->pack_start(*manage(textCellRenderer));
-	pColumn->set_cell_data_func(*textCellRenderer, SigC::slot(*this, &ResultsTree::renderBackgroundColour));
-	pColumn->add_attribute(textCellRenderer->property_text(), m_resultsColumns.m_text);
+	CellRendererText *pTextRenderer = new CellRendererText();
+	pColumn->pack_start(*manage(pTextRenderer));
+	pColumn->set_cell_data_func(*pTextRenderer, SigC::slot(*this, &ResultsTree::renderBackgroundColour));
+	pColumn->add_attribute(pTextRenderer->property_text(), m_resultsColumns.m_text);
 	pColumn->set_resizable(true);
 	pColumn->set_sort_column(m_resultsColumns.m_text);
 	append_column(*manage(pColumn));
@@ -429,12 +439,12 @@ ScrolledWindow *ResultsTree::getExtractScrolledWindow(void) const
 // Returns true if something was added to the tree.
 //
 bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineName,
-	const vector<Result> &resultsList, const string &charset, bool groupBySearchEngine)
+	const vector<Result> &resultsList, const string &charset,
+	bool groupBySearchEngine)
 {
 	std::map<string, TreeModel::iterator> updatedGroups;
-	string queryName(queryProps.getName());
-	unsigned int count = 0;
 	ResultsModelColumns::ResultType rootType;
+	unsigned int count = 0;
 
 	// Get this query's terms
 	queryProps.getTerms(m_queryTerms);
@@ -477,14 +487,14 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 
 	QueryHistory history(m_settings.m_historyDatabase);
 	bool isNewQuery = false;
-	if (history.getLastRun(queryName, engineName).empty() == true)
+	if (history.getLastRun(m_queryName, engineName).empty() == true)
 	{
 		isNewQuery = true;
 	}
 
 	// Look at the results list
 #ifdef DEBUG
-	cout << "ResultsTree::addResults: " << resultsList.size() << " results to display" << endl;
+	cout << "ResultsTree::addResults: " << resultsList.size() << " results" << endl;
 #endif
 	for (vector<Result>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
@@ -493,7 +503,6 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 		ustring location(to_utf8(resultIter->getLocation(), charset));
 		ustring extract(to_utf8(resultIter->getExtract(), charset));
 		float currentScore = resultIter->getScore();
-		string score;
 		int rankDiff = 0;
 
 		// What group should the result go to ?
@@ -517,7 +526,7 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 
 			// Has the result's ranking changed ?
 			float oldestScore = 0;
-			float previousScore = history.hasItem(queryName, engineName,
+			float previousScore = history.hasItem(m_queryName, engineName,
 				location, oldestScore);
 			if (previousScore > 0)
 			{
@@ -540,11 +549,11 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 			}
 
 			++count;
-			if (appendResult(title, location, currentScore, rankDiff,
+			if (appendResult(title, location, (int)currentScore, rankDiff,
 				engineId, indexId, titleIter, &(*groupIter), true) == true)
 			{
 #ifdef DEBUG
-				cout << "ResultsTree::addResults: added row for result " << count << endl;
+				cout << "ResultsTree::addResults: added row for result " << count << ", " << currentScore << endl;
 #endif
 
 				// Update this map, so that we know which groups need updating
@@ -670,7 +679,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 						// Add result
 						success = appendResult(childRow[m_resultsColumns.m_text],
 							childRow[m_resultsColumns.m_url],
-							(float)atof(from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
+							childRow[m_resultsColumns.m_score],
 							childRow[m_resultsColumns.m_rankDiff],
 							engineIds, indexIds, newIter, &(*groupIter), true);
 					}
@@ -728,7 +737,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 								// Add result
 								appendResult(childRow[m_resultsColumns.m_text],
 									childRow[m_resultsColumns.m_url],
-									(float)atof(from_utf8(childRow[m_resultsColumns.m_score]).c_str()),
+									childRow[m_resultsColumns.m_score],
 									childRow[m_resultsColumns.m_rankDiff],
 									engineId, indexId,
 									newIter, &(*groupIter), true);
@@ -1076,7 +1085,7 @@ Signal0<void>& ResultsTree::getViewResultsSignal(void)
 // Adds a new row in the results tree.
 //
 bool ResultsTree::appendResult(const ustring &text, const ustring &url,
-	float score, int rankDiff, unsigned int engineId, unsigned int indexId,
+	int score, int rankDiff, unsigned int engineId, unsigned int indexId,
 	TreeModel::iterator &newRowIter, const TreeModel::Row *parentRow, bool noDuplicates)
 {
 	if (parentRow == NULL)
@@ -1136,12 +1145,8 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 	// Has it been already viewed ?
 	bool wasViewed = viewHistory.hasItem(url);
 
-	char scoreStr[128];
-	snprintf(scoreStr, 128, "%.f", score);
-
 	TreeModel::Row childRow = *newRowIter;
-	updateRow(childRow, text, url, scoreStr,
-		engineId, indexId,
+	updateRow(childRow, text, url, score, engineId, indexId,
 		ResultsModelColumns::RESULT_TITLE, isIndexed,
 		wasViewed, rankDiff);
 
@@ -1164,7 +1169,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::Resu
 		groupIter = m_refStore->append();
 		TreeModel::Row groupRow = *groupIter;
 		updateRow(groupRow, to_utf8(groupName),
-			"", "", 0, 0, groupType,
+			"", 0, 0, 0, groupType,
 			false, false, false);
 
 		// Update the map
@@ -1193,6 +1198,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::Resu
 void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 {
 	TreeModel::Row groupRow = (*groupIter);
+	int averageScore = 0;
 
 	// Check the iterator doesn't point to a result
 	if (groupRow[m_resultsColumns.m_type] == ResultsModelColumns::RESULT_TITLE)
@@ -1202,11 +1208,23 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 
 	// Modify the "score" column to indicate the number of results in that group
 	TreeModel::Children groupChildren = groupIter->children();
-	char scoreStr[64];
-	snprintf(scoreStr, 64, "%u", groupChildren.size());
-	groupRow[m_resultsColumns.m_score] = scoreStr;
+	if (groupChildren.empty() == false)
+	{
+		for (TreeModel::Children::iterator childIter = groupChildren.begin();
+			childIter != groupChildren.end(); ++childIter)
+		{
+			TreeModel::Row row = *childIter;
+
+			averageScore += row[m_resultsColumns.m_score];
+		}
+
+		averageScore = (int)(averageScore / groupChildren.size());
+	}
+	groupRow[m_resultsColumns.m_score] = averageScore;
+
 #ifdef DEBUG
-	cout << "ResultsTree::updateGroup: group " << groupRow[m_resultsColumns.m_text] << " has " << groupChildren.size() << " children" << endl;
+	cout << "ResultsTree::updateGroup: group " << groupRow[m_resultsColumns.m_text]
+		<< " has score " << averageScore << endl;
 #endif
 
 	// Expand this group
@@ -1218,13 +1236,13 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 // Updates a row.
 //
 void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
-	const ustring &url, const ustring &score,
-	unsigned int engineId,  unsigned int indexId,
+	const ustring &url, int score, unsigned int engineId,  unsigned int indexId,
 	ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff)
 {
 	row[m_resultsColumns.m_text] = text;
 	row[m_resultsColumns.m_url] = url;
 	row[m_resultsColumns.m_score] = score;
+	row[m_resultsColumns.m_scoreText] = "";
 	row[m_resultsColumns.m_engines] = engineId;
 	row[m_resultsColumns.m_indexes] = indexId;
 	row[m_resultsColumns.m_type] = type;
