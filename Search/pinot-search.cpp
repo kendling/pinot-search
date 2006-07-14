@@ -23,6 +23,7 @@
 
 #include "MIMEScanner.h"
 #include "Url.h"
+#include "XapianDatabaseFactory.h"
 #include "XmlTokenizer.h"
 #include "SearchEngineFactory.h"
 #include "DownloaderFactory.h"
@@ -98,8 +99,8 @@ int main(int argc, char **argv)
 	// Which SearchEngine ?
 	type = argv[1];
 	option = argv[2];
-	SearchEngineInterface *myEngine = SearchEngineFactory::getSearchEngine(type, option);
-	if (myEngine == NULL)
+	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(type, option);
+	if (pEngine == NULL)
 	{
 		cerr << "Couldn't obtain search engine instance" << endl;
 
@@ -111,15 +112,15 @@ int main(int argc, char **argv)
 
 	// How many results ?
 	unsigned int count = atoi(argv[4]);
-	myEngine->setMaxResultsCount(count);
+	pEngine->setMaxResultsCount(count);
 
 	QueryProperties queryProps("senginetest", argv[3], "", "", "");
-	if (myEngine->runQuery(queryProps) == true)
+	if (pEngine->runQuery(queryProps) == true)
 	{
 		string resultsPage;
 
 		// Try getting a list of links
-		const vector<Result> resultsList = myEngine->getResults();
+		const vector<Result> resultsList = pEngine->getResults();
 		if (resultsList.empty() == false)
 		{
 			unsigned int count = 0;
@@ -155,8 +156,9 @@ int main(int argc, char **argv)
 		cerr << "Couldn't run query on search engine " << argv[1] << endl;
 	}
 
-	delete myEngine;
+	delete pEngine;
 
+	XapianDatabaseFactory::closeAll();
 	DownloaderInterface::shutdown();
 	MIMEScanner::shutdown();
 

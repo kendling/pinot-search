@@ -90,8 +90,8 @@ int main(int argc, char **argv)
 	cout << "Parameters: " << thisUrl.getParameters() << endl;
 
 	// Which Downloader ?
-	DownloaderInterface *myDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
-	if (myDownloader == NULL)
+	DownloaderInterface *pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
+	if (pDownloader == NULL)
 	{
 		cerr << "Couldn't obtain downloader for protocol " << thisUrl.getProtocol() << endl;
 
@@ -101,10 +101,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	unsigned int urlContentLen;
-	string contentType;
 	DocumentInfo docInfo("Test", url, "", "");
-	Document *pDoc = myDownloader->retrieveUrl(docInfo);
+	Document *pDoc = pDownloader->retrieveUrl(docInfo);
 	if (pDoc == NULL)
 	{
 		cerr << "Download operation failed !" << endl;
@@ -126,7 +124,7 @@ int main(int argc, char **argv)
 				fileName = "index.html";
 			}
 
-			cout << "Saving " << urlContentLen << " bytes to " << fileName << endl;
+			cout << "Saving " << contentLen << " bytes to " << fileName << endl;
 
 			// Save the content to a file
 			ofstream outputFile(fileName.c_str());
@@ -141,7 +139,7 @@ int main(int argc, char **argv)
 		delete pDoc;
 	}
 
-	delete myDownloader;
+	delete pDownloader;
 
 	DownloaderInterface::shutdown();
 	MIMEScanner::shutdown();
