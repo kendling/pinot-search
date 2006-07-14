@@ -239,7 +239,7 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 		}
 		catch (const Xapian::Error &error)
 		{
-			cerr << "XapianEngine::queryDatabase: couldn't run query: "  << error.get_msg() << endl;
+			cerr << "XapianEngine::queryDatabase: " << error.get_type() << ": " << error.get_msg() << endl;
 		}
 	}
 	pDatabase->unlock();
@@ -261,7 +261,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		if (extractWords(queryProps.getAndWords(), stemLanguage, andTerms) == true)
 		{
 #ifdef DEBUG
-			cout << "XapianEngine::stackQuery: OP_AND "  << andTerms.size() << endl;
+			cout << "XapianEngine::stackQuery: OP_AND " << andTerms.size() << endl;
 #endif
 			if (followOperators == true)
 			{
@@ -279,7 +279,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		if (extractWords(queryProps.getPhrase(), stemLanguage, phraseTerms) == true)
 		{
 #ifdef DEBUG
-			cout << "XapianEngine::stackQuery: OP_PHRASE "  << phraseTerms.size() << endl;
+			cout << "XapianEngine::stackQuery: OP_PHRASE " << phraseTerms.size() << endl;
 #endif
 			if (followOperators == true)
 			{
@@ -297,7 +297,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		if (extractWords(queryProps.getAnyWords(), stemLanguage, orTerms) == true)
 		{
 #ifdef DEBUG
-			cout << "XapianEngine::stackQuery: OP_OR "  << orTerms.size() << endl;
+			cout << "XapianEngine::stackQuery: OP_OR " << orTerms.size() << endl;
 #endif
 			if (followOperators == true)
 			{
@@ -315,7 +315,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		if (extractWords(queryProps.getNotWords(), stemLanguage, notTerms) == true)
 		{
 #ifdef DEBUG
-			cout << "XapianEngine::stackQuery: OP_AND_NOT "  << notTerms.size() << endl;
+			cout << "XapianEngine::stackQuery: OP_AND_NOT " << notTerms.size() << endl;
 #endif
 			// We need something to AND_NOT these terms against
 			// Not following the operator would make us return documents
@@ -385,7 +385,7 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		term = "L";
 		term += Languages::toCode(Languages::toEnglish(language));
 #ifdef DEBUG
-		cout << "XapianEngine::stackQuery: filter "  << term << endl;
+		cout << "XapianEngine::stackQuery: filter " << term << endl;
 #endif
 		languageTerms.push_back(term);
 		if (followOperators == true)
@@ -427,7 +427,7 @@ bool XapianEngine::runQuery(const string &keyword)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "XapianEngine::runQuery: couldn't run query: "  << error.get_msg() << endl;
+		cerr << "XapianEngine::runQuery: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 
 	return false;
@@ -473,12 +473,12 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 				Xapian::Query topQuery = queryStack.top();
 				queryStack.pop();
 #ifdef DEBUG
-				cout << "XapianEngine::runQuery: popped query, left "  << queryStack.size() << endl;
+				cout << "XapianEngine::runQuery: popped query, left " << queryStack.size() << endl;
 #endif
 				Xapian::Query query = Xapian::Query(Xapian::Query::OP_AND, queryStack.top(), topQuery);
 				queryStack.pop();
 #ifdef DEBUG
-				cout << "XapianEngine::runQuery: popped query, left "  << queryStack.size() << endl;
+				cout << "XapianEngine::runQuery: popped query, left " << queryStack.size() << endl;
 #endif
 				queryStack.push(query);
 			}
@@ -537,7 +537,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "XapianEngine::runQuery: couldn't run query: "  << error.get_msg() << endl;
+		cerr << "XapianEngine::runQuery: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 
 	return false;

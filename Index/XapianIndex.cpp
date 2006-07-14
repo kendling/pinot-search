@@ -52,10 +52,6 @@ XapianIndex::XapianIndex(const string &indexName) :
 	IndexInterface(),
 	m_databaseName(indexName)
 {
-
-	string historyFile = indexName;
-	historyFile += "/history";
-
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if ((pDatabase != NULL) &&
 		(pDatabase->isOpen() == true))
@@ -241,9 +237,9 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 		{
 			Xapian::Stem stemmer(*langIter);
 		}
-		catch (const Xapian::Error &e)
+		catch (const Xapian::Error &error)
 		{
-			cerr << "XapianIndex::scanDocument: no support for language " << *langIter << endl;
+			cerr << "XapianIndex::scanDocument: " << error.get_type() << ": " << error.get_msg() << endl;
 			continue;
 		}
 
@@ -344,7 +340,7 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document list: " << error.get_msg() << endl;
+		cerr << "Couldn't get document list: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -434,7 +430,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't index document: " << error.get_msg() << endl;
+		cerr << "Couldn't index document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -490,7 +486,7 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document properties: " << error.get_msg() << endl;
+		cerr << "Couldn't get document properties: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -538,7 +534,7 @@ bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't check document labels: " << error.get_msg() << endl;
+		cerr << "Couldn't check document labels: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -590,7 +586,7 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document's labels: " << error.get_msg() << endl;
+		cerr << "Couldn't get document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -664,14 +660,13 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 			{
 				// Update the document in the database
 				pIndex->replace_document(docId, doc);
-				// FIXME: if the document information has changed, we need to update the history too
 				updated = true;
 			}
 		}
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't update document: " << error.get_msg() << endl;
+		cerr << "Couldn't update document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -717,7 +712,7 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't update document properties: " << error.get_msg() << endl;
+		cerr << "Couldn't update document properties: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -782,7 +777,7 @@ bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &label
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't update document's labels: " << error.get_msg() << endl;
+		cerr << "Couldn't update document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -828,7 +823,7 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't look for document: " << error.get_msg() << endl;
+		cerr << "Couldn't look for document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -868,7 +863,7 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't unindex document: " << error.get_msg() << endl;
+		cerr << "Couldn't unindex document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -911,7 +906,7 @@ bool XapianIndex::unindexDocuments(const string &labelName)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't unindex documents: " << error.get_msg() << endl;
+		cerr << "Couldn't unindex documents: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -964,7 +959,7 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get terms: " << error.get_msg() << endl;
+		cerr << "Couldn't get terms: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1016,7 +1011,7 @@ bool XapianIndex::renameLabel(const string &name, const string &newName)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't delete label: " << error.get_msg() << endl;
+		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1065,7 +1060,7 @@ bool XapianIndex::deleteLabel(const string &name)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't delete label: " << error.get_msg() << endl;
+		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1102,7 +1097,7 @@ bool XapianIndex::flush(void)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't flush database: " << error.get_msg() << endl;
+		cerr << "Couldn't flush database: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1146,7 +1141,7 @@ unsigned int XapianIndex::getDocumentsCount(const string &labelName) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't count documents: " << error.get_msg() << endl;
+		cerr << "Couldn't count documents: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
