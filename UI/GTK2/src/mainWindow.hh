@@ -18,7 +18,6 @@
 #define _MAINWINDOW_HH
 
 #include <string>
-#include <map>
 #include <set>
 #include <sigc++/connection.h>
 #include <glibmm/refptr.h>
@@ -73,7 +72,7 @@ protected:
 	void on_close_page(Glib::ustring title, NotebookPageBox::PageType type);
 	void on_thread_end(WorkerThread *pThread);
 	void on_editindex(Glib::ustring indexName, Glib::ustring location);
-	void on_message_reception(DocumentInfo docInfo, std::string labelName);
+	void on_message_reception(DocumentInfo docInfo);
 	void on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, std::string indexName);
 
 	// Handlers inherited from the base class
@@ -125,18 +124,14 @@ protected:
 		NotebookPageBox::PageType type);
 	int get_page_number(const Glib::ustring &title,
 		NotebookPageBox::PageType type);
-	bool queue_index(const DocumentInfo &docInfo, const std::string &labelName);
 	void edit_query(QueryProperties &queryProps, bool newQuery);
 	void run_search(const QueryProperties &queryProps);
 	void browse_index(const Glib::ustring &indexName,
 		const Glib::ustring &labelName, unsigned int startDoc);
-	void index_document(const DocumentInfo &docInfo, const std::string &labelName,
-		unsigned int docId = 0);
 	void view_documents(std::vector<DocumentInfo> &documentsList);
 	bool append_document(IndexPage *pIndexPage, const Glib::ustring &indexName,
 		const IndexedDocument &docInfo);
 	bool start_thread(WorkerThread *pNewThread, bool inBackground = false);
-	bool check_queue(void);
 
 	// Status methods
 	bool on_activity_timeout(void);
@@ -169,29 +164,19 @@ private:
 	class InternalState : public ThreadsManager
 	{
 		public:
-			InternalState(mainWindow *pWindow);
-			~InternalState();
-
-			bool read_lock_lists(unsigned int where);
-			bool write_lock_lists(unsigned int where);
-			void unlock_lists(void);
+			InternalState(unsigned int maxIndexThreads, mainWindow *pWindow);
+			virtual ~InternalState();
 
 			// Query
 			unsigned int m_liveQueryLength;
 			// Notebook pages
 			int m_currentPage;
-			// In-progress actions
-			std::set<std::string> m_beingIndexed;
+			// Current actions
 			bool m_browsingIndex;
-			// Action queue
-			std::map<DocumentInfo, string> m_indexQueue;
-
-		protected:
-			pthread_rwlock_t m_listsLock;
 
 	} m_state;
 	static unsigned int m_maxDocsCount;
-	static unsigned int m_maxThreads;
+	static unsigned int m_maxIndexThreads;
 
 };
 

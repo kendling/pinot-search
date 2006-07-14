@@ -14,10 +14,13 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <algorithm>
 #include "TimeConverter.h"
 #include "DocumentInfo.h"
 
 using std::string;
+using std::copy;
+using std::inserter;
 
 DocumentInfo::DocumentInfo()
 {
@@ -34,13 +37,15 @@ DocumentInfo::DocumentInfo(const string &title, const string &location,
 	m_timestamp = TimeConverter::toTimestamp(time(NULL));
 }
 
-DocumentInfo::DocumentInfo(const DocumentInfo &other)
+DocumentInfo::DocumentInfo(const DocumentInfo &other) :
+	m_title(other.m_title),
+	m_location(other.m_location),
+	m_type(other.m_type),
+	m_language(other.m_language),
+	m_timestamp(other.m_timestamp)
 {
-	m_title = other.m_title;
-	m_location = other.m_location;
-	m_type = other.m_type;
-	m_language = other.m_language;
-	m_timestamp = other.m_timestamp;
+	copy(other.m_labels.begin(), other.m_labels.end(),
+		inserter(m_labels, m_labels.begin()));
 }
 
 DocumentInfo::~DocumentInfo()
@@ -54,6 +59,9 @@ DocumentInfo& DocumentInfo::operator=(const DocumentInfo& other)
 	m_type = other.m_type;
 	m_language = other.m_language;
 	m_timestamp = other.m_timestamp;
+	m_labels.clear();
+	copy(other.m_labels.begin(), other.m_labels.end(),
+		inserter(m_labels, m_labels.begin()));
 
 	return *this;
 }
@@ -127,3 +135,16 @@ string DocumentInfo::getTimestamp(void) const
 {
 	return m_timestamp;
 }
+/// Sets the document's labels.
+void DocumentInfo::setLabels(const set<string> &labels)
+{
+	copy(labels.begin(), labels.end(),
+		inserter(m_labels, m_labels.begin()));
+}
+
+/// Returns the document's labels.
+const set<string> &DocumentInfo::getLabels(void) const
+{
+	return m_labels;
+}
+

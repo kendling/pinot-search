@@ -161,24 +161,27 @@ void WorkerThread::emitSignal(void)
 	m_dispatcher.emit();
 }
 
-ThreadsManager::ThreadsManager() :
+ThreadsManager::ThreadsManager(unsigned int maxIndexThreads) :
 	SigC::Object(),
+	m_maxIndexThreads(maxIndexThreads),
 	m_nextId(1),
 	m_backgroundThreadsCount(0)
 {
-	pthread_rwlock_init(&m_rwLock, NULL);
+	pthread_rwlock_init(&m_threadsLock, NULL);
+	pthread_rwlock_init(&m_listsLock, NULL);
 }
 
 ThreadsManager::~ThreadsManager()
 {
 	stop_threads();
-	// Destroy the read/write lock
-	pthread_rwlock_destroy(&m_rwLock);
+	// Destroy the read/write locks
+	pthread_rwlock_destroy(&m_listsLock);
+	pthread_rwlock_destroy(&m_threadsLock);
 }
 
-bool ThreadsManager::read_lock(void)
+bool ThreadsManager::read_lock_threads(void)
 {
-	if (pthread_rwlock_rdlock(&m_rwLock) == 0)
+	if (pthread_rwlock_rdlock(&m_threadsLock) == 0)
 	{
 		return true;
 	}
@@ -186,9 +189,9 @@ bool ThreadsManager::read_lock(void)
 	return false;
 }
 
-bool ThreadsManager::write_lock(void)
+bool ThreadsManager::write_lock_threads(void)
 {
-	if (pthread_rwlock_wrlock(&m_rwLock) == 0)
+	if (pthread_rwlock_wrlock(&m_threadsLock) == 0)
 	{
 		return true;
 	}
@@ -196,9 +199,34 @@ bool ThreadsManager::write_lock(void)
 	return false;
 }
 
-void ThreadsManager::unlock(void)
+void ThreadsManager::unlock_threads(void)
 {
-	pthread_rwlock_unlock(&m_rwLock);
+	pthread_rwlock_unlock(&m_threadsLock);
+}
+
+bool ThreadsManager::read_lock_lists(void)
+{
+	if (pthread_rwlock_rdlock(&m_listsLock) == 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool ThreadsManager::write_lock_lists(void)
+{
+	if (pthread_rwlock_wrlock(&m_listsLock) == 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void ThreadsManager::unlock_lists(void)
+{
+	pthread_rwlock_unlock(&m_listsLock);
 }
 
 WorkerThread *ThreadsManager::get_thread(void)
@@ -206,7 +234,7 @@ WorkerThread *ThreadsManager::get_thread(void)
 	WorkerThread *pWorkerThread = NULL;
 
 	// Get the first thread that's finished
-	if (read_lock() == true)
+	if (read_lock_threads() == true)
 	{
 		for (map<WorkerThread *, Thread *>::iterator threadIter = m_threads.begin();
 			threadIter != m_threads.end(); ++threadIter)
@@ -226,7 +254,7 @@ WorkerThread *ThreadsManager::get_thread(void)
 #endif
 		}
 
-		unlock();
+		unlock_threads();
 	}
 
 	if (pWorkerThread == NULL)
@@ -240,6 +268,60 @@ WorkerThread *ThreadsManager::get_thread(void)
 	}
 
 	return pWorkerThread;
+}
+
+bool ThreadsManager::index_document(const DocumentInfo &docInfo)
+{
+	string location(docInfo.getLocation());
+
+	if (location.empty() == true)
+	{
+		// Nothing to do
+		return false;
+	}
+
+	// If the document is mail, we can't index it again
+	Url urlObj(location);
+	if (urlObj.getProtocol() == "mailbox")
+	{
+		return false;
+	}
+
+	// Is it an update ?
+	XapianIndex docsIndex(PinotSettings::getInstance().m_indexLocation);
+	unsigned int docId = docsIndex.hasDocument(docInfo.getLocation());
+	if (docId > 0)
+	{
+		// Yes, it is
+		start_thread(new IndexingThread(docInfo, docId));
+	}
+	else
+	{
+		bool isNewDocument = false;
+
+		// Is the document being indexed ?
+		if (write_lock_lists() == true)
+		{
+			if (m_beingIndexed.find(location) == m_beingIndexed.end())
+			{
+				m_beingIndexed.insert(location);
+				isNewDocument = true;
+			}
+
+			unlock_lists();
+		}
+
+		if (isNewDocument == false)
+		{
+			// FIXME: the document is being indexed but we may have to set labels on it
+			return false;
+		}
+
+		// This is a new document
+		start_thread(new IndexingThread(docInfo));
+	}
+
+	return true;
 }
 
 bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground)
@@ -264,11 +346,11 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 	}
 
 	// Insert
-	if (write_lock() == true)
+	if (write_lock_threads() == true)
 	{
 		m_threads[pWorkerThread] = pThread;
 
-		unlock();
+		unlock_threads();
 	}
 	++m_nextId;
 
@@ -279,11 +361,11 @@ unsigned int ThreadsManager::get_threads_count(void)
 {
 	int count = 0;
 
-	if (read_lock() == true)
+	if (read_lock_threads() == true)
 	{
 		count = m_threads.size() - m_backgroundThreadsCount;
 
-		unlock();
+		unlock_threads();
 	}
 #ifdef DEBUG
 	cout << "ThreadsManager::get_threads_count: " << count << " threads left" << endl;
@@ -308,12 +390,12 @@ void ThreadsManager::stop_threads(void)
 {
 	if (m_threads.empty() == false)
 	{
-		if (read_lock() == true)
+		if (read_lock_threads() == true)
 		{
 			for_each(m_threads.begin(), m_threads.end(), DeleteMapPointer());
 			m_threads.clear();
 
-			unlock();
+			unlock_threads();
 		}
 	}
 }
@@ -361,6 +443,63 @@ void ThreadsManager::on_thread_end()
 		return;
 	}
 	m_onThreadEndSignal.emit(pThread);
+}
+
+bool ThreadsManager::queue_index(const DocumentInfo &docInfo)
+{
+	if (get_threads_count() >= m_maxIndexThreads)
+	{
+		if (write_lock_lists() == true)
+		{
+			m_indexQueue.insert(docInfo);
+
+			unlock_lists();
+		}
+
+		return true;
+	}
+
+	return index_document(docInfo);
+}
+
+bool ThreadsManager::pop_queue(void)
+{
+	if (get_threads_count() >= m_maxIndexThreads)
+	{
+#ifdef DEBUG
+		cout << "ThreadsManager::pop_queue: too many threads" << endl;
+#endif
+		return false;
+	}
+
+	DocumentInfo docInfo;
+	bool foundItem = false;
+
+	if (write_lock_lists() == true)
+	{
+		if (m_indexQueue.empty() == false)
+		{
+			// Get the first item
+			std::set<DocumentInfo>::iterator queueIter = m_indexQueue.begin();
+			if (queueIter != m_indexQueue.end())
+			{
+				docInfo = *queueIter;
+				foundItem = true;
+
+				m_indexQueue.erase(queueIter);
+			}
+		}
+
+		unlock_lists();
+	}
+
+	if (foundItem == false)
+	{
+		// Nothing to do
+		return false;
+	}
+
+	return index_document(docInfo);
 }
 
 IndexBrowserThread::IndexBrowserThread(const string &indexName,
@@ -785,11 +924,10 @@ void DownloadingThread::doWork(void)
 	}
 }
 
-IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &labelName,
-	unsigned int docId, bool allowAllMIMETypes) :
+IndexingThread::IndexingThread(const DocumentInfo &docInfo, unsigned int docId,
+	bool allowAllMIMETypes) :
 	DownloadingThread(docInfo, false),
 	m_docInfo(docInfo),
-	m_labelName(labelName),
 	m_docId(docId),
 	m_allowAllMIMETypes(allowAllMIMETypes)
 {
@@ -820,11 +958,6 @@ string IndexingThread::getType(void) const
 const DocumentInfo &IndexingThread::getDocumentInfo(void) const
 {
 	return m_docInfo;
-}
-
-string IndexingThread::getLabelName(void) const
-{
-	return m_labelName;
 }
 
 unsigned int IndexingThread::getDocumentID(void) const
@@ -949,41 +1082,25 @@ void IndexingThread::doWork(void)
 
 		if (m_done == false)
 		{
-			set<string> labels;
+			const set<string> &labels = m_docInfo.getLabels();
 
 			index.setStemmingMode(IndexInterface::STORE_BOTH);
 
 			// Update an existing document or add to the index ?
 			if (m_update == true)
 			{
-				// Get the document's current labels
-				index.getDocumentLabels(m_docId, labels);
-
 				// Update the document
 				if (index.updateDocument(m_docId, *pTokens) == true)
 				{
-					if (m_labelName.empty() == false)
-					{
-						// Add the label if it's a new one
-						if (labels.find(m_labelName) == labels.end())
-						{
-							labels.clear();
-							labels.insert(m_labelName);
-
-							index.setDocumentLabels(m_docId, labels, false);
-						}
-					}
 					success = true;
 				}
+
+				// Set the document's labels
+				index.setDocumentLabels(m_docId, labels, false);
 			}
 			else
 			{
 				unsigned int docId = 0;
-
-				if (m_labelName.empty() == false)
-				{
-					labels.insert(m_labelName);
-				}
 
 				// Index the document
 				success = index.indexDocument(*pTokens, labels, docId);
@@ -999,7 +1116,7 @@ void IndexingThread::doWork(void)
 				m_status += " ";
 				m_status += m_docInfo.getLocation();
 			}
-			else if (m_done == false)
+			else
 			{
 				// Flush the index
 				index.flush();

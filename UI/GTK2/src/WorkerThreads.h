@@ -91,10 +91,10 @@ class WorkerThread
 class ThreadsManager : public SigC::Object
 {
 	public:
-		ThreadsManager();
+		ThreadsManager(unsigned int maxIndexThreads);
 		virtual ~ThreadsManager();
 
-		bool start_thread(WorkerThread *pWorkerThread, bool inBackground);
+		bool start_thread(WorkerThread *pWorkerThread, bool inBackground = false);
 
 		unsigned int get_threads_count(void);
 
@@ -108,19 +108,34 @@ class ThreadsManager : public SigC::Object
 
 		void on_thread_end();
 
+		bool read_lock_lists(void);
+
+		bool write_lock_lists(void);
+
+		void unlock_lists(void);
+
+		bool queue_index(const DocumentInfo &docInfo);
+
+		bool pop_queue(void);
+
+		std::set<std::string> m_beingIndexed;
+
 	protected:
 		SigC::Connection m_threadsEndConnection;
-		// Read/write lock
-		pthread_rwlock_t m_rwLock;
+		pthread_rwlock_t m_threadsLock;
+		pthread_rwlock_t m_listsLock;
 		std::map<WorkerThread *, Glib::Thread *> m_threads;
+		unsigned int m_maxIndexThreads;
 		unsigned int m_nextId;
 		unsigned int m_backgroundThreadsCount;
 		SigC::Signal1<void, WorkerThread *> m_onThreadEndSignal;
+		std::set<DocumentInfo> m_indexQueue;
 
-		bool read_lock(void);
-		bool write_lock(void);
-		void unlock(void);
+		bool read_lock_threads(void);
+		bool write_lock_threads(void);
+		void unlock_threads(void);
 		WorkerThread *get_thread(void);
+		bool index_document(const DocumentInfo &docInfo);
 
 	private:
 		ThreadsManager(const ThreadsManager &other);
@@ -257,8 +272,8 @@ class DownloadingThread : public WorkerThread
 class IndexingThread : public DownloadingThread
 {
 	public:
-		IndexingThread(const DocumentInfo &docInfo, const std::string &labelName,
-			unsigned int docId = 0, bool allowAllMIMETypes = false);
+		IndexingThread(const DocumentInfo &docInfo, unsigned int docId = 0,
+			bool allowAllMIMETypes = false);
 		virtual ~IndexingThread();
 
 		virtual std::string getType(void) const;
@@ -275,7 +290,6 @@ class IndexingThread : public DownloadingThread
 
 	protected:
 		DocumentInfo m_docInfo;
-		std::string m_labelName;
 		unsigned int m_docId;
 		bool m_allowAllMIMETypes;
 		std::string m_indexLocation;

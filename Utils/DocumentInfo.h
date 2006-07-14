@@ -18,6 +18,7 @@
 #define _DOCUMENT_INFO_H
 
 #include <string>
+#include <set>
 
 class DocumentInfo
 {
@@ -62,12 +63,19 @@ class DocumentInfo
 		/// Returns the document's timestamp.
 		virtual std::string getTimestamp(void) const;
 
+		/// Sets the document's labels.
+		virtual void setLabels(const std::set<std::string> &labels);
+
+		/// Returns the document's labels.
+		virtual const std::set<std::string> &getLabels(void) const;
+
 	protected:
 		std::string m_title;
 		std::string m_location;
 		std::string m_type;
 		std::string m_language;
 		std::string m_timestamp;
+		std::set<std::string> m_labels;
 
 };
 

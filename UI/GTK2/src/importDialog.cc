@@ -38,8 +38,8 @@ using namespace Gtk;
 
 string importDialog::InternalState::m_defaultDirectory = "";
 
-importDialog::InternalState::InternalState(importDialog *pWindow) :
-	ThreadsManager(),
+importDialog::InternalState::InternalState(unsigned int maxIndexThreads, importDialog *pWindow) :
+	ThreadsManager(maxIndexThreads),
 	m_importing(false)
 {
 	m_onThreadEndSignal.connect(SigC::slot(*pWindow, &importDialog::on_thread_end));
@@ -54,7 +54,7 @@ importDialog::importDialog(const Glib::ustring &title) :
 	m_docsCount(0),
 	m_importDirectory(false),
 	m_pScannerThread(NULL),
-	m_state(this)
+	m_state(10, this)
 {
 	set_title(title);
 
@@ -168,17 +168,19 @@ bool importDialog::on_activity_timeout(void)
 
 bool importDialog::on_import_url(const string &location)
 {
-	Url urlObj(location);
-
 	XapianIndex index(PinotSettings::getInstance().m_indexLocation);
 	IndexingThread *pThread = NULL;
+	Url urlObj(location);
+	set<string> labels;
 	string title = from_utf8(m_title);
 	unsigned int docId = 0;
 
 	if (index.isGood() == true)
 	{
 		docId = index.hasDocument(location);
+		index.getDocumentLabels(docId, labels);
 	}
+	labels.insert(m_labelName);
 
 	if (m_importDirectory == true)
 	{
@@ -188,17 +190,19 @@ bool importDialog::on_import_url(const string &location)
 		}
 		title += urlObj.getFile();
 	}
+
 	DocumentInfo docInfo(title, location, MIMEScanner::scanUrl(urlObj), "");
+	docInfo.setLabels(labels);
 
 	if (docId > 0)
 	{
 		// This document needs updating
 		index.getDocumentInfo(docId, docInfo);
-		pThread = new IndexingThread(docInfo, m_labelName, docId);
+		pThread = new IndexingThread(docInfo, docId);
 	}
 	else
 	{
-		pThread = new IndexingThread(docInfo, m_labelName);
+		pThread = new IndexingThread(docInfo);
 	}
 
 	// Launch the new thread

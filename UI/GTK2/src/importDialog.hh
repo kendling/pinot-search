@@ -70,7 +70,7 @@ private:
 	class InternalState : public ThreadsManager
 	{
 		public:
-			InternalState(importDialog *pWindow);
+			InternalState(unsigned int maxIndexThreads, importDialog *pWindow);
 			~InternalState();
 
 			// Directory scanning

@@ -63,55 +63,19 @@ using namespace Gtk;
 
 // FIXME: this ought to be configurable
 unsigned int mainWindow::m_maxDocsCount = 100;
-unsigned int mainWindow::m_maxThreads = 2;
+unsigned int mainWindow::m_maxIndexThreads = 2;
 
-mainWindow::InternalState::InternalState(mainWindow *pWindow) :
-	ThreadsManager(),
+mainWindow::InternalState::InternalState(unsigned int maxIndexThreads, mainWindow *pWindow) :
+	ThreadsManager(maxIndexThreads),
 	m_liveQueryLength(0),
 	m_currentPage(0),
 	m_browsingIndex(false)
 {
-	pthread_rwlock_init(&m_listsLock, NULL);
 	m_onThreadEndSignal.connect(SigC::slot(*pWindow, &mainWindow::on_thread_end));
 }
 
 mainWindow::InternalState::~InternalState()
 {
-	pthread_rwlock_destroy(&m_listsLock);
-}
-
-bool mainWindow::InternalState::read_lock_lists(unsigned int where)
-{
-	if (pthread_rwlock_rdlock(&m_listsLock) == 0)
-	{
-#ifdef DEBUG
-		cout << "mainWindow::read_lock_lists: " << where << endl;
-#endif
-		return true;
-	}
-
-	return false;
-}
-
-bool mainWindow::InternalState::write_lock_lists(unsigned int where)
-{
-	if (pthread_rwlock_wrlock(&m_listsLock) == 0)
-	{
-#ifdef DEBUG
-		cout << "mainWindow::write_lock_lists: " << where << endl;
-#endif
-		return true;
-	}
-
-	return false;
-}
-
-void mainWindow::InternalState::unlock_lists(void)
-{
-	pthread_rwlock_unlock(&m_listsLock);
-#ifdef DEBUG
-	cout << "mainWindow::unlock_lists" << endl;
-#endif
 }
 
 //
@@ -123,7 +87,7 @@ mainWindow::mainWindow() :
 	m_pNotebook(NULL),
 	m_pIndexMenu(NULL),
 	m_pCacheMenu(NULL),
-	m_state(this)
+	m_state(m_maxIndexThreads, this)
 {
 	// Reposition and resize the window
 	// Make sure the coordinates and sizes make sense
@@ -650,7 +614,7 @@ void mainWindow::on_index_changed(ustring indexName)
 			SigC::slot(*this, &mainWindow::on_indexForwardButton_clicked));
 
 		// Append the page
-		if (m_state.write_lock_lists(1) == true)
+		if (m_state.write_lock_lists() == true)
 		{
 			int pageNum = m_pNotebook->append_page(*pIndexPage, *pTab);
 			m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
@@ -824,7 +788,7 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 	int pageNum = get_page_number(title, type);
 	if (pageNum >= 0)
 	{
-		if (m_state.write_lock_lists(2) == true)
+		if (m_state.write_lock_lists() == true)
 		{
 			// Remove the page
 			m_pNotebook->remove_page(pageNum);
@@ -985,7 +949,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				SigC::slot(*this, &mainWindow::on_viewresults_activate));
 
 			// Append the page
-			if (m_state.write_lock_lists(3) == true)
+			if (m_state.write_lock_lists() == true)
 			{
 				pageNum = m_pNotebook->append_page(*pResultsPage, *pTab);
 				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
@@ -1018,10 +982,14 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			for (vector<Result>::const_iterator resultIter = resultsList.begin();
 				resultIter != resultsList.end(); ++resultIter)
 			{
-				// Queue this action
-				queue_index(DocumentInfo(resultIter->getTitle(), resultIter->getLocation(),
-					resultIter->getType(), resultIter->getLanguage()),
-					labelName);
+				set<string> labels;
+				DocumentInfo docInfo(resultIter->getTitle(), resultIter->getLocation(),
+					resultIter->getType(), resultIter->getLanguage());
+
+				// Queue this
+				labels.insert(labelName);
+				docInfo.setLabels(labels);
+				m_state.queue_index(docInfo);
 			}
 		}
 
@@ -1192,7 +1160,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			status += to_utf8(url);
 
 			// Update the in-progress list
-			if (m_state.write_lock_lists(4) == true)
+			if (m_state.write_lock_lists() == true)
 			{
 				set<string>::iterator urlIter = m_state.m_beingIndexed.find(url);
 				if (urlIter != m_state.m_beingIndexed.end())
@@ -1292,7 +1260,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 	delete pThread;;
 
 	// We might be able to run a queued action
-	check_queue();
+	m_state.pop_queue();
 
 	// Any threads left to return ?
 	if (m_state.get_threads_count() == 0)
@@ -1367,18 +1335,10 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 //
 // Message reception from ListenerThread
 //
-void mainWindow::on_message_reception(DocumentInfo docInfo, string labelName)
+void mainWindow::on_message_reception(DocumentInfo docInfo)
 {
-	string location = docInfo.getLocation();
-
-	if (location.empty() == false)
-	{
-#ifdef DEBUG
-		cout << "mainWindow::on_message_reception: indexing " << location << endl;
-#endif
-		// Queue this
-		queue_index(docInfo, labelName);
-	}
+	// Queue this
+	m_state.queue_index(docInfo);
 }
 
 //
@@ -1418,7 +1378,7 @@ void mainWindow::on_configure_activate()
 	// FIXME: if mail accounts are configured, make sure the MonitorThread
 	// is running and knows about the new accounts
 
-	if (m_state.read_lock_lists(5) == true)
+	if (m_state.read_lock_lists() == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -1834,7 +1794,7 @@ void mainWindow::on_indexresults_activate()
 #ifdef DEBUG
 					cout << "mainWindow::on_indexresults_activate: URL is " << resultIter->getLocation() << endl;
 #endif
-					queue_index(*resultIter, "");
+					m_state.queue_index(*resultIter);
 				}
 
 				// We can update the rows right now
@@ -1944,7 +1904,7 @@ void mainWindow::on_refreshindex_activate()
 		DocumentInfo docInfo(docIter->getTitle(), url,
 			docIter->getType(), docIter->getLanguage());
 		docInfo.setTimestamp(docIter->getTimestamp());
-		queue_index(docInfo, "");
+		m_state.queue_index(docInfo);
 	}
 }
 
@@ -2609,7 +2569,7 @@ NotebookPageBox *mainWindow::get_current_page(void)
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
-	if (m_state.read_lock_lists(6) == true)
+	if (m_state.read_lock_lists() == true)
 	{
 		Widget *pPage = m_pNotebook->get_nth_page(m_pNotebook->get_current_page());
 		if (pPage != NULL)
@@ -2630,7 +2590,7 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
-	if (m_state.read_lock_lists(7) == true)
+	if (m_state.read_lock_lists() == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -2667,7 +2627,7 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 {
 	int pageNumber = -1;
 
-	if (m_state.read_lock_lists(8) == true)
+	if (m_state.read_lock_lists() == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
 		{
@@ -2695,40 +2655,6 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 	}
 
 	return pageNumber;
-}
-
-//
-// Queues additions to the index.
-//
-bool mainWindow::queue_index(const DocumentInfo &docInfo,
-	const string &labelName)
-{
-	if (m_state.get_threads_count() >= m_maxThreads)
-	{
-		if (m_state.write_lock_lists(9) == true)
-		{
-			m_state.m_indexQueue[docInfo] = labelName;
-
-			m_state.unlock_lists();
-		}
-
-		return true;
-	}
-
-	// Is it an update ?
-	XapianIndex docsIndex(m_settings.m_indexLocation);
-	unsigned int docId = docsIndex.hasDocument(docInfo.getLocation());
-	if (docId > 0)
-	{
-		// Yes, it is
-		index_document(docInfo, labelName, docId);
-	}
-	else
-	{
-		index_document(docInfo, labelName);
-	}
-
-	return false;
 }
 
 //
@@ -2974,85 +2900,6 @@ void mainWindow::browse_index(const ustring &indexName,
 }
 
 //
-// Index (or update) a document
-//
-void mainWindow::index_document(const DocumentInfo &docInfo,
-	const string &labelName, unsigned int docId)
-{
-	string location(docInfo.getLocation());
-
-	if (location.empty() == true)
-	{
-		// Nothing to do
-#ifdef DEBUG
-		cout << "mainWindow::index_document: empty queue" << endl;
-#endif
-		return;
-	}
-
-	Url urlObj(location);
-	string indexLocation(m_settings.m_indexLocation);
-
-	// If the document is mail, we need the My Email index
-	if (urlObj.getProtocol() == "mailbox")
-	{
-		indexLocation = m_settings.m_mailIndexLocation;
-	}
-
-	// Is it an update ?
-	if (docId > 0)
-	{
-		// Yes, it is
-		start_thread(new IndexingThread(docInfo, labelName, docId));
-
-		// We may have to update its labels
-		if (labelName.empty() == false)
-		{
-			XapianIndex index(indexLocation);
-			set<string> docLabels;
-
-			// Add this new label
-#ifdef DEBUG
-			cout << "mainWindow::index_document: applying label " << labelName << " to document " << docId << endl;
-#endif
-			docLabels.insert(labelName);
-			index.setDocumentLabels(docId, docLabels, false);
-		}
-	}
-	else
-	{
-		string url(docInfo.getLocation());
-		bool isNewDocument = false;
-
-		// Is the document being indexed ?
-		if (m_state.write_lock_lists(10) == true)
-		{
-			if (m_state.m_beingIndexed.find(url) == m_state.m_beingIndexed.end())
-			{
-				m_state.m_beingIndexed.insert(url);
-				isNewDocument = true;
-			}
-
-			m_state.unlock_lists();
-		}
-
-		if (isNewDocument == true)
-		{
-			// This is a new document
-			start_thread(new IndexingThread(docInfo, labelName));
-		}
-		// Complain about already indexed files only if we aren't going to set a label on them
-		else if (labelName.empty() == true)
-		{
-			ustring status = url;
-			status += " ";
-			status += _("is already indexed or is being indexed");
-			set_status(status);
-		}
-	}
-}
-
-//
 // View documents
 //
 void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
@@ -3245,64 +3092,6 @@ bool mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 		m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
 			&mainWindow::on_activity_timeout), 1000);
 		m_timeoutConnection.unblock();
-	}
-
-	return true;
-}
-
-//
-// Checks the queue and runs the oldest action if possible.
-//
-bool mainWindow::check_queue(void)
-{
-	if (m_state.get_threads_count() >= m_maxThreads)
-	{
-#ifdef DEBUG
-		cout << "mainWindow::check_queue: too many threads" << endl;
-#endif
-		return false;
-	}
-
-	DocumentInfo docInfo;
-	string labelName;
-	bool foundItem = false;
-
-	if (m_state.write_lock_lists(12) == true)
-	{
-		if (m_state.m_indexQueue.empty() == false)
-		{
-			// Get the first item
-			std::map<DocumentInfo, string>::iterator queueIter = m_state.m_indexQueue.begin();
-			if (queueIter != m_state.m_indexQueue.end())
-			{
-				docInfo = queueIter->first;
-				labelName = queueIter->second;
-				foundItem = true;
-
-				m_state.m_indexQueue.erase(queueIter);
-			}
-		}
-
-		m_state.unlock_lists();
-	}
-
-	if (foundItem == false)
-	{
-		// Nothing to do
-		return false;
-	}
-
-	// Is it an update ?
-	XapianIndex docsIndex(m_settings.m_indexLocation);
-	unsigned int docId = docsIndex.hasDocument(docInfo.getLocation());
-	if (docId > 0)
-	{
-		// Yes, it is
-		index_document(docInfo, labelName, docId);
-	}
-	else
-	{
-		index_document(docInfo, labelName);
 	}
 
 	return true;
