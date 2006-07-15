@@ -89,8 +89,9 @@ void XapianDatabase::openDatabase(void)
 	}
 
 	// Is it a remote database ?
+	string::size_type slashPos = m_databaseName.find("/");
 	string::size_type colonPos = m_databaseName.find(":");
-	if ((m_databaseName[0] != '/') &&
+	if ((slashPos == string::npos) &&
 		(colonPos != string::npos))
 	{
 		string hostName = m_databaseName.substr(0, colonPos);

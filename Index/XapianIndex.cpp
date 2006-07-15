@@ -324,7 +324,8 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 #endif
 			// Get a list of documents that have the term
 			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
-				(postingIter != pIndex->postlist_end(term)) && (docIds.size() < maxDocsCount);
+				(postingIter != pIndex->postlist_end(term)) &&
+					((maxDocsCount == 0) || (docIds.size() < maxDocsCount));
 				++postingIter)
 			{
 				Xapian::docid docId = *postingIter;

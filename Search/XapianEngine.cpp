@@ -341,7 +341,14 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		hostTerms.push_back(term);
 		if (followOperators == true)
 		{
-			queryOp = Xapian::Query::OP_AND;
+			if (queryStack.empty() == false)
+			{
+				queryOp = Xapian::Query::OP_FILTER;
+			}
+			else
+			{
+				queryOp = Xapian::Query::OP_AND;
+			}
 		}
 		queryStack.push(Xapian::Query(queryOp, hostTerms.begin(), hostTerms.end()));
 	}
@@ -356,7 +363,14 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		fileTerms.push_back(term);
 		if (followOperators == true)
 		{
-			queryOp = Xapian::Query::OP_AND;
+			if (queryStack.empty() == false)
+			{
+				queryOp = Xapian::Query::OP_FILTER;
+			}
+			else
+			{
+				queryOp = Xapian::Query::OP_AND;
+			}
 		}
 		queryStack.push(Xapian::Query(queryOp, fileTerms.begin(), fileTerms.end()));
 	}
@@ -371,7 +385,14 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		labelTerms.push_back(term);
 		if (followOperators == true)
 		{
-			queryOp = Xapian::Query::OP_AND;
+			if (queryStack.empty() == false)
+			{
+				queryOp = Xapian::Query::OP_FILTER;
+			}
+			else
+			{
+				queryOp = Xapian::Query::OP_AND;
+			}
 		}
 		queryStack.push(Xapian::Query(queryOp, labelTerms.begin(), labelTerms.end()));
 	}
@@ -390,7 +411,14 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		languageTerms.push_back(term);
 		if (followOperators == true)
 		{
-			queryOp = Xapian::Query::OP_AND;
+			if (queryStack.empty() == false)
+			{
+				queryOp = Xapian::Query::OP_FILTER;
+			}
+			else
+			{
+				queryOp = Xapian::Query::OP_AND;
+			}
 		}
 		queryStack.push(Xapian::Query(queryOp, languageTerms.begin(), languageTerms.end()));
 	}

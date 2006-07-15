@@ -66,8 +66,9 @@ indexDialog::indexDialog(const ustring &name, const ustring &location) :
 	nameEntry->set_text(name);
 
 	// Type and location
+	ustring::size_type slashPos = location.find("/");
 	ustring::size_type colonPos = location.find(":");
-	if ((location[0] != '/') &&
+	if ((slashPos == ustring::npos) &&
 		(colonPos != ustring::npos))
 	{
 		// This is a remote index
@@ -125,18 +126,19 @@ void indexDialog::checkFields(void)
 	ustring location = locationEntry->get_text();
 	if (location.empty() == false)
 	{
-		bool startsWithSlash = false;
+		bool hasSlash = true;
 
-		if (location[0] == '/')
+		ustring::size_type slashPos = location.find("/");
+		if (slashPos == ustring::npos)
 		{
-			startsWithSlash = true;
+			hasSlash = false;
 		}
 
 		// Disable the OK button if the type+location pair doesn't make sense
 		// or if name is empty
 		ustring name = nameEntry->get_text();
 		if ((name.empty() == false) &&
-			(startsWithSlash == isLocal))
+			(hasSlash == isLocal))
 		{
 			enableOkButton = true;
 		}
