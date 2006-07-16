@@ -44,6 +44,9 @@ class XapianDatabase
 		/// Unlocks the database.
 		void unlock(void);
 
+		/// Returns the URL for the given document in the given index.
+		static std::string buildUrl(const std::string &database, unsigned int docId);
+
 	protected:
 		std::string m_databaseName;
 		bool m_readOnly;

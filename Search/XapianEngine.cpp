@@ -177,7 +177,7 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 					{
 						// Hmmm this shouldn't be empty...
 						// Use this instead, even though the document isn't cached in the index
-						url = buildUrl(m_databaseName, *mIter);
+						url = XapianDatabase::buildUrl(m_databaseName, *mIter);
 					}
 					else
 					{
@@ -422,20 +422,6 @@ void XapianEngine::stackQuery(const QueryProperties &queryProps,
 		}
 		queryStack.push(Xapian::Query(queryOp, languageTerms.begin(), languageTerms.end()));
 	}
-}
-
-/// Returns the URL for the given document in the given index.
-string XapianEngine::buildUrl(const string &database, unsigned int docId)
-{
-	// Make up a pseudo URL
-	char docIdStr[64];
-	sprintf(docIdStr, "%u", docId);
-	string url = "xapian://localhost/";
-	url += database;
-	url += "/";
-	url += docIdStr;
-
-	return url;
 }
 
 /// Runs a boolean query; true if success.

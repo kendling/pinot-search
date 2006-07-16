@@ -38,13 +38,13 @@
 #include "TimeConverter.h"
 #include "MIMEScanner.h"
 #include "Url.h"
+#include "XapianDatabase.h"
 #include "TokenizerFactory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderFactory.h"
 #include "XapianIndex.h"
 #include "SearchEngineFactory.h"
-#include "XapianEngine.h"
 #include "config.h"
 #include "NLS.h"
 #include "MboxHandler.h"
@@ -1181,7 +1181,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				{
 					// Add a row to the index tree
 					IndexedDocument indexedDoc(docInfo.getTitle(),
-						XapianEngine::buildUrl(m_settings.m_indexLocation, docId),
+						XapianDatabase::buildUrl(m_settings.m_indexLocation, docId),
 						docInfo.getLocation(), docInfo.getType(),
 						docInfo.getLanguage());
 					indexedDoc.setTimestamp(docInfo.getTimestamp());

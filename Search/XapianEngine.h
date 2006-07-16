@@ -45,9 +45,6 @@ class XapianEngine : public SearchEngineInterface
 		/// Returns the results for the previous query.
 		virtual const std::vector<Result> &getResults(void) const;
 
-		/// Returns the URL for the given document in the given index.
-		static std::string buildUrl(const std::string &database, unsigned int docId);
-
 	protected:
 		std::string m_databaseName;
 		std::set<unsigned int> m_relevantDocuments;

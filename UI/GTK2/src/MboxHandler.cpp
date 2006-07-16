@@ -26,10 +26,10 @@
 #include "StringManip.h"
 #include "Timer.h"
 #include "TimeConverter.h"
+#include "XapianDatabase.h"
 #include "TokenizerFactory.h"
 #include "FileCollector.h"
 #include "XapianIndex.h"
-#include "XapianEngine.h"
 #include "PinotUtils.h"
 #include "MboxHandler.h"
 
@@ -192,7 +192,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex
 				pIndex->setDocumentLabels(docId, labels);
 
 				IndexedDocument docInfo(pMessage->getTitle(),
-					XapianEngine::buildUrl(PinotSettings::getInstance().m_mailIndexLocation, docId),
+					XapianDatabase::buildUrl(PinotSettings::getInstance().m_mailIndexLocation, docId),
 					pMessage->getLocation(), pMessage->getType(), pMessage->getLanguage());
 				docInfo.setTimestamp(TimeConverter::toTimestamp(messageDate));
 

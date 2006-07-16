@@ -233,3 +233,17 @@ void XapianDatabase::unlock(void)
 #endif
 	pthread_rwlock_unlock(&m_rwLock);
 }
+
+/// Returns the URL for the given document in the given index.
+string XapianDatabase::buildUrl(const string &database, unsigned int docId)
+{
+	// Make up a pseudo URL
+	char docIdStr[64];
+	sprintf(docIdStr, "%u", docId);
+	string url = "xapian://localhost/";
+	url += database;
+	url += "/";
+	url += docIdStr;
+
+	return url;
+}

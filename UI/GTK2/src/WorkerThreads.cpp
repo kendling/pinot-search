@@ -35,6 +35,7 @@
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
+#include "XapianDatabase.h"
 #include "QueryHistory.h"
 #include "IndexedDocument.h"
 #include "MonitorFactory.h"
@@ -44,7 +45,6 @@
 #include "GoogleAPIEngine.h"
 #endif
 #include "XapianIndex.h"
-#include "XapianEngine.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -610,7 +610,7 @@ void IndexBrowserThread::doWork(void)
 		// Get the document ID
 		unsigned int docId = (*iter);
 		// ...and the document URL
-		string url = XapianEngine::buildUrl(mapIter->second, docId);
+		string url = XapianDatabase::buildUrl(mapIter->second, docId);
 
 		DocumentInfo docInfo;
 		if (index.getDocumentInfo(docId, docInfo) == true)
