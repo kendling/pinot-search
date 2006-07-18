@@ -14,8 +14,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _XAPIAN_INDEX_H
-#define _XAPIAN_INDEX_H
+#ifndef _WRITABLE_XAPIAN_INDEX_H
+#define _WRITABLE_XAPIAN_INDEX_H
 
 #include <string>
 #include <set>
@@ -23,13 +23,13 @@
 #include <xapian.h>
 
 #include "DocumentInfo.h"
-#include "IndexInterface.h"
+#include "XapianIndex.h"
 
-class XapianIndex : public IndexInterface
+class WritableXapianIndex : public WritableIndexInterface, private XapianIndex
 {
 	public:
-		XapianIndex(const std::string &indexName);
-		virtual ~XapianIndex();
+		WritableXapianIndex(const std::string &indexName);
+		virtual ~WritableXapianIndex();
 
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const;
@@ -63,21 +63,59 @@ class XapianIndex : public IndexInterface
 		virtual bool listDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
-	protected:
-		static const unsigned int m_maxTermLength;
-		static const std::string MAGIC_TERM;
-		std::string m_databaseName;
-		bool m_goodIndex;
+		/// Indexes the given data.
+		virtual bool indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+			unsigned int &docId);
 
-		static std::string limitTermLength(const std::string &term, bool makeUnique = false);
+		/// Updates the given document.
+		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens);
+
+		/// Updates a document's properties.
+		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);
+
+		/// Sets a document's labels.
+		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
+			bool resetLabels = true);
+
+		/// Unindexes the given document.
+		virtual bool unindexDocument(unsigned int docId);
+
+		/// Unindexes documents with the given label.
+		virtual bool unindexDocuments(const std::string &labelName);
+
+		/// Renames a label.
+		virtual bool renameLabel(const std::string &name, const std::string &newName);
+
+		/// Deletes all references to a label.
+		virtual bool deleteLabel(const std::string &name);
+
+		/// Flushes recent changes to the disk.
+		virtual bool flush(void);
+
+	protected:
+		std::string m_stemLanguage;
+
+		static bool badField(const std::string &field);
+
+		void addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
+			const std::string &prefix, Xapian::termcount &termPos, StemmingMode mode) const;
+
+		bool prepareDocument(const DocumentInfo &info, Xapian::Document &doc,
+			Xapian::termcount &termPos) const;
+
+		std::string scanDocument(const char *pData, unsigned int dataLength,
+			DocumentInfo &info);
+
+		void setDocumentData(Xapian::Document &doc, const DocumentInfo &info,
+			const std::string &language) const;
 
 		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,
-			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
+			unsigned int maxDocsCount, unsigned int startDoc) const;
 
 	private:
-		XapianIndex(const XapianIndex &other);
-		XapianIndex &operator=(const XapianIndex &other);
+		WritableXapianIndex(const WritableXapianIndex &other);
+		WritableXapianIndex &operator=(const WritableXapianIndex &other);
 
 };
 
-#endif // _XAPIAN_INDEX_H
+#endif // _WRITABLE_XAPIAN_INDEX_H

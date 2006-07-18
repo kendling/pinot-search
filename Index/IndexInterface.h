@@ -23,26 +23,17 @@
 #include "Tokenizer.h"
 #include "DocumentInfo.h"
 
-/// Interface implemented by indexes.
+/// Interface implemented by read-only indexes.
 class IndexInterface
 {
 	public:
 		virtual ~IndexInterface() {};
 
 		/// Returns false if the index couldn't be opened.
-		bool isGood(void) const { return m_goodIndex; }
-
-		typedef enum { STORE_UNSTEM = 0, STORE_STEM, STORE_BOTH } StemmingMode;
-
-		/// Sets the stemming mode.
-		virtual void setStemmingMode(StemmingMode mode) { m_stemMode = mode; }
+		virtual bool isGood(void) const = 0;
 
 		/// Gets the index location.
 		virtual std::string getLocation(void) const = 0;
-
-		/// Indexes the given data.
-		virtual bool indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
-			unsigned int &docId) = 0;
 
 		/// Returns a document's properties.
 		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const = 0;
@@ -53,36 +44,11 @@ class IndexInterface
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const = 0;
 
-		/// Updates the given document.
-		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens) = 0;
-
-		/// Updates a document's properties.
-		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo) = 0;
-
-		/// Sets a document's labels.
-		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
-			bool resetLabels = true) = 0;
-
 		/// Checks whether the given URL is in the index.
 		virtual unsigned int hasDocument(const std::string &url) const = 0;
 
-		/// Unindexes the given document.
-		virtual bool unindexDocument(unsigned int docId) = 0;
-
-		/// Unindexes documents with the given label.
-		virtual bool unindexDocuments(const std::string &labelName) = 0;
-
 		/// Gets terms with the same root.
 		virtual unsigned int getCloseTerms(const std::string &term, std::set<std::string> &suggestions) = 0;
-
-		/// Renames a label.
-		virtual bool renameLabel(const std::string &name, const std::string &newName) = 0;
-
-		/// Deletes all references to a label.
-		virtual bool deleteLabel(const std::string &name) = 0;
-
-		/// Flushes recent changes to the disk.
-		virtual bool flush(void) = 0;
 
 		/// Returns the number of documents.
 		virtual unsigned int getDocumentsCount(const std::string &labelName = "") const = 0;
@@ -96,14 +62,62 @@ class IndexInterface
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
 
 	protected:
-		StemmingMode m_stemMode;
-		bool m_goodIndex;
-
-		IndexInterface() { m_stemMode = STORE_UNSTEM; m_goodIndex = false; };
+		IndexInterface() { };
 
 	private:
 		IndexInterface(const IndexInterface &other);
 		IndexInterface &operator=(const IndexInterface &other);
+
+};
+
+/// Interface implemented by read-write indexes.
+class WritableIndexInterface : public IndexInterface
+{
+	public:
+		virtual ~WritableIndexInterface() {};
+
+		typedef enum { STORE_UNSTEM = 0, STORE_STEM, STORE_BOTH } StemmingMode;
+
+		/// Sets the stemming mode.
+		virtual void setStemmingMode(StemmingMode mode) { m_stemMode = mode; }
+
+		/// Indexes the given data.
+		virtual bool indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+			unsigned int &docId) = 0;
+
+		/// Updates the given document.
+		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens) = 0;
+
+		/// Updates a document's properties.
+		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo) = 0;
+
+		/// Sets a document's labels.
+		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
+			bool resetLabels = true) = 0;
+
+		/// Unindexes the given document.
+		virtual bool unindexDocument(unsigned int docId) = 0;
+
+		/// Unindexes documents with the given label.
+		virtual bool unindexDocuments(const std::string &labelName) = 0;
+
+		/// Renames a label.
+		virtual bool renameLabel(const std::string &name, const std::string &newName) = 0;
+
+		/// Deletes all references to a label.
+		virtual bool deleteLabel(const std::string &name) = 0;
+
+		/// Flushes recent changes to the disk.
+		virtual bool flush(void) = 0;
+
+	protected:
+		StemmingMode m_stemMode;
+
+		WritableIndexInterface() : IndexInterface(), m_stemMode(STORE_UNSTEM) { };
+
+	private:
+		WritableIndexInterface(const WritableIndexInterface &other);
+		WritableIndexInterface &operator=(const WritableIndexInterface &other);
 
 };
 

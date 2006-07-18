@@ -3,13 +3,25 @@
 noinst_HEADERS = \
 	IndexInterface.h \
 	LanguageDetector.h \
+	WritableXapianIndex.h \
 	XapianIndex.h
 
 noinst_LTLIBRARIES = libIndex.la
 
+bin_PROGRAMS = pinot-index
+
 libIndex_la_SOURCES = \
 	LanguageDetector.cpp \
+	WritableXapianIndex.cpp \
 	XapianIndex.cpp
 
-AM_CXXFLAGS = -I../Utils -I../Tokenize @INDEX_CFLAGS@ 
+pinot_index_SOURCES = \
+	pinot-index.cpp
+
+pinot_index_LDADD = -L../Utils -L../Tokenize -L../Collect -L../Index \
+	-lIndex -lCollect -lTokenize -lUtils \
+	@GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+
+AM_CXXFLAGS = -I../Utils -I../Tokenize -I../Collect -I../Index \
+	@HTTP_CFLAGS@ @MIME_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ @INDEX_CFLAGS@
 

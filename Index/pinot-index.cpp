@@ -26,7 +26,7 @@
 #include "XapianDatabaseFactory.h"
 #include "TokenizerFactory.h"
 #include "DownloaderFactory.h"
-#include "XapianIndex.h"
+#include "WritableXapianIndex.h"
 #include "config.h"
 
 using namespace std;
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 					<< "  -h, --help		display this help and exit\n"
 					<< "  -i, --index		index the given URL\n"
 					<< "  -v, --version		output version information and exit\n\n";
-				cout << "\n\nExamples:\n"
+				cout << "Examples:\n"
 					<< "pinot-index --check http://pinot.berlios.de/ xapian ~/.pinot/index\n\n"
 					<< "pinot-index --index http://pinot.berlios.de/ xapian ~/.pinot/index\n\n"
 					<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
@@ -110,10 +110,10 @@ int main(int argc, char **argv)
 
 	// FIXME: don't ignore the index type
 
-	XapianIndex index(argv[optind + 1]);
-
 	if (checkDocument == true)
 	{
+		XapianIndex index(argv[optind + 1]);
+
 		if (index.isGood() == true)
 		{
 			unsigned int docId = index.hasDocument(urlToCheck);
@@ -153,9 +153,10 @@ int main(int argc, char **argv)
 			Tokenizer *pTokens = TokenizerFactory::getTokenizerByType(docInfo.getType(), pDoc);
 			if (pTokens != NULL)
 			{
+				WritableXapianIndex index(argv[optind + 1]);
 				set<string> labels;
 
-				index.setStemmingMode(IndexInterface::STORE_BOTH);
+				index.setStemmingMode(WritableIndexInterface::STORE_BOTH);
 
 				// Update an existing document or add to the index ?
 				unsigned int docId = index.hasDocument(urlToIndex);
