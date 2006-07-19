@@ -426,21 +426,17 @@ bool WritableXapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::s
 			return false;
 		}
 
-		const char *pData = pDocument->getData(dataLength);
-		if (pData == NULL)
-		{
-#ifdef DEBUG
-			cout << "WritableXapianIndex::indexDocument: empty document" << endl;
-#endif
-			return false;
-		}
 		// Cache the document's properties
 		DocumentInfo docInfo(pDocument->getTitle(), pDocument->getLocation(),
 			pDocument->getType(), pDocument->getLanguage());
 		docInfo.setTimestamp(pDocument->getTimestamp());
 		docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
-		m_stemLanguage = scanDocument(pData, dataLength, docInfo);
+		const char *pData = pDocument->getData(dataLength);
+		if (pData != NULL)
+		{
+			m_stemLanguage = scanDocument(pData, dataLength, docInfo);
+		}
 
 		Xapian::Document doc;
 		Xapian::termcount termPos = 0;
