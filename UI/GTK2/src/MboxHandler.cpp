@@ -29,7 +29,7 @@
 #include "XapianDatabase.h"
 #include "TokenizerFactory.h"
 #include "FileCollector.h"
-#include "XapianIndex.h"
+#include "WritableXapianIndex.h"
 #include "PinotUtils.h"
 #include "MboxHandler.h"
 
@@ -37,8 +37,7 @@ using namespace std;
 using namespace SigC;
 
 MboxHandler::MboxHandler() :
-	MonitorHandler(),
-	m_locationsCount(0)
+	MonitorHandler()
 {
 }
 
@@ -105,7 +104,7 @@ bool MboxHandler::indexMessages(const string &fileName, PinotSettings::MailAccou
 	sourceLabel += fileName;
 
 	// Get the mail index
-	XapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
+	WritableXapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
 	if (index.isGood() == false)
 	{
 		cerr << "MboxHandler::indexMessages: couldn't get mail index" << endl;
@@ -133,7 +132,7 @@ bool MboxHandler::indexMessages(const string &fileName, PinotSettings::MailAccou
 	return indexedFile;
 }
 
-bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex,
+bool MboxHandler::parseMailAccount(MboxParser &boxParser, WritableIndexInterface *pIndex,
 	time_t &lastMessageTime, const string &sourceLabel)
 {
 	set<unsigned int> docIdList;
@@ -165,7 +164,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex
 		unsigned int docId = pIndex->hasDocument(pMessage->getLocation());
 		if (docId == 0)
 		{
-			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
+			pIndex->setStemmingMode(WritableIndexInterface::STORE_BOTH);
 
 			// Get an ad hoc tokenizer for the message
 			Tokenizer *pTokenizer = TokenizerFactory::getTokenizerByType(pMessage->getType(), pMessage);
@@ -243,7 +242,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex
 	return indexedFile;
 }
 
-bool MboxHandler::deleteMessages(IndexInterface *pIndex, set<unsigned int> &docIdList)
+bool MboxHandler::deleteMessages(WritableIndexInterface *pIndex, set<unsigned int> &docIdList)
 {
 	bool unindexedMsgs = false;
 
@@ -395,7 +394,7 @@ bool MboxHandler::fileDeleted(const string &fileName)
 	sourceLabel += fileName;
 
 	// Get the mail index
-	XapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
+	WritableXapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
 	if (index.isGood() == false)
 	{
 		cerr << "MboxHandler::fileDeleted: couldn't get mail index" << endl;

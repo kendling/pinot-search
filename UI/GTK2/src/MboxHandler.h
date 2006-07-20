@@ -54,7 +54,6 @@ class MboxHandler : public MonitorHandler
 		virtual bool fileDeleted(const std::string &fileName);
 
 	protected:
-		unsigned int m_locationsCount;
 		std::set<std::string> m_locations;
 
 		bool checkMailAccount(const std::string &fileName, PinotSettings::MailAccount &mailAccount,
@@ -63,10 +62,10 @@ class MboxHandler : public MonitorHandler
 		bool indexMessages(const std::string &fileName, PinotSettings::MailAccount &mailAccount,
 			off_t mboxOffset);
 
-		bool parseMailAccount(MboxParser &boxParser, IndexInterface *pIndex,
+		bool parseMailAccount(MboxParser &boxParser, WritableIndexInterface *pIndex,
 			time_t &lastMessageTime, const std::string &sourceLabel);
 
-		bool deleteMessages(IndexInterface *pIndex, std::set<unsigned int> &docIdList);
+		bool deleteMessages(WritableIndexInterface *pIndex, std::set<unsigned int> &docIdList);
 
 	private:
 		MboxHandler(const MboxHandler &other);
