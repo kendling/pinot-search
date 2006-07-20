@@ -112,10 +112,12 @@ PinotSettings::PinotSettings() :
 	}
 
 	// This is where the internal indices live
-	m_indexLocation = directoryName;
-	m_indexLocation += "/index";
+	m_docsIndexLocation = directoryName;
+	m_docsIndexLocation += "/index";
 	m_mailIndexLocation = directoryName;
 	m_mailIndexLocation += "/mail";
+	m_daemonIndexLocation = directoryName;
+	m_daemonIndexLocation += "/daemon";
 
 	// The location of the history database is not configurable
 	m_historyDatabase = directoryName;
@@ -189,6 +191,7 @@ void PinotSettings::clear(void)
 	m_queries.clear();
 	m_labels.clear();
 	m_mailAccounts.clear();
+	m_indexableLocations.clear();
 	m_cacheProviders.clear();
 }
 
@@ -213,8 +216,9 @@ bool PinotSettings::load(void)
 	}
 
 	// Internal indices
-	addIndex(_("My Documents"), m_indexLocation);
+	addIndex(_("My Documents"), m_docsIndexLocation);
 	addIndex(_("My Email"), m_mailIndexLocation);
+	addIndex(_("My Computer"), m_daemonIndexLocation);
 
 	// Add default labels on the first run
 	if (m_firstRun == true)
@@ -354,6 +358,10 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 				else if (nodeName == "mailaccount")
 				{
 					loadMailAccounts(pElem);
+				}
+				else if (nodeName == "indexable")
+				{
+					loadIndexableLocations(pElem);
 				}
 			}
 		}
@@ -743,6 +751,41 @@ bool PinotSettings::loadMailAccounts(const Element *pElem)
 	return true;
 }
 
+bool PinotSettings::loadIndexableLocations(const Element *pElem)
+{
+	if (pElem == NULL)
+	{
+		return false;
+	}
+
+	Node::NodeList childNodes = pElem->get_children();
+	if (childNodes.empty() == true)
+	{
+		return false;
+	}
+
+	// Load the indexable location's properties
+	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
+	{
+		Node *pNode = (*iter);
+		Element *pElem = dynamic_cast<Element*>(pNode);
+		if (pElem == NULL)
+		{
+			continue;
+		}
+
+		string nodeName = pElem->get_name();
+		string nodeContent = getElementContent(pElem);
+
+		if (nodeName == "location")
+		{
+			m_indexableLocations.insert(nodeContent);
+		}
+	}
+
+	return true;
+}
+
 bool PinotSettings::loadCacheProviders(const Element *pElem)
 {
 	if (pElem == NULL)
@@ -997,6 +1040,16 @@ bool PinotSettings::save(void)
 		sprintf(numStr, "%ld", mailIter->m_size);
 		addChildElement(pElem, "size", numStr);
 	}
+	// Locations to index 
+	for (set<string>::iterator locationIter = m_indexableLocations.begin(); locationIter != m_indexableLocations.end(); ++locationIter)
+	{
+		pElem = pRootElem->add_child("indexable");
+		if (pElem == NULL)
+		{
+			return false;
+		}
+		addChildElement(pElem, "location", *locationIter);
+	}
 
 	// Save to file
 	doc.write_to_file_formatted(getConfigurationFileName());
@@ -1014,7 +1067,8 @@ const map<string, string> &PinotSettings::getIndexes(void) const
 bool PinotSettings::isInternalIndex(const string &indexName) const
 {
 	if ((indexName == _("My Documents")) ||
-		(indexName == _("My Email")))
+		(indexName == _("My Email")) ||
+		(indexName == _("My Computer")))
 	{
 		return true;
 	}
@@ -1069,8 +1123,9 @@ void PinotSettings::clearIndexes(void)
 	// Clear both maps, reinsert the internal index
 	m_indexNames.clear();
 	m_indexIds.clear();
-	addIndex(_("My Documents"), m_indexLocation);
+	addIndex(_("My Documents"), m_docsIndexLocation);
 	addIndex(_("My Email"), m_mailIndexLocation);
+	addIndex(_("My Computer"), m_daemonIndexLocation);
 }
 
 /// Returns an ID that identifies the given index.

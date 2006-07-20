@@ -160,8 +160,9 @@ class PinotSettings
 		};
 
 		Glib::ustring m_googleAPIKey;
-		Glib::ustring m_indexLocation;
+		Glib::ustring m_docsIndexLocation;
 		Glib::ustring m_mailIndexLocation;
+		Glib::ustring m_daemonIndexLocation;
 		Glib::ustring m_historyDatabase;
 		int m_xPos;
 		int m_yPos;
@@ -173,6 +174,7 @@ class PinotSettings
 		bool m_suggestQueryTerms;
 		Gdk::Color m_newResultsColour;
 		std::set<MailAccount> m_mailAccounts;
+		std::set<std::string> m_indexableLocations;
 		std::vector<CacheProvider> m_cacheProviders;
 		std::set<Glib::ustring> m_cacheProtocols;
 
@@ -196,6 +198,7 @@ class PinotSettings
 		bool loadLabels(const xmlpp::Element *pElem);
 		bool loadColour(const xmlpp::Element *pElem);
 		bool loadMailAccounts(const xmlpp::Element *pElem);
+		bool loadIndexableLocations(const xmlpp::Element *pElem);
 		bool loadCacheProviders(const xmlpp::Element *pElem);
 
 	private:
