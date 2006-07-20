@@ -27,7 +27,7 @@
 #include "MIMEScanner.h"
 #include "NLS.h"
 #include "Url.h"
-#include "XapianIndex.h"
+#include "WritableXapianIndex.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "importDialog.hh"
@@ -39,7 +39,7 @@ using namespace Gtk;
 string importDialog::InternalState::m_defaultDirectory = "";
 
 importDialog::InternalState::InternalState(unsigned int maxIndexThreads, importDialog *pWindow) :
-	ThreadsManager(maxIndexThreads),
+	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
 	m_importing(false)
 {
 	m_onThreadEndSignal.connect(SigC::slot(*pWindow, &importDialog::on_thread_end));
@@ -133,21 +133,6 @@ void importDialog::populate_comboboxes(bool localOnly)
 	}
 }
 
-bool importDialog::start_thread(WorkerThread *pNewThread)
-{
-	if (m_state.start_thread(pNewThread, false) == false)
-	{
-		// Delete the object
-		delete pNewThread;
-		return false;
-	}
-#ifdef DEBUG
-	cout << "importDialog::start_thread: started thread " << pNewThread->getId() << endl;
-#endif
-
-	return true;
-}
-
 void importDialog::signal_scanner(void)
 {
 	// Ask the scanner for another file
@@ -168,17 +153,20 @@ bool importDialog::on_activity_timeout(void)
 
 bool importDialog::on_import_url(const string &location)
 {
-	XapianIndex index(PinotSettings::getInstance().m_indexLocation);
-	IndexingThread *pThread = NULL;
+	WritableXapianIndex index(PinotSettings::getInstance().m_docsIndexLocation);
 	Url urlObj(location);
 	set<string> labels;
-	string title = from_utf8(m_title);
-	unsigned int docId = 0;
+	string title(from_utf8(m_title));
 
 	if (index.isGood() == true)
 	{
-		docId = index.hasDocument(location);
-		index.getDocumentLabels(docId, labels);
+		unsigned int docId = index.hasDocument(location);
+
+		// if the document exists, get its labels list
+		if (docId > 0)
+		{
+			index.getDocumentLabels(docId, labels);
+		}
 	}
 	labels.insert(m_labelName);
 
@@ -194,19 +182,7 @@ bool importDialog::on_import_url(const string &location)
 	DocumentInfo docInfo(title, location, MIMEScanner::scanUrl(urlObj), "");
 	docInfo.setLabels(labels);
 
-	if (docId > 0)
-	{
-		// This document needs updating
-		index.getDocumentInfo(docId, docInfo);
-		pThread = new IndexingThread(docInfo, docId);
-	}
-	else
-	{
-		pThread = new IndexingThread(docInfo);
-	}
-
-	// Launch the new thread
-	start_thread(pThread);
+	m_state.queue_index(docInfo);
 
 	return false;
 }
@@ -269,6 +245,9 @@ void importDialog::on_thread_end(WorkerThread *pThread)
 
 	// Delete the thread
 	delete pThread;
+
+	// We might be able to run a queued action
+	m_state.pop_queue();
 
 	if (m_state.m_importing == false)
 	{
@@ -424,7 +403,7 @@ void importDialog::on_importButton_clicked()
 			maxDirLevel, linksCheckbutton->get_active(),
 			&m_state.m_scanMutex, &m_state.m_scanCondVar);
 		m_pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &importDialog::on_import_url));
-		start_thread(m_pScannerThread);
+		m_state.start_thread(m_pScannerThread);
 	}
 	else
 	{

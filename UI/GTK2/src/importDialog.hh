@@ -44,7 +44,6 @@ public:
 
 protected:
 	void populate_comboboxes(bool localOnly);
-	bool start_thread(WorkerThread *pNewThread);
 	void signal_scanner(void);
 
 	bool on_activity_timeout(void);
