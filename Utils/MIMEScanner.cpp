@@ -329,6 +329,33 @@ bool MIMEScanner::getDefaultAction(const string &mimeType, MIMEAction &typeActio
 {
 	map<string, MIMEAction>::const_iterator actionIter = m_defaultActions.find(mimeType);
 
+	if (actionIter == m_defaultActions.end())
+	{
+		// Is there an action for any of this type's parents ?
+		char **pParentTypes = xdg_mime_list_mime_parents(mimeType.c_str());
+		if ((pParentTypes != NULL) &&
+			(pParentTypes[0] != NULL))
+		{
+			for (unsigned int i = 0; pParentTypes[i] != NULL; ++i)
+			{
+				actionIter = m_defaultActions.find(pParentTypes[i]);
+				if (actionIter != m_defaultActions.end())
+				{
+#ifdef DEBUG
+					cout << "MIMEScanner::getDefaultAction: " << mimeType << " has parent type " << pParentTypes[i] << endl;
+#endif
+					break;
+				}
+			}
+
+			free(pParentTypes);
+		}
+#ifdef DEBUG
+		else cout << "MIMEScanner::getDefaultAction: " << mimeType << " has no parent types" << endl;
+#endif
+	}
+
+	// Found anything ?
 	if (actionIter != m_defaultActions.end())
 	{
 		typeAction = actionIter->second;
