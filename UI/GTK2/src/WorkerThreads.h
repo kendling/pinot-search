@@ -91,7 +91,8 @@ class WorkerThread
 class ThreadsManager : public SigC::Object
 {
 	public:
-		ThreadsManager(unsigned int maxIndexThreads);
+		ThreadsManager(const std::string &defaultIndexLocation,
+			unsigned int maxIndexThreads);
 		virtual ~ThreadsManager();
 
 		bool start_thread(WorkerThread *pWorkerThread, bool inBackground = false);
@@ -106,7 +107,7 @@ class ThreadsManager : public SigC::Object
 
 		virtual void disconnect(void);
 
-		void on_thread_end();
+		void on_thread_signal();
 
 		bool read_lock_lists(void);
 
@@ -125,6 +126,7 @@ class ThreadsManager : public SigC::Object
 		pthread_rwlock_t m_threadsLock;
 		pthread_rwlock_t m_listsLock;
 		std::map<WorkerThread *, Glib::Thread *> m_threads;
+		std::string m_defaultIndexLocation;
 		unsigned int m_maxIndexThreads;
 		unsigned int m_nextId;
 		unsigned int m_backgroundThreadsCount;
@@ -272,8 +274,8 @@ class DownloadingThread : public WorkerThread
 class IndexingThread : public DownloadingThread
 {
 	public:
-		IndexingThread(const DocumentInfo &docInfo, unsigned int docId = 0,
-			bool allowAllMIMETypes = false);
+		IndexingThread(const DocumentInfo &docInfo, unsigned int docId,
+			const std::string &indexLocation, bool allowAllMIMETypes = true);
 		virtual ~IndexingThread();
 
 		virtual std::string getType(void) const;
@@ -291,8 +293,8 @@ class IndexingThread : public DownloadingThread
 	protected:
 		DocumentInfo m_docInfo;
 		unsigned int m_docId;
-		bool m_allowAllMIMETypes;
 		std::string m_indexLocation;
+		bool m_allowAllMIMETypes;
 		bool m_ignoreRobotsDirectives;
 		bool m_update;
 

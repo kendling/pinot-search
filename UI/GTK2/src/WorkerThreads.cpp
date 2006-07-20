@@ -44,7 +44,7 @@
 #ifdef HAS_GOOGLEAPI
 #include "GoogleAPIEngine.h"
 #endif
-#include "XapianIndex.h"
+#include "WritableXapianIndex.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -161,8 +161,10 @@ void WorkerThread::emitSignal(void)
 	m_dispatcher.emit();
 }
 
-ThreadsManager::ThreadsManager(unsigned int maxIndexThreads) :
+ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
+	unsigned int maxIndexThreads) :
 	SigC::Object(),
+	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(maxIndexThreads),
 	m_nextId(1),
 	m_backgroundThreadsCount(0)
@@ -288,12 +290,12 @@ bool ThreadsManager::index_document(const DocumentInfo &docInfo)
 	}
 
 	// Is it an update ?
-	XapianIndex docsIndex(PinotSettings::getInstance().m_indexLocation);
-	unsigned int docId = docsIndex.hasDocument(docInfo.getLocation());
+	XapianIndex index(m_defaultIndexLocation);
+	unsigned int docId = index.hasDocument(docInfo.getLocation());
 	if (docId > 0)
 	{
 		// Yes, it is
-		start_thread(new IndexingThread(docInfo, docId));
+		start_thread(new IndexingThread(docInfo, docId, m_defaultIndexLocation));
 	}
 	else
 	{
@@ -318,7 +320,7 @@ bool ThreadsManager::index_document(const DocumentInfo &docInfo)
 		}
 
 		// This is a new document
-		start_thread(new IndexingThread(docInfo));
+		start_thread(new IndexingThread(docInfo, docId, m_defaultIndexLocation));
 	}
 
 	return true;
@@ -342,6 +344,8 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 	Thread *pThread = pWorkerThread->start();
 	if (pThread == NULL)
 	{
+		delete pWorkerThread;
+
 		return false;
 	}
 
@@ -417,7 +421,7 @@ void ThreadsManager::connect(void)
 
 	// Connect the dispatcher
 	m_threadsEndConnection = WorkerThread::getDispatcher().connect(
-		SigC::slot(*this, &ThreadsManager::on_thread_end));
+		SigC::slot(*this, &ThreadsManager::on_thread_signal));
 #ifdef DEBUG
 	cout << "ThreadsManager::connect: connected" << endl;
 #endif
@@ -432,13 +436,13 @@ void ThreadsManager::disconnect(void)
 #endif
 }
 
-void ThreadsManager::on_thread_end()
+void ThreadsManager::on_thread_signal()
 {
 	WorkerThread *pThread = get_thread();
 	if (pThread == NULL)
 	{
 #ifdef DEBUG
-		cout << "ThreadsManager::on_thread_end: foreign thread" << endl;
+		cout << "ThreadsManager::on_thread_signal: foreign thread" << endl;
 #endif
 		return;
 	}
@@ -801,16 +805,16 @@ bool LabelUpdateThread::stop(void)
 
 void LabelUpdateThread::doWork(void)
 {
-	XapianIndex docsIndex(PinotSettings::getInstance().m_indexLocation);
+	WritableXapianIndex docsIndex(PinotSettings::getInstance().m_docsIndexLocation);
 	if (docsIndex.isGood() == false)
 	{
 		m_status = _("Index error on");
 		m_status += " ";
-		m_status += PinotSettings::getInstance().m_indexLocation;
+		m_status += PinotSettings::getInstance().m_docsIndexLocation;
 		return;
 	}
 
-	XapianIndex mailIndex(PinotSettings::getInstance().m_mailIndexLocation);
+	WritableXapianIndex mailIndex(PinotSettings::getInstance().m_mailIndexLocation);
 	if (mailIndex.isGood() == false)
 	{
 		m_status = _("Index error on");
@@ -818,6 +822,8 @@ void LabelUpdateThread::doWork(void)
 		m_status += PinotSettings::getInstance().m_mailIndexLocation;
 		return;
 	}
+
+	// FIXME: what about the daemon index ?
 
 	// Delete labels
 	for (set<string>::iterator iter = m_labelsToDelete.begin(); iter != m_labelsToDelete.end(); ++iter)
@@ -925,13 +931,13 @@ void DownloadingThread::doWork(void)
 }
 
 IndexingThread::IndexingThread(const DocumentInfo &docInfo, unsigned int docId,
-	bool allowAllMIMETypes) :
+	const string &indexLocation, bool allowAllMIMETypes) :
 	DownloadingThread(docInfo, false),
 	m_docInfo(docInfo),
 	m_docId(docId),
+	m_indexLocation(indexLocation),
 	m_allowAllMIMETypes(allowAllMIMETypes)
 {
-	m_indexLocation = PinotSettings::getInstance().m_indexLocation;
 	if (m_docId > 0)
 	{
 		// Ignore robots directives on updates
@@ -992,7 +998,7 @@ bool IndexingThread::stop(void)
 void IndexingThread::doWork(void)
 {
 	// First things first, get the index
-	XapianIndex index(m_indexLocation);
+	WritableXapianIndex index(m_indexLocation);
 	if (index.isGood() == false)
 	{
 		m_status = _("Index error on");
@@ -1008,7 +1014,8 @@ void IndexingThread::doWork(void)
 
 	if (m_pDoc != NULL)
 	{
-		string docType = m_pDoc->getType();
+		Tokenizer *pTokens = NULL;
+		string docType(m_pDoc->getType());
 		bool success = false;
 
 		// The type may have been obtained when downloading
@@ -1019,20 +1026,6 @@ void IndexingThread::doWork(void)
 		else
 		{
 			m_pDoc->setType(m_docInfo.getType());
-		}
-
-		// Skip unsupported types ?
-		if ((m_allowAllMIMETypes == false) &&
-			(TokenizerFactory::isSupportedType(m_docInfo.getType()) == false))
-		{
-			m_status = _("Cannot index document type");
-			m_status += " ";
-			m_status += m_docInfo.getType();
-			m_status += " ";
-			m_status += _("at");
-			m_status += " ";
-			m_status += m_docInfo.getLocation();
-			return;
 		}
 
 		if (m_docInfo.getTitle().empty() == false)
@@ -1049,15 +1042,42 @@ void IndexingThread::doWork(void)
 		cout << "IndexingThread::doWork: title is " << m_pDoc->getTitle() << endl;
 #endif
 
-		// Tokenize this document
-		Tokenizer *pTokens = TokenizerFactory::getTokenizerByType(m_docInfo.getType(), m_pDoc);
-		if (pTokens == NULL)
+		if (TokenizerFactory::isSupportedType(m_docInfo.getType()) == false)
 		{
-			m_status = _("Couldn't tokenize");
-			m_status += " ";
-			m_status += m_docInfo.getLocation();
-			return;
+			// Skip unsupported types ?
+			if (m_allowAllMIMETypes == false)
+			{
+				m_status = _("Cannot index document type");
+				m_status += " ";
+				m_status += m_docInfo.getType();
+				m_status += " ";
+				m_status += _("at");
+				m_status += " ";
+				m_status += m_docInfo.getLocation();
+				return;
+			}
+#ifdef DEBUG
+			cout << "IndexingThread::doWork: can't index document content" << endl;
+#endif
+
+			// Create an empty document so that the file's details are indexed but not its content
+			delete m_pDoc;
+			m_pDoc = new Document(m_docInfo);
+			// A simple text tokenizer will do the job
+			pTokens = new Tokenizer(m_pDoc);
 		}
+		else
+		{
+			pTokens = TokenizerFactory::getTokenizerByType(m_docInfo.getType(), m_pDoc);
+		}
+
+		if (pTokens == NULL)
+                {
+                        m_status = _("Couldn't tokenize");
+                        m_status += " ";
+                        m_status += m_docInfo.getLocation();
+                        return;
+                }
 
 		// Is indexing allowed ?
 		HtmlTokenizer *pHtmlTokens = dynamic_cast<HtmlTokenizer*>(pTokens);
@@ -1084,7 +1104,7 @@ void IndexingThread::doWork(void)
 		{
 			const set<string> &labels = m_docInfo.getLabels();
 
-			index.setStemmingMode(IndexInterface::STORE_BOTH);
+			index.setStemmingMode(WritableIndexInterface::STORE_BOTH);
 
 			// Update an existing document or add to the index ?
 			if (m_update == true)
@@ -1132,7 +1152,7 @@ void IndexingThread::doWork(void)
 
 UnindexingThread::UnindexingThread(const set<unsigned int> &docIdList) :
 	WorkerThread(),
-	m_indexLocation(PinotSettings::getInstance().m_indexLocation),
+	m_indexLocation(PinotSettings::getInstance().m_docsIndexLocation),
 	m_docsCount(0)
 {
 	copy(docIdList.begin(), docIdList.end(), inserter(m_docIdList, m_docIdList.begin()));
@@ -1146,7 +1166,7 @@ UnindexingThread::UnindexingThread(const set<string> &labelNames, const string &
 	copy(labelNames.begin(), labelNames.end(), inserter(m_labelNames, m_labelNames.begin()));
 	if (indexLocation.empty() == true)
 	{
-		m_indexLocation = PinotSettings::getInstance().m_indexLocation;
+		m_indexLocation = PinotSettings::getInstance().m_docsIndexLocation;
 	}
 }
 
@@ -1175,7 +1195,7 @@ void UnindexingThread::doWork(void)
 {
 	if (m_done == false)
 	{
-		XapianIndex index(m_indexLocation);
+		WritableXapianIndex index(m_indexLocation);
 
 		if (index.isGood() == false)
 		{
@@ -1295,7 +1315,7 @@ void UpdateDocumentThread::doWork(void)
 		}
 
 		// Get the index at that location
-		XapianIndex index(mapIter->second);
+		WritableXapianIndex index(mapIter->second);
 		if (index.isGood() == false)
 		{
 			m_status = _("Index error on");
@@ -1312,6 +1332,7 @@ void UpdateDocumentThread::doWork(void)
 		{
 			// Flush the index
 			index.flush();
+
 			// The document properties may have changed
 			index.getDocumentInfo(m_docId, m_docInfo);
 		}
