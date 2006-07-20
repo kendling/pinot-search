@@ -42,9 +42,9 @@
 
 using namespace std;
 
-static ofstream outputFile;
-static streambuf *coutBuf = NULL;
-static streambuf *cerrBuf = NULL;
+static ofstream g_outputFile;
+static streambuf *g_coutBuf = NULL;
+static streambuf *g_cerrBuf = NULL;
 static struct option g_longOptions[] = {
 	{"help", 0, 0, 'h'},
 	{"version", 0, 0, 'v'},
@@ -69,15 +69,15 @@ static void closeAll(void)
 	TokenizerFactory::unloadTokenizers();
 
 	// Restore the stream buffers
-	if (coutBuf != NULL)
+	if (g_coutBuf != NULL)
 	{
-		cout.rdbuf(coutBuf);
+		cout.rdbuf(g_coutBuf);
 	}
-	if (cerrBuf != NULL)
+	if (g_cerrBuf != NULL)
 	{
-		cerr.rdbuf(cerrBuf);
+		cerr.rdbuf(g_cerrBuf);
 	}
-	outputFile.close();
+	g_outputFile.close();
 
 	DownloaderInterface::shutdown();
 	MIMEScanner::shutdown();
@@ -146,11 +146,11 @@ int main(int argc, char **argv)
 	// Redirect cout and cerr to a file
 	string logFileName = confDirectory;
 	logFileName += "/pinot.log";
-	outputFile.open(logFileName.c_str());
-	coutBuf = cout.rdbuf();
-	cerrBuf = cerr.rdbuf();
-	cout.rdbuf(outputFile.rdbuf());
-	cerr.rdbuf(outputFile.rdbuf());
+	g_outputFile.open(logFileName.c_str());
+	g_coutBuf = cout.rdbuf();
+	g_cerrBuf = cerr.rdbuf();
+	cout.rdbuf(g_outputFile.rdbuf());
+	cerr.rdbuf(g_outputFile.rdbuf());
 
 	// Localize language names
 	Languages::setIntlName(0, _("Unknown"));
@@ -184,14 +184,14 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
 
-	// Ensure Xapian will be able to deal with internal indices
-	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_indexLocation, false);
+	// Open these indexes read-write
+	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_docsIndexLocation, false);
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))
 	{
 		errorMsg = _("Couldn't open index");
 		errorMsg += " ";
-		errorMsg += settings.m_indexLocation;
+		errorMsg += settings.m_docsIndexLocation;
 	}
 	pDb = XapianDatabaseFactory::getDatabase(settings.m_mailIndexLocation, false);
 	if ((pDb == NULL) ||
@@ -200,6 +200,15 @@ int main(int argc, char **argv)
 		errorMsg = _("Couldn't open index");
 		errorMsg += " ";
 		errorMsg += settings.m_mailIndexLocation;
+	}
+	// ...the daemon's index in read-only mode
+	pDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation);
+	if ((pDb == NULL) ||
+		(pDb->isOpen() == false))
+	{
+		errorMsg = _("Couldn't open index");
+		errorMsg += " ";
+		errorMsg += settings.m_daemonIndexLocation;
 	}
 
 	// Do the same for the history database
