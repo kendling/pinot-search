@@ -112,7 +112,8 @@ void propertiesDialog::populate_languageCombobox(const string &language, bool no
 	}
 
 	// Did we find the given language ?
-	if (foundLanguage == false)
+	if ((notALanguageName == false) &&
+		(foundLanguage == false))
 	{
 		// Select the first language in the list
 		languageCombobox->set_active(languageStart);
