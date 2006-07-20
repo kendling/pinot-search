@@ -43,7 +43,7 @@
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderFactory.h"
-#include "XapianIndex.h"
+#include "WritableXapianIndex.h"
 #include "SearchEngineFactory.h"
 #include "config.h"
 #include "NLS.h"
@@ -66,7 +66,7 @@ unsigned int mainWindow::m_maxDocsCount = 100;
 unsigned int mainWindow::m_maxIndexThreads = 2;
 
 mainWindow::InternalState::InternalState(unsigned int maxIndexThreads, mainWindow *pWindow) :
-	ThreadsManager(maxIndexThreads),
+	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
 	m_liveQueryLength(0),
 	m_currentPage(0),
 	m_browsingIndex(false)
@@ -305,8 +305,14 @@ void mainWindow::populate_menus()
 	SigC::Slot1<void, ustring> indexSlot = SigC::slot(*this, &mainWindow::on_index_changed);
 
 	// Populate the submenu
-	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Documents")));
+	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Computer")));
 	MenuItem *pMenuItem = &m_pIndexMenu->items().back();
+	// Bind the callback's parameter to the index name
+	SigC::Slot0<void> daemonActivateSlot = sigc::bind(indexSlot, _("My Computer"));
+	pMenuItem->signal_activate().connect(daemonActivateSlot);
+
+	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Documents")));
+	pMenuItem = &m_pIndexMenu->items().back();
 	// Bind the callback's parameter to the index name
 	SigC::Slot0<void> documentsActivateSlot = sigc::bind(indexSlot, _("My Documents"));
 	pMenuItem->signal_activate().connect(documentsActivateSlot);
@@ -447,7 +453,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 	if ((hasSelection == true) &&
 		(resultsList.empty() == false))
 	{
-		XapianIndex docsIndex(m_settings.m_indexLocation);
+		XapianIndex docsIndex(m_settings.m_docsIndexLocation);
 		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = true;
 
 		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
@@ -533,7 +539,7 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 		{
 			bool isDocumentsIndex = true;
 
-			// Enable these menu items, unless the index is not the documents index
+			// Enable these menu items unless it is not the documents index
 			if (indexName != _("My Documents"))
 			{
 				isDocumentsIndex = false;
@@ -866,7 +872,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				snprintf(docsCountStr, 64, "%u", pIndexTree->getRowsCount());
 				status += docsCountStr;
 				status += " ";
-				status += _("off");
+				status += _("of");
 				status += " ";
 				snprintf(docsCountStr, 64, "%u", pIndexPage->getDocumentsCount());
 				status += docsCountStr;
@@ -1181,7 +1187,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				{
 					// Add a row to the index tree
 					IndexedDocument indexedDoc(docInfo.getTitle(),
-						XapianDatabase::buildUrl(m_settings.m_indexLocation, docId),
+						XapianDatabase::buildUrl(m_settings.m_docsIndexLocation, docId),
 						docInfo.getLocation(), docInfo.getType(),
 						docInfo.getLanguage());
 					indexedDoc.setTimestamp(docInfo.getTimestamp());
@@ -1741,7 +1747,7 @@ void mainWindow::on_morelikethis_activate()
 		}
 	}
 
-        XapianIndex docsIndex(m_settings.m_indexLocation);
+        XapianIndex docsIndex(m_settings.m_docsIndexLocation);
         set<unsigned int> docIdList;
 
         if (docsIndex.isGood() == true)
@@ -1758,7 +1764,7 @@ void mainWindow::on_morelikethis_activate()
 
 		// Spawn a new thread
 		start_thread(new QueryingThread("xapian", _("My Documents"),
-			m_settings.m_indexLocation, queryProps, docIdList));
+			m_settings.m_docsIndexLocation, queryProps, docIdList));
         }
 }
 
@@ -1770,7 +1776,7 @@ void mainWindow::on_indexresults_activate()
 	vector<DocumentInfo> resultsList;
 
 	// Make sure this has been configured
-	if (m_settings.m_indexLocation.empty() == true)
+	if (m_settings.m_docsIndexLocation.empty() == true)
 	{
 		set_status(_("Please set a location for the index first"));
 		return;
@@ -1862,7 +1868,7 @@ void mainWindow::on_refreshindex_activate()
 	vector<IndexedDocument> documentsList;
 
 	// Make sure this has been configured
-	if (m_settings.m_indexLocation.empty() == true)
+	if (m_settings.m_docsIndexLocation.empty() == true)
 	{
 		set_status(_("Please set a location for the index first"));
 		return;
@@ -1946,7 +1952,7 @@ void mainWindow::on_showfromindex_activate()
 		return;
 	}
 
-	XapianIndex index(mapIter->second);
+	WritableXapianIndex index(mapIter->second);
 
 	// Get the current documents selection
 	if ((pIndexTree == NULL) ||
@@ -2304,7 +2310,7 @@ void mainWindow::on_liveQueryEntry_changed()
 	m_state.m_liveQueryLength = liveQueryLength;
 
 	// FIXME: relying on other indices may also be useful
-	XapianIndex docsIndex(m_settings.m_indexLocation);
+	XapianIndex docsIndex(m_settings.m_docsIndexLocation);
 	if (docsIndex.isGood() == true)
 	{
 		set<string> suggestedTerms;
@@ -2968,9 +2974,10 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 	for (multimap<string, string>::iterator locationIter = locationsByType.begin();
 		locationIter != locationsByType.end(); ++locationIter)
 	{
+		string type(locationIter->first);
 		string url(locationIter->second);
 
-		if (locationIter->first != currentType)
+		if (type != currentType)
 		{
 			if ((action.m_exec.empty() == false) &&
 				(arguments.empty() == false))
@@ -2989,16 +2996,32 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 			}
 
 			// Get the action for this MIME type
-			if (MIMEScanner::getDefaultAction(locationIter->first, action) == false)
+			if (MIMEScanner::getDefaultAction(type, action) == false)
 			{
-				ustring statusText = _("No default application defined for type");
-				statusText += " ";
-				statusText += locationIter->first;
-				set_status(statusText);
-				continue;
+				Url urlObj(url);
+				bool foundAction = false;
+
+				if (urlObj.getProtocol() == "http")
+				{
+					// Chances are the web browser will be able to open this
+					type = "text/html";
+					foundAction = MIMEScanner::getDefaultAction(type, action);
+#ifdef DEBUG
+					cout << "mainWindow::view_documents: defaulting to test/html" << endl;
+#endif
+				}
+
+				if (foundAction == false)
+				{
+					ustring statusText = _("No default application defined for type");
+					statusText += " ";
+					statusText += type;
+					set_status(statusText);
+					continue;
+				}
 			}
 		}
-		currentType = locationIter->first;
+		currentType = type;
 
 		arguments.push_back(url);
 
