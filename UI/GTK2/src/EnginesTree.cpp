@@ -336,11 +336,9 @@ void EnginesTree::populate(bool indexesOnly)
 		ustring indexName = to_utf8(indexIter->first);
 		EnginesModelColumns::EngineType indexType = EnginesModelColumns::INDEX_ENGINE;
 
-		if (indexName == _("My Documents"))
-		{
-			indexType = EnginesModelColumns::INTERNAL_INDEX_ENGINE;
-		}
-		else if (indexName == _("My Email"))
+		if ((indexName == _("My Documents")) ||
+			(indexName == _("My Email")) ||
+			(indexName == _("My Computer")))
 		{
 			indexType = EnginesModelColumns::INTERNAL_INDEX_ENGINE;
 		}

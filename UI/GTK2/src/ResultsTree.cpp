@@ -1131,7 +1131,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 #endif
 	}
 
-	XapianIndex index(m_settings.m_indexLocation);
+	XapianIndex index(m_settings.m_docsIndexLocation);
 	ViewHistory viewHistory(m_settings.m_historyDatabase);
 	bool isIndexed = false;
 
