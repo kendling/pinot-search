@@ -35,7 +35,6 @@ extern "C"
 }
 #include <glibmm/main.h>
 
-#include "DocumentInfo.h"
 #include "TokenizerFactory.h"
 #include "Languages.h"
 #include "MIMEScanner.h"
@@ -46,13 +45,14 @@ extern "C"
 #include "DownloaderInterface.h"
 #include "config.h"
 #include "NLS.h"
+#include "DaemonState.h"
 #include "PinotSettings.h"
 
 using namespace std;
 
-static ofstream outputFile;
-static streambuf *coutBuf = NULL;
-static streambuf *cerrBuf = NULL;
+static ofstream g_outputFile;
+static streambuf *g_coutBuf = NULL;
+static streambuf *g_cerrBuf = NULL;
 static struct option g_longOptions[] = {
 	{"help", 0, 0, 'h'},
 	{"version", 0, 0, 'v'},
@@ -79,15 +79,15 @@ static void closeAll(void)
 	TokenizerFactory::unloadTokenizers();
 
 	// Restore the stream buffers
-	if (coutBuf != NULL)
+	if (g_coutBuf != NULL)
 	{
-		cout.rdbuf(coutBuf);
+		cout.rdbuf(g_coutBuf);
 	}
-	if (cerrBuf != NULL)
+	if (g_cerrBuf != NULL)
 	{
-		cerr.rdbuf(cerrBuf);
+		cerr.rdbuf(g_cerrBuf);
 	}
-	outputFile.close();
+	g_outputFile.close();
 
 	DownloaderInterface::shutdown();
 	MIMEScanner::shutdown();
@@ -118,12 +118,14 @@ static DBusHandlerResult objectPathHandler(DBusConnection *pConnection, DBusMess
 
 static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
+	DaemonState *pServer = NULL;
 	DBusMessage *pReply = NULL;
 	bool processedMessage = false;
 
-#ifdef DEBUG
-	cout << "messageBusFilter: called" << endl;
-#endif
+	if (pData != NULL)
+	{
+		pServer = (DaemonState *)pData;
+	}
 
 	// Are we about to be disconnected ?
 	if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_LOCAL, "Disconnected") == TRUE)
@@ -138,14 +140,22 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "Index") == TRUE)
 	{
+		const char *pSender = dbus_message_get_sender(pMessage);
 		DBusError error;
 		char *pTitle = NULL;
 		char *pLocation = NULL;
 		char *pType = NULL;
 		char *pLanguage = NULL;
-		char *pLabel = NULL;
-		dbus_uint64_t docId = 0;
+		char **ppLabels = NULL;
+		dbus_uint32_t labelsCount = 0;
+		dbus_uint32_t docId = 0;
 
+#ifdef DEBUG
+		if (pSender != NULL)
+		{
+			cout << "messageBusFilter: called from " << pSender << endl;
+		}
+#endif
 		// Simple types are returned as const references and don't need to be freed
 		dbus_error_init(&error);
 		if (dbus_message_get_args(pMessage, &error,
@@ -153,29 +163,39 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DBUS_TYPE_STRING, &pLocation,
 			DBUS_TYPE_STRING, &pType,
 			DBUS_TYPE_STRING, &pLanguage,
-			DBUS_TYPE_STRING, &pLabel,
-			DBUS_TYPE_UINT64, &docId,
+			DBUS_TYPE_ARRAY, &ppLabels,
+			DBUS_TYPE_UINT32, &labelsCount,
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 			DocumentInfo docInfo(pTitle, pLocation, pType, pLanguage);
 
 #ifdef DEBUG
 			cout << "messageBusFilter: received " << pTitle << ", " << pLocation
-				<< ", " << pType << ", " << pLanguage << ", " << pLabel
-				<< ", " << docId << endl;
+				<< ", " << pType << ", " << pLanguage << ", " << docId
+				<< " with " << labelsCount << " labels" << endl;
 #endif
+			// FIXME: set labels on docInfo
+
 			// FIXME: index docInfo
+			pServer->queue_index(docInfo);
+
+			// Free container types
+			g_strfreev(ppLabels);
 
 			// Prepare the reply
 			pReply = dbus_message_new_method_return(pMessage);
 			if (pReply != NULL)
 			{
 				dbus_message_append_args(pReply,
-					DBUS_TYPE_UINT64, &docId, DBUS_TYPE_INVALID);
+					DBUS_TYPE_UINT32, &docId,
+					DBUS_TYPE_INVALID);
 			}
 		}
 		else
 		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
 			// Use the error message as reply
 			pReply = dbus_message_new_error(pMessage, error.name, error.message);
 		}
@@ -266,11 +286,11 @@ int main(int argc, char **argv)
 	// Redirect cout and cerr to a file
 	string logFileName = confDirectory;
 	logFileName += "/pinot-dbus-daemon.log";
-	outputFile.open(logFileName.c_str());
-	coutBuf = cout.rdbuf();
-	cerrBuf = cerr.rdbuf();
-	cout.rdbuf(outputFile.rdbuf());
-	cerr.rdbuf(outputFile.rdbuf());
+	g_outputFile.open(logFileName.c_str());
+	g_coutBuf = cout.rdbuf();
+	g_cerrBuf = cerr.rdbuf();
+	cout.rdbuf(g_outputFile.rdbuf());
+	cerr.rdbuf(g_outputFile.rdbuf());
 
 	// Localize language names
 	Languages::setIntlName(0, _("Unknown"));
@@ -304,21 +324,15 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
 
-#if 0
-	// Ensure Xapian will be able to deal with internal indices
-	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_indexLocation, false);
+	// Open the index in read-write mode 
+	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation, false);
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))
 	{
-		cerr << _("Couldn't open index") << " " << settings.m_indexLocation << endl;;
+		cerr << _("Couldn't open index") << " " << settings.m_daemonIndexLocation << endl;;
+
+		return EXIT_FAILURE;
 	}
-	pDb = XapianDatabaseFactory::getDatabase(settings.m_mailIndexLocation, false);
-	if ((pDb == NULL) ||
-		(pDb->isOpen() == false))
-	{
-		cerr << _("Couldn't open index") << " " << settings.m_mailIndexLocation << endl;
-	}
-#endif
 
 	// Do the same for the history database
 	if ((settings.m_historyDatabase.empty() == true) ||
@@ -326,6 +340,8 @@ int main(int argc, char **argv)
 		(ViewHistory::create(settings.m_historyDatabase) == false))
 	{
 		cerr << _("Couldn't create history database") << " " << settings.m_historyDatabase << endl;
+
+		return EXIT_FAILURE;
 	}
 	else
 	{
@@ -340,7 +356,8 @@ int main(int argc, char **argv)
 
 	atexit(closeAll);
 
-	// Initialize the D-Bus thread system
+	// Initialize the GType and the D-Bus thread system
+	g_type_init ();
 	dbus_g_thread_init();
 
 	GError *pError = NULL;
@@ -349,48 +366,59 @@ int main(int argc, char **argv)
 	{
 		if (pError != NULL)
 		{
-			cerr << "Couldn't open connection: " << pError->message << endl;
+			cerr << "Couldn't open bus connection: " << pError->message << endl;
 			g_error_free(pError);
 		}
 
 		return EXIT_FAILURE;
 	}
 
-	// Listen for messages from all objects
 	DBusConnection *pConnection = dbus_g_connection_get_connection(pBus);
-	if (pConnection != NULL)
+	if (pConnection == NULL)
 	{
-		DBusError error;
+		cerr << "Couldn't get connection" << endl;
+		return EXIT_FAILURE;
+	}
 
-		dbus_error_init(&error);
-		dbus_connection_set_exit_on_disconnect(pConnection, FALSE);
-		dbus_connection_setup_with_g_main(pConnection, NULL);
+	DBusError error;
+	DaemonState server;
 
-		dbus_connection_add_filter(pConnection, messageBusFilter, NULL, NULL);
-		if (dbus_error_is_set(&error) == FALSE)
+	dbus_error_init(&error);
+	dbus_connection_set_exit_on_disconnect(pConnection, FALSE);
+	dbus_connection_setup_with_g_main(pConnection, NULL);
+
+	dbus_connection_add_filter(pConnection, messageBusFilter, &server, NULL);
+	if (dbus_error_is_set(&error) == FALSE)
+	{
+		// Request to be identified by this name
+		// FIXME: flags are currently broken ?
+		dbus_bus_request_name(pConnection, g_pinotDBusService, 0, &error);
+		if ((dbus_error_is_set(&error) == FALSE) &&
+			(dbus_connection_register_object_path(pConnection, g_pinotDBusObjectPath,
+				&g_callVTable, NULL) == TRUE))
 		{
-			// Request to be identified by this name
-			// FIXME: flags are currently broken ?
-			dbus_bus_request_name(pConnection, g_pinotDBusService, 0, &error);
-			if ((dbus_error_is_set(&error) == FALSE) &&
-				(dbus_connection_register_object_path(pConnection, g_pinotDBusObjectPath,
-					&g_callVTable, NULL) == TRUE))
-			{
-				// Run the main loop
-				g_refMainLoop = Glib::MainLoop::create();
-				g_refMainLoop->run();
-			}
-			else
-			{
-				cerr << "Couldn't register object path: " << pError->message << endl;
-			}
+			// Get the main loop
+			g_refMainLoop = Glib::MainLoop::create();
+
+			// Connect to threads' finished signal
+			server.connect();
+
+			server.start();
+
+			// Run the main loop
+			g_refMainLoop->run();
 		}
 		else
 		{
-			cerr << "Couldn't add filter: " << pError->message << endl;
+			cerr << "Couldn't register object path: " << pError->message << endl;
 		}
-		dbus_error_free(&error);
 	}
+	else
+	{
+		cerr << "Couldn't add filter: " << pError->message << endl;
+	}
+
+	dbus_error_free(&error);
 	dbus_connection_close(pConnection);
 	dbus_g_connection_unref(pBus);
 

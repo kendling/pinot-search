@@ -7,9 +7,9 @@
       <arg type="s" name="location" direction="in"/>
       <arg type="s" name="type" direction="in"/>
       <arg type="s" name="language" direction="in"/>
-      <arg type="s" name="label" direction="in"/>
-      <arg type="u" name="currentId" direction="in"/>
-      <arg type="u" name="newId" direction="out"/>
+      <arg type="as" name="labels" direction="in"/>
+      <arg type="u" name="labelsCount" direction="in"/>
+      <arg type="u" name="docId" direction="out"/>
     </method>
   </interface>
 </node>
