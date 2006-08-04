@@ -125,7 +125,22 @@ class PinotSettings
 		/// Clears the labels list.
 		void clearLabels(void);
 
-		class MailAccount
+		class TimestampedItem
+		{
+			public:
+				TimestampedItem();
+				TimestampedItem(const TimestampedItem &other);
+				~TimestampedItem();
+
+				TimestampedItem &operator=(const TimestampedItem &other);
+				bool operator<(const TimestampedItem &other) const;
+				bool operator==(const TimestampedItem &other) const;
+
+				Glib::ustring m_name;
+				time_t m_modTime;
+		};
+
+		class MailAccount : public TimestampedItem
 		{
 			public:
 				MailAccount();
@@ -136,9 +151,7 @@ class PinotSettings
 				bool operator<(const MailAccount &other) const;
 				bool operator==(const MailAccount &other) const;
 
-				Glib::ustring m_name;
 				Glib::ustring m_type;
-				time_t m_modTime;
 				time_t m_lastMessageTime;
 				off_t m_size;
 		};
@@ -174,7 +187,7 @@ class PinotSettings
 		bool m_suggestQueryTerms;
 		Gdk::Color m_newResultsColour;
 		std::set<MailAccount> m_mailAccounts;
-		std::set<std::string> m_indexableLocations;
+		std::set<TimestampedItem> m_indexableLocations;
 		std::vector<CacheProvider> m_cacheProviders;
 		std::set<Glib::ustring> m_cacheProtocols;
 

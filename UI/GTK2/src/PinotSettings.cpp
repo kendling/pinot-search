@@ -725,13 +725,13 @@ bool PinotSettings::loadMailAccounts(const Element *pElem)
 		{
 			mailAccount.m_name = nodeContent;
 		}
-		else if (nodeName == "type")
-		{
-			mailAccount.m_type = nodeContent;
-		}
 		else if (nodeName == "mtime")
 		{
 			mailAccount.m_modTime = (time_t)atoi(nodeContent.c_str());
+		}
+		else if (nodeName == "type")
+		{
+			mailAccount.m_type = nodeContent;
 		}
 		else if (nodeName == "mindate")
 		{
@@ -764,6 +764,8 @@ bool PinotSettings::loadIndexableLocations(const Element *pElem)
 		return false;
 	}
 
+	TimestampedItem location;
+
 	// Load the indexable location's properties
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
@@ -779,8 +781,17 @@ bool PinotSettings::loadIndexableLocations(const Element *pElem)
 
 		if (nodeName == "location")
 		{
-			m_indexableLocations.insert(nodeContent);
+			location.m_name = nodeContent;
 		}
+		else if (nodeName == "mtime")
+		{
+			location.m_modTime = (time_t)atoi(nodeContent.c_str());
+		}
+	}
+
+	if (location.m_name.empty() == false)
+	{
+		m_indexableLocations.insert(location);
 	}
 
 	return true;
@@ -1041,14 +1052,16 @@ bool PinotSettings::save(void)
 		addChildElement(pElem, "size", numStr);
 	}
 	// Locations to index 
-	for (set<string>::iterator locationIter = m_indexableLocations.begin(); locationIter != m_indexableLocations.end(); ++locationIter)
+	for (set<TimestampedItem>::iterator locationIter = m_indexableLocations.begin(); locationIter != m_indexableLocations.end(); ++locationIter)
 	{
 		pElem = pRootElem->add_child("indexable");
 		if (pElem == NULL)
 		{
 			return false;
 		}
-		addChildElement(pElem, "location", *locationIter);
+		addChildElement(pElem, "location", locationIter->m_name);
+		sprintf(numStr, "%ld", locationIter->m_modTime);
+		addChildElement(pElem, "mtime", numStr);
 	}
 
 	// Save to file
@@ -1361,16 +1374,59 @@ bool PinotSettings::Engine::operator==(const Engine &other) const
 	return false;
 }
 
-PinotSettings::MailAccount::MailAccount()
+PinotSettings::TimestampedItem::TimestampedItem() :
+	m_modTime(0)
 {
-	m_modTime = m_lastMessageTime = (time_t)0;
-	m_size = 0;
+}
+
+PinotSettings::TimestampedItem::TimestampedItem(const TimestampedItem &other) :
+	m_name(other.m_name),
+	m_modTime(other.m_modTime)
+{
+}
+
+PinotSettings::TimestampedItem::~TimestampedItem()
+{
+}
+
+PinotSettings::TimestampedItem &PinotSettings::TimestampedItem::operator=(const TimestampedItem &other)
+{
+	m_name = other.m_name;
+	m_modTime = other.m_modTime;
+
+	return *this;
+}
+
+bool PinotSettings::TimestampedItem::operator<(const TimestampedItem &other) const
+{
+	if (m_name < other.m_name)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool PinotSettings::TimestampedItem::operator==(const TimestampedItem &other) const
+{
+	if (m_name == other.m_name)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+PinotSettings::MailAccount::MailAccount() :
+	TimestampedItem(),
+	m_lastMessageTime(0),
+	m_size(0)
+{
 }
 
 PinotSettings::MailAccount::MailAccount(const MailAccount &other) :
-	m_name(other.m_name),
+	TimestampedItem(other),
 	m_type(other.m_type),
-	m_modTime(other.m_modTime),
 	m_lastMessageTime(other.m_lastMessageTime),
 	m_size(other.m_size)
 {
@@ -1382,9 +1438,8 @@ PinotSettings::MailAccount::~MailAccount()
 
 PinotSettings::MailAccount &PinotSettings::MailAccount::operator=(const MailAccount &other)
 {
-	m_name = other.m_name;
+	TimestampedItem::operator=(other);
 	m_type = other.m_type;
-	m_modTime = other.m_modTime;
 	m_lastMessageTime = other.m_lastMessageTime;
 	m_size = other.m_size;
 
@@ -1393,22 +1448,12 @@ PinotSettings::MailAccount &PinotSettings::MailAccount::operator=(const MailAcco
 
 bool PinotSettings::MailAccount::operator<(const MailAccount &other) const
 {
-	if (m_name < other.m_name)
-	{
-		return true;
-	}
-
-	return false;
+	return TimestampedItem::operator<(other);
 }
 
 bool PinotSettings::MailAccount::operator==(const MailAccount &other) const
 {
-	if (m_name == other.m_name)
-	{
-		return true;
-	}
-
-	return false;
+	return TimestampedItem::operator==(other);
 }
 
 PinotSettings::CacheProvider::CacheProvider()
