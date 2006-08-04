@@ -97,16 +97,21 @@ class WritableXapianIndex : public WritableIndexInterface, private XapianIndex
 
 		static bool badField(const std::string &field);
 
-		void addTermsToDocument(Tokenizer &tokens, Xapian::Document &doc,
+		void addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc,
 			const std::string &prefix, Xapian::termcount &termPos, StemmingMode mode) const;
 
-		bool prepareDocument(const DocumentInfo &info, Xapian::Document &doc,
+		void removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Document &doc,
+			const std::string &prefix, const std::string &language, StemmingMode mode) const;
+
+		bool addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
 			Xapian::termcount &termPos) const;
+
+		void removeCommonTerms(Xapian::Document &doc);
 
 		std::string scanDocument(const char *pData, unsigned int dataLength,
 			DocumentInfo &info);
 
-		void setDocumentData(Xapian::Document &doc, const DocumentInfo &info,
+		void setDocumentData(const DocumentInfo &info, Xapian::Document &doc,
 			const std::string &language) const;
 
 		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,
