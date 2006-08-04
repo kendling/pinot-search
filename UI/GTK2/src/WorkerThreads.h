@@ -398,6 +398,8 @@ class DirectoryScannerThread : public WorkerThread
 
 		virtual std::string getType(void) const;
 
+		virtual std::string getDirectory(void) const;
+
 		virtual bool stop(void);
 
 		SigC::Signal1<bool, const std::string&>& getFileFoundSignal(void);

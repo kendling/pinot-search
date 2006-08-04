@@ -380,7 +380,7 @@ bool MboxHandler::fileModified(const string &fileName)
 	return indexMessages(fileName, mailAccount, mboxOffset);
 }
 
-bool MboxHandler::fileMoved(const string &fileName)
+bool MboxHandler::fileMoved(const string &fileName, const string &previousFileName)
 {
 	// Nothing to do here
 	return true;

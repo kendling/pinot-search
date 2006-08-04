@@ -45,7 +45,8 @@ class MonitorHandler
 		virtual bool fileModified(const std::string &fileName) = 0;
 
 		/// Handles file moved events.
-		virtual bool fileMoved(const std::string &fileName) = 0;
+		virtual bool fileMoved(const std::string &fileName,
+			const std::string &previousFileName) = 0;
 
 		/// Handles file deleted events.
 		virtual bool fileDeleted(const std::string &fileName) = 0;

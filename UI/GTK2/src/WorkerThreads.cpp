@@ -1514,7 +1514,7 @@ void MonitorThread::doWork(void)
 				}
 				else if (event.m_type == MonitorEvent::MOVED)
 				{
-					updatedIndex = m_pHandler->fileMoved(event.m_location);
+					updatedIndex = m_pHandler->fileMoved(event.m_location, event.m_previousLocation);
 				}
 				else if (event.m_type == MonitorEvent::DELETED)
 				{
@@ -1555,6 +1555,11 @@ DirectoryScannerThread::~DirectoryScannerThread()
 string DirectoryScannerThread::getType(void) const
 {
 	return "DirectoryScannerThread";
+}
+
+string DirectoryScannerThread::getDirectory(void) const
+{
+	return m_dirName;
 }
 
 bool DirectoryScannerThread::stop(void)

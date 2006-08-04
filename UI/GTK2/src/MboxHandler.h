@@ -48,7 +48,8 @@ class MboxHandler : public MonitorHandler
 		virtual bool fileModified(const std::string &fileName);
 
 		/// Handles file moved events.
-		virtual bool fileMoved(const std::string &fileName);
+		virtual bool fileMoved(const std::string &fileName,
+			const std::string &previousFileName);
 
 		/// Handles file deleted events.
 		virtual bool fileDeleted(const std::string &fileName);
