@@ -13,16 +13,18 @@ noinst_HEADERS = \
 	propertiesDialog.hh \
 	indexDialog_glade.hh \
 	indexDialog.hh \
+	DaemonState.h \
 	EnginesTree.h \
 	IndexPage.h \
-	ModelColumns.h \
-	Notebook.h \
-	PinotUtils.h \
-	WorkerThreads.h \
 	IndexTree.h \
 	MboxHandler.h \
+	ModelColumns.h \
+	Notebook.h \
+	OnDiskHandler.h \
 	PinotSettings.h \
-	ResultsTree.h
+	PinotUtils.h \
+	ResultsTree.h \
+	WorkerThreads.h
 
 pinot_SOURCES = \
 	pinot.cc \
@@ -40,24 +42,38 @@ pinot_SOURCES = \
 	indexDialog.cc \
 	EnginesTree.cpp \
 	IndexPage.cpp \
-	ModelColumns.cpp \
-	Notebook.cpp \
-	PinotUtils.cpp \
-	WorkerThreads.cpp \
 	IndexTree.cpp \
 	MboxHandler.cpp \
+	ModelColumns.cpp \
+	Notebook.cpp \
 	PinotSettings.cpp \
-	ResultsTree.cpp
+	PinotUtils.cpp \
+	ResultsTree.cpp \
+	WorkerThreads.cpp
 
-bin_PROGRAMS = pinot
+pinot_dbus_daemon_SOURCES = \
+	pinot-dbus-daemon.cc \
+	DaemonState.cpp \
+	MboxHandler.cpp \
+	OnDiskHandler.cpp \
+	PinotSettings.cpp \
+	PinotUtils.cpp \
+	WorkerThreads.cpp
+
+bin_PROGRAMS = pinot pinot-dbus-daemon
 
 AM_CXXFLAGS = -I../../../Utils -I../../../Tokenize -I../../../SQL \
 	-I../../../Monitor -I../../../Collect -I../../../Search \
 	-I../../../Search/Google -I../../../Index \
-	@SQL_CFLAGS@ @HTTP_CFLAGS@ @MIME_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ @INDEX_CFLAGS@ @UI_CFLAGS@
+	@SQL_CFLAGS@ @HTTP_CFLAGS@ @MIME_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ @DBUS_CFLAGS@ @INDEX_CFLAGS@ @UI_CFLAGS@
 
 pinot_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL -L../../../Monitor \
 	-L../../../Collect -L../../../Search -L../../../Search/Google \
 	-L../../../Index -lIndex @SEARCH_LIBS@ -lMonitor -lCollect -lSQL -lTokenize -lUtils \
-	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
+	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
+
+pinot_dbus_daemon_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL -L../../../Monitor \
+	-L../../../Collect -L../../../Search -L../../../Search/Google \
+	-L../../../Index -lIndex @SEARCH_LIBS@ -lMonitor -lCollect -lSQL -lTokenize -lUtils \
+	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
