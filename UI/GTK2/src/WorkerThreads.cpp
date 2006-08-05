@@ -70,10 +70,16 @@ public:
 };
 
 Dispatcher WorkerThread::m_dispatcher;
+bool WorkerThread::m_immediateFlush = true;
 
 Dispatcher &WorkerThread::getDispatcher(void)
 {
 	return m_dispatcher;
+}
+
+void WorkerThread::immediateFlush(bool doFlush)
+{
+	m_immediateFlush = doFlush;
 }
 
 WorkerThread::WorkerThread() :
@@ -1138,8 +1144,11 @@ void IndexingThread::doWork(void)
 			}
 			else
 			{
-				// Flush the index
-				index.flush();
+				// Flush the index ?
+				if (m_immediateFlush == true)
+				{
+					index.flush();
+				}
 
 				// The document properties may have changed
 				index.getDocumentInfo(m_docId, m_docInfo);
@@ -1251,8 +1260,11 @@ void UnindexingThread::doWork(void)
 
 		if (m_docsCount > 0)
 		{
-			// Flush the index
-			index.flush();
+			// Flush the index ?
+			if (m_immediateFlush == true)
+			{
+				index.flush();
+			}
 
 			// Nothing to report
 			m_status = "";
@@ -1330,8 +1342,11 @@ void UpdateDocumentThread::doWork(void)
 		}
 		else
 		{
-			// Flush the index
-			index.flush();
+			// Flush the index ?
+			if (m_immediateFlush == true)
+			{
+				index.flush();
+			}
 
 			// The document properties may have changed
 			index.getDocumentInfo(m_docId, m_docInfo);

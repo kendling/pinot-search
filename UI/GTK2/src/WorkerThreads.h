@@ -45,6 +45,8 @@ class WorkerThread
 
 		static Glib::Dispatcher &getDispatcher(void);
 
+		static void immediateFlush(bool doFlush);
+
 		void setId(unsigned int id);
 
 		unsigned int getId(void);
@@ -70,6 +72,7 @@ class WorkerThread
 	protected:
 		/// Use a Dispatcher for thread safety
 		static Glib::Dispatcher m_dispatcher;
+		static bool m_immediateFlush;
 		bool m_joinable;
 		unsigned int m_id;
 		bool m_background;

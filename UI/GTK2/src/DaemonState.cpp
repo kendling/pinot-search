@@ -21,6 +21,7 @@
 #include <glibmm/convert.h>
 #include <glibmm/thread.h>
 
+#include "WritableXapianIndex.h"
 #include "DaemonState.h"
 #include "OnDiskHandler.h"
 #include "PinotSettings.h"
@@ -44,6 +45,9 @@ DaemonState::~DaemonState()
 void DaemonState::start(void)
 {
 	string locationToCrawl;
+
+	// Disable implicit flushing after a change
+	WorkerThread::immediateFlush(false);
 
 	for (set<PinotSettings::TimestampedItem>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
 		locationIter != PinotSettings::getInstance().m_indexableLocations.end(); ++locationIter)
@@ -168,6 +172,10 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 
 			unlock_lists();
 		}
+
+		// Explicitely flush the index once a directory has been crawled
+		WritableXapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
+		index.flush();
 
 		// Start a new scanner thread ?
 		if (pNewScannerThread != NULL)
