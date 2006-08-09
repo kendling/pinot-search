@@ -175,13 +175,57 @@ bool CrawlHistory::deleteSource(unsigned int sourceId)
 }
 
 /// Inserts an URL.
-bool CrawlHistory::insertItem(const string &url, CrawlStatus status, unsigned int sourceId)
+bool CrawlHistory::insertItem(const string &url, CrawlStatus status, unsigned int sourceId, time_t date)
 {
 	bool success = false;
 
 	SQLiteResults *results = executeStatement("INSERT INTO CrawlHistory \
 		VALUES('%q', '%q', '%u', '%d');",
-		Url::escapeUrl(url).c_str(), statusToText(status).c_str(), sourceId, time(NULL));
+		Url::escapeUrl(url).c_str(), statusToText(status).c_str(), sourceId,
+		(date == 0 ? time(NULL) : date));
+	if (results != NULL)
+	{
+		success = true;
+		delete results;
+	}
+
+	return success;
+}
+
+/// Checks if an URL is in the history.
+bool CrawlHistory::hasItem(const string &url, CrawlStatus &status, time_t &date) const
+{
+	bool success = false;
+
+	SQLiteResults *results = executeStatement("SELECT Status, Date FROM CrawlHistory \
+		WHERE Url='%q';", Url::escapeUrl(url).c_str());
+	if (results != NULL)
+	{
+		SQLiteRow *row = results->nextRow();
+		if (row != NULL)
+		{
+			status = textToStatus(row->getColumn(0));
+			date = (time_t)atoi(row->getColumn(1).c_str());
+			success = true;
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return success;
+}
+
+/// Updates an URL.
+bool CrawlHistory::updateItem(const string &url, CrawlStatus status, time_t date)
+{
+	bool success = false;
+
+	SQLiteResults *results = executeStatement("UPDATE CrawlHistory \
+		SET Status='%q', Date='%d' WHERE Url='%q';",
+		statusToText(status).c_str(), (date == 0 ? time(NULL) : date),
+		Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
 		success = true;
@@ -211,47 +255,6 @@ unsigned int CrawlHistory::getItemsCount(void) const
 	}
 
 	return count;
-}
-
-/// Checks if an URL is in the history.
-bool CrawlHistory::hasItem(const string &url, CrawlStatus &status) const
-{
-	bool success = false;
-
-	SQLiteResults *results = executeStatement("SELECT Status FROM CrawlHistory \
-		WHERE Url='%q';", Url::escapeUrl(url).c_str());
-	if (results != NULL)
-	{
-		SQLiteRow *row = results->nextRow();
-		if (row != NULL)
-		{
-			status = textToStatus(row->getColumn(0));
-			success = true;
-
-			delete row;
-		}
-
-		delete results;
-	}
-
-	return success;
-}
-
-/// Updates an URL.
-bool CrawlHistory::updateItem(const string &url, CrawlStatus status)
-{
-	bool success = false;
-
-	SQLiteResults *results = executeStatement("UPDATE CrawlHistory \
-		SET Status='%q', Date='%d' WHERE Url='%q';",
-		statusToText(status).c_str(), Url::escapeUrl(url).c_str(), time(NULL));
-	if (results != NULL)
-	{
-		success = true;
-		delete results;
-	}
-
-	return success;
 }
 
 /// Deletes an URL.

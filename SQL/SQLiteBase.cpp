@@ -26,6 +26,12 @@
 using std::cout;
 using std::endl;
 
+static int busyHandler(void *pData, int lockNum)
+{
+	// Try again
+	return 1;
+}
+
 SQLiteRow::SQLiteRow(const vector<string> &rowColumns, int nColumns) :
 	m_nColumns(nColumns)
 {
@@ -195,6 +201,8 @@ sqlite3 *SQLiteBase::open(const string &database) const
 #ifdef DEBUG
 	else cout << "SQLiteBase::open: opened " << database << endl;
 #endif
+	// Set up a busy handler
+	sqlite3_busy_handler(pDatabase, busyHandler, NULL);
 
 	return pDatabase;
 }
