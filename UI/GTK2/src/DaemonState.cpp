@@ -52,30 +52,15 @@ void DaemonState::start(void)
 	for (set<PinotSettings::TimestampedItem>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
 		locationIter != PinotSettings::getInstance().m_indexableLocations.end(); ++locationIter)
 	{
-		bool crawledLocation = false;
-
-		// Has this directory been crawled before ?
-		if (locationIter->m_modTime > 0)
+		if (locationToCrawl.empty() == true)
 		{
-			// FIXME: recrawl once in a while ?
-			crawledLocation = true;
-		}
-
-		if (crawledLocation == false)
-		{
-			if (locationToCrawl.empty() == true)
-			{
-				locationToCrawl = locationIter->m_name;
-			}
-			else
-			{
-				// This will be crawled next
-				m_crawlQueue.push(locationIter->m_name);
-			}
+			// Crawl this now
+			locationToCrawl = locationIter->m_name;
 		}
 		else
 		{
-			m_monitoredLocations.insert(locationIter->m_name);
+			// This will be crawled next
+			m_crawlQueue.push(locationIter->m_name);
 		}
 	}
 
@@ -91,7 +76,7 @@ void DaemonState::start(void)
 	}
 	else
 	{
-		// Fire up the disk monitor thread
+		// Fire up the disk monitor thread right away
 		OnDiskHandler *pDisk = new OnDiskHandler();
 		// Connect to its update signal
 		pDisk->getUpdateSignal().connect(
@@ -271,4 +256,3 @@ bool DaemonState::on_message_filefound(const string &location)
 	// Don't request another file right now
 	return false;
 }
-
