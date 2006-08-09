@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <node name="/de/berlios/Pinot">
   <interface name="de.berlios.Pinot">
+    <method name="GetDocumentInfo">
+      <annotation name="de.berlios.Pinot.GetDocumentInfo" value="pinotDBus"/>
+      <arg type="u" name="docId" direction="in"/>
+      <arg type="s" name="title" direction="out"/>
+      <arg type="s" name="location" direction="out"/>
+      <arg type="s" name="type" direction="out"/>
+      <arg type="s" name="language" direction="out"/>
+    </method>
     <method name="Index">
       <annotation name="de.berlios.Pinot.Index" value="pinotDBus"/>
       <arg type="s" name="title" direction="in"/>
@@ -10,6 +18,13 @@
       <arg type="as" name="labels" direction="in"/>
       <arg type="u" name="labelsCount" direction="in"/>
       <arg type="u" name="docId" direction="out"/>
+    </method>
+    <method name="SimpleQuery">
+      <annotation name="de.berlios.Pinot.SimpleQuery" value="pinotDBus"/>
+      <arg type="s" name="searchText" direction="in" />
+      <arg type="u" name="maxHits" direction="in" />
+      <arg type="as" name="docIds" direction="out" />
+      <arg type="u" name="docIdsCount" direction="out"/>
     </method>
   </interface>
 </node>

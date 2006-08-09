@@ -44,6 +44,8 @@ extern "C"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
+#include "XapianIndex.h"
+#include "XapianEngine.h"
 #include "config.h"
 #include "NLS.h"
 #include "DaemonState.h"
@@ -139,6 +141,68 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 
 		return DBUS_HANDLER_RESULT_HANDLED;
 	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetDocumentInfo") == TRUE)
+	{
+		const char *pSender = dbus_message_get_sender(pMessage);
+		DBusError error;
+		dbus_uint32_t docId = 0;
+
+#ifdef DEBUG
+		if (pSender != NULL)
+		{
+			cout << "messageBusFilter: called from " << pSender << endl;
+		}
+#endif
+		// Simple types are returned as const references and don't need to be freed
+		dbus_error_init(&error);
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_UINT32, &docId,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
+			DocumentInfo docInfo;
+
+#ifdef DEBUG
+			cout << "messageBusFilter: received " << docId << endl;
+#endif
+			if (index.getDocumentInfo(docId, docInfo) == true)
+			{
+				// Prepare the reply
+				pReply = dbus_message_new_method_return(pMessage);
+				if (pReply != NULL)
+				{
+					const char *pTitle = docInfo.getTitle().c_str();
+					const char *pLocation = docInfo.getLocation().c_str();
+					const char *pType = docInfo.getType().c_str();
+					const char *pLanguage = docInfo.getLanguage().c_str();
+
+					dbus_message_append_args(pReply,
+						DBUS_TYPE_STRING, &pTitle,
+						DBUS_TYPE_STRING, &pLocation,
+						DBUS_TYPE_STRING, &pType,
+						DBUS_TYPE_STRING, &pLanguage,
+						DBUS_TYPE_INVALID);
+				}
+			}
+			else
+			{
+				pReply = dbus_message_new_error(pMessage,
+					"de.berlios.Pinot.GetDocumentInfo",
+					"Unknown document");
+			}
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
+			// Use the error message as reply
+			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
+		dbus_error_free(&error);
+
+		processedMessage = true;
+	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "Index") == TRUE)
 	{
 		const char *pSender = dbus_message_get_sender(pMessage);
@@ -177,7 +241,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 #endif
 			// FIXME: set labels on docInfo
 
-			// FIXME: index docInfo
 			pServer->queue_index(docInfo);
 
 			// Free container types
@@ -204,6 +267,109 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 
 		processedMessage = true;
 	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SimpleQuery") == TRUE)
+	{
+		const char *pSender = dbus_message_get_sender(pMessage);
+		DBusError error;
+		char *pSearchText = NULL;
+		dbus_uint32_t maxHits = 0;
+		dbus_uint32_t docId = 0;
+
+#ifdef DEBUG
+		if (pSender != NULL)
+		{
+			cout << "messageBusFilter: called from " << pSender << endl;
+		}
+#endif
+		// Simple types are returned as const references and don't need to be freed
+		dbus_error_init(&error);
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_STRING, &pSearchText,
+			DBUS_TYPE_UINT32, &maxHits,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			XapianEngine engine(PinotSettings::getInstance().m_daemonIndexLocation);
+			QueryProperties queryProps;
+			bool replyWithError = true;
+
+#ifdef DEBUG
+			cout << "messageBusFilter: received " << pSearchText << ", " << maxHits << endl;
+#endif
+			if (pSearchText != NULL)
+			{
+				queryProps.setAndWords(pSearchText);
+
+				// Run the query
+				engine.setMaxResultsCount(maxHits);
+				if (engine.runQuery(queryProps) == true)
+				{
+					const vector<Result> &resultsList = engine.getResults();
+					dbus_uint32_t docIdsCount = resultsList.size();
+
+					if (docIdsCount > 0)
+					{
+						XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
+						char *pDocIds[docIdsCount];
+						unsigned int resultIndex = 0;
+
+						for (vector<Result>::const_iterator resultIter = resultsList.begin();
+							resultIter != resultsList.end(); ++resultIter)
+						{
+							// We only need the document ID
+							unsigned int docId = index.hasDocument(resultIter->getLocation());
+
+							pDocIds[resultIndex] = g_strdup_printf("%u", docId);
+							++resultIndex;
+						}
+
+						// Prepare the reply
+						pReply = dbus_message_new_method_return(pMessage);
+						if (pReply != NULL)
+						{
+							dbus_message_append_args(pReply,
+								DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pDocIds, &docIdsCount,
+								DBUS_TYPE_UINT32, &docIdsCount,
+								DBUS_TYPE_INVALID);
+
+							// Send the reply here
+							if (dbus_message_get_no_reply(pMessage) == FALSE)
+							{
+								dbus_connection_send(pConnection, pReply, NULL);
+							}
+							dbus_message_unref(pReply);
+
+							pReply = NULL;
+							replyWithError = false;
+						}
+
+						// Free the array
+						for (unsigned int resultNum = 0; resultNum < resultIndex; ++resultNum)
+						{
+							g_free(pDocIds[resultNum]);
+						}
+					}
+				}
+			}
+
+			if (replyWithError == true)
+			{
+				pReply = dbus_message_new_error(pMessage,
+					"de.berlios.Pinot.SimpleQuery",
+					"Query failed");
+			}
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
+			// Use the error message as reply
+			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
+		dbus_error_free(&error);
+
+		processedMessage = true;
+	}
 #ifdef DEBUG
 	else cout << "messageBusFilter: message for foreign object" << endl;
 #endif
@@ -214,13 +380,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 		if (dbus_message_get_no_reply(pMessage) == FALSE)
 		{
 			dbus_connection_send(pConnection, pReply, NULL);
-#ifdef DEBUG
-			cout << "messageBusFilter: sent reply" << endl;
-#endif
 		}
-#ifdef DEBUG
-		else cout << "messageBusFilter: no need to send a reply" << endl;
-#endif
 
 		dbus_message_unref(pReply);
 	}
