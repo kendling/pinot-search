@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearchdescription/1.0/">
+  <Url>http://www.mozdex.com/open.jsp?query={searchTerms}&amp;start={startIndex}</Url>
+  <Format>http://a9.com/-/spec/opensearchrss/1.0/</Format>
+  <ShortName>Mozdex</ShortName>
+  <LongName>Mozdex Search Engine</LongName>
+  <Description>Search the Internet at Mozdex.com.</Description>
+  <Tags>The Web</Tags>
+  <Image>http://www.mozdex.com/spec/ico-64-unavailable.gif</Image>
+  <SampleSearch>linux</SampleSearch>
+  <Developer>Mozdex.com</Developer>
+  <Contact>byronm@gmail.com</Contact>
+  <Attribution>Search data &amp;copy; 2005, Small Productions,
+   All Rights Reserved</Attribution>
+  <SyndicationRight>open</SyndicationRight>
+  <AdultContent>false</AdultContent>
+</OpenSearchDescription>
