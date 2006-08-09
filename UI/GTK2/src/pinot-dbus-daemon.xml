@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <node name="/de/berlios/Pinot">
   <interface name="de.berlios.Pinot">
+    <!--
+	Retrieves information about a document.
+	 docId: the document's ID
+	 title : title of the document (automatically extracted from document if possible
+	         or the file name otherwise)
+	 location: the document's URL (eg "file:///home/fabrice/Documents/SomeFile.txt")
+	 type: the document's MIME type
+	 language: the document's language in English, as extracted at indexing time
+	-->
     <method name="GetDocumentInfo">
       <annotation name="de.berlios.Pinot.GetDocumentInfo" value="pinotDBus"/>
       <arg type="u" name="docId" direction="in"/>
@@ -9,6 +18,27 @@
       <arg type="s" name="type" direction="out"/>
       <arg type="s" name="language" direction="out"/>
     </method>
+    <!--
+	Retrieves statistics.
+	 crawledDirsCount: the number of directories that have been crawled prior
+	                   to entering monitoring mode
+	 docsCount: the number of documents in the index
+	-->
+    <method name="GetStatistics">
+      <annotation name="de.berlios.Pinot.GetStatistics" value="pinotDBus"/>
+      <arg type="u" name="crawledDirsCount" direction="out"/>
+      <arg type="u" name="docsCount" direction="out"/>
+    </method>
+    <!--
+	Indexes a document (NOT FULLY FUNCTIONAL YET)
+	 title : title of the document
+	 location: the document's URL
+	 type: the document's MIME type
+	 language: the document's language in English
+	 labels: array of labels to apply to the document
+	 labelsCount: the number of labels in the array
+	 docId: the document's ID
+	-->
     <method name="Index">
       <annotation name="de.berlios.Pinot.Index" value="pinotDBus"/>
       <arg type="s" name="title" direction="in"/>
@@ -19,12 +49,27 @@
       <arg type="u" name="labelsCount" direction="in"/>
       <arg type="u" name="docId" direction="out"/>
     </method>
+    <!--
+	Queries the index.
+	 searchText : search text, as would be entered in Pinot's live query field
+	 maxHits: the maximum number of hits desired
+	 docIds: array of document IDs
+	 docIdsCount: the number of document IDs in the array
+	-->
     <method name="SimpleQuery">
       <annotation name="de.berlios.Pinot.SimpleQuery" value="pinotDBus"/>
       <arg type="s" name="searchText" direction="in" />
       <arg type="u" name="maxHits" direction="in" />
       <arg type="as" name="docIds" direction="out" />
       <arg type="u" name="docIdsCount" direction="out"/>
+    </method>
+    <!--
+	Stops the daemon program.
+	 exitStatus: the daemon's exit status.
+	-->
+    <method name="Stop">
+      <annotation name="de.berlios.Pinot.Stop" value="pinotDBus"/>
+      <arg type="i" name="exitStatus" direction="out" />
     </method>
   </interface>
 </node>

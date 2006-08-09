@@ -123,7 +123,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 {
 	DaemonState *pServer = NULL;
 	DBusMessage *pReply = NULL;
-	bool processedMessage = false;
+	bool processedMessage = false, quitLoop = false;
 
 	if (pData != NULL)
 	{
@@ -133,13 +133,8 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 	// Are we about to be disconnected ?
 	if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_LOCAL, "Disconnected") == TRUE)
 	{
-		// FIXME: is this legal ?
-		Glib::RefPtr<Glib::MainLoop> g_refMainLoop = Glib::MainLoop::create(true);
-
-		// Tell the main loop to quit
-		g_refMainLoop->quit();
-
-		return DBUS_HANDLER_RESULT_HANDLED;
+		quitLoop = true;
+		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetDocumentInfo") == TRUE)
 	{
@@ -200,6 +195,36 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			pReply = dbus_message_new_error(pMessage, error.name, error.message);
 		}
 		dbus_error_free(&error);
+
+		processedMessage = true;
+	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetStatistics") == TRUE)
+	{
+		const char *pSender = dbus_message_get_sender(pMessage);
+		DBusError error;
+		dbus_uint32_t docId = 0;
+
+#ifdef DEBUG
+		if (pSender != NULL)
+		{
+			cout << "messageBusFilter: called from " << pSender << endl;
+		}
+#endif
+		XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
+		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+
+		unsigned int crawledDirsCount = history.getItemsCount();
+		unsigned int docsCount = index.getDocumentsCount();
+
+		// Prepare the reply
+		pReply = dbus_message_new_method_return(pMessage);
+		if (pReply != NULL)
+		{
+			dbus_message_append_args(pReply,
+				DBUS_TYPE_UINT32, &crawledDirsCount,
+				DBUS_TYPE_UINT32, &docsCount,
+				DBUS_TYPE_INVALID);
+		}
 
 		processedMessage = true;
 	}
@@ -370,6 +395,30 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 
 		processedMessage = true;
 	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "Stop") == TRUE)
+	{
+		DBusError error;
+
+		dbus_error_init(&error);
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			int exitStatus = EXIT_SUCCESS;
+
+			// Prepare the reply
+			pReply = dbus_message_new_method_return(pMessage);
+			if (pReply != NULL)
+			{
+				dbus_message_append_args(pReply,
+					DBUS_TYPE_INT32, &exitStatus,
+					DBUS_TYPE_INVALID);
+			}
+
+			quitLoop = true;
+			processedMessage = true;
+		}
+		dbus_error_free(&error);
+	}
 #ifdef DEBUG
 	else cout << "messageBusFilter: message for foreign object" << endl;
 #endif
@@ -383,6 +432,11 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 		}
 
 		dbus_message_unref(pReply);
+	}
+
+	if (quitLoop == true)
+	{
+		quitAll(0);
 	}
 
 	if (processedMessage == true)
