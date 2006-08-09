@@ -17,13 +17,13 @@ man_MANS = Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
 
 install-data-local:
-	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot
+	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot $(DESTDIR)$(datadir)/dbus-1/services
 	$(INSTALL_DATA) globalconfig.xml $(DESTDIR)$(datadir)/pinot/globalconfig.xml
 	$(INSTALL_DATA) UI/GTK2/xapian-powered.png $(DESTDIR)$(datadir)/pinot/xapian-powered.png
 	$(INSTALL_DATA) UI/GTK2/metase-gtk2.glade $(DESTDIR)$(datadir)/pinot/metase-gtk2.glade
 	$(INSTALL_DATA) UI/GTK2/metase-gtk2.gladep $(DESTDIR)$(datadir)/pinot/metase-gtk2.gladep
 	$(INSTALL_DATA) UI/GTK2/src/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml
-	$(INSTALL_DATA) UI/GTK2/src/de.berlios.Pinot.service $(DESTDIR)$(DBUS_SERVICES_DIR)
+	$(INSTALL_DATA) UI/GTK2/src/de.berlios.Pinot.service $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
 	$(INSTALL_DATA) textcat_conf.txt $(DESTDIR)$(datadir)/pinot/textcat_conf.txt
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot/engines
 	$(INSTALL_DATA) Search/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
