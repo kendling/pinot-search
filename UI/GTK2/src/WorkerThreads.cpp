@@ -1629,6 +1629,9 @@ void DirectoryScannerThread::foundFile(const string &fileName)
 
 bool DirectoryScannerThread::scanDirectory(const string &dirName)
 {
+	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+	CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
+	time_t itemDate;
 	struct stat fileStat;
 	int statSuccess = 0;
 
@@ -1661,29 +1664,22 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 	else if (S_ISREG(fileStat.st_mode))
 	{
 		// It's actually a file
-		foundFile(dirName);
+		// Skip dotfiles and those files we have already crawled
+		if ((dirName[0] != '.') &&
+			(history.hasItem("file://" + dirName, status, itemDate) == false))
+		{
+			foundFile(dirName);
+
+			// Record it
+			history.insertItem("file://" + dirName, CrawlHistory::CRAWLED, m_sourceId, 0);
+		}
 	}
 	else if (S_ISDIR(fileStat.st_mode))
 	{
-		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
-		CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
-
-		// A directory : check whether it has been crawled already
-		if ((history.hasItem(string("file://") + dirName, status) == true) &&
-			(status != CrawlHistory::UNKNOWN))
-		{
-			// Skip it
-#ifdef DEBUG
-			cout << "DirectoryScannerThread::scanDirectory: skipping " << dirName << endl;
-#endif
-			return true;
-		}
-
-		// Scan it !
+		// A directory : scan it
 		DIR *pDir = opendir(dirName.c_str());
 		if (pDir == NULL)
 		{
-			history.insertItem(string("file://") + dirName, CrawlHistory::CRAWLED, m_sourceId);
 			return false;
 		}
 #ifdef DEBUG
@@ -1707,9 +1703,7 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 
 				// Skip . .. and dotfiles
 				Url urlObj("file://" + entryName);
-				if ((urlObj.getFile() == ".") ||
-					(urlObj.getFile() == "..") ||
-					(urlObj.getFile()[0] == '.') ||
+				if ((urlObj.getFile()[0] == '.') ||
 					(lstat(entryName.c_str(), &fileStat) == -1))
 				{
 					// Next entry
@@ -1723,7 +1717,14 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 				// File or directory
 				if (S_ISREG(fileStat.st_mode))
 				{
-					foundFile(entryName);
+					// Has it already been crawled ?
+					if (history.hasItem("file://" + entryName, status, itemDate) == false)
+					{
+						foundFile(entryName);
+
+						// Record it
+						history.insertItem("file://" + entryName, CrawlHistory::CRAWLED, m_sourceId, 0);
+					}
 				}
 				else if (S_ISDIR(fileStat.st_mode))
 				{
@@ -1746,9 +1747,6 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 			pDirEntry = readdir(pDir);
 		}
 		closedir(pDir);
-
-		// Update the directory's status
-		history.insertItem(string("file://") + dirName, CrawlHistory::CRAWLED, m_sourceId);
 	}
 
 	return true;
@@ -1760,10 +1758,10 @@ void DirectoryScannerThread::doWork(void)
 
 	// Does this source exist ?
 	if ((m_dirName.empty() == false) &&
-		(history.hasSource(string("file://") + m_dirName, m_sourceId) == false))
+		(history.hasSource("file://" + m_dirName, m_sourceId) == false))
 	{
 		// Create it
-		m_sourceId = history.insertSource(string("file://") + m_dirName);
+		m_sourceId = history.insertSource("file://" + m_dirName);
 	}
 
 	if (scanDirectory(m_dirName) == false)

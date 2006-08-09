@@ -14,8 +14,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
  
-#ifndef _MBOXHANDLER_HH
-#define _MBOXHANDLER_HH
+#ifndef _ONDISKHANDLER_HH
+#define _ONDISKHANDLER_HH
 
 #include <time.h>
 #include <string>
@@ -66,4 +66,4 @@ class OnDiskHandler : public MonitorHandler
 
 };
 
-#endif // _MBOXHANDLER_HH
+#endif // _ONDISKHANDLER_HH
