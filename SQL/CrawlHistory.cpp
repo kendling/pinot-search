@@ -191,6 +191,28 @@ bool CrawlHistory::insertItem(const string &url, CrawlStatus status, unsigned in
 	return success;
 }
 
+/// Returns the number of URLs.
+unsigned int CrawlHistory::getItemsCount(void) const
+{
+	unsigned int count = 0;
+
+	SQLiteResults *results = executeStatement("SELECT COUNT(*) FROM CrawlHistory;");
+	if (results != NULL)
+	{
+		SQLiteRow *row = results->nextRow();
+		if (row != NULL)
+		{
+			count = atoi(row->getColumn(0).c_str());
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return count;
+}
+
 /// Checks if an URL is in the history.
 bool CrawlHistory::hasItem(const string &url, CrawlStatus &status) const
 {

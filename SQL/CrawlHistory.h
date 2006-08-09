@@ -53,6 +53,9 @@ class CrawlHistory : public SQLiteBase
 		/// Updates an URL.
 		bool updateItem(const string &url, CrawlStatus status);
 
+		/// Returns the number of URLs.
+		unsigned int getItemsCount(void) const;
+
 		/// Checks if an URL is in the history.
 		bool hasItem(const string &url) const;
 
