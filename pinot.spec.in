@@ -70,6 +70,8 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %doc ChangeLog COPYING NEWS README TODO
 %{_bindir}/pinot
 %ghost %{_bindir}/pinot-collect
+%{_bindir}/pinot-dbus-daemon
+%{_bindir}/pinot-index
 %{_bindir}/pinot-search
 %{_datadir}/pinot/globalconfig.xml
 %{_datadir}/pinot/xapian-powered.png
@@ -77,6 +79,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/pinot/metase-gtk2.gladep
 %{_datadir}/pinot/pinot-dbus-daemon.xml
 %{_datadir}/pinot/textcat_conf.txt
+%{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/*.src
 %dir %{_datadir}/pinot/engines/
 %config(noreplace) %{_datadir}/pinot/engines/A9.src
@@ -88,6 +91,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %config(noreplace) %{_datadir}/pinot/engines/Exalead.src
 %config(noreplace) %{_datadir}/pinot/engines/Freshmeat.src
 %config(noreplace) %{_datadir}/pinot/engines/Google.src
+%config(noreplace) %{_datadir}/pinot/engines/MozDexDescription.xml
 %config(noreplace) %{_datadir}/pinot/engines/MSN.src
 %config(noreplace) %{_datadir}/pinot/engines/RollYOTopNews.src
 %config(noreplace) %{_datadir}/pinot/engines/Topix.src
@@ -102,6 +106,8 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/applications/Amra-pinot.desktop
 %{_mandir}/man1/pinot.*
 %ghost %{_mandir}/man1/pinot-collect.*
+%{_mandir}/man1/pinot-dbus-daemon.*
+%{_mandir}/man1/pinot-index.*
 %{_mandir}/man1/pinot-search.*
 
 %files text-docs 

@@ -46,6 +46,13 @@ else
 		[Define to the package prefix.])
 fi
 
+dnl Set DBUS_SERVICES_DIR in de.berlios.Pinot.service.
+AS_AC_EXPAND(DATADIR, $datadir)
+DBUS_SERVICES_DIR="$DATADIR/dbus-1/services"
+AC_SUBST(DBUS_SERVICES_DIR)
+AC_DEFINE_UNQUOTED(DBUS_SERVICES_DIR, "$DBUS_SERVICES_DIR",
+		[Define to the DBUS services directory.])
+
 AC_LANG_CPLUSPLUS
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
@@ -182,7 +189,8 @@ AC_CHECK_FUNCS(timegm)
 AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
-AC_OUTPUT( pinot.spec Makefile Utils/Makefile Tokenize/Makefile )
+AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service )
+AC_OUTPUT( Makefile Utils/Makefile Tokenize/Makefile )
 AC_OUTPUT( SQL/Makefile po/Makefile.in Collect/Makefile )
 if test "$SOAP_SUBDIRS" != "" ; then
   AC_OUTPUT( Search/Google/Makefile )

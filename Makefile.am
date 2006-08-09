@@ -5,13 +5,16 @@ SUBDIRS = po Utils Tokenize SQL Collect @SOAP_SUBDIRS@ Search \
 	Index Monitor UI/GTK2/src
 
 EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs pinot.desktop \
-	pinot.spec textcat_conf.txt Search/Plugins/*src Search/Plugins/*.xml \
-	Collect/pinot-collect.1 Search/pinot-search.1 UI/GTK2/src/pinot.1 \
-	globalconfig.xml UI/GTK2/xapian-powered.png UI/GTK2/pinot.png \
-	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
-	UI/GTK2/src/pinot-dbus-daemon.xml
+	pinot.spec textcat_conf.txt globalconfig.xml \
+	Search/Plugins/*src Search/Plugins/*.xml \
+	Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
+	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1 \
+	UI/GTK2/src/pinot-dbus-daemon.xml UI/GTK2/src/de.berlios.Pinot.service \
+	UI/GTK2/xapian-powered.png UI/GTK2/pinot.png \
+	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep
 
-man_MANS = Collect/pinot-collect.1 Search/pinot-search.1 UI/GTK2/src/pinot.1
+man_MANS = Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
+	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot
@@ -20,6 +23,7 @@ install-data-local:
 	$(INSTALL_DATA) UI/GTK2/metase-gtk2.glade $(DESTDIR)$(datadir)/pinot/metase-gtk2.glade
 	$(INSTALL_DATA) UI/GTK2/metase-gtk2.gladep $(DESTDIR)$(datadir)/pinot/metase-gtk2.gladep
 	$(INSTALL_DATA) UI/GTK2/src/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml
+	$(INSTALL_DATA) UI/GTK2/src/de.berlios.Pinot.service $(DESTDIR)$(DBUS_SERVICES_DIR)
 	$(INSTALL_DATA) textcat_conf.txt $(DESTDIR)$(datadir)/pinot/textcat_conf.txt
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot/engines
 	$(INSTALL_DATA) Search/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
