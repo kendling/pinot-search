@@ -23,6 +23,7 @@
 
 #include "WritableXapianIndex.h"
 #include "DaemonState.h"
+#include "MboxHandler.h"
 #include "OnDiskHandler.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
@@ -49,6 +50,14 @@ void DaemonState::start(void)
 	// Disable implicit flushing after a change
 	WorkerThread::immediateFlush(false);
 
+	// Fire up the mail monitor thread now
+	MboxHandler *pMbox = new MboxHandler();
+	// Connect to its update signal
+	pMbox->getUpdateSignal().connect(
+		SigC::slot(*this, &DaemonState::on_message_indexupdate));
+	MonitorThread *pMailMonitorThread = new MonitorThread(pMbox);
+	start_thread(pMailMonitorThread, true);
+
 	for (set<PinotSettings::TimestampedItem>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
 		locationIter != PinotSettings::getInstance().m_indexableLocations.end(); ++locationIter)
 	{
@@ -64,7 +73,7 @@ void DaemonState::start(void)
 		}
 	}
 
-	// ANything to crawl before starting monitoring ?
+	// Anything to crawl before starting monitoring ?
 	if (locationToCrawl.empty() == false)
 	{
 		// Scan the directory and import all its files
@@ -81,9 +90,8 @@ void DaemonState::start(void)
 		// Connect to its update signal
 		pDisk->getUpdateSignal().connect(
 			SigC::slot(*this, &DaemonState::on_message_indexupdate));
-		MonitorThread *pMonitorThread = new MonitorThread(pDisk);
-		start_thread(pMonitorThread, true);
-		// The handler object will be deleted when the thread terminates
+		MonitorThread *pDiskMonitorThread = new MonitorThread(pDisk);
+		start_thread(pDiskMonitorThread, true);
 	}
 }
 
@@ -176,7 +184,6 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 				SigC::slot(*this, &DaemonState::on_message_indexupdate));
 			MonitorThread *pMonitorThread = new MonitorThread(pDisk);
 			start_thread(pMonitorThread, true);
-			// The handler object will be deleted when the thread terminates
 		}
 	}
 	else if (type == "IndexingThread")
@@ -225,14 +232,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	}
 	else if (type == "MonitorThread")
 	{
-		// Fire up another disk monitor thread
-		OnDiskHandler *pDisk = new OnDiskHandler();
-		// Connect to its update signal
-		pDisk->getUpdateSignal().connect(
-			SigC::slot(*this, &DaemonState::on_message_indexupdate));
-		MonitorThread *pMonitorThread = new MonitorThread(pDisk);
-		start_thread(pMonitorThread, true);
-		// The handler object will be deleted when the thread terminates
+		// FIXME: do something about this
 	}
 
 	// Delete the thread

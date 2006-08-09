@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
 
-	// Open these indexes read-write
+	// Open this index read-write
 	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_docsIndexLocation, false);
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))
@@ -193,7 +193,8 @@ int main(int argc, char **argv)
 		errorMsg += " ";
 		errorMsg += settings.m_docsIndexLocation;
 	}
-	pDb = XapianDatabaseFactory::getDatabase(settings.m_mailIndexLocation, false);
+	// ...and the mail and daemon indices in read-only mode
+	pDb = XapianDatabaseFactory::getDatabase(settings.m_mailIndexLocation);
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))
 	{
@@ -201,7 +202,6 @@ int main(int argc, char **argv)
 		errorMsg += " ";
 		errorMsg += settings.m_mailIndexLocation;
 	}
-	// ...the daemon's index in read-only mode
 	pDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation);
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))

@@ -539,14 +539,20 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
 
-	// Open the index in read-write mode 
+	// Open these indices in read-write mode 
 	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation, false);
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))
 	{
-		cerr << _("Couldn't open index") << " " << settings.m_daemonIndexLocation << endl;;
+		cerr << _("Couldn't open index") << " " << settings.m_daemonIndexLocation << endl;
 
 		return EXIT_FAILURE;
+	}
+	pDb = XapianDatabaseFactory::getDatabase(settings.m_mailIndexLocation, false);
+	if ((pDb == NULL) ||
+		(pDb->isOpen() == false))
+	{
+		cerr << _("Couldn't open index") << " " << settings.m_mailIndexLocation << endl;
 	}
 
 	// Do the same for the history database

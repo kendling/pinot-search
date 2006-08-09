@@ -47,7 +47,6 @@
 #include "SearchEngineFactory.h"
 #include "config.h"
 #include "NLS.h"
-#include "MboxHandler.h"
 #include "PinotUtils.h"
 #include "mainWindow.hh"
 #include "importDialog.hh"
@@ -179,16 +178,6 @@ mainWindow::mainWindow() :
 	// Connect to threads' finished signal
 	m_state.connect();
 
-	// FIXME: delete all "ignored" threads when exiting !!!
-	// Fire up the mail monitor thread
-	MboxHandler *pMbox = new MboxHandler();
-	// Connect to its update signal
-	pMbox->getUpdateSignal().connect(
-		SigC::slot(*this, &mainWindow::on_message_indexupdate));
-	MonitorThread *pMonitorThread = new MonitorThread(pMbox);
-	start_thread(pMonitorThread, true);
-	// The handler object will be deleted when the thread terminates
-
 	// Now we are ready
 	set_status(_("Ready"));
 	m_pNotebook->show();
@@ -203,6 +192,8 @@ mainWindow::mainWindow() :
 //
 mainWindow::~mainWindow()
 {
+	// FIXME: delete all "ignored" threads when exiting !!!
+
 	// Save engines
 	m_pEnginesTree->save();
 
@@ -1234,10 +1225,6 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		}
 		// Else, stay silent
 	}
-	else if (type == "MonitorThread")
-	{
-		// FIXME: do something about this
-	}
 	else if (type == "UpdateDocumentThread")
 	{
 		UpdateDocumentThread *pUpdateThread = dynamic_cast<UpdateDocumentThread *>(pThread);
@@ -1380,9 +1367,6 @@ void mainWindow::on_configure_activate()
 #ifdef DEBUG
 	cout << "mainWindow::on_configure_activate: settings changed" << endl;
 #endif
-
-	// FIXME: if mail accounts are configured, make sure the MonitorThread
-	// is running and knows about the new accounts
 
 	if (m_state.read_lock_lists() == true)
 	{
