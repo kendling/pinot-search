@@ -16,6 +16,7 @@
 
 #include <ctype.h>
 #include <iostream>
+#include <gdkmm/color.h>
 #include <gtkmm/alignment.h>
 #include <gtkmm/box.h>
 #include <gtkmm/buttonbox.h>
@@ -275,8 +276,14 @@ void ResultsTree::renderBackgroundColour(CellRenderer *renderer, const TreeModel
 		// Is this result new ?
 		if (row[m_resultsColumns.m_rankDiff] == 666)
 		{
+			Color newColour;
+
+			newColour.set_red(m_settings.m_newResultsColourRed);
+			newColour.set_green(m_settings.m_newResultsColourGreen);
+			newColour.set_blue(m_settings.m_newResultsColourBlue);
+
 			// Change the row's background
-			pTextRenderer->property_background_gdk() = m_settings.m_newResultsColour;
+			pTextRenderer->property_background_gdk() = newColour;
 		}
 		else
 		{

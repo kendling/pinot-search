@@ -24,7 +24,6 @@
 #include <set>
 #include <vector>
 #include <glibmm/ustring.h>
-#include <gdkmm/color.h>
 #include <libxml++/nodes/element.h>
 
 #include "QueryProperties.h"
@@ -140,22 +139,6 @@ class PinotSettings
 				time_t m_modTime;
 		};
 
-		class MailAccount : public TimestampedItem
-		{
-			public:
-				MailAccount();
-				MailAccount(const MailAccount &other);
-				~MailAccount();
-
-				MailAccount &operator=(const MailAccount &other);
-				bool operator<(const MailAccount &other) const;
-				bool operator==(const MailAccount &other) const;
-
-				Glib::ustring m_type;
-				time_t m_lastMessageTime;
-				off_t m_size;
-		};
-
 		class CacheProvider
 		{
 			public:
@@ -185,8 +168,10 @@ class PinotSettings
 		bool m_expandQueries;
 		bool m_ignoreRobotsDirectives;
 		bool m_suggestQueryTerms;
-		Gdk::Color m_newResultsColour;
-		std::set<MailAccount> m_mailAccounts;
+		unsigned short m_newResultsColourRed;
+		unsigned short m_newResultsColourGreen;
+		unsigned short m_newResultsColourBlue;
+		std::set<TimestampedItem> m_mailAccounts;
 		std::set<TimestampedItem> m_indexableLocations;
 		std::vector<CacheProvider> m_cacheProviders;
 		std::set<Glib::ustring> m_cacheProtocols;

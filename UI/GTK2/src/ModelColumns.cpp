@@ -108,9 +108,7 @@ LabelModelColumns::~LabelModelColumns()
 MailAccountModelColumns::MailAccountModelColumns()
 {
 	add(m_location);
-	add(m_type);
 	add(m_mTime);
-	add(m_minDate);
 }
 
 MailAccountModelColumns::~MailAccountModelColumns()

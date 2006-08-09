@@ -91,7 +91,9 @@ PinotSettings::PinotSettings() :
 	m_expandQueries(true),
 	m_ignoreRobotsDirectives(false),
 	m_suggestQueryTerms(true),
-	m_newResultsColour("red"),
+	m_newResultsColourRed(65535),
+	m_newResultsColourGreen(0),
+	m_newResultsColourBlue(0),
 	m_firstRun(false)
 {
 	// Find out if there is a .pinot directory
@@ -678,15 +680,15 @@ bool PinotSettings::loadColour(const Element *pElem)
 
 		if (nodeName == "red")
 		{
-			m_newResultsColour.set_red(value);
+			m_newResultsColourRed = value;
 		}
 		else if (nodeName == "green")
 		{
-			m_newResultsColour.set_green(value);
+			m_newResultsColourGreen = value;
 		}
 		else if (nodeName == "blue")
 		{
-			m_newResultsColour.set_blue(value);
+			m_newResultsColourBlue = value;
 		}
 	}
 
@@ -706,7 +708,7 @@ bool PinotSettings::loadMailAccounts(const Element *pElem)
 		return false;
 	}
 
-	MailAccount mailAccount;
+	TimestampedItem mailAccount;
 
 	// Load the mail account's properties
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
@@ -728,18 +730,6 @@ bool PinotSettings::loadMailAccounts(const Element *pElem)
 		else if (nodeName == "mtime")
 		{
 			mailAccount.m_modTime = (time_t)atoi(nodeContent.c_str());
-		}
-		else if (nodeName == "type")
-		{
-			mailAccount.m_type = nodeContent;
-		}
-		else if (nodeName == "mindate")
-		{
-			mailAccount.m_lastMessageTime = (time_t)atoi(nodeContent.c_str());
-		}
-		else if (nodeName == "size")
-		{
-			mailAccount.m_size = (off_t)atoi(nodeContent.c_str());
 		}
 	}
 
@@ -779,7 +769,7 @@ bool PinotSettings::loadIndexableLocations(const Element *pElem)
 		string nodeName = pElem->get_name();
 		string nodeContent = getElementContent(pElem);
 
-		if (nodeName == "location")
+		if (nodeName == "name")
 		{
 			location.m_name = nodeContent;
 		}
@@ -1026,16 +1016,16 @@ bool PinotSettings::save(void)
 	{
 		return false;
 	}
-	sprintf(numStr, "%u", m_newResultsColour.get_red());
+	sprintf(numStr, "%u", m_newResultsColourRed);
 	addChildElement(pElem, "red", numStr);
-	sprintf(numStr, "%u", m_newResultsColour.get_green());
+	sprintf(numStr, "%u", m_newResultsColourGreen);
 	addChildElement(pElem, "green", numStr);
-	sprintf(numStr, "%u", m_newResultsColour.get_blue());
+	sprintf(numStr, "%u", m_newResultsColourBlue);
 	addChildElement(pElem, "blue", numStr);
 	// Enable terms suggestion
 	addChildElement(pRootElem, "suggestterms", (m_suggestQueryTerms ? "YES" : "NO"));
 	// Mail accounts
-	for (set<MailAccount>::iterator mailIter = m_mailAccounts.begin(); mailIter != m_mailAccounts.end(); ++mailIter)
+	for (set<TimestampedItem>::iterator mailIter = m_mailAccounts.begin(); mailIter != m_mailAccounts.end(); ++mailIter)
 	{
 		pElem = pRootElem->add_child("mailaccount");
 		if (pElem == NULL)
@@ -1043,13 +1033,8 @@ bool PinotSettings::save(void)
 			return false;
 		}
 		addChildElement(pElem, "name", mailIter->m_name);
-		addChildElement(pElem, "type", mailIter->m_type);
 		sprintf(numStr, "%ld", mailIter->m_modTime);
 		addChildElement(pElem, "mtime", numStr);
-		sprintf(numStr, "%ld", mailIter->m_lastMessageTime);
-		addChildElement(pElem, "mindate", numStr);
-		sprintf(numStr, "%ld", mailIter->m_size);
-		addChildElement(pElem, "size", numStr);
 	}
 	// Locations to index 
 	for (set<TimestampedItem>::iterator locationIter = m_indexableLocations.begin(); locationIter != m_indexableLocations.end(); ++locationIter)
@@ -1059,7 +1044,7 @@ bool PinotSettings::save(void)
 		{
 			return false;
 		}
-		addChildElement(pElem, "location", locationIter->m_name);
+		addChildElement(pElem, "name", locationIter->m_name);
 		sprintf(numStr, "%ld", locationIter->m_modTime);
 		addChildElement(pElem, "mtime", numStr);
 	}
@@ -1415,45 +1400,6 @@ bool PinotSettings::TimestampedItem::operator==(const TimestampedItem &other) co
 	}
 
 	return false;
-}
-
-PinotSettings::MailAccount::MailAccount() :
-	TimestampedItem(),
-	m_lastMessageTime(0),
-	m_size(0)
-{
-}
-
-PinotSettings::MailAccount::MailAccount(const MailAccount &other) :
-	TimestampedItem(other),
-	m_type(other.m_type),
-	m_lastMessageTime(other.m_lastMessageTime),
-	m_size(other.m_size)
-{
-}
-
-PinotSettings::MailAccount::~MailAccount()
-{
-}
-
-PinotSettings::MailAccount &PinotSettings::MailAccount::operator=(const MailAccount &other)
-{
-	TimestampedItem::operator=(other);
-	m_type = other.m_type;
-	m_lastMessageTime = other.m_lastMessageTime;
-	m_size = other.m_size;
-
-	return *this;
-}
-
-bool PinotSettings::MailAccount::operator<(const MailAccount &other) const
-{
-	return TimestampedItem::operator<(other);
-}
-
-bool PinotSettings::MailAccount::operator==(const MailAccount &other) const
-{
-	return TimestampedItem::operator==(other);
 }
 
 PinotSettings::CacheProvider::CacheProvider()

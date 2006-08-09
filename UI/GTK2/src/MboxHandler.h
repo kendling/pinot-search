@@ -24,6 +24,7 @@
 
 #include "IndexedDocument.h"
 #include "MboxParser.h"
+#include "CrawlHistory.h"
 #include "IndexInterface.h"
 #include "MonitorHandler.h"
 #include "PinotSettings.h"
@@ -55,16 +56,17 @@ class MboxHandler : public MonitorHandler
 		virtual bool fileDeleted(const std::string &fileName);
 
 	protected:
+		CrawlHistory m_history;
 		std::set<std::string> m_locations;
+		unsigned int m_sourceId;
 
-		bool checkMailAccount(const std::string &fileName, PinotSettings::MailAccount &mailAccount,
-			off_t &previousSize);
+		bool checkMailAccount(const std::string &fileName, PinotSettings::TimestampedItem &mailAccount);
 
-		bool indexMessages(const std::string &fileName, PinotSettings::MailAccount &mailAccount,
+		bool indexMessages(const std::string &fileName, PinotSettings::TimestampedItem &mailAccount,
 			off_t mboxOffset);
 
 		bool parseMailAccount(MboxParser &boxParser, WritableIndexInterface *pIndex,
-			time_t &lastMessageTime, const std::string &sourceLabel);
+			const std::string &sourceLabel);
 
 		bool deleteMessages(WritableIndexInterface *pIndex, std::set<unsigned int> &docIdList);
 

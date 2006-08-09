@@ -41,6 +41,12 @@ prefsDialog::prefsDialog() :
 	prefsDialog_glade(),
 	m_settings(PinotSettings::getInstance())
 {
+	Color newColour;
+
+	newColour.set_red(m_settings.m_newResultsColourRed);
+	newColour.set_green(m_settings.m_newResultsColourGreen);
+	newColour.set_blue(m_settings.m_newResultsColourBlue);
+
 	// Initialize widgets
 	// Ignore robots directives
 	ignoreRobotsCheckbutton->set_active(m_settings.m_ignoreRobotsDirectives);
@@ -50,7 +56,7 @@ prefsDialog::prefsDialog() :
 		apiKeyEntry->set_text(m_settings.m_googleAPIKey);
 	}
 	// New results colour
-	newResultsColorbutton->set_color(m_settings.m_newResultsColour);
+	newResultsColorbutton->set_color(newColour);
 	// Enable terms suggestion
 	enableCompletionCheckbutton->set_active(m_settings.m_suggestQueryTerms);
 
@@ -66,7 +72,6 @@ prefsDialog::prefsDialog() :
 	m_refMailTree = ListStore::create(m_mailColumns);
 	mailTreeview->set_model(m_refMailTree);
 	mailTreeview->append_column(_("Location"), m_mailColumns.m_location);
-	mailTreeview->append_column(_("MIME Type"), m_mailColumns.m_type);
 	// Allow only single selection
 	mailTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	populate_mailTreeview();
@@ -184,7 +189,7 @@ void prefsDialog::populate_mailTreeview()
 	}
 
 	// Populate the tree
-	for (set<PinotSettings::MailAccount>::iterator mailIter = m_settings.m_mailAccounts.begin();
+	for (set<PinotSettings::TimestampedItem>::iterator mailIter = m_settings.m_mailAccounts.begin();
 		mailIter != m_settings.m_mailAccounts.end();
 		++mailIter)
 	{
@@ -193,9 +198,7 @@ void prefsDialog::populate_mailTreeview()
 		row = *iter;
 		// Set its name, type and minium date
 		row[m_mailColumns.m_location] = mailIter->m_name;
-		row[m_mailColumns.m_type] = mailIter->m_type;
 		row[m_mailColumns.m_mTime] = mailIter->m_modTime;
-		row[m_mailColumns.m_minDate] = mailIter->m_lastMessageTime;
 	}
 
 	editAccountButton->set_sensitive(true);
@@ -215,15 +218,13 @@ bool prefsDialog::save_mailTreeview()
 		for (; iter != children.end(); ++iter)
 		{
 			TreeModel::Row row = *iter;
-			PinotSettings::MailAccount mailAccount;
+			PinotSettings::TimestampedItem mailAccount;
 
 			// FIXME: unlike libmagic, shared-mime-info fails to identify most mbox files
 			// as being of type text/x-mail
 			// Add this new mail account to the settings
 			mailAccount.m_name = row[m_mailColumns.m_location];
-			mailAccount.m_type = row[m_mailColumns.m_type];
 			mailAccount.m_modTime = row[m_mailColumns.m_mTime];
-			mailAccount.m_lastMessageTime = row[m_mailColumns.m_minDate];
 
 			string mailLabel("mailbox://");
 			mailLabel += from_utf8(mailAccount.m_name);
@@ -249,7 +250,10 @@ void prefsDialog::on_prefsOkbutton_clicked()
 {
 	// Synchronise widgets with settings
 	m_settings.m_ignoreRobotsDirectives = ignoreRobotsCheckbutton->get_active();
-	m_settings.m_newResultsColour = newResultsColorbutton->get_color();
+	Color newColour = newResultsColorbutton->get_color();
+	m_settings.m_newResultsColourRed = newColour.get_red();
+	m_settings.m_newResultsColourGreen = newColour.get_green();
+	m_settings.m_newResultsColourBlue = newColour.get_blue();
 	m_settings.m_suggestQueryTerms = enableCompletionCheckbutton->get_active();
 	m_settings.m_googleAPIKey = apiKeyEntry->get_text();
 
@@ -330,9 +334,7 @@ void prefsDialog::on_addAccountButton_clicked()
 		TreeModel::Row row = *iter;
 	
 		row[m_mailColumns.m_location] = to_utf8(fileName);
-		row[m_mailColumns.m_type] = to_utf8(mimeType);
-		row[m_mailColumns.m_mTime] = 0;
-		row[m_mailColumns.m_minDate] = 0;
+		row[m_mailColumns.m_mTime] = time(NULL);
 
 		if (wasEmpty == true)
 		{
@@ -355,7 +357,6 @@ void prefsDialog::on_editAccountButton_clicked()
 		if (select_file_name(*this, _("Mbox File Location"), fileName, true) == true)
 		{
 			row[m_mailColumns.m_location] = fileName;
-			row[m_mailColumns.m_type] = to_utf8(MIMEScanner::scanFile(fileName));
 		}
 	}
 }

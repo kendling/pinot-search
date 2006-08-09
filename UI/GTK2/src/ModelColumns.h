@@ -140,9 +140,7 @@ public:
 	virtual ~MailAccountModelColumns();
 
 	Gtk::TreeModelColumn<Glib::ustring> m_location;
-	Gtk::TreeModelColumn<Glib::ustring> m_type;
 	Gtk::TreeModelColumn<time_t> m_mTime;
-	Gtk::TreeModelColumn<time_t> m_minDate;
 
 };
 

@@ -30,31 +30,38 @@
 #include "TokenizerFactory.h"
 #include "FileCollector.h"
 #include "WritableXapianIndex.h"
-#include "PinotUtils.h"
 #include "MboxHandler.h"
 
 using namespace std;
 using namespace SigC;
 
 MboxHandler::MboxHandler() :
-	MonitorHandler()
+	MonitorHandler(),
+	m_history(PinotSettings::getInstance().m_historyDatabase),
+	m_sourceId(0)
 {
+	// Does the email source exist ?
+	if (m_history.hasSource("My Email", m_sourceId) == false)
+	{
+		// Create it
+		m_sourceId = m_history.insertSource("My Email");
+	}
 }
 
 MboxHandler::~MboxHandler()
 {
 }
 
-bool MboxHandler::checkMailAccount(const string &fileName, PinotSettings::MailAccount &mailAccount,
-	off_t &previousSize)
+bool MboxHandler::checkMailAccount(const string &fileName, PinotSettings::TimestampedItem &mailAccount)
 {
 	struct stat fileStat;
-
-	mailAccount.m_name = to_utf8(fileName);
+	CrawlHistory::CrawlStatus status;
+	time_t lastModDate = 0;
+	mailAccount.m_name = fileName;
 
 	// Ensure it's one of our mail accounts
-	set<PinotSettings::MailAccount> &mailAccounts = PinotSettings::getInstance().m_mailAccounts;
-	set<PinotSettings::MailAccount>::iterator mailIter = mailAccounts.find(mailAccount);
+	set<PinotSettings::TimestampedItem> &mailAccounts = PinotSettings::getInstance().m_mailAccounts;
+	set<PinotSettings::TimestampedItem>::iterator mailIter = mailAccounts.find(mailAccount);
 	if (mailIter == mailAccounts.end())
 	{
 		// It doesn't seem to be
@@ -72,30 +79,32 @@ bool MboxHandler::checkMailAccount(const string &fileName, PinotSettings::MailAc
 		return false;
 	}
 
-	if (fileStat.st_mtime <= mailIter->m_modTime)
+	// Is there a record for this mail account ?
+	if (m_history.hasItem("file://" + fileName, status, lastModDate) == true)
 	{
-		// No change since last time...
+		if (fileStat.st_mtime <= lastModDate)
+		{
+			// No change since last time...
 #ifdef DEBUG
-		cout << "MboxHandler::checkMailAccount: not modified since last time ("
-			<< mailIter->m_modTime << ">" << fileStat.st_mtime << ")" << endl;
+			cout << "MboxHandler::checkMailAccount: not modified since last time ("
+				<< lastModDate << ">" << fileStat.st_mtime << ")" << endl;
 #endif
-		return false;
+			return false;
+		}
 	}
-#ifdef DEBUG
-	cout << "MboxHandler::checkMailAccount: modified since last time ("
-		<< mailIter->m_modTime << "<" << fileStat.st_mtime << ")" << endl;
-#endif
+	else
+	{
+		m_history.insertItem("file://" + fileName, CrawlHistory::CRAWLING, m_sourceId, time(NULL));
+	}
 
 	// Update this mail account's properties
 	mailAccount = (*mailIter);
 	mailAccount.m_modTime = fileStat.st_mtime;
-	previousSize = mailAccount.m_size;
-	mailAccount.m_size = fileStat.st_size;
 
 	return true;
 }
 
-bool MboxHandler::indexMessages(const string &fileName, PinotSettings::MailAccount &mailAccount,
+bool MboxHandler::indexMessages(const string &fileName, PinotSettings::TimestampedItem &mailAccount,
 	off_t mboxOffset)
 {
 	string sourceLabel("mailbox://");
@@ -114,26 +123,19 @@ bool MboxHandler::indexMessages(const string &fileName, PinotSettings::MailAccou
 	// Get a parser
 	MboxParser boxParser(fileName, mboxOffset);
 
-	bool indexedFile = parseMailAccount(boxParser, &index,
-		mailAccount.m_lastMessageTime, sourceLabel);
+	bool indexedFile = parseMailAccount(boxParser, &index, sourceLabel);
 
 	// Flush the index
 	index.flush();
 
-	// Update this mail account in the list
-	set<PinotSettings::MailAccount> &mailAccounts = PinotSettings::getInstance().m_mailAccounts;
-	set<PinotSettings::MailAccount>::iterator mailIter = mailAccounts.find(mailAccount);
-	if (mailIter != mailAccounts.end())
-	{
-		mailAccounts.erase(mailIter);
-	}
-	mailAccounts.insert(mailAccount);
+	// Update this mail account's record
+	m_history.updateItem("file://" + fileName, CrawlHistory::CRAWLED, mailAccount.m_modTime);
 
 	return indexedFile;
 }
 
 bool MboxHandler::parseMailAccount(MboxParser &boxParser, WritableIndexInterface *pIndex,
-	time_t &lastMessageTime, const string &sourceLabel)
+	const string &sourceLabel)
 {
 	set<unsigned int> docIdList;
 	bool indexedFile = false;
@@ -181,12 +183,6 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, WritableIndexInterface
 			if (indexedFile == true)
 			{
 				time_t messageDate = boxParser.getDate();
-
-				if (messageDate > lastMessageTime)
-				{
-					// This is the latest message so far
-					lastMessageTime = messageDate;
-				}
 
 				pIndex->setDocumentLabels(docId, labels);
 
@@ -279,8 +275,8 @@ bool MboxHandler::getLocations(set<string> &newLocations,
 		inserter(locationsToRemove, locationsToRemove.begin()));
 
 	// Get the mail accounts map
-	set<PinotSettings::MailAccount> &mailAccounts = PinotSettings::getInstance().m_mailAccounts;
-	for (set<PinotSettings::MailAccount>::iterator mailIter = mailAccounts.begin();
+	set<PinotSettings::TimestampedItem> &mailAccounts = PinotSettings::getInstance().m_mailAccounts;
+	for (set<PinotSettings::TimestampedItem>::iterator mailIter = mailAccounts.begin();
 		mailIter != mailAccounts.end(); ++mailIter)
 	{
 		// Is this a known location ?
@@ -329,13 +325,12 @@ bool MboxHandler::getLocations(set<string> &newLocations,
 
 bool MboxHandler::fileExists(const string &fileName)
 {
-	PinotSettings::MailAccount mailAccount;
-	off_t previousSize = 0;
+	PinotSettings::TimestampedItem mailAccount;
 
 #ifdef DEBUG
 	cout << "MboxHandler::fileExists: " << fileName << endl;
 #endif
-	if (checkMailAccount(fileName, mailAccount, previousSize) == false)
+	if (checkMailAccount(fileName, mailAccount) == false)
 	{
 		return false;
 	}
@@ -351,33 +346,18 @@ bool MboxHandler::fileCreated(const string &fileName)
 
 bool MboxHandler::fileModified(const string &fileName)
 {
-	PinotSettings::MailAccount mailAccount;
-	off_t previousSize = 0, mboxOffset = 0;
+	PinotSettings::TimestampedItem mailAccount;
 
 #ifdef DEBUG
 	cout << "MboxHandler::fileModified: " << fileName << " changed" << endl;
 #endif
-	if (checkMailAccount(fileName, mailAccount, previousSize) == false)
+	if (checkMailAccount(fileName, mailAccount) == false)
 	{
 		return false;
 	}
 
-	if (mailAccount.m_size <= previousSize)
-	{
-		// Parse the file from the beginning...
-#ifdef DEBUG
-		cout << "MboxHandler::fileModified: file smaller or same size" << endl;
-#endif
-		return fileExists(fileName);
-	}
-#ifdef DEBUG
-	else cout << "MboxHandler::fileModified: file now larger than " << previousSize << endl;
-#endif
-
-	// Chances are new messages were added but none removed
-	mboxOffset = previousSize;
-
-	return indexMessages(fileName, mailAccount, mboxOffset);
+	// Parse the file in whole
+	return indexMessages(fileName, mailAccount, 0);
 }
 
 bool MboxHandler::fileMoved(const string &fileName, const string &previousFileName)
@@ -389,7 +369,7 @@ bool MboxHandler::fileMoved(const string &fileName, const string &previousFileNa
 bool MboxHandler::fileDeleted(const string &fileName)
 {
 	set<unsigned int> docIdList;
-	string sourceLabel(string("mailbox://"));
+	string sourceLabel("mailbox://");
 
 	sourceLabel += fileName;
 
