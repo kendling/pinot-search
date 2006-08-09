@@ -36,6 +36,7 @@
 #include "TimeConverter.h"
 #include "Url.h"
 #include "XapianDatabase.h"
+#include "CrawlHistory.h"
 #include "QueryHistory.h"
 #include "IndexedDocument.h"
 #include "MonitorFactory.h"
@@ -1553,7 +1554,8 @@ DirectoryScannerThread::DirectoryScannerThread(const string &dirName,
 	m_followSymLinks(followSymLinks),
 	m_pMutex(pMutex),
 	m_pCondVar(pCondVar),
-	m_currentLevel(0)
+	m_currentLevel(0),
+	m_sourceId(0)
 {
 #ifdef DEBUG
 	if (m_followSymLinks == true)
@@ -1663,10 +1665,25 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 	}
 	else if (S_ISDIR(fileStat.st_mode))
 	{
-		// A directory : scan it
+		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+		CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
+
+		// A directory : check whether it has been crawled already
+		if ((history.hasItem(string("file://") + dirName, status) == true) &&
+			(status != CrawlHistory::UNKNOWN))
+		{
+			// Skip it
+#ifdef DEBUG
+			cout << "DirectoryScannerThread::scanDirectory: skipping " << dirName << endl;
+#endif
+			return true;
+		}
+
+		// Scan it !
 		DIR *pDir = opendir(dirName.c_str());
 		if (pDir == NULL)
 		{
+			history.insertItem(string("file://") + dirName, CrawlHistory::CRAWLED, m_sourceId);
 			return false;
 		}
 #ifdef DEBUG
@@ -1729,6 +1746,9 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 			pDirEntry = readdir(pDir);
 		}
 		closedir(pDir);
+
+		// Update the directory's status
+		history.insertItem(string("file://") + dirName, CrawlHistory::CRAWLED, m_sourceId);
 	}
 
 	return true;
@@ -1736,6 +1756,16 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 
 void DirectoryScannerThread::doWork(void)
 {
+	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+
+	// Does this source exist ?
+	if ((m_dirName.empty() == false) &&
+		(history.hasSource(string("file://") + m_dirName, m_sourceId) == false))
+	{
+		// Create it
+		m_sourceId = history.insertSource(string("file://") + m_dirName);
+	}
+
 	if (scanDirectory(m_dirName) == false)
 	{
 		m_status = _("Couldn't open directory");

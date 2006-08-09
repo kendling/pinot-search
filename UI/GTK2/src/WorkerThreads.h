@@ -414,6 +414,7 @@ class DirectoryScannerThread : public WorkerThread
 		Glib::Mutex *m_pMutex;
 		Glib::Cond *m_pCondVar;
 		unsigned int m_currentLevel;
+		unsigned int m_sourceId;
 		SigC::Signal1<bool, const std::string&> m_signalFileFound;
 
 		void foundFile(const std::string &fileName);

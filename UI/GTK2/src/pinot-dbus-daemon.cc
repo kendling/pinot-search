@@ -40,6 +40,7 @@ extern "C"
 #include "MIMEScanner.h"
 #include "XapianDatabase.h"
 #include "XapianDatabaseFactory.h"
+#include "CrawlHistory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
@@ -336,6 +337,7 @@ int main(int argc, char **argv)
 
 	// Do the same for the history database
 	if ((settings.m_historyDatabase.empty() == true) ||
+		(CrawlHistory::create(settings.m_historyDatabase) == false) ||
 		(QueryHistory::create(settings.m_historyDatabase) == false) ||
 		(ViewHistory::create(settings.m_historyDatabase) == false))
 	{
