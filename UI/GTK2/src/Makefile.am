@@ -57,7 +57,6 @@ pinot_dbus_daemon_SOURCES = \
 	MboxHandler.cpp \
 	OnDiskHandler.cpp \
 	PinotSettings.cpp \
-	PinotUtils.cpp \
 	WorkerThreads.cpp
 
 bin_PROGRAMS = pinot pinot-dbus-daemon
@@ -75,5 +74,5 @@ pinot_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL -L../../../Mon
 pinot_dbus_daemon_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL -L../../../Monitor \
 	-L../../../Collect -L../../../Search -L../../../Search/Google \
 	-L../../../Index -lIndex @SEARCH_LIBS@ -lMonitor -lCollect -lSQL -lTokenize -lUtils \
-	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
+	@LIBS@ @GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
