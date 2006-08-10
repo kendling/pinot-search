@@ -30,7 +30,6 @@
 
 #include "HtmlTokenizer.h"
 #include "XmlTokenizer.h"
-#include "MIMEScanner.h"
 #include "TokenizerFactory.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
@@ -174,10 +173,13 @@ ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(maxIndexThreads),
 	m_nextId(1),
-	m_backgroundThreadsCount(0)
+	m_backgroundThreadsCount(0),
+	m_numCPUs(1)
 {
 	pthread_rwlock_init(&m_threadsLock, NULL);
 	pthread_rwlock_init(&m_listsLock, NULL);
+
+	m_numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 ThreadsManager::~ThreadsManager()
@@ -458,7 +460,26 @@ void ThreadsManager::on_thread_signal()
 
 bool ThreadsManager::queue_index(const DocumentInfo &docInfo)
 {
+	double averageLoad[3];
+	bool addToQueue = false;
+
 	if (get_threads_count() >= m_maxIndexThreads)
+	{
+		addToQueue = true;
+	}
+	// Get the load averaged over the last minute
+	else if (getloadavg(averageLoad, 3) != -1)
+	{
+		// FIXME: is LOADAVG_1MIN Solaris specific ?
+		if (averageLoad[0] >= (double)m_numCPUs * 4)
+		{
+			// Don't add to the load, queue this
+			addToQueue = true;
+		}
+	}
+
+
+	if (addToQueue == true)
 	{
 		if (write_lock_lists() == true)
 		{
@@ -1359,8 +1380,7 @@ MonitorThread::MonitorThread(MonitorHandler *pHandler) :
 	WorkerThread(),
 	m_ctrlReadPipe(-1),
 	m_ctrlWritePipe(-1),
-	m_pHandler(pHandler),
-	m_numCPUs(1)
+	m_pHandler(pHandler)
 {
 	int pipeFds[2];
 
@@ -1370,7 +1390,6 @@ MonitorThread::MonitorThread(MonitorHandler *pHandler) :
 		m_ctrlReadPipe = pipeFds[0];
 		m_ctrlWritePipe = pipeFds[1];
 	}
-	m_numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 MonitorThread::~MonitorThread()
@@ -1492,22 +1511,6 @@ void MonitorThread::doWork(void)
 				(m_done == false))
 			{
 				MonitorEvent &event = events.front();
-				double averageLoad[3];
-
-				// Get the load averaged over the last minute
-				if (getloadavg(averageLoad, 3) != -1)
-				{
-					// FIXME: is LOADAVG_1MIN Solaris specific ?
-					if (averageLoad[0] >= (double)m_numCPUs * 4)
-					{
-						// Ignore pending events if the load has become too high
-#ifdef DEBUG
-						cout << "MonitorThread::doWork: ignoring events because of load ("
-							<< averageLoad[0] << ")" << endl;
-#endif
-						break;
-					}
-				}
 
 				if ((event.m_location.empty() == true) ||
 					(event.m_type == MonitorEvent::UNKNOWN))
@@ -1604,7 +1607,7 @@ void DirectoryScannerThread::foundFile(const string &fileName)
 	if ((m_pMutex != NULL) &&
 		(m_pCondVar != NULL))
 	{
-		string url(string("file://") + fileName);
+		string url("file://" + fileName);
 
 		m_pMutex->lock();
 		if (m_signalFileFound(url) == true)
@@ -1663,15 +1666,29 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 	}
 	else if (S_ISREG(fileStat.st_mode))
 	{
-		// It's actually a file
-		// Skip dotfiles and those files we have already crawled
-		if ((dirName[0] != '.') &&
-			(history.hasItem("file://" + dirName, status, itemDate) == false))
+		// It's actually a file : skip dotfiles
+		if (dirName[0] != '.')
 		{
-			foundFile(dirName);
+			bool reportFile = false;
 
-			// Record it
-			history.insertItem("file://" + dirName, CrawlHistory::CRAWLED, m_sourceId, 0);
+			// ...and check whether the file was crawled since it was last modified
+			if (history.hasItem("file://" + dirName, status, itemDate) == false)
+			{
+				// Record it
+				history.insertItem("file://" + dirName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
+				reportFile = true;
+			}
+			else if (itemDate < fileStat.st_mtime)
+			{
+				// Update the record
+				history.updateItem("file://" + dirName, CrawlHistory::CRAWLED, fileStat.st_mtime);
+				reportFile = true;
+			}
+
+			if (reportFile == true)
+			{
+				foundFile(dirName);
+			}
 		}
 	}
 	else if (S_ISDIR(fileStat.st_mode))
@@ -1717,13 +1734,25 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 				// File or directory
 				if (S_ISREG(fileStat.st_mode))
 				{
-					// Has it already been crawled ?
+					bool reportFile = false;
+
+					// Was it crawled since it was last modified ?
 					if (history.hasItem("file://" + entryName, status, itemDate) == false)
 					{
-						foundFile(entryName);
-
 						// Record it
-						history.insertItem("file://" + entryName, CrawlHistory::CRAWLED, m_sourceId, 0);
+						history.insertItem("file://" + entryName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
+						reportFile = true;
+					}
+					else if (itemDate < fileStat.st_mtime)
+					{
+						// Update the record
+						history.updateItem("file://" + entryName, CrawlHistory::CRAWLED, fileStat.st_mtime);
+						reportFile = true;
+					}
+
+					if (reportFile == true)
+					{
+						foundFile(entryName);
 					}
 				}
 				else if (S_ISDIR(fileStat.st_mode))

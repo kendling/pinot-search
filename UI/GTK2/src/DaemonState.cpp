@@ -21,6 +21,7 @@
 #include <glibmm/convert.h>
 #include <glibmm/thread.h>
 
+#include "Url.h"
 #include "WritableXapianIndex.h"
 #include "DaemonState.h"
 #include "MboxHandler.h"
@@ -249,7 +250,9 @@ void DaemonState::on_message_indexupdate(IndexedDocument docInfo, unsigned int d
 
 bool DaemonState::on_message_filefound(const string &location)
 {
-	DocumentInfo docInfo(location, location, "", "");
+	Url urlObj(location);
+
+	DocumentInfo docInfo(urlObj.getFile(), location, "", "");
 
 	queue_index(docInfo);
 

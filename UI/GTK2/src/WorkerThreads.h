@@ -133,6 +133,7 @@ class ThreadsManager : public SigC::Object
 		unsigned int m_maxIndexThreads;
 		unsigned int m_nextId;
 		unsigned int m_backgroundThreadsCount;
+		long m_numCPUs;
 		SigC::Signal1<void, WorkerThread *> m_onThreadEndSignal;
 		std::set<DocumentInfo> m_indexQueue;
 
@@ -381,7 +382,6 @@ class MonitorThread : public WorkerThread
 		int m_ctrlReadPipe;
 		int m_ctrlWritePipe;
 		MonitorHandler *m_pHandler;
-		long m_numCPUs;
 
 		virtual void doWork(void);
 
