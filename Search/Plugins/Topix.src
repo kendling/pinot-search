@@ -17,7 +17,7 @@
 resultListStart=""
 resultListEnd=""
 resultItemStart='<div class="article"'
-resultItemEnd='</div> </div>'
+resultItemEnd='<div class="divclear">'
 >
 
 </SEARCH>
