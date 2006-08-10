@@ -504,9 +504,6 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 
 	if (pthread_mutex_lock(&m_mutex) == 0)
 	{
-#ifdef DEBUG
-		cout << "SherlockParser::parse: parsing" << endl;
-#endif
 		try
 		{
 			if (extractSearchParams == false)
@@ -542,9 +539,6 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 			fullParsing = false;
 		}
 
-#ifdef DEBUG
-		cout << "SherlockParser::parse: parsed" << endl;
-#endif
 		pthread_mutex_unlock(&m_mutex);
 	}
 

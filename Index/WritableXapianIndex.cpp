@@ -531,6 +531,7 @@ bool WritableXapianIndex::listDocumentsWithLabel(const string &name, set<unsigne
 {
 	return XapianIndex::listDocumentsWithLabel(name, docIds, maxDocsCount, startDoc);
 }
+
 //
 // Implementation of WritableIndexInterface
 //
