@@ -807,6 +807,7 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 void mainWindow::on_thread_end(WorkerThread *pThread)
 {
 	ustring status;
+	string indexedUrl;
 
 	if (pThread == NULL)
 	{
@@ -1121,6 +1122,9 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
+		// Get the URL we have just indexed
+		indexedUrl = pIndexThread->getURL();
+
 		// Get the document properties
 		unsigned int docId = pIndexThread->getDocumentID();
 		DocumentInfo docInfo = pIndexThread->getDocumentInfo();
@@ -1150,23 +1154,9 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		}
 		else
 		{
-			string url = pIndexThread->getURL();
-
 			status = _("Indexed");
 			status += " ";
-			status += to_utf8(url);
-
-			// Update the in-progress list
-			if (m_state.write_lock_lists() == true)
-			{
-				set<string>::iterator urlIter = m_state.m_beingIndexed.find(url);
-				if (urlIter != m_state.m_beingIndexed.end())
-				{
-					m_state.m_beingIndexed.erase(urlIter);
-				}
-
-				m_state.unlock_lists();
-			}
+			status += to_utf8(indexedUrl);
 
 			if (pIndexTree != NULL)
 			{
@@ -1253,7 +1243,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 	delete pThread;;
 
 	// We might be able to run a queued action
-	m_state.pop_queue();
+	m_state.pop_queue(indexedUrl);
 
 	// Any threads left to return ?
 	if (m_state.get_threads_count() == 0)

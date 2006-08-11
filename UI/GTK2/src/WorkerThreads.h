@@ -20,6 +20,7 @@
 #include <time.h>
 #include <string>
 #include <vector>
+#include <queue>
 #include <set>
 #include <map>
 #include <pthread.h>
@@ -120,9 +121,9 @@ class ThreadsManager : public SigC::Object
 
 		bool queue_index(const DocumentInfo &docInfo);
 
-		bool pop_queue(void);
+		bool pop_queue(const std::string &urlWasIndexed = "");
 
-		std::set<std::string> m_beingIndexed;
+		void get_statistics(unsigned int &queueSize);
 
 	protected:
 		SigC::Connection m_threadsEndConnection;
@@ -131,11 +132,12 @@ class ThreadsManager : public SigC::Object
 		std::map<WorkerThread *, Glib::Thread *> m_threads;
 		std::string m_defaultIndexLocation;
 		unsigned int m_maxIndexThreads;
-		unsigned int m_nextId;
+		unsigned int m_nextThreadId;
 		unsigned int m_backgroundThreadsCount;
 		long m_numCPUs;
 		SigC::Signal1<void, WorkerThread *> m_onThreadEndSignal;
-		std::set<DocumentInfo> m_indexQueue;
+		std::queue<DocumentInfo> m_indexQueue;
+		std::set<std::string> m_beingIndexed;
 
 		bool read_lock_threads(void);
 		bool write_lock_threads(void);

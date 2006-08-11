@@ -106,6 +106,8 @@ void DaemonState::signal_scanner(void)
 
 void DaemonState::on_thread_end(WorkerThread *pThread)
 {
+	string indexedUrl;
+
 	if (pThread == NULL)
 	{
 		return;
@@ -196,23 +198,8 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		// Did the thread perform an update ?
-		if (pIndexThread->isNewDocument() == true)
-		{
-			string url(pIndexThread->getURL());
-
-			// Update the in-progress list
-			if (write_lock_lists() == true)
-			{
-				set<string>::iterator urlIter = m_beingIndexed.find(url);
-				if (urlIter != m_beingIndexed.end())
-				{
-					m_beingIndexed.erase(urlIter);
-				}
-
-				unlock_lists();
-			}
-		}
+		// Get the URL we have just indexed
+		indexedUrl = pIndexThread->getURL();
 
 		// Get another file from the directory scanner if possible
 		if (m_crawling == true)
@@ -240,7 +227,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	delete pThread;;
 
 	// We might be able to run a queued action
-	pop_queue();
+	pop_queue(indexedUrl);
 }
 
 void DaemonState::on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, string indexName)

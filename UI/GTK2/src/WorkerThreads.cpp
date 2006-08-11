@@ -30,6 +30,7 @@
 
 #include "HtmlTokenizer.h"
 #include "XmlTokenizer.h"
+#include "MIMEScanner.h"
 #include "TokenizerFactory.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
@@ -172,7 +173,7 @@ ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	SigC::Object(),
 	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(maxIndexThreads),
-	m_nextId(1),
+	m_nextThreadId(1),
 	m_backgroundThreadsCount(0),
 	m_numCPUs(1)
 {
@@ -291,11 +292,31 @@ bool ThreadsManager::index_document(const DocumentInfo &docInfo)
 		return false;
 	}
 
-	// If the document is mail, we can't index it again
+	// If the document is a mail message, we can't index it again
 	Url urlObj(location);
 	if (urlObj.getProtocol() == "mailbox")
 	{
 		return false;
+	}
+
+	// Is the document being indexed/updated ?
+	if (write_lock_lists() == true)
+	{
+		bool beingProcessed = true;
+
+		if (m_beingIndexed.find(location) == m_beingIndexed.end())
+		{
+			m_beingIndexed.insert(location);
+			beingProcessed = false;
+		}
+
+		unlock_lists();
+
+		if (beingProcessed == true)
+		{
+			// FIXME: we may have to set labels on this document
+			return false;
+		}
 	}
 
 	// Is it an update ?
@@ -308,26 +329,6 @@ bool ThreadsManager::index_document(const DocumentInfo &docInfo)
 	}
 	else
 	{
-		bool isNewDocument = false;
-
-		// Is the document being indexed ?
-		if (write_lock_lists() == true)
-		{
-			if (m_beingIndexed.find(location) == m_beingIndexed.end())
-			{
-				m_beingIndexed.insert(location);
-				isNewDocument = true;
-			}
-
-			unlock_lists();
-		}
-
-		if (isNewDocument == false)
-		{
-			// FIXME: the document is being indexed but we may have to set labels on it
-			return false;
-		}
-
 		// This is a new document
 		start_thread(new IndexingThread(docInfo, docId, m_defaultIndexLocation));
 	}
@@ -342,7 +343,7 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 		return false;
 	}
 
-	pWorkerThread->setId(m_nextId);
+	pWorkerThread->setId(m_nextThreadId);
 	if (inBackground == true)
 	{
 		pWorkerThread->inBackground();
@@ -365,7 +366,7 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 
 		unlock_threads();
 	}
-	++m_nextId;
+	++m_nextThreadId;
 
 	return true;
 }
@@ -478,12 +479,11 @@ bool ThreadsManager::queue_index(const DocumentInfo &docInfo)
 		}
 	}
 
-
 	if (addToQueue == true)
 	{
 		if (write_lock_lists() == true)
 		{
-			m_indexQueue.insert(docInfo);
+			m_indexQueue.push(docInfo);
 
 			unlock_lists();
 		}
@@ -494,32 +494,40 @@ bool ThreadsManager::queue_index(const DocumentInfo &docInfo)
 	return index_document(docInfo);
 }
 
-bool ThreadsManager::pop_queue(void)
+bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 {
+	bool getItem = true;
+	bool foundItem = false;
+
 	if (get_threads_count() >= m_maxIndexThreads)
 	{
 #ifdef DEBUG
 		cout << "ThreadsManager::pop_queue: too many threads" << endl;
 #endif
-		return false;
+		getItem = false;
 	}
 
 	DocumentInfo docInfo;
-	bool foundItem = false;
 
 	if (write_lock_lists() == true)
 	{
-		if (m_indexQueue.empty() == false)
+		// Update the in-progress list
+		if (urlWasIndexed.empty() == false)
 		{
-			// Get the first item
-			std::set<DocumentInfo>::iterator queueIter = m_indexQueue.begin();
-			if (queueIter != m_indexQueue.end())
+			set<string>::iterator urlIter = m_beingIndexed.find(urlWasIndexed);
+			if (urlIter != m_beingIndexed.end())
 			{
-				docInfo = *queueIter;
-				foundItem = true;
-
-				m_indexQueue.erase(queueIter);
+				m_beingIndexed.erase(urlIter);
 			}
+		}
+
+		// Get the first item ?
+		if ((getItem == true) &&
+			(m_indexQueue.empty() == false))
+		{
+			docInfo = m_indexQueue.front();
+			m_indexQueue.pop();
+			foundItem = true;
 		}
 
 		unlock_lists();
@@ -532,6 +540,18 @@ bool ThreadsManager::pop_queue(void)
 	}
 
 	return index_document(docInfo);
+}
+
+void ThreadsManager::get_statistics(unsigned int &queueSize)
+{
+	if (read_lock_lists() == true)
+	{
+		// We want the number of documents being indexed,
+		// not the number of document waiting in the queue
+		queueSize = m_beingIndexed.size();
+
+		unlock_lists();
+	}
 }
 
 IndexBrowserThread::IndexBrowserThread(const string &indexName,
