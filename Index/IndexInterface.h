@@ -50,6 +50,9 @@ class IndexInterface
 		/// Gets terms with the same root.
 		virtual unsigned int getCloseTerms(const std::string &term, std::set<std::string> &suggestions) = 0;
 
+		/// Returns the ID of the last document.
+		virtual unsigned int getLastDocumentID(void) const = 0;
+
 		/// Returns the number of documents.
 		virtual unsigned int getDocumentsCount(const std::string &labelName = "") const = 0;
 

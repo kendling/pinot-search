@@ -52,6 +52,9 @@ class XapianIndex : public IndexInterface
 		/// Gets terms with the same root.
 		virtual unsigned int getCloseTerms(const std::string &term, std::set<std::string> &suggestions);
 
+		/// Returns the ID of the last document.
+		virtual unsigned int getLastDocumentID(void) const;
+
 		/// Returns the number of documents.
 		virtual unsigned int getDocumentsCount(const std::string &labelName = "") const;
 

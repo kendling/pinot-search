@@ -406,6 +406,39 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 	return suggestions.size();
 }
 
+/// Returns the ID of the last document.
+unsigned int XapianIndex::getLastDocumentID(void) const
+{
+	unsigned int docId = 0;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return 0;
+	}
+
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			docId = pIndex->get_lastdocid();
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get last document ID: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get last document ID, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+
+	return docId;
+}
+
 /// Returns the number of documents.
 unsigned int XapianIndex::getDocumentsCount(const string &labelName) const
 {
