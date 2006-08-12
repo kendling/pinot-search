@@ -132,6 +132,9 @@ int main(int argc, char **argv)
 	textdomain(GETTEXT_PACKAGE);
 #endif //ENABLE_NLS
 
+	// This should make Xapian use Flint rather than Quartz
+	setenv("XAPIAN_PREFER_FLINT", "1", 1);
+
 	MIMEScanner::initialize();
 	DownloaderInterface::initialize();
 	Glib::thread_init();

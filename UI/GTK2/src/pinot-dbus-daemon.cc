@@ -121,8 +121,11 @@ static DBusHandlerResult objectPathHandler(DBusConnection *pConnection, DBusMess
 
 static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
+	XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 	DaemonState *pServer = NULL;
 	DBusMessage *pReply = NULL;
+	DBusError error;
+	const char *pSender = dbus_message_get_sender(pMessage);
 	bool processedMessage = false, quitLoop = false;
 
 	if (pData != NULL)
@@ -130,31 +133,62 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 		pServer = (DaemonState *)pData;
 	}
 
+	dbus_error_init(&error);
+
+#ifdef DEBUG
+	if (pSender != NULL)
+	{
+		cout << "messageBusFilter: called from " << pSender << endl;
+	}
+#endif
+
 	// Are we about to be disconnected ?
 	if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_LOCAL, "Disconnected") == TRUE)
 	{
 		quitLoop = true;
 		processedMessage = true;
 	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "DeleteLabel") == TRUE)
+	{
+		char *pLabel = NULL;
+
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_STRING, &pLabel,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: received " << pLabel << endl;
+#endif
+			// FIXME: delete the label
+
+			// Prepare the reply
+			pReply = dbus_message_new_method_return(pMessage);
+			if (pReply != NULL)
+			{
+				dbus_message_append_args(pReply,
+					DBUS_TYPE_STRING, &pLabel,
+					DBUS_TYPE_INVALID);
+			}
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
+			// Use the error message as reply
+			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
+
+		processedMessage = true;
+	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetDocumentInfo") == TRUE)
 	{
-		const char *pSender = dbus_message_get_sender(pMessage);
-		DBusError error;
-		dbus_uint32_t docId = 0;
+		unsigned int docId = 0;
 
-#ifdef DEBUG
-		if (pSender != NULL)
-		{
-			cout << "messageBusFilter: called from " << pSender << endl;
-		}
-#endif
-		// Simple types are returned as const references and don't need to be freed
-		dbus_error_init(&error);
 		if (dbus_message_get_args(pMessage, &error,
 			DBUS_TYPE_UINT32, &docId,
 			DBUS_TYPE_INVALID) == TRUE)
 		{
-			XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 			DocumentInfo docInfo;
 
 #ifdef DEBUG
@@ -169,7 +203,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 					const char *pTitle = docInfo.getTitle().c_str();
 					const char *pLocation = docInfo.getLocation().c_str();
 					const char *pType = docInfo.getType().c_str();
-					const char *pLanguage = docInfo.getLanguage().c_str();
+					const char *pLanguage = Languages::toEnglish(docInfo.getLanguage()).c_str();
 
 					dbus_message_append_args(pReply,
 						DBUS_TYPE_STRING, &pTitle,
@@ -194,26 +228,15 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			// Use the error message as reply
 			pReply = dbus_message_new_error(pMessage, error.name, error.message);
 		}
-		dbus_error_free(&error);
 
 		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetStatistics") == TRUE)
 	{
-		const char *pSender = dbus_message_get_sender(pMessage);
-		DBusError error;
-		dbus_uint32_t docId = 0;
-
-#ifdef DEBUG
-		if (pSender != NULL)
-		{
-			cout << "messageBusFilter: called from " << pSender << endl;
-		}
-#endif
-		XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+		unsigned int docId = 0;
 
-		unsigned int crawledDirsCount = history.getItemsCount();
+		unsigned int crawledFilesCount = history.getItemsCount();
 		unsigned int docsCount = index.getDocumentsCount();
 
 		// Prepare the reply
@@ -221,33 +244,23 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 		if (pReply != NULL)
 		{
 			dbus_message_append_args(pReply,
-				DBUS_TYPE_UINT32, &crawledDirsCount,
+				DBUS_TYPE_UINT32, &crawledFilesCount,
 				DBUS_TYPE_UINT32, &docsCount,
 				DBUS_TYPE_INVALID);
 		}
 
 		processedMessage = true;
 	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "Index") == TRUE)
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "IndexDocument") == TRUE)
 	{
-		const char *pSender = dbus_message_get_sender(pMessage);
-		DBusError error;
 		char *pTitle = NULL;
 		char *pLocation = NULL;
 		char *pType = NULL;
 		char *pLanguage = NULL;
 		char **ppLabels = NULL;
 		dbus_uint32_t labelsCount = 0;
-		dbus_uint32_t docId = 0;
+		unsigned int docId = 0;
 
-#ifdef DEBUG
-		if (pSender != NULL)
-		{
-			cout << "messageBusFilter: called from " << pSender << endl;
-		}
-#endif
-		// Simple types are returned as const references and don't need to be freed
-		dbus_error_init(&error);
 		if (dbus_message_get_args(pMessage, &error,
 			DBUS_TYPE_STRING, &pTitle,
 			DBUS_TYPE_STRING, &pLocation,
@@ -257,16 +270,18 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DBUS_TYPE_UINT32, &labelsCount,
 			DBUS_TYPE_INVALID) == TRUE)
 		{
-			DocumentInfo docInfo(pTitle, pLocation, pType, pLanguage);
+			DocumentInfo docInfo(pTitle, pLocation, pType,
+				((pLanguage != NULL) ? Languages::toLocale(pLanguage) : ""));
 
 #ifdef DEBUG
 			cout << "messageBusFilter: received " << pTitle << ", " << pLocation
-				<< ", " << pType << ", " << pLanguage << ", " << docId
+				<< ", " << pType << ", " << pLanguage
 				<< " with " << labelsCount << " labels" << endl;
 #endif
 			// FIXME: set labels on docInfo
 
 			pServer->queue_index(docInfo);
+			// FIXME: we can't provide a document ID at the moment
 
 			// Free container types
 			g_strfreev(ppLabels);
@@ -288,26 +303,138 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			// Use the error message as reply
 			pReply = dbus_message_new_error(pMessage, error.name, error.message);
 		}
-		dbus_error_free(&error);
+
+		processedMessage = true;
+	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "RenameLabel") == TRUE)
+	{
+		char *pOldLabel = NULL;
+		char *pNewLabel = NULL;
+
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_STRING, &pOldLabel,
+			DBUS_TYPE_STRING, &pNewLabel,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: received " << pOldLabel
+				<< " " << pNewLabel << endl;
+#endif
+			// FIXME: rename the label
+
+			// Prepare the reply
+			pReply = dbus_message_new_method_return(pMessage);
+			if (pReply != NULL)
+			{
+				dbus_message_append_args(pReply,
+					DBUS_TYPE_STRING, &pNewLabel,
+					DBUS_TYPE_INVALID);
+			}
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
+			// Use the error message as reply
+			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
+
+		processedMessage = true;
+	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SetDocumentInfo") == TRUE)
+	{
+		char *pTitle = NULL;
+		char *pLocation = NULL;
+		char *pType = NULL;
+		char *pLanguage = NULL;
+		unsigned int docId = 0;
+
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_UINT32, &docId,
+			DBUS_TYPE_STRING, &pTitle,
+			DBUS_TYPE_STRING, &pLocation,
+			DBUS_TYPE_STRING, &pType,
+			DBUS_TYPE_STRING, &pLanguage,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			DocumentInfo docInfo(pTitle, pLocation, pType,
+				((pLanguage != NULL) ? Languages::toLocale(pLanguage) : ""));
+
+#ifdef DEBUG
+			cout << "messageBusFilter: received " << pTitle << ", " << pLocation
+				<< ", " << pType << ", " << pLanguage << ", " << docId << endl;
+#endif
+
+			// FIXME: update the document info
+
+			// Prepare the reply
+			pReply = dbus_message_new_method_return(pMessage);
+			if (pReply != NULL)
+			{
+				dbus_message_append_args(pReply,
+					DBUS_TYPE_UINT32, &docId,
+					DBUS_TYPE_INVALID);
+			}
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
+			// Use the error message as reply
+			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
+
+		processedMessage = true;
+	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SetDocumentLabels") == TRUE)
+	{
+		char **ppLabels = NULL;
+		dbus_uint32_t labelsCount = 0;
+		unsigned int docId = 0;
+
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_UINT32, &docId,
+			DBUS_TYPE_ARRAY, &ppLabels,
+			DBUS_TYPE_UINT32, &labelsCount,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: received " << docId
+				<< " with " << labelsCount << " labels" << endl;
+#endif
+			// FIXME: set labels
+
+			// Free container types
+			g_strfreev(ppLabels);
+
+			// Prepare the reply
+			pReply = dbus_message_new_method_return(pMessage);
+			if (pReply != NULL)
+			{
+				dbus_message_append_args(pReply,
+					DBUS_TYPE_UINT32, &docId,
+					DBUS_TYPE_INVALID);
+			}
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
+			// Use the error message as reply
+			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
 
 		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SimpleQuery") == TRUE)
 	{
-		const char *pSender = dbus_message_get_sender(pMessage);
-		DBusError error;
 		char *pSearchText = NULL;
 		dbus_uint32_t maxHits = 0;
-		dbus_uint32_t docId = 0;
+		unsigned int docId = 0;
 
-#ifdef DEBUG
-		if (pSender != NULL)
-		{
-			cout << "messageBusFilter: called from " << pSender << endl;
-		}
-#endif
-		// Simple types are returned as const references and don't need to be freed
-		dbus_error_init(&error);
 		if (dbus_message_get_args(pMessage, &error,
 			DBUS_TYPE_STRING, &pSearchText,
 			DBUS_TYPE_UINT32, &maxHits,
@@ -333,7 +460,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 
 					if (docIdsCount > 0)
 					{
-						XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 						char *pDocIds[docIdsCount];
 						unsigned int resultIndex = 0;
 
@@ -391,15 +517,11 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			// Use the error message as reply
 			pReply = dbus_message_new_error(pMessage, error.name, error.message);
 		}
-		dbus_error_free(&error);
 
 		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "Stop") == TRUE)
 	{
-		DBusError error;
-
-		dbus_error_init(&error);
 		if (dbus_message_get_args(pMessage, &error,
 			DBUS_TYPE_INVALID) == TRUE)
 		{
@@ -417,11 +539,110 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			quitLoop = true;
 			processedMessage = true;
 		}
-		dbus_error_free(&error);
+	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "UnindexDocument") == TRUE)
+	{
+		unsigned int docId = 0;
+
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_UINT32, &docId,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: received " << docId << endl;
+#endif
+			// FIXME: unindex document
+
+			// Prepare the reply
+			pReply = dbus_message_new_method_return(pMessage);
+			if (pReply != NULL)
+			{
+				dbus_message_append_args(pReply,
+					DBUS_TYPE_UINT32, &docId,
+					DBUS_TYPE_INVALID);
+			}
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
+			// Use the error message as reply
+			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
+
+		processedMessage = true;
+	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "UnindexDocuments") == TRUE)
+	{
+		char *pLabel = NULL;
+
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_STRING, &pLabel,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: received " << pLabel << endl;
+#endif
+			// FIXME: unindex documents
+
+			// Prepare the reply
+			pReply = dbus_message_new_method_return(pMessage);
+			if (pReply != NULL)
+			{
+				dbus_message_append_args(pReply,
+					DBUS_TYPE_STRING, &pLabel,
+					DBUS_TYPE_INVALID);
+			}
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
+			// Use the error message as reply
+			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
+
+		processedMessage = true;
+	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "UpdateDocument") == TRUE)
+	{
+		unsigned int docId = 0;
+
+		if (dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_UINT32, &docId,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: received " << docId << endl;
+#endif
+			// FIXME: update document
+
+			// Prepare the reply
+			pReply = dbus_message_new_method_return(pMessage);
+			if (pReply != NULL)
+			{
+				dbus_message_append_args(pReply,
+					DBUS_TYPE_UINT32, &docId,
+					DBUS_TYPE_INVALID);
+			}
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "messageBusFilter: " << error.message << endl;
+#endif
+			// Use the error message as reply
+			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
+
+		processedMessage = true;
 	}
 #ifdef DEBUG
 	else cout << "messageBusFilter: message for foreign object" << endl;
 #endif
+	dbus_error_free(&error);
 
 	// Send a reply ?
 	if (pReply != NULL)
@@ -487,6 +708,9 @@ int main(int argc, char **argv)
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
 #endif //ENABLE_NLS
+
+	// This should make Xapian use Flint rather than Quartz
+	setenv("XAPIAN_PREFER_FLINT", "1", 1);
 
 	MIMEScanner::initialize();
 	DownloaderInterface::initialize();

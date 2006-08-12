@@ -2,6 +2,15 @@
 <node name="/de/berlios/Pinot">
   <interface name="de.berlios.Pinot">
     <!--
+	Deletes a label.
+	 label: the name of the label to delete
+	-->
+    <method name="DeleteLabel">
+      <annotation name="de.berlios.Pinot.DeleteLabel" value="pinotDBus"/>
+      <arg type="s" name="label" direction="in"/>
+      <arg type="s" name="label" direction="out"/>
+    </method>
+    <!--
 	Retrieves information about a document.
 	 docId: the document's ID
 	 title : title of the document (automatically extracted from document if possible
@@ -20,13 +29,12 @@
     </method>
     <!--
 	Retrieves statistics.
-	 crawledDirsCount: the number of directories that have been crawled prior
-	                   to entering monitoring mode
+	 crawledCount: the number of documents crawled
 	 docsCount: the number of documents in the index
 	-->
     <method name="GetStatistics">
       <annotation name="de.berlios.Pinot.GetStatistics" value="pinotDBus"/>
-      <arg type="u" name="crawledDirsCount" direction="out"/>
+      <arg type="u" name="crawledCount" direction="out"/>
       <arg type="u" name="docsCount" direction="out"/>
     </method>
     <!--
@@ -37,14 +45,55 @@
 	 language: the document's language in English
 	 labels: array of labels to apply to the document
 	 labelsCount: the number of labels in the array
-	 docId: the document's ID
+	 docId: the document's ID (always 0 for now)
 	-->
-    <method name="Index">
-      <annotation name="de.berlios.Pinot.Index" value="pinotDBus"/>
+    <method name="IndexDocument">
+      <annotation name="de.berlios.Pinot.IndexDocument" value="pinotDBus"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="s" name="location" direction="in"/>
       <arg type="s" name="type" direction="in"/>
       <arg type="s" name="language" direction="in"/>
+      <arg type="as" name="labels" direction="in"/>
+      <arg type="u" name="labelsCount" direction="in"/>
+      <arg type="u" name="docId" direction="out"/>
+    </method>
+    <!--
+	Renames a label.
+	 oldLabel: the label to rename
+	 newLabel: the new label name
+	-->
+    <method name="RenameLabel">
+      <annotation name="de.berlios.Pinot.RenameLabel" value="pinotDBus"/>
+      <arg type="s" name="oldLabel" direction="in"/>
+      <arg type="s" name="newLabel" direction="in"/>
+      <arg type="s" name="newLabel" direction="out"/>
+    </method>
+    <!--
+	Sets information about a document.
+	 docId: the document's ID
+	 title : title of the document
+	 location: the document's URL (eg "file:///home/fabrice/Documents/SomeFile.txt")
+	 type: the document's MIME type
+	 language: the document's language in English
+	-->
+    <method name="SetDocumentInfo">
+      <annotation name="de.berlios.Pinot.SetDocumentInfo" value="pinotDBus"/>
+      <arg type="u" name="docId" direction="in"/>
+      <arg type="s" name="title" direction="in"/>
+      <arg type="s" name="location" direction="in"/>
+      <arg type="s" name="type" direction="in"/>
+      <arg type="s" name="language" direction="in"/>
+      <arg type="u" name="docId" direction="out"/>
+    </method>
+    <!--
+	Sets a document's labels.
+	 docId: the document's ID
+	 labels: array of labels to apply to the document
+	 labelsCount: the number of labels in the array
+	-->
+    <method name="SetDocumentLabels">
+      <annotation name="de.berlios.Pinot.SetDocumentLabels" value="pinotDBus"/>
+      <arg type="u" name="docId" direction="in"/>
       <arg type="as" name="labels" direction="in"/>
       <arg type="u" name="labelsCount" direction="in"/>
       <arg type="u" name="docId" direction="out"/>
@@ -70,6 +119,33 @@
     <method name="Stop">
       <annotation name="de.berlios.Pinot.Stop" value="pinotDBus"/>
       <arg type="i" name="exitStatus" direction="out" />
+    </method>
+    <!--
+	Unindexes a document.
+	 docId: the document's ID
+	-->
+    <method name="UnindexDocument">
+      <annotation name="de.berlios.Pinot.UnindexDocument" value="pinotDBus"/>
+      <arg type="u" name="docId" direction="in"/>
+      <arg type="u" name="docId" direction="out"/>
+    </method>
+    <!--
+	Unindexes documents that match the given label.
+	 label: the name of the label to match
+	-->
+    <method name="UnindexDocuments">
+      <annotation name="de.berlios.Pinot.UnindexDocuments" value="pinotDBus"/>
+      <arg type="s" name="label" direction="in"/>
+      <arg type="s" name="label" direction="out"/>
+    </method>
+    <!--
+	Updates a document
+	 docId: the document's ID
+	-->
+    <method name="UpdateDocument">
+      <annotation name="de.berlios.Pinot.UpdateDocument" value="pinotDBus"/>
+      <arg type="u" name="docId" direction="in"/>
+      <arg type="u" name="docId" direction="out"/>
     </method>
   </interface>
 </node>
