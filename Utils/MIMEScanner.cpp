@@ -273,8 +273,7 @@ string MIMEScanner::scanFile(const string &fileName)
 	{
 		// Have a peek at the file
 		const char *pType = xdg_mime_get_mime_type_for_file(fileName.c_str(), NULL);
-		if ((pType != NULL) &&
-			(strncasecmp(pType, xdg_mime_type_unknown, strlen(pType)) != 0))
+		if (pType != NULL)
 		{
 			return pType;
 		}
