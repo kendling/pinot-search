@@ -19,6 +19,8 @@
 
 #include <time.h>
 #include <string>
+#include <map>
+#include <set>
 
 #include "SQLiteBase.h"
 
@@ -30,7 +32,7 @@ class CrawlHistory : public SQLiteBase
 		CrawlHistory(const string &database);
 		virtual ~CrawlHistory();
 
-		typedef enum { UNKNOWN, CRAWLING, CRAWLED } CrawlStatus;
+		typedef enum { UNKNOWN, CRAWLING, CRAWLED, DIRECTORY } CrawlStatus;
 
 		/// Creates the CrawlHistory table in the database.
 		static bool create(const string &database);
@@ -40,6 +42,9 @@ class CrawlHistory : public SQLiteBase
 
 		/// Checks if the source exists.
 		bool hasSource(const string &url, unsigned int &sourceId);
+
+		/// Returns sources.
+		unsigned int getSources(map<unsigned int, string> &sources) const;
 
 		/// Deletes a source.
 		bool deleteSource(unsigned int sourceId);
@@ -53,11 +58,12 @@ class CrawlHistory : public SQLiteBase
 		/// Updates an URL.
 		bool updateItem(const string &url, CrawlStatus status, time_t date);
 
+		/// Returns items that belong to a source.
+		unsigned int getSourceItems(unsigned int sourceId, CrawlStatus status,
+			time_t minDate, set<string> &urls) const;
+
 		/// Returns the number of URLs.
 		unsigned int getItemsCount(void) const;
-
-		/// Checks if an URL is in the history.
-		bool hasItem(const string &url) const;
 
 		/// Deletes an URL.
 		bool deleteItem(const string &url);

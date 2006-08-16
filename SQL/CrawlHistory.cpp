@@ -46,6 +46,9 @@ string CrawlHistory::statusToText(CrawlStatus status)
 		case CRAWLED:
 			text = "CRAWLED";
 			break;
+		case DIRECTORY:
+			text = "DIRECTORY";
+			break;
 		default:
 			break;
 	}
@@ -64,6 +67,10 @@ CrawlHistory::CrawlStatus CrawlHistory::textToStatus(const string &text)
 	else if (text == "CRAWLED")
 	{
 		status = CRAWLED;
+	}
+	else if (text == "DIRECTORY")
+	{
+		status = DIRECTORY;
 	}
 
 	return status;
@@ -158,6 +165,34 @@ bool CrawlHistory::hasSource(const string &url, unsigned int &sourceId)
 	return success;
 }
 
+/// Returns sources.
+unsigned int CrawlHistory::getSources(map<unsigned int, string> &sources) const
+{
+	unsigned int count = 0;
+
+	SQLiteResults *results = executeStatement("SELECT SourceID, Url FROM CrawlSources;");
+	if (results != NULL)
+	{
+		while (results->hasMoreRows() == true)
+		{
+			SQLiteRow *row = results->nextRow();
+			if (row == NULL)
+			{
+				break;
+			}
+
+			sources[(unsigned int)atoi(row->getColumn(0).c_str())] = row->getColumn(1);
+			++count;
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return count;
+}
+
 /// Deletes a source.
 bool CrawlHistory::deleteSource(unsigned int sourceId)
 {
@@ -233,6 +268,37 @@ bool CrawlHistory::updateItem(const string &url, CrawlStatus status, time_t date
 	}
 
 	return success;
+}
+
+/// Returns items that belong to a source.
+unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus status,
+	time_t minDate, set<string> &urls) const
+{
+	unsigned int count = 0;
+
+	SQLiteResults *results = executeStatement("SELECT Url FROM CrawlHistory \
+		WHERE SourceId='%u' AND CrawlStatus='%q' AND Date>='%d';",
+		sourceId, statusToText(status).c_str(), minDate);
+	if (results != NULL)
+	{
+		while (results->hasMoreRows() == true)
+		{
+			SQLiteRow *row = results->nextRow();
+			if (row == NULL)
+			{
+				break;
+			}
+
+			urls.insert(row->getColumn(0));
+			++count;
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return count;
 }
 
 /// Returns the number of URLs.
