@@ -34,6 +34,7 @@ class MonitorEvent
 
 		std::string m_location;
 		std::string m_previousLocation;
+		bool m_isWatch;
 		EventType m_type;
 		bool m_isDirectory;
 

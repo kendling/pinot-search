@@ -24,6 +24,7 @@
 #include <sigc++/slot.h>
 
 #include "IndexedDocument.h"
+#include "MonitorInterface.h"
 
 class MonitorHandler
 {
@@ -31,9 +32,11 @@ class MonitorHandler
 		MonitorHandler();
 		virtual ~MonitorHandler();
 
+		/// Initializes things before starting monitoring.
+		virtual void initialize(void) = 0;
+
 		/// Returns locations.
-		virtual bool getLocations(std::set<std::string> &newLocations,
-			std::set<std::string> &locationsToRemove) = 0;
+		virtual const std::set<std::string> &getLocations(void) const = 0;
 
 		/// Handles file existence events.
 		virtual bool fileExists(const std::string &fileName) = 0;
@@ -54,6 +57,7 @@ class MonitorHandler
 		SigC::Signal3<void, IndexedDocument, unsigned int, std::string>& getUpdateSignal(void);
 
 	protected:
+		std::set<std::string> m_locations;
 		SigC::Signal3<void, IndexedDocument, unsigned int, std::string> m_signalUpdate;
 
 	private:

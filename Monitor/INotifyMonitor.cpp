@@ -149,7 +149,6 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 	{
 		struct inotify_event *pEvent = (struct inotify_event *)&buffer[offset];
 		size_t eventSize = sizeof(struct inotify_event) + pEvent->len;
-		bool isOnWatch = true;
 
 #ifdef DEBUG
 		cout << "INotifyMonitor::retrievePendingEvents: read "
@@ -169,6 +168,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 
 		MonitorEvent monEvent;
 
+		monEvent.m_isWatch = true;
 		if (pEvent->mask & IN_ISDIR)
 		{
 			monEvent.m_isDirectory = true;
@@ -180,7 +180,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		{
 			monEvent.m_location += "/";
 			monEvent.m_location += pEvent->name;
-			isOnWatch = false;
+			monEvent.m_isWatch = false;
 		}
 #ifdef DEBUG
 		cout << "INotifyMonitor::retrievePendingEvents: event on "
@@ -190,63 +190,73 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		map<uint32_t, string>::iterator movedIter = m_movedFrom.end();
 
 		// What type of event ?
-		switch (pEvent->mask)
+		if (pEvent->mask & IN_CREATE)
 		{
-			case IN_CREATE:
-				// Skip regular files
-				if (monEvent.m_isDirectory == true)
-				{
-					monEvent.m_type = MonitorEvent::CREATED;
-				}
-				break;
-			case IN_CLOSE_WRITE:
-				monEvent.m_type = MonitorEvent::WRITE_CLOSED;
-				break;
-			case IN_MOVED_FROM:
-				// Store this until we receive a IN_MOVED_TO event
-				m_movedFrom.insert(pair<uint32_t, string>(pEvent->cookie, monEvent.m_location));
-				break;
-			case IN_MOVED_TO:
-				// What was the previous location ?
-				movedIter = m_movedFrom.find(pEvent->cookie);
-				if (movedIter != m_movedFrom.end())
-				{
-					monEvent.m_previousLocation = movedIter->second;
-					monEvent.m_type = MonitorEvent::MOVED;
+			// Skip regular files
+			if (monEvent.m_isDirectory == true)
+			{
+				monEvent.m_type = MonitorEvent::CREATED;
+			}
+		}
+		else if (pEvent->mask & IN_CLOSE_WRITE)
+		{
+			monEvent.m_type = MonitorEvent::WRITE_CLOSED;
+		}
+		else if (pEvent->mask & IN_MOVED_FROM)
+		{
+			// Store this until we receive a IN_MOVED_TO event
+			m_movedFrom.insert(pair<uint32_t, string>(pEvent->cookie, monEvent.m_location));
+		}
+		else if (pEvent->mask & IN_MOVED_TO)
+		{
+			// What was the previous location ?
+			movedIter = m_movedFrom.find(pEvent->cookie);
+			if (movedIter != m_movedFrom.end())
+			{
+				monEvent.m_previousLocation = movedIter->second;
+				monEvent.m_type = MonitorEvent::MOVED;
 #ifdef DEBUG
-					cout << "INotifyMonitor::retrievePendingEvents: moved from "
-						<< monEvent.m_previousLocation << endl;
+				cout << "INotifyMonitor::retrievePendingEvents: moved from "
+					<< monEvent.m_previousLocation << endl;
 #endif
-					m_movedFrom.erase(movedIter);
-				}
+				m_movedFrom.erase(movedIter);
+			}
 #ifdef DEBUG
-				else cout << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
+			else cout << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
 #endif
-				break;
-			case IN_DELETE:
-				monEvent.m_type = MonitorEvent::DELETED;
-				break;
-			case IN_MOVE_SELF:
-				// FIXME: how do we find out where the watched location was moved to ?
-			case IN_DELETE_SELF:
+		}
+		else if (pEvent->mask & IN_DELETE)
+		{
+			monEvent.m_type = MonitorEvent::DELETED;
+		}
+		else if (pEvent->mask & IN_MOVE_SELF)
+		{
+			// FIXME: how do we find out where the watched location was moved to ?
+		}
+		else if (pEvent->mask & IN_DELETE_SELF)
+		{
 #ifdef DEBUG
-				cout << "INotifyMonitor::retrievePendingEvents: watch moved or deleted itself" << endl;
+			cout << "INotifyMonitor::retrievePendingEvents: watch moved or deleted itself" << endl;
 #endif
+			if (monEvent.m_isWatch == true)
+			{
 				removeLocation(monEvent.m_location);
-				break;
-			case IN_UNMOUNT:
-				if (isOnWatch == true)
-				{
-					// Watches are removed if the backing filesystem is unmounted
-					removeLocation(monEvent.m_location);
-				}
-				break;
-			default:
+			}
+		}
+		else if (pEvent->mask & IN_UNMOUNT)
+		{
+			if (monEvent.m_isWatch == true)
+			{
+				// Watches are removed silently if the backing filesystem is unmounted
+				removeLocation(monEvent.m_location);
+			}
+		}
+		else
+		{
 #ifdef DEBUG
-				cout << "INotifyMonitor::retrievePendingEvents: ignoring event "
-					<< pEvent->mask << endl;
+			cout << "INotifyMonitor::retrievePendingEvents: ignoring event "
+				<< pEvent->mask << endl;
 #endif
-				break;
 		}
 
 		// Return event ?
