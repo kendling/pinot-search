@@ -25,7 +25,7 @@
 #include "IndexedDocument.h"
 #include "MboxParser.h"
 #include "CrawlHistory.h"
-#include "IndexInterface.h"
+#include "WritableXapianIndex.h"
 #include "MonitorHandler.h"
 #include "PinotSettings.h"
 
@@ -35,9 +35,11 @@ class MboxHandler : public MonitorHandler
 		MboxHandler();
 		virtual ~MboxHandler();
 
+		/// Initializes things before starting monitoring.
+		virtual void initialize(void);
+
 		/// Returns locations.
-		virtual bool getLocations(std::set<std::string> &newLocations,
-			std::set<std::string> &locationsToRemove);
+		virtual const std::set<std::string> &getLocations(void) const;
 
 		/// Handles file existence events.
 		virtual bool fileExists(const std::string &fileName);
@@ -57,7 +59,7 @@ class MboxHandler : public MonitorHandler
 
 	protected:
 		CrawlHistory m_history;
-		std::set<std::string> m_locations;
+		WritableXapianIndex m_index;
 		unsigned int m_sourceId;
 
 		bool checkMailAccount(const std::string &fileName, PinotSettings::TimestampedItem &mailAccount);
@@ -65,10 +67,9 @@ class MboxHandler : public MonitorHandler
 		bool indexMessages(const std::string &fileName, PinotSettings::TimestampedItem &mailAccount,
 			off_t mboxOffset);
 
-		bool parseMailAccount(MboxParser &boxParser, WritableIndexInterface *pIndex,
-			const std::string &sourceLabel);
+		bool parseMailAccount(MboxParser &boxParser, const std::string &sourceLabel);
 
-		bool deleteMessages(WritableIndexInterface *pIndex, std::set<unsigned int> &docIdList);
+		bool deleteMessages(std::set<unsigned int> &docIdList);
 
 	private:
 		MboxHandler(const MboxHandler &other);

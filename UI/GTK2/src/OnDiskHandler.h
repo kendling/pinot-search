@@ -22,6 +22,7 @@
 #include <set>
 #include <sigc++/slot.h>
 
+#include "CrawlHistory.h"
 #include "IndexedDocument.h"
 #include "MboxParser.h"
 #include "WritableXapianIndex.h"
@@ -34,9 +35,11 @@ class OnDiskHandler : public MonitorHandler
 		OnDiskHandler();
 		virtual ~OnDiskHandler();
 
+		/// Initializes things before starting monitoring.
+		virtual void initialize(void);
+
 		/// Returns locations.
-		virtual bool getLocations(std::set<std::string> &newLocations,
-			std::set<std::string> &locationsToRemove);
+		virtual const std::set<std::string> &getLocations(void) const;
 
 		/// Handles file existence events.
 		virtual bool fileExists(const std::string &fileName);
@@ -55,8 +58,8 @@ class OnDiskHandler : public MonitorHandler
 		virtual bool fileDeleted(const std::string &fileName);
 
 	protected:
+		CrawlHistory m_history;
 		WritableXapianIndex m_index;
-		std::set<std::string> m_locations;
 
 		bool indexFile(const std::string &fileName, bool alwaysUpdate);
 

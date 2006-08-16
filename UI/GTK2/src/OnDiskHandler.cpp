@@ -28,6 +28,7 @@
 #include "Url.h"
 #include "XapianDatabase.h"
 #include "TokenizerFactory.h"
+#include "CrawlHistory.h"
 #include "FileCollector.h"
 #include "PinotUtils.h"
 #include "OnDiskHandler.h"
@@ -37,6 +38,7 @@ using namespace SigC;
 
 OnDiskHandler::OnDiskHandler() :
 	MonitorHandler(),
+	m_history(PinotSettings::getInstance().m_historyDatabase),
 	m_index(PinotSettings::getInstance().m_daemonIndexLocation)
 {
 	m_index.setStemmingMode(WritableIndexInterface::STORE_BOTH);
@@ -120,65 +122,53 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 	return indexedFile;
 }
 
-bool OnDiskHandler::getLocations(set<string> &newLocations,
-	set<string> &locationsToRemove)
+void OnDiskHandler::initialize(void)
 {
-	newLocations.clear();
-	locationsToRemove.clear();
+	map<unsigned int, string> sources;
 
-	// Take advantage of this call to flush the index
-	m_index.flush();
-
-	copy(m_locations.begin(), m_locations.end(),
-		inserter(locationsToRemove, locationsToRemove.begin()));
-
-	// Get the indexable locations map
+	// Get the map of indexable locations
 	set<PinotSettings::TimestampedItem> &indexableLocations = PinotSettings::getInstance().m_indexableLocations;
 	for (set<PinotSettings::TimestampedItem>::iterator dirIter = indexableLocations.begin();
 		dirIter != indexableLocations.end(); ++dirIter)
 	{
-		// Is this a known location ?
-		set<string>::iterator locationIter = m_locations.find(dirIter->m_name);
-		if (locationIter == m_locations.end())
-		{
-			// No, it is new
-			m_locations.insert(dirIter->m_name);
-			newLocations.insert(dirIter->m_name);
-		}
-		else
-		{
-			// Since it's a known location, we'd better not remove it
-			set<string>::iterator removeIter = locationsToRemove.find(*locationIter);
-			if (removeIter != locationsToRemove.end())
-			{
-				locationsToRemove.erase(removeIter);
-			}
-		}
+		m_locations.insert(dirIter->m_name);
 	}
 
-	// Locations in locationsToRemove have to be removed
-	for (set<string>::iterator removeIter = locationsToRemove.begin();
-		removeIter != locationsToRemove.end(); ++removeIter)
+	// Unindex documents that belong to sources that no longer exist
+	if (m_history.getSources(sources) > 0)
 	{
-		set<string>::iterator locationIter = m_locations.find(*removeIter);
-		if (locationIter != m_locations.end())
+		for(map<unsigned int, string>::const_iterator sourceIter = sources.begin();
+			sourceIter != sources.end(); ++sourceIter)
 		{
-			m_locations.erase(locationIter);
-		}
-	}
+			Url urlObj(sourceIter->second);
+			unsigned int sourceId = sourceIter->first;
+
+			// Is this a file and does it still exist ?
+			if ((urlObj.getProtocol() == "file") &&
+				(m_locations.find(sourceIter->second) == m_locations.end()))
+			{
+				char sourceStr[64];
+
+				snprintf(sourceStr, 64, "SOURCE%u", sourceId);
 
 #ifdef DEBUG
-	cout << "OnDiskHandler::getLocations: " << m_locations.size() << " locations, "
-		<< newLocations.size() << " new, " << locationsToRemove.size() << " to be removed" << endl;
+				cout << "OnDiskHandler::initialize: removing messages with label "
+					<< sourceStr << endl;
 #endif
+				// All documents with this label will be unindexed
+				m_index.unindexDocuments(sourceStr);
+			}
 
-	if ((newLocations.empty() == false) ||
-		(locationsToRemove.empty() == false))
-	{
-		return true;
+			// Delete the source itself and all its items
+			m_history.deleteSource(sourceId);
+			m_history.deleteItems(sourceId);
+		}
 	}
+}
 
-	return false;
+const set<string> &OnDiskHandler::getLocations(void) const
+{
+	return m_locations;
 }
 
 bool OnDiskHandler::fileExists(const string &fileName)
@@ -248,4 +238,3 @@ bool OnDiskHandler::fileDeleted(const string &fileName)
 
 	return false;
 }
-

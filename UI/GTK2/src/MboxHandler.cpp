@@ -26,10 +26,9 @@
 #include "StringManip.h"
 #include "Timer.h"
 #include "TimeConverter.h"
+#include "Url.h"
 #include "XapianDatabase.h"
 #include "TokenizerFactory.h"
-#include "FileCollector.h"
-#include "WritableXapianIndex.h"
 #include "MboxHandler.h"
 
 using namespace std;
@@ -38,6 +37,7 @@ using namespace SigC;
 MboxHandler::MboxHandler() :
 	MonitorHandler(),
 	m_history(PinotSettings::getInstance().m_historyDatabase),
+	m_index(PinotSettings::getInstance().m_daemonIndexLocation),
 	m_sourceId(0)
 {
 	// Does the email source exist ?
@@ -112,9 +112,7 @@ bool MboxHandler::indexMessages(const string &fileName, PinotSettings::Timestamp
 	// Come up with a label for this mbox file's messages
 	sourceLabel += fileName;
 
-	// Get the mail index
-	WritableXapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
-	if (index.isGood() == false)
+	if (m_index.isGood() == false)
 	{
 		cerr << "MboxHandler::indexMessages: couldn't get mail index" << endl;
 		return false;
@@ -123,10 +121,10 @@ bool MboxHandler::indexMessages(const string &fileName, PinotSettings::Timestamp
 	// Get a parser
 	MboxParser boxParser(fileName, mboxOffset);
 
-	bool indexedFile = parseMailAccount(boxParser, &index, sourceLabel);
+	bool indexedFile = parseMailAccount(boxParser, sourceLabel);
 
 	// Flush the index
-	index.flush();
+	m_index.flush();
 
 	// Update this mail account's record
 	m_history.updateItem("file://" + fileName, CrawlHistory::CRAWLED, mailAccount.m_modTime);
@@ -134,16 +132,10 @@ bool MboxHandler::indexMessages(const string &fileName, PinotSettings::Timestamp
 	return indexedFile;
 }
 
-bool MboxHandler::parseMailAccount(MboxParser &boxParser, WritableIndexInterface *pIndex,
-	const string &sourceLabel)
+bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLabel)
 {
 	set<unsigned int> docIdList;
 	bool indexedFile = false;
-
-	if (pIndex == NULL)
-	{
-		return false;
-	}
 
 #ifdef DEBUG
 	Timer timer;
@@ -154,7 +146,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, WritableIndexInterface
 	unsigned int docNum = 0;
 
 	// Get a list of documents labeled with this source label
-	pIndex->listDocumentsWithLabel(sourceLabel, docIdList); 
+	m_index.listDocumentsWithLabel(sourceLabel, docIdList); 
 
 	// This is the labels we'll apply to new documents
 	labels.insert(sourceLabel);
@@ -163,10 +155,10 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, WritableIndexInterface
 	while (pMessage != NULL)
 	{
 		// Has this message already been indexed ?
-		unsigned int docId = pIndex->hasDocument(pMessage->getLocation());
+		unsigned int docId = m_index.hasDocument(pMessage->getLocation());
 		if (docId == 0)
 		{
-			pIndex->setStemmingMode(WritableIndexInterface::STORE_BOTH);
+			m_index.setStemmingMode(WritableIndexInterface::STORE_BOTH);
 
 			// Get an ad hoc tokenizer for the message
 			Tokenizer *pTokenizer = TokenizerFactory::getTokenizerByType(pMessage->getType(), pMessage);
@@ -179,20 +171,20 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, WritableIndexInterface
 			}
 
 			unsigned int docId = 0;
-			indexedFile = pIndex->indexDocument(*pTokenizer, labels, docId);
+			indexedFile = m_index.indexDocument(*pTokenizer, labels, docId);
 			if (indexedFile == true)
 			{
 				time_t messageDate = boxParser.getDate();
 
-				pIndex->setDocumentLabels(docId, labels);
+				m_index.setDocumentLabels(docId, labels);
 
 				IndexedDocument docInfo(pMessage->getTitle(),
-					XapianDatabase::buildUrl(PinotSettings::getInstance().m_mailIndexLocation, docId),
+					XapianDatabase::buildUrl(PinotSettings::getInstance().m_daemonIndexLocation, docId),
 					pMessage->getLocation(), pMessage->getType(), pMessage->getLanguage());
 				docInfo.setTimestamp(TimeConverter::toTimestamp(messageDate));
 
 				// Signal
-				m_signalUpdate(docInfo, docId, _("My Email"));
+				m_signalUpdate(docInfo, docId, _("My Computer"));
 			}
 #ifdef DEBUG
 			else cout << "MboxHandler::parseMailAccount: couldn't index message " << docNum << endl;
@@ -233,19 +225,14 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, WritableIndexInterface
 
 	// Any document still in the list wasn't found this time around
 	// and should be unindexed
-	deleteMessages(pIndex, docIdList);
+	deleteMessages(docIdList);
 
 	return indexedFile;
 }
 
-bool MboxHandler::deleteMessages(WritableIndexInterface *pIndex, set<unsigned int> &docIdList)
+bool MboxHandler::deleteMessages(set<unsigned int> &docIdList)
 {
 	bool unindexedMsgs = false;
-
-	if (pIndex == NULL)
-	{
-		return false;
-	}
 
 #ifdef DEBUG
 	cout << "MboxHandler::deleteMessages: " << docIdList.size() << " message(s) to unindex" << endl;
@@ -256,7 +243,7 @@ bool MboxHandler::deleteMessages(WritableIndexInterface *pIndex, set<unsigned in
 #ifdef DEBUG
 		cout << "MboxHandler::deleteMessages: unindexing document ID " << *docIter << endl;
 #endif
-		if (pIndex->unindexDocument(*docIter) == true)
+		if (m_index.unindexDocument(*docIter) == true)
 		{
 			unindexedMsgs = true;
 		}
@@ -265,62 +252,53 @@ bool MboxHandler::deleteMessages(WritableIndexInterface *pIndex, set<unsigned in
 	return unindexedMsgs;
 }
 
-bool MboxHandler::getLocations(set<string> &newLocations,
-	set<string> &locationsToRemove)
+void MboxHandler::initialize(void)
 {
-	newLocations.clear();
-	locationsToRemove.clear();
-
-	copy(m_locations.begin(), m_locations.end(),
-		inserter(locationsToRemove, locationsToRemove.begin()));
+	set<string> mailboxes;
 
 	// Get the mail accounts map
 	set<PinotSettings::TimestampedItem> &mailAccounts = PinotSettings::getInstance().m_mailAccounts;
 	for (set<PinotSettings::TimestampedItem>::iterator mailIter = mailAccounts.begin();
 		mailIter != mailAccounts.end(); ++mailIter)
 	{
-		// Is this a known location ?
-		set<string>::iterator locationIter = m_locations.find(mailIter->m_name);
-		if (locationIter == m_locations.end())
-		{
-			// No, it is new
-			m_locations.insert(mailIter->m_name);
-			newLocations.insert(mailIter->m_name);
-		}
-		else
-		{
-			// Since it's a known location, we'd better not remove it
-			set<string>::iterator removeIter = locationsToRemove.find(mailIter->m_name);
-			if (removeIter != locationsToRemove.end())
-			{
-				locationsToRemove.erase(removeIter);
-			}
-		}
+		m_locations.insert(mailIter->m_name);
 	}
 
-	// Locations in locationsToRemove have to be removed
-	for (set<string>::iterator removeIter = locationsToRemove.begin();
-		removeIter != locationsToRemove.end(); ++removeIter)
+	// Unindex messages that belong to mailboxes that no longer exist
+	if (m_history.getSourceItems(m_sourceId, CrawlHistory::CRAWLED, 0, mailboxes) > 0)
 	{
-		set<string>::iterator locationIter = m_locations.find(*removeIter);
-		if (locationIter != m_locations.end())
+		for(set<string>::const_iterator mailIter = mailboxes.begin();
+			mailIter != mailboxes.end(); ++mailIter)
 		{
-			m_locations.erase(locationIter);
-		}
-	}
+			Url urlObj(*mailIter);
+
+			// Is this a file and does it still exist ?
+			if ((urlObj.getProtocol() == "file") &&
+				(m_locations.find(*mailIter) == m_locations.end()))
+			{
+				string sourceLabel("mailbox://");
+
+				sourceLabel += urlObj.getLocation();
+				sourceLabel += "/";
+				sourceLabel += urlObj.getFile();
 
 #ifdef DEBUG
-	cout << "MboxHandler::getLocations: " << m_locations.size() << " locations, "
-		<< newLocations.size() << " new, " << locationsToRemove.size() << " to be removed" << endl;
+				cout << "MboxHandler::initialize: removing messages with label "
+					<< sourceLabel << endl;
 #endif
+				// All documents with this label will be unindexed
+				m_index.unindexDocuments(sourceLabel);
+			}
 
-	if ((newLocations.empty() == false) ||
-		(locationsToRemove.empty() == false))
-	{
-		return true;
+			// Delete this item
+			m_history.deleteItem(*mailIter);
+		}
 	}
+}
 
-	return false;
+const set<string> &MboxHandler::getLocations(void) const
+{
+	return m_locations;
 }
 
 bool MboxHandler::fileExists(const string &fileName)
@@ -373,21 +351,19 @@ bool MboxHandler::fileDeleted(const string &fileName)
 
 	sourceLabel += fileName;
 
-	// Get the mail index
-	WritableXapianIndex index(PinotSettings::getInstance().m_mailIndexLocation);
-	if (index.isGood() == false)
+	if (m_index.isGood() == false)
 	{
 		cerr << "MboxHandler::fileDeleted: couldn't get mail index" << endl;
 		return false;
 	}
 
 	// Get a list of documents labeled with this source label
-	if (index.listDocumentsWithLabel(sourceLabel, docIdList) == true)
+	if (m_index.listDocumentsWithLabel(sourceLabel, docIdList) == true)
 	{
 		// Unindex all documents labeled with this source label
-		deleteMessages(&index, docIdList); 
+		deleteMessages(docIdList); 
 		// Delete the label
-		index.deleteLabel(sourceLabel);
+		m_index.deleteLabel(sourceLabel);
 
 		return true;
 	}
