@@ -277,7 +277,7 @@ unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus sta
 	unsigned int count = 0;
 
 	SQLiteResults *results = executeStatement("SELECT Url FROM CrawlHistory \
-		WHERE SourceId='%u' AND CrawlStatus='%q' AND Date>='%d';",
+		WHERE SourceId='%u' AND Status='%q' AND Date>='%d';",
 		sourceId, statusToText(status).c_str(), minDate);
 	if (results != NULL)
 	{
