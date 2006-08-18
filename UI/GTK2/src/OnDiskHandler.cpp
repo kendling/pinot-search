@@ -140,35 +140,42 @@ void OnDiskHandler::initialize(void)
 		for(map<unsigned int, string>::const_iterator sourceIter = sources.begin();
 			sourceIter != sources.end(); ++sourceIter)
 		{
-			Url urlObj(sourceIter->second);
 			unsigned int sourceId = sourceIter->first;
 
 			// Is this a file and does it still exist ?
-			if ((urlObj.getProtocol() == "file") &&
-				(m_locations.find(sourceIter->second) == m_locations.end()))
+			if (sourceIter->second.substr(0, 7) != "file://")
+			{
+				continue;
+			}
+
+			if (m_locations.find(sourceIter->second.substr(7)) == m_locations.end())
 			{
 				char sourceStr[64];
 
 				snprintf(sourceStr, 64, "SOURCE%u", sourceId);
 
 #ifdef DEBUG
-				cout << "OnDiskHandler::initialize: removing messages with label "
-					<< sourceStr << endl;
+				cout << "OnDiskHandler::initialize: " << sourceIter->second
+					<< ", source " << sourceId << " was removed" << endl;
 #endif
 				// All documents with this label will be unindexed
 				m_index.unindexDocuments(sourceStr);
-			}
 
-			// Delete the source itself and all its items
-			m_history.deleteSource(sourceId);
-			m_history.deleteItems(sourceId);
+				// Delete the source itself and all its items
+				m_history.deleteSource(sourceId);
+				m_history.deleteItems(sourceId);
+			}
+#ifdef DEBUG
+			else cout << "OnDiskHandler::initialize: " << sourceIter->second
+				<< " still configured for monitoring" << endl;
+#endif
 		}
 	}
 }
 
-const set<string> &OnDiskHandler::getLocations(void) const
+void OnDiskHandler::flushIndex(void)
 {
-	return m_locations;
+	m_index.flush();
 }
 
 bool OnDiskHandler::fileExists(const string &fileName)

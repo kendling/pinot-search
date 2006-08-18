@@ -274,7 +274,7 @@ void MboxHandler::initialize(void)
 
 			// Is this a file and does it still exist ?
 			if ((urlObj.getProtocol() == "file") &&
-				(m_locations.find(*mailIter) == m_locations.end()))
+				(m_locations.find(mailIter->substr(7)) == m_locations.end()))
 			{
 				string sourceLabel("mailbox://");
 
@@ -288,17 +288,21 @@ void MboxHandler::initialize(void)
 #endif
 				// All documents with this label will be unindexed
 				m_index.unindexDocuments(sourceLabel);
-			}
 
-			// Delete this item
-			m_history.deleteItem(*mailIter);
+				// Delete this item
+				m_history.deleteItem(*mailIter);
+			}
+#ifdef DEBUG
+			else cout << "MboxHandler::initialize: " << *mailIter
+				<< " still configured for monitoring" << endl;
+#endif
 		}
 	}
 }
 
-const set<string> &MboxHandler::getLocations(void) const
+void MboxHandler::flushIndex(void)
 {
-	return m_locations;
+	// The index is flushed after indexing a mailbox
 }
 
 bool MboxHandler::fileExists(const string &fileName)

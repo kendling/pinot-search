@@ -38,8 +38,8 @@ class MboxHandler : public MonitorHandler
 		/// Initializes things before starting monitoring.
 		virtual void initialize(void);
 
-		/// Returns locations.
-		virtual const std::set<std::string> &getLocations(void) const;
+		/// Handles flushing the index.
+		virtual void flushIndex(void);
 
 		/// Handles file existence events.
 		virtual bool fileExists(const std::string &fileName);
