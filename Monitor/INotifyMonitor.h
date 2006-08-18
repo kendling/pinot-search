@@ -30,15 +30,16 @@ class INotifyMonitor : public MonitorInterface
 		virtual ~INotifyMonitor();
 
 		/// Adds a watch for the specified location.
-		virtual bool addLocation(const std::string &directory);
+		virtual bool addLocation(const std::string &location, bool isDirectory);
 
 		/// Removed the watch for the specified location.
-		virtual bool removeLocation(const std::string &directory);
+		virtual bool removeLocation(const std::string &location);
 
 		/// Retrieves pending events.
 		virtual bool retrievePendingEvents(std::queue<MonitorEvent> &events);
 
 	protected:
+		std::queue<MonitorEvent> m_internalEvents;
 		std::map<std::string, int> m_locations;
 		std::map<uint32_t, std::string> m_movedFrom;
 

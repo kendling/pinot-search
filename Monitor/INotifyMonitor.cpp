@@ -56,18 +56,18 @@ INotifyMonitor::~INotifyMonitor()
 }
 
 /// Starts monitoring a location.
-bool INotifyMonitor::addLocation(const string &directory)
+bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 {
 	uint32_t eventsMask = IN_CLOSE_WRITE|IN_MOVE|IN_CREATE|IN_DELETE|IN_UNMOUNT|IN_MOVE_SELF|IN_DELETE_SELF;
 
-	if ((directory.empty() == true) ||
-		(directory == "/") ||
+	if ((location.empty() == true) ||
+		(location == "/") ||
 		(m_monitorFd < 0))
 	{
 		return false;
 	}
 
-	map<string, int>::iterator locationIter = m_locations.find(directory);
+	map<string, int>::iterator locationIter = m_locations.find(location);
 	if (locationIter != m_locations.end())
 	{
 		// This is already being monitored
@@ -75,32 +75,42 @@ bool INotifyMonitor::addLocation(const string &directory)
 	}
 
 	// FIXME: check the maximum number of watches hasn't been reached (MAX_FILE_WATCHES ?)
-	int dirWd = inotify_add_watch(m_monitorFd, directory.c_str(), eventsMask);
-	if (dirWd >= 0)
+	int watchNum = inotify_add_watch(m_monitorFd, location.c_str(), eventsMask);
+	if (watchNum >= 0)
 	{
-		m_watches.insert(pair<int, string>(dirWd, directory));
-		m_locations.insert(pair<string, int>(directory, dirWd));
+		MonitorEvent monEvent;
+
+		// Generate an event to signal it exists and is being monitored
+		monEvent.m_location = location;
+		monEvent.m_isWatch = true;
+		monEvent.m_type = MonitorEvent::EXISTS;
+		monEvent.m_isDirectory = isDirectory;
+		m_internalEvents.push(monEvent);
+
+		m_watches.insert(pair<int, string>(watchNum, location));
+		m_locations.insert(pair<string, int>(location, watchNum));
 #ifdef DEBUG
-		cout << "INotifyMonitor::addLocation: added watch " << dirWd << " " << directory << endl;
+		cout << "INotifyMonitor::addLocation: added watch "
+			<< watchNum << " " << location << endl;
 #endif
 
 		return true;
 	}
-	cerr << "INotifyMonitor::addLocation: couldn't monitor " << directory << endl;
+	cerr << "INotifyMonitor::addLocation: couldn't monitor " << location << endl;
 
 	return false;
 }
 
 /// Stops monitoring a location.
-bool INotifyMonitor::removeLocation(const string &directory)
+bool INotifyMonitor::removeLocation(const string &location)
 {
-	if ((directory.empty() == true) ||
+	if ((location.empty() == true) ||
 		(m_monitorFd < 0))
 	{
 		return false;
 	}
 
-	map<string, int>::iterator locationIter = m_locations.find(directory);
+	map<string, int>::iterator locationIter = m_locations.find(location);
 	if (locationIter != m_locations.end())
 	{
 		inotify_rm_watch(m_monitorFd, locationIter->second);
@@ -113,7 +123,8 @@ bool INotifyMonitor::removeLocation(const string &directory)
 
 		return true;
 	}
-	cerr << "INotifyMonitor::removeLocation: " << directory << " is not being monitored" << endl;
+	cerr << "INotifyMonitor::removeLocation: " << location
+		<< " is not being monitored" << endl;
 
 	return false;
 }
@@ -128,6 +139,16 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 	if (m_monitorFd < 0)
 	{
 		return false;
+	}
+
+	// Copy internal events
+	while (m_internalEvents.empty() == false)
+	{
+		MonitorEvent &internalEvent = m_internalEvents.front();
+		events.push(internalEvent);
+
+		// Next
+		events.pop();
 	}
 
 	if (ioctl (m_monitorFd, FIONREAD, &queueLen) == 0)

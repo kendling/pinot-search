@@ -35,8 +35,8 @@ class MonitorHandler
 		/// Initializes things before starting monitoring.
 		virtual void initialize(void) = 0;
 
-		/// Returns locations.
-		virtual const std::set<std::string> &getLocations(void) const = 0;
+		/// Handles flushing the index.
+		virtual void flushIndex(void) = 0;
 
 		/// Handles file existence events.
 		virtual bool fileExists(const std::string &fileName) = 0;
@@ -54,6 +54,10 @@ class MonitorHandler
 		/// Handles file deleted events.
 		virtual bool fileDeleted(const std::string &fileName) = 0;
 
+		/// Returns locations.
+		const std::set<std::string> &getLocations(void) const;
+
+		/// Returns the file update signal.
 		SigC::Signal3<void, IndexedDocument, unsigned int, std::string>& getUpdateSignal(void);
 
 	protected:

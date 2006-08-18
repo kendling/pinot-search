@@ -37,10 +37,10 @@ class MonitorInterface
 		}
 
 		/// Adds a watch for the specified location.
-		virtual bool addLocation(const std::string &directory) = 0;
+		virtual bool addLocation(const std::string &location, bool isDirectory) = 0;
 
 		/// Removed the watch for the specified location.
-		virtual bool removeLocation(const std::string &directory) = 0;
+		virtual bool removeLocation(const std::string &location) = 0;
 
 		/// Retrieves pending events.
 		virtual bool retrievePendingEvents(std::queue<MonitorEvent> &events) = 0;

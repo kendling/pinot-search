@@ -27,6 +27,11 @@ MonitorHandler::~MonitorHandler()
 {
 }
 
+const set<string> &MonitorHandler::getLocations(void) const
+{
+	return m_locations;
+}
+
 Signal3<void, IndexedDocument, unsigned int, string>& MonitorHandler::getUpdateSignal(void)
 {
 	return m_signalUpdate;

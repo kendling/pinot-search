@@ -30,7 +30,7 @@ class MonitorEvent
 
 		bool operator<(const MonitorEvent& other) const;
 
-		typedef enum { UNKNOWN = 0, CREATED, WRITE_CLOSED, MOVED, DELETED } EventType;
+		typedef enum { UNKNOWN = 0, EXISTS, CREATED, WRITE_CLOSED, MOVED, DELETED } EventType;
 
 		std::string m_location;
 		std::string m_previousLocation;
