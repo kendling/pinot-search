@@ -236,7 +236,7 @@ bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 
 	try
 	{
-		Xapian::WritableDatabase *pIndex = pDatabase->readLock();
+		Xapian::Database *pIndex = pDatabase->readLock();
 		if (pIndex != NULL)
 		{
 			string term("XLABEL:");
