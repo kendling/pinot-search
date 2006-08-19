@@ -27,7 +27,8 @@
 #include "MIMEScanner.h"
 #include "NLS.h"
 #include "Url.h"
-#include "WritableXapianIndex.h"
+#include "MonitorFactory.h"
+#include "IndexFactory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "importDialog.hh"
@@ -51,6 +52,7 @@ importDialog::InternalState::~InternalState()
 
 importDialog::importDialog(const Glib::ustring &title) :
 	importDialog_glade(),
+	m_pMonitor(MonitorFactory::getMonitor()),
 	m_docsCount(0),
 	m_importDirectory(false),
 	m_pScannerThread(NULL),
@@ -96,6 +98,10 @@ importDialog::importDialog(const Glib::ustring &title) :
 importDialog::~importDialog()
 {
 	m_state.disconnect();
+	if (m_pMonitor != NULL)
+	{
+		delete m_pMonitor;
+	}
 }
 
 void importDialog::populate_comboboxes(bool localOnly)
@@ -151,24 +157,25 @@ bool importDialog::on_activity_timeout(void)
 	return true;
 }
 
-bool importDialog::on_import_url(const string &location)
+bool importDialog::on_import_url(const string &location, const string &sourceLabel)
 {
-	WritableXapianIndex index(PinotSettings::getInstance().m_docsIndexLocation);
+	WritableIndexInterface *pIndex = PinotSettings::getInstance().getRWIndex(PinotSettings::getInstance().m_docsIndexLocation);
 	Url urlObj(location);
 	set<string> labels;
 	string title(from_utf8(m_title));
 
-	if (index.isGood() == true)
+	if (pIndex != NULL)
 	{
-		unsigned int docId = index.hasDocument(location);
+		unsigned int docId = pIndex->hasDocument(location);
 
 		// if the document exists, get its labels list
 		if (docId > 0)
 		{
-			index.getDocumentLabels(docId, labels);
+			pIndex->getDocumentLabels(docId, labels);
 		}
 	}
 	labels.insert(m_labelName);
+	labels.insert(sourceLabel);
 
 	if (m_importDirectory == true)
 	{
@@ -399,15 +406,15 @@ void importDialog::on_importButton_clicked()
 		unsigned int maxDirLevel = (unsigned int)depthSpinbutton->get_value();
 
 		// Scan the directory and import all its files
-		m_pScannerThread = new DirectoryScannerThread(location,
-			maxDirLevel, linksCheckbutton->get_active(),
+		m_pScannerThread = new DirectoryScannerThread(m_pMonitor,
+			location, maxDirLevel, linksCheckbutton->get_active(),
 			&m_state.m_scanMutex, &m_state.m_scanCondVar);
 		m_pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &importDialog::on_import_url));
 		m_state.start_thread(m_pScannerThread);
 	}
 	else
 	{
-		if (on_import_url(location) == true)
+		if (on_import_url(location, "") == true)
 		{
 			// It's asking for another file, so this one couldn't be indexed
 			m_timeoutConnection.block();

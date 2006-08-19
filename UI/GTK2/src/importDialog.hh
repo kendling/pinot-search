@@ -27,6 +27,7 @@
 #include <gtkmm/liststore.h>
 
 #include "DocumentInfo.h"
+#include "MonitorInterface.h"
 #include "ModelColumns.h"
 #include "WorkerThreads.h"
 #include "importDialog_glade.hh"
@@ -47,10 +48,11 @@ protected:
 	void signal_scanner(void);
 
 	bool on_activity_timeout(void);
-	bool on_import_url(const std::string &location);
+	bool on_import_url(const std::string &location, const std::string &extraLabel);
 	void on_thread_end(WorkerThread *pThread);
 
 private:
+	MonitorInterface *m_pMonitor;
 	// Type
 	ComboModelColumns m_typeColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refTypeList;
