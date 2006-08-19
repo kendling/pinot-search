@@ -62,8 +62,23 @@ XapianIndex::XapianIndex(const string &indexName) :
 	}
 }
 
+XapianIndex::XapianIndex(const XapianIndex &other) :
+	IndexInterface(other),
+	m_databaseName(other.m_databaseName),
+	m_goodIndex(other .m_goodIndex)
+{
+}
+
 XapianIndex::~XapianIndex()
 {
+}
+
+XapianIndex &XapianIndex::operator=(const XapianIndex &other)
+{
+	IndexInterface::operator=(other);
+	m_databaseName = other.m_databaseName;
+	m_goodIndex = other .m_goodIndex;
+	return *this;
 }
 
 string XapianIndex::limitTermLength(const string &term, bool makeUnique)
@@ -501,4 +516,3 @@ bool XapianIndex::listDocumentsWithLabel(const string &name, set<unsigned int> &
 	term += name;
 	return listDocumentsWithTerm(term, docIds, maxDocsCount, startDoc);
 }
-

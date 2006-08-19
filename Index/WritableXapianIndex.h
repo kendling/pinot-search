@@ -29,7 +29,10 @@ class WritableXapianIndex : public WritableIndexInterface, private XapianIndex
 {
 	public:
 		WritableXapianIndex(const std::string &indexName);
+		WritableXapianIndex(const WritableXapianIndex &other);
 		virtual ~WritableXapianIndex();
+
+		WritableXapianIndex &operator=(const WritableXapianIndex &other);
 
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const;
@@ -119,10 +122,6 @@ class WritableXapianIndex : public WritableIndexInterface, private XapianIndex
 
 		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount, unsigned int startDoc) const;
-
-	private:
-		WritableXapianIndex(const WritableXapianIndex &other);
-		WritableXapianIndex &operator=(const WritableXapianIndex &other);
 
 };
 

@@ -79,8 +79,23 @@ WritableXapianIndex::WritableXapianIndex(const string &indexName) :
 	}
 }
 
+WritableXapianIndex::WritableXapianIndex(const WritableXapianIndex &other) :
+	WritableIndexInterface(other),
+	XapianIndex(other),
+	m_stemLanguage(other.m_stemLanguage)
+{
+}
+
 WritableXapianIndex::~WritableXapianIndex()
 {
+}
+
+WritableXapianIndex &WritableXapianIndex::operator=(const WritableXapianIndex &other)
+{
+	WritableIndexInterface::operator=(other);
+	XapianIndex::operator=(other);
+	m_stemLanguage = other.m_stemLanguage;
+	return *this;
 }
 
 bool WritableXapianIndex::badField(const string &field)
@@ -1068,4 +1083,3 @@ bool WritableXapianIndex::flush(void)
 
 	return flushed;
 }
-

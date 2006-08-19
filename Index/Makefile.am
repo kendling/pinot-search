@@ -1,6 +1,8 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
+	DBusXapianIndex.h \
+	IndexFactory.h \
 	IndexInterface.h \
 	LanguageDetector.h \
 	WritableXapianIndex.h \
@@ -11,6 +13,8 @@ noinst_LTLIBRARIES = libIndex.la
 bin_PROGRAMS = pinot-index
 
 libIndex_la_SOURCES = \
+	DBusXapianIndex.cpp \
+	IndexFactory.cpp \
 	LanguageDetector.cpp \
 	WritableXapianIndex.cpp \
 	XapianIndex.cpp

@@ -29,7 +29,10 @@ class XapianIndex : public IndexInterface
 {
 	public:
 		XapianIndex(const std::string &indexName);
+		XapianIndex(const XapianIndex &other);
 		virtual ~XapianIndex();
+
+		XapianIndex &operator=(const XapianIndex &other);
 
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const;
@@ -76,10 +79,6 @@ class XapianIndex : public IndexInterface
 
 		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
-
-	private:
-		XapianIndex(const XapianIndex &other);
-		XapianIndex &operator=(const XapianIndex &other);
 
 };
 

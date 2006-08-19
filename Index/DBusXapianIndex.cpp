@@ -69,8 +69,21 @@ DBusXapianIndex::DBusXapianIndex(const string &indexName) :
 {
 }
 
+DBusXapianIndex::DBusXapianIndex(const DBusXapianIndex &other) :
+	WritableIndexInterface(other),
+	XapianIndex(other)
+{
+}
+
 DBusXapianIndex::~DBusXapianIndex()
 {
+}
+
+DBusXapianIndex &DBusXapianIndex::operator=(const DBusXapianIndex &other)
+{
+	WritableIndexInterface::operator=(other);
+	XapianIndex::operator=(other);
+	return *this;
 }
 
 void DBusXapianIndex::reopen(void)

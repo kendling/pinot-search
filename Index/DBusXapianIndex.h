@@ -27,7 +27,10 @@ class DBusXapianIndex : public WritableIndexInterface, private XapianIndex
 {
 	public:
 		DBusXapianIndex(const std::string &indexName);
+		DBusXapianIndex(const DBusXapianIndex &other);
 		virtual ~DBusXapianIndex();
+
+		DBusXapianIndex &operator=(const DBusXapianIndex &other);
 
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const;
@@ -95,10 +98,6 @@ class DBusXapianIndex : public WritableIndexInterface, private XapianIndex
 
 	protected:
 		void reopen(void);
-
-	private:
-		DBusXapianIndex(const DBusXapianIndex &other);
-		DBusXapianIndex &operator=(const DBusXapianIndex &other);
 
 };
 

@@ -27,7 +27,10 @@
 class IndexInterface
 {
 	public:
+		IndexInterface(const IndexInterface &other) {};
 		virtual ~IndexInterface() {};
+
+		IndexInterface &operator=(const IndexInterface &other) {};
 
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const = 0;
@@ -67,17 +70,22 @@ class IndexInterface
 	protected:
 		IndexInterface() { };
 
-	private:
-		IndexInterface(const IndexInterface &other);
-		IndexInterface &operator=(const IndexInterface &other);
-
 };
 
 /// Interface implemented by read-write indexes.
 class WritableIndexInterface : public IndexInterface
 {
 	public:
+		WritableIndexInterface(const WritableIndexInterface &other) :
+			IndexInterface(other), m_stemMode(other.m_stemMode) {};
 		virtual ~WritableIndexInterface() {};
+
+		WritableIndexInterface &operator=(const WritableIndexInterface &other)
+		{
+			IndexInterface::operator=(other);
+			m_stemMode = other.m_stemMode;
+			return *this;
+		};
 
 		typedef enum { STORE_UNSTEM = 0, STORE_STEM, STORE_BOTH } StemmingMode;
 
@@ -116,11 +124,8 @@ class WritableIndexInterface : public IndexInterface
 	protected:
 		StemmingMode m_stemMode;
 
-		WritableIndexInterface() : IndexInterface(), m_stemMode(STORE_UNSTEM) { };
-
-	private:
-		WritableIndexInterface(const WritableIndexInterface &other);
-		WritableIndexInterface &operator=(const WritableIndexInterface &other);
+		WritableIndexInterface() :
+			IndexInterface(), m_stemMode(STORE_UNSTEM) { };
 
 };
 
