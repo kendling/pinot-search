@@ -26,7 +26,7 @@
 #include "XapianDatabaseFactory.h"
 #include "TokenizerFactory.h"
 #include "DownloaderFactory.h"
-#include "WritableXapianIndex.h"
+#include "IndexFactory.h"
 #include "config.h"
 
 using namespace std;
@@ -70,8 +70,10 @@ int main(int argc, char **argv)
 					<< "  -h, --help		display this help and exit\n"
 					<< "  -i, --index		index the given URL\n"
 					<< "  -v, --version		output version information and exit\n\n";
+				// Don't mention type dbus here as it doesn't support indexing and
+				// is identical to xapian when checking for URLs
 				cout << "Examples:\n"
-					<< "pinot-index --check http://pinot.berlios.de/ xapian ~/.pinot/index\n\n"
+					<< "pinot-index --check file:///home/fabrice/Documents/Bozo.txt xapian ~/.pinot/daemon\n\n"
 					<< "pinot-index --index http://pinot.berlios.de/ xapian ~/.pinot/index\n\n"
 					<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 				return EXIT_SUCCESS;
@@ -108,15 +110,24 @@ int main(int argc, char **argv)
 	MIMEScanner::initialize();
 	DownloaderInterface::initialize();
 
-	// FIXME: don't ignore the index type
+	// Get a read-write index of the given type
+	WritableIndexInterface *pIndex = IndexFactory::getRWIndex(argv[optind], argv[optind + 1]);
+	if (pIndex == NULL)
+	{
+		cerr << "Couldn't obtain index of type " << argv[optind] << endl;
+
+		XapianDatabaseFactory::closeAll();
+		DownloaderInterface::shutdown();
+		MIMEScanner::shutdown();
+
+		return EXIT_FAILURE;
+	}
 
 	if (checkDocument == true)
 	{
-		XapianIndex index(argv[optind + 1]);
-
-		if (index.isGood() == true)
+		if (pIndex->isGood() == true)
 		{
-			unsigned int docId = index.hasDocument(urlToCheck);
+			unsigned int docId = pIndex->hasDocument(urlToCheck);
 			if (docId > 0)
 			{
 				cout << urlToCheck << ": document ID " << docId << endl;
@@ -153,17 +164,16 @@ int main(int argc, char **argv)
 			Tokenizer *pTokens = TokenizerFactory::getTokenizerByType(docInfo.getType(), pDoc);
 			if (pTokens != NULL)
 			{
-				WritableXapianIndex index(argv[optind + 1]);
 				set<string> labels;
 
-				index.setStemmingMode(WritableIndexInterface::STORE_BOTH);
+				pIndex->setStemmingMode(WritableIndexInterface::STORE_BOTH);
 
 				// Update an existing document or add to the index ?
-				unsigned int docId = index.hasDocument(urlToIndex);
+				unsigned int docId = pIndex->hasDocument(urlToIndex);
 				if (docId > 0)
 				{
 					// Update the document
-					if (index.updateDocument(docId, *pTokens) == true)
+					if (pIndex->updateDocument(docId, *pTokens) == true)
 					{
 						success = true;
 					}
@@ -171,13 +181,13 @@ int main(int argc, char **argv)
 				else
 				{
 					// Index the document
-					success = index.indexDocument(*pTokens, labels, docId);
+					success = pIndex->indexDocument(*pTokens, labels, docId);
 				}
 
 				if (success == true)
 				{
 					// Flush the index
-					index.flush();
+					pIndex->flush();
 				}
 
 				delete pTokens;
@@ -188,6 +198,7 @@ int main(int argc, char **argv)
 
 		delete pDownloader;
 	}
+	delete pIndex;
 
 	XapianDatabaseFactory::closeAll();
 	DownloaderInterface::shutdown();
