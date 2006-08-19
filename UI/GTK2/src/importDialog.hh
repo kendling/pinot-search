@@ -48,7 +48,7 @@ protected:
 	void signal_scanner(void);
 
 	bool on_activity_timeout(void);
-	bool on_import_url(const std::string &location, const std::string &extraLabel);
+	bool on_import_url(const std::string &location, const std::string &sourceLabel);
 	void on_thread_end(WorkerThread *pThread);
 
 private:

@@ -22,6 +22,7 @@
 #include <glibmm/thread.h>
 
 #include "Url.h"
+#include "MonitorFactory.h"
 #include "WritableXapianIndex.h"
 #include "DaemonState.h"
 #include "MboxHandler.h"
@@ -35,6 +36,8 @@ using namespace Glib;
 
 DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 10),
+	m_pMailMonitor(MonitorFactory::getMonitor()),
+	m_pDiskMonitor(MonitorFactory::getMonitor()),
 	m_crawling(false)
 {
 	m_onThreadEndSignal.connect(SigC::slot(*this, &DaemonState::on_thread_end));
@@ -42,6 +45,14 @@ DaemonState::DaemonState() :
 
 DaemonState::~DaemonState()
 {
+	if (m_pDiskMonitor != NULL)
+	{
+		delete m_pDiskMonitor;
+	}
+	if (m_pMailMonitor != NULL)
+	{
+		delete m_pMailMonitor;
+	}
 }
 
 void DaemonState::start(void)
@@ -56,8 +67,16 @@ void DaemonState::start(void)
 	// Connect to its update signal
 	pMbox->getUpdateSignal().connect(
 		SigC::slot(*this, &DaemonState::on_message_indexupdate));
-	MonitorThread *pMailMonitorThread = new MonitorThread(pMbox);
+	MonitorThread *pMailMonitorThread = new MonitorThread(m_pMailMonitor, pMbox);
 	start_thread(pMailMonitorThread, true);
+
+	// Same for the disk monitor thread
+	OnDiskHandler *pDisk = new OnDiskHandler();
+	// Connect to its update signal
+	pDisk->getUpdateSignal().connect(
+		SigC::slot(*this, &DaemonState::on_message_indexupdate));
+	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, pDisk);
+	start_thread(pDiskMonitorThread, true);
 
 	for (set<PinotSettings::TimestampedItem>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
 		locationIter != PinotSettings::getInstance().m_indexableLocations.end(); ++locationIter)
@@ -78,21 +97,11 @@ void DaemonState::start(void)
 	if (locationToCrawl.empty() == false)
 	{
 		// Scan the directory and import all its files
-		DirectoryScannerThread *pScannerThread = new DirectoryScannerThread(locationToCrawl,
-			0, true, &m_scanMutex, &m_scanCondVar);
+		DirectoryScannerThread *pScannerThread = new DirectoryScannerThread(m_pDiskMonitor,
+			locationToCrawl, 0, true, &m_scanMutex, &m_scanCondVar);
 		pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 
 		m_crawling = start_thread(pScannerThread);
-	}
-	else
-	{
-		// Fire up the disk monitor thread right away
-		OnDiskHandler *pDisk = new OnDiskHandler();
-		// Connect to its update signal
-		pDisk->getUpdateSignal().connect(
-			SigC::slot(*this, &DaemonState::on_message_indexupdate));
-		MonitorThread *pDiskMonitorThread = new MonitorThread(pDisk);
-		start_thread(pDiskMonitorThread, true);
 	}
 }
 
@@ -153,8 +162,8 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 					}
 				}
 
-				pNewScannerThread = new DirectoryScannerThread(locationToCrawl,
-					0, true, &m_scanMutex, &m_scanCondVar);
+				pNewScannerThread = new DirectoryScannerThread(m_pDiskMonitor,
+					locationToCrawl, 0, true, &m_scanMutex, &m_scanCondVar);
 				pNewScannerThread->getFileFoundSignal().connect(SigC::slot(*this,
 					&DaemonState::on_message_filefound));
 
@@ -177,16 +186,6 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		if (pNewScannerThread != NULL)
 		{
 			m_crawling = start_thread(pNewScannerThread);
-		}
-		else
-		{
-			// Now we can start monitoring
-			OnDiskHandler *pDisk = new OnDiskHandler();
-			// Connect to its update signal
-			pDisk->getUpdateSignal().connect(
-				SigC::slot(*this, &DaemonState::on_message_indexupdate));
-			MonitorThread *pMonitorThread = new MonitorThread(pDisk);
-			start_thread(pMonitorThread, true);
 		}
 	}
 	else if (type == "IndexingThread")
@@ -235,11 +234,15 @@ void DaemonState::on_message_indexupdate(IndexedDocument docInfo, unsigned int d
 	// FIXME: anything to do ?
 }
 
-bool DaemonState::on_message_filefound(const string &location)
+bool DaemonState::on_message_filefound(const string &location, const string &sourceLabel)
 {
 	Url urlObj(location);
+	set<string> labels;
 
 	DocumentInfo docInfo(urlObj.getFile(), location, "", "");
+	// Insert a label that identifies the source
+	labels.insert(sourceLabel);
+	docInfo.setLabels(labels);
 
 	queue_index(docInfo);
 

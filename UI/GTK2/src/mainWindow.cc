@@ -43,7 +43,7 @@
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderFactory.h"
-#include "WritableXapianIndex.h"
+#include "IndexFactory.h"
 #include "SearchEngineFactory.h"
 #include "config.h"
 #include "NLS.h"
@@ -308,12 +308,6 @@ void mainWindow::populate_menus()
 	SigC::Slot0<void> documentsActivateSlot = sigc::bind(indexSlot, _("My Documents"));
 	pMenuItem->signal_activate().connect(documentsActivateSlot);
 
-	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Email")));
-	pMenuItem = &m_pIndexMenu->items().back();
-	// Bind the callback's parameter to the index name
-	SigC::Slot0<void> emailActivateSlot = sigc::bind(indexSlot, _("My Email"));
-	pMenuItem->signal_activate().connect(emailActivateSlot);
-
 	if (m_pCacheMenu == NULL)
 	{
 		m_pCacheMenu = manage(new Menu());
@@ -444,7 +438,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 	if ((hasSelection == true) &&
 		(resultsList.empty() == false))
 	{
-		XapianIndex docsIndex(m_settings.m_docsIndexLocation);
+		IndexInterface *pIndex = m_settings.getROIndex(m_settings.m_docsIndexLocation);
 		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = true;
 
 		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
@@ -481,9 +475,10 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 					isCached = true;
 				}
 
-				if (docsIndex.isGood() == true)
+				if ((pIndex != NULL) &&
+					(pIndex->isGood() == true))
 				{
-					if (docsIndex.hasDocument(url) > 0)
+					if (pIndex->hasDocument(url) > 0)
 					{
 						isIndexed = true;
 					}
@@ -496,6 +491,11 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 		viewcache1->set_sensitive(isCached);
 		morelikethis1->set_sensitive(isIndexed);
 		indexresults1->set_sensitive(isIndexable);
+
+		if (pIndex != NULL)
+		{
+			delete pIndex;
+		}
 	}
 	else
 	{
@@ -1390,7 +1390,7 @@ void mainWindow::on_configure_activate()
 	const set<string> &mailLabelsToDelete = prefsBox.getMailLabelsToDelete();
 	if (mailLabelsToDelete.empty() == false)
 	{
-		start_thread(new UnindexingThread(mailLabelsToDelete, from_utf8(m_settings.m_mailIndexLocation)));
+		start_thread(new UnindexingThread(mailLabelsToDelete, from_utf8(m_settings.m_daemonIndexLocation)));
 	}
 }
 
@@ -1721,25 +1721,30 @@ void mainWindow::on_morelikethis_activate()
 		}
 	}
 
-        XapianIndex docsIndex(m_settings.m_docsIndexLocation);
-        set<unsigned int> docIdList;
+	IndexInterface *pIndex = m_settings.getROIndex(m_settings.m_docsIndexLocation);
+        if (pIndex != NULL)
+	{
+		if (pIndex->isGood() == true)
+		{
+        		set<unsigned int> docIdList;
 
-        if (docsIndex.isGood() == true)
-        {
-                for (vector<DocumentInfo>::const_iterator docIter = resultsList.begin();
-                        docIter != resultsList.end(); ++docIter)
-                {
-                        unsigned int docId = docsIndex.hasDocument(docIter->getLocation());
-                        if (docId > 0)
-                        {
-                                docIdList.insert(docId);
-                        }
-                }
+			for (vector<DocumentInfo>::const_iterator docIter = resultsList.begin();
+				docIter != resultsList.end(); ++docIter)
+			{
+				unsigned int docId = pIndex->hasDocument(docIter->getLocation());
+				if (docId > 0)
+				{
+					docIdList.insert(docId);
+				}
+			}
 
-		// Spawn a new thread
-		start_thread(new QueryingThread("xapian", _("My Documents"),
-			m_settings.m_docsIndexLocation, queryProps, docIdList));
-        }
+			// Spawn a new thread
+			start_thread(new QueryingThread("xapian", _("My Documents"),
+				m_settings.m_docsIndexLocation, queryProps, docIdList));
+		}
+
+		delete pIndex;
+	}
 }
 
 //
@@ -1926,14 +1931,23 @@ void mainWindow::on_showfromindex_activate()
 		return;
 	}
 
-	WritableXapianIndex index(mapIter->second);
-
 	// Get the current documents selection
 	if ((pIndexTree == NULL) ||
 		(pIndexTree->getSelection(documentsList) == false) ||
 		(documentsList.empty() == true))
 	{
 		// No selection
+		return;
+	}
+
+	WritableIndexInterface *pIndex = m_settings.getRWIndex(mapIter->second);
+	if ((pIndex == NULL) ||
+		(pIndex->isGood() == false))
+	{
+		if (pIndex != NULL)
+		{
+			delete pIndex;
+		}
 		return;
 	}
 
@@ -1945,20 +1959,18 @@ void mainWindow::on_showfromindex_activate()
 		// Get the document ID
 		docId = docIter->getID();
 
-		if (index.isGood() == true)
-		{
-			// Get the properties from the index because they have been altered
-			// by the tree for display purposes
-			index.getDocumentInfo(docId, docInfo);
-			index.getDocumentLabels(docId, docLabels);
+		// Get the properties from the index because they have been altered
+		// by the tree for display purposes
+		pIndex->getDocumentInfo(docId, docInfo);
+		pIndex->getDocumentLabels(docId, docLabels);
 
-			// Does it match the current label ?
-			if ((labelName.empty() == false) &&
-				(find(docLabels.begin(), docLabels.end(), labelName) != docLabels.end()))
-			{
-				matchedLabel = true;
-			}
+		// Does it match the current label ?
+		if ((labelName.empty() == false) &&
+			(find(docLabels.begin(), docLabels.end(), labelName) != docLabels.end()))
+		{
+			matchedLabel = true;
 		}
+
 		editDocument = true;
 	}
 	else
@@ -1989,8 +2001,10 @@ void mainWindow::on_showfromindex_activate()
 	propertiesBox.show();
 	if (propertiesBox.run() != RESPONSE_OK)
 	{
+		delete pIndex;
 		return;
 	}
+
 	const set<string> &labels = propertiesBox.getLabels();
 	string newTitle(propertiesBox.getDocumentInfo().getTitle());
 	string newLanguage(propertiesBox.getDocumentInfo().getLanguage());
@@ -1999,15 +2013,12 @@ void mainWindow::on_showfromindex_activate()
 		<< newTitle << ", " << newLanguage << endl;
 #endif
 
-	if (index.isGood() == true)
+	// Now apply these labels to all the documents
+	for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
+		docIter != documentsList.end(); ++docIter)
 	{
-		// Now apply these labels to all the documents
-		for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
-			docIter != documentsList.end(); ++docIter)
-		{
-			// Set the document's labels list
-			index.setDocumentLabels(docIter->getID(), labels);
-		}
+		// Set the document's labels list
+		pIndex->setDocumentLabels(docIter->getID(), labels);
 	}
 
 	if ((documentsList.size() == 1) &&
@@ -2049,6 +2060,8 @@ void mainWindow::on_showfromindex_activate()
 			start_thread(new IndexBrowserThread(indexName, labelName, 0, 0));
 		}
 	}
+
+	delete pIndex;
 }
 
 //
@@ -2284,14 +2297,14 @@ void mainWindow::on_liveQueryEntry_changed()
 	m_state.m_liveQueryLength = liveQueryLength;
 
 	// FIXME: relying on other indices may also be useful
-	XapianIndex docsIndex(m_settings.m_docsIndexLocation);
-	if (docsIndex.isGood() == true)
+	IndexInterface *pIndex = m_settings.getROIndex(m_settings.m_docsIndexLocation);
+	if (pIndex != NULL)
 	{
 		set<string> suggestedTerms;
 		int termIndex = 0;
 
 		// Get a list of suggestions
-		docsIndex.getCloseTerms(from_utf8(term), suggestedTerms);
+		pIndex->getCloseTerms(from_utf8(term), suggestedTerms);
 
 		// Populate the list
 		for (set<string>::iterator termIter = suggestedTerms.begin();
@@ -2306,6 +2319,8 @@ void mainWindow::on_liveQueryEntry_changed()
 #ifdef DEBUG
 		cout << "mainWindow::on_liveQueryEntry_changed: " << termIndex << " suggestions" << endl;
 #endif
+
+		delete pIndex;
 	}
 }
 
@@ -3046,12 +3061,14 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 		std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
 		if (mapIter != indexesMap.end())
 		{
-			XapianIndex index(mapIter->second);
+			IndexInterface *pIndex = m_settings.getROIndex(mapIter->second);
 	
-			if (index.isGood() == true)
+			if (pIndex != NULL)
 			{
-				appendToList = index.hasLabel(docInfo.getID(), from_utf8(labelName));
+				appendToList = pIndex->hasLabel(docInfo.getID(), from_utf8(labelName));
 			}
+
+			delete pIndex;
 		}
 	}
 

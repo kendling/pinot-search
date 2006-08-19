@@ -22,6 +22,7 @@
 #include <set>
 #include <glibmm/thread.h>
 
+#include "MonitorInterface.h"
 #include "IndexedDocument.h"
 #include "WorkerThreads.h"
 
@@ -39,9 +40,11 @@ class DaemonState : public ThreadsManager
 
 		void on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, std::string indexName);
 
-		bool on_message_filefound(const std::string &location);
+		bool on_message_filefound(const std::string &location, const std::string &sourceLabel);
 
 	protected:
+		MonitorInterface *m_pMailMonitor;
+		MonitorInterface *m_pDiskMonitor;
 		std::queue<std::string> m_crawlQueue;
 		std::set<std::string> m_monitoredLocations;
 		bool m_crawling;

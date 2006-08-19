@@ -142,6 +142,8 @@ int main(int argc, char **argv)
 
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();
+	// Talk to the daemon through DBus
+	settings.enableDBus(true);
 
 	string confDirectory = PinotSettings::getConfigurationDirectory();
 	chdir(confDirectory.c_str());
@@ -192,24 +194,16 @@ int main(int argc, char **argv)
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))
 	{
-		errorMsg = _("Couldn't open index");
+		errorMsg = "Couldn't open index";
 		errorMsg += " ";
 		errorMsg += settings.m_docsIndexLocation;
 	}
-	// ...and the mail and daemon indices in read-only mode
-	pDb = XapianDatabaseFactory::getDatabase(settings.m_mailIndexLocation);
-	if ((pDb == NULL) ||
-		(pDb->isOpen() == false))
-	{
-		errorMsg = _("Couldn't open index");
-		errorMsg += " ";
-		errorMsg += settings.m_mailIndexLocation;
-	}
+	// ...and the daemon index in read-only mode
 	pDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation);
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))
 	{
-		errorMsg = _("Couldn't open index");
+		errorMsg = "Couldn't open index";
 		errorMsg += " ";
 		errorMsg += settings.m_daemonIndexLocation;
 	}
@@ -219,7 +213,7 @@ int main(int argc, char **argv)
 		(QueryHistory::create(settings.m_historyDatabase) == false) ||
 		(ViewHistory::create(settings.m_historyDatabase) == false))
 	{
-		errorMsg = _("Couldn't create history database");
+		errorMsg = "Couldn't create history database";
 		errorMsg += " ";
 		errorMsg += settings.m_historyDatabase;
 	}
