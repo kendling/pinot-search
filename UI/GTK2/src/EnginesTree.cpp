@@ -337,7 +337,6 @@ void EnginesTree::populate(bool indexesOnly)
 		EnginesModelColumns::EngineType indexType = EnginesModelColumns::INDEX_ENGINE;
 
 		if ((indexName == _("My Documents")) ||
-			(indexName == _("My Email")) ||
 			(indexName == _("My Computer")))
 		{
 			indexType = EnginesModelColumns::INTERNAL_INDEX_ENGINE;

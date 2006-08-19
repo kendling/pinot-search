@@ -30,7 +30,7 @@
 #include "Url.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
-#include "XapianIndex.h"
+#include "IndexFactory.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -1138,15 +1138,19 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 #endif
 	}
 
-	XapianIndex index(m_settings.m_docsIndexLocation);
+	IndexInterface *pIndex = m_settings.getROIndex(m_settings.m_docsIndexLocation);
 	ViewHistory viewHistory(m_settings.m_historyDatabase);
 	bool isIndexed = false;
 
 	// Is this document indexed ?
-	if ((index.isGood() == true) &&
-		(index.hasDocument(url) > 0))
+	if (pIndex != NULL)
 	{
-		isIndexed = true;
+		if (pIndex->hasDocument(url) > 0)
+		{
+			isIndexed = true;
+		}
+
+		delete pIndex;
 	}
 
 	// Has it been already viewed ?
