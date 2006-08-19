@@ -33,6 +33,7 @@
 #include "Languages.h"
 #include "NLS.h"
 #include "StringManip.h"
+#include "IndexFactory.h"
 #include "PluginWebEngine.h"
 #include "PinotSettings.h"
 
@@ -81,6 +82,7 @@ static Element *addChildElement(Element *pElem, const string &nodeName, const st
 }
 
 PinotSettings PinotSettings::m_instance;
+bool PinotSettings::m_enableDBus = false;
 
 PinotSettings::PinotSettings() :
 	m_xPos(0),
@@ -116,8 +118,6 @@ PinotSettings::PinotSettings() :
 	// This is where the internal indices live
 	m_docsIndexLocation = directoryName;
 	m_docsIndexLocation += "/index";
-	m_mailIndexLocation = directoryName;
-	m_mailIndexLocation += "/mail";
 	m_daemonIndexLocation = directoryName;
 	m_daemonIndexLocation += "/daemon";
 
@@ -133,6 +133,15 @@ PinotSettings::~PinotSettings()
 PinotSettings &PinotSettings::getInstance(void)
 {
 	return m_instance;
+}
+
+bool PinotSettings::enableDBus(bool enable)
+{
+	bool isEnabled = m_enableDBus;
+
+	m_enableDBus = enable;
+
+	return isEnabled;
 }
 
 string PinotSettings::getConfigurationDirectory(void)
@@ -219,7 +228,6 @@ bool PinotSettings::load(void)
 
 	// Internal indices
 	addIndex(_("My Documents"), m_docsIndexLocation);
-	addIndex(_("My Email"), m_mailIndexLocation);
 	addIndex(_("My Computer"), m_daemonIndexLocation);
 
 	// Add default labels on the first run
@@ -1062,11 +1070,10 @@ const map<string, string> &PinotSettings::getIndexes(void) const
 }
 
 /// Returns true if the given index is internal.
-bool PinotSettings::isInternalIndex(const string &indexName) const
+bool PinotSettings::isInternalIndex(const string &name) const
 {
-	if ((indexName == _("My Documents")) ||
-		(indexName == _("My Email")) ||
-		(indexName == _("My Computer")))
+	if ((name == _("My Documents")) ||
+		(name == _("My Computer")))
 	{
 		return true;
 	}
@@ -1122,7 +1129,6 @@ void PinotSettings::clearIndexes(void)
 	m_indexNames.clear();
 	m_indexIds.clear();
 	addIndex(_("My Documents"), m_docsIndexLocation);
-	addIndex(_("My Email"), m_mailIndexLocation);
 	addIndex(_("My Computer"), m_daemonIndexLocation);
 }
 
@@ -1169,6 +1175,38 @@ void PinotSettings::getIndexNames(unsigned int id, std::set<std::string> &names)
 		// Shift to the right
 		indexId = indexId >> 1;
 	} while (indexId > 0);
+}
+
+/// Returns a IndexInterface for the given index location.
+IndexInterface *PinotSettings::getROIndex(const string &location)
+{
+	if (location == m_docsIndexLocation)
+	{
+		return IndexFactory::getROIndex("xapian", m_docsIndexLocation);
+	}
+	else if ((m_enableDBus == true) &&
+		(location == m_daemonIndexLocation))
+	{
+		return IndexFactory::getROIndex("dbus", m_daemonIndexLocation);
+	}
+
+	return IndexFactory::getROIndex("xapian", location);
+}
+
+/// Returns a WritableIndexInterface for the given index location.
+WritableIndexInterface *PinotSettings::getRWIndex(const string &location)
+{
+	if (location == m_docsIndexLocation)
+	{
+		return IndexFactory::getRWIndex("xapian", m_docsIndexLocation);
+	}
+	else if ((m_enableDBus == true) &&
+		(location == m_daemonIndexLocation))
+	{
+		return IndexFactory::getRWIndex("dbus", m_daemonIndexLocation);
+	}
+
+	return IndexFactory::getRWIndex("xapian", location);
 }
 
 /// Returns the search engines set.

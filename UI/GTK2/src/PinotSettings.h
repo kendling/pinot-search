@@ -26,6 +26,7 @@
 #include <glibmm/ustring.h>
 #include <libxml++/nodes/element.h>
 
+#include "IndexInterface.h"
 #include "QueryProperties.h"
 
 class PinotSettings
@@ -34,6 +35,8 @@ class PinotSettings
 		~PinotSettings();
 
 		static PinotSettings &getInstance(void);
+
+		static bool enableDBus(bool enable);
 
 		static std::string getConfigurationDirectory(void);
 
@@ -55,7 +58,7 @@ class PinotSettings
 		const std::map<std::string, std::string> &getIndexes(void) const;
 
 		/// Returns true if the given index is internal.
-		bool isInternalIndex(const string &indexName) const;
+		bool isInternalIndex(const string &name) const;
 
 		/// Adds a new index.
 		bool addIndex(const std::string &name, const std::string &location);
@@ -71,6 +74,12 @@ class PinotSettings
 
 		/// Returns the name(s) for the given ID.
 		void getIndexNames(unsigned int id, std::set<std::string> &names);
+
+		/// Returns a IndexInterface for the given index location.
+		IndexInterface *getROIndex(const std::string &location);
+
+		/// Returns a WritableIndexInterface for the given index location.
+		WritableIndexInterface *getRWIndex(const std::string &location);
 
 		class Engine
 		{
@@ -157,7 +166,6 @@ class PinotSettings
 
 		Glib::ustring m_googleAPIKey;
 		Glib::ustring m_docsIndexLocation;
-		Glib::ustring m_mailIndexLocation;
 		Glib::ustring m_daemonIndexLocation;
 		Glib::ustring m_historyDatabase;
 		int m_xPos;
@@ -178,6 +186,7 @@ class PinotSettings
 
 	protected:
 		static PinotSettings m_instance;
+		static bool m_enableDBus;
 		bool m_firstRun;
 		std::map<std::string, std::string> m_indexNames;
 		std::map<unsigned int, std::string> m_indexIds;
