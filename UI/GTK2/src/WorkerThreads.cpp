@@ -39,13 +39,12 @@
 #include "CrawlHistory.h"
 #include "QueryHistory.h"
 #include "IndexedDocument.h"
-#include "MonitorFactory.h"
 #include "DownloaderFactory.h"
 #include "SearchEngineFactory.h"
 #ifdef HAS_GOOGLEAPI
 #include "GoogleAPIEngine.h"
 #endif
-#include "WritableXapianIndex.h"
+#include "IndexFactory.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -320,8 +319,13 @@ bool ThreadsManager::index_document(const DocumentInfo &docInfo)
 	}
 
 	// Is it an update ?
-	XapianIndex index(m_defaultIndexLocation);
-	unsigned int docId = index.hasDocument(docInfo.getLocation());
+	IndexInterface *pIndex = PinotSettings::getInstance().getROIndex(m_defaultIndexLocation);
+	if (pIndex == NULL)
+	{
+		return false;
+	}
+
+	unsigned int docId = pIndex->hasDocument(docInfo.getLocation());
 	if (docId > 0)
 	{
 		// Yes, it is
@@ -332,6 +336,7 @@ bool ThreadsManager::index_document(const DocumentInfo &docInfo)
 		// This is a new document
 		start_thread(new IndexingThread(docInfo, docId, m_defaultIndexLocation));
 	}
+	delete pIndex;
 
 	return true;
 }
@@ -622,16 +627,21 @@ void IndexBrowserThread::doWork(void)
 	}
 
 	// Get the index at that location
-	XapianIndex index(mapIter->second);
-	if (index.isGood() == false)
+	IndexInterface *pIndex = PinotSettings::getInstance().getROIndex(mapIter->second);
+	if ((pIndex == NULL) ||
+		(pIndex->isGood() == false))
 	{
 		m_status = _("Index error on");
 		m_status += " ";
 		m_status += mapIter->second;
+		if (pIndex != NULL)
+		{
+			delete pIndex;
+		}
 		return;
 	}
 
-	m_indexDocsCount = index.getDocumentsCount(m_labelName);
+	m_indexDocsCount = pIndex->getDocumentsCount(m_labelName);
 	if (m_indexDocsCount == 0)
 	{
 #ifdef DEBUG
@@ -646,11 +656,11 @@ void IndexBrowserThread::doWork(void)
 #endif
 	if (m_labelName.empty() == true)
 	{
-		index.listDocuments(docIDList, m_maxDocsCount, m_startDoc);
+		pIndex->listDocuments(docIDList, m_maxDocsCount, m_startDoc);
 	}
 	else
 	{
-		index.listDocumentsWithLabel(m_labelName, docIDList, m_maxDocsCount, m_startDoc);
+		pIndex->listDocumentsWithLabel(m_labelName, docIDList, m_maxDocsCount, m_startDoc);
 	}
 	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
 	{
@@ -665,7 +675,7 @@ void IndexBrowserThread::doWork(void)
 		string url = XapianDatabase::buildUrl(mapIter->second, docId);
 
 		DocumentInfo docInfo;
-		if (index.getDocumentInfo(docId, docInfo) == true)
+		if (pIndex->getDocumentInfo(docId, docInfo) == true)
 		{
 			string type = docInfo.getType();
 			if (type.empty() == true)
@@ -686,6 +696,7 @@ void IndexBrowserThread::doWork(void)
 		else cout << "IndexBrowserThread::doWork: couldn't retrieve document " << docId << endl;
 #endif
 	}
+	delete pIndex;
 }
 
 QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
@@ -853,8 +864,8 @@ bool LabelUpdateThread::stop(void)
 
 void LabelUpdateThread::doWork(void)
 {
-	WritableXapianIndex docsIndex(PinotSettings::getInstance().m_docsIndexLocation);
-	if (docsIndex.isGood() == false)
+	WritableIndexInterface *pDocsIndex = PinotSettings::getInstance().getRWIndex(PinotSettings::getInstance().m_docsIndexLocation);
+	if (pDocsIndex == NULL)
 	{
 		m_status = _("Index error on");
 		m_status += " ";
@@ -862,29 +873,31 @@ void LabelUpdateThread::doWork(void)
 		return;
 	}
 
-	WritableXapianIndex mailIndex(PinotSettings::getInstance().m_mailIndexLocation);
-	if (mailIndex.isGood() == false)
+	WritableIndexInterface *pDaemonIndex = PinotSettings::getInstance().getRWIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+	if (pDaemonIndex == NULL)
 	{
 		m_status = _("Index error on");
 		m_status += " ";
-		m_status += PinotSettings::getInstance().m_mailIndexLocation;
+		m_status += PinotSettings::getInstance().m_daemonIndexLocation;
+		delete pDocsIndex;
 		return;
 	}
-
-	// FIXME: what about the daemon index ?
 
 	// Delete labels
 	for (set<string>::iterator iter = m_labelsToDelete.begin(); iter != m_labelsToDelete.end(); ++iter)
 	{
-		docsIndex.deleteLabel(*iter);
-		mailIndex.deleteLabel(*iter);
+		pDocsIndex->deleteLabel(*iter);
+		pDaemonIndex->deleteLabel(*iter);
 	}
 	// Rename labels
 	for (map<string, string>::iterator iter = m_labelsToRename.begin(); iter != m_labelsToRename.end(); ++iter)
 	{
-		docsIndex.renameLabel(iter->first, iter->second);
-		mailIndex.renameLabel(iter->first, iter->second);
+		pDocsIndex->renameLabel(iter->first, iter->second);
+		pDaemonIndex->renameLabel(iter->first, iter->second);
 	}
+
+	delete pDaemonIndex;
+	delete pDocsIndex;
 }
 
 DownloadingThread::DownloadingThread(const DocumentInfo &docInfo, bool fromCache) :
@@ -1045,13 +1058,19 @@ bool IndexingThread::stop(void)
 
 void IndexingThread::doWork(void)
 {
+	WritableIndexInterface *pIndex = PinotSettings::getInstance().getRWIndex(m_indexLocation);
+
 	// First things first, get the index
-	WritableXapianIndex index(m_indexLocation);
-	if (index.isGood() == false)
+	if ((pIndex == NULL) ||
+		(pIndex->isGood() == false))
 	{
 		m_status = _("Index error on");
 		m_status += " ";
 		m_status += m_indexLocation;
+		if (pIndex != NULL)
+		{
+			delete pIndex;
+		}
 		return;
 	}
 
@@ -1152,26 +1171,26 @@ void IndexingThread::doWork(void)
 		{
 			const set<string> &labels = m_docInfo.getLabels();
 
-			index.setStemmingMode(WritableIndexInterface::STORE_BOTH);
+			pIndex->setStemmingMode(WritableIndexInterface::STORE_BOTH);
 
 			// Update an existing document or add to the index ?
 			if (m_update == true)
 			{
 				// Update the document
-				if (index.updateDocument(m_docId, *pTokens) == true)
+				if (pIndex->updateDocument(m_docId, *pTokens) == true)
 				{
 					success = true;
 				}
 
 				// Set the document's labels
-				index.setDocumentLabels(m_docId, labels, false);
+				pIndex->setDocumentLabels(m_docId, labels, false);
 			}
 			else
 			{
 				unsigned int docId = 0;
 
 				// Index the document
-				success = index.indexDocument(*pTokens, labels, docId);
+				success = pIndex->indexDocument(*pTokens, labels, docId);
 				if (success == true)
 				{
 					m_docId = docId;
@@ -1189,16 +1208,18 @@ void IndexingThread::doWork(void)
 				// Flush the index ?
 				if (m_immediateFlush == true)
 				{
-					index.flush();
+					pIndex->flush();
 				}
 
 				// The document properties may have changed
-				index.getDocumentInfo(m_docId, m_docInfo);
+				pIndex->getDocumentInfo(m_docId, m_docInfo);
 			}
 		}
 
 		delete pTokens;
 	}
+
+	delete pIndex;
 }
 
 UnindexingThread::UnindexingThread(const set<unsigned int> &docIdList) :
@@ -1244,74 +1265,78 @@ bool UnindexingThread::stop(void)
 
 void UnindexingThread::doWork(void)
 {
-	if (m_done == false)
+	WritableIndexInterface *pIndex = PinotSettings::getInstance().getRWIndex(m_indexLocation);
+
+	if ((pIndex == NULL) ||
+		(pIndex->isGood() == false))
 	{
-		WritableXapianIndex index(m_indexLocation);
-
-		if (index.isGood() == false)
+		m_status = _("Index error on");
+		m_status += " ";
+		m_status += m_indexLocation;
+		if (pIndex != NULL)
 		{
-			m_status = _("Index error on");
-			m_status += " ";
-			m_status += m_indexLocation;
-			return;
+			delete pIndex;
 		}
-
-		// Be pessimistic and assume something will go wrong ;-)
-		m_status = _("Couldn't unindex document(s)");
-
-		// Are we supposed to remove documents based on labels ?
-		if (m_docIdList.empty() == true)
-		{
-			// Yep
-			// FIXME: better delete documents one label at a time
-			for (set<string>::iterator iter = m_labelNames.begin(); iter != m_labelNames.end(); ++iter)
-			{
-				string labelName = (*iter);
-
-				// By unindexing all documents that match the label,
-				// we effectively delete the label from the index
-				if (index.unindexDocuments(labelName) == true)
-				{
-					// OK
-					++m_docsCount;
-				}
-			}
-
-			// Nothing to report
-			m_status = "";
-		}
-		else
-		{
-			for (set<unsigned int>::iterator iter = m_docIdList.begin(); iter != m_docIdList.end(); ++iter)
-			{
-				unsigned int docId = (*iter);
-
-				if (index.unindexDocument(docId) == true)
-				{
-					// OK
-					++m_docsCount;
-				}
-#ifdef DEBUG
-				else cout << "UnindexingThread::doWork: couldn't remove " << docId << endl;
-#endif
-			}
-#ifdef DEBUG
-			cout << "UnindexingThread::doWork: removed " << m_docsCount << " documents" << endl;
-#endif
-		}
-
-		if (m_docsCount > 0)
-		{
-			// Flush the index ?
-			if (m_immediateFlush == true)
-			{
-				index.flush();
-			}
-
-			// Nothing to report
-			m_status = "";
-		}
+		return;
 	}
+
+	// Be pessimistic and assume something will go wrong ;-)
+	m_status = _("Couldn't unindex document(s)");
+
+	// Are we supposed to remove documents based on labels ?
+	if (m_docIdList.empty() == true)
+	{
+		// Yep
+		// FIXME: better delete documents one label at a time
+		for (set<string>::iterator iter = m_labelNames.begin(); iter != m_labelNames.end(); ++iter)
+		{
+			string labelName = (*iter);
+
+			// By unindexing all documents that match the label,
+			// we effectively delete the label from the index
+			if (pIndex->unindexDocuments(labelName) == true)
+			{
+				// OK
+				++m_docsCount;
+			}
+		}
+
+		// Nothing to report
+		m_status = "";
+	}
+	else
+	{
+		for (set<unsigned int>::iterator iter = m_docIdList.begin(); iter != m_docIdList.end(); ++iter)
+		{
+			unsigned int docId = (*iter);
+
+			if (pIndex->unindexDocument(docId) == true)
+			{
+				// OK
+				++m_docsCount;
+			}
+#ifdef DEBUG
+			else cout << "UnindexingThread::doWork: couldn't remove " << docId << endl;
+#endif
+		}
+#ifdef DEBUG
+		cout << "UnindexingThread::doWork: removed " << m_docsCount << " documents" << endl;
+#endif
+	}
+
+	if (m_docsCount > 0)
+	{
+		// Flush the index ?
+		if (m_immediateFlush == true)
+		{
+			pIndex->flush();
+		}
+
+		// Nothing to report
+		m_status = "";
+	}
+
+	delete pIndex;
 }
 
 UpdateDocumentThread::UpdateDocumentThread(const string &indexName,
@@ -1369,16 +1394,21 @@ void UpdateDocumentThread::doWork(void)
 		}
 
 		// Get the index at that location
-		WritableXapianIndex index(mapIter->second);
-		if (index.isGood() == false)
+		WritableIndexInterface *pIndex = PinotSettings::getInstance().getRWIndex(mapIter->second);
+		if ((pIndex == NULL) ||
+			(pIndex->isGood() == false))
 		{
 			m_status = _("Index error on");
 			m_status += " ";
 			m_status += mapIter->second;
+			if (pIndex != NULL)
+			{
+				delete pIndex;
+			}
 			return;
 		}
 
-		if (index.updateDocumentInfo(m_docId, m_docInfo) == false)
+		if (pIndex->updateDocumentInfo(m_docId, m_docInfo) == false)
 		{
 			m_status = _("Couldn't update document");
 		}
@@ -1387,19 +1417,22 @@ void UpdateDocumentThread::doWork(void)
 			// Flush the index ?
 			if (m_immediateFlush == true)
 			{
-				index.flush();
+				pIndex->flush();
 			}
 
 			// The document properties may have changed
-			index.getDocumentInfo(m_docId, m_docInfo);
+			pIndex->getDocumentInfo(m_docId, m_docInfo);
 		}
+
+		delete pIndex;
 	}
 }
 
-MonitorThread::MonitorThread(MonitorHandler *pHandler) :
+MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler) :
 	WorkerThread(),
 	m_ctrlReadPipe(-1),
 	m_ctrlWritePipe(-1),
+	m_pMonitor(pMonitor),
 	m_pHandler(pHandler)
 {
 	int pipeFds[2];
@@ -1442,16 +1475,17 @@ bool MonitorThread::stop(void)
 
 void MonitorThread::doWork(void)
 {
-	MonitorInterface *pMonitor = MonitorFactory::getMonitor();
-	set<string> newLocations;
-	set<string> locationsToRemove;
-
 	if ((m_pHandler == NULL) ||
-		(pMonitor == NULL))
+		(m_pMonitor == NULL))
 	{
 		m_status = _("No monitoring handler");
 		return;
 	}
+
+	// Initialize the handler
+	m_pHandler->initialize();
+
+	// What locations to monitor is set by DirectoryScannerThread
 
 	// Wait for something to happen
 	while (m_done == false)
@@ -1468,36 +1502,10 @@ void MonitorThread::doWork(void)
 			FD_SET(m_ctrlReadPipe, &listenSet);
 		}
 
-		// Did a change occur ?
-		if (m_pHandler->getLocations(newLocations, locationsToRemove) == true)
-		{
-#ifdef DEBUG
-			cout << "MonitorThread::doWork: change detected" << endl;
-#endif
-
-			// Add new locations
-			for (set<string>::const_iterator locationIter = newLocations.begin();
-				(locationIter != newLocations.end()) && (m_done == false); ++locationIter)
-			{
-				// Monitor this
-				if (pMonitor->addLocation(*locationIter) == true)
-				{
-					// Confirm the file exists
-					m_pHandler->fileExists(*locationIter);
-				}
-			}
-
-			// Remove others
-			for (set<string>::const_iterator locationIter = locationsToRemove.begin();
-				(locationIter != locationsToRemove.end()) && (m_done == false); ++locationIter)
-			{
-				// Stop monitoring this
-				pMonitor->removeLocation(*locationIter);
-			}
-		}
+		m_pHandler->flushIndex();
 
 		// The file descriptor may change over time
-		int monitorFd = pMonitor->getFileDescriptor();
+		int monitorFd = m_pMonitor->getFileDescriptor();
 		FD_SET(monitorFd, &listenSet);
 		if (monitorFd < 0)
 		{
@@ -1519,7 +1527,7 @@ void MonitorThread::doWork(void)
 			queue<MonitorEvent> events;
 
 			// There might be more than one event waiting...
-			if (pMonitor->retrievePendingEvents(events) == false)
+			if (m_pMonitor->retrievePendingEvents(events) == false)
 			{
 #ifdef DEBUG
 				cout << "MonitorThread::doWork: failed to retrieve pending events" << endl;
@@ -1543,9 +1551,20 @@ void MonitorThread::doWork(void)
 				bool updatedIndex = false;
 
 				// What's the event code ?
-				if (event.m_type == MonitorEvent::CREATED)
+				if (event.m_type == MonitorEvent::EXISTS)
+				{
+					m_pHandler->fileExists(event.m_location);
+				}
+				else if (event.m_type == MonitorEvent::CREATED)
 				{
 					m_pHandler->fileCreated(event.m_location);
+
+					// If a whole directory was created, monitor it
+					if (event.m_isDirectory == true)
+					{
+						// FIXME: crawl it first !
+						m_pMonitor->addLocation(event.m_location, true);
+					}
 				}
 				else if (event.m_type == MonitorEvent::WRITE_CLOSED)
 				{
@@ -1554,10 +1573,25 @@ void MonitorThread::doWork(void)
 				else if (event.m_type == MonitorEvent::MOVED)
 				{
 					updatedIndex = m_pHandler->fileMoved(event.m_location, event.m_previousLocation);
+
+					if ((event.m_isDirectory == true) &&
+						(event.m_isWatch == true))
+					{
+						// Stop monitoring
+						m_pMonitor->removeLocation(event.m_previousLocation);
+						// FIXME: monitor the new location
+					}
 				}
 				else if (event.m_type == MonitorEvent::DELETED)
 				{
 					updatedIndex = m_pHandler->fileDeleted(event.m_location);
+
+					if ((event.m_isDirectory == true) &&
+						(event.m_isWatch == true))
+					{
+						// Stop monitoring
+						m_pMonitor->removeLocation(event.m_location);
+					}
 				}
 
 				// Next
@@ -1565,13 +1599,13 @@ void MonitorThread::doWork(void)
 			}
 		}
 	}
-
-	delete pMonitor;
 }
 
-DirectoryScannerThread::DirectoryScannerThread(const string &dirName,
-	unsigned int maxLevel, bool followSymLinks, Mutex *pMutex, Cond *pCondVar) :
+DirectoryScannerThread::DirectoryScannerThread(MonitorInterface *pMonitor,
+	const string &dirName, unsigned int maxLevel, bool followSymLinks,
+	Mutex *pMutex, Cond *pCondVar) :
 	WorkerThread(),
+	m_pMonitor(pMonitor),
 	m_dirName(dirName),
 	m_maxLevel(maxLevel),
 	m_followSymLinks(followSymLinks),
@@ -1612,7 +1646,7 @@ bool DirectoryScannerThread::stop(void)
 	return true;
 }
 
-Signal1<bool, const string&>& DirectoryScannerThread::getFileFoundSignal(void)
+Signal2<bool, const string&, const std::string&>& DirectoryScannerThread::getFileFoundSignal(void)
 {
 	return m_signalFileFound;
 }
@@ -1628,9 +1662,13 @@ void DirectoryScannerThread::foundFile(const string &fileName)
 		(m_pCondVar != NULL))
 	{
 		string url("file://" + fileName);
+		char labelStr[64];
+
+		// This identifies the source
+		snprintf(labelStr, 64, "SOURCE%u", m_sourceId);
 
 		m_pMutex->lock();
-		if (m_signalFileFound(url) == true)
+		if (m_signalFileFound(url, labelStr) == true)
 		{
 			// Another file is needed right now
 			m_pMutex->unlock();
@@ -1663,6 +1701,13 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 		return false;
 	}
 
+	// Skip . .. and dotfiles
+	Url urlObj("file://" + dirName);
+	if (urlObj.getFile()[0] == '.')
+	{
+		return false;
+	}
+
 	if (m_followSymLinks == false)
 	{
 		statSuccess = lstat(dirName.c_str(), &fileStat);
@@ -1678,6 +1723,8 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 		return false;
 	}
 
+	bool itemExists = history.hasItem("file://" + dirName, status, itemDate);
+
 	// Is it a file or a directory ?
 	if (S_ISLNK(fileStat.st_mode))
 	{
@@ -1686,116 +1733,103 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 	}
 	else if (S_ISREG(fileStat.st_mode))
 	{
-		// It's actually a file : skip dotfiles
-		if (dirName[0] != '.')
+		bool reportFile = false;
+
+		// It's actually a file
+		// Was it crawled since it was last modified ?
+		if (itemExists == false)
 		{
-			bool reportFile = false;
+			// Record it
+			history.insertItem("file://" + dirName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
+			reportFile = true;
+		}
+		else if (itemDate < fileStat.st_mtime)
+		{
+			// Update the record
+			history.updateItem("file://" + dirName, CrawlHistory::CRAWLED, fileStat.st_mtime);
+			reportFile = true;
+		}
 
-			// ...and check whether the file was crawled since it was last modified
-			if (history.hasItem("file://" + dirName, status, itemDate) == false)
-			{
-				// Record it
-				history.insertItem("file://" + dirName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
-				reportFile = true;
-			}
-			else if (itemDate < fileStat.st_mtime)
-			{
-				// Update the record
-				history.updateItem("file://" + dirName, CrawlHistory::CRAWLED, fileStat.st_mtime);
-				reportFile = true;
-			}
-
-			if (reportFile == true)
-			{
-				foundFile(dirName);
-			}
+		if (reportFile == true)
+		{
+			foundFile(dirName);
 		}
 	}
 	else if (S_ISDIR(fileStat.st_mode))
 	{
-		// A directory : scan it
-		DIR *pDir = opendir(dirName.c_str());
-		if (pDir == NULL)
+		// Can we scan this directory ?
+		if ((m_maxLevel == 0) ||
+			(m_currentLevel < m_maxLevel))
 		{
-			return false;
-		}
+			++m_currentLevel;
+
+			// Open the directory
+			DIR *pDir = opendir(dirName.c_str());
+			if (pDir == NULL)
+			{
+				return false;
+			}
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::scanDirectory: entering " << dirName << endl;
+			cout << "DirectoryScannerThread::scanDirectory: entering "
+				<< dirName << endl;
 #endif
 
-		// Iterate through this directory's entries
-		struct dirent *pDirEntry = readdir(pDir);
-		while ((m_done == false) &&
-			(pDirEntry != NULL))
-		{
-			char *pEntryName = pDirEntry->d_name;
-			if (pEntryName != NULL)
+			// Monitor first so that we don't miss events
+			m_pMonitor->addLocation(dirName, true);
+
+			// Iterate through this directory's entries
+			struct dirent *pDirEntry = readdir(pDir);
+			while ((m_done == false) &&
+				(pDirEntry != NULL))
 			{
-				string entryName = dirName;
-				if (dirName[dirName.length() - 1] != '/')
-				{
-					entryName += "/";
-				}
-				entryName += pEntryName;
+				char *pEntryName = pDirEntry->d_name;
 
 				// Skip . .. and dotfiles
-				Url urlObj("file://" + entryName);
-				if ((urlObj.getFile()[0] == '.') ||
-					(lstat(entryName.c_str(), &fileStat) == -1))
+				if ((pEntryName != NULL) &&
+					(pEntryName[0] != '.'))
 				{
-					// Next entry
-					pDirEntry = readdir(pDir);
-					continue;
-				}
+					string entryName(dirName);
 
+					if (dirName[dirName.length() - 1] != '/')
+					{
+						entryName += "/";
+					}
+					entryName += pEntryName;
+
+					// Scan this entry
+					if (scanDirectory(entryName) == false)
+					{
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scanDirectory: stat'ing " << entryName << endl;
+						cout << "DirectoryScannerThread::scanDirectory: failed to open "
+							<< entryName << endl;
 #endif
-				// File or directory
-				if (S_ISREG(fileStat.st_mode))
-				{
-					bool reportFile = false;
-
-					// Was it crawled since it was last modified ?
-					if (history.hasItem("file://" + entryName, status, itemDate) == false)
-					{
-						// Record it
-						history.insertItem("file://" + entryName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
-						reportFile = true;
-					}
-					else if (itemDate < fileStat.st_mtime)
-					{
-						// Update the record
-						history.updateItem("file://" + entryName, CrawlHistory::CRAWLED, fileStat.st_mtime);
-						reportFile = true;
-					}
-
-					if (reportFile == true)
-					{
-						foundFile(entryName);
 					}
 				}
-				else if (S_ISDIR(fileStat.st_mode))
-				{
-					// Can we scan this directory ?
-					if ((m_maxLevel == 0) ||
-						(m_currentLevel + 1 < m_maxLevel))
-					{
-						++m_currentLevel;
-						scanDirectory(entryName);
-#ifdef DEBUG
-						cout << "DirectoryScannerThread::scanDirectory: done at level "
-							<< m_currentLevel << endl;
-#endif
-						--m_currentLevel;
-					}
-				}
+
+				// Next entry
+				pDirEntry = readdir(pDir);
 			}
 
-			// Next entry
-			pDirEntry = readdir(pDir);
+			if (itemExists == false)
+			{
+				history.insertItem("file://" + dirName, CrawlHistory::DIRECTORY, m_sourceId, fileStat.st_mtime);
+			}
+			else
+			{
+				history.updateItem("file://" + dirName, CrawlHistory::DIRECTORY, fileStat.st_mtime);
+			}
+#ifdef DEBUG
+			cout << "DirectoryScannerThread::scanDirectory: done with " << dirName << endl;
+#endif
+
+			// Close the directory
+			closedir(pDir);
+			--m_currentLevel;
 		}
-		closedir(pDir);
+	}
+	else
+	{
+		return false;
 	}
 
 	return true;

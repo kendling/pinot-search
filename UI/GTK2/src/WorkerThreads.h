@@ -32,6 +32,7 @@
 #include <glibmm/ustring.h>
 
 #include "Document.h"
+#include "MonitorInterface.h"
 #include "IndexedDocument.h"
 #include "DownloaderInterface.h"
 #include "QueryProperties.h"
@@ -373,7 +374,7 @@ class UpdateDocumentThread : public WorkerThread
 class MonitorThread : public WorkerThread
 {
 	public:
-		MonitorThread(MonitorHandler *pHandler);
+		MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler);
 		virtual ~MonitorThread();
 
 		virtual std::string getType(void) const;
@@ -383,6 +384,7 @@ class MonitorThread : public WorkerThread
 	protected:
 		int m_ctrlReadPipe;
 		int m_ctrlWritePipe;
+		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
 
 		virtual void doWork(void);
@@ -396,8 +398,8 @@ class MonitorThread : public WorkerThread
 class DirectoryScannerThread : public WorkerThread
 {
 	public:
-		DirectoryScannerThread(const std::string &dirName,
-			unsigned int maxLevel, bool followSymLinks,
+		DirectoryScannerThread(MonitorInterface *pMonitor,
+			const std::string &dirName, unsigned int maxLevel, bool followSymLinks,
 			Glib::Mutex *pMutex, Glib::Cond *pCondVar);
 		virtual ~DirectoryScannerThread();
 
@@ -407,9 +409,10 @@ class DirectoryScannerThread : public WorkerThread
 
 		virtual bool stop(void);
 
-		SigC::Signal1<bool, const std::string&>& getFileFoundSignal(void);
+		SigC::Signal2<bool, const std::string&, const std::string&>& getFileFoundSignal(void);
 
 	protected:
+		MonitorInterface *m_pMonitor;
 		std::string m_dirName;
 		unsigned int m_maxLevel;
 		bool m_followSymLinks;
@@ -417,7 +420,7 @@ class DirectoryScannerThread : public WorkerThread
 		Glib::Cond *m_pCondVar;
 		unsigned int m_currentLevel;
 		unsigned int m_sourceId;
-		SigC::Signal1<bool, const std::string&> m_signalFileFound;
+		SigC::Signal2<bool, const std::string&, const std::string&> m_signalFileFound;
 
 		void foundFile(const std::string &fileName);
 		bool scanDirectory(const std::string &dirName);
