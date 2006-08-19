@@ -44,7 +44,7 @@ extern "C"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
-#include "XapianIndex.h"
+#include "WritableXapianIndex.h"
 #include "XapianEngine.h"
 #include "config.h"
 #include "NLS.h"
@@ -121,12 +121,12 @@ static DBusHandlerResult objectPathHandler(DBusConnection *pConnection, DBusMess
 
 static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
-	XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
+	WritableXapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 	DaemonState *pServer = NULL;
 	DBusMessage *pReply = NULL;
 	DBusError error;
 	const char *pSender = dbus_message_get_sender(pMessage);
-	bool processedMessage = false, quitLoop = false;
+	bool processedMessage = false, flushIndex = false, quitLoop = false;
 
 	if (pData != NULL)
 	{
@@ -159,7 +159,8 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 #ifdef DEBUG
 			cout << "messageBusFilter: received " << pLabel << endl;
 #endif
-			// FIXME: delete the label
+			// Delete the label
+			flushIndex = index.deleteLabel(pLabel);
 
 			// Prepare the reply
 			pReply = dbus_message_new_method_return(pMessage);
@@ -231,68 +232,69 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 
 		processedMessage = true;
 	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetStatistics") == TRUE)
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetDocumentLabels") == TRUE)
 	{
-		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
-		unsigned int docId = 0;
-
-		unsigned int crawledFilesCount = history.getItemsCount();
-		unsigned int docsCount = index.getDocumentsCount();
-
-		// Prepare the reply
-		pReply = dbus_message_new_method_return(pMessage);
-		if (pReply != NULL)
-		{
-			dbus_message_append_args(pReply,
-				DBUS_TYPE_UINT32, &crawledFilesCount,
-				DBUS_TYPE_UINT32, &docsCount,
-				DBUS_TYPE_INVALID);
-		}
-
-		processedMessage = true;
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "IndexDocument") == TRUE)
-	{
-		char *pTitle = NULL;
-		char *pLocation = NULL;
-		char *pType = NULL;
-		char *pLanguage = NULL;
-		char **ppLabels = NULL;
-		dbus_uint32_t labelsCount = 0;
 		unsigned int docId = 0;
 
 		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_STRING, &pTitle,
-			DBUS_TYPE_STRING, &pLocation,
-			DBUS_TYPE_STRING, &pType,
-			DBUS_TYPE_STRING, &pLanguage,
-			DBUS_TYPE_ARRAY, &ppLabels,
-			DBUS_TYPE_UINT32, &labelsCount,
+			DBUS_TYPE_UINT32, &docId,
 			DBUS_TYPE_INVALID) == TRUE)
 		{
-			DocumentInfo docInfo(pTitle, pLocation, pType,
-				((pLanguage != NULL) ? Languages::toLocale(pLanguage) : ""));
+			set<string> labels;
+			bool replyWithError = true;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << pTitle << ", " << pLocation
-				<< ", " << pType << ", " << pLanguage
-				<< " with " << labelsCount << " labels" << endl;
+			cout << "messageBusFilter: received " << docId << endl;
 #endif
-			// FIXME: set labels on docInfo
-
-			pServer->queue_index(docInfo);
-			// FIXME: we can't provide a document ID at the moment
-
-			// Free container types
-			g_strfreev(ppLabels);
-
-			// Prepare the reply
-			pReply = dbus_message_new_method_return(pMessage);
-			if (pReply != NULL)
+			if (index.getDocumentLabels(docId, labels) == true)
 			{
-				dbus_message_append_args(pReply,
-					DBUS_TYPE_UINT32, &docId,
-					DBUS_TYPE_INVALID);
+				dbus_uint32_t labelsCount = labels.size();
+
+				if (labelsCount > 0)
+				{
+					char *pLabels[labelsCount + 1];
+					unsigned int labelIndex = 0;
+
+					for (set<string>::const_iterator labelIter = labels.begin();
+						labelIter != labels.end(); ++labelIter)
+					{
+						pLabels[labelIndex] = g_strdup(labelIter->c_str());
+						++labelIndex;
+					}
+					pLabels[labelIndex] = NULL;
+
+					// Prepare the reply
+					pReply = dbus_message_new_method_return(pMessage);
+					if (pReply != NULL)
+					{
+						dbus_message_append_args(pReply,
+							DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pLabels, (int)labelsCount,
+							DBUS_TYPE_INVALID);
+
+						// Send the reply here
+						if (dbus_message_get_no_reply(pMessage) == FALSE)
+						{
+							dbus_connection_send(pConnection, pReply, NULL);
+						}
+						dbus_message_unref(pReply);
+
+						pReply = NULL;
+						replyWithError = false;
+					}
+
+					// Free the array
+					for (unsigned int labelNum = 0; labelNum < labelIndex; ++labelNum)
+					{
+						g_free(pLabels[labelNum]);
+					}
+				}
+			}
+
+			if (replyWithError == true)
+			{
+				pReply = dbus_message_new_error(pMessage,
+					"de.berlios.Pinot.GetDocumentLabels",
+					" failed");
 			}
 		}
 		else
@@ -302,6 +304,25 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 #endif
 			// Use the error message as reply
 			pReply = dbus_message_new_error(pMessage, error.name, error.message);
+		}
+
+		processedMessage = true;
+	}
+	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetStatistics") == TRUE)
+	{
+		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+		unsigned int crawledFilesCount = history.getItemsCount();
+		unsigned int docsCount = index.getDocumentsCount();
+		unsigned int docId = 0;
+
+		// Prepare the reply
+		pReply = dbus_message_new_method_return(pMessage);
+		if (pReply != NULL)
+		{
+			dbus_message_append_args(pReply,
+				DBUS_TYPE_UINT32, &crawledFilesCount,
+				DBUS_TYPE_UINT32, &docsCount,
+				DBUS_TYPE_INVALID);
 		}
 
 		processedMessage = true;
@@ -317,10 +338,10 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << pOldLabel
-				<< " " << pNewLabel << endl;
+			cout << "messageBusFilter: received " << pOldLabel << ", " << pNewLabel << endl;
 #endif
-			// FIXME: rename the label
+			// Rename the label
+			flushIndex = index.renameLabel(pOldLabel, pNewLabel);
 
 			// Prepare the reply
 			pReply = dbus_message_new_method_return(pMessage);
@@ -362,11 +383,12 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 				((pLanguage != NULL) ? Languages::toLocale(pLanguage) : ""));
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << pTitle << ", " << pLocation
-				<< ", " << pType << ", " << pLanguage << ", " << docId << endl;
+			cout << "messageBusFilter: received " << docId << ", " << pTitle
+				<< ", " << pLocation << ", " << pType << ", " << pLanguage << endl;
 #endif
 
-			// FIXME: update the document info
+			// Update the document info
+			flushIndex = index.updateDocumentInfo(docId, docInfo);
 
 			// Prepare the reply
 			pReply = dbus_message_new_method_return(pMessage);
@@ -393,18 +415,30 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 		char **ppLabels = NULL;
 		dbus_uint32_t labelsCount = 0;
 		unsigned int docId = 0;
+		gboolean resetLabels = TRUE;
 
 		if (dbus_message_get_args(pMessage, &error,
 			DBUS_TYPE_UINT32, &docId,
-			DBUS_TYPE_ARRAY, &ppLabels,
-			DBUS_TYPE_UINT32, &labelsCount,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &ppLabels, &labelsCount,
+			DBUS_TYPE_BOOLEAN, &resetLabels,
 			DBUS_TYPE_INVALID) == TRUE)
 		{
+			set<string> labels;
+
+			for (dbus_uint32_t labelIndex = 0; labelIndex < labelsCount; ++labelIndex)
+			{
+				if (ppLabels[labelIndex] == NULL)
+				{
+					break;
+				}
+				labels.insert(ppLabels[labelIndex]);
+			}
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << docId
+			cout << "messageBusFilter: received " << docId << ", " << resetLabels
 				<< " with " << labelsCount << " labels" << endl;
 #endif
-			// FIXME: set labels
+			// Set labels
+			flushIndex = index.setDocumentLabels(docId, labels, ((resetLabels == TRUE) ? true : false));
 
 			// Free container types
 			g_strfreev(ppLabels);
@@ -478,7 +512,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 						if (pReply != NULL)
 						{
 							dbus_message_append_args(pReply,
-								DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pDocIds, &docIdsCount,
+								DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pDocIds, (int)docIdsCount,
 								DBUS_TYPE_UINT32, &docIdsCount,
 								DBUS_TYPE_INVALID);
 
@@ -540,72 +574,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			processedMessage = true;
 		}
 	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "UnindexDocument") == TRUE)
-	{
-		unsigned int docId = 0;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_UINT32, &docId,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: received " << docId << endl;
-#endif
-			// FIXME: unindex document
-
-			// Prepare the reply
-			pReply = dbus_message_new_method_return(pMessage);
-			if (pReply != NULL)
-			{
-				dbus_message_append_args(pReply,
-					DBUS_TYPE_UINT32, &docId,
-					DBUS_TYPE_INVALID);
-			}
-		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "UnindexDocuments") == TRUE)
-	{
-		char *pLabel = NULL;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_STRING, &pLabel,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: received " << pLabel << endl;
-#endif
-			// FIXME: unindex documents
-
-			// Prepare the reply
-			pReply = dbus_message_new_method_return(pMessage);
-			if (pReply != NULL)
-			{
-				dbus_message_append_args(pReply,
-					DBUS_TYPE_STRING, &pLabel,
-					DBUS_TYPE_INVALID);
-			}
-		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
-	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "UpdateDocument") == TRUE)
 	{
 		unsigned int docId = 0;
@@ -614,10 +582,16 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DBUS_TYPE_UINT32, &docId,
 			DBUS_TYPE_INVALID) == TRUE)
 		{
+			DocumentInfo docInfo;
+
 #ifdef DEBUG
 			cout << "messageBusFilter: received " << docId << endl;
 #endif
-			// FIXME: update document
+			if (index.getDocumentInfo(docId, docInfo) == true)
+			{
+				// Update document
+				pServer->queue_index(docInfo);
+			}
 
 			// Prepare the reply
 			pReply = dbus_message_new_method_return(pMessage);
@@ -643,6 +617,12 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 	else cout << "messageBusFilter: message for foreign object" << endl;
 #endif
 	dbus_error_free(&error);
+
+	if (flushIndex == true)
+	{
+		// Flush now for the sake of the client application
+		index.flush();
+	}
 
 	// Send a reply ?
 	if (pReply != NULL)
@@ -718,6 +698,8 @@ int main(int argc, char **argv)
 
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();
+	// This is the daemon so disable DBus
+	settings.enableDBus(false);
 
 	string confDirectory = PinotSettings::getConfigurationDirectory();
 	chdir(confDirectory.c_str());
@@ -763,20 +745,14 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
 
-	// Open these indices in read-write mode 
+	// Open the daemon index in read-write mode 
 	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation, false);
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))
 	{
-		cerr << _("Couldn't open index") << " " << settings.m_daemonIndexLocation << endl;
+		cerr << "Couldn't open index" << " " << settings.m_daemonIndexLocation << endl;
 
 		return EXIT_FAILURE;
-	}
-	pDb = XapianDatabaseFactory::getDatabase(settings.m_mailIndexLocation, false);
-	if ((pDb == NULL) ||
-		(pDb->isOpen() == false))
-	{
-		cerr << _("Couldn't open index") << " " << settings.m_mailIndexLocation << endl;
 	}
 
 	// Do the same for the history database
@@ -785,7 +761,7 @@ int main(int argc, char **argv)
 		(QueryHistory::create(settings.m_historyDatabase) == false) ||
 		(ViewHistory::create(settings.m_historyDatabase) == false))
 	{
-		cerr << _("Couldn't create history database") << " " << settings.m_historyDatabase << endl;
+		cerr << "Couldn't create history database" << " " << settings.m_historyDatabase << endl;
 
 		return EXIT_FAILURE;
 	}
