@@ -79,7 +79,9 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 #ifdef DEBUG
 		cout << "OnDiskHandler::indexFile: couldn't download " << url << endl;
 #endif
-		return false;
+
+		// The file  couldn't be downloaded but exists nonetheless !
+		pDoc = new Document(docInfo);
 	}
 
 	// Get an ad hoc tokenizer for the message
@@ -125,13 +127,14 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 void OnDiskHandler::initialize(void)
 {
 	map<unsigned int, string> sources;
+	set<string> directories;
 
 	// Get the map of indexable locations
 	set<PinotSettings::TimestampedItem> &indexableLocations = PinotSettings::getInstance().m_indexableLocations;
 	for (set<PinotSettings::TimestampedItem>::iterator dirIter = indexableLocations.begin();
 		dirIter != indexableLocations.end(); ++dirIter)
 	{
-		m_locations.insert(dirIter->m_name);
+		directories.insert(dirIter->m_name);
 	}
 
 	// Unindex documents that belong to sources that no longer exist
@@ -148,7 +151,7 @@ void OnDiskHandler::initialize(void)
 				continue;
 			}
 
-			if (m_locations.find(sourceIter->second.substr(7)) == m_locations.end())
+			if (directories.find(sourceIter->second.substr(7)) == directories.end())
 			{
 				char sourceStr[64];
 

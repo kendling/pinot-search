@@ -46,6 +46,9 @@ MboxHandler::MboxHandler() :
 		// Create it
 		m_sourceId = m_history.insertSource("My Email");
 	}
+#ifdef DEBUG
+	cout << "MboxHandler: My Email source ID is " << m_sourceId << endl;
+#endif
 }
 
 MboxHandler::~MboxHandler()
@@ -261,7 +264,7 @@ void MboxHandler::initialize(void)
 	for (set<PinotSettings::TimestampedItem>::iterator mailIter = mailAccounts.begin();
 		mailIter != mailAccounts.end(); ++mailIter)
 	{
-		m_locations.insert(mailIter->m_name);
+		m_fileNames.insert(mailIter->m_name);
 	}
 
 	// Unindex messages that belong to mailboxes that no longer exist
@@ -274,7 +277,7 @@ void MboxHandler::initialize(void)
 
 			// Is this a file and does it still exist ?
 			if ((urlObj.getProtocol() == "file") &&
-				(m_locations.find(mailIter->substr(7)) == m_locations.end()))
+				(m_fileNames.find(mailIter->substr(7)) == m_fileNames.end()))
 			{
 				string sourceLabel("mailbox://");
 
@@ -298,6 +301,9 @@ void MboxHandler::initialize(void)
 #endif
 		}
 	}
+#ifdef DEBUG
+	cout << "MboxHandler::initialize: " << m_fileNames.size() << " mail accounts" << endl;
+#endif
 }
 
 void MboxHandler::flushIndex(void)

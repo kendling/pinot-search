@@ -54,14 +54,14 @@ class MonitorHandler
 		/// Handles file deleted events.
 		virtual bool fileDeleted(const std::string &fileName) = 0;
 
-		/// Returns locations.
-		const std::set<std::string> &getLocations(void) const;
+		/// Returns the names of files to monitor.
+		const std::set<std::string> &getFileNames(void) const;
 
 		/// Returns the file update signal.
 		SigC::Signal3<void, IndexedDocument, unsigned int, std::string>& getUpdateSignal(void);
 
 	protected:
-		std::set<std::string> m_locations;
+		std::set<std::string> m_fileNames;
 		SigC::Signal3<void, IndexedDocument, unsigned int, std::string> m_signalUpdate;
 
 	private:

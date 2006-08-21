@@ -387,6 +387,7 @@ class MonitorThread : public WorkerThread
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
 
+		void processEvents(void);
 		virtual void doWork(void);
 
 	private:

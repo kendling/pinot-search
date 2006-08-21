@@ -1466,11 +1466,88 @@ bool MonitorThread::stop(void)
 	m_done = true;
 	write(m_ctrlWritePipe, "Stop", 4);
 	m_status = _("Stopped monitoring");
-#ifdef DEBUG
-	cout << "MonitorThread::doWork: stop called" << endl;
-#endif
 
 	return true;
+}
+
+void MonitorThread::processEvents(void)
+{
+	queue<MonitorEvent> events;
+
+	if (m_pMonitor->retrievePendingEvents(events) == false)
+	{
+#ifdef DEBUG
+		cout << "MonitorThread::processEvents: failed to retrieve pending events" << endl;
+#endif
+		return;
+	}
+#ifdef DEBUG
+	cout << "MonitorThread::processEvents: retrieved " << events.size() << " events" << endl;
+#endif
+
+	while ((events.empty() == false) &&
+		(m_done == false))
+	{
+		MonitorEvent &event = events.front();
+
+		if ((event.m_location.empty() == true) ||
+			(event.m_type == MonitorEvent::UNKNOWN))
+		{
+			// Next
+			events.pop();
+			continue;
+		}
+
+		// What's the event code ?
+#ifdef DEBUG
+		cout << "MonitorThread::processEvents: event on " << event.m_location << endl;
+#endif
+		if (event.m_type == MonitorEvent::EXISTS)
+		{
+			m_pHandler->fileExists(event.m_location);
+		}
+		else if (event.m_type == MonitorEvent::CREATED)
+		{
+			m_pHandler->fileCreated(event.m_location);
+
+			// If a whole directory was created, monitor it
+			if (event.m_isDirectory == true)
+			{
+				// FIXME: crawl it first !
+				m_pMonitor->addLocation(event.m_location, true);
+			}
+		}
+		else if (event.m_type == MonitorEvent::WRITE_CLOSED)
+		{
+			m_pHandler->fileModified(event.m_location);
+		}
+		else if (event.m_type == MonitorEvent::MOVED)
+		{
+			m_pHandler->fileMoved(event.m_location, event.m_previousLocation);
+
+			if ((event.m_isDirectory == true) &&
+				(event.m_isWatch == true))
+			{
+				// Stop monitoring
+				m_pMonitor->removeLocation(event.m_previousLocation);
+				// FIXME: monitor the new location
+			}
+		}
+		else if (event.m_type == MonitorEvent::DELETED)
+		{
+			m_pHandler->fileDeleted(event.m_location);
+
+			if ((event.m_isDirectory == true) &&
+				(event.m_isWatch == true))
+			{
+				// Stop monitoring
+				m_pMonitor->removeLocation(event.m_location);
+			}
+		}
+
+		// Next
+		events.pop();
+	}
 }
 
 void MonitorThread::doWork(void)
@@ -1485,7 +1562,18 @@ void MonitorThread::doWork(void)
 	// Initialize the handler
 	m_pHandler->initialize();
 
-	// What locations to monitor is set by DirectoryScannerThread
+	// Get the list of files to monitor
+	const set<string> &fileNames = m_pHandler->getFileNames();
+	for (set<string>::const_iterator fileIter = fileNames.begin();
+		fileIter != fileNames.end(); ++fileIter)
+	{
+		m_pMonitor->addLocation(*fileIter, false);
+	}
+	// Directories, if any, are set elsewhere
+	// In the case of OnDiskHandler, they are set by DirectoryScannerThread
+
+	// There might already be events that need processing
+	processEvents();
 
 	// Wait for something to happen
 	while (m_done == false)
@@ -1524,79 +1612,7 @@ void MonitorThread::doWork(void)
 		}
 		else if (FD_ISSET(monitorFd, &listenSet))
 		{
-			queue<MonitorEvent> events;
-
-			// There might be more than one event waiting...
-			if (m_pMonitor->retrievePendingEvents(events) == false)
-			{
-#ifdef DEBUG
-				cout << "MonitorThread::doWork: failed to retrieve pending events" << endl;
-#endif
-				break;
-			}
-
-			while ((events.empty() == false) &&
-				(m_done == false))
-			{
-				MonitorEvent &event = events.front();
-
-				if ((event.m_location.empty() == true) ||
-					(event.m_type == MonitorEvent::UNKNOWN))
-				{
-					// Next
-					events.pop();
-					continue;
-				}
-
-				bool updatedIndex = false;
-
-				// What's the event code ?
-				if (event.m_type == MonitorEvent::EXISTS)
-				{
-					m_pHandler->fileExists(event.m_location);
-				}
-				else if (event.m_type == MonitorEvent::CREATED)
-				{
-					m_pHandler->fileCreated(event.m_location);
-
-					// If a whole directory was created, monitor it
-					if (event.m_isDirectory == true)
-					{
-						// FIXME: crawl it first !
-						m_pMonitor->addLocation(event.m_location, true);
-					}
-				}
-				else if (event.m_type == MonitorEvent::WRITE_CLOSED)
-				{
-					updatedIndex = m_pHandler->fileModified(event.m_location);
-				}
-				else if (event.m_type == MonitorEvent::MOVED)
-				{
-					updatedIndex = m_pHandler->fileMoved(event.m_location, event.m_previousLocation);
-
-					if ((event.m_isDirectory == true) &&
-						(event.m_isWatch == true))
-					{
-						// Stop monitoring
-						m_pMonitor->removeLocation(event.m_previousLocation);
-						// FIXME: monitor the new location
-					}
-				}
-				else if (event.m_type == MonitorEvent::DELETED)
-				{
-					updatedIndex = m_pHandler->fileDeleted(event.m_location);
-
-					if ((event.m_isDirectory == true) &&
-						(event.m_isWatch == true))
-					{
-						// Stop monitoring
-						m_pMonitor->removeLocation(event.m_location);
-					}
-				}
-
-				// Next
-				events.pop();
-			}
+			processEvents();
 		}
 	}
 }
