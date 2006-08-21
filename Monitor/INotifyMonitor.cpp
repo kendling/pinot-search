@@ -91,7 +91,7 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 		m_locations.insert(pair<string, int>(location, watchNum));
 #ifdef DEBUG
 		cout << "INotifyMonitor::addLocation: added watch "
-			<< watchNum << " " << location << endl;
+			<< watchNum << " for " << location << endl;
 #endif
 
 		return true;
@@ -148,7 +148,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		events.push(internalEvent);
 
 		// Next
-		events.pop();
+		m_internalEvents.pop();
 	}
 
 	if (ioctl (m_monitorFd, FIONREAD, &queueLen) == 0)
