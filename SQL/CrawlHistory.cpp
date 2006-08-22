@@ -289,7 +289,7 @@ unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus sta
 				break;
 			}
 
-			urls.insert(row->getColumn(0));
+			urls.insert(Url::unescapeUrl(row->getColumn(0)));
 			++count;
 
 			delete row;
