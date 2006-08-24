@@ -26,13 +26,13 @@ MonitorEvent::MonitorEvent() :
 {
 }
 
-MonitorEvent::MonitorEvent(const MonitorEvent &other)
+MonitorEvent::MonitorEvent(const MonitorEvent &other) :
+	m_location(other.m_location),
+	m_previousLocation(other.m_previousLocation),
+	m_isWatch(other.m_isWatch),
+	m_type(other.m_type),
+	m_isDirectory(other.m_isDirectory)
 {
-	m_location = other.m_location;
-	m_previousLocation = other.m_previousLocation;
-	m_isWatch = other.m_isWatch;
-	m_type = other.m_type;
-	m_isDirectory = other.m_isDirectory;
 }
 
 MonitorEvent::~MonitorEvent()

@@ -58,6 +58,19 @@ Url::Url(const Url &other) :
 {
 }
 
+Url& Url::operator=(const Url& other)
+{
+	m_protocol = other.m_protocol;
+	m_user = other.m_user;
+	m_password = other.m_password;
+	m_host = other.m_host;
+	m_location = other.m_location;
+	m_file = other.m_file;
+	m_parameters = other.m_parameters;
+
+	return *this;
+}
+
 void Url::parse(const string &url)
 {
 	string::size_type pos1 =0, pos2 = 0;
@@ -445,15 +458,3 @@ bool Url::isLocal(void) const
 	return isLocal(m_protocol);
 }
 
-Url& Url::operator=(const Url& other)
-{
-	m_protocol = other.m_protocol;
-	m_user = other.m_user;
-	m_password = other.m_password;
-	m_host = other.m_host;
-	m_location = other.m_location;
-	m_file = other.m_file;
-	m_parameters = other.m_parameters;
-
-	return *this;
-}

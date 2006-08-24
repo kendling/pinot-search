@@ -72,12 +72,16 @@ SearchPluginProperties& SearchPluginProperties::operator=(const SearchPluginProp
 	m_nextBase = other.m_nextBase;
 	m_response = other.m_response;
 
+	m_languages.clear();
 	copy(other.m_languages.begin(), other.m_languages.end(),
 		inserter(m_languages, m_languages.begin()));
+	m_outputEncodings.clear();
 	copy(other.m_outputEncodings.begin(), other.m_outputEncodings.end(),
 		inserter(m_outputEncodings, m_outputEncodings.begin()));
+	m_inputEncodings.clear();
 	copy(other.m_inputEncodings.begin(), other.m_inputEncodings.end(),
 		inserter(m_inputEncodings, m_inputEncodings.begin()));
+	m_parameters.clear();
 	copy(other.m_parameters.begin(), other.m_parameters.end(),
 		inserter(m_parameters, m_parameters.begin()));
 }

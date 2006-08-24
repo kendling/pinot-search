@@ -26,6 +26,8 @@ class Url
 		Url(const Url &other);
 		virtual ~Url();
 
+		Url& operator=(const Url& other);
+
 		/// Canonicalizes an URL.
 		static std::string canonicalizeUrl(const std::string &url);
 
@@ -49,8 +51,6 @@ class Url
 		std::string getFile(void) const;
 		std::string getParameters(void) const;
 		bool isLocal(void) const ;
-
-		Url& operator=(const Url& other);
 
 	protected:
 		std::string m_protocol;

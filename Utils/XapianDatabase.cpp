@@ -41,9 +41,13 @@ XapianDatabase::XapianDatabase(const string &databaseName, bool readOnly) :
 XapianDatabase::XapianDatabase(const XapianDatabase &other) :
 	m_databaseName(other.m_databaseName),
 	m_readOnly(other.m_readOnly),
-	m_pDatabase(other.m_pDatabase),
+	m_pDatabase(NULL),
 	m_isOpen(other.m_isOpen)
 {
+	if (other.m_pDatabase != NULL)
+	{
+		m_pDatabase = new Xapian::Database(*other.m_pDatabase);
+	}
 	pthread_rwlock_init(&m_rwLock, NULL);
 }
 
@@ -63,8 +67,12 @@ XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
 	if (m_pDatabase != NULL)
 	{
 		delete m_pDatabase;
+		m_pDatabase = NULL;
 	}
-	m_pDatabase = other.m_pDatabase;
+	if (other.m_pDatabase != NULL)
+	{
+		m_pDatabase = new Xapian::Database(*other.m_pDatabase);
+	}
 	m_isOpen = other.m_isOpen;
 
 	return *this;
