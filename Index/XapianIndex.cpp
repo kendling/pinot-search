@@ -23,11 +23,11 @@
 #include <strings.h>
 #include <time.h>
 #include <ctype.h>
-#include <regex.h>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
 #include <utility>
+#include <xapian.h>
 
 #include "Languages.h"
 #include "StringManip.h"

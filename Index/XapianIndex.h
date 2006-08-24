@@ -20,9 +20,7 @@
 #include <string>
 #include <set>
 
-#include <xapian.h>
-
-#include "DocumentInfo.h"
+#include "XapianDatabase.h"
 #include "IndexInterface.h"
 
 class XapianIndex : public IndexInterface

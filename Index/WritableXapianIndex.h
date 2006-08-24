@@ -22,7 +22,6 @@
 
 #include <xapian.h>
 
-#include "DocumentInfo.h"
 #include "XapianIndex.h"
 
 class WritableXapianIndex : public WritableIndexInterface, private XapianIndex

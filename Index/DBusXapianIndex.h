@@ -20,7 +20,6 @@
 #include <string>
 #include <set>
 
-#include "DocumentInfo.h"
 #include "XapianIndex.h"
 
 class DBusXapianIndex : public WritableIndexInterface, private XapianIndex
