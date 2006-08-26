@@ -190,23 +190,25 @@ int main(int argc, char **argv)
 	sigaction(SIGQUIT, &newAction, NULL);
 
 	// Open this index read-write
-	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_docsIndexLocation, false);
-	if ((pDb == NULL) ||
-		(pDb->isOpen() == false))
+	XapianDatabase *pFirstDb = XapianDatabaseFactory::getDatabase(settings.m_docsIndexLocation, false);
+	if ((pFirstDb == NULL) ||
+		(pFirstDb->isOpen() == false))
 	{
 		errorMsg = "Couldn't open index";
 		errorMsg += " ";
 		errorMsg += settings.m_docsIndexLocation;
 	}
 	// ...and the daemon index in read-only mode
-	pDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation);
-	if ((pDb == NULL) ||
-		(pDb->isOpen() == false))
+	XapianDatabase *pSecondDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation);
+	if ((pSecondDb == NULL) ||
+		(pSecondDb->isOpen() == false))
 	{
 		errorMsg = "Couldn't open index";
 		errorMsg += " ";
 		errorMsg += settings.m_daemonIndexLocation;
 	}
+	// Merge these two, this will be useful later
+	XapianDatabaseFactory::mergeDatabases("MERGED", pFirstDb, pSecondDb);
 
 	// Do the same for the history database
 	if ((settings.m_historyDatabase.empty() == true) ||
