@@ -35,8 +35,6 @@ using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
 
-unsigned int prefsDialog::m_maxDirLevel = 1;
-
 prefsDialog::prefsDialog() :
 	prefsDialog_glade(),
 	m_settings(PinotSettings::getInstance())
@@ -68,6 +66,14 @@ prefsDialog::prefsDialog() :
 	labelsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	populate_labelsTreeview();
 
+	// Associate the columns model to the directories tree
+	m_refDirectoriesTree = ListStore::create(m_directoriesColumns);
+	directoriesTreeview->set_model(m_refDirectoriesTree);
+	directoriesTreeview->append_column(_("Location"), m_directoriesColumns.m_location);
+	// Allow only single selection
+	directoriesTreeview->get_selection()->set_mode(SELECTION_SINGLE);
+	populate_directoriesTreeview();
+
 	// Associate the columns model to the mail accounts tree
 	m_refMailTree = ListStore::create(m_mailColumns);
 	mailTreeview->set_model(m_refMailTree);
@@ -96,11 +102,6 @@ const set<string> &prefsDialog::getLabelsToDelete(void) const
 const map<string, string> &prefsDialog::getLabelsToRename(void) const
 {
 	return m_renamedLabels;
-}
-
-const set<string> &prefsDialog::getMailLabelsToDelete(void) const
-{
-	return m_deletedMail;
 }
 
 void prefsDialog::populate_labelsTreeview()
@@ -175,6 +176,75 @@ bool prefsDialog::save_labelsTreeview()
 	return true;
 }
 
+void prefsDialog::populate_directoriesTreeview()
+{
+	TreeModel::iterator iter;
+	TreeModel::Row row;
+
+	if (m_settings.m_indexableLocations.empty() == true)
+	{
+		// These buttons will stay disabled until directories are added to the list
+		editDirectoryButton->set_sensitive(false);
+		removeDirectoryButton->set_sensitive(false);
+		return;
+	}
+
+	// Populate the tree
+	for (set<PinotSettings::TimestampedItem>::iterator dirIter = m_settings.m_indexableLocations.begin();
+		dirIter != m_settings.m_indexableLocations.end();
+		++dirIter)
+	{
+		// Create a new row
+		iter = m_refDirectoriesTree->append();
+		row = *iter;
+		// Set its name, type and minium date
+		row[m_directoriesColumns.m_location] = dirIter->m_name;
+		row[m_directoriesColumns.m_mTime] = dirIter->m_modTime;
+	}
+
+	editDirectoryButton->set_sensitive(true);
+	removeDirectoryButton->set_sensitive(true);
+}
+
+bool prefsDialog::save_directoriesTreeview()
+{
+	// Clear the current settings
+	m_settings.m_indexableLocations.clear();
+
+	// Go through the directories tree
+	TreeModel::Children children = m_refDirectoriesTree->children();
+	if (children.empty() == false)
+	{
+		TreeModel::Children::iterator iter = children.begin();
+		for (; iter != children.end(); ++iter)
+		{
+			TreeModel::Row row = *iter;
+			PinotSettings::TimestampedItem indexableLocation;
+
+			// Add this new directory to the settings
+			indexableLocation.m_name = row[m_directoriesColumns.m_location];
+			indexableLocation.m_modTime = row[m_directoriesColumns.m_mTime];
+
+			string dirLabel("file://");
+			dirLabel += from_utf8(indexableLocation.m_name);
+
+			// Check user didn't recreate this directory after having deleted it
+			set<string>::iterator dirIter = m_deletedDirectories.find(dirLabel);
+			if (dirIter != m_deletedDirectories.end())
+			{
+				m_deletedDirectories.erase(dirIter);
+			}
+
+#ifdef DEBUG
+			cout << "prefsDialog::save_directoriesTreeview: " << indexableLocation.m_name << endl;
+#endif
+			m_settings.m_indexableLocations.insert(indexableLocation);
+		}
+	}
+
+	return true;
+}
+
 void prefsDialog::populate_mailTreeview()
 {
 	TreeModel::iterator iter;
@@ -182,7 +252,7 @@ void prefsDialog::populate_mailTreeview()
 
 	if (m_settings.m_mailAccounts.empty() == true)
 	{
-		// These buttons will stay disabled until labels are added to the list
+		// These buttons will stay disabled until mail is added to the list
 		editAccountButton->set_sensitive(false);
 		removeAccountButton->set_sensitive(false);
 		return;
@@ -310,6 +380,82 @@ bool prefsDialog::on_mailTreeview_button_press_event(GdkEventButton *ev)
 	}
 
 	return false;
+}
+
+void prefsDialog::on_addDirectoryButton_clicked()
+{
+	ustring dirName;
+
+	TreeModel::Children children = m_refDirectoriesTree->children();
+	bool wasEmpty = children.empty();
+
+	if (select_file_name(*this, _("Directory to index"), dirName, true, true) == true)
+	{
+#ifdef DEBUG
+		cout << "prefsDialog::on_addDirectoryButton_clicked: "
+			<< dirName << endl;
+#endif
+		// Create a new entry in the directories list
+		TreeModel::iterator iter = m_refDirectoriesTree->append();
+		TreeModel::Row row = *iter;
+	
+		row[m_directoriesColumns.m_location] = to_utf8(dirName);
+		row[m_directoriesColumns.m_mTime] = time(NULL);
+
+		if (wasEmpty == true)
+		{
+			// Enable these buttons
+			editDirectoryButton->set_sensitive(true);
+			removeDirectoryButton->set_sensitive(true);
+		}
+	}
+}
+
+void prefsDialog::on_editDirectoryButton_clicked()
+{
+	// Get the selected directory in the list
+	TreeModel::iterator iter = directoriesTreeview->get_selection()->get_selected();
+	if (iter)
+	{
+		TreeModel::Row row = *iter;
+		ustring dirName = row[m_directoriesColumns.m_location];
+		// Let the user edit the location
+		if (select_file_name(*this, _("Directory to index"), dirName, true, true) == true)
+		{
+			row[m_directoriesColumns.m_location] = dirName;
+		}
+	}
+}
+
+void prefsDialog::on_removeDirectoryButton_clicked()
+{
+	// Get the selected directory in the list
+	TreeModel::iterator iter = directoriesTreeview->get_selection()->get_selected();
+	if (iter)
+	{
+		string dirLabel("file://");
+
+		// Unselect
+		directoriesTreeview->get_selection()->unselect(iter);
+		// Select another row
+		TreeModel::Path path = m_refDirectoriesTree->get_path(iter);
+		path.next();
+		directoriesTreeview->get_selection()->select(path);
+
+		// Erase
+		TreeModel::Row row = *iter;
+		dirLabel += from_utf8(row[m_directoriesColumns.m_location]);
+		m_deletedDirectories.insert(dirLabel);
+		m_refDirectoriesTree->erase(row);
+
+		TreeModel::Children children = m_refDirectoriesTree->children();
+		if (children.empty() == true)
+		{
+			// Disable these buttons
+			editDirectoryButton->set_sensitive(false);
+			removeDirectoryButton->set_sensitive(false);
+		}
+	}
 }
 
 void prefsDialog::on_addAccountButton_clicked()

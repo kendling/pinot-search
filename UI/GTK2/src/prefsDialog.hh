@@ -38,19 +38,22 @@ public:
 
 	const std::map<std::string, std::string> &getLabelsToRename(void) const;
 
-	const std::set<std::string> &getMailLabelsToDelete(void) const;
-
 protected:
 	virtual void on_prefsOkbutton_clicked();
 	virtual void on_addLabelButton_clicked();
 	virtual void on_removeLabelButton_clicked();
 	virtual bool on_mailTreeview_button_press_event(GdkEventButton *ev);
+	virtual void on_addDirectoryButton_clicked();
+	virtual void on_editDirectoryButton_clicked();
+	virtual void on_removeDirectoryButton_clicked();
 	virtual void on_addAccountButton_clicked();
 	virtual void on_editAccountButton_clicked();
 	virtual void on_removeAccountButton_clicked();
 
 	void populate_labelsTreeview();
 	bool save_labelsTreeview();
+	void populate_directoriesTreeview();
+	bool save_directoriesTreeview();
 	void populate_mailTreeview();
 	bool save_mailTreeview();
 
@@ -58,16 +61,16 @@ private:
 	PinotSettings &m_settings;
 	ComboModelColumns m_viewColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refViewTree;
-	OtherIndexModelColumns m_otherIndexColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refOtherIndexTree;
 	LabelModelColumns m_labelsColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
-	MailAccountModelColumns m_mailColumns;
+	TimestampedModelColumns m_directoriesColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refDirectoriesTree;
+	TimestampedModelColumns m_mailColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refMailTree;
 	std::set<std::string> m_deletedLabels;
 	std::map<std::string, std::string> m_renamedLabels;
+	std::set<std::string> m_deletedDirectories;
 	std::set<std::string> m_deletedMail;
-	static unsigned int m_maxDirLevel;
 
 };
 #endif
