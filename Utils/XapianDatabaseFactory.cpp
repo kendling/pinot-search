@@ -81,17 +81,10 @@ XapianDatabase *XapianDatabaseFactory::getDatabase(const string &location, bool 
 	map<string, XapianDatabase *>::iterator dbIter = m_databases.find(location);
 	if (dbIter != m_databases.end())
 	{
-#ifdef DEBUG
-		cout << "XapianDatabaseFactory::getDatabase: found " << location << endl;
-#endif
 		pDb = dbIter->second;
 	}
 	else
 	{
-#ifdef DEBUG
-		cout << "XapianDatabaseFactory::getDatabase: opening " << location
-			<< " in mode " << readOnly << endl;
-#endif
 		// Create a new instance
 		pDb = new XapianDatabase(location, readOnly);
 		// Insert it into the map

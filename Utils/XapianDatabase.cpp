@@ -67,9 +67,6 @@ XapianDatabase::XapianDatabase(const XapianDatabase &other) :
 	if (other.m_pDatabase != NULL)
 	{
 		m_pDatabase = new Xapian::Database(*other.m_pDatabase);
-#ifdef DEBUG
-		cout << "XapianDatabase: copied " << m_databaseName << endl;
-#endif
 	}
 }
 
@@ -78,9 +75,6 @@ XapianDatabase::~XapianDatabase()
 	if (m_pDatabase != NULL)
 	{
 		delete m_pDatabase;
-#ifdef DEBUG
-		cout << "XapianDatabase::~XapianDatabase:unlock: deleted" << endl;
-#endif
 	}
 	pthread_rwlock_destroy(&m_rwLock);
 }
@@ -93,16 +87,10 @@ XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
 	{
 		delete m_pDatabase;
 		m_pDatabase = NULL;
-#ifdef DEBUG
-		cout << "XapianDatabase::operator=: deleted" << endl;
-#endif
 	}
 	if (other.m_pDatabase != NULL)
 	{
 		m_pDatabase = new Xapian::Database(*other.m_pDatabase);
-#ifdef DEBUG
-		cout << "XapianDatabase::operator=: copied " << m_databaseName << endl;
-#endif
 	}
 	m_isOpen = other.m_isOpen;
 	m_merge = other.m_merge;
@@ -128,9 +116,6 @@ void XapianDatabase::openDatabase(void)
 	{
 		delete m_pDatabase;
 		m_pDatabase = NULL;
-#ifdef DEBUG
-		cout << "XapianDatabase::openDatabase: deleted" << endl;
-#endif
 	}
 
 	// Is it a remote database ?
@@ -268,9 +253,6 @@ Xapian::Database *XapianDatabase::readLock(void)
 				m_pDatabase->add_database(*pSecondDatabase);
 			}
 			// Until unlock() is called, both indexes are read locked
-#ifdef DEBUG
-			cout << "XapianDatabase::readLock: copied " << m_pFirst->m_databaseName << endl;
-#endif
 
 			return m_pDatabase;
 		}
@@ -332,9 +314,6 @@ void XapianDatabase::unlock(void)
 		{
 			delete m_pDatabase;
 			m_pDatabase = NULL;
-#ifdef DEBUG
-			cout << "XapianDatabase::unlock: deleted merge" << endl;
-#endif
 		}
 	}
 }

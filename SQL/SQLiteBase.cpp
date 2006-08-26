@@ -198,9 +198,7 @@ sqlite3 *SQLiteBase::open(const string &database) const
 		cerr << "SQLiteBase::open: couldn't open " << database << endl;
 		pDatabase = NULL;
 	}
-#ifdef DEBUG
-	else cout << "SQLiteBase::open: opened " << database << endl;
-#endif
+
 	// Set up a busy handler
 	sqlite3_busy_handler(pDatabase, busyHandler, NULL);
 
@@ -212,12 +210,9 @@ void SQLiteBase::close(sqlite3 *pDatabase) const
 	if (pDatabase != NULL)
 	{
 #ifdef DEBUG
-		cout << "SQLiteBase::close: changed " << sqlite3_total_changes(pDatabase) << " rows" << endl;
+		cout << "SQLiteBase::close: changed " << sqlite3_total_changes(pDatabase) << " row(s)" << endl;
 #endif
 		sqlite3_close(pDatabase);
-#ifdef DEBUG
-		cout << "SQLiteBase::close: closed database" << endl;
-#endif
 	}
 }
 
