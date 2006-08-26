@@ -103,6 +103,7 @@ XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
 void XapianDatabase::openDatabase(void)
 {
 	struct stat dbStat;
+	bool createDatabase = false;
 
 	if (m_databaseName.empty() == true)
 	{
@@ -157,12 +158,10 @@ void XapianDatabase::openDatabase(void)
 	// It's a local database : the specified path must be a directory
 	if (stat(m_databaseName.c_str(), &dbStat) == -1)
 	{
-		if (m_readOnly == true)
-		{
-			cerr << "XapianDatabase::openDatabase: database " << m_databaseName
-				<< " doesn't exist" << endl;
-			return;
-		}
+#ifdef DEBUG
+		cout << "XapianDatabase::openDatabase: database " << m_databaseName
+			<< " doesn't exist" << endl;
+#endif
 
 		// Database directory doesn't exist, create it (mode 755)
 		if (mkdir(m_databaseName.c_str(), (mode_t)S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) != 0)
@@ -171,6 +170,7 @@ void XapianDatabase::openDatabase(void)
 				<< m_databaseName << endl;
 			return;
 		}
+		createDatabase = true;
 	}
 	else if (!S_ISDIR(dbStat.st_mode))
 	{
@@ -184,6 +184,14 @@ void XapianDatabase::openDatabase(void)
 	{
 		if (m_readOnly == true)
 		{
+			if (createDatabase == true)
+			{
+				// We have to create the whole thing in read-write mode first
+				Xapian::WritableDatabase *pTmpDatabase = new Xapian::WritableDatabase(m_databaseName, Xapian::DB_CREATE_OR_OPEN);
+				// ...then close and reopen in read-only mode
+				delete pTmpDatabase;
+			}
+
 			m_pDatabase = new Xapian::Database(m_databaseName);
 		}
 		else
