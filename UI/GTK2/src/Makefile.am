@@ -61,18 +61,18 @@ pinot_dbus_daemon_SOURCES = \
 
 bin_PROGRAMS = pinot pinot-dbus-daemon
 
-AM_CXXFLAGS = -I../../../Utils -I../../../Tokenize -I../../../SQL \
-	-I../../../Monitor -I../../../Collect -I../../../Search \
-	-I../../../Search/Google -I../../../Index \
+AM_CXXFLAGS = -I$(top_srcdir)/Utils -I$(top_srcdir)/Tokenize -I$(top_srcdir)/SQL \
+	-I$(top_srcdir)/Monitor -I$(top_srcdir)/Collect -I$(top_srcdir)/Search \
+	-I$(top_srcdir)/Search/Google -I$(top_srcdir)/Index \
 	@SQL_CFLAGS@ @HTTP_CFLAGS@ @MIME_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ @DBUS_CFLAGS@ @INDEX_CFLAGS@ @UI_CFLAGS@
 
-pinot_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL -L../../../Monitor \
-	-L../../../Collect -L../../../Search -L../../../Search/Google \
-	-L../../../Index -lIndex @SEARCH_LIBS@ -lMonitor -lCollect -lSQL -lTokenize -lUtils \
+pinot_LDADD = -L$(top_srcdir)/Utils -L$(top_srcdir)/Tokenize -L$(top_srcdir)/SQL -L$(top_srcdir)/Monitor \
+	-L$(top_srcdir)/Collect -L$(top_srcdir)/Search -L$(top_srcdir)/Search/Google \
+	-L$(top_srcdir)/Index -lIndex @SEARCH_LIBS@ -lMonitor -lCollect -lSQL -lTokenize -lUtils \
 	@LIBS@ @UI_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
-pinot_dbus_daemon_LDADD = -L../../../Utils -L../../../Tokenize -L../../../SQL -L../../../Monitor \
-	-L../../../Collect -L../../../Search -L../../../Search/Google \
-	-L../../../Index -lIndex @SEARCH_LIBS@ -lMonitor -lCollect -lSQL -lTokenize -lUtils \
+pinot_dbus_daemon_LDADD = -L$(top_srcdir)/Utils -L$(top_srcdir)/Tokenize -L$(top_srcdir)/SQL -L$(top_srcdir)/Monitor \
+	-L$(top_srcdir)/Collect -L$(top_srcdir)/Search -L$(top_srcdir)/Search/Google \
+	-L$(top_srcdir)/Index -lIndex @SEARCH_LIBS@ -lMonitor -lCollect -lSQL -lTokenize -lUtils \
 	@LIBS@ @GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 

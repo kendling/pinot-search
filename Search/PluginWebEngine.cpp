@@ -21,7 +21,9 @@
 #include "Document.h"
 #include "StringManip.h"
 #include "OpenSearchParser.h"
+#ifdef HAVE_BOOST_SPIRIT_CORE_HPP
 #include "SherlockParser.h"
+#endif
 #include "PluginWebEngine.h"
 
 using std::cout;
@@ -148,11 +150,14 @@ PluginParserInterface *PluginWebEngine::getPluginParser(const string &fileName)
 	}
 
 	string extension(fileName.substr(pos + 1));
+#ifdef HAVE_BOOST_SPIRIT_CORE_HPP
 	if (strncasecmp(extension.c_str(), "src", 3) == 0)
 	{
 		return new SherlockParser(fileName);
 	}
-	else if (strncasecmp(extension.c_str(), "xml", 3) == 0)
+	else
+#endif
+	if (strncasecmp(extension.c_str(), "xml", 3) == 0)
 	{
 		return new OpenSearchParser(fileName);
 	}

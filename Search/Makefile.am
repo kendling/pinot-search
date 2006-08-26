@@ -31,8 +31,10 @@ libSearch_la_SOURCES = \
 	SearchEngineFactory.cpp \
 	XapianEngine.cpp \
 	PluginWebEngine.cpp \
-	SearchEngineInterface.cpp \
-	SherlockParser.cpp
+	SearchEngineInterface.cpp
+if HAVE_BOOST_SPIRIT
+libSearch_la_SOURCES += SherlockParser.cpp
+endif
 
 libSearchSOAP_la_SOURCES = \
 	SOAPEnvC.cpp \
@@ -48,6 +50,6 @@ pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect -LGoogle \
 SOAPEnvC.cpp : SOAPEnv.h
 	soapcpp2 -pSOAPEnv SOAPEnv.h
 
-AM_CXXFLAGS = -I../Utils -I../Tokenize -I../Collect -IGoogle \
+AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Collect -IGoogle \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @MIME_CFLAGS@ @GLIBMM_CFLAGS@
 

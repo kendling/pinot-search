@@ -16,12 +16,14 @@
 
 #include "config.h"
 #include <sys/ioctl.h>
-#ifdef HAVE_LINUX_INOTIFY
+#ifdef HAVE_LINUX_INOTIFY_H
 #include <stdint.h>
 #include <linux/inotify.h>
 #include "linux-inotify-syscalls.h"
 #else
+#ifdef HAVE_SYS_INOTIFY_H
 #include <sys/inotify.h>
+#endif
 #endif
 #include <string.h>
 #include <errno.h>
@@ -52,7 +54,10 @@ INotifyMonitor::INotifyMonitor() :
 
 INotifyMonitor::~INotifyMonitor()
 {
-	close(m_monitorFd);
+	if (m_monitorFd >= 0)
+	{
+		close(m_monitorFd);
+	}
 }
 
 /// Starts monitoring a location.
@@ -123,8 +128,7 @@ bool INotifyMonitor::removeLocation(const string &location)
 
 		return true;
 	}
-	cerr << "INotifyMonitor::removeLocation: " << location
-		<< " is not being monitored" << endl;
+	cerr << "INotifyMonitor::removeLocation: " << location << " is not being monitored" << endl;
 
 	return false;
 }

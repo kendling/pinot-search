@@ -11,11 +11,14 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = libMonitor.la
 
 libMonitor_la_SOURCES = \
-	INotifyMonitor.cpp \
 	MonitorEvent.cpp \
 	MonitorFactory.cpp \
 	MonitorHandler.cpp
+if HAVE_LINUX_INOTIFY
+libMonitor_la_SOURCES += INotifyMonitor.cpp
+endif
 
-AM_CXXFLAGS = -I../Utils -I../Tokenize -I../SQL -I../Collect -I../Search -I../Index \
+AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../SQL \
+	-I$(srcdir)/../Collect -I$(srcdir)/../Search -I$(srcdir)/../Index \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @MIME_CFLAGS@ @SIGCPP_CFLAGS@
 

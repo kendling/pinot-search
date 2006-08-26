@@ -14,5 +14,5 @@ libSQL_la_SOURCES = \
 	SQLiteBase.cpp \
 	ViewHistory.cpp
 
-AM_CXXFLAGS = -I../Utils
+AM_CXXFLAGS = -I$(srcdir)/../Utils
 

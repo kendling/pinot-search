@@ -32,6 +32,12 @@
 #include "Url.h"
 #include "TokenizerFactory.h"
 
+#ifdef __CYGWIN__
+#define DLOPEN_FLAGS RTLD_LAZY
+#else
+#define DLOPEN_FLAGS (RTLD_LAZY|RTLD_LOCAL)
+#endif
+
 #define GETTOKENIZERTYPES	"_Z17getTokenizerTypesRSt3setISsSt4lessISsESaISsEE"
 #define GETTOKENIZER		"_Z12getTokenizerPK8Document"
 
@@ -150,7 +156,7 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 				if ((stat(fileName.c_str(), &fileStat) == 0) &&
 					(S_ISREG(fileStat.st_mode)))
 				{
-					void *pHandle = dlopen(fileName.c_str(), RTLD_LAZY|RTLD_LOCAL);
+					void *pHandle = dlopen(fileName.c_str(), DLOPEN_FLAGS);
 					if (pHandle != NULL)
 					{
 						// What type(s) does this support ?

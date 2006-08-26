@@ -22,10 +22,10 @@ libIndex_la_SOURCES = \
 pinot_index_SOURCES = \
 	pinot-index.cpp
 
-pinot_index_LDADD = -L../Utils -L../Tokenize -L../Collect -L../Index \
+pinot_index_LDADD = -L../Utils -L../Tokenize -L../Collect \
 	-lIndex -lCollect -lTokenize -lUtils \
 	@GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
-AM_CXXFLAGS = -I../Utils -I../Tokenize -I../Collect -I../Index \
+AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Collect \
 	@HTTP_CFLAGS@ @MIME_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ @INDEX_CFLAGS@
 

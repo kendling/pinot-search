@@ -14,7 +14,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifdef HAVE_LINUX_INOTIFY
 #include "INotifyMonitor.h"
+#endif
 #include "MonitorFactory.h"
 
 MonitorFactory::MonitorFactory()
@@ -28,5 +30,9 @@ MonitorFactory::~MonitorFactory()
 /// Returns a Monitor.
 MonitorInterface *MonitorFactory::getMonitor(void)
 {
+#ifdef HAVE_LINUX_INOTIFY
 	return new INotifyMonitor();
+#else
+	return NULL;
+#endif
 }

@@ -74,5 +74,5 @@ libTokenize_la_SOURCES = \
 	UnknownTypeTokenizer.cpp \
 	XmlTokenizer.cpp
 
-AM_CXXFLAGS = -fPIC -I../Utils @XML_CFLAGS@ @TAGLIB_CFLAGS@
+AM_CXXFLAGS = -fPIC -I$(srcdir)/../Utils @XML_CFLAGS@ @TAGLIB_CFLAGS@
 

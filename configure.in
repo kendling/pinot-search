@@ -134,17 +134,24 @@ XAPIAN_CFLAGS=`$XAPIAN_CONFIG --cxxflags`
 XAPIAN_LIBS=`$XAPIAN_CONFIG --libs`
 
 dnl inotify
-haslinuxinotifyh="no"
+linuxinotify="no"
 AM_CONDITIONAL(HAVE_LINUX_INOTIFY, false)
 AC_CHECK_HEADERS([linux/inotify.h],
-   [haslinuxinotifyh="yes"
-    AC_DEFINE(HAVE_LINUX_INOTIFY, [],
-		[Define if linux/inotify.h exists.])
-    AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
+   [linuxinotify="yes"
+   AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
    ])
-if test "$haslinuxinotifyh" = "no" ; then
-   AC_CHECK_HEADERS(sys/inotify.h)
+if test "$linuxinotify" = "no" ; then
+   AC_CHECK_HEADERS([sys/inotify.h],
+   [linuxinotify="yes"
+   AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
+   ])
 fi
+
+dnl boost Spirit 
+AM_CONDITIONAL(HAVE_BOOST_SPIRIT, false)
+AC_CHECK_HEADERS([boost/spirit/core.hpp],
+    [AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)
+    ])
 
 dnl Other libraries
 MISC_LIBS="-lcrypt"
