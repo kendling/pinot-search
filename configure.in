@@ -191,9 +191,9 @@ AC_CHECK_FUNCS(timegm)
 AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
-AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service )
-AC_OUTPUT( Makefile Utils/Makefile Tokenize/Makefile )
-AC_OUTPUT( SQL/Makefile po/Makefile.in Collect/Makefile )
+AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
+	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in \
+	Collect/Makefile )
 if test "$SOAP_SUBDIRS" != "" ; then
   AC_OUTPUT( Search/Google/Makefile )
 fi
