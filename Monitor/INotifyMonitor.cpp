@@ -151,7 +151,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		m_internalEvents.pop();
 	}
 
-	if (ioctl (m_monitorFd, FIONREAD, &queueLen) == 0)
+	if (ioctl(m_monitorFd, FIONREAD, &queueLen) == 0)
 	{
 #ifdef DEBUG
 		cout << "INotifyMonitor::retrievePendingEvents: "

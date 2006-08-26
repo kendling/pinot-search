@@ -183,9 +183,8 @@ void OnDiskHandler::flushIndex(void)
 
 bool OnDiskHandler::fileExists(const string &fileName)
 {
-#ifdef DEBUG
-	cout << "OnDiskHandler::fileExists: " << fileName << endl;
-#endif
+	// Nothing to do here
+	return true;
 }
 
 bool OnDiskHandler::fileCreated(const string &fileName)
