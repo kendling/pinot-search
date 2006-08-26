@@ -517,13 +517,13 @@ bool WritableXapianIndex::listDocumentsWithTerm(const string &term, set<unsigned
 /// Returns false if the index couldn't be opened.
 bool WritableXapianIndex::isGood(void) const
 {
-	return m_goodIndex;
+	return XapianIndex::isGood();
 }
 
 /// Gets the index location.
 string WritableXapianIndex::getLocation(void) const
 {
-	return m_databaseName;
+	return XapianIndex::getLocation();
 }
 
 /// Returns a document's properties.

@@ -86,17 +86,13 @@ DBusXapianIndex &DBusXapianIndex::operator=(const DBusXapianIndex &other)
 	return *this;
 }
 
-void DBusXapianIndex::reopen(void)
+void DBusXapianIndex::reopen(void) const
 {
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase != NULL)
 	{
-		Xapian::Database *pIndex = pDatabase->readLock();
-
 		// Re-open the database to the latest available version
-		pIndex->reopen();
-
-		pDatabase->unlock();
+		pDatabase->reopen();
 	}
 
 }
@@ -108,54 +104,68 @@ void DBusXapianIndex::reopen(void)
 /// Returns false if the index couldn't be opened.
 bool DBusXapianIndex::isGood(void) const
 {
-	return m_goodIndex;
+	return XapianIndex::isGood();
 }
 
 /// Gets the index location.
 string DBusXapianIndex::getLocation(void) const
 {
-	return m_databaseName;
+	return XapianIndex::getLocation();
 }
 
 /// Returns a document's properties.
 bool DBusXapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const
 {
+	reopen();
+
 	return XapianIndex::getDocumentInfo(docId, docInfo);
 }
 
 /// Determines whether a document has a label.
 bool DBusXapianIndex::hasLabel(unsigned int docId, const string &name) const
 {
+	reopen();
+
 	return XapianIndex::hasLabel(docId, name);
 }
 
 /// Returns a document's labels.
 bool DBusXapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) const
 {
+	reopen();
+
 	return XapianIndex::getDocumentLabels(docId, labels);
 }
 
 /// Checks whether the given URL is in the index.
 unsigned int DBusXapianIndex::hasDocument(const string &url) const
 {
+	reopen();
+
 	return XapianIndex::hasDocument(url);
 }
 
 /// Gets terms with the same root.
 unsigned int DBusXapianIndex::getCloseTerms(const string &term, set<string> &suggestions)
 {
+	reopen();
+
 	return XapianIndex::getCloseTerms(term, suggestions);
 }
 
 /// Returns the ID of the last document.
 unsigned int DBusXapianIndex::getLastDocumentID(void) const
 {
+	reopen();
+
 	return XapianIndex::getLastDocumentID();
 }
 
 /// Returns the number of documents.
 unsigned int DBusXapianIndex::getDocumentsCount(const string &labelName) const
 {
+	reopen();
+
 	return XapianIndex::getDocumentsCount(labelName);
 }
 
@@ -163,6 +173,8 @@ unsigned int DBusXapianIndex::getDocumentsCount(const string &labelName) const
 unsigned int DBusXapianIndex::listDocuments(set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
+	reopen();
+
 	return XapianIndex::listDocuments(docIds, maxDocsCount, startDoc);
 }
 
@@ -170,6 +182,8 @@ unsigned int DBusXapianIndex::listDocuments(set<unsigned int> &docIds,
 bool DBusXapianIndex::listDocumentsWithLabel(const string &name, set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
+	reopen();
+
 	return XapianIndex::listDocumentsWithLabel(name, docIds, maxDocsCount, startDoc);
 }
 
@@ -211,7 +225,6 @@ bool DBusXapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 		G_TYPE_INVALID) == TRUE)
 	{
 		updated = true;
-		reopen();
 	}
 	else
 	{
@@ -263,7 +276,6 @@ bool DBusXapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo 
 		G_TYPE_INVALID) == TRUE)
 	{
 		updated = true;
-		reopen();
 	}
 	else
 	{
@@ -322,7 +334,6 @@ bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &l
 		G_TYPE_INVALID) == TRUE)
 	{
 		updatedLabels = true;
-		reopen();
 	}
 	else
 	{
@@ -392,7 +403,6 @@ bool DBusXapianIndex::renameLabel(const string &name, const string &newName)
 		G_TYPE_INVALID) == TRUE)
 	{
 		renamedLabel = true;
-		reopen();
 	}
 	else
 	{
@@ -437,7 +447,6 @@ bool DBusXapianIndex::deleteLabel(const string &name)
 		G_TYPE_INVALID) == TRUE)
 	{
 		deletedLabel = true;
-		reopen();
 	}
 	else
 	{

@@ -96,7 +96,7 @@ class DBusXapianIndex : public WritableIndexInterface, private XapianIndex
 		virtual bool flush(void);
 
 	protected:
-		void reopen(void);
+		void reopen(void) const;
 
 };
 

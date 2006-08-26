@@ -117,6 +117,8 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 		return false;
 	}
 
+	// Get the latest revision...
+	pDatabase->reopen();
 	Xapian::Database *pIndex = pDatabase->readLock();
 	if (pIndex != NULL)
 	{

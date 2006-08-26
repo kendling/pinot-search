@@ -188,7 +188,7 @@ void XapianDatabase::openDatabase(void)
 			{
 				// We have to create the whole thing in read-write mode first
 				Xapian::WritableDatabase *pTmpDatabase = new Xapian::WritableDatabase(m_databaseName, Xapian::DB_CREATE_OR_OPEN);
-				// ...then close and reopen in read-only mode
+				// ...then close and open again in read-only mode
 				delete pTmpDatabase;
 			}
 
@@ -218,6 +218,22 @@ void XapianDatabase::openDatabase(void)
 bool XapianDatabase::isOpen(void) const
 {
 	return m_isOpen;
+}
+
+/// Reopens the database.
+void XapianDatabase::reopen(void)
+{
+	// This is provided by Xapian::Database
+	// FIXME: get the write lock to make sure read operations are not in progress ?
+	if (pthread_rwlock_rdlock(&m_rwLock) == 0)
+	{
+		if (m_pDatabase != NULL)
+		{
+			m_pDatabase->reopen();
+		}
+
+		pthread_rwlock_unlock(&m_rwLock);
+	}
 }
 
 /// Attempts to lock and retrieve the database.
@@ -250,6 +266,9 @@ Xapian::Database *XapianDatabase::readLock(void)
 
 		if (pthread_rwlock_rdlock(&m_rwLock) == 0)
 		{
+			// Reopen the second index
+			m_pSecond->reopen();
+
 			// Lock both indexes
 			Xapian::Database *pFirstDatabase = m_pFirst->readLock();
 			Xapian::Database *pSecondDatabase = m_pSecond->readLock();
@@ -275,7 +294,6 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 	if ((m_readOnly == true) ||
 		(m_merge == true))
 	{
-		// FIXME: close and reopen in write mode
 		cerr << "Couldn't open read-only database " << m_databaseName
 			<< " for writing" << endl;
 		return NULL;

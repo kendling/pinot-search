@@ -37,6 +37,9 @@ class XapianDatabase
 		/// Returns false if the database couldn't be opened.
 		bool isOpen(void) const;
 
+		/// Reopens the database.
+		void reopen(void);
+
 		/// Attempts to lock and retrieve the database.
 		Xapian::Database *readLock(void);
 
