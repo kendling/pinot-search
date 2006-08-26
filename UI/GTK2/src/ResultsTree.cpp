@@ -30,7 +30,6 @@
 #include "Url.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
-#include "IndexFactory.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -1138,7 +1137,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 #endif
 	}
 
-	IndexInterface *pIndex = m_settings.getROIndex(m_settings.m_docsIndexLocation);
+	IndexInterface *pIndex = m_settings.getROIndex("MERGED");
 	ViewHistory viewHistory(m_settings.m_historyDatabase);
 	bool isIndexed = false;
 

@@ -227,8 +227,8 @@ bool PinotSettings::load(void)
 	}
 
 	// Internal indices
-	addIndex(_("My Documents"), m_docsIndexLocation);
-	addIndex(_("My Computer"), m_daemonIndexLocation);
+	addIndex(_("My Web Pages"), m_docsIndexLocation);
+	addIndex(_("My Documents"), m_daemonIndexLocation);
 
 	// Add default labels on the first run
 	if (m_firstRun == true)
@@ -1072,8 +1072,8 @@ const map<string, string> &PinotSettings::getIndexes(void) const
 /// Returns true if the given index is internal.
 bool PinotSettings::isInternalIndex(const string &name) const
 {
-	if ((name == _("My Documents")) ||
-		(name == _("My Computer")))
+	if ((name == _("My Web Pages")) ||
+		(name == _("My Documents")))
 	{
 		return true;
 	}
@@ -1128,8 +1128,8 @@ void PinotSettings::clearIndexes(void)
 	// Clear both maps, reinsert the internal index
 	m_indexNames.clear();
 	m_indexIds.clear();
-	addIndex(_("My Documents"), m_docsIndexLocation);
-	addIndex(_("My Computer"), m_daemonIndexLocation);
+	addIndex(_("My Web Pages"), m_docsIndexLocation);
+	addIndex(_("My Documents"), m_daemonIndexLocation);
 }
 
 /// Returns an ID that identifies the given index.
@@ -1365,16 +1365,32 @@ PinotSettings::Engine::Engine()
 {
 }
 
-PinotSettings::Engine::Engine(string name, string type, string option, string channel)
+PinotSettings::Engine::Engine(string name, string type, string option, string channel) :
+	m_name(name),
+	m_type(type),
+	m_option(option),
+	m_channel(channel)
 {
-	m_name = name;
-	m_type = type;
-	m_option = option;
-	m_channel = channel;
+}
+
+PinotSettings::Engine::Engine(const Engine &other) :
+	m_name(other.m_name),
+	m_type(other.m_type),
+	m_option(other.m_option),
+	m_channel(other.m_channel)
+{
 }
 
 PinotSettings::Engine::~Engine()
 {
+}
+
+PinotSettings::Engine &PinotSettings::Engine::operator=(const PinotSettings::Engine &other)
+{
+	m_name = other.m_name;
+	m_type = other.m_type;
+	m_option = other.m_option;
+	m_channel = other.m_channel;
 }
 
 bool PinotSettings::Engine::operator<(const PinotSettings::Engine &other) const

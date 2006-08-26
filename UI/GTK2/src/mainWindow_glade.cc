@@ -210,7 +210,7 @@ mainWindow_glade::mainWindow_glade(
    indexMenuitem_menu->items().push_back(Gtk::Menu_Helpers::MenuElem(_("List Contents Of")));
    list1 = (Gtk::MenuItem *)&indexMenuitem_menu->items().back();
    
-   indexMenuitem_menu->items().push_back(Gtk::Menu_Helpers::ImageMenuElem(_("Import"), *image610));
+   indexMenuitem_menu->items().push_back(Gtk::Menu_Helpers::ImageMenuElem(_("Import URL"), *image610));
    import1 = (Gtk::ImageMenuItem *)&indexMenuitem_menu->items().back();
    
    indexMenuitem_menu->items().push_back(Gtk::Menu_Helpers::SeparatorElem());

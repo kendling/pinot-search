@@ -85,9 +85,11 @@ class PinotSettings
 		{
 			public:
 				Engine();
+				Engine(const Engine &other);
 				Engine(std::string name, std::string type, std::string option, std::string channel);
 				~Engine();
 
+				Engine &operator=(const Engine &other);
 				bool operator<(const Engine &other) const;
 				bool operator==(const Engine &other) const;
 

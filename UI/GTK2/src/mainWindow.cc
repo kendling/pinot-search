@@ -43,7 +43,6 @@
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderFactory.h"
-#include "IndexFactory.h"
 #include "SearchEngineFactory.h"
 #include "config.h"
 #include "NLS.h"
@@ -184,7 +183,7 @@ mainWindow::mainWindow() :
 	show();
 
 	// Browse the index
-	on_index_changed(_("My Documents"));
+	on_index_changed(_("My Web Pages"));
 }
 
 //
@@ -296,16 +295,16 @@ void mainWindow::populate_menus()
 	SigC::Slot1<void, ustring> indexSlot = SigC::slot(*this, &mainWindow::on_index_changed);
 
 	// Populate the submenu
-	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Computer")));
+	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Documents")));
 	MenuItem *pMenuItem = &m_pIndexMenu->items().back();
 	// Bind the callback's parameter to the index name
-	SigC::Slot0<void> daemonActivateSlot = sigc::bind(indexSlot, _("My Computer"));
+	SigC::Slot0<void> daemonActivateSlot = sigc::bind(indexSlot, _("My Documents"));
 	pMenuItem->signal_activate().connect(daemonActivateSlot);
 
-	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Documents")));
+	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Web Pages")));
 	pMenuItem = &m_pIndexMenu->items().back();
 	// Bind the callback's parameter to the index name
-	SigC::Slot0<void> documentsActivateSlot = sigc::bind(indexSlot, _("My Documents"));
+	SigC::Slot0<void> documentsActivateSlot = sigc::bind(indexSlot, _("My Web Pages"));
 	pMenuItem->signal_activate().connect(documentsActivateSlot);
 
 	if (m_pCacheMenu == NULL)
@@ -438,7 +437,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 	if ((hasSelection == true) &&
 		(resultsList.empty() == false))
 	{
-		IndexInterface *pIndex = m_settings.getROIndex(m_settings.m_docsIndexLocation);
+		IndexInterface *pIndex = m_settings.getROIndex("MERGED");
 		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = true;
 
 		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
@@ -531,7 +530,7 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 			bool isDocumentsIndex = true;
 
 			// Enable these menu items unless it is not the documents index
-			if (indexName != _("My Documents"))
+			if (indexName != _("My Web Pages"))
 			{
 				isDocumentsIndex = false;
 			}
@@ -1131,7 +1130,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 		// Is the index still being shown ?
 		IndexTree *pIndexTree = NULL;
-		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Documents"), NotebookPageBox::INDEX_PAGE));
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Web Pages"), NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
 			pIndexTree = pIndexPage->getTree();
@@ -1173,7 +1172,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 						docInfo.getLanguage());
 					indexedDoc.setTimestamp(docInfo.getTimestamp());
 
-					append_document(pIndexPage, _("My Documents"), indexedDoc);
+					append_document(pIndexPage, _("My Web Pages"), indexedDoc);
 				}
 				pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
 				pIndexPage->updateButtonsState(m_maxDocsCount);
@@ -1193,7 +1192,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 		if (pUnindexThread->getDocumentsCount() > 0)
 		{
-			ustring indexName(_("My Documents"));
+			ustring indexName(_("My Web Pages"));
 			status = _("Unindexed document(s)");
 			set_status(status);
 
@@ -1224,7 +1223,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Documents"), NotebookPageBox::INDEX_PAGE));
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Web Pages"), NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
 			IndexTree *pIndexTree = pIndexPage->getTree();
@@ -1384,13 +1383,6 @@ void mainWindow::on_configure_activate()
 		(labelsToRename.empty() == false))
 	{
 		start_thread(new LabelUpdateThread(labelsToDelete, labelsToRename));
-	}
-
-	// Any mail documents we should delete ?
-	const set<string> &mailLabelsToDelete = prefsBox.getMailLabelsToDelete();
-	if (mailLabelsToDelete.empty() == false)
-	{
-		start_thread(new UnindexingThread(mailLabelsToDelete, from_utf8(m_settings.m_daemonIndexLocation)));
 	}
 }
 
@@ -1690,6 +1682,7 @@ void mainWindow::on_morelikethis_activate()
 	// Find this query
 	if (queryName == _("Live query"))
 	{
+		queryProps.setName(queryName);
 		queryProps.setAndWords(from_utf8(liveQueryEntry->get_text()));
 	}
 	else
@@ -1721,13 +1714,13 @@ void mainWindow::on_morelikethis_activate()
 		}
 	}
 
-	IndexInterface *pIndex = m_settings.getROIndex(m_settings.m_docsIndexLocation);
+	IndexInterface *pIndex = m_settings.getROIndex("MERGED");
         if (pIndex != NULL)
 	{
+       	set<unsigned int> docIdList;
+
 		if (pIndex->isGood() == true)
 		{
-        		set<unsigned int> docIdList;
-
 			for (vector<DocumentInfo>::const_iterator docIter = resultsList.begin();
 				docIter != resultsList.end(); ++docIter)
 			{
@@ -1739,8 +1732,8 @@ void mainWindow::on_morelikethis_activate()
 			}
 
 			// Spawn a new thread
-			start_thread(new QueryingThread("xapian", _("My Documents"),
-				m_settings.m_docsIndexLocation, queryProps, docIdList));
+			start_thread(new QueryingThread("xapian", "", "MERGED",
+				queryProps, docIdList));
 		}
 
 		delete pIndex;
@@ -1796,7 +1789,7 @@ void mainWindow::on_import_activate()
 {
 	m_state.disconnect();
 
-	importDialog importBox(_("Import Document(s)"));
+	importDialog importBox;
 	importBox.show();
 	importBox.run();
 
@@ -1805,7 +1798,7 @@ void mainWindow::on_import_activate()
 	// Was anything imported ?
 	if (importBox.getDocumentsCount() > 0)
 	{
-		ustring indexName(_("My Documents"));
+		ustring indexName(_("My Web Pages"));
 
 		// Is the index still being shown ?
 		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
@@ -2296,8 +2289,8 @@ void mainWindow::on_liveQueryEntry_changed()
 	}
 	m_state.m_liveQueryLength = liveQueryLength;
 
-	// FIXME: relying on other indices may also be useful
-	IndexInterface *pIndex = m_settings.getROIndex(m_settings.m_docsIndexLocation);
+	// Query the merged index
+	IndexInterface *pIndex = m_settings.getROIndex("MERGED");
 	if (pIndex != NULL)
 	{
 		set<string> suggestedTerms;
