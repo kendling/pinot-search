@@ -28,6 +28,10 @@ class XapianDatabaseFactory
 	public:
 		virtual ~XapianDatabaseFactory();
 
+		/// Merges two databases together and add the result to the list.
+		static bool mergeDatabases(const std::string &name,
+			XapianDatabase *pFirst, XapianDatabase *pSecond);
+
 		/// Returns a XapianDatabase pointer; NULL if unavailable.
 		static XapianDatabase *getDatabase(const std::string &location, bool readOnly = true);
 

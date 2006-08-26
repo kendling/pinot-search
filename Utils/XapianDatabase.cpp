@@ -32,23 +32,45 @@ XapianDatabase::XapianDatabase(const string &databaseName, bool readOnly) :
 	m_databaseName(databaseName),
 	m_readOnly(readOnly),
 	m_pDatabase(NULL),
-	m_isOpen(false)
+	m_isOpen(false),
+	m_merge(false),
+	m_pFirst(NULL),
+	m_pSecond(NULL)
 {
 	pthread_rwlock_init(&m_rwLock, NULL);
 	openDatabase();
+}
+
+XapianDatabase::XapianDatabase(const string &databaseName, 
+	XapianDatabase *pFirst, XapianDatabase *pSecond) :
+	m_databaseName(databaseName),
+	m_readOnly(true),
+	m_pDatabase(NULL),
+	m_isOpen(pFirst->m_isOpen),
+	m_merge(true),
+	m_pFirst(pFirst),
+	m_pSecond(pSecond)
+{
+	pthread_rwlock_init(&m_rwLock, NULL);
 }
 
 XapianDatabase::XapianDatabase(const XapianDatabase &other) :
 	m_databaseName(other.m_databaseName),
 	m_readOnly(other.m_readOnly),
 	m_pDatabase(NULL),
-	m_isOpen(other.m_isOpen)
+	m_isOpen(other.m_isOpen),
+	m_merge(other.m_merge),
+	m_pFirst(other.m_pFirst),
+	m_pSecond(other.m_pSecond)
 {
+	pthread_rwlock_init(&m_rwLock, NULL);
 	if (other.m_pDatabase != NULL)
 	{
 		m_pDatabase = new Xapian::Database(*other.m_pDatabase);
+#ifdef DEBUG
+		cout << "XapianDatabase: copied " << m_databaseName << endl;
+#endif
 	}
-	pthread_rwlock_init(&m_rwLock, NULL);
 }
 
 XapianDatabase::~XapianDatabase()
@@ -56,6 +78,9 @@ XapianDatabase::~XapianDatabase()
 	if (m_pDatabase != NULL)
 	{
 		delete m_pDatabase;
+#ifdef DEBUG
+		cout << "XapianDatabase::~XapianDatabase:unlock: deleted" << endl;
+#endif
 	}
 	pthread_rwlock_destroy(&m_rwLock);
 }
@@ -68,12 +93,21 @@ XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
 	{
 		delete m_pDatabase;
 		m_pDatabase = NULL;
+#ifdef DEBUG
+		cout << "XapianDatabase::operator=: deleted" << endl;
+#endif
 	}
 	if (other.m_pDatabase != NULL)
 	{
 		m_pDatabase = new Xapian::Database(*other.m_pDatabase);
+#ifdef DEBUG
+		cout << "XapianDatabase::operator=: copied " << m_databaseName << endl;
+#endif
 	}
 	m_isOpen = other.m_isOpen;
+	m_merge = other.m_merge;
+	m_pFirst = other.m_pFirst;
+	m_pSecond = other.m_pSecond;
 
 	return *this;
 }
@@ -94,6 +128,9 @@ void XapianDatabase::openDatabase(void)
 	{
 		delete m_pDatabase;
 		m_pDatabase = NULL;
+#ifdef DEBUG
+		cout << "XapianDatabase::openDatabase: deleted" << endl;
+#endif
 	}
 
 	// Is it a remote database ?
@@ -168,6 +205,9 @@ void XapianDatabase::openDatabase(void)
 		{
 			m_pDatabase = new Xapian::WritableDatabase(m_databaseName, Xapian::DB_CREATE_OR_OPEN);
 		}
+#ifdef DEBUG
+		cout << "XapianDatabase::openDatabase: opened " << m_databaseName << endl;
+#endif
 		m_isOpen = true;
 
 		return;
@@ -190,17 +230,50 @@ bool XapianDatabase::isOpen(void) const
 /// Attempts to lock and retrieve the database.
 Xapian::Database *XapianDatabase::readLock(void)
 {
-#ifdef DEBUG
-	cout << "XapianDatabase::readLock: " << m_databaseName << endl;
-#endif
-	if (pthread_rwlock_rdlock(&m_rwLock) == 0)
+	if (m_merge == false)
 	{
-		if (m_pDatabase == NULL)
+#ifdef DEBUG
+		cout << "XapianDatabase::readLock: " << m_databaseName << endl;
+#endif
+		if (pthread_rwlock_rdlock(&m_rwLock) == 0)
 		{
-			// Try again
-			openDatabase();
+			if (m_pDatabase == NULL)
+			{
+				// Try again
+				openDatabase();
+			}
+			return m_pDatabase;
 		}
-		return m_pDatabase;
+	}
+	else
+	{
+		if ((m_pFirst == NULL) ||
+			(m_pFirst->isOpen() == false) ||
+			(m_pSecond == NULL) ||
+			(m_pSecond->isOpen() == false))
+		{
+			return NULL;
+		}
+
+		if (pthread_rwlock_rdlock(&m_rwLock) == 0)
+		{
+			// Lock both indexes
+			Xapian::Database *pFirstDatabase = m_pFirst->readLock();
+			Xapian::Database *pSecondDatabase = m_pSecond->readLock();
+			// Copy the first one
+			m_pDatabase = new Xapian::Database(*pFirstDatabase);
+			// Add the second index to it
+			if (pSecondDatabase != NULL)
+			{
+				m_pDatabase->add_database(*pSecondDatabase);
+			}
+			// Until unlock() is called, both indexes are read locked
+#ifdef DEBUG
+			cout << "XapianDatabase::readLock: copied " << m_pFirst->m_databaseName << endl;
+#endif
+
+			return m_pDatabase;
+		}
 	}
 
 	return NULL;
@@ -209,7 +282,8 @@ Xapian::Database *XapianDatabase::readLock(void)
 /// Attempts to lock and retrieve the database.
 Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 {
-	if (m_readOnly == true)
+	if ((m_readOnly == true) ||
+		(m_merge == true))
 	{
 		// FIXME: close and reopen in write mode
 		cerr << "Couldn't open read-only database " << m_databaseName
@@ -240,6 +314,29 @@ void XapianDatabase::unlock(void)
 	cout << "XapianDatabase::unlock: " << m_databaseName << endl;
 #endif
 	pthread_rwlock_unlock(&m_rwLock);
+
+	if (m_merge == true)
+	{
+		// Unlock the original indexes
+		if (m_pFirst != NULL)
+		{
+			m_pFirst->unlock();
+		}
+		if (m_pSecond != NULL)
+		{
+			m_pSecond->unlock();
+		}
+
+		// Delete merge
+		if (m_pDatabase != NULL)
+		{
+			delete m_pDatabase;
+			m_pDatabase = NULL;
+#ifdef DEBUG
+			cout << "XapianDatabase::unlock: deleted merge" << endl;
+#endif
+		}
+	}
 }
 
 /// Returns the URL for the given document in the given index.

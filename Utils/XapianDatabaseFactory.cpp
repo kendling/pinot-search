@@ -35,6 +35,33 @@ XapianDatabaseFactory::~XapianDatabaseFactory()
 {
 }
 
+/// Merges two databases together and add the result to the list.
+bool XapianDatabaseFactory::mergeDatabases(const string &name,
+	XapianDatabase *pFirst, XapianDatabase *pSecond)
+{
+	map<string, XapianDatabase *>::iterator dbIter = m_databases.find(name);
+	if (dbIter != m_databases.end())
+	{
+		return false;
+	}
+
+	// Create the new database
+	XapianDatabase *pDb = new XapianDatabase(name, pFirst, pSecond);
+
+	// Insert it into the map
+	pair<map<string, XapianDatabase *>::iterator, bool> insertPair = m_databases.insert(pair<string, XapianDatabase *>(name, pDb));
+	// Was it inserted ?
+	if (insertPair.second == false)
+	{
+		// No, it wasn't : delete the object
+		delete pDb;
+
+		return false;
+	}
+
+	return true;
+}
+
 /// Returns a XapianDatabase pointer; NULL if unavailable.
 XapianDatabase *XapianDatabaseFactory::getDatabase(const string &location, bool readOnly)
 {

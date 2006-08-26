@@ -27,6 +27,8 @@ class XapianDatabase
 {
 	public:
 		XapianDatabase(const std::string &databaseName, bool readOnly = true);
+		XapianDatabase(const std::string &databaseName,
+			XapianDatabase *pFirst, XapianDatabase *pSecond);
 		XapianDatabase(const XapianDatabase &other);
 		virtual ~XapianDatabase();
 
@@ -53,6 +55,9 @@ class XapianDatabase
 		pthread_rwlock_t m_rwLock;
 		Xapian::Database *m_pDatabase;
 		bool m_isOpen;
+		bool m_merge;
+		XapianDatabase *m_pFirst;
+		XapianDatabase *m_pSecond;
 
 		void openDatabase(void);
 
