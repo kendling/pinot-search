@@ -35,8 +35,7 @@
 class importDialog : public importDialog_glade
 {  
 public:
-	/// Open the dialog box in import mode.
-	importDialog(const Glib::ustring &title);
+	importDialog();
 	virtual ~importDialog();
 
 	void setHeight(int maxHeight);
@@ -44,27 +43,19 @@ public:
 	unsigned int getDocumentsCount(void);
 
 protected:
-	void populate_comboboxes(bool localOnly);
-	void signal_scanner(void);
+	void populate_comboboxes(void);
 
 	bool on_activity_timeout(void);
-	bool on_import_url(const std::string &location, const std::string &sourceLabel);
+	void import_url(const std::string &location);
 	void on_thread_end(WorkerThread *pThread);
 
 private:
-	MonitorInterface *m_pMonitor;
-	// Type
-	ComboModelColumns m_typeColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refTypeList;
 	// Label
 	ComboModelColumns m_labelNameColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
 	Glib::ustring m_title;
 	std::string m_labelName;
 	unsigned int m_docsCount;
-	bool m_importDirectory;
-	// Directory scanner
-	DirectoryScannerThread *m_pScannerThread;
 	// Activity timeout
 	SigC::Connection m_timeoutConnection;
 	// Internal state
@@ -74,18 +65,11 @@ private:
 			InternalState(unsigned int maxIndexThreads, importDialog *pWindow);
 			~InternalState();
 
-			// Directory scanning
 			bool m_importing;
-			Glib::Mutex m_scanMutex;
-			Glib::Cond m_scanCondVar;
-			// The default directory
-			static std::string m_defaultDirectory;
 
 	} m_state;
 
-	virtual void on_typeCombobox_changed();
 	virtual void on_locationEntry_changed();
-	virtual void on_locationButton_clicked();
 	virtual void on_importButton_clicked();
 	virtual void on_importDialog_response(int response_id);
 
