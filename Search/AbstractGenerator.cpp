@@ -62,7 +62,7 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 	map<Xapian::termpos, PositionWindow> abstractWindows;
 	map<Xapian::termpos, string> wordsBuffer;
 	string summary;
-	Xapian::termpos bestPosition = 0, startPosition =0;
+	Xapian::termpos bestPosition = 0, startPosition = 0;
 	unsigned int seedTermsCount = 0, bestWeight = 0;
 	bool topTerm = true;
 
@@ -136,7 +136,7 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 #ifdef DEBUG
 			cout << "AbstractGenerator::generateAbstract: " << error.get_msg() << endl;
 #endif
-			return "";
+			continue;
 		}
 
 #ifdef DEBUG
@@ -153,7 +153,11 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 		if (bestWeight < winIter->second.m_backWeight)
 		{
 			bestPosition = winIter->first;
-			startPosition = bestPosition - m_wordsCount;
+			startPosition = 0;
+			if (bestPosition > m_wordsCount)
+			{
+				startPosition = bestPosition - m_wordsCount;
+			}
 			bestWeight = winIter->second.m_backWeight;
 		}
 		if (bestWeight < winIter->second.m_forwardWeight)
