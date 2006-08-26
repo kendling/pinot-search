@@ -2,6 +2,10 @@ Pinot is written by :
 
 	Fabrice Colin <fabricecolin at users dot berlios dot de>
 
+Patches, bug reports and helpful comments :
+
+	Building with CygWin - Reini Urban <rurban at x-ray dot at>
+
 The file Monitor/linux-inotify-syscalls.h is originally from libinotify
 (Copyright © 2005 Ryan Lortie <desrt at desrt dot ca>).
 
