@@ -390,6 +390,14 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 			{
 				string baseTerm(StringManip::toLowerCase(term));
 				unsigned int count = 0;
+				bool isUpper = false;
+
+				if (isupper((int)term[0]) != 0)
+				{
+					// R-prefix the term
+					baseTerm = string("R") + term;
+					isUpper = true;
+				}
 
 				// Get the next 10 terms
 				for (termIter.skip_to(baseTerm);
@@ -400,9 +408,29 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 					if (suggestedTerm.find(baseTerm) != 0)
 					{
 						// This term doesn't have the same root
+						if (isUpper == true)
+						{
+							// Try again without capital letters
+							baseTerm = StringManip::toLowerCase(term);
+							termIter = pIndex->allterms_begin();
+							if (termIter != pIndex->allterms_end())
+							{
+								termIter.skip_to(baseTerm);
+								isUpper = false;
+								continue;
+							}
+						}
+
 						break;
 					}
-					suggestions.insert(*termIter);
+
+					if (isUpper == true)
+					{
+						// Remove the R prefix
+						suggestedTerm.erase(0, 1);
+					}
+
+					suggestions.insert(suggestedTerm);
 					++count;
 				}
 			}
