@@ -105,13 +105,13 @@ LabelModelColumns::~LabelModelColumns()
 {
 }
 
-MailAccountModelColumns::MailAccountModelColumns()
+TimestampedModelColumns::TimestampedModelColumns()
 {
 	add(m_location);
 	add(m_mTime);
 }
 
-MailAccountModelColumns::~MailAccountModelColumns()
+TimestampedModelColumns::~TimestampedModelColumns()
 {
 }
 

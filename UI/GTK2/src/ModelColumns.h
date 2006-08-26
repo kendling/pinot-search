@@ -132,12 +132,12 @@ public:
 
 };
 
-/// Preferences window, model column for the mail accounts tree.
-class MailAccountModelColumns : public Gtk::TreeModel::ColumnRecord
+/// Preferences window, model column for the directories and mail accounts trees.
+class TimestampedModelColumns : public Gtk::TreeModel::ColumnRecord
 {
 public:
-	MailAccountModelColumns();
-	virtual ~MailAccountModelColumns();
+	TimestampedModelColumns();
+	virtual ~TimestampedModelColumns();
 
 	Gtk::TreeModelColumn<Glib::ustring> m_location;
 	Gtk::TreeModelColumn<time_t> m_mTime;
