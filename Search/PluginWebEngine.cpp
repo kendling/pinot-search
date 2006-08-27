@@ -18,10 +18,11 @@
 #include <fstream>
 #include <iostream>
 
+#include "config.h"
 #include "Document.h"
 #include "StringManip.h"
 #include "OpenSearchParser.h"
-#ifdef HAVE_BOOST_SPIRIT_CORE_HPP
+#ifdef HAVE_BOOST_SPIRIT
 #include "SherlockParser.h"
 #endif
 #include "PluginWebEngine.h"

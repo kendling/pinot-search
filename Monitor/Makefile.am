@@ -21,4 +21,7 @@ endif
 AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../SQL \
 	-I$(srcdir)/../Collect -I$(srcdir)/../Search -I$(srcdir)/../Index \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @MIME_CFLAGS@ @SIGCPP_CFLAGS@
+if HAVE_LINUX_INOTIFY
+AM_CXXFLAGS += -DHAVE_LINUX_INOTIFY
+endif
 

@@ -52,4 +52,7 @@ SOAPEnvC.cpp : SOAPEnv.h
 
 AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Collect -IGoogle \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @MIME_CFLAGS@ @GLIBMM_CFLAGS@
+if HAVE_BOOST_SPIRIT
+AM_CXXFLAGS += -DHAVE_BOOST_SPIRIT
+endif
 
