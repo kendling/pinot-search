@@ -709,19 +709,6 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 {
 }
 
-QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
-	const string &engineOption, const QueryProperties &queryProps,
-	const set<unsigned int> &relevantDocs) :
-	WorkerThread(),
-	m_engineName(engineName),
-	m_engineDisplayableName(engineDisplayableName),
-	m_engineOption(engineOption),
-	m_queryProps(queryProps)
-{
-	copy(relevantDocs.begin(), relevantDocs.end(),
-		inserter(m_relevantDocs, m_relevantDocs.begin()));
-}
-
 QueryingThread::~QueryingThread()
 {
 }
@@ -751,11 +738,6 @@ const vector<Result> &QueryingThread::getResults(string &charset) const
 	return m_resultsList;
 }
 
-const set<string> &QueryingThread::getExpandTerms(void) const
-{
-	return m_expandTerms;
-}
-
 bool QueryingThread::stop(void)
 {
 	m_done = true;
@@ -779,11 +761,6 @@ void QueryingThread::doWork(void)
 
 	// Set the maximum number of results
 	pEngine->setMaxResultsCount(m_queryProps.getMaximumResultsCount());
-	if (m_relevantDocs.empty() == false)
-	{
-		// Set whether to expand the query
-		pEngine->setQueryExpansion(m_relevantDocs);
-	}
 
 	// Run the query
 	if (pEngine->runQuery(m_queryProps) == false)
@@ -829,7 +806,77 @@ void QueryingThread::doWork(void)
 				language,
 				resultIter->getScore()));
 		}
+	}
 
+	delete pEngine;
+}
+
+ExpandQueryThread::ExpandQueryThread(const string &engineName,
+	const string &engineOption, const QueryProperties &queryProps,
+	const set<unsigned int> &relevantDocs) :
+	WorkerThread(),
+	m_engineName(engineName),
+	m_engineOption(engineOption),
+	m_queryProps(queryProps)
+{
+	copy(relevantDocs.begin(), relevantDocs.end(),
+		inserter(m_relevantDocs, m_relevantDocs.begin()));
+}
+
+ExpandQueryThread::~ExpandQueryThread()
+{
+}
+
+string ExpandQueryThread::getType(void) const
+{
+	return "ExpandQueryThread";
+}
+
+QueryProperties ExpandQueryThread::getQuery(void) const
+{
+	return m_queryProps;
+}
+
+const set<string> &ExpandQueryThread::getExpandTerms(void) const
+{
+	return m_expandTerms;
+}
+
+bool ExpandQueryThread::stop(void)
+{
+	m_done = true;
+	m_status = _("Stopped expanding ");
+	m_status += " ";
+	m_status += m_queryProps.getName();
+	return true;
+}
+
+void ExpandQueryThread::doWork(void)
+{
+	// Get the SearchEngine
+	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(m_engineName, m_engineOption);
+	if (pEngine == NULL)
+	{
+		m_status = _("Couldn't create search engine");
+		m_status += " ";
+		m_status += m_queryProps.getName();
+		return;
+	}
+
+	// Set the maximum number of results
+	pEngine->setMaxResultsCount(m_queryProps.getMaximumResultsCount());
+	// Set whether to expand the query
+	pEngine->setQueryExpansion(m_relevantDocs);
+
+	// Run the query
+	if (pEngine->runQuery(m_queryProps) == false)
+	{
+		m_status = _("Couldn't expand ");
+		m_status += " ";
+		m_status += m_queryProps.getName();
+	}
+	else
+	{
 		// Copy the expand terms
 		const set<string> &expandTerms = pEngine->getExpandTerms();
 		copy(expandTerms.begin(), expandTerms.end(),

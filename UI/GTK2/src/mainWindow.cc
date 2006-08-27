@@ -989,62 +989,68 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				m_state.queue_index(docInfo);
 			}
 		}
-
-		// Any expand terms ?
-		const set<string> &expandTerms = pQueryThread->getExpandTerms();
-		if (expandTerms.empty() == false)
+	}
+	else if (type == "ExpandQueryThread")
+	{
+		ExpandQueryThread *pExpandThread = dynamic_cast<ExpandQueryThread *>(pThread);
+		if (pExpandThread == NULL)
 		{
-			string queryName(_("More Like"));
-			string moreLike;
+			delete pThread;
+			return;
+		}
 
-			if (queryProps.getName().empty() == true)
-			{
-				queryName += "...";
-			}
-			else
-			{
-				queryName += " ";
-				queryName += queryProps.getName();
-			}
-			queryProps.setName(queryName);
+		QueryProperties queryProps = pExpandThread->getQuery();
+		const set<string> &expandTerms = pExpandThread->getExpandTerms();
+		string queryName(_("More Like"));
+		string moreLike;
 
-			moreLike.clear();
-			if (queryProps.getAnyWords().empty() == false)
-			{
-				moreLike = " ";
-			}
-			for (set<string>::const_iterator termIter = expandTerms.begin();
-				termIter != expandTerms.end(); ++termIter)
-			{
-				if (moreLike.empty() == false)
-				{
-					moreLike += " ";
-				}
-				moreLike += *termIter;
-			}
+		if (queryProps.getName().empty() == true)
+		{
+			queryName += "...";
+		}
+		else
+		{
+			queryName += " ";
+			queryName += queryProps.getName();
+		}
+		queryProps.setName(queryName);
 
-			// Does such a query already exist ?
-			TreeModel::Children children = m_refQueryTree->children();
-			for (TreeModel::Children::iterator iter = children.begin();
-				iter != children.end(); ++iter)
+		if (queryProps.getAnyWords().empty() == false)
+		{
+			moreLike = " ";
+		}
+		for (set<string>::const_iterator termIter = expandTerms.begin();
+			termIter != expandTerms.end(); ++termIter)
+		{
+			if (moreLike.empty() == false)
 			{
-				TreeModel::Row row = *iter;
-
-				if (queryName == from_utf8(row[m_queryColumns.m_name]))
-				{
-					m_settings.removeQuery(queryName);
-					break;
-				}
+				moreLike += " ";
 			}
+			moreLike += *termIter;
+		}
 
-			// Add these terms
-			queryProps.setAnyWords(queryProps.getAnyWords() + moreLike);
+		// Does such a query already exist ?
+		TreeModel::Children children = m_refQueryTree->children();
+		for (TreeModel::Children::iterator iter = children.begin();
+			iter != children.end(); ++iter)
+		{
+			TreeModel::Row row = *iter;
 
-			// Update everything
-			if (m_settings.addQuery(queryProps) == true)
+			if (queryName == from_utf8(row[m_queryColumns.m_name]))
 			{
-				populate_queryTreeview(queryName);
+				m_settings.removeQuery(queryName);
+				break;
 			}
+		}
+
+		// Add these terms
+		queryProps.setAnyWords(queryProps.getAnyWords() + moreLike);
+
+		// Update everything
+		if (m_settings.addQuery(queryProps) == true)
+		{
+			populate_queryTreeview(queryName);
+			queryExpander->set_expanded(true);
 		}
 	}
 	else if (type == "LabelUpdateThread")
@@ -1732,7 +1738,7 @@ void mainWindow::on_morelikethis_activate()
 			}
 
 			// Spawn a new thread
-			start_thread(new QueryingThread("xapian", "", "MERGED",
+			start_thread(new ExpandQueryThread("xapian", "MERGED",
 				queryProps, docIdList));
 		}
 
