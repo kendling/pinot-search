@@ -327,8 +327,9 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	m_settings.m_suggestQueryTerms = enableCompletionCheckbutton->get_active();
 	m_settings.m_googleAPIKey = apiKeyEntry->get_text();
 
-	// Validate the current labels and mail accounts
+	// Validate the current lists
 	save_labelsTreeview();
+	save_directoriesTreeview();
 	save_mailTreeview();
 }
 
