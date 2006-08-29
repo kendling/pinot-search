@@ -178,10 +178,6 @@ static void startHandler(void *pData, const char *pElementName, const char **pAt
 		{
 			// FIXME: get the NodeInfo to find out the position of this link
 			pState->m_currentLink.m_startPos = pState->m_textPos;
-#ifdef DEBUG
-			cout << "HtmlTokenizer::endHandler: link " << pState->m_currentLink.m_index
-				<< " starts at position " << pState->m_textPos << endl;
-#endif
 
 			// Find abstract ?
 			if (pState->m_findAbstract == true)
@@ -269,10 +265,6 @@ static void endHandler(void *pData, const char *pElementName)
 			StringManip::removeCharacters(pState->m_currentLink.m_name, "\r\n");
 
 			pState->m_currentLink.m_endPos = pState->m_textPos;
-#ifdef DEBUG
-			cout << "HtmlTokenizer::endHandler: link " << pState->m_currentLink.m_index
-				<< " ends at position " << pState->m_textPos << endl;
-#endif
 
 			// Store this link
 			pState->m_links.insert(pState->m_currentLink);

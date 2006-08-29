@@ -41,9 +41,6 @@ SQLiteRow::SQLiteRow(const vector<string> &rowColumns, int nColumns) :
 	}
 	else
 	{
-#ifdef DEBUG
-		cout << "SQLiteRow::SQLiteRow: " << rowColumns.size() << " columns" << endl;
-#endif
 		m_columns.reserve(rowColumns.size());
 #if 0
 		// FIXME: why does this segfault in string::assign() ?
@@ -209,9 +206,6 @@ void SQLiteBase::close(sqlite3 *pDatabase) const
 {
 	if (pDatabase != NULL)
 	{
-#ifdef DEBUG
-		cout << "SQLiteBase::close: changed " << sqlite3_total_changes(pDatabase) << " row(s)" << endl;
-#endif
 		sqlite3_close(pDatabase);
 	}
 }
