@@ -44,7 +44,7 @@ extern "C"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
-#include "WritableXapianIndex.h"
+#include "XapianIndex.h"
 #include "XapianEngine.h"
 #include "config.h"
 #include "NLS.h"
@@ -121,7 +121,7 @@ static DBusHandlerResult objectPathHandler(DBusConnection *pConnection, DBusMess
 
 static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
-	WritableXapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
+	XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 	DaemonState *pServer = NULL;
 	DBusMessage *pReply = NULL;
 	DBusError error;

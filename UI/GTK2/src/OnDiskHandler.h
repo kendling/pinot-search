@@ -24,9 +24,8 @@
 
 #include "CrawlHistory.h"
 #include "IndexedDocument.h"
-#include "MboxParser.h"
-#include "WritableXapianIndex.h"
 #include "MonitorHandler.h"
+#include "XapianIndex.h"
 #include "PinotSettings.h"
 
 class OnDiskHandler : public MonitorHandler
@@ -59,7 +58,7 @@ class OnDiskHandler : public MonitorHandler
 
 	protected:
 		CrawlHistory m_history;
-		WritableXapianIndex m_index;
+		XapianIndex m_index;
 
 		bool indexFile(const std::string &fileName, bool alwaysUpdate);
 

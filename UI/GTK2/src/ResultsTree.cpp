@@ -1137,7 +1137,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 #endif
 	}
 
-	IndexInterface *pIndex = m_settings.getROIndex("MERGED");
+	IndexInterface *pIndex = m_settings.getIndex("MERGED");
 	ViewHistory viewHistory(m_settings.m_historyDatabase);
 	bool isIndexed = false;
 

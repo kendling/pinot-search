@@ -23,14 +23,21 @@
 #include "Tokenizer.h"
 #include "DocumentInfo.h"
 
-/// Interface implemented by read-only indexes.
+/// Interface implemented by indexes.
 class IndexInterface
 {
 	public:
-		IndexInterface(const IndexInterface &other) {};
+		IndexInterface(const IndexInterface &other) :
+			m_stemMode(other.m_stemMode) {};
 		virtual ~IndexInterface() {};
 
-		IndexInterface &operator=(const IndexInterface &other) {};
+		IndexInterface &operator=(const IndexInterface &other)
+		{
+			m_stemMode = other.m_stemMode;
+			return *this;
+		};
+
+		typedef enum { STORE_UNSTEM = 0, STORE_STEM, STORE_BOTH } StemmingMode;
 
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const = 0;
@@ -67,28 +74,6 @@ class IndexInterface
 		virtual bool listDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
 
-	protected:
-		IndexInterface() { };
-
-};
-
-/// Interface implemented by read-write indexes.
-class WritableIndexInterface : public IndexInterface
-{
-	public:
-		WritableIndexInterface(const WritableIndexInterface &other) :
-			IndexInterface(other), m_stemMode(other.m_stemMode) {};
-		virtual ~WritableIndexInterface() {};
-
-		WritableIndexInterface &operator=(const WritableIndexInterface &other)
-		{
-			IndexInterface::operator=(other);
-			m_stemMode = other.m_stemMode;
-			return *this;
-		};
-
-		typedef enum { STORE_UNSTEM = 0, STORE_STEM, STORE_BOTH } StemmingMode;
-
 		/// Sets the stemming mode.
 		virtual void setStemmingMode(StemmingMode mode) { m_stemMode = mode; }
 
@@ -124,8 +109,7 @@ class WritableIndexInterface : public IndexInterface
 	protected:
 		StemmingMode m_stemMode;
 
-		WritableIndexInterface() :
-			IndexInterface(), m_stemMode(STORE_UNSTEM) { };
+		IndexInterface() { };
 
 };
 

@@ -64,13 +64,11 @@ static DBusGProxy *getBusProxy(DBusGConnection *pBus)
 }
 
 DBusXapianIndex::DBusXapianIndex(const string &indexName) :
-	WritableIndexInterface(),
 	XapianIndex(indexName)
 {
 }
 
 DBusXapianIndex::DBusXapianIndex(const DBusXapianIndex &other) :
-	WritableIndexInterface(other),
 	XapianIndex(other)
 {
 }
@@ -81,7 +79,6 @@ DBusXapianIndex::~DBusXapianIndex()
 
 DBusXapianIndex &DBusXapianIndex::operator=(const DBusXapianIndex &other)
 {
-	WritableIndexInterface::operator=(other);
 	XapianIndex::operator=(other);
 	return *this;
 }
@@ -93,8 +90,10 @@ void DBusXapianIndex::reopen(void) const
 	{
 		// Re-open the database to the latest available version
 		pDatabase->reopen();
+#ifdef DEBUG
+		cout << "DBusXapianIndex::reopen: done" << endl;
+#endif
 	}
-
 }
 
 //
@@ -186,10 +185,6 @@ bool DBusXapianIndex::listDocumentsWithLabel(const string &name, set<unsigned in
 
 	return XapianIndex::listDocumentsWithLabel(name, docIds, maxDocsCount, startDoc);
 }
-
-//
-// Implementation of WritableIndexInterface
-//
 
 /// Indexes the given data.
 bool DBusXapianIndex::indexDocument(Tokenizer &tokens, const set<string> &labels,

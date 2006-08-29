@@ -67,16 +67,65 @@ class XapianIndex : public IndexInterface
 		virtual bool listDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
+		/// Indexes the given data.
+		virtual bool indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+			unsigned int &docId);
+
+		/// Updates the given document.
+		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens);
+
+		/// Updates a document's properties.
+		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);
+
+		/// Sets a document's labels.
+		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
+			bool resetLabels = true);
+
+		/// Unindexes the given document.
+		virtual bool unindexDocument(unsigned int docId);
+
+		/// Unindexes documents with the given label.
+		virtual bool unindexDocuments(const std::string &labelName);
+
+		/// Renames a label.
+		virtual bool renameLabel(const std::string &name, const std::string &newName);
+
+		/// Deletes all references to a label.
+		virtual bool deleteLabel(const std::string &name);
+
+		/// Flushes recent changes to the disk.
+		virtual bool flush(void);
+
 	protected:
 		static const unsigned int m_maxTermLength;
 		static const std::string MAGIC_TERM;
 		std::string m_databaseName;
 		bool m_goodIndex;
+		std::string m_stemLanguage;
 
 		static std::string limitTermLength(const std::string &term, bool makeUnique = false);
 
+		static bool badField(const std::string &field);
+
 		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
+
+		void addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc,
+			const std::string &prefix, Xapian::termcount &termPos, StemmingMode mode) const;
+
+		void removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Document &doc,
+			const std::string &prefix, const std::string &language, StemmingMode mode) const;
+
+		bool addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
+			Xapian::termcount &termPos) const;
+
+		void removeCommonTerms(Xapian::Document &doc);
+
+		std::string scanDocument(const char *pData, unsigned int dataLength,
+			DocumentInfo &info);
+
+		void setDocumentData(const DocumentInfo &info, Xapian::Document &doc,
+			const std::string &language) const;
 
 };
 

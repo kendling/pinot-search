@@ -23,7 +23,7 @@
 
 #include "Url.h"
 #include "MonitorFactory.h"
-#include "WritableXapianIndex.h"
+#include "XapianIndex.h"
 #include "DaemonState.h"
 #include "MboxHandler.h"
 #include "OnDiskHandler.h"
@@ -179,7 +179,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		}
 
 		// Explicitely flush the index once a directory has been crawled
-		WritableXapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
+		XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 		index.flush();
 
 		// Start a new scanner thread ?

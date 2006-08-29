@@ -16,7 +16,6 @@
 
 #include "XapianIndex.h"
 #include "DBusXapianIndex.h"
-#include "WritableXapianIndex.h"
 #include "IndexFactory.h"
 
 using std::string;
@@ -29,17 +28,10 @@ IndexFactory::~IndexFactory()
 {
 }
 
-/// Returns a read-only index of the specified type; NULL if unavailable.
-IndexInterface *IndexFactory::getROIndex(const string &type, const string &option)
+/// Returns an index of the specified type; NULL if unavailable.
+IndexInterface *IndexFactory::getIndex(const string &type, const string &option)
 {
-	// Whatever the type, all read-only operations can be performed with XapianIndex
-	return new XapianIndex(option);
-}
-
-/// Returns a read-write index of the specified type; NULL if unavailable.
-WritableIndexInterface *IndexFactory::getRWIndex(const string &type, const string &option)
-{
-	WritableIndexInterface *pIndex = NULL;
+	IndexInterface *pIndex = NULL;
 
 	// Choice by type
 	if (type == "dbus")
@@ -48,7 +40,7 @@ WritableIndexInterface *IndexFactory::getRWIndex(const string &type, const strin
 	}
 	else if (type == "xapian")
 	{
-		pIndex = new WritableXapianIndex(option);
+		pIndex = new XapianIndex(option);
 	}
 
 	return pIndex;

@@ -26,11 +26,8 @@ class IndexFactory
 	public:
 		virtual ~IndexFactory();
 
-		/// Returns a read-only index of the specified type; NULL if unavailable.
-		static IndexInterface *getROIndex(const std::string &type, const std::string &option);
-
-		/// Returns a read-write index of the specified type; NULL if unavailable.
-		static WritableIndexInterface *getRWIndex(const std::string &type, const std::string &option);
+		/// Returns an index of the specified type; NULL if unavailable.
+		static IndexInterface *getIndex(const std::string &type, const std::string &option);
 
 	protected:
 		IndexFactory();

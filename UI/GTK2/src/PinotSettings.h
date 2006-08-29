@@ -75,11 +75,8 @@ class PinotSettings
 		/// Returns the name(s) for the given ID.
 		void getIndexNames(unsigned int id, std::set<std::string> &names);
 
-		/// Returns a IndexInterface for the given index location.
-		IndexInterface *getROIndex(const std::string &location);
-
-		/// Returns a WritableIndexInterface for the given index location.
-		WritableIndexInterface *getRWIndex(const std::string &location);
+		/// Returns an IndexInterface for the given index location.
+		IndexInterface *getIndex(const std::string &location);
 
 		class Engine
 		{

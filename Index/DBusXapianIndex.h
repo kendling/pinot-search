@@ -22,7 +22,7 @@
 
 #include "XapianIndex.h"
 
-class DBusXapianIndex : public WritableIndexInterface, private XapianIndex
+class DBusXapianIndex : public XapianIndex
 {
 	public:
 		DBusXapianIndex(const std::string &indexName);

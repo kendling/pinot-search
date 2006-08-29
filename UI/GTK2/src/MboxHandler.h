@@ -25,8 +25,8 @@
 #include "IndexedDocument.h"
 #include "MboxParser.h"
 #include "CrawlHistory.h"
-#include "WritableXapianIndex.h"
 #include "MonitorHandler.h"
+#include "XapianIndex.h"
 #include "PinotSettings.h"
 
 class MboxHandler : public MonitorHandler
@@ -59,7 +59,7 @@ class MboxHandler : public MonitorHandler
 
 	protected:
 		CrawlHistory m_history;
-		WritableXapianIndex m_index;
+		XapianIndex m_index;
 		unsigned int m_sourceId;
 
 		bool checkMailAccount(const std::string &fileName, PinotSettings::TimestampedItem &mailAccount);

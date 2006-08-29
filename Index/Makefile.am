@@ -5,7 +5,6 @@ noinst_HEADERS = \
 	IndexFactory.h \
 	IndexInterface.h \
 	LanguageDetector.h \
-	WritableXapianIndex.h \
 	XapianIndex.h
 
 noinst_LTLIBRARIES = libIndex.la
@@ -16,7 +15,6 @@ libIndex_la_SOURCES = \
 	DBusXapianIndex.cpp \
 	IndexFactory.cpp \
 	LanguageDetector.cpp \
-	WritableXapianIndex.cpp \
 	XapianIndex.cpp
 
 pinot_index_SOURCES = \

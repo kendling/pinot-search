@@ -121,6 +121,9 @@ bool WorkerThread::operator<(const WorkerThread &other) const
 
 Glib::Thread *WorkerThread::start(void)
 {
+#ifdef DEBUG
+	cout << "WorkerThread::start: " << getType() << " " << m_id << endl;
+#endif
 	return Thread::create(slot_class(*this, &WorkerThread::threadHandler), m_joinable);
 }
 
@@ -319,7 +322,7 @@ bool ThreadsManager::index_document(const DocumentInfo &docInfo)
 	}
 
 	// Is it an update ?
-	IndexInterface *pIndex = PinotSettings::getInstance().getROIndex(m_defaultIndexLocation);
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_defaultIndexLocation);
 	if (pIndex == NULL)
 	{
 		return false;
@@ -627,7 +630,7 @@ void IndexBrowserThread::doWork(void)
 	}
 
 	// Get the index at that location
-	IndexInterface *pIndex = PinotSettings::getInstance().getROIndex(mapIter->second);
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(mapIter->second);
 	if ((pIndex == NULL) ||
 		(pIndex->isGood() == false))
 	{
@@ -911,7 +914,7 @@ bool LabelUpdateThread::stop(void)
 
 void LabelUpdateThread::doWork(void)
 {
-	WritableIndexInterface *pDocsIndex = PinotSettings::getInstance().getRWIndex(PinotSettings::getInstance().m_docsIndexLocation);
+	IndexInterface *pDocsIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_docsIndexLocation);
 	if (pDocsIndex == NULL)
 	{
 		m_status = _("Index error on");
@@ -920,7 +923,7 @@ void LabelUpdateThread::doWork(void)
 		return;
 	}
 
-	WritableIndexInterface *pDaemonIndex = PinotSettings::getInstance().getRWIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+	IndexInterface *pDaemonIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
 	if (pDaemonIndex == NULL)
 	{
 		m_status = _("Index error on");
@@ -1105,7 +1108,7 @@ bool IndexingThread::stop(void)
 
 void IndexingThread::doWork(void)
 {
-	WritableIndexInterface *pIndex = PinotSettings::getInstance().getRWIndex(m_indexLocation);
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
 
 	// First things first, get the index
 	if ((pIndex == NULL) ||
@@ -1218,7 +1221,7 @@ void IndexingThread::doWork(void)
 		{
 			const set<string> &labels = m_docInfo.getLabels();
 
-			pIndex->setStemmingMode(WritableIndexInterface::STORE_BOTH);
+			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
 
 			// Update an existing document or add to the index ?
 			if (m_update == true)
@@ -1312,7 +1315,7 @@ bool UnindexingThread::stop(void)
 
 void UnindexingThread::doWork(void)
 {
-	WritableIndexInterface *pIndex = PinotSettings::getInstance().getRWIndex(m_indexLocation);
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
 
 	if ((pIndex == NULL) ||
 		(pIndex->isGood() == false))
@@ -1441,7 +1444,7 @@ void UpdateDocumentThread::doWork(void)
 		}
 
 		// Get the index at that location
-		WritableIndexInterface *pIndex = PinotSettings::getInstance().getRWIndex(mapIter->second);
+		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(mapIter->second);
 		if ((pIndex == NULL) ||
 			(pIndex->isGood() == false))
 		{

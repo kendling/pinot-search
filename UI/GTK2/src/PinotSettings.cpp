@@ -1177,36 +1177,20 @@ void PinotSettings::getIndexNames(unsigned int id, std::set<std::string> &names)
 	} while (indexId > 0);
 }
 
-/// Returns a IndexInterface for the given index location.
-IndexInterface *PinotSettings::getROIndex(const string &location)
+/// Returns an IndexInterface for the given index location.
+IndexInterface *PinotSettings::getIndex(const string &location)
 {
 	if (location == m_docsIndexLocation)
 	{
-		return IndexFactory::getROIndex("xapian", m_docsIndexLocation);
+		return IndexFactory::getIndex("xapian", m_docsIndexLocation);
 	}
 	else if ((m_enableDBus == true) &&
 		(location == m_daemonIndexLocation))
 	{
-		return IndexFactory::getROIndex("dbus", m_daemonIndexLocation);
+		return IndexFactory::getIndex("dbus", m_daemonIndexLocation);
 	}
 
-	return IndexFactory::getROIndex("xapian", location);
-}
-
-/// Returns a WritableIndexInterface for the given index location.
-WritableIndexInterface *PinotSettings::getRWIndex(const string &location)
-{
-	if (location == m_docsIndexLocation)
-	{
-		return IndexFactory::getRWIndex("xapian", m_docsIndexLocation);
-	}
-	else if ((m_enableDBus == true) &&
-		(location == m_daemonIndexLocation))
-	{
-		return IndexFactory::getRWIndex("dbus", m_daemonIndexLocation);
-	}
-
-	return IndexFactory::getRWIndex("xapian", location);
+	return IndexFactory::getIndex("xapian", location);
 }
 
 /// Returns the search engines set.

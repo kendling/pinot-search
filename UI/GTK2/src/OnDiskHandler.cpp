@@ -41,7 +41,7 @@ OnDiskHandler::OnDiskHandler() :
 	m_history(PinotSettings::getInstance().m_historyDatabase),
 	m_index(PinotSettings::getInstance().m_daemonIndexLocation)
 {
-	m_index.setStemmingMode(WritableIndexInterface::STORE_BOTH);
+	m_index.setStemmingMode(IndexInterface::STORE_BOTH);
 }
 
 OnDiskHandler::~OnDiskHandler()

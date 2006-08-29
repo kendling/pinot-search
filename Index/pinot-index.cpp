@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	DownloaderInterface::initialize();
 
 	// Get a read-write index of the given type
-	WritableIndexInterface *pIndex = IndexFactory::getRWIndex(argv[optind], argv[optind + 1]);
+	IndexInterface *pIndex = IndexFactory::getIndex(argv[optind], argv[optind + 1]);
 	if (pIndex == NULL)
 	{
 		cerr << "Couldn't obtain index of type " << argv[optind] << endl;
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 			{
 				set<string> labels;
 
-				pIndex->setStemmingMode(WritableIndexInterface::STORE_BOTH);
+				pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
 
 				// Update an existing document or add to the index ?
 				unsigned int docId = pIndex->hasDocument(urlToIndex);

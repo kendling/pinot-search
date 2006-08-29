@@ -161,7 +161,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLa
 		unsigned int docId = m_index.hasDocument(pMessage->getLocation());
 		if (docId == 0)
 		{
-			m_index.setStemmingMode(WritableIndexInterface::STORE_BOTH);
+			m_index.setStemmingMode(IndexInterface::STORE_BOTH);
 
 			// Get an ad hoc tokenizer for the message
 			Tokenizer *pTokenizer = TokenizerFactory::getTokenizerByType(pMessage->getType(), pMessage);

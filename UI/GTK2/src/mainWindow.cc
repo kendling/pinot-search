@@ -437,7 +437,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 	if ((hasSelection == true) &&
 		(resultsList.empty() == false))
 	{
-		IndexInterface *pIndex = m_settings.getROIndex("MERGED");
+		IndexInterface *pIndex = m_settings.getIndex("MERGED");
 		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = true;
 
 		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
@@ -1720,7 +1720,7 @@ void mainWindow::on_morelikethis_activate()
 		}
 	}
 
-	IndexInterface *pIndex = m_settings.getROIndex("MERGED");
+	IndexInterface *pIndex = m_settings.getIndex("MERGED");
         if (pIndex != NULL)
 	{
        	set<unsigned int> docIdList;
@@ -1939,7 +1939,7 @@ void mainWindow::on_showfromindex_activate()
 		return;
 	}
 
-	WritableIndexInterface *pIndex = m_settings.getRWIndex(mapIter->second);
+	IndexInterface *pIndex = m_settings.getIndex(mapIter->second);
 	if ((pIndex == NULL) ||
 		(pIndex->isGood() == false))
 	{
@@ -2296,7 +2296,7 @@ void mainWindow::on_liveQueryEntry_changed()
 	m_state.m_liveQueryLength = liveQueryLength;
 
 	// Query the merged index
-	IndexInterface *pIndex = m_settings.getROIndex("MERGED");
+	IndexInterface *pIndex = m_settings.getIndex("MERGED");
 	if (pIndex != NULL)
 	{
 		set<string> suggestedTerms;
@@ -3060,7 +3060,7 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 		std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
 		if (mapIter != indexesMap.end())
 		{
-			IndexInterface *pIndex = m_settings.getROIndex(mapIter->second);
+			IndexInterface *pIndex = m_settings.getIndex(mapIter->second);
 	
 			if (pIndex != NULL)
 			{
