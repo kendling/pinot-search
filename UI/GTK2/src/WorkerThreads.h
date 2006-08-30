@@ -405,11 +405,14 @@ class MonitorThread : public WorkerThread
 
 		virtual bool stop(void);
 
+		SigC::Signal3<void, const std::string&, const std::string&, bool>& getDirectoryFoundSignal(void);
+
 	protected:
 		int m_ctrlReadPipe;
 		int m_ctrlWritePipe;
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
+		SigC::Signal3<void, const std::string&, const std::string&, bool> m_signalDirectoryFound;
 
 		void processEvents(void);
 		virtual void doWork(void);
@@ -424,8 +427,7 @@ class DirectoryScannerThread : public WorkerThread
 {
 	public:
 		DirectoryScannerThread(MonitorInterface *pMonitor,
-			const std::string &dirName, unsigned int maxLevel, bool followSymLinks,
-			Glib::Mutex *pMutex, Glib::Cond *pCondVar);
+			const std::string &dirName, unsigned int maxLevel, bool followSymLinks);
 		virtual ~DirectoryScannerThread();
 
 		virtual std::string getType(void) const;
@@ -434,18 +436,16 @@ class DirectoryScannerThread : public WorkerThread
 
 		virtual bool stop(void);
 
-		SigC::Signal2<bool, const std::string&, const std::string&>& getFileFoundSignal(void);
+		SigC::Signal3<void, const std::string&, const std::string&, bool>& getFileFoundSignal(void);
 
 	protected:
 		MonitorInterface *m_pMonitor;
 		std::string m_dirName;
 		unsigned int m_maxLevel;
 		bool m_followSymLinks;
-		Glib::Mutex *m_pMutex;
-		Glib::Cond *m_pCondVar;
 		unsigned int m_currentLevel;
 		unsigned int m_sourceId;
-		SigC::Signal2<bool, const std::string&, const std::string&> m_signalFileFound;
+		SigC::Signal3<void, const std::string&, const std::string&, bool> m_signalFileFound;
 
 		void foundFile(const std::string &fileName);
 		bool scanDirectory(const std::string &dirName);

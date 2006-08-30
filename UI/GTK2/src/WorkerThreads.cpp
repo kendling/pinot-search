@@ -848,7 +848,7 @@ const set<string> &ExpandQueryThread::getExpandTerms(void) const
 bool ExpandQueryThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped expanding ");
+	m_status = _("Stopped expanding");
 	m_status += " ";
 	m_status += m_queryProps.getName();
 	return true;
@@ -874,7 +874,7 @@ void ExpandQueryThread::doWork(void)
 	// Run the query
 	if (pEngine->runQuery(m_queryProps) == false)
 	{
-		m_status = _("Couldn't expand ");
+		m_status = _("Couldn't expand");
 		m_status += " ";
 		m_status += m_queryProps.getName();
 	}
@@ -1520,6 +1520,11 @@ bool MonitorThread::stop(void)
 	return true;
 }
 
+Signal3<void, const string&, const std::string&, bool>& MonitorThread::getDirectoryFoundSignal(void)
+{
+	return m_signalDirectoryFound;
+}
+
 void MonitorThread::processEvents(void)
 {
 	queue<MonitorEvent> events;
@@ -1547,51 +1552,63 @@ void MonitorThread::processEvents(void)
 			events.pop();
 			continue;
 		}
+#ifdef DEBUG
+		cout << "MonitorThread::processEvents: event " << event.m_type << " on "
+			<< event.m_location << " " << event.m_isDirectory << endl;
+#endif
 
 		// What's the event code ?
-#ifdef DEBUG
-		cout << "MonitorThread::processEvents: event on " << event.m_location << endl;
-#endif
 		if (event.m_type == MonitorEvent::EXISTS)
 		{
-			m_pHandler->fileExists(event.m_location);
+			if (event.m_isDirectory == false)
+			{
+				m_pHandler->fileExists(event.m_location);
+			}
 		}
 		else if (event.m_type == MonitorEvent::CREATED)
 		{
-			m_pHandler->fileCreated(event.m_location);
-
-			// If a whole directory was created, monitor it
-			if (event.m_isDirectory == true)
+			if (event.m_isDirectory == false)
 			{
-				// FIXME: crawl it first !
-				m_pMonitor->addLocation(event.m_location, true);
+				m_pHandler->fileCreated(event.m_location);
+			}
+			else
+			{
+				// Report this directory so that it is crawled
+				m_signalDirectoryFound(string("file://") + event.m_location, "", true);
 			}
 		}
 		else if (event.m_type == MonitorEvent::WRITE_CLOSED)
 		{
-			m_pHandler->fileModified(event.m_location);
+			if (event.m_isDirectory == false)
+			{
+				m_pHandler->fileModified(event.m_location);
+			}
 		}
 		else if (event.m_type == MonitorEvent::MOVED)
 		{
-			m_pHandler->fileMoved(event.m_location, event.m_previousLocation);
-
-			if ((event.m_isDirectory == true) &&
-				(event.m_isWatch == true))
+			if (event.m_isDirectory == false)
+			{
+				m_pHandler->fileMoved(event.m_location, event.m_previousLocation);
+			}
+			else
 			{
 				// Stop monitoring
 				m_pMonitor->removeLocation(event.m_previousLocation);
-				// FIXME: monitor the new location
+				// FIXME: monitor the new location if under an indexable location
+				// FIXME: do the right thing for files under this directory
 			}
 		}
 		else if (event.m_type == MonitorEvent::DELETED)
 		{
-			m_pHandler->fileDeleted(event.m_location);
-
-			if ((event.m_isDirectory == true) &&
-				(event.m_isWatch == true))
+			if (event.m_isDirectory == false)
+			{
+				m_pHandler->fileDeleted(event.m_location);
+			}
+			else
 			{
 				// Stop monitoring
 				m_pMonitor->removeLocation(event.m_location);
+				// FIXME: do the right thing for files under this directory
 			}
 		}
 
@@ -1668,15 +1685,12 @@ void MonitorThread::doWork(void)
 }
 
 DirectoryScannerThread::DirectoryScannerThread(MonitorInterface *pMonitor,
-	const string &dirName, unsigned int maxLevel, bool followSymLinks,
-	Mutex *pMutex, Cond *pCondVar) :
+	const string &dirName, unsigned int maxLevel, bool followSymLinks) :
 	WorkerThread(),
 	m_pMonitor(pMonitor),
 	m_dirName(dirName),
 	m_maxLevel(maxLevel),
 	m_followSymLinks(followSymLinks),
-	m_pMutex(pMutex),
-	m_pCondVar(pCondVar),
 	m_currentLevel(0),
 	m_sourceId(0)
 {
@@ -1712,46 +1726,24 @@ bool DirectoryScannerThread::stop(void)
 	return true;
 }
 
-Signal2<bool, const string&, const std::string&>& DirectoryScannerThread::getFileFoundSignal(void)
+Signal3<void, const string&, const std::string&, bool>& DirectoryScannerThread::getFileFoundSignal(void)
 {
 	return m_signalFileFound;
 }
 
 void DirectoryScannerThread::foundFile(const string &fileName)
 {
+	char labelStr[64];
+
 	if (fileName.empty() == true)
 	{
 		return;
 	}
 
-	if ((m_pMutex != NULL) &&
-		(m_pCondVar != NULL))
-	{
-		string url("file://" + fileName);
-		char labelStr[64];
+	// This identifies the source
+	snprintf(labelStr, 64, "SOURCE%u", m_sourceId);
 
-		// This identifies the source
-		snprintf(labelStr, 64, "SOURCE%u", m_sourceId);
-
-		m_pMutex->lock();
-		if (m_signalFileFound(url, labelStr) == true)
-		{
-			// Another file is needed right now
-			m_pMutex->unlock();
-		}
-		else
-		{
-#ifdef DEBUG
-			cout << "DirectoryScannerThread::foundFile: waiting" << endl;
-#endif
-			// Don't resume until signaled
-			m_pCondVar->wait(*m_pMutex);
-			m_pMutex->unlock();
-#ifdef DEBUG
-			cout << "DirectoryScannerThread::foundFile: signaled" << endl;
-#endif
-		}
-	}
+	m_signalFileFound(string("file://") + fileName, labelStr, false);
 }
 
 bool DirectoryScannerThread::scanDirectory(const string &dirName)

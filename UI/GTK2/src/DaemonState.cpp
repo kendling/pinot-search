@@ -68,6 +68,7 @@ void DaemonState::start(void)
 	pMbox->getUpdateSignal().connect(
 		SigC::slot(*this, &DaemonState::on_message_indexupdate));
 	MonitorThread *pMailMonitorThread = new MonitorThread(m_pMailMonitor, pMbox);
+	pMailMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 	start_thread(pMailMonitorThread, true);
 
 	// Same for the disk monitor thread
@@ -76,6 +77,7 @@ void DaemonState::start(void)
 	pDisk->getUpdateSignal().connect(
 		SigC::slot(*this, &DaemonState::on_message_indexupdate));
 	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, pDisk);
+	pDiskMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 	start_thread(pDiskMonitorThread, true);
 
 	for (set<PinotSettings::TimestampedItem>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
@@ -98,19 +100,11 @@ void DaemonState::start(void)
 	{
 		// Scan the directory and import all its files
 		DirectoryScannerThread *pScannerThread = new DirectoryScannerThread(m_pDiskMonitor,
-			locationToCrawl, 0, true, &m_scanMutex, &m_scanCondVar);
+			locationToCrawl, 0, true);
 		pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 
 		m_crawling = start_thread(pScannerThread);
 	}
-}
-
-void DaemonState::signal_scanner(void)
-{
-	// Ask the scanner for another file
-	m_scanMutex.lock();
-	m_scanCondVar.signal();
-	m_scanMutex.unlock();
 }
 
 void DaemonState::on_thread_end(WorkerThread *pThread)
@@ -163,7 +157,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 				}
 
 				pNewScannerThread = new DirectoryScannerThread(m_pDiskMonitor,
-					locationToCrawl, 0, true, &m_scanMutex, &m_scanCondVar);
+					locationToCrawl, 0, true);
 				pNewScannerThread->getFileFoundSignal().connect(SigC::slot(*this,
 					&DaemonState::on_message_filefound));
 
@@ -199,12 +193,6 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 
 		// Get the URL we have just indexed
 		indexedUrl = pIndexThread->getURL();
-
-		// Get another file from the directory scanner if possible
-		if (m_crawling == true)
-		{
-			signal_scanner();
-		}
 	}
 	else if (type == "UnindexingThread")
 	{
@@ -234,18 +222,30 @@ void DaemonState::on_message_indexupdate(IndexedDocument docInfo, unsigned int d
 	// FIXME: anything to do ?
 }
 
-bool DaemonState::on_message_filefound(const string &location, const string &sourceLabel)
+void DaemonState::on_message_filefound(const string &location, const string &sourceLabel, bool isDirectory)
 {
-	Url urlObj(location);
-	set<string> labels;
+	if (isDirectory == false)
+	{
+		Url urlObj(location);
+		DocumentInfo docInfo(urlObj.getFile(), location, "", "");
+		set<string> labels;
 
-	DocumentInfo docInfo(urlObj.getFile(), location, "", "");
-	// Insert a label that identifies the source
-	labels.insert(sourceLabel);
-	docInfo.setLabels(labels);
+		// Insert a label that identifies the source
+		labels.insert(sourceLabel);
+		docInfo.setLabels(labels);
 
-	queue_index(docInfo);
+		queue_index(docInfo);
+	}
+	else
+	{
+		DirectoryScannerThread *pScannerThread = new DirectoryScannerThread(m_pDiskMonitor,
+			location.substr(7), 0, true);
+		pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 
-	// Don't request another file right now
-	return false;
+#ifdef DEBUG
+		cout << "DaemonState::on_message_filefound: new directory " << location.substr(7) << endl;
+#endif
+		m_crawling = start_thread(pScannerThread);
+	}
 }
+
