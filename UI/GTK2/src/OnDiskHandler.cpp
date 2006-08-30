@@ -14,8 +14,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <iostream>
@@ -50,8 +48,8 @@ OnDiskHandler::~OnDiskHandler()
 
 bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 {
-	string url(string("file://") + fileName);
-	Url urlObj(url);
+	string location(string("file://") + fileName);
+	Url urlObj(location);
 	set<string> labels;
 	bool indexedFile = false;
 
@@ -62,7 +60,7 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 	}
 
 	// Has this file been indexed already ?
-	unsigned int docId = m_index.hasDocument(url);
+	unsigned int docId = m_index.hasDocument(location);
 	if ((docId > 0) &&
 		(alwaysUpdate == false))
 	{
@@ -70,14 +68,14 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 		return true;
 	}
 
-	DocumentInfo docInfo(url, url, MIMEScanner::scanUrl(urlObj), "");
+	DocumentInfo docInfo(urlObj.getFile(), location, MIMEScanner::scanUrl(urlObj), "");
 
 	FileCollector fileCollector;
 	Document *pDoc = fileCollector.retrieveUrl(docInfo);
 	if (pDoc == NULL)
 	{
 #ifdef DEBUG
-		cout << "OnDiskHandler::indexFile: couldn't download " << url << endl;
+		cout << "OnDiskHandler::indexFile: couldn't download " << location << endl;
 #endif
 
 		// The file  couldn't be downloaded but exists nonetheless !
@@ -112,10 +110,10 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 			docInfo.getLocation(), docInfo.getType(), docInfo.getLanguage());
 
 		// Signal
-		m_signalUpdate(indexedDocInfo, docId, _("My Computer"));
+		m_signalUpdate(indexedDocInfo, docId, _("My Documents"));
 	}
 #ifdef DEBUG
-	else cout << "OnDiskHandler::indexFile: couldn't index " << url << endl;
+	else cout << "OnDiskHandler::indexFile: couldn't index " << location << endl;
 #endif
 
 	delete pTokenizer;

@@ -187,7 +187,7 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLa
 				docInfo.setTimestamp(TimeConverter::toTimestamp(messageDate));
 
 				// Signal
-				m_signalUpdate(docInfo, docId, _("My Computer"));
+				m_signalUpdate(docInfo, docId, _("My Documents"));
 			}
 #ifdef DEBUG
 			else cout << "MboxHandler::parseMailAccount: couldn't index message " << docNum << endl;
