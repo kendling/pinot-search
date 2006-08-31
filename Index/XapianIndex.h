@@ -63,8 +63,12 @@ class XapianIndex : public IndexInterface
 		virtual unsigned int listDocuments(std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
-		/// Lists documents that have a label.
+		/// Lists documents that have a specific label.
 		virtual bool listDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds,
+			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
+
+		/// Lists documents that are in a specific directory.
+		virtual bool listDocumentsInDirectory(const std::string &dirName, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
 		/// Indexes the given data.

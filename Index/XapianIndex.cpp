@@ -928,14 +928,23 @@ unsigned int XapianIndex::listDocuments(set<unsigned int> &docIds,
 	return listDocumentsWithTerm(MAGIC_TERM, docIds, maxDocsCount, startDoc);
 }
 
-/// Lists documents that have a label.
+/// Lists documents that have a specific label.
 bool XapianIndex::listDocumentsWithLabel(const string &name, set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
 	string term("XLABEL:");
 
-	// Get documents that have this label
 	term += name;
+	return listDocumentsWithTerm(term, docIds, maxDocsCount, startDoc);
+}
+
+/// Lists documents that are in a specific directory.
+bool XapianIndex::listDocumentsInDirectory(const string &dirName, set<unsigned int> &docIds,
+	unsigned int maxDocsCount, unsigned int startDoc) const
+{
+	string term("XDIR:");
+
+	term += dirName;
 	return listDocumentsWithTerm(term, docIds, maxDocsCount, startDoc);
 }
 
