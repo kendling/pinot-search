@@ -245,6 +245,20 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 					<< monEvent.m_previousLocation << endl;
 #endif
 				m_movedFrom.erase(movedIter);
+
+				// Has a watch moved ?
+				if ((monEvent.m_isWatch == true) &&
+					(monEvent.m_previousLocation == watchIter->second))
+				{
+					// Update the location for this watch
+					map<string, int>::iterator locationIter = m_locations.find(watchIter->second);
+					if (locationIter != m_locations.end())
+					{
+						m_locations.erase(locationIter);
+						m_locations[monEvent.m_location] = pEvent->wd;
+					}
+					watchIter->second = monEvent.m_location;
+				}
 			}
 #ifdef DEBUG
 			else cout << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
