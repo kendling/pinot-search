@@ -1592,10 +1592,9 @@ void MonitorThread::processEvents(void)
 			}
 			else
 			{
-				// Stop monitoring
-				m_pMonitor->removeLocation(event.m_previousLocation);
-				// FIXME: monitor the new location if under an indexable location
-				// FIXME: do the right thing for files under this directory
+				// FIXME: stop monitoring if not under an indexable location
+
+				m_pHandler->directoryMoved(event.m_location, event.m_previousLocation);
 			}
 		}
 		else if (event.m_type == MonitorEvent::DELETED)
@@ -1606,9 +1605,9 @@ void MonitorThread::processEvents(void)
 			}
 			else
 			{
-				// Stop monitoring
-				m_pMonitor->removeLocation(event.m_location);
-				// FIXME: do the right thing for files under this directory
+				// The monitoring should have stopped monitoring this
+				// In practice, events for the files in this directory will already have been received 
+				m_pHandler->directoryDeleted(event.m_location);
 			}
 		}
 

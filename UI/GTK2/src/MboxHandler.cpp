@@ -354,6 +354,13 @@ bool MboxHandler::fileMoved(const string &fileName, const string &previousFileNa
 	return true;
 }
 
+bool MboxHandler::directoryMoved(const string &dirName,
+	const string &previousDirName)
+{
+	// Nothing to do here
+	return true;
+}
+
 bool MboxHandler::fileDeleted(const string &fileName)
 {
 	set<unsigned int> docIdList;
@@ -380,3 +387,10 @@ bool MboxHandler::fileDeleted(const string &fileName)
 
 	return false;
 }
+
+bool MboxHandler::directoryDeleted(const string &dirName)
+{
+	// Nothing to do here
+	return true;
+}
+

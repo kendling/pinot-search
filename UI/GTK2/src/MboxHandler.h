@@ -54,8 +54,15 @@ class MboxHandler : public MonitorHandler
 		virtual bool fileMoved(const std::string &fileName,
 			const std::string &previousFileName);
 
+		/// Handles directory moved events.
+		virtual bool directoryMoved(const std::string &dirName,
+			const std::string &previousDirName);
+
 		/// Handles file deleted events.
 		virtual bool fileDeleted(const std::string &fileName);
+
+		/// Handles directory deleted events.
+		virtual bool directoryDeleted(const std::string &dirName);
 
 	protected:
 		CrawlHistory m_history;

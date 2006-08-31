@@ -122,6 +122,20 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 	return indexedFile;
 }
 
+bool OnDiskHandler::replaceFile(unsigned int docId, DocumentInfo &docInfo)
+{
+	// Has the destination file been indexed too ?
+	unsigned int destDocId = m_index.hasDocument(docInfo.getLocation());
+	if (destDocId > 0)
+	{
+		// Unindex it
+		m_index.unindexDocument(destDocId);
+	}
+
+	// Update the document info
+	return m_index.updateDocumentInfo(docId, docInfo);
+}
+
 void OnDiskHandler::initialize(void)
 {
 	map<unsigned int, string> sources;
@@ -213,22 +227,57 @@ bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFile
 	{
 		DocumentInfo docInfo;
 
-		m_index.getDocumentInfo(oldDocId, docInfo);
-
-		// Has the destination file been indexed too ?
-		unsigned int docId = m_index.hasDocument(string("file://") + fileName);
-		if (docId > 0)
+		if (m_index.getDocumentInfo(oldDocId, docInfo) == true)
 		{
-			// Unindex it
-			m_index.unindexDocument(docId);
-		}
+			// Change the location
+			docInfo.setLocation(string("file://") + fileName);
 
-		// Change the location
-		docInfo.setLocation(string("file://") + fileName);
-		return m_index.updateDocumentInfo(oldDocId, docInfo);
+			return replaceFile(oldDocId, docInfo);
+		}
 	}
 
 	return false; 
+}
+
+bool OnDiskHandler::directoryMoved(const string &dirName,
+	const string &previousDirName)
+{
+	set<unsigned int> docIdList;
+
+#ifdef DEBUG
+	cout << "OnDiskHandler::directoryMoved: " << dirName << endl;
+#endif
+	if (m_index.listDocumentsInDirectory(previousDirName, docIdList) == true)
+	{
+		for (set<unsigned int>::const_iterator iter = docIdList.begin();
+			iter != docIdList.end(); ++iter)
+		{
+			DocumentInfo docInfo;
+
+			if (m_index.getDocumentInfo(*iter, docInfo) == true)
+			{
+				string newLocation(docInfo.getLocation());
+
+				string::size_type pos = newLocation.find(previousDirName);
+				if (pos != string::npos)
+				{
+					newLocation.replace(pos, previousDirName.length(), dirName);
+
+					// Change the location
+					docInfo.setLocation(newLocation);
+
+					replaceFile(*iter, docInfo);
+				}
+			}
+		}
+
+		return true;
+	}
+#ifdef DEBUG
+	cout << "OnDiskHandler::directoryMoved: no documents in " << previousDirName << endl;
+#endif
+
+	return false;
 }
 
 bool OnDiskHandler::fileDeleted(const string &fileName)
@@ -245,3 +294,28 @@ bool OnDiskHandler::fileDeleted(const string &fileName)
 
 	return false;
 }
+
+bool OnDiskHandler::directoryDeleted(const string &dirName)
+{
+	set<unsigned int> docIdList;
+
+#ifdef DEBUG
+	cout << "OnDiskHandler::directoryDeleted: " << dirName << endl;
+#endif
+	if (m_index.listDocumentsInDirectory(dirName, docIdList) == true)
+	{
+		for (set<unsigned int>::const_iterator iter = docIdList.begin();
+			iter != docIdList.end(); ++iter)
+		{
+			m_index.unindexDocument(*iter);
+		}
+
+		return true;
+	}
+#ifdef DEBUG
+	cout << "OnDiskHandler::directoryDeleted: no documents in " << dirName << endl;
+#endif
+
+	return false;
+}
+
