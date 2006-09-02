@@ -2921,7 +2921,7 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 			DocumentInfo docInfo("", url, "", "");
 
 			// Get that message
-			start_thread(new DownloadingThread(docInfo, false));
+			start_thread(new DownloadingThread(docInfo));
 
 			// Record this into the history now, even though it may fail
 			if (viewHistory.hasItem(url) == false)

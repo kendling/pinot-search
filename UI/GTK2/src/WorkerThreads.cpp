@@ -41,9 +41,6 @@
 #include "IndexedDocument.h"
 #include "DownloaderFactory.h"
 #include "SearchEngineFactory.h"
-#ifdef HAS_GOOGLEAPI
-#include "GoogleAPIEngine.h"
-#endif
 #include "IndexFactory.h"
 #include "config.h"
 #include "NLS.h"
@@ -950,10 +947,9 @@ void LabelUpdateThread::doWork(void)
 	delete pDocsIndex;
 }
 
-DownloadingThread::DownloadingThread(const DocumentInfo &docInfo, bool fromCache) :
+DownloadingThread::DownloadingThread(const DocumentInfo &docInfo) :
 	WorkerThread(),
 	m_docInfo(docInfo),
-	m_fromCache(fromCache),
 	m_pDoc(NULL),
 	m_pDownloader(NULL)
 {
@@ -1006,31 +1002,17 @@ void DownloadingThread::doWork(void)
 
 	Url thisUrl(m_docInfo.getLocation());
 
-	if (m_fromCache == true)
+	// Get a Downloader, the default one will do
+	m_pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
+	if (m_pDownloader == NULL)
 	{
-#ifdef HAS_GOOGLEAPI
-		GoogleAPIEngine googleApiEngine;
-		googleApiEngine.setKey(PinotSettings::getInstance().m_googleAPIKey);
-		m_pDoc = googleApiEngine.retrieveCachedUrl(m_docInfo.getLocation());
-#endif
-#ifdef DEBUG
-		cout << "DownloadingThread::doWork: got cached page" << endl;
-#endif
+		m_status = _("Couldn't obtain downloader for protocol");
+		m_status += " ";
+		m_status += thisUrl.getProtocol();
 	}
-	else
+	else if (m_done == false)
 	{
-		// Get a Downloader, the default one will do
-		m_pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
-		if (m_pDownloader == NULL)
-		{
-			m_status = _("Couldn't obtain downloader for protocol");
-			m_status += " ";
-			m_status += thisUrl.getProtocol();
-		}
-		else if (m_done == false)
-		{
-			m_pDoc = m_pDownloader->retrieveUrl(m_docInfo);
-		}
+		m_pDoc = m_pDownloader->retrieveUrl(m_docInfo);
 	}
 
 	if (m_pDoc == NULL)
@@ -1043,7 +1025,7 @@ void DownloadingThread::doWork(void)
 
 IndexingThread::IndexingThread(const DocumentInfo &docInfo, unsigned int docId,
 	const string &indexLocation, bool allowAllMIMETypes) :
-	DownloadingThread(docInfo, false),
+	DownloadingThread(docInfo),
 	m_docInfo(docInfo),
 	m_docId(docId),
 	m_indexLocation(indexLocation),
@@ -1126,7 +1108,7 @@ void IndexingThread::doWork(void)
 
 	DownloadingThread::doWork();
 #ifdef DEBUG
-	cout << "IndexingThread::doWork: downloaded !" << endl;
+	cout << "IndexingThread::doWork: downloaded " << m_docInfo.getLocation() << endl;
 #endif
 
 	if (m_pDoc != NULL)
@@ -1529,7 +1511,8 @@ void MonitorThread::processEvents(void)
 {
 	queue<MonitorEvent> events;
 
-	if (m_pMonitor->retrievePendingEvents(events) == false)
+	if ((m_pMonitor == NULL) ||
+		(m_pMonitor->retrievePendingEvents(events) == false))
 	{
 #ifdef DEBUG
 		cout << "MonitorThread::processEvents: failed to retrieve pending events" << endl;
@@ -1831,8 +1814,11 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 				<< dirName << endl;
 #endif
 
-			// Monitor first so that we don't miss events
-			m_pMonitor->addLocation(dirName, true);
+			if (m_pMonitor != NULL)
+			{
+				// Monitor first so that we don't miss events
+				m_pMonitor->addLocation(dirName, true);
+			}
 
 			// Iterate through this directory's entries
 			struct dirent *pDirEntry = readdir(pDir);
