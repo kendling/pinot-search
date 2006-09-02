@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 			case 'h':
 				// Help
 				cout << "pinot-index - Index documents from the command-line\n\n"
-					<< "Usage: pinot-search [OPTIONS] INDEXTYPE INDEXLOCATION\n\n"
+					<< "Usage: pinot-index [OPTIONS] INDEXTYPE INDEXLOCATION\n\n"
 					<< "Options:\n"
 					<< "  -c, --check		check whether the given URL is in the index\n"
 					<< "  -h, --help		display this help and exit\n"
@@ -109,6 +109,18 @@ int main(int argc, char **argv)
 
 	MIMEScanner::initialize();
 	DownloaderInterface::initialize();
+
+	// Make sure the index is open in the correct mode
+	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(argv[optind + 1], (indexDocument ? false : true));
+	if (pDb == NULL)
+	{
+		cerr << "Couldn't open index " << argv[optind + 1] << endl;
+
+		DownloaderInterface::shutdown();
+		MIMEScanner::shutdown();
+
+		return EXIT_FAILURE;
+	}
 
 	// Get a read-write index of the given type
 	IndexInterface *pIndex = IndexFactory::getIndex(argv[optind], argv[optind + 1]);
