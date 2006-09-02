@@ -51,6 +51,12 @@ class HtmlTokenizer : public Tokenizer
 			bool validateOnly, bool findAbstract = false);
 		virtual ~HtmlTokenizer();
 
+		/// Initializes the HTML tokenizer.
+		static void initialize(void);
+
+		/// Shutdowns the HTML tokenizer.
+		static void shutdown(void);
+
 		/// Determines whether the document is properly formed.
 		bool isDocumentValid(void) const;
 

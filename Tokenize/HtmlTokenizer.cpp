@@ -22,6 +22,7 @@
 #include <iostream>
 
 #include "StringManip.h"
+#include "Url.h"
 #include "XmlTokenizer.h"
 #include "HtmlTokenizer.h"
 
@@ -525,6 +526,16 @@ HtmlTokenizer::~HtmlTokenizer()
 	}
 }
 
+void HtmlTokenizer::initialize(void)
+{
+	xmlInitParser();
+}
+
+void HtmlTokenizer::shutdown(void)
+{
+	xmlCleanupParser();
+}
+
 bool HtmlTokenizer::parseHTML(const Document *pDocument)
 {
 	if (pDocument == NULL)
@@ -545,8 +556,6 @@ bool HtmlTokenizer::parseHTML(const Document *pDocument)
 
 	string htmlChunk(pData, dataLength);
 	htmlSAXHandler saxHandler;
-
-	xmlInitParser();
 
 	// Setup the SAX handler
 	memset((void*)&saxHandler, 0, sizeof(htmlSAXHandler));
@@ -575,17 +584,31 @@ bool HtmlTokenizer::parseHTML(const Document *pDocument)
 #endif
 	}
 
-#ifndef _DONT_USE_PUSH_INTERFACE
+#if 1
+#ifdef DEBUG
+	cout << "HtmlTokenizer::parseHTML: " << pDocument->getLocation() << endl;
+#endif
 	htmlParserCtxtPtr pContext = htmlCreatePushParserCtxt(&saxHandler, (void*)&m_state,
 		htmlChunk.c_str(), (int)htmlChunk.length(), "", XML_CHAR_ENCODING_NONE);
 	if (pContext != NULL)
 	{
+		xmlCtxtUseOptions(pContext, 0);
+
 		// Parse
 		htmlParseChunk(pContext, htmlChunk.c_str(), (int)htmlChunk.length(), 0);
 
 		// Free
-		htmlParseChunk(pContext, NULL, 0, 1);
-		htmlFreeParserCtxt(pContext);
+		htmlParseChunk(pContext, htmlChunk.c_str(), 0, 1);
+		xmlDocPtr pDoc = pContext->myDoc;
+		int ret = pContext->wellFormed;
+		xmlFreeParserCtxt(pContext);
+		if (!ret)
+		{
+#ifdef DEBUG
+			cout << "HtmlTokenizer::parseHTML: freeing document" << endl;
+#endif
+			xmlFreeDoc(pDoc);
+		}
 	}
 #else
 	htmlDocPtr pDoc = htmlSAXParseDoc((xmlChar *)htmlChunk.c_str(), "", &saxHandler, (void*)&m_state);
@@ -598,7 +621,6 @@ bool HtmlTokenizer::parseHTML(const Document *pDocument)
 	{
 		cerr << "HtmlTokenizer::parseHTML: couldn't create parser context" << endl;
 	}
-	xmlCleanupParser();
 
 	// The text after the last link might make a good abstract
 	if (m_state.m_findAbstract == true)
