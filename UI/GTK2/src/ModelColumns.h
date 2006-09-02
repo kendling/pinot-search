@@ -132,7 +132,7 @@ public:
 
 };
 
-/// Preferences window, model column for the directories and mail accounts trees.
+/// Preferences window, model column for the mail accounts tree.
 class TimestampedModelColumns : public Gtk::TreeModel::ColumnRecord
 {
 public:
@@ -144,15 +144,15 @@ public:
 
 };
 
-/// Import window, model column for the types tree.
-class TypeModelColumns : public Gtk::TreeModel::ColumnRecord
+/// references window, model column for the directories tree.
+class IndexableModelColumns : public Gtk::TreeModel::ColumnRecord
 {
 public:
-	TypeModelColumns();
-	virtual ~TypeModelColumns();
+	IndexableModelColumns();
+	virtual ~IndexableModelColumns();
 
-	Gtk::TreeModelColumn<bool> m_enabled;
-	Gtk::TreeModelColumn<Glib::ustring> m_type;
+	Gtk::TreeModelColumn<bool> m_monitor;
+	Gtk::TreeModelColumn<Glib::ustring> m_location;
 
 };
 

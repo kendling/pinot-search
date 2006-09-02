@@ -69,6 +69,7 @@ prefsDialog::prefsDialog() :
 	// Associate the columns model to the directories tree
 	m_refDirectoriesTree = ListStore::create(m_directoriesColumns);
 	directoriesTreeview->set_model(m_refDirectoriesTree);
+	directoriesTreeview->append_column_editable(_("Monitor"), m_directoriesColumns.m_monitor);
 	directoriesTreeview->append_column(_("Location"), m_directoriesColumns.m_location);
 	// Allow only single selection
 	directoriesTreeview->get_selection()->set_mode(SELECTION_SINGLE);
@@ -190,16 +191,15 @@ void prefsDialog::populate_directoriesTreeview()
 	}
 
 	// Populate the tree
-	for (set<PinotSettings::TimestampedItem>::iterator dirIter = m_settings.m_indexableLocations.begin();
+	for (set<PinotSettings::IndexableLocation>::iterator dirIter = m_settings.m_indexableLocations.begin();
 		dirIter != m_settings.m_indexableLocations.end();
 		++dirIter)
 	{
 		// Create a new row
 		iter = m_refDirectoriesTree->append();
 		row = *iter;
-		// Set its name, type and minium date
+		row[m_directoriesColumns.m_monitor] = dirIter->m_monitor;
 		row[m_directoriesColumns.m_location] = dirIter->m_name;
-		row[m_directoriesColumns.m_mTime] = dirIter->m_modTime;
 	}
 
 	editDirectoryButton->set_sensitive(true);
@@ -219,11 +219,11 @@ bool prefsDialog::save_directoriesTreeview()
 		for (; iter != children.end(); ++iter)
 		{
 			TreeModel::Row row = *iter;
-			PinotSettings::TimestampedItem indexableLocation;
+			PinotSettings::IndexableLocation indexableLocation;
 
 			// Add this new directory to the settings
+			indexableLocation.m_monitor = row[m_directoriesColumns.m_monitor];
 			indexableLocation.m_name = row[m_directoriesColumns.m_location];
-			indexableLocation.m_modTime = row[m_directoriesColumns.m_mTime];
 
 			string dirLabel("file://");
 			dirLabel += from_utf8(indexableLocation.m_name);
@@ -400,8 +400,8 @@ void prefsDialog::on_addDirectoryButton_clicked()
 		TreeModel::iterator iter = m_refDirectoriesTree->append();
 		TreeModel::Row row = *iter;
 	
+		row[m_directoriesColumns.m_monitor] = false;
 		row[m_directoriesColumns.m_location] = to_utf8(dirName);
-		row[m_directoriesColumns.m_mTime] = time(NULL);
 
 		if (wasEmpty == true)
 		{

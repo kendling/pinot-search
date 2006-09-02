@@ -115,12 +115,12 @@ TimestampedModelColumns::~TimestampedModelColumns()
 {
 }
 
-TypeModelColumns::TypeModelColumns()
+IndexableModelColumns::IndexableModelColumns()
 {
-	add(m_enabled);
-	add(m_type);
+	add(m_monitor);
+	add(m_location);
 }
 
-TypeModelColumns::~TypeModelColumns()
+IndexableModelColumns::~IndexableModelColumns()
 {
 }

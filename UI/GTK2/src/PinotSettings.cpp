@@ -239,7 +239,7 @@ bool PinotSettings::load(void)
 	}
 
 	// Some search engines are hardcoded
-#ifdef HAS_GOOGLEAPI
+#ifdef HAVE_GOOGLEAPI
 	m_engineIds[1 << m_engines.size()] = "Google API";
 	m_engines.insert(Engine("Google API", "googleapi", "", "The Web"));
 	m_engineChannels.insert(pair<string, bool>("The Web", true));
@@ -762,7 +762,7 @@ bool PinotSettings::loadIndexableLocations(const Element *pElem)
 		return false;
 	}
 
-	TimestampedItem location;
+	IndexableLocation location;
 
 	// Load the indexable location's properties
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
@@ -781,9 +781,16 @@ bool PinotSettings::loadIndexableLocations(const Element *pElem)
 		{
 			location.m_name = nodeContent;
 		}
-		else if (nodeName == "mtime")
+		else if (nodeName == "monitor")
 		{
-			location.m_modTime = (time_t)atoi(nodeContent.c_str());
+			if (nodeContent == "YES")
+			{
+				location.m_monitor = true;
+			}
+			else
+			{
+				location.m_monitor = false;
+			}
 		}
 	}
 
@@ -1045,7 +1052,7 @@ bool PinotSettings::save(void)
 		addChildElement(pElem, "mtime", numStr);
 	}
 	// Locations to index 
-	for (set<TimestampedItem>::iterator locationIter = m_indexableLocations.begin(); locationIter != m_indexableLocations.end(); ++locationIter)
+	for (set<IndexableLocation>::iterator locationIter = m_indexableLocations.begin(); locationIter != m_indexableLocations.end(); ++locationIter)
 	{
 		pElem = pRootElem->add_child("indexable");
 		if (pElem == NULL)
@@ -1053,8 +1060,7 @@ bool PinotSettings::save(void)
 			return false;
 		}
 		addChildElement(pElem, "name", locationIter->m_name);
-		sprintf(numStr, "%ld", locationIter->m_modTime);
-		addChildElement(pElem, "mtime", numStr);
+		addChildElement(pElem, "monitor", (locationIter->m_monitor ? "YES" : "NO"));
 	}
 
 	// Save to file
@@ -1431,6 +1437,49 @@ bool PinotSettings::TimestampedItem::operator<(const TimestampedItem &other) con
 }
 
 bool PinotSettings::TimestampedItem::operator==(const TimestampedItem &other) const
+{
+	if (m_name == other.m_name)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+PinotSettings::IndexableLocation::IndexableLocation() :
+	m_monitor(false)
+{
+}
+
+PinotSettings::IndexableLocation::IndexableLocation(const IndexableLocation &other) :
+	m_monitor(other.m_monitor),
+	m_name(other.m_name)
+{
+}
+
+PinotSettings::IndexableLocation::~IndexableLocation()
+{
+}
+
+PinotSettings::IndexableLocation &PinotSettings::IndexableLocation::operator=(const IndexableLocation &other)
+{
+	m_monitor = other.m_monitor;
+	m_name = other.m_name;
+
+	return *this;
+}
+
+bool PinotSettings::IndexableLocation::operator<(const IndexableLocation &other) const
+{
+	if (m_name < other.m_name)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool PinotSettings::IndexableLocation::operator==(const IndexableLocation &other) const
 {
 	if (m_name == other.m_name)
 	{

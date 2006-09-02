@@ -147,6 +147,22 @@ class PinotSettings
 				time_t m_modTime;
 		};
 
+		class IndexableLocation 
+		{
+			public:
+				IndexableLocation();
+				IndexableLocation(const IndexableLocation &other);
+				~IndexableLocation();
+
+				IndexableLocation &operator=(const IndexableLocation &other);
+				bool operator<(const IndexableLocation &other) const;
+				bool operator==(const IndexableLocation &other) const;
+
+				bool m_monitor;
+				Glib::ustring m_name;
+
+		};
+
 		class CacheProvider
 		{
 			public:
@@ -179,7 +195,7 @@ class PinotSettings
 		unsigned short m_newResultsColourGreen;
 		unsigned short m_newResultsColourBlue;
 		std::set<TimestampedItem> m_mailAccounts;
-		std::set<TimestampedItem> m_indexableLocations;
+		std::set<IndexableLocation> m_indexableLocations;
 		std::vector<CacheProvider> m_cacheProviders;
 		std::set<Glib::ustring> m_cacheProtocols;
 

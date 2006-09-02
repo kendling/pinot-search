@@ -45,9 +45,9 @@ class DaemonState : public ThreadsManager
 	protected:
 		MonitorInterface *m_pMailMonitor;
 		MonitorInterface *m_pDiskMonitor;
-		std::queue<std::string> m_crawlQueue;
-		std::set<std::string> m_monitoredLocations;
-		bool m_crawling;
+		std::string m_locationBeingCrawled;
+
+		bool crawlLocation(const std::string &locationToCrawl, bool monitor);
 
 };
 

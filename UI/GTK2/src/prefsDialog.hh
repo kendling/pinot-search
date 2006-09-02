@@ -63,7 +63,7 @@ private:
 	Glib::RefPtr<Gtk::ListStore> m_refViewTree;
 	LabelModelColumns m_labelsColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
-	TimestampedModelColumns m_directoriesColumns;
+	IndexableModelColumns m_directoriesColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refDirectoriesTree;
 	TimestampedModelColumns m_mailColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refMailTree;

@@ -142,8 +142,8 @@ void OnDiskHandler::initialize(void)
 	set<string> directories;
 
 	// Get the map of indexable locations
-	set<PinotSettings::TimestampedItem> &indexableLocations = PinotSettings::getInstance().m_indexableLocations;
-	for (set<PinotSettings::TimestampedItem>::iterator dirIter = indexableLocations.begin();
+	set<PinotSettings::IndexableLocation> &indexableLocations = PinotSettings::getInstance().m_indexableLocations;
+	for (set<PinotSettings::IndexableLocation>::iterator dirIter = indexableLocations.begin();
 		dirIter != indexableLocations.end(); ++dirIter)
 	{
 		directories.insert(dirIter->m_name);
