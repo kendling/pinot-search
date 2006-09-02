@@ -24,6 +24,7 @@
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "XapianDatabaseFactory.h"
+#include "HtmlTokenizer.h"
 #include "XmlTokenizer.h"
 #include "SearchEngineFactory.h"
 #include "DownloaderFactory.h"
@@ -64,7 +65,7 @@ int main(int argc, char **argv)
 					cout << " " << *engineIter;
 				}
 				cout << "\n\nExamples:\n"
-#ifdef HAS_GOOGLEAPI
+#ifdef HAVE_GOOGLEAPI
 					<< "pinot-search googleapi mygoogleapikey \"clowns\" 10\n\n"
 #endif
 					<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\" 10\n\n"
@@ -94,6 +95,7 @@ int main(int argc, char **argv)
 	}
 
 	MIMEScanner::initialize();
+	HtmlTokenizer::initialize();
 	DownloaderInterface::initialize();
 
 	// Which SearchEngine ?
@@ -105,6 +107,7 @@ int main(int argc, char **argv)
 		cerr << "Couldn't obtain search engine instance" << endl;
 
 		DownloaderInterface::shutdown();
+		HtmlTokenizer::shutdown();
 		MIMEScanner::shutdown();
 
 		return EXIT_FAILURE;
@@ -160,6 +163,7 @@ int main(int argc, char **argv)
 
 	XapianDatabaseFactory::closeAll();
 	DownloaderInterface::shutdown();
+	HtmlTokenizer::shutdown();
 	MIMEScanner::shutdown();
 
 	return EXIT_SUCCESS;

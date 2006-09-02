@@ -32,6 +32,7 @@
 #include "MIMEScanner.h"
 #include "XapianDatabase.h"
 #include "XapianDatabaseFactory.h"
+#include "HtmlTokenizer.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
@@ -80,6 +81,7 @@ static void closeAll(void)
 	g_outputFile.close();
 
 	DownloaderInterface::shutdown();
+	HtmlTokenizer::shutdown();
 	MIMEScanner::shutdown();
 }
 
@@ -136,6 +138,7 @@ int main(int argc, char **argv)
 	setenv("XAPIAN_PREFER_FLINT", "1", 1);
 
 	MIMEScanner::initialize();
+	HtmlTokenizer::initialize();
 	DownloaderInterface::initialize();
 	Glib::thread_init();
 	Gtk::Main m(&argc, &argv);

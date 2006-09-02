@@ -23,6 +23,7 @@
 
 #include "MIMEScanner.h"
 #include "Url.h"
+#include "HtmlTokenizer.h"
 #include "XapianDatabaseFactory.h"
 #include "TokenizerFactory.h"
 #include "DownloaderFactory.h"
@@ -108,6 +109,7 @@ int main(int argc, char **argv)
 	}
 
 	MIMEScanner::initialize();
+	HtmlTokenizer::initialize();
 	DownloaderInterface::initialize();
 
 	// Make sure the index is open in the correct mode
@@ -117,6 +119,7 @@ int main(int argc, char **argv)
 		cerr << "Couldn't open index " << argv[optind + 1] << endl;
 
 		DownloaderInterface::shutdown();
+		HtmlTokenizer::shutdown();
 		MIMEScanner::shutdown();
 
 		return EXIT_FAILURE;
@@ -130,6 +133,7 @@ int main(int argc, char **argv)
 
 		XapianDatabaseFactory::closeAll();
 		DownloaderInterface::shutdown();
+		HtmlTokenizer::shutdown();
 		MIMEScanner::shutdown();
 
 		return EXIT_FAILURE;
@@ -159,6 +163,7 @@ int main(int argc, char **argv)
 
 			XapianDatabaseFactory::closeAll();
 			DownloaderInterface::shutdown();
+			HtmlTokenizer::shutdown();
 			MIMEScanner::shutdown();
 
 			return EXIT_FAILURE;
@@ -214,6 +219,7 @@ int main(int argc, char **argv)
 
 	XapianDatabaseFactory::closeAll();
 	DownloaderInterface::shutdown();
+	HtmlTokenizer::shutdown();
 	MIMEScanner::shutdown();
 
 	// Did whatever operation we carried out succeed ?
