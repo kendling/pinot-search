@@ -14,7 +14,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifdef HAS_GOOGLEAPI
+#ifdef HAVE_GOOGLEAPI
 #include "GoogleAPIEngine.h"
 #endif
 #include "PluginWebEngine.h"
@@ -44,7 +44,7 @@ SearchEngineInterface *SearchEngineFactory::getSearchEngine(const string &type, 
 	{
 		myEngine = new XapianEngine(option);
 	}
-#ifdef HAS_GOOGLEAPI
+#ifdef HAVE_GOOGLEAPI
 	else if (type == "googleapi")
 	{
 		myEngine = new GoogleAPIEngine();
@@ -63,7 +63,7 @@ void SearchEngineFactory::getSupportedEngines(set<string> &engines)
 	engines.insert("sherlock");
 	engines.insert("opensearch");
 	engines.insert("xapian");
-#ifdef HAS_GOOGLEAPI
+#ifdef HAVE_GOOGLEAPI
 	engines.insert("googleapi");
 #endif
 }
@@ -72,7 +72,7 @@ void SearchEngineFactory::getSupportedEngines(set<string> &engines)
 bool SearchEngineFactory::isSupported(const string &type)
 {
 	if (
-#ifdef HAS_GOOGLEAPI
+#ifdef HAVE_GOOGLEAPI
 		(type == "googleapi") ||
 #endif
 		(type == "sherlock") ||
