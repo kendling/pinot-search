@@ -73,7 +73,7 @@ AC_MSG_RESULT($soapsupport)
 case "$soapsupport" in
 yes)
 PKG_CHECK_MODULES(SOAP, gsoap)
-SOAP_CFLAGS="-DHAS_GOOGLEAPI $SOAP_CFLAGS"
+SOAP_CFLAGS="-DHAVE_GOOGLEAPI $SOAP_CFLAGS"
 SOAP_LIBS="$SOAP_LIBS -lSearchSOAP"
 SOAP_SUBDIRS="Search/Google"
 SEARCH_LTLIBRARIES="libSearch.la libSearchSOAP.la"
@@ -200,9 +200,6 @@ AC_CHECK_FUNCS(mmap)
 
 AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in \
-	Collect/Makefile )
-if test "$SOAP_SUBDIRS" != "" ; then
-  AC_OUTPUT( Search/Google/Makefile )
-fi
-AC_OUTPUT( Search/Makefile Index/Makefile Monitor/Makefile UI/GTK2/src/Makefile )
+	Collect/Makefile Search/Google/Makefile Search/Makefile \
+	Index/Makefile Monitor/Makefile UI/GTK2/src/Makefile )
 
