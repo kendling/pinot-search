@@ -17,6 +17,7 @@
 #ifndef _MIME_SCANNER_H
 #define _MIME_SCANNER_H
 
+#include <pthread.h>
 #include <string>
 #include <map>
 
@@ -63,6 +64,7 @@ class MIMEScanner
 		static bool getDefaultAction(const std::string &mimeType, MIMEAction &typeAction);
 
 	protected:
+		static pthread_mutex_t m_mutex;
 		static std::map<std::string, MIMEAction> m_defaultActions;
 
 		MIMEScanner();

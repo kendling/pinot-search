@@ -150,6 +150,8 @@ MIMEAction &MIMEAction::operator=(const MIMEAction &other)
 
 map<string, MIMEAction> MIMEScanner::m_defaultActions;
 
+pthread_mutex_t MIMEScanner::m_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 MIMEScanner::MIMEScanner()
 {
 }
@@ -240,13 +242,21 @@ void MIMEScanner::shutdown(void)
 
 string MIMEScanner::scanFileType(const string &fileName)
 {
+	const char *pType = NULL;
+
 	if (fileName.empty() == true)
 	{
 		return "";
 	}
 
 	// Does it have an obvious extension ?
-	const char *pType = xdg_mime_get_mime_type_from_file_name(fileName.c_str());
+	if (pthread_mutex_lock(&m_mutex) == 0)
+	{
+		pType = xdg_mime_get_mime_type_from_file_name(fileName.c_str());
+
+		pthread_mutex_unlock(&m_mutex);
+	}
+
 	if ((pType == NULL) ||
 		(strncasecmp(pType, xdg_mime_type_unknown, strlen(pType)) == 0))
 	{
@@ -271,8 +281,16 @@ string MIMEScanner::scanFile(const string &fileName)
 
 	if (mimeType.empty() == true)
 	{
+		const char *pType = NULL;
+
 		// Have a peek at the file
-		const char *pType = xdg_mime_get_mime_type_for_file(fileName.c_str(), NULL);
+		if (pthread_mutex_lock(&m_mutex) == 0)
+		{
+			pType = xdg_mime_get_mime_type_for_file(fileName.c_str(), NULL);
+
+			pthread_mutex_unlock(&m_mutex);
+		}
+
 		if (pType != NULL)
 		{
 			return pType;
