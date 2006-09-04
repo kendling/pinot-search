@@ -499,20 +499,29 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 				if (engine.runQuery(queryProps) == true)
 				{
 					const vector<Result> &resultsList = engine.getResults();
+					vector<string> docIds;
 					GPtrArray *pDocIds = g_ptr_array_new();
-					char docIdStr[64];
 
 					for (vector<Result>::const_iterator resultIter = resultsList.begin();
 						resultIter != resultsList.end(); ++resultIter)
 					{
 						// We only need the document ID
 						unsigned int docId = index.hasDocument(resultIter->getLocation());
+						if (docId > 0)
+						{
+							char docIdStr[64];
+							snprintf(docIdStr, 64, "%u", docId);
+							docIds.push_back(docIdStr);
+						}
+					}
 
-						g_snprintf(docIdStr, 64, "%u", docId);
+					for (vector<string>::const_iterator docIter = docIds.begin();
+						docIter != docIds.end(); ++docIter)
+					{
 #ifdef DEBUG
-						cout << "messageBusFilter: adding result " << pDocIds->len << " " << docId << endl;
+						cout << "messageBusFilter: adding result " << pDocIds->len << " " << *docIter << endl;
 #endif
-						g_ptr_array_add(pDocIds, docIdStr);
+						g_ptr_array_add(pDocIds, const_cast<char*>(docIter->c_str()));
 					}
 
 					// Prepare the reply
