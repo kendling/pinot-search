@@ -140,13 +140,25 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 #ifdef DEBUG
 	if (pSender != NULL)
 	{
-		cout << "messageBusFilter: called from " << pSender << endl;
+		cout << "messageBusFilter: called by " << pSender << endl;
+	}
+	else
+	{
+		cout << "messageBusFilter: called by unknown sender" << endl;
 	}
 #endif
 
 	// Are we about to be disconnected ?
 	if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_LOCAL, "Disconnected") == TRUE)
 	{
+#ifdef DEBUG
+		if ((pSender == NULL) ||
+			(strncmp(pSender, DBUS_PATH_LOCAL, strlen(DBUS_PATH_LOCAL)) != 0))
+		{
+			cout << "messageBusFilter: received Disconnected not from " << DBUS_PATH_LOCAL << endl;
+		}
+		else cout << "messageBusFilter: received Disconnected" << endl;
+#endif
 		quitLoop = true;
 		processedMessage = true;
 	}
@@ -159,7 +171,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << pLabel << endl;
+			cout << "messageBusFilter: received DeleteLabel " << pLabel << endl;
 #endif
 			// Delete the label
 			flushIndex = index.deleteLabel(pLabel);
@@ -195,7 +207,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DocumentInfo docInfo;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << docId << endl;
+			cout << "messageBusFilter: received GetDocumentInfo " << docId << endl;
 #endif
 			if (index.getDocumentInfo(docId, docInfo) == true)
 			{
@@ -246,50 +258,45 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			bool replyWithError = true;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << docId << endl;
+			cout << "messageBusFilter: received GetDocumentLabels " << docId << endl;
 #endif
 			if (index.getDocumentLabels(docId, labels) == true)
 			{
 				dbus_uint32_t labelsCount = labels.size();
+				GPtrArray *pLabels = g_ptr_array_new();
 
-				if (labelsCount > 0)
+				for (set<string>::const_iterator labelIter = labels.begin();
+					labelIter != labels.end(); ++labelIter)
 				{
-					char *pLabels[labelsCount + 1];
-					unsigned int labelIndex = 0;
+					string labelName(*labelIter);
 
-					for (set<string>::const_iterator labelIter = labels.begin();
-						labelIter != labels.end(); ++labelIter)
-					{
-						pLabels[labelIndex] = g_strdup(labelIter->c_str());
-						++labelIndex;
-					}
-					pLabels[labelIndex] = NULL;
-
-					// Prepare the reply
-					pReply = dbus_message_new_method_return(pMessage);
-					if (pReply != NULL)
-					{
-						dbus_message_append_args(pReply,
-							DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pLabels, (int)labelsCount,
-							DBUS_TYPE_INVALID);
-
-						// Send the reply here
-						if (dbus_message_get_no_reply(pMessage) == FALSE)
-						{
-							dbus_connection_send(pConnection, pReply, NULL);
-						}
-						dbus_message_unref(pReply);
-
-						pReply = NULL;
-						replyWithError = false;
-					}
-
-					// Free the array
-					for (unsigned int labelNum = 0; labelNum < labelIndex; ++labelNum)
-					{
-						g_free(pLabels[labelNum]);
-					}
+					g_ptr_array_add(pLabels, const_cast<char*>(labelName.c_str()));
+#ifdef DEBUG
+					cout << "messageBusFilter: adding label " << pLabels->len << " " << labelName << endl;
+#endif
 				}
+
+				// Prepare the reply
+				pReply = dbus_message_new_method_return(pMessage);
+				if (pReply != NULL)
+				{
+					dbus_message_append_args(pReply,
+						DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pLabels->pdata, pLabels->len,
+						DBUS_TYPE_INVALID);
+
+					// Send the reply here
+					if (dbus_message_get_no_reply(pMessage) == FALSE)
+					{
+						dbus_connection_send(pConnection, pReply, NULL);
+					}
+					dbus_message_unref(pReply);
+
+					pReply = NULL;
+					replyWithError = false;
+				}
+
+				// Free the array
+				g_ptr_array_free(pLabels, TRUE);
 			}
 
 			if (replyWithError == true)
@@ -340,7 +347,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << pOldLabel << ", " << pNewLabel << endl;
+			cout << "messageBusFilter: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
 #endif
 			// Rename the label
 			flushIndex = index.renameLabel(pOldLabel, pNewLabel);
@@ -385,7 +392,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 				((pLanguage != NULL) ? Languages::toLocale(pLanguage) : ""));
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << docId << ", " << pTitle
+			cout << "messageBusFilter: received SetDocumentInfo " << docId << ", " << pTitle
 				<< ", " << pLocation << ", " << pType << ", " << pLanguage << endl;
 #endif
 
@@ -436,7 +443,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 				labels.insert(ppLabels[labelIndex]);
 			}
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << docId << ", " << resetLabels
+			cout << "messageBusFilter: received SetDocumentLabels " << docId << ", " << resetLabels
 				<< " with " << labelsCount << " labels" << endl;
 #endif
 			// Set labels
@@ -481,7 +488,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			bool replyWithError = true;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << pSearchText << ", " << maxHits << endl;
+			cout << "messageBusFilter: received SimpleQuery " << pSearchText << ", " << maxHits << endl;
 #endif
 			if (pSearchText != NULL)
 			{
@@ -492,49 +499,43 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 				if (engine.runQuery(queryProps) == true)
 				{
 					const vector<Result> &resultsList = engine.getResults();
-					dbus_uint32_t docIdsCount = resultsList.size();
+					GPtrArray *pDocIds = g_ptr_array_new();
+					char docIdStr[64];
 
-					if (docIdsCount > 0)
+					for (vector<Result>::const_iterator resultIter = resultsList.begin();
+						resultIter != resultsList.end(); ++resultIter)
 					{
-						char *pDocIds[docIdsCount];
-						unsigned int resultIndex = 0;
+						// We only need the document ID
+						unsigned int docId = index.hasDocument(resultIter->getLocation());
 
-						for (vector<Result>::const_iterator resultIter = resultsList.begin();
-							resultIter != resultsList.end(); ++resultIter)
-						{
-							// We only need the document ID
-							unsigned int docId = index.hasDocument(resultIter->getLocation());
-
-							pDocIds[resultIndex] = g_strdup_printf("%u", docId);
-							++resultIndex;
-						}
-
-						// Prepare the reply
-						pReply = dbus_message_new_method_return(pMessage);
-						if (pReply != NULL)
-						{
-							dbus_message_append_args(pReply,
-								DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pDocIds, (int)docIdsCount,
-								DBUS_TYPE_UINT32, &docIdsCount,
-								DBUS_TYPE_INVALID);
-
-							// Send the reply here
-							if (dbus_message_get_no_reply(pMessage) == FALSE)
-							{
-								dbus_connection_send(pConnection, pReply, NULL);
-							}
-							dbus_message_unref(pReply);
-
-							pReply = NULL;
-							replyWithError = false;
-						}
-
-						// Free the array
-						for (unsigned int resultNum = 0; resultNum < resultIndex; ++resultNum)
-						{
-							g_free(pDocIds[resultNum]);
-						}
+						g_snprintf(docIdStr, 64, "%u", docId);
+#ifdef DEBUG
+						cout << "messageBusFilter: adding result " << pDocIds->len << " " << docId << endl;
+#endif
+						g_ptr_array_add(pDocIds, docIdStr);
 					}
+
+					// Prepare the reply
+					pReply = dbus_message_new_method_return(pMessage);
+					if (pReply != NULL)
+					{
+						dbus_message_append_args(pReply,
+							DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pDocIds->pdata, pDocIds->len,
+							DBUS_TYPE_INVALID);
+
+						// Send the reply here
+						if (dbus_message_get_no_reply(pMessage) == FALSE)
+						{
+							dbus_connection_send(pConnection, pReply, NULL);
+						}
+						dbus_message_unref(pReply);
+
+						pReply = NULL;
+						replyWithError = false;
+					}
+
+					// Free the array
+					g_ptr_array_free(pDocIds, TRUE);
 				}
 			}
 
@@ -563,6 +564,9 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 		{
 			int exitStatus = EXIT_SUCCESS;
 
+#ifdef DEBUG
+			cout << "messageBusFilter: received Stop" << endl;
+#endif
 			// Prepare the reply
 			pReply = dbus_message_new_method_return(pMessage);
 			if (pReply != NULL)
@@ -587,7 +591,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DocumentInfo docInfo;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received " << docId << endl;
+			cout << "messageBusFilter: received UpdateDocument " << docId << endl;
 #endif
 			if (index.getDocumentInfo(docId, docInfo) == true)
 			{

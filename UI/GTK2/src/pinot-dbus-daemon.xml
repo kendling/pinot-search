@@ -100,7 +100,6 @@
       <arg type="s" name="searchText" direction="in" />
       <arg type="u" name="maxHits" direction="in" />
       <arg type="as" name="docIds" direction="out" />
-      <arg type="u" name="docIdsCount" direction="out"/>
     </method>
     <!--
 	Stops the daemon program.
