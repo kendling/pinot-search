@@ -197,8 +197,7 @@ int main(int argc, char **argv)
 	if ((pFirstDb == NULL) ||
 		(pFirstDb->isOpen() == false))
 	{
-		errorMsg = "Couldn't open index";
-		errorMsg += " ";
+		errorMsg = "Couldn't open index ";
 		errorMsg += settings.m_docsIndexLocation;
 	}
 	// ...and the daemon index in read-only mode
@@ -206,8 +205,7 @@ int main(int argc, char **argv)
 	if ((pSecondDb == NULL) ||
 		(pSecondDb->isOpen() == false))
 	{
-		errorMsg = "Couldn't open index";
-		errorMsg += " ";
+		errorMsg = "Couldn't open index ";
 		errorMsg += settings.m_daemonIndexLocation;
 	}
 	// Merge these two, this will be useful later
@@ -218,8 +216,7 @@ int main(int argc, char **argv)
 		(QueryHistory::create(settings.m_historyDatabase) == false) ||
 		(ViewHistory::create(settings.m_historyDatabase) == false))
 	{
-		errorMsg = "Couldn't create history database";
-		errorMsg += " ";
+		errorMsg = "Couldn't create history database ";
 		errorMsg += settings.m_historyDatabase;
 	}
 	else
