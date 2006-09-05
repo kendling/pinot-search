@@ -64,10 +64,11 @@ static struct option g_longOptions[] = {
 };
 static const char *g_pinotDBusService = "de.berlios.Pinot";
 static const char *g_pinotDBusObjectPath = "/de/berlios/Pinot";
-static DBusHandlerResult objectPathHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData);
+static void unregisteredHandler(DBusConnection *pConnection, void *pData);
+static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData);
 static DBusObjectPathVTable g_callVTable = {
-	NULL,
-	objectPathHandler,
+	(DBusObjectPathUnregisterFunction)unregisteredHandler,
+        (DBusObjectPathMessageFunction)messageHandler,
 	NULL,
 };
 static Glib::RefPtr<Glib::MainLoop> g_refMainLoop;
@@ -108,27 +109,60 @@ static void quitAll(int sigNum)
 	}
 }
 
-static DBusHandlerResult objectPathHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
+static DBusMessage *newDBusReply(DBusMessage *pMessage)
+{
+	if (pMessage == NULL)
+	{
+		return NULL;
+	}
+
+	DBusMessage *pReply = dbus_message_new_method_return(pMessage);
+	if (pReply != NULL)
+	{
+		return pReply;
+	}
+
+	return NULL;
+}
+
+static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
 #ifdef DEBUG
-	cout << "objectPathHandler: called" << endl;
+	cout << "filterHandler: called" << endl;
 #endif
-	if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "Index") == TRUE)
+	// Are we about to be disconnected ?
+	if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_LOCAL, "Disconnected") == TRUE)
 	{
-		return DBUS_HANDLER_RESULT_HANDLED;
+#ifdef DEBUG
+		cout << "filterHandler: received Disconnected" << endl;
+#endif
+		quitAll(0);
+	}
+	else if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_DBUS, "NameOwnerChanged") == TRUE)
+	{
+#ifdef DEBUG
+		cout << "filterHandler: received NameOwnerChanged" << endl;
+#endif
 	}
 
 	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
-static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
+static void unregisteredHandler(DBusConnection *pConnection, void *pData)
+{
+#ifdef DEBUG
+	cout << "unregisteredHandler: called" << endl;
+#endif
+}
+
+static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
 	XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 	DaemonState *pServer = NULL;
 	DBusMessage *pReply = NULL;
 	DBusError error;
 	const char *pSender = dbus_message_get_sender(pMessage);
-	bool processedMessage = false, flushIndex = false, quitLoop = false;
+	bool processedMessage = true, flushIndex = false, quitLoop = false;
 
 	if (pData != NULL)
 	{
@@ -140,29 +174,15 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 #ifdef DEBUG
 	if (pSender != NULL)
 	{
-		cout << "messageBusFilter: called by " << pSender << endl;
+		cout << "messageHandler: called by " << pSender << endl;
 	}
 	else
 	{
-		cout << "messageBusFilter: called by unknown sender" << endl;
+		cout << "messageHandler: called by unknown sender" << endl;
 	}
 #endif
 
-	// Are we about to be disconnected ?
-	if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_LOCAL, "Disconnected") == TRUE)
-	{
-#ifdef DEBUG
-		if ((pSender == NULL) ||
-			(strncmp(pSender, DBUS_PATH_LOCAL, strlen(DBUS_PATH_LOCAL)) != 0))
-		{
-			cout << "messageBusFilter: received Disconnected not from " << DBUS_PATH_LOCAL << endl;
-		}
-		else cout << "messageBusFilter: received Disconnected" << endl;
-#endif
-		quitLoop = true;
-		processedMessage = true;
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "DeleteLabel") == TRUE)
+	if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "DeleteLabel") == TRUE)
 	{
 		char *pLabel = NULL;
 
@@ -171,13 +191,13 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 #ifdef DEBUG
-			cout << "messageBusFilter: received DeleteLabel " << pLabel << endl;
+			cout << "messageHandler: received DeleteLabel " << pLabel << endl;
 #endif
 			// Delete the label
 			flushIndex = index.deleteLabel(pLabel);
 
 			// Prepare the reply
-			pReply = dbus_message_new_method_return(pMessage);
+			pReply = newDBusReply(pMessage);
 			if (pReply != NULL)
 			{
 				dbus_message_append_args(pReply,
@@ -185,16 +205,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 					DBUS_TYPE_INVALID);
 			}
 		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetDocumentInfo") == TRUE)
 	{
@@ -207,18 +217,19 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DocumentInfo docInfo;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received GetDocumentInfo " << docId << endl;
+			cout << "messageHandler: received GetDocumentInfo " << docId << endl;
 #endif
 			if (index.getDocumentInfo(docId, docInfo) == true)
 			{
 				// Prepare the reply
-				pReply = dbus_message_new_method_return(pMessage);
+				pReply = newDBusReply(pMessage);
 				if (pReply != NULL)
 				{
+					string language(Languages::toEnglish(docInfo.getLanguage()));
 					const char *pTitle = docInfo.getTitle().c_str();
 					const char *pLocation = docInfo.getLocation().c_str();
 					const char *pType = docInfo.getType().c_str();
-					const char *pLanguage = Languages::toEnglish(docInfo.getLanguage()).c_str();
+					const char *pLanguage = language.c_str();
 
 					dbus_message_append_args(pReply,
 						DBUS_TYPE_STRING, &pTitle,
@@ -235,16 +246,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 					"Unknown document");
 			}
 		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetDocumentLabels") == TRUE)
 	{
@@ -255,10 +256,9 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 			set<string> labels;
-			bool replyWithError = true;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received GetDocumentLabels " << docId << endl;
+			cout << "messageHandler: received GetDocumentLabels " << docId << endl;
 #endif
 			if (index.getDocumentLabels(docId, labels) == true)
 			{
@@ -272,12 +272,12 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 
 					g_ptr_array_add(pLabels, const_cast<char*>(labelName.c_str()));
 #ifdef DEBUG
-					cout << "messageBusFilter: adding label " << pLabels->len << " " << labelName << endl;
+					cout << "messageHandler: adding label " << pLabels->len << " " << labelName << endl;
 #endif
 				}
 
 				// Prepare the reply
-				pReply = dbus_message_new_method_return(pMessage);
+				pReply = newDBusReply(pMessage);
 				if (pReply != NULL)
 				{
 					dbus_message_append_args(pReply,
@@ -285,37 +285,22 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 						DBUS_TYPE_INVALID);
 
 					// Send the reply here
-					if (dbus_message_get_no_reply(pMessage) == FALSE)
-					{
-						dbus_connection_send(pConnection, pReply, NULL);
-					}
+					dbus_connection_send(pConnection, pReply, NULL);
 					dbus_message_unref(pReply);
 
 					pReply = NULL;
-					replyWithError = false;
 				}
 
 				// Free the array
 				g_ptr_array_free(pLabels, TRUE);
 			}
-
-			if (replyWithError == true)
+			else
 			{
 				pReply = dbus_message_new_error(pMessage,
 					"de.berlios.Pinot.GetDocumentLabels",
 					" failed");
 			}
 		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetStatistics") == TRUE)
 	{
@@ -324,8 +309,11 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 		unsigned int docsCount = index.getDocumentsCount();
 		unsigned int docId = 0;
 
+#ifdef DEBUG
+		cout << "messageHandler: received GetStatistics" << endl;
+#endif
 		// Prepare the reply
-		pReply = dbus_message_new_method_return(pMessage);
+		pReply = newDBusReply(pMessage);
 		if (pReply != NULL)
 		{
 			dbus_message_append_args(pReply,
@@ -333,8 +321,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 				DBUS_TYPE_UINT32, &docsCount,
 				DBUS_TYPE_INVALID);
 		}
-
-		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "RenameLabel") == TRUE)
 	{
@@ -347,13 +333,13 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 #ifdef DEBUG
-			cout << "messageBusFilter: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
+			cout << "messageHandler: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
 #endif
 			// Rename the label
 			flushIndex = index.renameLabel(pOldLabel, pNewLabel);
 
 			// Prepare the reply
-			pReply = dbus_message_new_method_return(pMessage);
+			pReply = newDBusReply(pMessage);
 			if (pReply != NULL)
 			{
 				dbus_message_append_args(pReply,
@@ -361,16 +347,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 					DBUS_TYPE_INVALID);
 			}
 		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SetDocumentInfo") == TRUE)
 	{
@@ -392,7 +368,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 				((pLanguage != NULL) ? Languages::toLocale(pLanguage) : ""));
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received SetDocumentInfo " << docId << ", " << pTitle
+			cout << "messageHandler: received SetDocumentInfo " << docId << ", " << pTitle
 				<< ", " << pLocation << ", " << pType << ", " << pLanguage << endl;
 #endif
 
@@ -400,7 +376,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			flushIndex = index.updateDocumentInfo(docId, docInfo);
 
 			// Prepare the reply
-			pReply = dbus_message_new_method_return(pMessage);
+			pReply = newDBusReply(pMessage);
 			if (pReply != NULL)
 			{
 				dbus_message_append_args(pReply,
@@ -408,16 +384,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 					DBUS_TYPE_INVALID);
 			}
 		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SetDocumentLabels") == TRUE)
 	{
@@ -443,7 +409,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 				labels.insert(ppLabels[labelIndex]);
 			}
 #ifdef DEBUG
-			cout << "messageBusFilter: received SetDocumentLabels " << docId << ", " << resetLabels
+			cout << "messageHandler: received SetDocumentLabels " << docId << ", " << resetLabels
 				<< " with " << labelsCount << " labels" << endl;
 #endif
 			// Set labels
@@ -453,7 +419,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			g_strfreev(ppLabels);
 
 			// Prepare the reply
-			pReply = dbus_message_new_method_return(pMessage);
+			pReply = newDBusReply(pMessage);
 			if (pReply != NULL)
 			{
 				dbus_message_append_args(pReply,
@@ -461,16 +427,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 					DBUS_TYPE_INVALID);
 			}
 		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SimpleQuery") == TRUE)
 	{
@@ -488,7 +444,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			bool replyWithError = true;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received SimpleQuery " << pSearchText << ", " << maxHits << endl;
+			cout << "messageHandler: received SimpleQuery " << pSearchText << ", " << maxHits << endl;
 #endif
 			if (pSearchText != NULL)
 			{
@@ -519,13 +475,13 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 						docIter != docIds.end(); ++docIter)
 					{
 #ifdef DEBUG
-						cout << "messageBusFilter: adding result " << pDocIds->len << " " << *docIter << endl;
+						cout << "messageHandler: adding result " << pDocIds->len << " " << *docIter << endl;
 #endif
 						g_ptr_array_add(pDocIds, const_cast<char*>(docIter->c_str()));
 					}
 
 					// Prepare the reply
-					pReply = dbus_message_new_method_return(pMessage);
+					pReply = newDBusReply(pMessage);
 					if (pReply != NULL)
 					{
 						dbus_message_append_args(pReply,
@@ -533,10 +489,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 							DBUS_TYPE_INVALID);
 
 						// Send the reply here
-						if (dbus_message_get_no_reply(pMessage) == FALSE)
-						{
-							dbus_connection_send(pConnection, pReply, NULL);
-						}
+						dbus_connection_send(pConnection, pReply, NULL);
 						dbus_message_unref(pReply);
 
 						pReply = NULL;
@@ -555,16 +508,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 					"Query failed");
 			}
 		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "Stop") == TRUE)
 	{
@@ -574,10 +517,10 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			int exitStatus = EXIT_SUCCESS;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received Stop" << endl;
+			cout << "messageHandler: received Stop" << endl;
 #endif
 			// Prepare the reply
-			pReply = dbus_message_new_method_return(pMessage);
+			pReply = newDBusReply(pMessage);
 			if (pReply != NULL)
 			{
 				dbus_message_append_args(pReply,
@@ -586,7 +529,6 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			}
 
 			quitLoop = true;
-			processedMessage = true;
 		}
 	}
 	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "UpdateDocument") == TRUE)
@@ -600,7 +542,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			DocumentInfo docInfo;
 
 #ifdef DEBUG
-			cout << "messageBusFilter: received UpdateDocument " << docId << endl;
+			cout << "messageHandler: received UpdateDocument " << docId << endl;
 #endif
 			if (index.getDocumentInfo(docId, docInfo) == true)
 			{
@@ -609,7 +551,7 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 			}
 
 			// Prepare the reply
-			pReply = dbus_message_new_method_return(pMessage);
+			pReply = newDBusReply(pMessage);
 			if (pReply != NULL)
 			{
 				dbus_message_append_args(pReply,
@@ -617,20 +559,26 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 					DBUS_TYPE_INVALID);
 			}
 		}
-		else
-		{
-#ifdef DEBUG
-			cout << "messageBusFilter: " << error.message << endl;
-#endif
-			// Use the error message as reply
-			pReply = dbus_message_new_error(pMessage, error.name, error.message);
-		}
-
-		processedMessage = true;
 	}
+	else
+	{
 #ifdef DEBUG
-	else cout << "messageBusFilter: message for foreign object" << endl;
+		cout << "messageHandler: foreign message for/from " << dbus_message_get_interface(pMessage)
+			<< " " << dbus_message_get_member(pMessage) << endl;
 #endif
+		processedMessage = false;
+	}
+
+	// Did an error occur ?
+	if (error.message != NULL)
+	{
+#ifdef DEBUG
+		cout << "messageHandler: error occured: " << error.message << endl;
+#endif
+		// Use the error message as reply
+		pReply = dbus_message_new_error(pMessage, error.name, error.message);
+	}
+
 	dbus_error_free(&error);
 
 	if (flushIndex == true)
@@ -642,11 +590,11 @@ static DBusHandlerResult messageBusFilter(DBusConnection *pConnection, DBusMessa
 	// Send a reply ?
 	if (pReply != NULL)
 	{
-		if (dbus_message_get_no_reply(pMessage) == FALSE)
-		{
-			dbus_connection_send(pConnection, pReply, NULL);
-		}
-
+		dbus_connection_send(pConnection, pReply, NULL);
+		dbus_connection_flush(pConnection);
+#ifdef DEBUG
+		cout << "messageHandler: sent reply" << endl;
+#endif
 		dbus_message_unref(pReply);
 	}
 
@@ -766,8 +714,7 @@ int main(int argc, char **argv)
 	if ((pDb == NULL) ||
 		(pDb->isOpen() == false))
 	{
-		cerr << "Couldn't open index" << " " << settings.m_daemonIndexLocation << endl;
-
+		cerr << "Couldn't open index " << settings.m_daemonIndexLocation << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -777,8 +724,7 @@ int main(int argc, char **argv)
 		(QueryHistory::create(settings.m_historyDatabase) == false) ||
 		(ViewHistory::create(settings.m_historyDatabase) == false))
 	{
-		cerr << "Couldn't create history database" << " " << settings.m_historyDatabase << endl;
-
+		cerr << "Couldn't create history database " << settings.m_historyDatabase << endl;
 		return EXIT_FAILURE;
 	}
 	else
@@ -825,38 +771,36 @@ int main(int argc, char **argv)
 	dbus_connection_set_exit_on_disconnect(pConnection, FALSE);
 	dbus_connection_setup_with_g_main(pConnection, NULL);
 
-	dbus_connection_add_filter(pConnection, messageBusFilter, &server, NULL);
-	if (dbus_error_is_set(&error) == FALSE)
+	if ((dbus_error_is_set(&error) == FALSE) &&
+		(dbus_connection_register_object_path(pConnection, g_pinotDBusObjectPath,
+			&g_callVTable, &server) == TRUE))
 	{
 		// Request to be identified by this name
 		// FIXME: flags are currently broken ?
 		dbus_bus_request_name(pConnection, g_pinotDBusService, 0, &error);
-		if ((dbus_error_is_set(&error) == FALSE) &&
-			(dbus_connection_register_object_path(pConnection, g_pinotDBusObjectPath,
-				&g_callVTable, NULL) == TRUE))
-		{
-			// Get the main loop
-			g_refMainLoop = Glib::MainLoop::create();
 
-			// Connect to threads' finished signal
-			server.connect();
+		dbus_connection_add_filter(pConnection, (DBusHandleMessageFunction)filterHandler, &server, NULL);
 
-			server.start();
+		// Get the main loop
+		g_refMainLoop = Glib::MainLoop::create();
 
-			// Run the main loop
-			g_refMainLoop->run();
-		}
-		else
-		{
-			cerr << "Couldn't register object path: " << pError->message << endl;
-		}
+		// Connect to threads' finished signal
+		server.connect();
+
+		server.start();
+
+		// Run the main loop
+		g_refMainLoop->run();
 	}
 	else
 	{
-		cerr << "Couldn't add filter: " << pError->message << endl;
+		cerr << "Couldn't register object path: " << pError->message << endl;
 	}
 
 	dbus_error_free(&error);
+#ifdef DEBUG
+	cout << "Closing connection..." << endl;
+#endif
 	dbus_connection_close(pConnection);
 	dbus_g_connection_unref(pBus);
 
