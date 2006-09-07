@@ -60,10 +60,14 @@ class PinotFileMatch (deskbar.Match.Match):
 	def get_category (self):
 		return "files"
 
-class PinotFileSearchHandler(deskbar.Handler.AsyncHandler):
+class PinotFileSearchHandler(deskbar.Handler.SignallingHandler):
 	def __init__(self):
-		deskbar.Handler.AsyncHandler.__init__(self, ("system-search", "pinot"))
-		
+		deskbar.Handler.SignallingHandler.__init__(self, ("system-search", "pinot"))
+
+		self.query_string = ""
+		self.results = []
+		self.results_count = 10
+
 		import dbus
 		# We have to do this or it won't work
 		if getattr(dbus, 'version', (0,0,0)) >= (0,41,0):
@@ -74,30 +78,36 @@ class PinotFileSearchHandler(deskbar.Handler.AsyncHandler):
 			self.proxy_obj = self.bus.get_object('de.berlios.Pinot', '/de/berlios/Pinot')
 			self.pinot_iface = dbus.Interface(self.proxy_obj, 'de.berlios.Pinot')
 		except Exception, msg:
-			print 'D-Bus exception: ', msg
+			print 'Caught D-Bus exception: ', msg
+		self.set_delay (500)
 
 	def query (self, qstring, max):
-		# Add a 1 second delay so that we don't run queries everytime the query is edited
-		self.check_query_changed (timeout=1)
-
 		print "SimpleQuery: ", qstring
-		matches = []
 		doc_ids = []
 		try :
 			import dbus
 			doc_ids = self.pinot_iface.SimpleQuery (qstring, dbus.UInt32(max))
 		except Exception, msg:
-			print 'D-Bus exception: ', msg
-		# Check if the query is still valid
-		self.check_query_changed ()
+			print 'Caught D-Bus exception: ', msg
+		# Save the query's details
+		self.query_string = qstring
+		self.results = []
+		self.results_count = len(doc_ids)
 		try :
+			# Get the details of each hit
 			for doc_id in doc_ids:
 				print "Hit on document ", doc_id
-				name, url, mime_type, main_language = self.pinot_iface.GetDocumentInfo (dbus.UInt32(doc_id))
-				matches.append( PinotFileMatch(self, name, url, mime_type, main_language) )
+				self.pinot_iface.GetDocumentInfo (dbus.UInt32(doc_id),
+					reply_handler=self.__receive_hits, error_handler=self.__receive_error)
 		except Exception, msg:
-			print 'D-Bus exception: ', msg
-		# Check if the query is still valid here too
-		self.check_query_changed ()
-		return matches
+			print 'Caught exception: ', msg
+
+	def __receive_hits (self, name, url, mime_type, main_language):
+		self.results.append( PinotFileMatch(self, name, url, mime_type, main_language) )
+		print "Got hit ", len(self.results)
+		if len(self.results) == self.results_count:
+			self.emit_query_ready(self.query_string, self.results)
+
+	def __receive_error (self, error):
+		print 'D-Bus error: ', error
 
