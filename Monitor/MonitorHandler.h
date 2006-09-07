@@ -20,8 +20,6 @@
 #include <string>
 #include <set>
 #include <map>
-#include <sigc++/compatibility.h>
-#include <sigc++/slot.h>
 
 #include "IndexedDocument.h"
 #include "MonitorInterface.h"
@@ -64,12 +62,8 @@ class MonitorHandler
 		/// Returns the names of files to monitor.
 		const std::set<std::string> &getFileNames(void) const;
 
-		/// Returns the file update signal.
-		SigC::Signal3<void, IndexedDocument, unsigned int, std::string>& getUpdateSignal(void);
-
 	protected:
 		std::set<std::string> m_fileNames;
-		SigC::Signal3<void, IndexedDocument, unsigned int, std::string> m_signalUpdate;
 
 	private:
 		MonitorHandler(const MonitorHandler &other);

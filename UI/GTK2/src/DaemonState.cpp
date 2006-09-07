@@ -16,6 +16,8 @@
 
 #include <iostream>
 #include <sigc++/class_slot.h>
+#include <sigc++/compatibility.h>
+#include <sigc++/slot.h>
 #include <glibmm/ustring.h>
 #include <glibmm/stringutils.h>
 #include <glibmm/convert.h>
@@ -91,19 +93,12 @@ void DaemonState::start(void)
 	WorkerThread::immediateFlush(false);
 
 	// Fire up the mail monitor thread now
-	MboxHandler *pMboxHandler = new MboxHandler();
-	// Connect to its update signal
-	pMboxHandler->getUpdateSignal().connect(
-		SigC::slot(*this, &DaemonState::on_message_indexupdate));
-	MonitorThread *pMailMonitorThread = new MonitorThread(m_pMailMonitor, pMboxHandler);
+	MonitorThread *pMailMonitorThread = new MonitorThread(m_pMailMonitor, new MboxHandler());
 	pMailMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 	start_thread(pMailMonitorThread, true);
 
 	// Same for the disk monitor thread
 	m_pDiskHandler = new OnDiskHandler();
-	// Connect to its update signal
-	m_pDiskHandler->getUpdateSignal().connect(
-		SigC::slot(*this, &DaemonState::on_message_indexupdate));
 	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, m_pDiskHandler);
 	pDiskMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 	start_thread(pDiskMonitorThread, true);
@@ -199,11 +194,6 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 
 	// We might be able to run a queued action
 	pop_queue(indexedUrl);
-}
-
-void DaemonState::on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, string indexName)
-{
-	// FIXME: anything to do ?
 }
 
 void DaemonState::on_message_filefound(const string &location, const string &sourceLabel, bool isDirectory)

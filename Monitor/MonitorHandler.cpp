@@ -17,7 +17,6 @@
 #include "MonitorHandler.h"
 
 using namespace std;
-using namespace SigC;
 
 MonitorHandler::MonitorHandler()
 {
@@ -30,9 +29,4 @@ MonitorHandler::~MonitorHandler()
 const set<string> &MonitorHandler::getFileNames(void) const
 {
 	return m_fileNames;
-}
-
-Signal3<void, IndexedDocument, unsigned int, string>& MonitorHandler::getUpdateSignal(void)
-{
-	return m_signalUpdate;
 }

@@ -27,6 +27,8 @@
 #include <iostream>
 #include <fstream>
 #include <sigc++/class_slot.h>
+#include <sigc++/compatibility.h>
+#include <sigc++/slot.h>
 
 #include "HtmlTokenizer.h"
 #include "XmlTokenizer.h"

@@ -129,17 +129,11 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 		indexedFile = m_index.updateDocument(docId, *pTokenizer);
 	}
 
-	if (indexedFile == true)
-	{
-		IndexedDocument indexedDocInfo(docInfo.getTitle(),
-			XapianDatabase::buildUrl(PinotSettings::getInstance().m_daemonIndexLocation, docId),
-			docInfo.getLocation(), docInfo.getType(), docInfo.getLanguage());
-
-		// Signal
-		m_signalUpdate(indexedDocInfo, docId, _("My Documents"));
-	}
 #ifdef DEBUG
-	else cout << "OnDiskHandler::indexFile: couldn't index " << location << endl;
+	if (indexedFile == false)
+	{
+		cout << "OnDiskHandler::indexFile: couldn't index " << location << endl;
+	}
 #endif
 
 	delete pTokenizer;

@@ -37,8 +37,6 @@ class DaemonState : public ThreadsManager
 
 		void on_thread_end(WorkerThread *pThread);
 
-		void on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, std::string indexName);
-
 		void on_message_filefound(const std::string &location, const std::string &sourceLabel,
 			bool isDirectory);
 

@@ -177,20 +177,11 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLa
 
 			unsigned int docId = 0;
 			indexedFile = m_index.indexDocument(*pTokenizer, labels, docId);
-			if (indexedFile == true)
-			{
-				time_t messageDate = boxParser.getDate();
-
-				IndexedDocument docInfo(pMessage->getTitle(),
-					XapianDatabase::buildUrl(PinotSettings::getInstance().m_daemonIndexLocation, docId),
-					pMessage->getLocation(), pMessage->getType(), pMessage->getLanguage());
-				docInfo.setTimestamp(TimeConverter::toTimestamp(messageDate));
-
-				// Signal
-				m_signalUpdate(docInfo, docId, _("My Documents"));
-			}
 #ifdef DEBUG
-			else cout << "MboxHandler::parseMailAccount: couldn't index message " << docNum << endl;
+			if (indexedFile == false)
+			{
+				cout << "MboxHandler::parseMailAccount: couldn't index message " << docNum << endl;
+			}
 #endif
 
 			delete pTokenizer;
