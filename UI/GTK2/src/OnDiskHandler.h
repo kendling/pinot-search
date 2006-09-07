@@ -18,8 +18,9 @@
 #define _ONDISKHANDLER_HH
 
 #include <time.h>
+#include <pthread.h>
 #include <string>
-#include <set>
+#include <map>
 #include <sigc++/slot.h>
 
 #include "CrawlHistory.h"
@@ -64,6 +65,8 @@ class OnDiskHandler : public MonitorHandler
 		virtual bool directoryDeleted(const std::string &dirName);
 
 	protected:
+		pthread_mutex_t m_mutex;
+		std::map<unsigned int, std::string> m_fileSources;
 		CrawlHistory m_history;
 		XapianIndex m_index;
 

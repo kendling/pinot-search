@@ -138,20 +138,22 @@ bool MboxHandler::indexMessages(const string &fileName, PinotSettings::Timestamp
 bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLabel)
 {
 	set<unsigned int> docIdList;
+	set<string> labels;
+	const Document *pMessage = boxParser.getDocument();
+	char sourceStr[64];
+	unsigned int docNum = 0;
 	bool indexedFile = false;
-
 #ifdef DEBUG
 	Timer timer;
 	timer.start();
 #endif
-	set<string> labels;
-	const Document *pMessage = boxParser.getDocument();
-	unsigned int docNum = 0;
 
 	// Get a list of documents labeled with this source label
 	m_index.listDocumentsWithLabel(sourceLabel, docIdList); 
 
 	// This is the labels we'll apply to new documents
+	snprintf(sourceStr, 64, "SOURCE%u", m_sourceId);
+	labels.insert(sourceStr);
 	labels.insert(sourceLabel);
 
 	// Parse the mbox file
@@ -178,8 +180,6 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLa
 			if (indexedFile == true)
 			{
 				time_t messageDate = boxParser.getDate();
-
-				m_index.setDocumentLabels(docId, labels);
 
 				IndexedDocument docInfo(pMessage->getTitle(),
 					XapianDatabase::buildUrl(PinotSettings::getInstance().m_daemonIndexLocation, docId),
@@ -268,7 +268,7 @@ void MboxHandler::initialize(void)
 	}
 
 	// Unindex messages that belong to mailboxes that no longer exist
-	if (m_history.getSourceItems(m_sourceId, CrawlHistory::CRAWLED, 0, mailboxes) > 0)
+	if (m_history.getSourceItems(m_sourceId, CrawlHistory::CRAWLED, mailboxes) > 0)
 	{
 		for(set<string>::const_iterator mailIter = mailboxes.begin();
 			mailIter != mailboxes.end(); ++mailIter)

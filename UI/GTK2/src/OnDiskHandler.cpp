@@ -16,6 +16,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <set>
 #include <iostream>
 #include <fstream>
 
@@ -39,11 +40,13 @@ OnDiskHandler::OnDiskHandler() :
 	m_history(PinotSettings::getInstance().m_historyDatabase),
 	m_index(PinotSettings::getInstance().m_daemonIndexLocation)
 {
+	pthread_mutex_init(&m_mutex, NULL);
 	m_index.setStemmingMode(IndexInterface::STORE_BOTH);
 }
 
 OnDiskHandler::~OnDiskHandler()
 {
+	pthread_mutex_destroy(&m_mutex);
 }
 
 bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
@@ -66,6 +69,29 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 	{
 		// No need to update
 		return true;
+	}
+
+	// What source does it belong to ?
+	for(map<unsigned int, string>::const_iterator sourceIter = m_fileSources.begin();
+		sourceIter != m_fileSources.end(); ++sourceIter)
+	{
+		unsigned int sourceId = sourceIter->first;
+
+		if (sourceIter->second.length() < location.length())
+		{
+			// Skip
+			continue;
+		}
+
+		if (sourceIter->second.substr(0, location.length()) == location)
+		{
+			char sourceStr[64];
+
+			// That's the one
+			snprintf(sourceStr, 64, "SOURCE%u", sourceIter->first);
+			labels.insert(sourceStr);
+			break;
+		}
 	}
 
 	DocumentInfo docInfo(urlObj.getFile(), location, MIMEScanner::scanUrl(urlObj), "");
@@ -138,7 +164,6 @@ bool OnDiskHandler::replaceFile(unsigned int docId, DocumentInfo &docInfo)
 
 void OnDiskHandler::initialize(void)
 {
-	map<unsigned int, string> sources;
 	set<string> directories;
 
 	// Get the map of indexable locations
@@ -150,19 +175,20 @@ void OnDiskHandler::initialize(void)
 	}
 
 	// Unindex documents that belong to sources that no longer exist
-	if (m_history.getSources(sources) > 0)
+	if (m_history.getSources(m_fileSources) > 0)
 	{
-		for(map<unsigned int, string>::const_iterator sourceIter = sources.begin();
-			sourceIter != sources.end(); ++sourceIter)
+		for(map<unsigned int, string>::const_iterator sourceIter = m_fileSources.begin();
+			sourceIter != m_fileSources.end(); ++sourceIter)
 		{
 			unsigned int sourceId = sourceIter->first;
 
-			// Is this a file and does it still exist ?
 			if (sourceIter->second.substr(0, 7) != "file://")
 			{
+				// Skip
 				continue;
 			}
 
+			// Is this an indexable location ?
 			if (directories.find(sourceIter->second.substr(7)) == directories.end())
 			{
 				char sourceStr[64];
@@ -190,7 +216,9 @@ void OnDiskHandler::initialize(void)
 
 void OnDiskHandler::flushIndex(void)
 {
+	pthread_mutex_lock(&m_mutex);
 	m_index.flush();
+	pthread_mutex_unlock(&m_mutex);
 }
 
 bool OnDiskHandler::fileExists(const string &fileName)
@@ -201,27 +229,42 @@ bool OnDiskHandler::fileExists(const string &fileName)
 
 bool OnDiskHandler::fileCreated(const string &fileName)
 {
+	bool handledEvent = false;
+
 #ifdef DEBUG
 	cout << "OnDiskHandler::fileCreated: " << fileName << endl;
 #endif
+	pthread_mutex_lock(&m_mutex);
 	// The file shouldn't exist in the index, but if it does for some reason, don't update it
-	return indexFile(fileName, false);
+	handledEvent = indexFile(fileName, false);
+	pthread_mutex_unlock(&m_mutex);
+
+	return handledEvent;
 }
 
 bool OnDiskHandler::fileModified(const string &fileName)
 {
+	bool handledEvent = false;
+
 #ifdef DEBUG
 	cout << "OnDiskHandler::fileModified: " << fileName << endl;
 #endif
+	pthread_mutex_lock(&m_mutex);
 	// Update the file, or index if necessary
-	return indexFile(fileName, true);
+	handledEvent = indexFile(fileName, true);
+	pthread_mutex_unlock(&m_mutex);
+
+	return handledEvent;
 }
 
 bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFileName)
 {
+	bool handledEvent = false;
+
 #ifdef DEBUG
 	cout << "OnDiskHandler::fileMoved: " << fileName << endl;
 #endif
+	pthread_mutex_lock(&m_mutex);
 	unsigned int oldDocId = m_index.hasDocument(string("file://") + previousFileName);
 	if (oldDocId > 0)
 	{
@@ -232,21 +275,24 @@ bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFile
 			// Change the location
 			docInfo.setLocation(string("file://") + fileName);
 
-			return replaceFile(oldDocId, docInfo);
+			handledEvent = replaceFile(oldDocId, docInfo);
 		}
 	}
+	pthread_mutex_unlock(&m_mutex);
 
-	return false; 
+	return handledEvent;
 }
 
 bool OnDiskHandler::directoryMoved(const string &dirName,
 	const string &previousDirName)
 {
 	set<unsigned int> docIdList;
+	bool handledEvent = false;
 
 #ifdef DEBUG
 	cout << "OnDiskHandler::directoryMoved: " << dirName << endl;
 #endif
+	pthread_mutex_lock(&m_mutex);
 	if (m_index.listDocumentsInDirectory(previousDirName, docIdList) == true)
 	{
 		for (set<unsigned int>::const_iterator iter = docIdList.begin();
@@ -271,37 +317,44 @@ bool OnDiskHandler::directoryMoved(const string &dirName,
 			}
 		}
 
-		return true;
+		handledEvent = true;
 	}
 #ifdef DEBUG
-	cout << "OnDiskHandler::directoryMoved: no documents in " << previousDirName << endl;
+	else cout << "OnDiskHandler::directoryMoved: no documents in " << previousDirName << endl;
 #endif
+	pthread_mutex_unlock(&m_mutex);
 
-	return false;
+	return handledEvent;
 }
 
 bool OnDiskHandler::fileDeleted(const string &fileName)
 {
+	bool handledEvent = false;
+
 #ifdef DEBUG
 	cout << "OnDiskHandler::fileDeleted: " << fileName << endl;
 #endif
+	pthread_mutex_lock(&m_mutex);
 	unsigned int docId = m_index.hasDocument(string("file://") + fileName);
 	if (docId > 0)
 	{
 		// Unindex the file
-		return m_index.unindexDocument(docId);
+		handledEvent = m_index.unindexDocument(docId);
 	}
+	pthread_mutex_unlock(&m_mutex);
 
-	return false;
+	return handledEvent;
 }
 
 bool OnDiskHandler::directoryDeleted(const string &dirName)
 {
 	set<unsigned int> docIdList;
+	bool handledEvent = false;
 
 #ifdef DEBUG
 	cout << "OnDiskHandler::directoryDeleted: " << dirName << endl;
 #endif
+	pthread_mutex_lock(&m_mutex);
 	if (m_index.listDocumentsInDirectory(dirName, docIdList) == true)
 	{
 		for (set<unsigned int>::const_iterator iter = docIdList.begin();
@@ -310,12 +363,13 @@ bool OnDiskHandler::directoryDeleted(const string &dirName)
 			m_index.unindexDocument(*iter);
 		}
 
-		return true;
+		handledEvent = true;
 	}
 #ifdef DEBUG
-	cout << "OnDiskHandler::directoryDeleted: no documents in " << dirName << endl;
+	else cout << "OnDiskHandler::directoryDeleted: no documents in " << dirName << endl;
 #endif
+	pthread_mutex_unlock(&m_mutex);
 
-	return false;
+	return handledEvent;
 }
 
