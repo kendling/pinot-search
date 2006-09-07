@@ -42,6 +42,7 @@ using std::endl;
 INotifyMonitor::INotifyMonitor() :
 	MonitorInterface()
 {
+	pthread_mutex_init(&m_mutex, NULL);
 	m_monitorFd = inotify_init();
 	if (m_monitorFd < 0)
 	{
@@ -58,12 +59,14 @@ INotifyMonitor::~INotifyMonitor()
 	{
 		close(m_monitorFd);
 	}
+	pthread_mutex_destroy(&m_mutex);
 }
 
 /// Starts monitoring a location.
 bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 {
 	uint32_t eventsMask = IN_CLOSE_WRITE|IN_MOVE|IN_CREATE|IN_DELETE|IN_UNMOUNT|IN_MOVE_SELF|IN_DELETE_SELF;
+	bool addedLocation = false;
 
 	if ((location.empty() == true) ||
 		(location == "/") ||
@@ -72,49 +75,60 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 		return false;
 	}
 
+	pthread_mutex_lock(&m_mutex);
 	map<string, int>::iterator locationIter = m_locations.find(location);
 	if (locationIter != m_locations.end())
 	{
 		// This is already being monitored
-		return true;
+		addedLocation = true;
 	}
-
-	// FIXME: check the maximum number of watches hasn't been reached (MAX_FILE_WATCHES ?)
-	int watchNum = inotify_add_watch(m_monitorFd, location.c_str(), eventsMask);
-	if (watchNum >= 0)
+	else
 	{
-		MonitorEvent monEvent;
+		// FIXME: check the maximum number of watches hasn't been reached (MAX_FILE_WATCHES ?)
+		int watchNum = inotify_add_watch(m_monitorFd, location.c_str(), eventsMask);
+		if (watchNum >= 0)
+		{
+			// Generate an event to signal the file exists and is being monitored
+			if (isDirectory == false)
+			{
+				MonitorEvent monEvent;
+				monEvent.m_location = location;
+				monEvent.m_isWatch = true;
+				monEvent.m_type = MonitorEvent::EXISTS;
+				monEvent.m_isDirectory = false;
+				m_internalEvents.push(monEvent);
+			}
 
-		// Generate an event to signal it exists and is being monitored
-		monEvent.m_location = location;
-		monEvent.m_isWatch = true;
-		monEvent.m_type = MonitorEvent::EXISTS;
-		monEvent.m_isDirectory = isDirectory;
-		m_internalEvents.push(monEvent);
-
-		m_watches.insert(pair<int, string>(watchNum, location));
-		m_locations.insert(pair<string, int>(location, watchNum));
+			m_watches.insert(pair<int, string>(watchNum, location));
+			m_locations.insert(pair<string, int>(location, watchNum));
 #ifdef DEBUG
-		cout << "INotifyMonitor::addLocation: added watch "
-			<< watchNum << " for " << location << endl;
+			cout << "INotifyMonitor::addLocation: added watch "
+				<< watchNum << " for " << location << endl;
 #endif
-
-		return true;
+			addedLocation = true;
+		}
+		else
+		{
+			cerr << "INotifyMonitor::addLocation: couldn't monitor " << location << endl;
+		}
 	}
-	cerr << "INotifyMonitor::addLocation: couldn't monitor " << location << endl;
+	pthread_mutex_unlock(&m_mutex);
 
-	return false;
+	return addedLocation;
 }
 
 /// Stops monitoring a location.
 bool INotifyMonitor::removeLocation(const string &location)
 {
+	bool removedLocation = false;
+
 	if ((location.empty() == true) ||
 		(m_monitorFd < 0))
 	{
 		return false;
 	}
 
+	pthread_mutex_lock(&m_mutex);
 	map<string, int>::iterator locationIter = m_locations.find(location);
 	if (locationIter != m_locations.end())
 	{
@@ -126,18 +140,22 @@ bool INotifyMonitor::removeLocation(const string &location)
 		}
 		m_locations.erase(locationIter);
 
-		return true;
+		removedLocation = true;
 	}
-	cerr << "INotifyMonitor::removeLocation: " << location << " is not being monitored" << endl;
+	else
+	{
+		cerr << "INotifyMonitor::removeLocation: " << location << " is not being monitored" << endl;
+	}
+	pthread_mutex_unlock(&m_mutex);
 
-	return false;
+	return removedLocation;
 }
 
 /// Retrieves pending events.
 bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 {
 	char buffer[1024];
-	unsigned int queueLen;
+	unsigned int queueLen = 0;
 	size_t offset = 0;
 
 	if (m_monitorFd < 0)
@@ -145,6 +163,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		return false;
 	}
 
+	pthread_mutex_lock(&m_mutex);
 	// Copy internal events
 	while (m_internalEvents.empty() == false)
 	{
@@ -161,11 +180,12 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		cout << "INotifyMonitor::retrievePendingEvents: "
 			<< queueLen << " bytes to read" << endl;
 #endif
-		if (queueLen == 0)
-		{
-			// Nothing to read
-			return true;
-		}
+	}
+	if (queueLen == 0)
+	{
+		// Nothing to read
+		pthread_mutex_unlock(&m_mutex);
+		return true;
 	}
 
 	int bytesRead = read(m_monitorFd, buffer, 1024);
@@ -260,9 +280,14 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 					watchIter->second = monEvent.m_location;
 				}
 			}
+			else
+			{
+				// The previous location is unknown because it's from somewhere not being monitored
+				monEvent.m_type = MonitorEvent::CREATED;
 #ifdef DEBUG
-			else cout << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
+				cout << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
 #endif
+			}
 		}
 		else if (pEvent->mask & IN_DELETE)
 		{
@@ -306,6 +331,8 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 
 		offset += eventSize;
 	}
+	pthread_mutex_unlock(&m_mutex);
 
 	return true;
 }
+

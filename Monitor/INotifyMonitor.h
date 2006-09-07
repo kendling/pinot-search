@@ -17,6 +17,7 @@
 #ifndef _INOTIFY_MONITOR_H
 #define _INOTIFY_MONITOR_H
 
+#include <pthread.h>
 #include <string>
 #include <map>
 #include <queue>
@@ -39,6 +40,7 @@ class INotifyMonitor : public MonitorInterface
 		virtual bool retrievePendingEvents(std::queue<MonitorEvent> &events);
 
 	protected:
+		pthread_mutex_t m_mutex;
 		std::queue<MonitorEvent> m_internalEvents;
 		std::map<std::string, int> m_locations;
 		std::map<uint32_t, std::string> m_movedFrom;
