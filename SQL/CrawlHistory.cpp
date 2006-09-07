@@ -46,9 +46,6 @@ string CrawlHistory::statusToText(CrawlStatus status)
 		case CRAWLED:
 			text = "CRAWLED";
 			break;
-		case DIRECTORY:
-			text = "DIRECTORY";
-			break;
 		default:
 			break;
 	}
@@ -67,10 +64,6 @@ CrawlHistory::CrawlStatus CrawlHistory::textToStatus(const string &text)
 	else if (text == "CRAWLED")
 	{
 		status = CRAWLED;
-	}
-	else if (text == "DIRECTORY")
-	{
-		status = DIRECTORY;
 	}
 
 	return status;
@@ -270,15 +263,45 @@ bool CrawlHistory::updateItem(const string &url, CrawlStatus status, time_t date
 	return success;
 }
 
+/// Updates the status of items en masse.
+bool CrawlHistory::updateItemsStatus(unsigned int sourceId, CrawlStatus currentStatus, CrawlStatus newStatus)
+{
+	bool success = false;
+
+	SQLiteResults *results = executeStatement("UPDATE CrawlHistory \
+		SET Status='%q' WHERE SourceId='%u' AND Status='%q';",
+		statusToText(newStatus).c_str(), sourceId,
+		statusToText(currentStatus).c_str());
+	if (results != NULL)
+	{
+		success = true;
+		delete results;
+	}
+
+	return success;
+}
+
 /// Returns items that belong to a source.
 unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus status,
-	time_t minDate, set<string> &urls) const
+	set<string> &urls, time_t maxDate) const
 {
+	SQLiteResults *results = NULL;
 	unsigned int count = 0;
 
-	SQLiteResults *results = executeStatement("SELECT Url FROM CrawlHistory \
-		WHERE SourceId='%u' AND Status='%q' AND Date>='%d';",
-		sourceId, statusToText(status).c_str(), minDate);
+	if (maxDate > 0)
+	{
+		results = executeStatement("SELECT Url FROM CrawlHistory \
+			WHERE SourceId='%u' AND Status='%q' AND Date<'%d';",
+			sourceId, statusToText(status).c_str(), maxDate);
+	}
+	else
+	{
+		// Ignore the date
+		results = executeStatement("SELECT Url FROM CrawlHistory \
+			WHERE SourceId='%u' AND Status='%q';",
+			sourceId, statusToText(status).c_str());
+	}
+
 	if (results != NULL)
 	{
 		while (results->hasMoreRows() == true)

@@ -35,9 +35,10 @@ using namespace std;
 using namespace Glib;
 
 DaemonState::DaemonState() :
-	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 10),
+	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 20),
 	m_pMailMonitor(MonitorFactory::getMonitor()),
-	m_pDiskMonitor(MonitorFactory::getMonitor())
+	m_pDiskMonitor(MonitorFactory::getMonitor()),
+	m_pDiskHandler(NULL)
 {
 	m_onThreadEndSignal.connect(SigC::slot(*this, &DaemonState::on_thread_end));
 }
@@ -66,11 +67,11 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool monitor)
 	if (monitor == false)
 	{
 		// Monitoring is not necessary
-		pScannerThread = new DirectoryScannerThread(NULL, locationToCrawl, 0, true);
+		pScannerThread = new DirectoryScannerThread(locationToCrawl, 0, true, NULL, NULL);
 	}
 	else
 	{
-		pScannerThread = new DirectoryScannerThread(m_pDiskMonitor, locationToCrawl, 0, true);
+		pScannerThread = new DirectoryScannerThread(locationToCrawl, 0, true, m_pDiskMonitor, m_pDiskHandler);
 	}
 	pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 
@@ -90,20 +91,20 @@ void DaemonState::start(void)
 	WorkerThread::immediateFlush(false);
 
 	// Fire up the mail monitor thread now
-	MboxHandler *pMbox = new MboxHandler();
+	MboxHandler *pMboxHandler = new MboxHandler();
 	// Connect to its update signal
-	pMbox->getUpdateSignal().connect(
+	pMboxHandler->getUpdateSignal().connect(
 		SigC::slot(*this, &DaemonState::on_message_indexupdate));
-	MonitorThread *pMailMonitorThread = new MonitorThread(m_pMailMonitor, pMbox);
+	MonitorThread *pMailMonitorThread = new MonitorThread(m_pMailMonitor, pMboxHandler);
 	pMailMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 	start_thread(pMailMonitorThread, true);
 
 	// Same for the disk monitor thread
-	OnDiskHandler *pDisk = new OnDiskHandler();
+	m_pDiskHandler = new OnDiskHandler();
 	// Connect to its update signal
-	pDisk->getUpdateSignal().connect(
+	m_pDiskHandler->getUpdateSignal().connect(
 		SigC::slot(*this, &DaemonState::on_message_indexupdate));
-	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, pDisk);
+	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, m_pDiskHandler);
 	pDiskMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 	start_thread(pDiskMonitorThread, true);
 

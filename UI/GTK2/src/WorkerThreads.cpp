@@ -1511,6 +1511,9 @@ void MonitorThread::processEvents(void)
 {
 	queue<MonitorEvent> events;
 
+#ifdef DEBUG
+	cout << "MonitorThread::processEvents: checking for events" << endl;
+#endif
 	if ((m_pMonitor == NULL) ||
 		(m_pMonitor->retrievePendingEvents(events) == false))
 	{
@@ -1575,8 +1578,7 @@ void MonitorThread::processEvents(void)
 			}
 			else
 			{
-				// FIXME: stop monitoring if not under an indexable location
-
+				// We should receive this only if the destination directory is monitored too
 				m_pHandler->directoryMoved(event.m_location, event.m_previousLocation);
 			}
 		}
@@ -1588,7 +1590,7 @@ void MonitorThread::processEvents(void)
 			}
 			else
 			{
-				// The monitoring should have stopped monitoring this
+				// The monitor should have stopped monitoring this
 				// In practice, events for the files in this directory will already have been received 
 				m_pHandler->directoryDeleted(event.m_location);
 			}
@@ -1666,13 +1668,14 @@ void MonitorThread::doWork(void)
 	}
 }
 
-DirectoryScannerThread::DirectoryScannerThread(MonitorInterface *pMonitor,
-	const string &dirName, unsigned int maxLevel, bool followSymLinks) :
+DirectoryScannerThread::DirectoryScannerThread(const string &dirName, unsigned int maxLevel,
+	bool followSymLinks, MonitorInterface *pMonitor, MonitorHandler *pHandler) :
 	WorkerThread(),
-	m_pMonitor(pMonitor),
 	m_dirName(dirName),
 	m_maxLevel(maxLevel),
 	m_followSymLinks(followSymLinks),
+	m_pMonitor(pMonitor),
+	m_pHandler(pHandler),
 	m_currentLevel(0),
 	m_sourceId(0)
 {
@@ -1728,7 +1731,7 @@ void DirectoryScannerThread::foundFile(const string &fileName)
 	m_signalFileFound(string("file://") + fileName, labelStr, false);
 }
 
-bool DirectoryScannerThread::scanDirectory(const string &dirName)
+bool DirectoryScannerThread::scanEntry(const string &entryName)
 {
 	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
 	CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
@@ -1736,13 +1739,13 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 	struct stat fileStat;
 	int statSuccess = 0;
 
-	if (dirName.empty() == true)
+	if (entryName.empty() == true)
 	{
 		return false;
 	}
 
 	// Skip . .. and dotfiles
-	Url urlObj("file://" + dirName);
+	Url urlObj("file://" + entryName);
 	if (urlObj.getFile()[0] == '.')
 	{
 		return false;
@@ -1750,12 +1753,12 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 
 	if (m_followSymLinks == false)
 	{
-		statSuccess = lstat(dirName.c_str(), &fileStat);
+		statSuccess = lstat(entryName.c_str(), &fileStat);
 	}
 	else
 	{
 		// Stat the files pointed to by symlinks
-		statSuccess = stat(dirName.c_str(), &fileStat);
+		statSuccess = stat(entryName.c_str(), &fileStat);
 	}
 
 	if (statSuccess == -1)
@@ -1763,7 +1766,7 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 		return false;
 	}
 
-	bool itemExists = history.hasItem("file://" + dirName, status, itemDate);
+	bool itemExists = history.hasItem("file://" + entryName, status, itemDate);
 
 	// Is it a file or a directory ?
 	if (S_ISLNK(fileStat.st_mode))
@@ -1776,23 +1779,34 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 		bool reportFile = false;
 
 		// It's actually a file
-		// Was it crawled since it was last modified ?
 		if (itemExists == false)
 		{
 			// Record it
-			history.insertItem("file://" + dirName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
+			history.insertItem("file://" + entryName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
+#ifdef DEBUG
+			cout << "DirectoryScannerThread::scanEntry: reporting new file " << entryName << endl;
+#endif
 			reportFile = true;
 		}
-		else if (itemDate < fileStat.st_mtime)
+		else
 		{
 			// Update the record
-			history.updateItem("file://" + dirName, CrawlHistory::CRAWLED, fileStat.st_mtime);
-			reportFile = true;
+			history.updateItem("file://" + entryName, CrawlHistory::CRAWLED, fileStat.st_mtime);
+
+			// Was it last crawled after it was modified ?
+			if (itemDate < fileStat.st_mtime)
+			{
+#ifdef DEBUG
+				cout << "DirectoryScannerThread::scanEntry: reporting modified file " << entryName << endl;
+#endif
+				// No, crawl and index it again
+				reportFile = true;
+			}
 		}
 
 		if (reportFile == true)
 		{
-			foundFile(dirName);
+			foundFile(entryName);
 		}
 	}
 	else if (S_ISDIR(fileStat.st_mode))
@@ -1804,20 +1818,19 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 			++m_currentLevel;
 
 			// Open the directory
-			DIR *pDir = opendir(dirName.c_str());
+			DIR *pDir = opendir(entryName.c_str());
 			if (pDir == NULL)
 			{
 				return false;
 			}
 #ifdef DEBUG
-			cout << "DirectoryScannerThread::scanDirectory: entering "
-				<< dirName << endl;
+			cout << "DirectoryScannerThread::scanEntry: entering " << entryName << endl;
 #endif
 
 			if (m_pMonitor != NULL)
 			{
 				// Monitor first so that we don't miss events
-				m_pMonitor->addLocation(dirName, true);
+				m_pMonitor->addLocation(entryName, true);
 			}
 
 			// Iterate through this directory's entries
@@ -1831,20 +1844,20 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 				if ((pEntryName != NULL) &&
 					(pEntryName[0] != '.'))
 				{
-					string entryName(dirName);
+					string subEntryName(entryName);
 
-					if (dirName[dirName.length() - 1] != '/')
+					if (entryName[entryName.length() - 1] != '/')
 					{
-						entryName += "/";
+						subEntryName += "/";
 					}
-					entryName += pEntryName;
+					subEntryName += pEntryName;
 
 					// Scan this entry
-					if (scanDirectory(entryName) == false)
+					if (scanEntry(subEntryName) == false)
 					{
 #ifdef DEBUG
-						cout << "DirectoryScannerThread::scanDirectory: failed to open "
-							<< entryName << endl;
+						cout << "DirectoryScannerThread::scanEntry: failed to open "
+							<< subEntryName << endl;
 #endif
 					}
 				}
@@ -1852,17 +1865,8 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 				// Next entry
 				pDirEntry = readdir(pDir);
 			}
-
-			if (itemExists == false)
-			{
-				history.insertItem("file://" + dirName, CrawlHistory::DIRECTORY, m_sourceId, fileStat.st_mtime);
-			}
-			else
-			{
-				history.updateItem("file://" + dirName, CrawlHistory::DIRECTORY, fileStat.st_mtime);
-			}
 #ifdef DEBUG
-			cout << "DirectoryScannerThread::scanDirectory: done with " << dirName << endl;
+			cout << "DirectoryScannerThread::scanEntry: done with " << entryName << endl;
 #endif
 
 			// Close the directory
@@ -1881,6 +1885,7 @@ bool DirectoryScannerThread::scanDirectory(const string &dirName)
 void DirectoryScannerThread::doWork(void)
 {
 	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+	set<string> deletedFiles;
 
 	// Does this source exist ?
 	if ((m_dirName.empty() == false) &&
@@ -1890,10 +1895,35 @@ void DirectoryScannerThread::doWork(void)
 		m_sourceId = history.insertSource("file://" + m_dirName);
 	}
 
-	if (scanDirectory(m_dirName) == false)
+	// Update this source's items status
+	history.updateItemsStatus(m_sourceId, CrawlHistory::CRAWLED, CrawlHistory::CRAWLING);
+
+	if (scanEntry(m_dirName) == false)
 	{
 		m_status = _("Couldn't open directory");
 		m_status += " ";
 		m_status += m_dirName;
 	}
+
+	// All files with status set to CRAWLING were not found in this crawl
+	// Chances are they were removed after the previous crawl
+	if (history.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, deletedFiles) > 0)
+	{
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::doWork: " << deletedFiles.size() << " files were deleted" << endl;
+#endif
+		for(set<string>::const_iterator fileIter = deletedFiles.begin();
+			fileIter != deletedFiles.end(); ++fileIter)
+		{
+			if (m_pHandler != NULL)
+			{
+				// Inform the MonitorHandler
+				m_pHandler->fileDeleted(*fileIter);
+			}
+
+			// Delete this item
+			history.deleteItem(*fileIter);
+		}
+	}
 }
+

@@ -425,8 +425,9 @@ class MonitorThread : public WorkerThread
 class DirectoryScannerThread : public WorkerThread
 {
 	public:
-		DirectoryScannerThread(MonitorInterface *pMonitor,
-			const std::string &dirName, unsigned int maxLevel, bool followSymLinks);
+		DirectoryScannerThread(const std::string &dirName, unsigned int maxLevel,
+			bool followSymLinks, MonitorInterface *pMonitor,
+			MonitorHandler *pHandler);
 		virtual ~DirectoryScannerThread();
 
 		virtual std::string getType(void) const;
@@ -438,16 +439,17 @@ class DirectoryScannerThread : public WorkerThread
 		SigC::Signal3<void, const std::string&, const std::string&, bool>& getFileFoundSignal(void);
 
 	protected:
-		MonitorInterface *m_pMonitor;
 		std::string m_dirName;
 		unsigned int m_maxLevel;
 		bool m_followSymLinks;
+		MonitorInterface *m_pMonitor;
+		MonitorHandler *m_pHandler;
 		unsigned int m_currentLevel;
 		unsigned int m_sourceId;
 		SigC::Signal3<void, const std::string&, const std::string&, bool> m_signalFileFound;
 
 		void foundFile(const std::string &fileName);
-		bool scanDirectory(const std::string &dirName);
+		bool scanEntry(const std::string &entryName);
 		virtual void doWork(void);
 
 	private:

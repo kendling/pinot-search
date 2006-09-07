@@ -32,7 +32,7 @@ class CrawlHistory : public SQLiteBase
 		CrawlHistory(const string &database);
 		virtual ~CrawlHistory();
 
-		typedef enum { UNKNOWN, CRAWLING, CRAWLED, DIRECTORY } CrawlStatus;
+		typedef enum { UNKNOWN, CRAWLING, CRAWLED } CrawlStatus;
 
 		/// Creates the CrawlHistory table in the database.
 		static bool create(const string &database);
@@ -58,9 +58,12 @@ class CrawlHistory : public SQLiteBase
 		/// Updates an URL.
 		bool updateItem(const string &url, CrawlStatus status, time_t date);
 
+		/// Updates the status of items en masse.
+		bool updateItemsStatus(unsigned int sourceId, CrawlStatus currentStatus, CrawlStatus newStatus);
+
 		/// Returns items that belong to a source.
 		unsigned int getSourceItems(unsigned int sourceId, CrawlStatus status,
-			time_t minDate, set<string> &urls) const;
+			set<string> &urls, time_t maxDate = 0) const;
 
 		/// Returns the number of URLs.
 		unsigned int getItemsCount(void) const;
