@@ -56,6 +56,15 @@ Requires: xapian-omega
 %description omega
 The included plugin enables Pinot to use Xapian Omega as a search engine.
 
+%package deskbar
+Summary: Pinot plugin for DeskbarApplet
+Group: Applications/Internet
+Requires: %{name} = %{version}
+Requires: deskbar-applet
+
+%description deskbar
+The included plugin enables Deskbar to search documents indexed by Pinot.
+
 %prep
 %setup -q
 
@@ -132,5 +141,9 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %files omega
 %defattr(-, root, root, -)
 %config(noreplace) %{_datadir}/pinot/engines/OmegaDescription.xml
+
+%files deskbar
+%defattr(-, root, root, -)
+%{_libdir}/deskbar-applet/handlers/pinot-deskbar.py*
 
 %changelog
