@@ -1920,7 +1920,7 @@ void DirectoryScannerThread::doWork(void)
 			if (m_pHandler != NULL)
 			{
 				// Inform the MonitorHandler
-				m_pHandler->fileDeleted(*fileIter);
+				m_pHandler->fileDeleted(fileIter->substr(7));
 			}
 
 			// Delete this item

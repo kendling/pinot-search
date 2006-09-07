@@ -29,7 +29,6 @@
 #include "TokenizerFactory.h"
 #include "CrawlHistory.h"
 #include "FileCollector.h"
-#include "PinotUtils.h"
 #include "OnDiskHandler.h"
 
 using namespace std;
