@@ -70,7 +70,7 @@ class OnDiskHandler : public MonitorHandler
 		CrawlHistory m_history;
 		XapianIndex m_index;
 
-		bool indexFile(const std::string &fileName, bool alwaysUpdate);
+		bool indexFile(const std::string &fileName, bool alwaysUpdate, unsigned int &sourceId);
 
 		bool replaceFile(unsigned int docId, DocumentInfo &docInfo);
 

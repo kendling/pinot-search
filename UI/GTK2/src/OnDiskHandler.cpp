@@ -16,6 +16,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 #include <set>
 #include <iostream>
 #include <fstream>
@@ -27,7 +28,6 @@
 #include "Url.h"
 #include "XapianDatabase.h"
 #include "TokenizerFactory.h"
-#include "CrawlHistory.h"
 #include "FileCollector.h"
 #include "OnDiskHandler.h"
 
@@ -48,7 +48,7 @@ OnDiskHandler::~OnDiskHandler()
 	pthread_mutex_destroy(&m_mutex);
 }
 
-bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
+bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigned int &sourceId)
 {
 	string location(string("file://") + fileName);
 	Url urlObj(location);
@@ -74,7 +74,7 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate)
 	for(map<unsigned int, string>::const_iterator sourceIter = m_fileSources.begin();
 		sourceIter != m_fileSources.end(); ++sourceIter)
 	{
-		unsigned int sourceId = sourceIter->first;
+		sourceId = sourceIter->first;
 
 		if (sourceIter->second.length() < location.length())
 		{
@@ -201,7 +201,7 @@ void OnDiskHandler::initialize(void)
 			}
 #ifdef DEBUG
 			else cout << "OnDiskHandler::initialize: " << sourceIter->second
-				<< " still configured for monitoring" << endl;
+				<< " is still configured" << endl;
 #endif
 		}
 	}
@@ -222,6 +222,7 @@ bool OnDiskHandler::fileExists(const string &fileName)
 
 bool OnDiskHandler::fileCreated(const string &fileName)
 {
+	unsigned int sourceId;
 	bool handledEvent = false;
 
 #ifdef DEBUG
@@ -229,7 +230,11 @@ bool OnDiskHandler::fileCreated(const string &fileName)
 #endif
 	pthread_mutex_lock(&m_mutex);
 	// The file shouldn't exist in the index, but if it does for some reason, don't update it
-	handledEvent = indexFile(fileName, false);
+	handledEvent = indexFile(fileName, false, sourceId);
+	if (handledEvent == true)
+	{
+		m_history.insertItem("file://" + fileName, CrawlHistory::CRAWLED, sourceId, time(NULL));
+	}
 	pthread_mutex_unlock(&m_mutex);
 
 	return handledEvent;
@@ -237,6 +242,7 @@ bool OnDiskHandler::fileCreated(const string &fileName)
 
 bool OnDiskHandler::fileModified(const string &fileName)
 {
+	unsigned int sourceId;
 	bool handledEvent = false;
 
 #ifdef DEBUG
@@ -244,7 +250,11 @@ bool OnDiskHandler::fileModified(const string &fileName)
 #endif
 	pthread_mutex_lock(&m_mutex);
 	// Update the file, or index if necessary
-	handledEvent = indexFile(fileName, true);
+	handledEvent = indexFile(fileName, true, sourceId);
+	if (handledEvent == true)
+	{
+		m_history.updateItem("file://" + fileName, CrawlHistory::CRAWLED, time(NULL));
+	}
 	pthread_mutex_unlock(&m_mutex);
 
 	return handledEvent;
@@ -333,6 +343,10 @@ bool OnDiskHandler::fileDeleted(const string &fileName)
 	{
 		// Unindex the file
 		handledEvent = m_index.unindexDocument(docId);
+		if (handledEvent == true)
+		{
+			m_history.deleteItem(string("file://") + fileName);
+		}
 	}
 	pthread_mutex_unlock(&m_mutex);
 
@@ -353,7 +367,13 @@ bool OnDiskHandler::directoryDeleted(const string &dirName)
 		for (set<unsigned int>::const_iterator iter = docIdList.begin();
 			iter != docIdList.end(); ++iter)
 		{
-			m_index.unindexDocument(*iter);
+			DocumentInfo docInfo;
+
+			if ((m_index.getDocumentInfo(*iter, docInfo) == true) &&
+				(m_index.unindexDocument(*iter) == true))
+			{
+				m_history.deleteItem(docInfo.getLocation());
+			}
 		}
 
 		handledEvent = true;

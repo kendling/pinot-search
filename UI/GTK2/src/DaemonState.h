@@ -43,10 +43,11 @@ class DaemonState : public ThreadsManager
 	protected:
 		MonitorInterface *m_pMailMonitor;
 		MonitorInterface *m_pDiskMonitor;
+		MonitorHandler *m_pMailHandler;
 		MonitorHandler *m_pDiskHandler;
 		std::string m_locationBeingCrawled;
 
-		bool crawlLocation(const std::string &locationToCrawl, bool monitor);
+		bool crawlLocation(const std::string &locationToCrawl, bool isSource, bool doMonitoring);
 
 };
 

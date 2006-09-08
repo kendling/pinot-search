@@ -40,6 +40,7 @@ DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 20),
 	m_pMailMonitor(MonitorFactory::getMonitor()),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
+	m_pMailHandler(NULL),
 	m_pDiskHandler(NULL)
 {
 	m_onThreadEndSignal.connect(SigC::slot(*this, &DaemonState::on_thread_end));
@@ -55,25 +56,36 @@ DaemonState::~DaemonState()
 	{
 		delete m_pMailMonitor;
 	}
+	if (m_pDiskHandler != NULL)
+	{
+		delete m_pDiskHandler;
+	}
+	if (m_pMailHandler != NULL)
+	{
+		delete m_pMailHandler;
+	}
 }
 
-bool DaemonState::crawlLocation(const string &locationToCrawl, bool monitor)
+bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bool doMonitoring)
 {
 	DirectoryScannerThread *pScannerThread = NULL;
+	unsigned int sourceId = 0;
 
 	if (locationToCrawl.empty() == true)
 	{
 		return false;
 	}
 
-	if (monitor == false)
+	if (doMonitoring == false)
 	{
 		// Monitoring is not necessary
-		pScannerThread = new DirectoryScannerThread(locationToCrawl, 0, true, NULL, NULL);
+		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
+			0, true, NULL, NULL);
 	}
 	else
 	{
-		pScannerThread = new DirectoryScannerThread(locationToCrawl, 0, true, m_pDiskMonitor, m_pDiskHandler);
+		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
+			0, true, m_pDiskMonitor, m_pDiskHandler);
 	}
 	pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 
@@ -93,7 +105,8 @@ void DaemonState::start(void)
 	WorkerThread::immediateFlush(false);
 
 	// Fire up the mail monitor thread now
-	MonitorThread *pMailMonitorThread = new MonitorThread(m_pMailMonitor, new MboxHandler());
+	m_pMailHandler = new MboxHandler();
+	MonitorThread *pMailMonitorThread = new MonitorThread(m_pMailMonitor, m_pMailHandler);
 	pMailMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 	start_thread(pMailMonitorThread, true);
 
@@ -107,7 +120,7 @@ void DaemonState::start(void)
 	if (locationIter != PinotSettings::getInstance().m_indexableLocations.end())
 	{
 		// Crawl this now
-		crawlLocation(locationIter->m_name, locationIter->m_monitor);
+		crawlLocation(locationIter->m_name, true, locationIter->m_monitor);
 	}
 }
 
@@ -154,12 +167,18 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 				++locationIter;
 				if (locationIter != PinotSettings::getInstance().m_indexableLocations.end())
 				{
-					crawlLocation(locationIter->m_name, locationIter->m_monitor);
+					crawlLocation(locationIter->m_name, true, locationIter->m_monitor);
 				}
 			}
+#ifdef DEBUG
+			else cout << "DaemonState::on_thread_end: nothing else to crawl" << endl;
+#endif
 
 			unlock_lists();
 		}
+#ifdef DEBUG
+		else cout << "DaemonState::on_thread_end: done crawling" << endl;
+#endif
 	}
 	else if (type == "IndexingThread")
 	{
@@ -212,7 +231,7 @@ void DaemonState::on_message_filefound(const string &location, const string &sou
 	}
 	else
 	{
-		crawlLocation(location.substr(7), true);
+		crawlLocation(location.substr(7), false, true);
 #ifdef DEBUG
 		cout << "DaemonState::on_message_filefound: new directory " << location.substr(7) << endl;
 #endif

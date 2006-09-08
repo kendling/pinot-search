@@ -1481,11 +1481,6 @@ MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandle
 
 MonitorThread::~MonitorThread()
 {
-	// It's our responsability to delete the MonitorHandler object
-	if (m_pHandler != NULL)
-	{
-		delete m_pHandler;
-	}
 	close(m_ctrlReadPipe);
 	close(m_ctrlWritePipe);
 }
@@ -1670,8 +1665,9 @@ void MonitorThread::doWork(void)
 	}
 }
 
-DirectoryScannerThread::DirectoryScannerThread(const string &dirName, unsigned int maxLevel,
-	bool followSymLinks, MonitorInterface *pMonitor, MonitorHandler *pHandler) :
+DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSource,
+	unsigned int maxLevel, bool followSymLinks,
+	MonitorInterface *pMonitor, MonitorHandler *pHandler) :
 	WorkerThread(),
 	m_dirName(dirName),
 	m_maxLevel(maxLevel),
@@ -1681,12 +1677,42 @@ DirectoryScannerThread::DirectoryScannerThread(const string &dirName, unsigned i
 	m_currentLevel(0),
 	m_sourceId(0)
 {
-#ifdef DEBUG
-	if (m_followSymLinks == true)
+	if (m_dirName.empty() == false)
 	{
-		cout << "DirectoryScannerThread: following symlinks" << endl;
+		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+
+		if (isSource == true)
+		{
+			// Does this source exist ?
+			if (history.hasSource("file://" + m_dirName, m_sourceId) == false)
+			{
+				// Create it
+				m_sourceId = history.insertSource("file://" + m_dirName);
+			}
+		}
+		else
+		{
+			map<unsigned int, string> fileSources;
+
+			// What source does this belong to ?
+			for(map<unsigned int, string>::const_iterator sourceIter = fileSources.begin();
+				sourceIter != fileSources.end(); ++sourceIter)
+			{
+				if (sourceIter->second.length() < m_dirName.length())
+				{
+					// Skip
+					continue;
+				}
+
+				if (sourceIter->second.substr(0, m_dirName.length()) == m_dirName)
+				{
+					// That's the one
+					m_sourceId = sourceIter->first;
+					break;
+				}
+			}
+		}
 	}
-#endif
 }
 
 DirectoryScannerThread::~DirectoryScannerThread()
@@ -1889,12 +1915,9 @@ void DirectoryScannerThread::doWork(void)
 	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
 	set<string> deletedFiles;
 
-	// Does this source exist ?
-	if ((m_dirName.empty() == false) &&
-		(history.hasSource("file://" + m_dirName, m_sourceId) == false))
+	if (m_dirName.empty() == true)
 	{
-		// Create it
-		m_sourceId = history.insertSource("file://" + m_dirName);
+		return;
 	}
 
 	// Update this source's items status
@@ -1909,7 +1932,8 @@ void DirectoryScannerThread::doWork(void)
 
 	// All files with status set to CRAWLING were not found in this crawl
 	// Chances are they were removed after the previous crawl
-	if (history.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, deletedFiles) > 0)
+	if ((m_pHandler != NULL) &&
+		(history.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, deletedFiles) > 0))
 	{
 #ifdef DEBUG
 		cout << "DirectoryScannerThread::doWork: " << deletedFiles.size() << " files were deleted" << endl;
@@ -1917,15 +1941,16 @@ void DirectoryScannerThread::doWork(void)
 		for(set<string>::const_iterator fileIter = deletedFiles.begin();
 			fileIter != deletedFiles.end(); ++fileIter)
 		{
-			if (m_pHandler != NULL)
+			// Inform the MonitorHandler
+			if (m_pHandler->fileDeleted(fileIter->substr(7)) == true)
 			{
-				// Inform the MonitorHandler
-				m_pHandler->fileDeleted(fileIter->substr(7));
+				// Delete this item
+				history.deleteItem(*fileIter);
 			}
-
-			// Delete this item
-			history.deleteItem(*fileIter);
 		}
 	}
+#ifdef DEBUG
+	cout << "DirectoryScannerThread::doWork: done crawling " << m_dirName << endl;
+#endif
 }
 

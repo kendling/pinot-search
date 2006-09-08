@@ -425,9 +425,9 @@ class MonitorThread : public WorkerThread
 class DirectoryScannerThread : public WorkerThread
 {
 	public:
-		DirectoryScannerThread(const std::string &dirName, unsigned int maxLevel,
-			bool followSymLinks, MonitorInterface *pMonitor,
-			MonitorHandler *pHandler);
+		DirectoryScannerThread(const std::string &dirName, bool isSource,
+			unsigned int maxLevel, bool followSymLinks,
+			MonitorInterface *pMonitor, MonitorHandler *pHandler);
 		virtual ~DirectoryScannerThread();
 
 		virtual std::string getType(void) const;
