@@ -43,7 +43,7 @@ class INotifyMonitor : public MonitorInterface
 		pthread_mutex_t m_mutex;
 		std::queue<MonitorEvent> m_internalEvents;
 		std::map<std::string, int> m_locations;
-		std::map<uint32_t, std::string> m_movedFrom;
+		std::map<uint32_t, MonitorEvent> m_movedFrom;
 
 	private:
 		INotifyMonitor(const INotifyMonitor &other);

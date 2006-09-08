@@ -227,16 +227,16 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 			monEvent.m_location += pEvent->name;
 			monEvent.m_isWatch = false;
 		}
-#ifdef DEBUG
-		cout << "INotifyMonitor::retrievePendingEvents: event on "
-			<< monEvent.m_location << endl;
-#endif
 
-		map<uint32_t, string>::iterator movedIter = m_movedFrom.end();
+		map<uint32_t, MonitorEvent>::iterator movedIter = m_movedFrom.end();
 
 		// What type of event ?
 		if (pEvent->mask & IN_CREATE)
 		{
+#ifdef DEBUG
+			cout << "INotifyMonitor::retrievePendingEvents: created "
+				<< monEvent.m_location << endl;
+#endif
 			// Skip regular files
 			if (monEvent.m_isDirectory == true)
 			{
@@ -245,20 +245,32 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		}
 		else if (pEvent->mask & IN_CLOSE_WRITE)
 		{
+#ifdef DEBUG
+			cout << "INotifyMonitor::retrievePendingEvents: written and closed "
+				<< monEvent.m_location << endl;
+#endif
 			monEvent.m_type = MonitorEvent::WRITE_CLOSED;
 		}
 		else if (pEvent->mask & IN_MOVED_FROM)
 		{
+#ifdef DEBUG
+			cout << "INotifyMonitor::retrievePendingEvents: moved from on "
+				<< monEvent.m_location << " " << pEvent->cookie << endl;
+#endif
 			// Store this until we receive a IN_MOVED_TO event
-			m_movedFrom.insert(pair<uint32_t, string>(pEvent->cookie, monEvent.m_location));
+			m_movedFrom.insert(pair<uint32_t, MonitorEvent>(pEvent->cookie, monEvent));
 		}
 		else if (pEvent->mask & IN_MOVED_TO)
 		{
+#ifdef DEBUG
+			cout << "INotifyMonitor::retrievePendingEvents: moved to on "
+				<< monEvent.m_location << " " << pEvent->cookie << endl;
+#endif
 			// What was the previous location ?
 			movedIter = m_movedFrom.find(pEvent->cookie);
 			if (movedIter != m_movedFrom.end())
 			{
-				monEvent.m_previousLocation = movedIter->second;
+				monEvent.m_previousLocation = movedIter->second.m_location;
 				monEvent.m_type = MonitorEvent::MOVED;
 #ifdef DEBUG
 				cout << "INotifyMonitor::retrievePendingEvents: moved from "
@@ -289,18 +301,53 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 #endif
 			}
 		}
-		else if (pEvent->mask & IN_DELETE)
-		{
-			monEvent.m_type = MonitorEvent::DELETED;
-		}
 		else if (pEvent->mask & IN_MOVE_SELF)
 		{
-			// FIXME: how do we find out where the watched location was moved to ?
+#ifdef DEBUG
+			cout << "INotifyMonitor::retrievePendingEvents: moved self on "
+				<< monEvent.m_location << " " << pEvent->cookie << endl;
+#endif
+			// It was moved somewhere not being monitored
+			if (pEvent->cookie == 0)
+			{
+				for (movedIter = m_movedFrom.begin(); movedIter != m_movedFrom.end(); ++movedIter)
+				{
+					if (movedIter->second.m_location == monEvent.m_location)
+					{
+						// For some reason, IN_ISDIR is not set when the cookie is 0
+						if (movedIter->second.m_isDirectory == true)
+						{
+							monEvent.m_isDirectory = true;
+						}
+						break;
+					}
+				}
+			}
+			else
+			{
+				movedIter = m_movedFrom.find(pEvent->cookie);
+			}
+
+			if (movedIter != m_movedFrom.end())
+			{
+				monEvent.m_type = MonitorEvent::DELETED;
+
+				m_movedFrom.erase(movedIter);
+			}
+		}
+		else if (pEvent->mask & IN_DELETE)
+		{
+#ifdef DEBUG
+			cout << "INotifyMonitor::retrievePendingEvents: deleted "
+				<< monEvent.m_location << endl;
+#endif
+			monEvent.m_type = MonitorEvent::DELETED;
 		}
 		else if (pEvent->mask & IN_DELETE_SELF)
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: watch moved or deleted itself" << endl;
+			cout << "INotifyMonitor::retrievePendingEvents: deleted self on "
+				<< monEvent.m_location << endl;
 #endif
 			if (monEvent.m_isWatch == true)
 			{
@@ -309,6 +356,10 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		}
 		else if (pEvent->mask & IN_UNMOUNT)
 		{
+#ifdef DEBUG
+			cout << "INotifyMonitor::retrievePendingEvents: unmounted on "
+				<< monEvent.m_location << endl;
+#endif
 			if (monEvent.m_isWatch == true)
 			{
 				// Watches are removed silently if the backing filesystem is unmounted
@@ -319,7 +370,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		{
 #ifdef DEBUG
 			cout << "INotifyMonitor::retrievePendingEvents: ignoring event "
-				<< pEvent->mask << endl;
+				<< pEvent->mask << " on " << monEvent.m_location << endl;
 #endif
 		}
 
