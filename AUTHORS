@@ -9,6 +9,9 @@ Patches, bug reports and helpful comments :
 The file Monitor/linux-inotify-syscalls.h is originally from libinotify
 (Copyright © 2005 Ryan Lortie <desrt at desrt dot ca>).
 
+Some code is borrowed from Xapian Omega, which is "largely the work of
+Olly Betts, Mark Shinwell (omindex-config) and Richard Boulton".
+
 Translations provided by :
 
 	Spanish - Jesús Tramullas <jesus at tramullas dot com>
