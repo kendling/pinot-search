@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <strings.h>
 #include <time.h>
@@ -397,11 +398,23 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	}
 
 	string language(StringManip::extractField(record, "language=", ""));
+	string timestamp(StringManip::extractField(record, "timestamp=", "\n"));
+
 	docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
 		StringManip::extractField(record, "url=", "\n"),
 		StringManip::extractField(record, "type=", "\n"),
 		Languages::toLocale(language));
-	docInfo.setTimestamp(StringManip::extractField(record, "timestamp=", "\n"));
+	// We used to use timestamp prior to 0.60
+	if (timestamp.empty() == true)
+	{
+		string modTime(StringManip::extractField(record, "modtime=", "\n"));
+		if (modTime.empty() == false)
+		{
+			time_t timeT = (time_t )atol(modTime.c_str());
+			timestamp = TimeConverter::toTimestamp(timeT);
+		}
+	}
+	docInfo.setTimestamp(timestamp);
 	Url urlObj(docInfo.getLocation());
 
 	// FIXME: remove terms extracted from the title if they don't have more than one posting
@@ -505,6 +518,7 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	string title(info.getTitle());
 	string timestamp(info.getTimestamp());
 	char timeStr[64];
+	time_t timeT = TimeConverter::fromTimestamp(timestamp);
 
 	// Set the document data omindex-style
 	string record = "url=";
@@ -528,9 +542,10 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	record += title;
 	record += "\ntype=";
 	record += info.getType();
-	// Append a timestamp
-	record += "\ntimestamp=";
-	record += timestamp;
+	// Append a timestamp, in a format compatible with Omega
+	record += "\nmodtime=";
+	snprintf(timeStr, 64, "%ld", timeT);
+	record += timeStr;
 	// ...and the language
 	record += "\nlanguage=";
 	record += StringManip::toLowerCase(language);
@@ -540,8 +555,7 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	doc.set_data(record);
 
 	// Add this value to allow sorting by date
-	snprintf(timeStr, 64, "%d", TimeConverter::fromTimestamp(timestamp));
-	doc.add_value(0, timeStr);
+	doc.add_value(0, StringManip::integerToBinaryString((uint32_t)timeT));
 }
 
 //
@@ -588,17 +602,25 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 			string record = doc.get_data();
 			if (record.empty() == false)
 			{
-				string language = Languages::toLocale(StringManip::extractField(record, "language=", ""));
+				string language(Languages::toLocale(StringManip::extractField(record, "language=", "")));
+				// We used to use timestamp prior to 0.60
+				string timestamp(StringManip::extractField(record, "timestamp=", "\n"));
 
 				docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
 					StringManip::extractField(record, "url=", "\n"),
 					StringManip::extractField(record, "type=", "\n"),
 					language);
-				docInfo.setTimestamp(StringManip::extractField(record, "timestamp=", "\n"));
-#ifdef DEBUG
-				cout << "XapianIndex::getDocumentInfo: language is "
-					<< docInfo.getLanguage() << endl;
-#endif
+				if (timestamp.empty() == true)
+				{
+					// This is the format used by Omega
+					string modTime(StringManip::extractField(record, "modtime=", "\n"));
+					if (modTime.empty() == false)
+					{
+						time_t timeT = (time_t )atol(modTime.c_str());
+						timestamp = TimeConverter::toTimestamp(timeT);
+					}
+				}
+				docInfo.setTimestamp(timestamp);
 				foundDocument = true;
 			}
 		}
@@ -1132,10 +1154,6 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 		{
 			Xapian::Document doc = pIndex->get_document(docId);
 			Xapian::termcount termPos = 0;
-
-#ifdef DEBUG
-			cout << "XapianIndex::updateDocumentInfo: language is " << docInfo.getLanguage() << endl;
-#endif
 
 			// Update the document data with the current language
 			removeCommonTerms(doc);

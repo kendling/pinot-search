@@ -14,9 +14,16 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #define _XOPEN_SOURCE
 #include <unistd.h>
 #undef _XOPEN_SOURCE
+#ifdef HAVE_ARPA_INET_H
+# include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+# include <netinet/in.h>
+#endif
 #include <ctype.h>
 #include <algorithm>
 
@@ -312,3 +319,29 @@ string StringManip::hashString(const string &str, unsigned int maxLength)
 
 	return result;
 }
+
+/// Converts a binary string to an integer.
+uint32_t StringManip::binaryStringToInteger(const string &str)
+{
+	uint32_t value;
+
+	// This is from from Xapian's xapian-applications/omega/values.h
+	if (str.size() != 4)
+	{
+		return (uint32_t)-1;
+	}
+
+	memcpy(&value, str.data(), 4);
+
+	return ntohl(value);
+}
+
+/// Converts an integer to a binary string.
+string StringManip::integerToBinaryString(uint32_t value)
+{
+	// This is from from Xapian's xapian-applications/omega/values.h
+	value = htonl(value);
+
+	return string(reinterpret_cast<const char*>(&value), 4);
+}
+

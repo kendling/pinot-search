@@ -156,7 +156,7 @@ AC_CHECK_HEADERS([boost/spirit/core.hpp],
 dnl Other libraries
 MISC_LIBS="-lcrypt"
 AC_SUBST(MISC_LIBS)
-AC_CHECK_HEADERS(textcat.h)
+AC_CHECK_HEADERS([textcat.h netinet/in.h arpa/inet.h])
 PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
 PKG_CHECK_MODULES(TAGLIB, taglib >= 1.4 )
 AC_SUBST(TAGLIB_CFLAGS)
@@ -200,6 +200,9 @@ AC_CHECK_FUNCS(mmap)
 
 AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in \
-	Collect/Makefile Search/Google/Makefile Search/Makefile \
-	Index/Makefile Monitor/Makefile UI/GTK2/src/Makefile )
+	Collect/Makefile )
+if test "$SOAP_SUBDIRS" != "" ; then
+AC_OUTPUT( Search/Google/Makefile )
+fi
+AC_OUTPUT( Search/Makefile Index/Makefile Monitor/Makefile UI/GTK2/src/Makefile )
 
