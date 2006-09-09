@@ -15,9 +15,13 @@
  */
 
 #include "config.h"
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE
 #include <unistd.h>
 #undef _XOPEN_SOURCE
+#else
+#include <unistd.h>
+#endif
 #ifdef HAVE_ARPA_INET_H
 # include <arpa/inet.h>
 #endif
