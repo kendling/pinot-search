@@ -96,6 +96,49 @@ void DBusXapianIndex::reopen(void) const
 	}
 }
 
+/// Asks the D-Bus service for statistics.
+bool DBusXapianIndex::getStatistics(unsigned int &crawledCount, unsigned int &docsCount)
+{
+	bool gotStats = false;
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusXapianIndex::getStatistics: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	if (dbus_g_proxy_call(pBusProxy, "GetStatistics", &pError,
+		G_TYPE_INVALID,
+		G_TYPE_UINT, &crawledCount,
+		G_TYPE_UINT, &docsCount,
+		G_TYPE_INVALID) == TRUE)
+	{
+		gotStats = true;
+	}
+	else
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusXapianIndex::getStatistics: " << pError->message << endl;
+			g_error_free(pError);
+		}
+	}
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	return gotStats;
+}
+
+
 //
 // Implementation of IndexInterface
 //

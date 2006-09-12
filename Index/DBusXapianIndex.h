@@ -31,6 +31,9 @@ class DBusXapianIndex : public XapianIndex
 
 		DBusXapianIndex &operator=(const DBusXapianIndex &other);
 
+		/// Asks the D-Bus service for statistics.
+		static bool getStatistics(unsigned int &crawledCount, unsigned int &docsCount);
+
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const;
 

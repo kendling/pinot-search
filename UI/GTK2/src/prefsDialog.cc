@@ -23,6 +23,7 @@
 #include <gtkmm/messagedialog.h>
 
 #include "MIMEScanner.h"
+#include "DBusXapianIndex.h"
 #include "SearchEngineFactory.h"
 #include "QueryHistory.h"
 #include "config.h"
@@ -208,6 +209,8 @@ void prefsDialog::populate_directoriesTreeview()
 
 bool prefsDialog::save_directoriesTreeview()
 {
+	bool startService = false;
+
 	// Clear the current settings
 	m_settings.m_indexableLocations.clear();
 
@@ -239,7 +242,20 @@ bool prefsDialog::save_directoriesTreeview()
 			cout << "prefsDialog::save_directoriesTreeview: " << indexableLocation.m_name << endl;
 #endif
 			m_settings.m_indexableLocations.insert(indexableLocation);
+			startService = true;
 		}
+	}
+
+	if (startService == true)
+	{
+		unsigned int crawledCount = 0, docsCount = 0;
+
+		// Let D-Bus activate the service if necessary
+		DBusXapianIndex::getStatistics(crawledCount, docsCount);
+#ifdef DEBUG
+		cout << "prefsDialog::save_directoriesTreeview: crawled " << crawledCount
+			<< ", indexed " << docsCount << endl;
+#endif
 	}
 
 	return true;
