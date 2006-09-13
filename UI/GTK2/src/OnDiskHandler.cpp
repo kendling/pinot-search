@@ -193,11 +193,12 @@ void OnDiskHandler::initialize(void)
 					<< ", source " << sourceId << " was removed" << endl;
 #endif
 				// All documents with this label will be unindexed
-				m_index.unindexDocuments(sourceStr);
-
-				// Delete the source itself and all its items
-				m_history.deleteSource(sourceId);
-				m_history.deleteItems(sourceId);
+				if (m_index.unindexDocuments(sourceStr) == true)
+				{
+					// Delete the source itself and all its items
+					m_history.deleteSource(sourceId);
+					m_history.deleteItems(sourceId);
+				}
 			}
 #ifdef DEBUG
 			else cout << "OnDiskHandler::initialize: " << sourceIter->second

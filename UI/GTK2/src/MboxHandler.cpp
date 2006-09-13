@@ -212,9 +212,8 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLa
 		++docNum;
 	}
 #ifdef DEBUG
-	long microsecs = timer.stop();
 	cout << "MboxHandler::parseMailAccount: parsed " << docNum << " documents in "
-		<< microsecs/1000000 << " seconds (" << microsecs << ")" << endl;
+		<< timer.stop()/1000 << " ms" << endl;
 #endif
 
 	// Any document still in the list wasn't found this time around

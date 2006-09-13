@@ -241,9 +241,6 @@ Xapian::Database *XapianDatabase::readLock(void)
 {
 	if (m_merge == false)
 	{
-#ifdef DEBUG
-		cout << "XapianDatabase::readLock: " << m_databaseName << endl;
-#endif
 		if (pthread_rwlock_rdlock(&m_rwLock) == 0)
 		{
 			if (m_pDatabase == NULL)
@@ -299,9 +296,6 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 		return NULL;
 	}
 
-#ifdef DEBUG
-	cout << "XapianDatabase::writeLock: " << m_databaseName << endl;
-#endif
 	if (pthread_rwlock_wrlock(&m_rwLock) == 0)
 	{
 		if (m_pDatabase == NULL)
@@ -318,9 +312,6 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 /// Unlocks the database.
 void XapianDatabase::unlock(void)
 {
-#ifdef DEBUG
-	cout << "XapianDatabase::unlock: " << m_databaseName << endl;
-#endif
 	pthread_rwlock_unlock(&m_rwLock);
 
 	if (m_merge == true)
