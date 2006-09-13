@@ -52,8 +52,8 @@ long Timer::stop(void)
 {
 	gettimeofday(&m_stop, NULL);
 
-	long timeDiff = (m_stop.tv_sec - m_start.tv_sec) * 1000000
-		+ (m_stop.tv_usec - m_start.tv_usec);
+	long timeDiff = ((m_stop.tv_sec * 1000000) + m_stop.tv_usec)
+		- ((m_start.tv_sec * 1000000) + m_start.tv_usec);
 
 	return timeDiff;
 }
