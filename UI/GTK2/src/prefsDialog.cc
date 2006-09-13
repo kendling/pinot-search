@@ -137,7 +137,7 @@ void prefsDialog::populate_labelsTreeview()
 	removeLabelButton->set_sensitive(true);
 }
 
-bool prefsDialog::save_labelsTreeview()
+void prefsDialog::save_labelsTreeview()
 {
 	// Clear the current settings
 	m_settings.clearLabels();
@@ -174,8 +174,6 @@ bool prefsDialog::save_labelsTreeview()
 			m_settings.addLabel(labelName);
 		}
 	}
-
-	return true;
 }
 
 void prefsDialog::populate_directoriesTreeview()
@@ -246,19 +244,7 @@ bool prefsDialog::save_directoriesTreeview()
 		}
 	}
 
-	if (startService == true)
-	{
-		unsigned int crawledCount = 0, docsCount = 0;
-
-		// Let D-Bus activate the service if necessary
-		DBusXapianIndex::getStatistics(crawledCount, docsCount);
-#ifdef DEBUG
-		cout << "prefsDialog::save_directoriesTreeview: crawled " << crawledCount
-			<< ", indexed " << docsCount << endl;
-#endif
-	}
-
-	return true;
+	return startService;
 }
 
 void prefsDialog::populate_mailTreeview()
@@ -293,6 +279,8 @@ void prefsDialog::populate_mailTreeview()
 
 bool prefsDialog::save_mailTreeview()
 {
+	bool startService = false;
+
 	// Clear the current settings
 	m_settings.m_mailAccounts.clear();
 
@@ -326,10 +314,11 @@ bool prefsDialog::save_mailTreeview()
 			cout << "prefsDialog::save_mailTreeview: " << mailAccount.m_name << endl;
 #endif
 			m_settings.m_mailAccounts.insert(mailAccount);
+			startService = true;
 		}
 	}
 
-	return true;
+	return startService;
 }
 
 void prefsDialog::on_prefsOkbutton_clicked()
@@ -345,8 +334,21 @@ void prefsDialog::on_prefsOkbutton_clicked()
 
 	// Validate the current lists
 	save_labelsTreeview();
-	save_directoriesTreeview();
-	save_mailTreeview();
+	if ((save_directoriesTreeview() == true) ||
+		(save_mailTreeview() == true))
+	{
+		unsigned int crawledCount = 0, docsCount = 0;
+
+		// Save the settings
+		m_settings.save();
+		// ... and let D-Bus activate the service if necessary
+		// If it was already running, changes will take effect when it's restarted
+		DBusXapianIndex::getStatistics(crawledCount, docsCount);
+#ifdef DEBUG
+		cout << "prefsDialog::on_prefsOkbutton_clicked: crawled " << crawledCount
+			<< ", indexed " << docsCount << endl;
+#endif
+	}
 }
 
 void prefsDialog::on_addLabelButton_clicked()

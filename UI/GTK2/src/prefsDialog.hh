@@ -51,7 +51,7 @@ protected:
 	virtual void on_removeAccountButton_clicked();
 
 	void populate_labelsTreeview();
-	bool save_labelsTreeview();
+	void save_labelsTreeview();
 	void populate_directoriesTreeview();
 	bool save_directoriesTreeview();
 	void populate_mailTreeview();
