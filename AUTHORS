@@ -12,6 +12,9 @@ The file Monitor/linux-inotify-syscalls.h is originally from libinotify
 Some code is borrowed from Xapian Omega, which is "largely the work of
 Olly Betts, Mark Shinwell (omindex-config) and Richard Boulton".
 
+Code for mktime_from_utc() in Utils/TimeConverter.cpp was borrowed from
+wget (http://wget.sunsite.dk/).
+
 Translations provided by :
 
 	Spanish - Jesús Tramullas <jesus at tramullas dot com>
