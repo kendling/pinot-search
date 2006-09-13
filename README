@@ -1,6 +1,6 @@
 Pinot
 http://pinot.berlios.de/
-
+Fabrice Colin <fabricecolin at users dot berlios dot de>
 
 1. What is Pinot
 2. Upgrading from previous versions
@@ -11,7 +11,7 @@ http://pinot.berlios.de/
 7. Installing additional search plugins
 8. File formats
 9. More Like This
-10. Starting the D-Bus service
+10. D-Bus service
 11. Dependencies
 12. FAQ
 
@@ -26,6 +26,7 @@ http://pinot.berlios.de/
       service or your favourite Web engine, and display and analyze the
       results ("pinot")
     * other command-line tools
+
   It was developed and tested on GNU/Linux and should work on other Unix-like
   systems.
 
@@ -37,10 +38,11 @@ http://pinot.berlios.de/
   The "My Documents" index was renamed "My Web Pages". A new index, appropriately
   named "My Documents" ;-), includes all local files including mbox files and is
   populated by the new D-Bus service.
+
   If you used the Import facility to index specific directories on your system,
   it is recommended you manually unindex the corresponding documents from the
   "My Web Pages" index, and configure these directories to be automatically
-  indexed by the D-Bus service (see section "4. Automatic indexing and monitoring").
+  indexed by the D-Bus service, See section "4. Automatic indexing and monitoring".
   The "My EMail" index was dropped. Email messages will now appear in your
   "My Documents" index.
 
@@ -51,6 +53,7 @@ http://pinot.berlios.de/
   If the version of Pinot you are using was built with support for the Google
   SOAP API, a "Google API" engine will appear in pinot's engines list. To query
   this engine, you need to obtain a key from Google.
+
   Go to http://api.google.com/ and create an account. You will then receive
   your Google API key by email. Start pinot and enter the key in the corresponding
   field in the General tab of the Preferences box.
@@ -63,9 +66,8 @@ http://pinot.berlios.de/
     * directories and their contents. Monitoring for changes is optional.
     * mbox mail accounts. Monitoring is always enabled.
   The former is configured with the My Documents tab in the Preferences box; the latter
-  with the My EMail tab.
-  Both are handled by the D-Bus service.
-
+  with the My EMail tab. Both are handled by the D-Bus service.
+  See section "10. D-Bus service".
 
 5. Search strategy
 
@@ -84,6 +86,9 @@ http://pinot.berlios.de/
       don't follow operators and stem terms
   Stemming is available only to Stored Queries for which a language is defined
   (Query parameters box, Indexes only tab).
+  While Stored Queries allow to define how terms should be used, live queries
+  are run with all terms AND'ed together when querying an index. Future
+  versions of Pinot will allow more flexibility in that respect.
 
 
 6. Viewing cached results
@@ -100,6 +105,7 @@ http://pinot.berlios.de/
     <location>http://www.google.com/search?q=cache:%url0</location>
     <protocols>http, https</protocols>
   </cache>
+
   This is self-explanatory :-) Here it configures a cache provider called
   "Google" that handles both http and https. The location field supports
   two parameters that are substituted to obtain the URL to open : 
@@ -169,23 +175,37 @@ http://pinot.berlios.de/
    currently selected is indexed, ie if the result was previously manually
    indexed in "My Web Pages", or if it's a local file indexed in "My Documents".
    Its role is to expand queries.
+
    When activated, it will suggest other terms from the selected results
    and create a new Stored Query prefixed with "More Like". For instance,
    if you run a Stored Query with name "Me", the expanded query's name will be
    "More Like Me".
 
 
-10. Starting the D-Bus service
+10. D-Bus service
 
 
    Thanks to D-Bus activation, the service is started whenever one of its
    methods are invoked, either by the UI or any other consumer application.
    When directories or mbox files are configured for indexing in the UI,
    clicking OK on the Preferences box will call a method of the service
-   to make sure it is running.   
+   to make sure it is running.
+
    If you want the service to be started when you start a new X session,
    add pinot-dbus-daemon to your desktop environment's startup programs
    list.
+   A few things to keep in mind :
+     * the service doesn't reload its configuration while running, so any
+       change (adding or removing a directory or mbox file) will take effect
+       when the service is restarted.
+     * when starting, the service will first crawl all configured locations
+       and (re)index new and modified files. This might be CPU intensive,
+       but not so much that it prevents you from doing anything else.
+     * when finished crawling, the service will monitor these locations
+       for changes and should consume little resources, unless a huge
+       quantity of files needs its attention.
+
+  For a list of available D-Bus methods, see the file pinot-dbus-daemon.xml.
 
 
 11. Dependencies
