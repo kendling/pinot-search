@@ -1,23 +1,33 @@
 ??? version_0_6_0
+Build :
+ - modifications for building on Cygwin, contributed by Reini Urban
 Monitor :
  - inotify monitor more flexible
 SQL :
- - saves the daemon's crawler history
+ - retry if the database is busy
+ - save the daemon's crawler history
 Index :
  - able to open remote indexes that were not initially available
  - indexes are open in write mode only when necessary
  - prefer Xapian's Flint back-end to Quartz
+ - terms starting with an upper-case letter are not ignored by terms suggestion
+ - refresh terms generated from the previous title, location etc... when updating a document
+ - MIME type and directory hierarchy are stored as terms
+ - store documents last modification date in a way compatible with Xapian Omega
 Search :
- - fixed issue with abstract generation on remote indexes
+ - fixed abstract generation with remote indexes, and queries with OR'ed terms !
+ - brought MozDex plugin back
 UI :
  - fixed language shown in the properties box when language is unknown
   for one or more of the documents selected
  - better at queuing document indexing
  - My Email index is replaced with the index managed by the daemon
+ - search terms suggestion, More Like This and the index status icon on results
+  rely on both internal indexes
+ - only URLs can be imported now as the daemon takes care of local files
 Daemon :
- - crawls and indexes user-defined locations on the filesystem
+ - crawls and indexes user-defined locations on the filesystem, mbox files included
  - recursively monitors these locations for changes and updates the index
- - same for mboxes
  - provides a DBus interface suitable for querying and document inspection
  - no dependency on gtkmm
 
