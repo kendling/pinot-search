@@ -69,11 +69,11 @@ int main(int argc, char **argv)
 				cout << "pinot-index - Index documents from the command-line\n\n"
 					<< "Usage: pinot-index [OPTIONS] INDEXTYPE INDEXLOCATION\n\n"
 					<< "Options:\n"
-					<< "  -c, --check		check whether the given URL is in the index\n"
-					<< "  -h, --help		display this help and exit\n"
-					<< "  -i, --index		index the given URL\n"
-					<< "  -s, --showinfo		show information about the document\n"
-					<< "  -v, --version		output version information and exit\n\n";
+					<< "  -c, --check               check whether the given URL is in the index\n"
+					<< "  -h, --help                display this help and exit\n"
+					<< "  -i, --index               index the given URL\n"
+					<< "  -s, --showinfo            show information about the document\n"
+					<< "  -v, --version             output version information and exit\n\n";
 				// Don't mention type dbus here as it doesn't support indexing and
 				// is identical to xapian when checking for URLs
 				cout << "Examples:\n"
