@@ -24,22 +24,24 @@ noinst_HEADERS = \
 	xdgmime/xdgmimemagic.h \
 	xdgmime/xdgmimeparent.h
 
-noinst_LTLIBRARIES = libUtils.la
+noinst_LTLIBRARIES = libBasicUtils.la libUtils.la
 
-libUtils_la_SOURCES = \
+libBasicUtils_la_SOURCES = \
 	CommandLine.cpp \
 	Document.cpp \
+	DocumentInfo.cpp \
+	StringManip.cpp \
+	TimeConverter.cpp \
+	Url.cpp
+
+libUtils_la_SOURCES = \
+	IndexedDocument.cpp \
 	Languages.cpp \
 	MIMEScanner.cpp \
-	StringManip.cpp \
-	Timer.cpp \
-	XapianDatabase.cpp \
-	DocumentInfo.cpp \
-	IndexedDocument.cpp \
 	MboxParser.cpp \
 	Result.cpp \
-	TimeConverter.cpp \
-	Url.cpp \
+	Timer.cpp \
+	XapianDatabase.cpp \
 	XapianDatabaseFactory.cpp \
 	xdgmime/xdgmimealias.c \
 	xdgmime/xdgmime.c \

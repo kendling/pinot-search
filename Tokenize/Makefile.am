@@ -1,12 +1,5 @@
 # Process this file with automake to produce Makefile.in
 
-UTILS_OBJS = ../Utils/CommandLine.o \
-	../Utils/Document.o \
-	../Utils/StringManip.o \
-	../Utils/DocumentInfo.o \
-	../Utils/TimeConverter.o \
-	../Utils/Url.o
-
 noinst_HEADERS = \
 	HtmlTokenizer.h \
 	OpenDocumentTokenizer.h \
@@ -31,7 +24,7 @@ libopendocumenttokenizer_la_SOURCES = \
 
 libopendocumenttokenizer_la_LDFLAGS = -module
 
-libopendocumenttokenizer_la_LIBADD = ${UTILS_OBJS}
+libopendocumenttokenizer_la_LIBADD = -L../Utils -lBasicUtils
 
 libpdftokenizer_la_SOURCES = \
 	PdfTokenizer.cpp \
@@ -40,7 +33,7 @@ libpdftokenizer_la_SOURCES = \
 
 libpdftokenizer_la_LDFLAGS = -module
 
-libpdftokenizer_la_LIBADD = ${UTILS_OBJS} 
+libpdftokenizer_la_LIBADD = -L../Utils -lBasicUtils
 
 librtftokenizer_la_SOURCES = \
 	RtfTokenizer.cpp \
@@ -49,7 +42,7 @@ librtftokenizer_la_SOURCES = \
 
 librtftokenizer_la_LDFLAGS = -module
 
-librtftokenizer_la_LIBADD = ${UTILS_OBJS}
+librtftokenizer_la_LIBADD = -L../Utils -lBasicUtils
 
 libwordtokenizer_la_SOURCES = \
 	WordTokenizer.cpp \
@@ -57,7 +50,7 @@ libwordtokenizer_la_SOURCES = \
 
 libwordtokenizer_la_LDFLAGS = -module
 
-libwordtokenizer_la_LIBADD = ${UTILS_OBJS}
+libwordtokenizer_la_LIBADD = -L../Utils -lBasicUtils
 
 libtaglibtokenizer_la_SOURCES = \
 	TagLibTokenizer.cpp \
@@ -65,7 +58,7 @@ libtaglibtokenizer_la_SOURCES = \
 
 libtaglibtokenizer_la_LDFLAGS = -module @TAGLIB_LIBS@
 
-libtaglibtokenizer_la_LIBADD = ${UTILS_OBJS}
+libtaglibtokenizer_la_LIBADD = -L../Utils -lBasicUtils
 
 libTokenize_la_SOURCES = \
 	HtmlTokenizer.cpp \

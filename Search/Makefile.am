@@ -44,7 +44,7 @@ pinot_search_SOURCES = \
 	pinot-search.cpp
 
 pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect -LGoogle \
-	@SEARCH_LIBS@ -lCollect -lTokenize -lUtils \
+	@SEARCH_LIBS@ -lCollect -lTokenize -lUtils -lBasicUtils \
 	@GLIBMM_LIBS@ @INDEX_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 SOAPEnvC.cpp : SOAPEnv.h

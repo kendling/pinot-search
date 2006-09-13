@@ -25,7 +25,7 @@ pinot_collect_SOURCES = \
 	pinot-collect.cpp
 
 pinot_collect_LDADD = -L../Utils -L../Tokenize \
-	-lCollect -lTokenize -lUtils \
+	-lCollect -lTokenize -lUtils -lBasicUtils \
 	@GLIBMM_LIBS@ @INDEX_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize \
