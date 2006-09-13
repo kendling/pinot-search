@@ -1,17 +1,199 @@
-Pinot http://pinot.berlios.de/
+Pinot
+http://pinot.berlios.de/
 
-Pinot is a metasearch tool for the Free Desktop. It acts as a front-end
-for search engines such as Google (with support for the SOAP API), Yahoo!,
-MSN, etc... and allows one to index relevant results locally and query the
-index.
-It was developed and tested on GNU/Linux and should work on other Unix-like systems.
 
-Dependencies :
----------------
+1. What is Pinot
+2. Upgrading from previous versions
+3. Using the Google API
+4. Automatic indexing and monitoring
+5. Search strategy
+6. Viewing cached results
+7. Installing additional search plugins
+8. File formats
+9. More Like This
+10. Starting the D-Bus service
+11. Dependencies
+12. FAQ
 
-Name			Location			Version used
-----			--------			------------
 
+1. What is Pinot
+
+
+  Pinot is :
+    * a D-Bus service that crawls, indexes and monitors your documents
+      ("pinot-dbus-daemon")
+    * a GTK-based user interface that enables to query the index built by the
+      service or your favourite Web engine, and display and analyze the
+      results ("pinot")
+    * other command-line tools
+  It was developed and tested on GNU/Linux and should work on other Unix-like
+  systems.
+
+
+2. Upgrading from previous versions
+
+
+  * from 0.50 or older to 0.60
+  The "My Documents" index was renamed "My Web Pages". A new index, appropriately
+  named "My Documents" ;-), includes all local files including mbox files and is
+  populated by the new D-Bus service.
+  If you used the Import facility to index specific directories on your system,
+  it is recommended you manually unindex the corresponding documents from the
+  "My Web Pages" index, and configure these directories to be automatically
+  indexed by the D-Bus service (see section "4. Automatic indexing and monitoring").
+  The "My EMail" index was dropped. Email messages will now appear in your
+  "My Documents" index.
+
+
+3. Using the Google API
+
+
+  If the version of Pinot you are using was built with support for the Google
+  SOAP API, a "Google API" engine will appear in pinot's engines list. To query
+  this engine, you need to obtain a key from Google.
+  Go to http://api.google.com/ and create an account. You will then receive
+  your Google API key by email. Start pinot and enter the key in the corresponding
+  field in the General tab of the Preferences box.
+
+
+4. Automatic indexing and monitoring
+
+
+  Pinot can automatically index :
+    * directories and their contents. Monitoring for changes is optional.
+    * mbox mail accounts. Monitoring is always enabled.
+  The former is configured with the My Documents tab in the Preferences box; the latter
+  with the My EMail tab.
+  Both are handled by the D-Bus service.
+
+
+5. Search strategy
+
+
+  When querying an index, Pinot adopts a multi-stepped search strategy that
+  first attempts to find the documents that best match the query. If a given
+  step doesn't return results, the next step alters the query slightly before
+  it is run again. These steps are :
+    * step 1
+      obey the query's operators, don't stem terms
+    * step 2
+      obey operators, stem terms
+    * step 3
+      don't follow operators (all terms are OR'ed) and don't stem terms
+    * step 4
+      don't follow operators and stem terms
+  Stemming is available only to Stored Queries for which a language is defined
+  (Query parameters box, Indexes only tab).
+
+
+6. Viewing cached results
+
+
+  Results returned by search engines can be viewed "live" by selecting the View
+  menuitem under Results. This opens whatever application defined for the
+  result's MIME type and/or protocol scheme.
+  In addition, Pinot allows to view the page as cached by Google and the Wayback
+  Machine. Cache providers are actually configured in globalconfig.xml, located
+  in $PREFIX/share/pinot/. For instance :
+  <cache>
+    <name>Google</name>
+    <location>http://www.google.com/search?q=cache:%url0</location>
+    <protocols>http, https</protocols>
+  </cache>
+  This is self-explanatory :-) Here it configures a cache provider called
+  "Google" that handles both http and https. The location field supports
+  two parameters that are substituted to obtain the URL to open : 
+    * %url is the result's URL as displayed by the UI, eg
+      http://pinot.berlios.de/download.html
+    * %url0 is the result's URL without the protocol, eg
+      pinot.berlios.de/download.html
+
+
+7. Installing additional search plugins
+
+
+  Starting with v0.42, Pinot supports both Sherlock and OpenSearch Description
+  plugins. They are installed in $PREFIX/share/pinot/engines/, where PREFIX
+  is usually /usr.
+  Additional engines can be installed in that directory or in ~/.pinot/engines.
+  Note this directory is not created automatically.
+  Sherlock is what Firefox and the Mozilla suite use. Chances are that somebody
+  wrote a plugin for the engine you are interested in. MyCroft at
+  http://mycroft.mozdev.org/ has got plenty of plugins. Beware that a lot are
+  out of date and will require some changes. Use pinot-search on the
+  command-line to run a quick check on a plugin, e.g. :
+  $ pinot-search sherlock /usr/share/pinot/engines/Bozo.src "clowns" 10
+
+  Plugins are categorized by channels. For Sherlock plugins, the routeType
+  element under SEARCH specifies the name of the channel the plugin belongs to.
+  As for OpenSearch, A9.com has an extensive list at
+  http://a9.com/-/search/moreColumns.jsp. A Description file is not available
+  for all engines though...
+  Pinot should work with OpenSearch Description 1.0 and 1.1 (draft 2) plugins.
+  One thing to keep in mind is that because Description doesn't describe how
+  to parse the results page returned by the search engine, Pinot assumes that
+  the engine will return results formatted according to the OpenSearch Response
+  standard.
+  In practice, this means that plugins that don't stick to the following rules
+  will be ignored or won't show any result :
+    * For Description 1.1 plugins, the type attribute on the Url field must be
+      set to "application/atom+xml" or "application/rss+xml" (default).
+      "text/html" will be rejected.
+    * The search engine's results page content type must be some form of XML,
+      otherwise Pinot won't attempt parsing it. 
+  Pinot differs from the Description spec in that it interprets the Tags field
+  as a channel name. The standard defines Tags as a "space-delimited set of
+  words that are used as keywords to identify and categorize this search
+  content".
+
+8. File formats
+
+
+  Supported document types are
+  * plain text
+  * HTML
+  * PDF (pdftotext is required)
+  * RTF (unrtf is required)
+  * MS Word (antiword is required)
+  * XML
+  * OpenDocument/StarOffice files
+  * mbox
+  * MP3 and Ogg Vorbis (TagLib required)
+  More formats will be supported as the project matures.
+
+
+9. More Like This
+
+
+   The More Like This feature is enabled when at least one of the results
+   currently selected is indexed, ie if the result was previously manually
+   indexed in "My Web Pages", or if it's a local file indexed in "My Documents".
+   Its role is to expand queries.
+   When activated, it will suggest other terms from the selected results
+   and create a new Stored Query prefixed with "More Like". For instance,
+   if you run a Stored Query with name "Me", the expanded query's name will be
+   "More Like Me".
+
+
+10. Starting the D-Bus service
+
+
+   Thanks to D-Bus activation, the service is started whenever one of its
+   methods are invoked, either by the UI or any other consumer application.
+   When directories or mbox files are configured for indexing in the UI,
+   clicking OK on the Preferences box will call a method of the service
+   to make sure it is running.   
+   If you want the service to be started when you start a new X session,
+   add pinot-dbus-daemon to your desktop environment's startup programs
+   list.
+
+
+11. Dependencies
+
+
+---------------------------------------------------------------
+Name							Version
+---------------------------------------------------------------
 SQLite							3.1.2
 http://www.sqlite.org/
 
@@ -68,16 +250,19 @@ http://www.gnu.org/software/unrtf/unrtf.html
 
 TagLib							1.4
 http://ktown.kde.org/~wheeler/taglib/
-
+---------------------------------------------------------------
+Notes :
 (1) enabled with "./configure --with-http=neon|curl"
 (2) enabled with "./configure --with-soap=yes"
 (3) for building only
+---------------------------------------------------------------
 
-FAQ :
------
 
-- When listing an index or indexing documents, Pinot complains of an
-  "index error"
+12. FAQ
+
+
+- At startup, when listing an index or indexing documents, Pinot complains
+  of an "index error"
   This is likely because a previous instance didn't exit properly and one
   (or more) index is still locked. Quit Pinot and look for a "db_lock" file
   in "~/.pinot/index" and "~/.pinot/mail". If it's there, delete it and
@@ -94,4 +279,5 @@ FAQ :
 
 - If you have built Pinot from source, make sure you have done a "make install".
   Pinot will fail to start if it can't find stuff it needs, its icon for instance.
+
 
