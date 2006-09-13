@@ -36,6 +36,7 @@ static struct option g_longOptions[] = {
 	{"check", 1, 0, 'c'},
 	{"help", 0, 0, 'h'},
 	{"index", 1, 0, 'i'},
+	{"showinfo", 0, 0, 's'},
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
@@ -43,12 +44,13 @@ static struct option g_longOptions[] = {
 int main(int argc, char **argv)
 {
 	string type, option;
-	int longOptionIndex = 0;
 	string urlToCheck, urlToIndex;
-	bool checkDocument = false, indexDocument = false, success = false;
+	int longOptionIndex = 0;
+	unsigned int docId = 0;
+	bool checkDocument = false, indexDocument = false, showInfo = false, success = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "c:hi:v", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "c:hi:sv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		set<string> engines;
@@ -70,11 +72,12 @@ int main(int argc, char **argv)
 					<< "  -c, --check		check whether the given URL is in the index\n"
 					<< "  -h, --help		display this help and exit\n"
 					<< "  -i, --index		index the given URL\n"
+					<< "  -s, --showinfo		show information about the document\n"
 					<< "  -v, --version		output version information and exit\n\n";
 				// Don't mention type dbus here as it doesn't support indexing and
 				// is identical to xapian when checking for URLs
 				cout << "Examples:\n"
-					<< "pinot-index --check file:///home/fabrice/Documents/Bozo.txt xapian ~/.pinot/daemon\n\n"
+					<< "pinot-index --check file:///home/fabrice/Documents/Bozo.txt --showinfo xapian ~/.pinot/daemon\n\n"
 					<< "pinot-index --index http://pinot.berlios.de/ xapian ~/.pinot/index\n\n"
 					<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 				return EXIT_SUCCESS;
@@ -84,6 +87,9 @@ int main(int argc, char **argv)
 					urlToIndex = optarg;
 				}
 				indexDocument = true;
+				break;
+			case 's':
+				showInfo = true;
 				break;
 			case 'v':
 				cout << "pinot-index - " << PACKAGE_STRING << "\n\n"
@@ -96,7 +102,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "c:hi:v", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "c:hi:sv", g_longOptions, &longOptionIndex);
 	}
 
 	if ((argc < 3) ||
@@ -143,7 +149,7 @@ int main(int argc, char **argv)
 	{
 		if (pIndex->isGood() == true)
 		{
-			unsigned int docId = pIndex->hasDocument(urlToCheck);
+			docId = pIndex->hasDocument(urlToCheck);
 			if (docId > 0)
 			{
 				cout << urlToCheck << ": document ID " << docId << endl;
@@ -186,7 +192,7 @@ int main(int argc, char **argv)
 				pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
 
 				// Update an existing document or add to the index ?
-				unsigned int docId = pIndex->hasDocument(urlToIndex);
+				docId = pIndex->hasDocument(urlToIndex);
 				if (docId > 0)
 				{
 					// Update the document
@@ -214,6 +220,31 @@ int main(int argc, char **argv)
 		}
 
 		delete pDownloader;
+	}
+	if ((showInfo == true) &&
+		(docId > 0))
+	{
+		DocumentInfo docInfo;
+		set<string> labels;
+
+		if (pIndex->getDocumentInfo(docId, docInfo) == true)
+		{
+			cout << "Title: " << docInfo.getTitle() << endl;
+			cout << "Location: " << docInfo.getLocation() << endl;
+			cout << "Type: " << docInfo.getType() << endl;
+			cout << "Language: " << docInfo.getLanguage() << endl;
+			cout << "Timestamp: " << docInfo.getTimestamp() << endl;
+		}
+		if (pIndex->getDocumentLabels(docId, labels) == true)
+		{
+			cout << "Labels:";
+			for (set<string>::const_iterator labelIter = labels.begin();
+				labelIter != labels.end(); ++labelIter)
+			{
+				cout << " '" << *labelIter << "'";
+			}
+			cout << endl;
+		}
 	}
 	delete pIndex;
 

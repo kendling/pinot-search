@@ -18,10 +18,13 @@ display this help and exit
 \fB\-i\fR, \fB\-\-index\fR
 index the given URL
 .TP
+\fB\-s\fR, \fB\-\-showinfo\fR
+show information about the document
+.TP
 \fB\-v\fR, \fB\-\-version\fR
 output version information and exit
 .SH EXAMPLES
-pinot\-index \fB\-\-check\fR file:///home/fabrice/Documents/Bozo.txt xapian ~/.pinot/daemon
+pinot\-index \fB\-\-check\fR file:///home/fabrice/Documents/Bozo.txt \fB\-\-showinfo\fR xapian ~/.pinot/daemon
 .PP
 pinot\-index \fB\-\-index\fR http://pinot.berlios.de/ xapian ~/.pinot/index
 .SH "REPORTING BUGS"
