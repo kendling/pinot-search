@@ -2,6 +2,7 @@ Pinot
 http://pinot.berlios.de/
 Fabrice Colin <fabricecolin at users dot berlios dot de>
 
+
 1. What is Pinot
 2. Upgrading from previous versions
 3. Using the Google API
@@ -12,8 +13,9 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
 8. File formats
 9. More Like This
 10. D-Bus service
-11. Dependencies
-12. FAQ
+11. Deskbar Applet plugin
+12. Dependencies
+13. FAQ
 
 
 1. What is Pinot
@@ -68,6 +70,7 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
   The former is configured with the My Documents tab in the Preferences box; the latter
   with the My EMail tab. Both are handled by the D-Bus service.
   See section "10. D-Bus service".
+
 
 5. Search strategy
 
@@ -127,7 +130,7 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
   wrote a plugin for the engine you are interested in. MyCroft at
   http://mycroft.mozdev.org/ has got plenty of plugins. Beware that a lot are
   out of date and will require some changes. Use pinot-search on the
-  command-line to run a quick check on a plugin, e.g. :
+  command-line to run a quick check on a plugin, eg
   $ pinot-search sherlock /usr/share/pinot/engines/Bozo.src "clowns" 10
 
   Plugins are categorized by channels. For Sherlock plugins, the routeType
@@ -206,9 +209,27 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
        quantity of files needs its attention.
 
   For a list of available D-Bus methods, see the file pinot-dbus-daemon.xml.
+  Note that only the My Documents index is accessible through D-Bus for the
+  time being.
 
 
-11. Dependencies
+11. Deskbar Applet plugin
+
+
+  Deskbar Applet provides an omnipresent versatile search interface for Gnome.
+  Searching documents indexed by Pinot with the applet is possible. Users
+  of RPM-based systems may install the pinot-desbar RPM. Otherwise, the
+  file UI/pinot-deskbar.py can simply be copied into
+  $PREFIX/lib/deskbar-applet/handlers (or, on 64 bit systems,
+  $PREFIX/lib64/deskbar-applet/handlers) for use by all users, or into
+  ~/.gnome2/deskbar-applet/handlers for use only by the current user.
+  Once enabled, the plugin will rely on the D-Bus service to query the My
+  Documents index.
+  Deskbar Applet appears to sort results by names, so it may not present
+  results in the same order as the Pinot UI.
+
+
+12. Dependencies
 
 
 ---------------------------------------------------------------
@@ -278,26 +299,26 @@ Notes :
 ---------------------------------------------------------------
 
 
-12. FAQ
+13. FAQ
 
 
-- At startup, when listing an index or indexing documents, Pinot complains
-  of an "index error"
-  This is likely because a previous instance didn't exit properly and one
-  (or more) index is still locked. Quit Pinot and look for a "db_lock" file
-  in "~/.pinot/index" and "~/.pinot/mail". If it's there, delete it and
-  restart Pinot. This will be fixed in the future.
+  * At startup, when listing an index or indexing documents, Pinot complains
+    of an "index error"
+    This is likely because a previous instance didn't exit properly and one
+    (or more) index is still locked. Quit Pinot and look for a "db_lock" file
+    in "~/.pinot/index" and "~/.pinot/mail". If it's there, delete it and
+    restart Pinot. This will be fixed in the future.
 
-- When compiling from source, you may run into linking problems related to
-  libstdc++.la. Try patching xapian-config as explained in this post
-  (http://lists.tartarus.org/pipermail/xapian-devel/2006-January/000293.html).
+  * When compiling from source, you may run into linking problems related to
+    libstdc++.la. Try patching xapian-config as explained in the post at
+    http://lists.tartarus.org/pipermail/xapian-devel/2006-January/000293.html
 
-- If you experience segfaults at startup and you are on Fedora, chances are
-  it's because of libxml++/libsigc++. See this Bugzilla entry:
-  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=178592
-  The latest version seems to fix this issue.
+  * If you experience segfaults at startup and you are on Fedora, chances are
+    it's because of libxml++/libsigc++. See this Bugzilla entry :
+    https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=178592
+    The latest version seems to fix this issue.
 
-- If you have built Pinot from source, make sure you have done a "make install".
-  Pinot will fail to start if it can't find stuff it needs, its icon for instance.
+  * If you have built Pinot from source, make sure you have done a "make install".
+    Pinot will fail to start if it can't find stuff it needs, its icon for instance.
 
 
