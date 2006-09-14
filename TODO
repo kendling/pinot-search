@@ -2,7 +2,6 @@ General
 - Fix the FIXMEs
 - Get rid of dead code/classes/methods...
 - Advertise service via Rendezvous
-- Check for leaks with valgrind (eg --tool=memcheck -v --leak-check=yes --show-reachable=yes ...)
 - MIMEScanner should also return parent types so that we don't filter out types unnecessarily
 
 Tokenize
@@ -11,9 +10,10 @@ Tokenize
 - WordPerfect tokenizer with libwpd
 - Spin tokenizers into separate project, a la libextractor
 - Check whether pdftotext flattens text in PDF documents that have columns
+- HtmlTokenizer should skip htdig_noindex blocks (http://www.htdig.org/attrs.html#noindex_start)
 
 Monitor
-- Use SQLite for email lists in MboxHandler, and not the index
+- Implement support for Solaris FEM
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -40,14 +40,14 @@ Index
 - Write a pseudo-filesystem for indexes with FUSE (http://fuse.sourceforge.net/) or gnome-vfs ?
 - Xapian lock files can be deleted at startup if no other instance is running
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
-- Switch to Xapian's new Flint back-end (set XAPIAN_PREFER_FLINT=1)
-- Write a back-end for CLucene (http://clucene.sourceforge.net/)
-- Flush the index before searching not after modification
 - Hash document data to determine on updates whether documents have changed
-- Allow to monitor imported documents for changes
 - Xapian Query objects will become serializable at some point, this will be useful
   for stored queries
 - Think about indexing archives (parent documents) and their contents (child documents)
+- Reopen connection to remote indexes when necessary; does Xapian throw a RemoteError ?
+- Allow to access remote Xapian indexes tunneled through ssh, using Xapian::Remote::open()
+  defined in /usr/include/xapian/dbfactory.h
+- Use Xapian's QueryParser
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -64,7 +64,6 @@ Mail
 UI
 - Switching back and forth between grouping modes messes up results rankings : check scores
 - When sorting results by host name, give better score to results that appear several times
-- Results and index trees should be sorted when clicking on columns
 - Show which threads are running, what they are doing, and allow to stop them selectively
 - Add an history window to edit Index and ViewHistory
 - Automatic indexing of a query's results depending on type, source, size, language
@@ -72,15 +71,14 @@ UI
 - Display search engines icons (Gtk::IconSource::set_filename() and Gtk::Style::render_icon())
 - Replace Combobox objects with ComboboxText's (glademm support required)
 - Replace glademm with libglademm ?
-- Show activity when mail is being indexed
 - Filter documents by language, similarly to how labels are shown
 - Clean up method names
 - Prefer ustring to string whenever possible
 - Closing when threads are running gives the impression Pinot has crashed; how do we tell the user
   we are waiting for something to finish ?
-- Use libnotify to show a popup when a new result is available ?
 - Replace labels with tags (Leaftag, http://www.chipx86.com/wiki/Leaftag). Enable to import
   all the documents that match a specific tag
 - When switching back and forth between results tabs and another tab, why does the
   result list get shifted right to the Title column ?
+- Make Pinot a unique app (http://guniqueapp.akl.lt/)
 
