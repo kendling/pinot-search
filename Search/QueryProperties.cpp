@@ -61,18 +61,21 @@ QueryProperties::~QueryProperties()
 
 QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 {
-	m_name = other.m_name;
-	m_andWords = other.m_andWords;
-	m_phrase = other.m_phrase;
-	m_anyWords = other.m_anyWords;
-	m_notWords = other.m_notWords;
-	m_language = other.m_language;
-	m_hostFilter = other.m_hostFilter;
-	m_fileFilter = other.m_fileFilter;
-	m_labelFilter = other.m_labelFilter;
-	m_resultsCount = other.m_resultsCount;
-	m_indexResults = other.m_indexResults;
-	m_labelName = other.m_labelName;
+	if (this != &other)
+	{
+		m_name = other.m_name;
+		m_andWords = other.m_andWords;
+		m_phrase = other.m_phrase;
+		m_anyWords = other.m_anyWords;
+		m_notWords = other.m_notWords;
+		m_language = other.m_language;
+		m_hostFilter = other.m_hostFilter;
+		m_fileFilter = other.m_fileFilter;
+		m_labelFilter = other.m_labelFilter;
+		m_resultsCount = other.m_resultsCount;
+		m_indexResults = other.m_indexResults;
+		m_labelName = other.m_labelName;
+	}
 
 	return *this;
 }

@@ -81,21 +81,24 @@ XapianDatabase::~XapianDatabase()
 
 XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
 {
-	m_databaseName = other.m_databaseName;
-	m_readOnly = other.m_readOnly;
-	if (m_pDatabase != NULL)
+	if (this != &other)
 	{
-		delete m_pDatabase;
-		m_pDatabase = NULL;
+		m_databaseName = other.m_databaseName;
+		m_readOnly = other.m_readOnly;
+		if (m_pDatabase != NULL)
+		{
+			delete m_pDatabase;
+			m_pDatabase = NULL;
+		}
+		if (other.m_pDatabase != NULL)
+		{
+			m_pDatabase = new Xapian::Database(*other.m_pDatabase);
+		}
+		m_isOpen = other.m_isOpen;
+		m_merge = other.m_merge;
+		m_pFirst = other.m_pFirst;
+		m_pSecond = other.m_pSecond;
 	}
-	if (other.m_pDatabase != NULL)
-	{
-		m_pDatabase = new Xapian::Database(*other.m_pDatabase);
-	}
-	m_isOpen = other.m_isOpen;
-	m_merge = other.m_merge;
-	m_pFirst = other.m_pFirst;
-	m_pSecond = other.m_pSecond;
 
 	return *this;
 }

@@ -39,9 +39,12 @@ Result::~Result()
 
 Result &Result::operator=(const Result &other)
 {
-	DocumentInfo::operator=(other);
-	m_extract = other.m_extract;
-	m_score = other.m_score;
+	if (this != &other)
+	{
+		DocumentInfo::operator=(other);
+		m_extract = other.m_extract;
+		m_score = other.m_score;
+	}
 
 	return *this;
 }

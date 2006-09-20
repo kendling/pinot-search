@@ -448,11 +448,14 @@ Link::~Link()
 
 Link& Link::operator=(const Link& other)
 {
-	m_url = other.m_url;
-	m_name = other.m_name;
-	m_index = other.m_index;
-	m_startPos = other.m_startPos;
-	m_endPos = other.m_endPos;
+	if (this != &other)
+	{
+		m_url = other.m_url;
+		m_name = other.m_name;
+		m_index = other.m_index;
+		m_startPos = other.m_startPos;
+		m_endPos = other.m_endPos;
+	}
 
 	return *this;
 }

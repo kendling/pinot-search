@@ -31,8 +31,11 @@ Timer::Timer(const Timer &other) :
 
 Timer &Timer::operator=(const Timer &other)
 {
-	m_start = other.m_start;
-	m_stop = other.m_stop;
+	if (this != &other)
+	{
+		m_start = other.m_start;
+		m_stop = other.m_stop;
+	}
 
 	return *this;
 }

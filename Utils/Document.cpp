@@ -73,10 +73,13 @@ Document::~Document()
 
 Document& Document::operator=(const Document& other)
 {
-	// Copying does a deep copy
-	DocumentInfo::operator=(other);
-	setData(other.m_pData, other.m_dataLength);
-	m_isMapped = false;
+	if (this != &other)
+	{
+		// Copying does a deep copy
+		DocumentInfo::operator=(other);
+		setData(other.m_pData, other.m_dataLength);
+		m_isMapped = false;
+	}
 
 	return *this;
 }

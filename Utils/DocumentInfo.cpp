@@ -54,14 +54,17 @@ DocumentInfo::~DocumentInfo()
 
 DocumentInfo& DocumentInfo::operator=(const DocumentInfo& other)
 {
-	m_title = other.m_title;
-	m_location = other.m_location;
-	m_type = other.m_type;
-	m_language = other.m_language;
-	m_timestamp = other.m_timestamp;
-	m_labels.clear();
-	copy(other.m_labels.begin(), other.m_labels.end(),
-		inserter(m_labels, m_labels.begin()));
+	if (this != &other)
+	{
+		m_title = other.m_title;
+		m_location = other.m_location;
+		m_type = other.m_type;
+		m_language = other.m_language;
+		m_timestamp = other.m_timestamp;
+		m_labels.clear();
+		copy(other.m_labels.begin(), other.m_labels.end(),
+			inserter(m_labels, m_labels.begin()));
+	}
 
 	return *this;
 }

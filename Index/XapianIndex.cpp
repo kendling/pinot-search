@@ -100,10 +100,14 @@ XapianIndex::~XapianIndex()
 
 XapianIndex &XapianIndex::operator=(const XapianIndex &other)
 {
-	IndexInterface::operator=(other);
-	m_databaseName = other.m_databaseName;
-	m_goodIndex = other .m_goodIndex;
-	m_stemLanguage = other.m_stemLanguage;
+	if (this != &other)
+	{
+		IndexInterface::operator=(other);
+		m_databaseName = other.m_databaseName;
+		m_goodIndex = other .m_goodIndex;
+		m_stemLanguage = other.m_stemLanguage;
+	}
+
 	return *this;
 }
 

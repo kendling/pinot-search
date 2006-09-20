@@ -137,13 +137,16 @@ MIMEAction::~MIMEAction()
 
 MIMEAction &MIMEAction::operator=(const MIMEAction &other)
 {
-	m_multipleArgs = other.m_multipleArgs;
-	m_localOnly = other.m_localOnly;
-	m_name = other.m_name;
-	m_location = other.m_location;
-	m_exec = other.m_exec;
-	m_icon = other.m_icon;
-	m_device = other.m_device;
+	if (this != &other)
+	{
+		m_multipleArgs = other.m_multipleArgs;
+		m_localOnly = other.m_localOnly;
+		m_name = other.m_name;
+		m_location = other.m_location;
+		m_exec = other.m_exec;
+		m_icon = other.m_icon;
+		m_device = other.m_device;
+	}
 
 	return *this;
 }

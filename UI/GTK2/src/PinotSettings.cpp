@@ -1377,10 +1377,15 @@ PinotSettings::Engine::~Engine()
 
 PinotSettings::Engine &PinotSettings::Engine::operator=(const PinotSettings::Engine &other)
 {
-	m_name = other.m_name;
-	m_type = other.m_type;
-	m_option = other.m_option;
-	m_channel = other.m_channel;
+	if (this != &other)
+	{
+		m_name = other.m_name;
+		m_type = other.m_type;
+		m_option = other.m_option;
+		m_channel = other.m_channel;
+	}
+
+	return *this;
 }
 
 bool PinotSettings::Engine::operator<(const PinotSettings::Engine &other) const
@@ -1420,8 +1425,11 @@ PinotSettings::TimestampedItem::~TimestampedItem()
 
 PinotSettings::TimestampedItem &PinotSettings::TimestampedItem::operator=(const TimestampedItem &other)
 {
-	m_name = other.m_name;
-	m_modTime = other.m_modTime;
+	if (this != &other)
+	{
+		m_name = other.m_name;
+		m_modTime = other.m_modTime;
+	}
 
 	return *this;
 }
@@ -1463,8 +1471,11 @@ PinotSettings::IndexableLocation::~IndexableLocation()
 
 PinotSettings::IndexableLocation &PinotSettings::IndexableLocation::operator=(const IndexableLocation &other)
 {
-	m_monitor = other.m_monitor;
-	m_name = other.m_name;
+	if (this != &other)
+	{
+		m_monitor = other.m_monitor;
+		m_name = other.m_name;
+	}
 
 	return *this;
 }
@@ -1508,11 +1519,14 @@ PinotSettings::CacheProvider::~CacheProvider()
 
 PinotSettings::CacheProvider &PinotSettings::CacheProvider::operator=(const CacheProvider &other)
 {
-	m_name = other.m_name;
-	m_location = other.m_location;
-	m_protocols.clear();
-	copy(other.m_protocols.begin(), other.m_protocols.end(),
-		inserter(m_protocols, m_protocols.begin()));
+	if (this != &other)
+	{
+		m_name = other.m_name;
+		m_location = other.m_location;
+		m_protocols.clear();
+		copy(other.m_protocols.begin(), other.m_protocols.end(),
+			inserter(m_protocols, m_protocols.begin()));
+	}
 
 	return *this;
 }

@@ -38,8 +38,13 @@ IndexedDocument::~IndexedDocument()
 
 IndexedDocument& IndexedDocument::operator=(const IndexedDocument& other)
 {
-	Document::operator=(other);
-	m_originalLocation = other.m_originalLocation;
+	if (this != &other)
+	{
+		Document::operator=(other);
+		m_originalLocation = other.m_originalLocation;
+	}
+
+	return *this;
 }
 
 /// Returns the document ID.

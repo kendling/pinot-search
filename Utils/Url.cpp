@@ -60,13 +60,16 @@ Url::Url(const Url &other) :
 
 Url& Url::operator=(const Url& other)
 {
-	m_protocol = other.m_protocol;
-	m_user = other.m_user;
-	m_password = other.m_password;
-	m_host = other.m_host;
-	m_location = other.m_location;
-	m_file = other.m_file;
-	m_parameters = other.m_parameters;
+	if (this != &other)
+	{
+		m_protocol = other.m_protocol;
+		m_user = other.m_user;
+		m_password = other.m_password;
+		m_host = other.m_host;
+		m_location = other.m_location;
+		m_file = other.m_file;
+		m_parameters = other.m_parameters;
+	}
 
 	return *this;
 }

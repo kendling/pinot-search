@@ -79,7 +79,11 @@ DBusXapianIndex::~DBusXapianIndex()
 
 DBusXapianIndex &DBusXapianIndex::operator=(const DBusXapianIndex &other)
 {
-	XapianIndex::operator=(other);
+	if (this != &other)
+	{
+		XapianIndex::operator=(other);
+	}
+
 	return *this;
 }
 
