@@ -144,6 +144,6 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files deskbar
 %defattr(-, root, root, -)
-%{_libdir}/deskbar-applet/handlers/pinot-deskbar.py*
+%{_libdir}/deskbar-applet/handlers/pinot-live.py*
 
 %changelog
