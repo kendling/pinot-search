@@ -599,9 +599,6 @@ unsigned int IndexBrowserThread::getDocumentsCount(void) const
 bool IndexBrowserThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped browsing");
-	m_status += " ";
-	m_status += m_indexName;
 	return true;
 }
 
@@ -743,9 +740,6 @@ const vector<Result> &QueryingThread::getResults(string &charset) const
 bool QueryingThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped querying");
-	m_status += " ";
-	m_status += m_engineDisplayableName;
 	return true;
 }
 
@@ -847,9 +841,6 @@ const set<string> &ExpandQueryThread::getExpandTerms(void) const
 bool ExpandQueryThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped expanding");
-	m_status += " ";
-	m_status += m_queryProps.getName();
 	return true;
 }
 
@@ -907,7 +898,6 @@ string LabelUpdateThread::getType(void) const
 bool LabelUpdateThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped querying index labels");
 	return true;
 }
 
@@ -987,10 +977,6 @@ const Document *DownloadingThread::getDocument(void) const
 bool DownloadingThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped retrieval of");
-	m_status += " ";
-	m_status += m_docInfo.getLocation();
-
 	return true;
 }
 
@@ -1081,9 +1067,6 @@ bool IndexingThread::stop(void)
 	if (DownloadingThread::stop() == true)
 	{
 		m_done = true;
-		m_status = _("Stopped indexing");
-		m_status += " ";
-		m_status += m_docInfo.getLocation();
 		return true;
 	}
 
@@ -1293,7 +1276,6 @@ unsigned int UnindexingThread::getDocumentsCount(void) const
 bool UnindexingThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped unindexing document(s)");
 	return true;
 }
 
@@ -1404,10 +1386,6 @@ const DocumentInfo &UpdateDocumentThread::getDocumentInfo(void) const
 bool UpdateDocumentThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped document update for");
-	m_status += " ";
-	m_status += m_docId;
-
 	return true;
 }
 
@@ -1494,8 +1472,6 @@ bool MonitorThread::stop(void)
 {
 	m_done = true;
 	write(m_ctrlWritePipe, "Stop", 4);
-	m_status = _("Stopped monitoring");
-
 	return true;
 }
 
@@ -1732,10 +1708,6 @@ string DirectoryScannerThread::getDirectory(void) const
 bool DirectoryScannerThread::stop(void)
 {
 	m_done = true;
-	m_status = _("Stopped scanning");
-	m_status += " ";
-	m_status += m_dirName;
-
 	return true;
 }
 
