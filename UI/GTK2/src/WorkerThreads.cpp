@@ -864,9 +864,9 @@ void ExpandQueryThread::doWork(void)
 	// Run the query
 	if (pEngine->runQuery(m_queryProps) == false)
 	{
-		m_status = _("Couldn't expand");
+		m_status = _("Couldn't run query on search engine");
 		m_status += " ";
-		m_status += m_queryProps.getName();
+		m_status += m_engineName;
 	}
 	else
 	{
