@@ -92,7 +92,9 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 	m_title(title),
 	m_pageType(type),
 	m_tabLabel(NULL),
+	m_tabImage(NULL),
 #if _USE_BUTTON_TAB
+	m_tabImageBox(NULL),
 	m_tabButton(NULL)
 #else
 	m_tabEventBox(NULL)
@@ -106,32 +108,31 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 	m_tabLabel = manage(new Label(title));
 	m_tabImage = manage(new Image(StockID("gtk-close"), IconSize(ICON_SIZE_MENU)));
 #if _USE_BUTTON_TAB
+	m_tabImageBox = manage(new HBox());
 	m_tabButton = manage(new Button());
 #else
 	m_tabEventBox = manage(new EventBox);
 #endif
 
-	m_tabLabel->set_alignment(0,0.5);
-	m_tabLabel->set_padding(0,0);
+	m_tabLabel->set_alignment(0, 0.5);
+	m_tabLabel->set_padding(0, 0);
 	m_tabLabel->set_justify(JUSTIFY_LEFT);
 	m_tabLabel->set_line_wrap(false);
 	m_tabLabel->set_use_markup(false);
 	m_tabLabel->set_selectable(false);
-	m_tabImage->set_alignment(0,0);
-	m_tabImage->set_padding(0,0);
+	m_tabImage->set_alignment(0, 0);
+	m_tabImage->set_padding(0, 0);
 #if _USE_BUTTON_TAB
-	m_tabButton->set_flags(CAN_FOCUS);
-	m_tabButton->set_flags(CAN_DEFAULT);
-	m_tabButton->add(*m_tabImage);
 	m_tabButton->set_relief(RELIEF_NONE);
 	m_tabButton->set_border_width(0);
-	m_tabButton->set_alignment(0,0);
+	m_tabButton->set_alignment(0, 0);
 	// Resize the button
 	if (gotDimensions == true)
 	{
-		m_tabButton->set_size_request(width, height);
-		m_tabButton->check_resize();
+		m_tabButton->set_size_request(width + 4, height + 4);
 	}
+	m_tabImageBox->pack_start(*m_tabImage, false, true);
+	m_tabButton->add(*m_tabImageBox);
 #else
 	m_tabEventBox->add(*m_tabImage);
 	m_tabEventBox->set_events(Gdk::BUTTON_PRESS_MASK);
@@ -147,6 +148,7 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 	m_tabLabel->show();
 	m_tabImage->show();
 #if _USE_BUTTON_TAB
+	m_tabImageBox->show();
 	m_tabButton->show();
 #else
 	m_tabEventBox->show();
@@ -174,7 +176,9 @@ bool NotebookTabBox::onButtonPressEvent(GdkEventButton *ev)
 {
 	m_signalClose(m_title, m_pageType);
 
+#if !_USE_BUTTON_TAB
 	return true;
+#endif
 }
 
 //
