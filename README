@@ -219,7 +219,7 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
   Deskbar Applet provides an omnipresent versatile search interface for Gnome.
   Searching documents indexed by Pinot with the applet is possible. Users
   of RPM-based systems may install the pinot-desbar RPM. Otherwise, the
-  file UI/pinot-deskbar.py can simply be copied into
+  file UI/pinot-live.py can simply be copied into
   $PREFIX/lib/deskbar-applet/handlers (or, on 64 bit systems,
   $PREFIX/lib64/deskbar-applet/handlers) for use by all users, or into
   ~/.gnome2/deskbar-applet/handlers for use only by the current user.
