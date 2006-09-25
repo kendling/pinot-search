@@ -10,5 +10,5 @@ StartupNotify=true
 Icon=pinot.png
 Terminal=false
 Type=Application
-Categories=Application;Network;
+Categories=GTK;Core;Application;Network;Filesystem;
 Encoding=UTF-8
