@@ -94,7 +94,7 @@ prefsDialog_glade::prefsDialog_glade(
    Gtk::HBox *labelsHbox = Gtk::manage(new class Gtk::HBox(false, 0));
    Gtk::VBox *labelsVbox = Gtk::manage(new class Gtk::VBox(false, 0));
    Gtk::Label *labelsLabel = Gtk::manage(new class Gtk::Label(_("Labels")));
-   Gtk::Label *directoriesLabel = Gtk::manage(new class Gtk::Label(_("These directories will be monitored and indexed:")));
+   Gtk::Label *directoriesLabel = Gtk::manage(new class Gtk::Label(_("These directories will be indexed and optionally monitored for changes:")));
    directoriesTreeview = Gtk::manage(new class Gtk::TreeView());
    
    Gtk::ScrolledWindow *directoriesScrolledwindow = Gtk::manage(new class Gtk::ScrolledWindow());
