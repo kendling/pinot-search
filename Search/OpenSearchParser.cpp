@@ -319,8 +319,10 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 			return NULL;
 		}
 		// Check the top-level element is what we expect
+		// MozSearch is very much like OpenSearch Description
 		ustring rootNodeName = pRootElem->get_name();
-		if (rootNodeName != "OpenSearchDescription")
+		if ((rootNodeName != "OpenSearchDescription") &&
+			(rootNodeName != "SearchPlugin"))
 		{
 #ifdef DEBUG
 			cout << "OpenSearchParser::parse: wrong root node " << rootNodeName << endl;

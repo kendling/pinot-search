@@ -45,6 +45,8 @@ class OpenSearchResponseParser : public ResponseParserInterface
   * A parser for OpenSearch Description and Query Syntax, version 1.1.
   * See http://opensearch.a9.com/spec/1.1/description/
   * and http://opensearch.a9.com/spec/1.1/querysyntax/
+  * It can also parse MozSearch plugins.
+  * See http://developer.mozilla.org/en/docs/Creating_MozSearch_plugins
   */
 class OpenSearchParser : public PluginParserInterface
 {
