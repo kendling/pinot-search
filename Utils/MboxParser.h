@@ -58,17 +58,18 @@ class MboxParser
 		int m_fd;
 		GMimeStream *m_pMboxStream;
 		GMimeParser *m_pParser;
+		GMimeMessage *m_pMimeMessage;
 		int m_partsCount;
 		int m_partNum;
 		off_t m_messageStart;
-		Document *m_pCurrentMessage;
+		Document *m_pCurrentDocument;
 		time_t m_messageDate;
 
 		bool initialize(void);
 
 		void finalize(void);
 
-		bool extractMessage(void);
+		bool extractMessage(const string &subject);
 
 		char *extractPart(GMimeObject *mimeObject, string &contentType, ssize_t &partLen);
 
