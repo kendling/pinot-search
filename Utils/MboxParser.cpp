@@ -24,7 +24,6 @@
 
 #include <gmime/gmime.h>
 
-#include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
 #include "MboxParser.h"
@@ -32,14 +31,14 @@
 using std::cout;
 using std::endl;
 
-MboxParser::MboxParser(const string &fileName, off_t mboxOffset) :
+MboxParser::MboxParser(const string &fileName, off_t mboxOffset, int partNum) :
 	m_fileName(fileName),
 	m_fd(-1),
 	m_pMboxStream(NULL),
 	m_pParser(NULL),
 	m_pMimeMessage(NULL),
 	m_partsCount(-1),
-	m_partNum(-1),
+	m_partNum(partNum),
 	m_messageStart(mboxOffset),
 	m_pCurrentDocument(NULL),
 	m_messageDate(0)
@@ -252,7 +251,7 @@ char *MboxParser::extractPart(GMimeObject *part, string &contentType, ssize_t &p
 
 bool MboxParser::extractMessage(const string &subject)
 {
-	string fromLine, msgSubject(subject), contentType;
+	string msgSubject(subject), contentType;
 	char *pPart = NULL;
 	ssize_t partLength = 0;
 
@@ -279,13 +278,6 @@ bool MboxParser::extractMessage(const string &subject)
 #endif
 			if (messageEnd > m_messageStart)
 			{
-				char *pFromLine = g_mime_parser_get_from(m_pParser);
-				if (pFromLine != NULL)
-				{
-					fromLine = pFromLine;
-					g_free(pFromLine);
-				}
-
 				// FIXME: this only applies to Mozilla
 				const char *pMozStatus = g_mime_message_get_header(m_pMimeMessage, "X-Mozilla-Status");
 				if (pMozStatus != NULL)
@@ -353,8 +345,6 @@ bool MboxParser::extractMessage(const string &subject)
 					location += "&p=";
 					snprintf(posStr, 64, "%d", max(m_partNum, 0));
 					location += posStr;
-					location += "&h=";
-					location += StringManip::hashString(fromLine);
 #ifdef DEBUG
 					cout << "MboxParser::extractMessage: message location is " << location << endl;
 #endif

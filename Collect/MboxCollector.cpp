@@ -42,6 +42,8 @@ Document *MboxCollector::retrieveUrl(const DocumentInfo &docInfo)
 {
 	Url thisUrl(docInfo.getLocation());
 	string protocol = thisUrl.getProtocol();
+	off_t messageOffset = 0;
+	int partNum = 0;
 
 	if (protocol != "mailbox")
 	{
@@ -55,7 +57,13 @@ Document *MboxCollector::retrieveUrl(const DocumentInfo &docInfo)
 	{
 		return NULL;
 	}
-	off_t messageOffset = (off_t)atol(offset.c_str());
+	messageOffset = (off_t)atol(offset.c_str());
+	// ...and the part number
+	string number = StringManip::extractField(thisUrl.getParameters(), "p=", "");
+	if (number.empty() == false)
+	{
+		partNum = atoi(number.c_str());
+	}
 
 	string directoryName = thisUrl.getLocation();
 	string fileName = thisUrl.getFile();
@@ -64,7 +72,7 @@ Document *MboxCollector::retrieveUrl(const DocumentInfo &docInfo)
 	fileLocation += fileName;
 
 	// Get a parser
-	MboxParser boxParser(fileLocation, messageOffset);
+	MboxParser boxParser(fileLocation, messageOffset, partNum);
 	// The first document should be the message we are interested in
 	// FIXME: don't ignore the part number (p=...)
 	const Document *pMessage = boxParser.getDocument();

@@ -41,7 +41,7 @@ using namespace std;
 class MboxParser
 {
 	public:
-		MboxParser(const string &fileName, off_t mboxOffset = 0);
+		MboxParser(const string &fileName, off_t mboxOffset = 0, int partNum = -1);
 		virtual ~MboxParser();
 
 		/// Gets the current message's date.
