@@ -1,9 +1,15 @@
 # @configure_input@
-%if "%{_vendor}" == "suse"
+%if 0%{?suse_version}
+# SuSE
 %define pftotext_pkg xpdf-tools
 %define dbus_pkg dbus-1-glib
-%define dbus_dev_pkg dbus-1-devel
+%if 0%{?suse_version} > 1010
+%define dbus_dev_pkg dbus-1-glib-devel
 %else
+%define dbus_dev_pkg dbus-1-devel
+%endif
+%else
+# Fedora and anything else
 %define pftotext_pkg poppler-utils
 %define dbus_pkg dbus-glib
 %define dbus_dev_pkg dbus-devel
@@ -23,6 +29,7 @@ Requires: gtkmm24 >= 2.6, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-inf
 BuildRequires: xapian-core-devel >= 0.9.4, libtextcat-devel >= 2.2, sqlite-devel >= 3.1.2, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4
+BuildRequires: gcc-c++
 %if 0%{?_with_soap:1}
 BuildRequires: gsoap
 %endif
@@ -74,7 +81,7 @@ The included plugin enables Deskbar to search documents indexed by Pinot.
 %setup -q
 
 %build
-%configure %{?_with_soap:--with-soap=yes} %{?_with_debug:CXXFLAGS="-g -DDEBUG"}
+%configure %{?_with_soap:--with-soap=yes} %{?_with_debug:CXXFLAGS="%{optflags} -g -DDEBUG"}
 make
 
 %install
