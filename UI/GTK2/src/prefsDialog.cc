@@ -114,7 +114,7 @@ void prefsDialog::populate_labelsTreeview()
 	const set<string> &labels = m_settings.getLabels();
 	if (labels.empty() == true)
 	{
-		// These buttons will stay disabled until labels are added to the list
+		// This button will stay disabled until labels are added to the list
 		removeLabelButton->set_sensitive(false);
 		return;
 	}
@@ -183,8 +183,7 @@ void prefsDialog::populate_directoriesTreeview()
 
 	if (m_settings.m_indexableLocations.empty() == true)
 	{
-		// These buttons will stay disabled until directories are added to the list
-		editDirectoryButton->set_sensitive(false);
+		// This button will stay disabled until directories are added to the list
 		removeDirectoryButton->set_sensitive(false);
 		return;
 	}
@@ -201,7 +200,6 @@ void prefsDialog::populate_directoriesTreeview()
 		row[m_directoriesColumns.m_location] = dirIter->m_name;
 	}
 
-	editDirectoryButton->set_sensitive(true);
 	removeDirectoryButton->set_sensitive(true);
 }
 
@@ -254,8 +252,7 @@ void prefsDialog::populate_mailTreeview()
 
 	if (m_settings.m_mailAccounts.empty() == true)
 	{
-		// These buttons will stay disabled until mail is added to the list
-		editAccountButton->set_sensitive(false);
+		// This button will stay disabled until mail is added to the list
 		removeAccountButton->set_sensitive(false);
 		return;
 	}
@@ -273,7 +270,6 @@ void prefsDialog::populate_mailTreeview()
 		row[m_mailColumns.m_mTime] = mailIter->m_modTime;
 	}
 
-	editAccountButton->set_sensitive(true);
 	removeAccountButton->set_sensitive(true);
 }
 
@@ -360,7 +356,7 @@ void prefsDialog::on_addLabelButton_clicked()
 	// This marks the label as new
 	row[m_labelsColumns.m_enabled] = false;
 
-	// Enable these buttons
+	// Enable this button
 	removeLabelButton->set_sensitive(true);
 }
 
@@ -384,21 +380,10 @@ void prefsDialog::on_removeLabelButton_clicked()
 		TreeModel::Children children = m_refLabelsTree->children();
 		if (children.empty() == true)
 		{
-			// Disable these buttons
+			// Disable this button
 			removeLabelButton->set_sensitive(false);
 		}
 	}
-}
-
-bool prefsDialog::on_mailTreeview_button_press_event(GdkEventButton *ev)
-{
-	// Check for double clicks
-	if (ev->type == GDK_2BUTTON_PRESS)
-	{
-		on_editAccountButton_clicked();
-	}
-
-	return false;
 }
 
 void prefsDialog::on_addDirectoryButton_clicked()
@@ -423,25 +408,8 @@ void prefsDialog::on_addDirectoryButton_clicked()
 
 		if (wasEmpty == true)
 		{
-			// Enable these buttons
-			editDirectoryButton->set_sensitive(true);
+			// Enable this button
 			removeDirectoryButton->set_sensitive(true);
-		}
-	}
-}
-
-void prefsDialog::on_editDirectoryButton_clicked()
-{
-	// Get the selected directory in the list
-	TreeModel::iterator iter = directoriesTreeview->get_selection()->get_selected();
-	if (iter)
-	{
-		TreeModel::Row row = *iter;
-		ustring dirName = row[m_directoriesColumns.m_location];
-		// Let the user edit the location
-		if (select_file_name(*this, _("Directory to index"), dirName, true, true) == true)
-		{
-			row[m_directoriesColumns.m_location] = dirName;
 		}
 	}
 }
@@ -470,8 +438,7 @@ void prefsDialog::on_removeDirectoryButton_clicked()
 		TreeModel::Children children = m_refDirectoriesTree->children();
 		if (children.empty() == true)
 		{
-			// Disable these buttons
-			editDirectoryButton->set_sensitive(false);
+			// Disable this button
 			removeDirectoryButton->set_sensitive(false);
 		}
 	}
@@ -503,25 +470,8 @@ void prefsDialog::on_addAccountButton_clicked()
 
 		if (wasEmpty == true)
 		{
-			// Enable these buttons
-			editAccountButton->set_sensitive(true);
+			// Enable this button
 			removeAccountButton->set_sensitive(true);
-		}
-	}
-}
-
-void prefsDialog::on_editAccountButton_clicked()
-{
-	// Get the selected mail account in the list
-	TreeModel::iterator iter = mailTreeview->get_selection()->get_selected();
-	if (iter)
-	{
-		TreeModel::Row row = *iter;
-		ustring fileName = row[m_mailColumns.m_location];
-		// Let the user edit the location
-		if (select_file_name(*this, _("Mbox File Location"), fileName, true) == true)
-		{
-			row[m_mailColumns.m_location] = fileName;
 		}
 	}
 }
@@ -550,8 +500,7 @@ void prefsDialog::on_removeAccountButton_clicked()
 		TreeModel::Children children = m_refMailTree->children();
 		if (children.empty() == true)
 		{
-			// Disable these buttons
-			editAccountButton->set_sensitive(false);
+			// Disable this button
 			removeAccountButton->set_sensitive(false);
 		}
 	}

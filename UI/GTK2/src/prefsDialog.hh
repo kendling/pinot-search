@@ -42,12 +42,9 @@ protected:
 	virtual void on_prefsOkbutton_clicked();
 	virtual void on_addLabelButton_clicked();
 	virtual void on_removeLabelButton_clicked();
-	virtual bool on_mailTreeview_button_press_event(GdkEventButton *ev);
 	virtual void on_addDirectoryButton_clicked();
-	virtual void on_editDirectoryButton_clicked();
 	virtual void on_removeDirectoryButton_clicked();
 	virtual void on_addAccountButton_clicked();
-	virtual void on_editAccountButton_clicked();
 	virtual void on_removeAccountButton_clicked();
 
 	void populate_labelsTreeview();
