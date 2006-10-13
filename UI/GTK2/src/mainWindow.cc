@@ -80,7 +80,8 @@ mainWindow::InternalState::~InternalState()
 // Constructor
 //
 mainWindow::mainWindow() :
-	m_settings(PinotSettings::getInstance()), mainWindow_glade(),
+	mainWindow_glade(),
+	m_settings(PinotSettings::getInstance()),
 	m_pEnginesTree(NULL),
 	m_pNotebook(NULL),
 	m_pIndexMenu(NULL),
@@ -768,7 +769,7 @@ void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 		show_global_menuitems(showResultsMenuitems);
 		show_selectionbased_menuitems(false);
 	}
-	m_state.m_currentPage = (int)p1;
+	m_state.m_currentPage = p1;
 }
 
 //
@@ -886,9 +887,6 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 	else if (type == "QueryingThread")
 	{
 		std::map<string, TreeModel::iterator> updatedGroups;
-		unsigned int count = 0;
-		ResultsModelColumns::ResultType rootType;
-		bool mergeDuplicates = false;
 		int pageNum = -1;
 
 		QueryingThread *pQueryThread = dynamic_cast<QueryingThread *>(pThread);
@@ -1614,8 +1612,6 @@ void mainWindow::on_showextract_activate()
 //
 void mainWindow::on_groupresults_activate()
 {
-	ResultsModelColumns::ResultType currentType, newType;
-
 	// What's the new grouping criteria ?
 	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)

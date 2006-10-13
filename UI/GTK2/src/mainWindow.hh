@@ -170,7 +170,7 @@ private:
 			// Query
 			unsigned int m_liveQueryLength;
 			// Notebook pages
-			int m_currentPage;
+			unsigned int m_currentPage;
 			// Current actions
 			bool m_browsingIndex;
 
