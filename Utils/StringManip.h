@@ -27,11 +27,11 @@ class StringManip
 
 		/// Extracts the sub-string between start and end.
 		static std::string extractField(const std::string &str, const std::string &start,
-			const std::string &end);
+			const std::string &end, bool anyCharacterOfEnd = false);
 
 		/// Extracts the sub-string between start and end.
 		static std::string extractField(const std::string &str, const std::string &start,
-			const std::string &end, std::string::size_type &endPos);
+			const std::string &end, std::string::size_type &endPos, bool anyCharacterOfEnd = false);
 
 		/// Replaces entities.
 		static std::string replaceEntities(const std::string &str);

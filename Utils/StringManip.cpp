@@ -63,15 +63,15 @@ string StringManip::toLowerCase(const string &str)
 }
 
 /// Extracts the sub-string between start and end.
-string StringManip::extractField(const string &str, const string &start, const string &end)
+string StringManip::extractField(const string &str, const string &start, const string &end, bool anyCharacterOfEnd)
 {
 	string::size_type endPos = 0;
 
-	return extractField(str, start, end, endPos);
+	return extractField(str, start, end, endPos, anyCharacterOfEnd);
 }
 
 /// Extracts the sub-string between start and end.
-string StringManip::extractField(const string &str, const string &start, const string &end, string::size_type &endPos)
+string StringManip::extractField(const string &str, const string &start, const string &end, string::size_type &endPos, bool anyCharacterOfEnd)
 {
 	string fieldValue;
 	string::size_type startPos = string::npos;
@@ -95,7 +95,14 @@ string StringManip::extractField(const string &str, const string &start, const s
 		}
 		else
 		{
-			endPos = str.find(end, startPos);
+			if (anyCharacterOfEnd == false)
+			{
+				endPos = str.find(end, startPos);
+			}
+			else
+			{
+				endPos = str.find_first_of(end, startPos);
+			}
 			if (endPos != string::npos)
 			{
 				fieldValue = str.substr(startPos, endPos - startPos);
