@@ -214,7 +214,7 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 /// Runs a query; true if success.
 bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 {
-	string queryString = queryProps.toString(false);
+	string queryString(queryProps.getFreeQuery());
 	char countStr[64];
 	unsigned int currentIncrement = 0, count = 0;
 

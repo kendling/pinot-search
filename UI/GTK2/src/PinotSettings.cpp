@@ -543,6 +543,7 @@ bool PinotSettings::loadQueries(const Element *pElem)
 	}
 
 	QueryProperties queryProps;
+	string backCompatString;
 
 	// Load the query's properties
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
@@ -560,37 +561,90 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		{
 			queryProps.setName(nodeContent);
 		}
-		else if (nodeName == "and")
+		else if (nodeName == "text")
 		{
-			queryProps.setAndWords(nodeContent);
+			queryProps.setFreeQuery(nodeContent);
 		}
-		else if (nodeName == "phrase")
+		else if ((nodeName == "and") &&
+			(nodeContent.empty() == false))
 		{
-			queryProps.setPhrase(nodeContent);
+			if (backCompatString.empty() == false)
+			{
+				backCompatString += " ";
+			}
+			backCompatString += nodeContent;
 		}
-		else if (nodeName == "any")
+		else if ((nodeName == "phrase") &&
+			(nodeContent.empty() == false))
 		{
-			queryProps.setAnyWords(nodeContent);
+			if (backCompatString.empty() == false)
+			{
+				backCompatString += " ";
+			}
+			backCompatString += "\"";
+			backCompatString += nodeContent;
+			backCompatString += "\"";
 		}
-		else if (nodeName == "not")
+		else if ((nodeName == "any") &&
+			(nodeContent.empty() == false))
 		{
-			queryProps.setNotWords(nodeContent);
+			// FIXME: don't be lazy and add those correctly
+			if (backCompatString.empty() == false)
+			{
+				backCompatString += " ";
+			}
+			backCompatString += nodeContent;
 		}
-		else if (nodeName == "language")
+		else if ((nodeName == "not") &&
+			(nodeContent.empty() == false))
 		{
-			queryProps.setLanguage(Languages::toLocale(nodeContent));
+			if (backCompatString.empty() == false)
+			{
+				backCompatString += " ";
+			}
+			backCompatString += "-(";
+			backCompatString += nodeContent;
+			backCompatString += ")";
 		}
-		else if (nodeName == "hostfilter")
+		else if ((nodeName == "language") &&
+			(nodeContent.empty() == false))
 		{
-			queryProps.setHostFilter(nodeContent);
+			if (backCompatString.empty() == false)
+			{
+				backCompatString += " ";
+			}
+			backCompatString += "language:";
+			backCompatString += nodeContent;
 		}
-		else if (nodeName == "filefilter")
+		else if ((nodeName == "hostfilter") &&
+			(nodeContent.empty() == false))
 		{
-			queryProps.setFileFilter(nodeContent);
+			if (backCompatString.empty() == false)
+			{
+				backCompatString += " ";
+			}
+			backCompatString += "site:";
+			backCompatString += nodeContent;
 		}
-		else if (nodeName == "labelfilter")
+		else if ((nodeName == "filefilter") &&
+			(nodeContent.empty() == false))
 		{
-			queryProps.setLabelFilter(nodeContent);
+			if (backCompatString.empty() == false)
+			{
+				backCompatString += " ";
+			}
+			backCompatString += "file:";
+			backCompatString += nodeContent;
+		}
+		else if ((nodeName == "labelfilter") &&
+			(nodeContent.empty() == false))
+		{
+			if (backCompatString.empty() == false)
+			{
+				backCompatString += " ";
+			}
+			backCompatString += "label:";
+			backCompatString += nodeContent;
 		}
 		else if (nodeName == "maxresults")
 		{
@@ -617,6 +671,10 @@ bool PinotSettings::loadQueries(const Element *pElem)
 	// We need at least a name
 	if (queryProps.getName().empty() == false)
 	{
+		if (backCompatString.empty() == false)
+		{
+			queryProps.setFreeQuery(backCompatString);
+		}
 		m_queries[queryProps.getName()] = queryProps;
 	}
 
@@ -1000,14 +1058,7 @@ bool PinotSettings::save(void)
 			return false;
 		}
 		addChildElement(pElem, "name", queryIter->first);
-		addChildElement(pElem, "and", queryIter->second.getAndWords());
-		addChildElement(pElem, "phrase", queryIter->second.getPhrase());
-		addChildElement(pElem, "any", queryIter->second.getAnyWords());
-		addChildElement(pElem, "not", queryIter->second.getNotWords());
-		addChildElement(pElem, "hostfilter", queryIter->second.getHostFilter());
-		addChildElement(pElem, "filefilter", queryIter->second.getFileFilter());
-		addChildElement(pElem, "labelfilter", queryIter->second.getLabelFilter());
-		addChildElement(pElem, "language", Languages::toEnglish(queryIter->second.getLanguage()));
+		addChildElement(pElem, "text", queryIter->second.getFreeQuery());
 		sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
 		addChildElement(pElem, "maxresults", numStr);
 		addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));

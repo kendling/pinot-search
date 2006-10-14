@@ -36,9 +36,6 @@ class XapianEngine : public SearchEngineInterface
 		/// Sets whether the query should be expanded.
 		bool setQueryExpansion(std::set<unsigned int> &relevantDocuments);
 
-		/// Runs a boolean query; true if success.
-		virtual bool runQuery(const std::string &keyword);
-
 		/// Runs a query; true if success.
 		virtual bool runQuery(QueryProperties& queryProps);
 
@@ -49,11 +46,10 @@ class XapianEngine : public SearchEngineInterface
 		std::string m_databaseName;
 		std::set<unsigned int> m_relevantDocuments;
 
-		bool queryDatabase(Xapian::Query &query);
+		bool queryDatabase(Xapian::Database *pIndex, Xapian::Query &query);
 
-		void stackQuery(const QueryProperties &queryProps,
-			std::stack<Xapian::Query> &queryStack, const string &stemLanguage,
-			bool followOperators);
+		Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
+			const string &stemLanguage, bool followOperators);
 
 	private:
 		XapianEngine(const XapianEngine &other);

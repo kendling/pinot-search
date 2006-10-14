@@ -19,40 +19,36 @@
 
 #include "Document.h"
 #include "Languages.h"
+#include "StringManip.h"
 #include "Tokenizer.h"
 #include "QueryProperties.h"
 
-QueryProperties::QueryProperties()
+QueryProperties::QueryProperties() :
+	m_resultsCount(10),
+	m_indexResults(false)
 {
-	m_resultsCount = 10;
-	m_indexResults = false;
 }
 
-QueryProperties::QueryProperties(string name, string andWords, string phrase, string anyWords, string notWords)
+QueryProperties::QueryProperties(const string &name, const string &freeQuery) :
+	m_name(name),
+	m_freeQuery(freeQuery),
+	m_resultsCount(10),
+	m_indexResults(false)
 {
-	m_name = name;
-	m_andWords = andWords;
-	m_phrase = phrase;
-	m_anyWords = anyWords;
-	m_notWords = notWords;
-	m_resultsCount = 10;
-	m_indexResults = false;
+	extractFilters();
 }
 
 QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_name(other.m_name),
-	m_andWords(other.m_andWords),
-	m_phrase(other.m_phrase),
-	m_anyWords(other.m_anyWords),
-	m_notWords(other.m_notWords),
+	m_freeQuery(other.m_freeQuery),
 	m_language(other.m_language),
 	m_hostFilter(other.m_hostFilter),
 	m_fileFilter(other.m_fileFilter),
-	m_labelFilter(other.m_labelFilter),
 	m_resultsCount(other.m_resultsCount),
 	m_indexResults(other.m_indexResults),
 	m_labelName(other.m_labelName)
 {
+	extractFilters();
 }
 
 QueryProperties::~QueryProperties()
@@ -64,17 +60,14 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 	if (this != &other)
 	{
 		m_name = other.m_name;
-		m_andWords = other.m_andWords;
-		m_phrase = other.m_phrase;
-		m_anyWords = other.m_anyWords;
-		m_notWords = other.m_notWords;
+		m_freeQuery = other.m_freeQuery;
 		m_language = other.m_language;
 		m_hostFilter = other.m_hostFilter;
 		m_fileFilter = other.m_fileFilter;
-		m_labelFilter = other.m_labelFilter;
 		m_resultsCount = other.m_resultsCount;
 		m_indexResults = other.m_indexResults;
 		m_labelName = other.m_labelName;
+		extractFilters();
 	}
 
 	return *this;
@@ -100,6 +93,26 @@ bool QueryProperties::operator<(const QueryProperties &other) const
 	return false;
 }
 
+void QueryProperties::extractFilters(void)
+{
+	if (m_freeQuery.empty() == true)
+	{
+		m_language.clear();
+		m_hostFilter.clear();
+		m_fileFilter.clear();
+		return;
+	}
+
+	string freeQuery = StringManip::replaceSubString(m_freeQuery, "\n", " ");
+
+	m_language = StringManip::extractField(freeQuery, "language:", " )", true);
+	if (m_language.empty() == true)
+	{
+		m_language = StringManip::extractField(freeQuery, "language:", "");
+	}
+	// FIXME: do the same for host and file at the very least
+}
+
 /// Sets the name.
 void QueryProperties::setName(const string &name)
 {
@@ -112,58 +125,16 @@ string QueryProperties::getName(void) const
 	return m_name;
 }
 
-/// Sets AND words.
-void QueryProperties::setAndWords(const string &words)
+/// Sets the query string.
+void QueryProperties::setFreeQuery(const string &freeQuery)
 {
-	m_andWords = words;
+	m_freeQuery = freeQuery;
 }
 
-/// Gets AND words.
-string QueryProperties::getAndWords(void) const
+/// Gets the query string.
+string QueryProperties::getFreeQuery(void) const
 {
-	return m_andWords;
-}
-
-/// Sets phrase query.
-void QueryProperties::setPhrase(const string &phrase)
-{
-	m_phrase = phrase;
-}
-
-/// Gets phrase query.
-string QueryProperties::getPhrase(void) const
-{
-	return m_phrase;
-}
-
-/// Sets ANY words.
-void QueryProperties::setAnyWords(const string &words)
-{
-	m_anyWords = words;
-}
-
-/// Gets ANY words.
-string QueryProperties::getAnyWords(void) const
-{
-	return m_anyWords;
-}
-
-/// Sets NOT words.
-void QueryProperties::setNotWords(const string &words)
-{
-	m_notWords = words;
-}
-
-/// Gets NOT words.
-string QueryProperties::getNotWords(void) const
-{
-	return m_notWords;
-}
-
-/// Sets the query's language.
-void QueryProperties::setLanguage(const string &language)
-{
-	m_language = language;
+	return m_freeQuery;
 }
 
 /// Gets the query's language.
@@ -172,40 +143,16 @@ string QueryProperties::getLanguage(void) const
 	return m_language;
 }
 
-/// Sets host filter.
-void QueryProperties::setHostFilter(const string &filter)
-{
-	m_hostFilter = filter;
-}
-
-/// Gets host filter.
+/// Gets the query's host filter.
 string QueryProperties::getHostFilter(void) const
 {
-	return 	m_hostFilter;
+	return m_hostFilter;
 }
 
-/// Sets file filter.
-void QueryProperties::setFileFilter(const string &filter)
-{
-	m_fileFilter = filter;
-}
-
-/// Gets file filter.
+/// Gets the query's file filter.
 string QueryProperties::getFileFilter(void) const
 {
 	return m_fileFilter;
-}
-
-/// Sets label filter.
-void QueryProperties::setLabelFilter(const string &filter)
-{
-	m_labelFilter = filter;
-}
-
-/// Gets label filter.
-string QueryProperties::getLabelFilter(void) const
-{
-	return m_labelFilter;
 }
 
 /// Sets the maximum number of results.
@@ -248,9 +195,8 @@ string QueryProperties::getLabelName(void) const
 void QueryProperties::getTerms(set<string> &terms) const
 {
 	Document doc;
-	string termsString(m_andWords + m_phrase + m_anyWords + m_notWords);
 
-	doc.setData(termsString.c_str(), termsString.length());
+	doc.setData(m_freeQuery.c_str(), m_freeQuery.length());
 	Tokenizer tokens(&doc);
 
 	terms.clear();
@@ -260,86 +206,4 @@ void QueryProperties::getTerms(set<string> &terms) const
 	{
 		terms.insert(token);
 	}
-}
-
-/// Returns a displayable representation of this query's properties.
-string QueryProperties::toString(bool forPresentation) const
-{
-	string queryString;
-	if (m_andWords.empty() == false)
-	{
-		string tmp = m_andWords;
-		replace(tmp.begin(), tmp.end(), ' ', '+');
-		queryString += tmp;
-	}
-	if (m_anyWords.empty() == false)
-	{
-		if (forPresentation == true)
-		{
-			string tmp = m_anyWords;
-			replace(tmp.begin(), tmp.end(), ' ', '|');
-			queryString += " +(";
-			queryString += tmp;
-			queryString += ")";
-		}
-		else
-		{
-			string tmp = m_anyWords;
-			// FIXME: is this good enough ?
-			replace(tmp.begin(), tmp.end(), ' ', '+');
-			if (queryString.empty() == false)
-			{
-				queryString += "+";
-			}
-			queryString += tmp;
-		}
-	}
-	if (m_notWords.empty() == false)
-	{
-		string tmp = m_notWords;
-		replace(tmp.begin(), tmp.end(), ' ', '-');
-		if (queryString.empty() == false)
-		{
-			queryString += " -";
-		}
-		queryString += tmp;
-		queryString += " ";
-	}
-	if (m_phrase.empty() == false)
-	{
-		string tmp = m_phrase;
-		replace(tmp.begin(), tmp.end(), ' ', '+');
-		if (queryString.empty() == false)
-		{
-			queryString += "+";
-		}
-		queryString += "\"";
-		queryString += tmp;
-		queryString += "\"";
-	}
-	if (forPresentation == true)
-	{
-		if (m_language.empty() == false)
-		{
-			queryString += " +L";
-			queryString += Languages::toCode(Languages::toEnglish(m_language));
-		}
-		if (m_hostFilter.empty() == false)
-		{
-			queryString += " +H";
-			queryString += m_hostFilter;
-		}
-		if (m_fileFilter.empty() == false)
-		{
-			queryString += " +P";
-			queryString += m_fileFilter;
-		}
-		if (m_labelFilter.empty() == false)
-		{
-			queryString += " +XLABEL:";
-			queryString += m_labelFilter;
-		}
-	}
-
-	return queryString;
 }

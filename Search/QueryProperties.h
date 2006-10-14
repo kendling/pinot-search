@@ -28,7 +28,8 @@ class QueryProperties
 {
 	public:
 		QueryProperties();
-		QueryProperties(string name, string andWords, string phrase, string anyWords, string notWords);
+		QueryProperties(const string &name, const string &freeQuery);
+		QueryProperties(const string &name, const string &andWords, const string &phrase, const string &anyWords, const string &notWords);
 		QueryProperties(const QueryProperties &other);
 		~QueryProperties();
 
@@ -41,45 +42,19 @@ class QueryProperties
 		/// Gets the name.
 		string getName(void) const;
 
-		/// Sets AND words.
-		void setAndWords(const string &words);
-		/// Gets AND words.
-		string getAndWords(void) const;
+		/// Sets the query string.
+		void setFreeQuery(const string &freeQuery);
+		/// Gets the query string.
+		string getFreeQuery(void) const;
 
-		/// Sets phrase query.
-		void setPhrase(const string &phrase);
-		/// Gets phrase query.
-		string getPhrase(void) const;
-
-		/// Sets ANY words.
-		void setAnyWords(const string &words);
-		/// Gets ANY words.
-		string getAnyWords(void) const;
-
-		/// Sets NOT words.
-		void setNotWords(const string &words);
-		/// Gets NOT words.
-		string getNotWords(void) const;
-
-		/// Sets the query's language.
-		void setLanguage(const string &language);
 		/// Gets the query's language.
 		string getLanguage(void) const;
 
-		/// Sets host filter.
-		void setHostFilter(const string &filter);
-		/// Gets host filter.
+		/// Gets the query's host filter.
 		string getHostFilter(void) const;
 
-		/// Sets file filter.
-		void setFileFilter(const string &filter);
-		/// Gets file filter.
+		/// Gets the query's file filter.
 		string getFileFilter(void) const;
-
-		/// Sets label filter.
-		void setLabelFilter(const string &filter);
-		/// Gets label filter.
-		string getLabelFilter(void) const;
 
 		/// Sets the maximum number of results.
 		void setMaximumResultsCount(unsigned int count);
@@ -99,22 +74,17 @@ class QueryProperties
 		/// Returns the query's terms.
 		void getTerms(std::set<std::string> &terms) const;
 
-		/// Returns a string representation of this query's properties.
-		string toString(bool forPresentation = true) const;
-
 	protected:
 		string m_name;
-		string m_andWords;
-		string m_phrase;
-		string m_anyWords;
-		string m_notWords;
+		string m_freeQuery;
 		string m_language;
 		string m_hostFilter;
 		string m_fileFilter;
-		string m_labelFilter;
 		unsigned int m_resultsCount;
 		bool m_indexResults;
 		string m_labelName;
+
+		void extractFilters(void);
 
 };
 

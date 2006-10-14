@@ -40,16 +40,15 @@ protected:
 	const std::set<std::string> &m_labels;
 	ComboModelColumns m_labelNameColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
-	ComboModelColumns m_languageColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refLanguageTree;
-	ComboModelColumns m_labelFilterColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refLabelFilterTree;
+	ComboModelColumns m_filterColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refFilterTree;
 	bool m_badName;
 
 	void populate_comboboxes();
 
 	virtual void on_queryOkbutton_clicked();
 	virtual void on_nameEntry_changed();
+	virtual void on_addFilterButton_clicked();
 
 };
 #endif

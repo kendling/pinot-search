@@ -35,6 +35,7 @@
 #include "CommandLine.h"
 #include "HtmlTokenizer.h"
 #include "IndexedDocument.h"
+#include "StringManip.h"
 #include "TimeConverter.h"
 #include "MIMEScanner.h"
 #include "Url.h"
@@ -228,7 +229,7 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 			lastRun = _("N/A");
 		}
 		row[m_queryColumns.m_lastRun] = to_utf8(lastRun);
-		string summary = queryIter->second.toString();
+		string summary(StringManip::replaceSubString(queryIter->second.getFreeQuery(), "\n", " "));
 		if (summary.empty() == false)
 		{
 			row[m_queryColumns.m_summary] = to_utf8(summary);
@@ -1013,7 +1014,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		}
 		queryProps.setName(queryName);
 
-		if (queryProps.getAnyWords().empty() == false)
+		if (queryProps.getFreeQuery().empty() == false)
 		{
 			moreLike = " ";
 		}
@@ -1042,7 +1043,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		}
 
 		// Add these terms
-		queryProps.setAnyWords(queryProps.getAnyWords() + moreLike);
+		queryProps.setFreeQuery(queryProps.getFreeQuery() + moreLike);
 
 		// Update everything
 		if (m_settings.addQuery(queryProps) == true)
@@ -1522,8 +1523,7 @@ void mainWindow::on_paste_activate()
 #endif
 		// Use whatever text is in the clipboard as query name
 		// FIXME: look for \n as query fields separators ?
-		QueryProperties queryProps = QueryProperties(from_utf8(clipText),
-			"", "", "", "");
+		QueryProperties queryProps = QueryProperties(from_utf8(clipText), from_utf8(clipText));
 		edit_query(queryProps, true);
 	}
 	else
@@ -1685,7 +1685,7 @@ void mainWindow::on_morelikethis_activate()
 	if (queryName == _("Live query"))
 	{
 		queryProps.setName(queryName);
-		queryProps.setAndWords(from_utf8(liveQueryEntry->get_text()));
+		queryProps.setFreeQuery(from_utf8(liveQueryEntry->get_text()));
 	}
 	else
 	{
@@ -2332,13 +2332,7 @@ void mainWindow::on_liveQueryEntry_activate()
 //
 void mainWindow::on_findButton_clicked()
 {
-	QueryProperties queryProps;
-
-	queryProps.setName(_("Live query"));
-	// FIXME: parse the query string !
-	// Since we perform multi-step searches on the index, we might as well start with ANDing terms
-	// For search plugins, this won't make a difference
-	queryProps.setAndWords(from_utf8(liveQueryEntry->get_text()));
+	QueryProperties queryProps(_("Live query"), from_utf8(liveQueryEntry->get_text()));
 
 	run_search(queryProps);
 }
@@ -2350,7 +2344,7 @@ void mainWindow::on_addQueryButton_clicked()
 {
 	// Even though live queries terms are now ANDed together,
 	// use them as OR terms when creating a new stored query
-	QueryProperties queryProps = QueryProperties("", "", "", from_utf8(liveQueryEntry->get_text()), "");
+	QueryProperties queryProps = QueryProperties("", from_utf8(liveQueryEntry->get_text()));
 
 	edit_query(queryProps, true);
 }
@@ -2733,8 +2727,7 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 //
 void mainWindow::run_search(const QueryProperties &queryProps)
 {
-	string querySummary = queryProps.toString();
-	if (querySummary.empty() == true)
+	if (queryProps.getFreeQuery().empty() == true)
 	{
 		set_status(_("Query is not set"));
 		return;

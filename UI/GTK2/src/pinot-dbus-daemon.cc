@@ -440,7 +440,6 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 			XapianEngine engine(PinotSettings::getInstance().m_daemonIndexLocation);
-			QueryProperties queryProps;
 			bool replyWithError = true;
 
 #ifdef DEBUG
@@ -448,7 +447,7 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 #endif
 			if (pSearchText != NULL)
 			{
-				queryProps.setAndWords(pSearchText);
+				QueryProperties queryProps("DBUS", pSearchText);
 
 				// Run the query
 				engine.setMaxResultsCount(maxHits);

@@ -36,24 +36,8 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	m_labels(PinotSettings::getInstance().getLabels()),
 	m_badName(true)
 {
-	string name = m_properties.getName();
-
-	// Associate the columns model to the index label combo
-	m_refLabelNameTree = ListStore::create(m_labelNameColumns);
-	labelNameCombobox->set_model(m_refLabelNameTree);
-	labelNameCombobox->pack_start(m_labelNameColumns.m_name);
-	// ...and the label filter combo
-	m_refLabelFilterTree = ListStore::create(m_labelFilterColumns);
-	labelFilterCombobox->set_model(m_refLabelFilterTree);
-	labelFilterCombobox->pack_start(m_labelFilterColumns.m_name);
-	// Associate the columns model to the language combo
-	m_refLanguageTree = ListStore::create(m_languageColumns);
-	languageCombobox->set_model(m_refLanguageTree);
-	languageCombobox->pack_start(m_languageColumns.m_name);
-	// Populate
-	populate_comboboxes();
-
 	// Name
+	string name(m_properties.getName());
 	if (name.empty() == true)
 	{
 		queryOkbutton->set_sensitive(false);
@@ -62,20 +46,24 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	{
 		nameEntry->set_text(to_utf8(name));
 	}
-	// Query terms
-	andEntry->set_text(to_utf8(m_properties.getAndWords()));
-	phraseEntry->set_text(to_utf8(m_properties.getPhrase()));
-	anyEntry->set_text(to_utf8(m_properties.getAnyWords()));
-	notEntry->set_text(to_utf8(m_properties.getNotWords()));
-
-	// Host name
-	hostNameEntry->set_text(to_utf8(m_properties.getHostFilter()));
-	// File name
-	fileNameEntry->set_text(to_utf8(m_properties.getFileFilter()));
+	// Query text
+	RefPtr<TextBuffer> refBuffer = queryTextview->get_buffer();
+	refBuffer->set_text(to_utf8(m_properties.getFreeQuery()));
 	// Maximum number of results
 	resultsCountSpinbutton->set_value((double)m_properties.getMaximumResultsCount());
 	// Index all results
 	indexCheckbutton->set_active(m_properties.getIndexResults());
+
+	// Associate the columns model to the index label combo
+	m_refLabelNameTree = ListStore::create(m_labelNameColumns);
+	labelNameCombobox->set_model(m_refLabelNameTree);
+	labelNameCombobox->pack_start(m_labelNameColumns.m_name);
+	// ...and the filter combo
+	m_refFilterTree = ListStore::create(m_filterColumns);
+	filterCombobox->set_model(m_refFilterTree);
+	filterCombobox->pack_start(m_filterColumns.m_name);
+	// Populate
+	populate_comboboxes();
 }
 
 queryDialog::~queryDialog()
@@ -91,12 +79,7 @@ void queryDialog::populate_comboboxes()
 	row[m_labelNameColumns.m_name] = _("None");
 	labelNameCombobox->set_active(0);
 
-	iter = m_refLabelFilterTree->append();
-	row = *iter;
-	row[m_labelFilterColumns.m_name] = _("Any");
-	labelFilterCombobox->set_active(0);
-
-	// Add all labels to both label combos and select the one defined for the query
+	// Add all labels to the label combo and select the one defined for the query
 	for (set<string>::const_iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
 	{
 		string labelName(*labelIter);
@@ -109,35 +92,35 @@ void queryDialog::populate_comboboxes()
 			labelNameCombobox->set_active(labelNum);
 		}
 
-		iter = m_refLabelFilterTree->append();
-		row = *iter;
-		row[m_labelFilterColumns.m_name] = to_utf8(labelName);
-		if (labelName == m_properties.getLabelFilter())
-		{
-			labelFilterCombobox->set_active(labelNum);
-		}
-
 		++labelNum;
 	}
 
-	iter = m_refLanguageTree->append();
+	// All supported filters
+	iter = m_refFilterTree->append();
 	row = *iter;
-	row[m_languageColumns.m_name] = _("Any");
-	languageCombobox->set_active(0);
-
-	// Add all supported languages and select the one defined for the query
-	for (unsigned int languageNum = 0; languageNum < Languages::m_count; ++languageNum)
-	{
-		string languageName = Languages::getIntlName(languageNum);
-		iter = m_refLanguageTree->append();
-		row = *iter;
-		row[m_languageColumns.m_name] = to_utf8(languageName);
-
-		if (languageName == m_properties.getLanguage())
-		{
-			languageCombobox->set_active(languageNum + 1);
-		}
-	}
+	row[m_filterColumns.m_name] = _("Host name");
+	iter = m_refFilterTree->append();
+	row = *iter;
+	row[m_filterColumns.m_name] = _("File name");
+	iter = m_refFilterTree->append();
+	row = *iter;
+	row[m_filterColumns.m_name] = _("Title");
+	iter = m_refFilterTree->append();
+	row = *iter;
+	row[m_filterColumns.m_name] = _("URL");
+	iter = m_refFilterTree->append();
+	row = *iter;
+	row[m_filterColumns.m_name] = _("Directory");
+	iter = m_refFilterTree->append();
+	row = *iter;
+	row[m_filterColumns.m_name] = _("Language code");
+	iter = m_refFilterTree->append();
+	row = *iter;
+	row[m_filterColumns.m_name] = _("MIME type");
+	iter = m_refFilterTree->append();
+	row = *iter;
+	row[m_filterColumns.m_name] = _("Label");
+	filterCombobox->set_active(0);
 }
 
 bool queryDialog::badName(void) const
@@ -167,22 +150,9 @@ void queryDialog::on_queryOkbutton_clicked()
 		}
 	}
 
-	// Query terms
-	m_properties.setAndWords(from_utf8(andEntry->get_text()));
-	m_properties.setPhrase(from_utf8(phraseEntry->get_text()));
-	m_properties.setAnyWords(from_utf8(anyEntry->get_text()));
-	m_properties.setNotWords(from_utf8(notEntry->get_text()));
-	// Language
-	m_properties.setLanguage("");
-	int chosenLanguage = languageCombobox->get_active_row_number();
-	if (chosenLanguage > 0)
-	{
-		TreeModel::iterator iter = languageCombobox->get_active();
-		TreeModel::Row row = *iter;
-		string languageName = from_utf8(row[m_languageColumns.m_name]);
-
-		m_properties.setLanguage(languageName);
-	}
+	// Query text
+	RefPtr<TextBuffer> refBuffer = queryTextview->get_buffer();
+	m_properties.setFreeQuery(from_utf8(refBuffer->get_text()));
 	// Maximum number of results
 	m_properties.setMaximumResultsCount((unsigned int)resultsCountSpinbutton->get_value());
 	// Index all results
@@ -198,32 +168,6 @@ void queryDialog::on_queryOkbutton_clicked()
 
 		m_properties.setLabelName(labelName);
 	}
-	// Filters
-	m_properties.setHostFilter(from_utf8(hostNameEntry->get_text()));
-	m_properties.setFileFilter(from_utf8(fileNameEntry->get_text()));
-	// Label filter
-	m_properties.setLabelFilter("");
-	chosenLabel = labelFilterCombobox->get_active_row_number();
-	if (chosenLabel > 0)
-	{
-		TreeModel::iterator iter = labelFilterCombobox->get_active();
-		TreeModel::Row row = *iter;
-		string labelName = from_utf8(row[m_labelFilterColumns.m_name]);
-
-		m_properties.setLabelFilter(labelName);
-	}
-
-	// Workaround for bizarre bug that would cause a crash when creating a query
-	// that indexes and labels results based on a language filter
-	if (queryNotebook->get_current_page() == 0)
-	{
-		queryNotebook->next_page();
-	}
-	else
-	{
-		queryNotebook->prev_page();
-		queryNotebook->next_page();
-	}
 }
 
 void queryDialog::on_nameEntry_changed()
@@ -238,3 +182,49 @@ void queryDialog::on_nameEntry_changed()
 		queryOkbutton->set_sensitive(false);
 	}
 }
+
+void queryDialog::on_addFilterButton_clicked()
+{
+	ustring filter;
+
+	// What's the corresponding filter ?
+	int chosenFilter = filterCombobox->get_active_row_number();
+	// FIXME: should the filters be localized ?
+	switch (chosenFilter)
+	{
+		case 0:
+			filter = "site";
+			break;
+		case 1:
+			filter = "file";
+			break;
+		case 2:
+			filter = "title";
+			break;
+		case 3:
+			filter = "url";
+			break;
+		case 4:
+			filter = "dir";
+			break;
+		case 5:
+			filter = "lang";
+			break;
+		case 6:
+			filter = "type";
+			break;
+		case 7:
+			filter = "label";
+			break;
+		default:
+			break;
+	}
+
+	RefPtr<TextBuffer> refBuffer = queryTextview->get_buffer();
+	ustring queryText = refBuffer->get_text();
+	queryText += " ";
+	queryText += filter;
+	queryText += ":xxx";
+	refBuffer->set_text(queryText);
+}
+

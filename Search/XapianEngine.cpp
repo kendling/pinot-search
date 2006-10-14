@@ -107,19 +107,10 @@ XapianEngine::~XapianEngine()
 	m_resultsList.clear();
 }
 
-bool XapianEngine::queryDatabase(Xapian::Query &query)
+bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 {
 	bool bStatus = false;
 
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, true);
-	if (pDatabase == NULL)
-	{
-		return false;
-	}
-
-	// Get the latest revision...
-	pDatabase->reopen();
-	Xapian::Database *pIndex = pDatabase->readLock();
 	if (pIndex != NULL)
 	{
 		try
@@ -244,181 +235,50 @@ bool XapianEngine::queryDatabase(Xapian::Query &query)
 			cerr << "XapianEngine::queryDatabase: " << error.get_type() << ": " << error.get_msg() << endl;
 		}
 	}
-	pDatabase->unlock();
 
 	return bStatus;
 }
 
-void XapianEngine::stackQuery(const QueryProperties &queryProps,
-	stack<Xapian::Query> &queryStack, const string &stemLanguage, bool followOperators)
+Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
+	const string &stemLanguage, bool followOperators)
 {
-	Xapian::Query::op queryOp = Xapian::Query::OP_OR;
-	string term;
+	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
+	Xapian::QueryParser parser;
+	Xapian::Stem stemmer;
 
-	// Get the terms to AND together
-	if (queryProps.getAndWords().empty() == false)
+	if (stemLanguage.empty() == false)
 	{
-		vector<string> andTerms;
-
-		if (extractWords(queryProps.getAndWords(), stemLanguage, andTerms) == true)
-		{
-#ifdef DEBUG
-			cout << "XapianEngine::stackQuery: OP_AND " << andTerms.size() << endl;
-#endif
-			if (followOperators == true)
-			{
-				queryOp = Xapian::Query::OP_AND;
-			}
-			queryStack.push(Xapian::Query(queryOp, andTerms.begin(), andTerms.end()));
-		}
+		stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
 	}
 
-	// Get the terms of the phrase
-	if (queryProps.getPhrase().empty() == false)
+	// Set things up
+	parser.set_stemmer(stemmer);
+	if (followOperators == true)
 	{
-		vector<string> phraseTerms;
-
-		if (extractWords(queryProps.getPhrase(), stemLanguage, phraseTerms) == true)
-		{
-#ifdef DEBUG
-			cout << "XapianEngine::stackQuery: OP_PHRASE " << phraseTerms.size() << endl;
-#endif
-			if (followOperators == true)
-			{
-				queryOp = Xapian::Query::OP_PHRASE;
-			}
-			queryStack.push(Xapian::Query(queryOp, phraseTerms.begin(), phraseTerms.end()));
-		}
+		parser.set_default_op(Xapian::Query::OP_AND);
 	}
-
-	// Get the terms to OR together
-	if (queryProps.getAnyWords().empty() == false)
+	else
 	{
-		vector<string> orTerms;
-
-		if (extractWords(queryProps.getAnyWords(), stemLanguage, orTerms) == true)
-		{
-#ifdef DEBUG
-			cout << "XapianEngine::stackQuery: OP_OR " << orTerms.size() << endl;
-#endif
-			if (followOperators == true)
-			{
-				queryOp = Xapian::Query::OP_OR;
-			}
-			queryStack.push(Xapian::Query(queryOp, orTerms.begin(), orTerms.end()));
-		}
+		parser.set_default_op(Xapian::Query::OP_OR);
 	}
-
-	// Get the terms to NOT together
-	if (queryProps.getNotWords().empty() == false)
+	if (pIndex != NULL)
 	{
-		vector<string> notTerms;
-
-		if (extractWords(queryProps.getNotWords(), stemLanguage, notTerms) == true)
-		{
-#ifdef DEBUG
-			cout << "XapianEngine::stackQuery: OP_AND_NOT " << notTerms.size() << endl;
-#endif
-			// We need something to AND_NOT these terms against
-			// Not following the operator would make us return documents
-			// that have terms the user isn't interested in
-			Xapian::Query notQuery(Xapian::Query::OP_AND, notTerms.begin(), notTerms.end());
-			if (queryStack.empty() == false)
-			{
-				Xapian::Query topQuery = queryStack.top();
-				queryStack.pop();
-
-				queryStack.push(Xapian::Query(Xapian::Query::OP_AND_NOT, topQuery, notQuery));
-			}
-		}
+		// The database is required for wildcards
+		parser.set_database(*pIndex);
 	}
+	// ...including prefixes
+	parser.add_boolean_prefix("site", "H");
+	parser.add_boolean_prefix("file", "P");
+	parser.add_boolean_prefix("title", "S");
+	parser.add_boolean_prefix("url", "U");
+	parser.add_boolean_prefix("dir", "XDIR");
+	parser.add_boolean_prefix("lang", "L");
+	parser.add_boolean_prefix("type", "T");
+	parser.add_boolean_prefix("label", "XLABEL");
 
-	// Get the host name filter
-	if (queryProps.getHostFilter().empty() == false)
-	{
-		vector<string> hostTerms;
-
-		term = "H";
-		term += StringManip::toLowerCase(queryProps.getHostFilter());
-		hostTerms.push_back(term);
-		if (followOperators == true)
-		{
-			queryOp = Xapian::Query::OP_AND;
-		}
-		queryStack.push(Xapian::Query(queryOp, hostTerms.begin(), hostTerms.end()));
-	}
-
-	// Get the file name filter
-	if (queryProps.getFileFilter().empty() == false)
-	{
-		vector<string> fileTerms;
-
-		term = "P";
-		term += StringManip::toLowerCase(queryProps.getFileFilter());
-		fileTerms.push_back(term);
-		if (followOperators == true)
-		{
-			queryOp = Xapian::Query::OP_AND;
-		}
-		queryStack.push(Xapian::Query(queryOp, fileTerms.begin(), fileTerms.end()));
-	}
-
-	// Get the label name filter
-	if (queryProps.getLabelFilter().empty() == false)
-	{
-		vector<string> labelTerms;
-
-		term = "XLABEL:";
-		term += queryProps.getLabelFilter();
-		labelTerms.push_back(term);
-		if (followOperators == true)
-		{
-			queryOp = Xapian::Query::OP_AND;
-		}
-		queryStack.push(Xapian::Query(queryOp, labelTerms.begin(), labelTerms.end()));
-	}
-
-	// Get the language filter
-	string language = queryProps.getLanguage();
-	if (language.empty() == false)
-	{
-		vector<string> languageTerms;
-
-		term = "L";
-		term += Languages::toCode(Languages::toEnglish(language));
-#ifdef DEBUG
-		cout << "XapianEngine::stackQuery: filter " << term << endl;
-#endif
-		languageTerms.push_back(term);
-		if (followOperators == true)
-		{
-			queryOp = Xapian::Query::OP_AND;
-		}
-		queryStack.push(Xapian::Query(queryOp, languageTerms.begin(), languageTerms.end()));
-	}
-}
-
-/// Runs a boolean query; true if success.
-bool XapianEngine::runQuery(const string &keyword)
-{
-	// Clear the results list
-	m_resultsList.clear();
-
-	try
-	{
-		vector<string> keywordTerms;
-		keywordTerms.push_back(keyword);
-		Xapian::Query keywordQuery(Xapian::Query::OP_AND, keywordTerms.begin(), keywordTerms.end());
-
-		// Query the database with the full query
-		return queryDatabase(keywordQuery);
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "XapianEngine::runQuery: " << error.get_type() << ": " << error.get_msg() << endl;
-	}
-
-	return false;
+	// Activate all options and parse
+	return parser.parse_query(freeQuery,
+		Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|Xapian::QueryParser::FLAG_WILDCARD);
 }
 
 //
@@ -440,6 +300,15 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 	// Clear the results list
 	m_resultsList.clear();
 
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, true);
+	if (pDatabase == NULL)
+	{
+		return false;
+	}
+
+	// Get the latest revision...
+	pDatabase->reopen();
+	Xapian::Database *pIndex = pDatabase->readLock();
 	try
 	{
 		stack<Xapian::Query> queryStack;
@@ -453,26 +322,11 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 		// 3. if no results, don't follow operators and don't stem terms
 		// 4. if no results, don't follow operators and stem terms
 		// Steps 2 and 4 depend on a language being defined for the query
-		stackQuery(queryProps, queryStack, "", followOperators);
-		while (queryStack.empty() == false)
+		Xapian::Query freeQuery = parseQuery(pIndex, queryProps, "", followOperators);
+		while (freeQuery.empty() == false)
 		{
-			while (queryStack.size() > 1)
-			{
-				Xapian::Query topQuery = queryStack.top();
-				queryStack.pop();
-#ifdef DEBUG
-				cout << "XapianEngine::runQuery: popped query, left " << queryStack.size() << endl;
-#endif
-				Xapian::Query query = Xapian::Query(Xapian::Query::OP_AND, queryStack.top(), topQuery);
-				queryStack.pop();
-#ifdef DEBUG
-				cout << "XapianEngine::runQuery: popped query, left " << queryStack.size() << endl;
-#endif
-				queryStack.push(query);
-			}
-
 			// Query the database
-			if (queryDatabase(queryStack.top()) == false)
+			if (queryDatabase(pIndex, freeQuery) == false)
 			{
 				break;
 			}
@@ -504,22 +358,19 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 						}
 						++searchStep;
 					default:
+						pDatabase->unlock();
 						return true;
 				}
 
-				// Empty the stack
-				while (queryStack.empty() == false)
-				{
-					queryStack.pop();
-				}
 #ifdef DEBUG
 				cout << "XapianEngine::runQuery: trying step " << searchStep << endl;
 #endif
-				stackQuery(queryProps, queryStack,
+				freeQuery = parseQuery(pIndex, queryProps,
 					Languages::toEnglish(stemLanguage), followOperators);
 				continue;
 			}
 
+			pDatabase->unlock();
 			return true;
 		}
 	}
@@ -527,6 +378,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 	{
 		cerr << "XapianEngine::runQuery: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
+	pDatabase->unlock();
 
 	return false;
 }
