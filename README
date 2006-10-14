@@ -67,8 +67,8 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
   Pinot can automatically index :
     * directories and their contents. Monitoring for changes is optional.
     * mbox mail accounts. Monitoring is always enabled.
-  The former is configured with the My Documents tab in the Preferences box; the latter
-  with the My EMail tab. Both are handled by the D-Bus service.
+  Both are configured with the Indexing tab in the Preferences box and are
+  handled by the D-Bus service.
   See section "10. D-Bus service".
 
 
