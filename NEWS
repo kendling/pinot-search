@@ -1,3 +1,15 @@
+??? version_0_6_1
+Index :
+ - can now run queries like "type:text/html and lang:en and (tcp near ip)"
+UI :
+ - revamped the stored queries editor to allow any number of terms and filters
+ - preferences relative to My Documents and My Web Pages gathered under the
+  same tab
+ - hide the stored queries and engines lists by default to avoid scaring
+  people used to Beagle too much ;-)
+Daemon :
+ - index attachements in mbox files
+
 2006/09/25 version_0_6_0
 Build :
  - modifications for building on Cygwin, contributed by Reini Urban

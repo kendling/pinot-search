@@ -34,6 +34,7 @@ Search
 - Make sure Description files' SyndicationRight is not private or closed
 - Support for Google Buttons
 - Export search results as OpenSearch Response
+- Use pango_break() to tokenize abstracts
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
@@ -47,8 +48,6 @@ Index
 - Reopen connection to remote indexes when necessary; does Xapian throw a RemoteError ?
 - Allow to access remote Xapian indexes tunneled through ssh, using Xapian::Remote::open()
   defined in /usr/include/xapian/dbfactory.h
-- Use Xapian's QueryParser so that queries like "(type: pdf) and (dir: /reference/rfc) and (tcp near ip)"
-  become possible
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -60,7 +59,6 @@ Mail
     Date: Thu, 25 Aug 2005 11:04:49 +0800
   +0800 is basically same as SGT. At the moment the date is assumed to be GMT !
 - Keep track of attachments and avoid indexing the same file twice
-- Mail messages with attachements are not indexed
 
 UI
 - Switching back and forth between grouping modes messes up results rankings : check scores
