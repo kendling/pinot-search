@@ -330,8 +330,10 @@ void prefsDialog::on_prefsOkbutton_clicked()
 
 	// Validate the current lists
 	save_labelsTreeview();
-	if ((save_directoriesTreeview() == true) ||
-		(save_mailTreeview() == true))
+	bool startForDirectories = save_directoriesTreeview();
+	bool startForMail = save_mailTreeview();
+	if ((startForDirectories == true) ||
+		(startForMail == true))
 	{
 		unsigned int crawledCount = 0, docsCount = 0;
 
