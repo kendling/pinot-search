@@ -90,7 +90,8 @@ PinotSettings::PinotSettings() :
 	m_width(0),
 	m_height(0),
 	m_panePos(-1),
-	m_expandQueries(true),
+	m_showEngines(false),
+	m_expandQueries(false),
 	m_ignoreRobotsDirectives(false),
 	m_suggestQueryTerms(true),
 	m_newResultsColourRed(65535),
@@ -439,6 +440,17 @@ bool PinotSettings::loadUi(const Element *pElem)
 			else
 			{
 				m_expandQueries = false;
+			}
+		}
+		else if (nodeName == "showengines")
+		{
+			if (nodeContent == "YES")
+			{
+				m_showEngines = true;
+			}
+			else
+			{
+				m_showEngines = false;
 			}
 		}
 	}
@@ -1015,6 +1027,7 @@ bool PinotSettings::save(void)
 	sprintf(numStr, "%d", m_panePos);
 	addChildElement(pElem, "panepos", numStr);
 	addChildElement(pElem, "expandqueries", (m_expandQueries ? "YES" : "NO"));
+	addChildElement(pElem, "showengines", (m_showEngines ? "YES" : "NO"));
 	// User-defined indexes
 	for (map<string, string>::iterator indexIter = m_indexNames.begin(); indexIter != m_indexNames.end(); ++indexIter)
 	{

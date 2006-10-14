@@ -188,6 +188,7 @@ class PinotSettings
 		int m_width;
 		int m_height;
 		int m_panePos;
+		bool m_showEngines;
 		bool m_expandQueries;
 		bool m_ignoreRobotsDirectives;
 		bool m_suggestQueryTerms;

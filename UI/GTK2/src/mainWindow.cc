@@ -106,6 +106,11 @@ mainWindow::mainWindow() :
 		mainHpaned->set_position(m_settings.m_panePos);
 	}
 	queryExpander->set_expanded(m_settings.m_expandQueries);
+	enginesTogglebutton->set_active(m_settings.m_showEngines);
+	if (m_settings.m_showEngines == true)
+	{
+		leftVbox->show();
+	}
 
 	// Position the engine tree
 	m_pEnginesTree = manage(new EnginesTree(enginesVbox, m_settings));
@@ -173,6 +178,7 @@ mainWindow::mainWindow() :
 	removeIndexButton->set_sensitive(false);
 
 	// Set tooltips
+	m_tooltips.set_tip(*enginesTogglebutton, _("Show all search engines"));
 	m_tooltips.set_tip(*addIndexButton, _("Add index"));
 	m_tooltips.set_tip(*removeIndexButton, _("Remove index"));
 
@@ -183,9 +189,6 @@ mainWindow::mainWindow() :
 	set_status(_("Ready"));
 	m_pNotebook->show();
 	show();
-
-	// Browse the index
-	on_index_changed(_("My Web Pages"));
 }
 
 //
@@ -2254,6 +2257,21 @@ void mainWindow::on_removeIndexButton_clicked()
 }
 
 //
+// Show or hide the engines list
+//
+void mainWindow::on_enginesTogglebutton_toggled()
+{
+	if (enginesTogglebutton->get_active() == true)
+	{
+		leftVbox->show();
+	}
+	else
+	{
+		leftVbox->hide();
+	}
+}
+
+//
 // Live query entry change
 //
 void mainWindow::on_liveQueryEntry_changed()
@@ -2511,6 +2529,7 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 	get_size(m_settings.m_width, m_settings.m_height);
 	m_settings.m_panePos = mainHpaned->get_position();
 	m_settings.m_expandQueries = queryExpander->get_expanded();
+	m_settings.m_showEngines = enginesTogglebutton->get_active();
 #ifdef DEBUG
 	cout << "mainWindow::on_mainWindow_delete_event: quitting" << endl;
 #endif

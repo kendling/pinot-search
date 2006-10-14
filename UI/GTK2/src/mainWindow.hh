@@ -102,6 +102,8 @@ protected:
 	virtual void on_addIndexButton_clicked();
 	virtual void on_removeIndexButton_clicked();
 
+	virtual void on_enginesTogglebutton_toggled();
+
 	virtual void on_liveQueryEntry_changed();
 	virtual void on_liveQueryEntry_activate();
 	virtual void on_findButton_clicked();
