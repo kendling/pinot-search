@@ -1,0 +1,28 @@
+# Google Code Search plugin
+
+<search 
+   name="Google Code Search"
+   description="Google Code Search"
+   method="GET"
+   action="http://www.google.com/codesearch"
+   queryEncoding="utf-8"
+   queryCharset="utf-8"
+   routeType="Source Code"
+>
+
+<input name="q" user>
+<input name="btnG" value="Search+Codesourceid">
+<inputnext name="start" factor="10">
+<inputprev name="start" factor="10">
+<input name="ie" value="utf-8">
+<input name="oe" value="utf-8">
+
+<interpret 
+    browserResultType="result"
+    charset="UTF-8"
+    resultListStart=""
+    resultListEnd=""
+    resultItemStart="<div class=h>"
+    resultItemEnd="</span></div>"
+>
+</search>
