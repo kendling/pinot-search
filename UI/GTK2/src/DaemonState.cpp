@@ -78,9 +78,10 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bo
 
 	if (doMonitoring == false)
 	{
-		// Monitoring is not necessary
+		// Monitoring is not necessary, but we still have to pass the handler
+		// so that we can act on documents that have been deleted
 		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
-			0, true, NULL, NULL);
+			0, true, NULL, m_pDiskHandler);
 	}
 	else
 	{
