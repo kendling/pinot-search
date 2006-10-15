@@ -118,7 +118,7 @@ mainWindow_glade::mainWindow_glade(
    Gtk::HBox *indexHbox = Gtk::manage(new class Gtk::HBox(true, 4));
    leftVbox = Gtk::manage(new class Gtk::VBox(false, 0));
    
-   Gtk::Image *image616 = Gtk::manage(new class Gtk::Image(Gtk::StockID("gtk-justify-left"), Gtk::IconSize(4)));
+   Gtk::Image *image616 = Gtk::manage(new class Gtk::Image(Gtk::StockID("gtk-network"), Gtk::IconSize(4)));
    enginesTogglebutton = Gtk::manage(new class Gtk::ToggleButton());
    
    Gtk::Label *liveQueryLabel = Gtk::manage(new class Gtk::Label(_("Query:")));
