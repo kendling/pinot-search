@@ -85,7 +85,7 @@ string GoogleAPIEngine::checkSpelling(const string &text)
 /// Runs a query; true if success.
 bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 {
-	string queryString(queryProps.getFreeQuery());
+	string queryString(queryProps.getFreeQuery(true));
 	setHostNameFilter(queryProps.getHostFilter());
 	setFileNameFilter(queryProps.getFileFilter());
 

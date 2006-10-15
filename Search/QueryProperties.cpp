@@ -14,13 +14,13 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <ctype.h>
+#include <set>
 #include <iostream>
 #include <algorithm>
 
-#include "Document.h"
-#include "Languages.h"
-#include "StringManip.h"
 #include "Tokenizer.h"
+#include "XapianEngine.h"
 #include "QueryProperties.h"
 
 QueryProperties::QueryProperties() :
@@ -35,12 +35,13 @@ QueryProperties::QueryProperties(const string &name, const string &freeQuery) :
 	m_resultsCount(10),
 	m_indexResults(false)
 {
-	extractFilters();
+	removeFilters();
 }
 
 QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_name(other.m_name),
 	m_freeQuery(other.m_freeQuery),
+	m_freeQueryWithoutFilters(other.m_freeQueryWithoutFilters),
 	m_language(other.m_language),
 	m_hostFilter(other.m_hostFilter),
 	m_fileFilter(other.m_fileFilter),
@@ -48,7 +49,6 @@ QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_indexResults(other.m_indexResults),
 	m_labelName(other.m_labelName)
 {
-	extractFilters();
 }
 
 QueryProperties::~QueryProperties()
@@ -61,13 +61,13 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 	{
 		m_name = other.m_name;
 		m_freeQuery = other.m_freeQuery;
+		m_freeQueryWithoutFilters = other.m_freeQueryWithoutFilters;
 		m_language = other.m_language;
 		m_hostFilter = other.m_hostFilter;
 		m_fileFilter = other.m_fileFilter;
 		m_resultsCount = other.m_resultsCount;
 		m_indexResults = other.m_indexResults;
 		m_labelName = other.m_labelName;
-		extractFilters();
 	}
 
 	return *this;
@@ -93,24 +93,61 @@ bool QueryProperties::operator<(const QueryProperties &other) const
 	return false;
 }
 
-void QueryProperties::extractFilters(void)
+void QueryProperties::removeFilters(void)
 {
+	m_freeQueryWithoutFilters.clear();
+	m_language.clear();
+	m_hostFilter.clear();
+	m_fileFilter.clear();
+
 	if (m_freeQuery.empty() == true)
 	{
-		m_language.clear();
-		m_hostFilter.clear();
-		m_fileFilter.clear();
 		return;
 	}
 
-	string freeQuery = StringManip::replaceSubString(m_freeQuery, "\n", " ");
-
-	m_language = StringManip::extractField(freeQuery, "language:", " )", true);
-	if (m_language.empty() == true)
+	set<string> terms;
+	if (XapianEngine::validateQuery(*this, true, terms) == true)
 	{
-		m_language = StringManip::extractField(freeQuery, "language:", "");
+		for (set<string>::const_iterator termIter = terms.begin();
+			termIter != terms.end(); ++termIter)
+		{
+			string term(*termIter);
+
+			if (term.empty() == true)
+			{
+				continue;
+			}
+
+			// is this a prefixed term ?
+			// The query shouldn't have the same filter twice
+			if (isupper((int)((*termIter)[0])) == 0)
+			{
+				// FIXME: operators have been lost !
+				if (m_freeQueryWithoutFilters.empty() == false)
+				{
+					m_freeQueryWithoutFilters += " ";
+				}
+				m_freeQueryWithoutFilters += term;
+			}
+			else
+			{
+				switch (term[0])
+				{
+					case 'L':
+						m_language = term.substr(1);
+						break;
+					case 'H':
+						m_hostFilter = term.substr(1);
+						break;
+					case 'P':
+						m_fileFilter = term.substr(1);
+						break;
+					default:
+						break;
+				}
+			}
+		}
 	}
-	// FIXME: do the same for host and file at the very least
 }
 
 /// Sets the name.
@@ -129,12 +166,21 @@ string QueryProperties::getName(void) const
 void QueryProperties::setFreeQuery(const string &freeQuery)
 {
 	m_freeQuery = freeQuery;
+	removeFilters();
 }
 
 /// Gets the query string.
-string QueryProperties::getFreeQuery(void) const
+string QueryProperties::getFreeQuery(bool withoutFilters) const
 {
-	return m_freeQuery;
+	if (withoutFilters == false)
+	{
+		return m_freeQuery;
+	}
+
+#ifdef DEBUG
+	cout << "QueryProperties::getFreeQuery: " << m_freeQueryWithoutFilters << endl;
+#endif
+	return m_freeQueryWithoutFilters;
 }
 
 /// Gets the query's language.
@@ -196,7 +242,7 @@ void QueryProperties::getTerms(set<string> &terms) const
 {
 	Document doc;
 
-	doc.setData(m_freeQuery.c_str(), m_freeQuery.length());
+	doc.setData(m_freeQueryWithoutFilters.c_str(), m_freeQueryWithoutFilters.length());
 	Tokenizer tokens(&doc);
 
 	terms.clear();
@@ -207,3 +253,4 @@ void QueryProperties::getTerms(set<string> &terms) const
 		terms.insert(token);
 	}
 }
+

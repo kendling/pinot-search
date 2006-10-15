@@ -45,7 +45,7 @@ class QueryProperties
 		/// Sets the query string.
 		void setFreeQuery(const string &freeQuery);
 		/// Gets the query string.
-		string getFreeQuery(void) const;
+		string getFreeQuery(bool withoutFilters = false) const;
 
 		/// Gets the query's language.
 		string getLanguage(void) const;
@@ -72,11 +72,12 @@ class QueryProperties
 		string getLabelName(void) const;
 
 		/// Returns the query's terms.
-		void getTerms(std::set<std::string> &terms) const;
+		void getTerms(set<string> &terms) const;
 
 	protected:
 		string m_name;
 		string m_freeQuery;
+		string m_freeQueryWithoutFilters;
 		string m_language;
 		string m_hostFilter;
 		string m_fileFilter;
@@ -84,7 +85,7 @@ class QueryProperties
 		bool m_indexResults;
 		string m_labelName;
 
-		void extractFilters(void);
+		void removeFilters(void);
 
 };
 

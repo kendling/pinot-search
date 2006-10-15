@@ -33,7 +33,6 @@
 using std::string;
 using std::multimap;
 using std::vector;
-using std::stack;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -105,6 +104,81 @@ XapianEngine::XapianEngine(const string &database) :
 XapianEngine::~XapianEngine()
 {
 	m_resultsList.clear();
+}
+
+Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
+	const string &stemLanguage, bool followOperators)
+{
+	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
+	Xapian::QueryParser parser;
+	Xapian::Stem stemmer;
+
+	if (stemLanguage.empty() == false)
+	{
+		stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
+	}
+
+	// Set things up
+	parser.set_stemmer(stemmer);
+	if (followOperators == true)
+	{
+		parser.set_default_op(Xapian::Query::OP_AND);
+	}
+	else
+	{
+		parser.set_default_op(Xapian::Query::OP_OR);
+	}
+	if (pIndex != NULL)
+	{
+		// The database is required for wildcards
+		parser.set_database(*pIndex);
+	}
+	// ...including prefixes
+	parser.add_boolean_prefix("site", "H");
+	parser.add_boolean_prefix("file", "P");
+	parser.add_boolean_prefix("title", "S");
+	parser.add_boolean_prefix("url", "U");
+	parser.add_boolean_prefix("dir", "XDIR");
+	parser.add_boolean_prefix("lang", "L");
+	parser.add_boolean_prefix("type", "T");
+	parser.add_boolean_prefix("label", "XLABEL");
+
+	// Activate all options and parse
+	return parser.parse_query(freeQuery,
+		Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|Xapian::QueryParser::FLAG_WILDCARD);
+}
+
+/// Validates a query and extracts its terms.
+bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefixed,
+	set<string> &terms)
+{
+	bool goodQuery = false;
+
+	try
+	{
+		Xapian::Query freeQuery = parseQuery(NULL, queryProps, "", true);
+		if (freeQuery.empty() == false)
+		{
+			for (Xapian::TermIterator termIter = freeQuery.get_terms_begin();
+				termIter != freeQuery.get_terms_end(); ++termIter)
+			{
+				// Skip prefixed terms unless instructed otherwise
+				if ((includePrefixed == true) ||
+					(isupper((int)((*termIter)[0])) == 0))
+				{
+					terms.insert(*termIter);
+				}
+			}
+
+			goodQuery = true;
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "XapianEngine::validateQuery: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+
+	return goodQuery;
 }
 
 bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
@@ -239,48 +313,6 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 	return bStatus;
 }
 
-Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
-	const string &stemLanguage, bool followOperators)
-{
-	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
-	Xapian::QueryParser parser;
-	Xapian::Stem stemmer;
-
-	if (stemLanguage.empty() == false)
-	{
-		stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
-	}
-
-	// Set things up
-	parser.set_stemmer(stemmer);
-	if (followOperators == true)
-	{
-		parser.set_default_op(Xapian::Query::OP_AND);
-	}
-	else
-	{
-		parser.set_default_op(Xapian::Query::OP_OR);
-	}
-	if (pIndex != NULL)
-	{
-		// The database is required for wildcards
-		parser.set_database(*pIndex);
-	}
-	// ...including prefixes
-	parser.add_boolean_prefix("site", "H");
-	parser.add_boolean_prefix("file", "P");
-	parser.add_boolean_prefix("title", "S");
-	parser.add_boolean_prefix("url", "U");
-	parser.add_boolean_prefix("dir", "XDIR");
-	parser.add_boolean_prefix("lang", "L");
-	parser.add_boolean_prefix("type", "T");
-	parser.add_boolean_prefix("label", "XLABEL");
-
-	// Activate all options and parse
-	return parser.parse_query(freeQuery,
-		Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|Xapian::QueryParser::FLAG_WILDCARD);
-}
-
 //
 // Implementation of SearchEngineInterface
 //
@@ -311,7 +343,6 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 	Xapian::Database *pIndex = pDatabase->readLock();
 	try
 	{
-		stack<Xapian::Query> queryStack;
 		string stemLanguage;
 		unsigned int searchStep = 1;
 		bool followOperators = true;
@@ -325,6 +356,14 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 		Xapian::Query freeQuery = parseQuery(pIndex, queryProps, "", followOperators);
 		while (freeQuery.empty() == false)
 		{
+#ifdef DEBUG
+			cout << "XapianEngine::runQuery: query terms are " << endl;
+			for (Xapian::TermIterator termIter = freeQuery.get_terms_begin();
+				termIter != freeQuery.get_terms_end(); ++termIter)
+			{
+				cout << " " << *termIter << endl;
+			}
+#endif
 			// Query the database
 			if (queryDatabase(pIndex, freeQuery) == false)
 			{
@@ -388,3 +427,4 @@ const vector<Result> &XapianEngine::getResults(void) const
 {
 	return m_resultsList;
 }
+

@@ -20,7 +20,6 @@
 #include <string>
 #include <set>
 #include <vector>
-#include <stack>
 
 #include <xapian.h>
 
@@ -32,6 +31,10 @@ class XapianEngine : public SearchEngineInterface
 	public:
 		XapianEngine(const std::string &database);
 		virtual ~XapianEngine();
+
+		/// Validates a query and extracts its terms.
+		static bool validateQuery(QueryProperties& queryProps, bool includePrefixed,
+			std::set<std::string> &terms);
 
 		/// Sets whether the query should be expanded.
 		bool setQueryExpansion(std::set<unsigned int> &relevantDocuments);
@@ -48,7 +51,7 @@ class XapianEngine : public SearchEngineInterface
 
 		bool queryDatabase(Xapian::Database *pIndex, Xapian::Query &query);
 
-		Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
+		static Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 			const string &stemLanguage, bool followOperators);
 
 	private:
