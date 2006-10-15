@@ -1445,9 +1445,6 @@ bool XapianIndex::flush(void)
 
 	try
 	{
-#ifdef DEBUG
-		cout << "XapianIndex::flush: called" << endl;
-#endif
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
