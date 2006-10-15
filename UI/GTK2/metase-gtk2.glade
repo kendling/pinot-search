@@ -178,7 +178,7 @@
 			      <property name="visible">True</property>
 			      <property name="label" translatable="yes">Host Name</property>
 			      <property name="use_underline">True</property>
-			      <property name="active">True</property>
+			      <property name="active">False</property>
 			      <property name="group">searchenginegroup1</property>
 			    </widget>
 			  </child>
@@ -196,7 +196,7 @@
 		      <signal name="activate" handler="on_clearresults_activate" last_modification_time="Wed, 03 Mar 2004 19:51:48 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image610">
+			<widget class="GtkImage" id="image617">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-clear</property>
 			  <property name="icon_size">1</property>
@@ -243,7 +243,7 @@
 		      <signal name="activate" handler="on_morelikethis_activate" last_modification_time="Sun, 18 Jun 2006 10:50:56 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image611">
+			<widget class="GtkImage" id="image618">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-find</property>
 			  <property name="icon_size">1</property>
@@ -298,7 +298,7 @@
 		      <signal name="activate" handler="on_import_activate" last_modification_time="Tue, 02 Mar 2004 22:13:44 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image612">
+			<widget class="GtkImage" id="image619">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-open</property>
 			  <property name="icon_size">1</property>
@@ -336,7 +336,7 @@
 		      <signal name="activate" handler="on_refreshindex_activate" last_modification_time="Fri, 20 Feb 2004 18:57:09 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image613">
+			<widget class="GtkImage" id="image620">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-refresh</property>
 			  <property name="icon_size">1</property>
@@ -358,7 +358,7 @@
 		      <signal name="activate" handler="on_unindex_activate" last_modification_time="Thu, 28 Jul 2005 12:42:23 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image614">
+			<widget class="GtkImage" id="image621">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-delete</property>
 			  <property name="icon_size">1</property>
@@ -380,7 +380,7 @@
 		      <signal name="activate" handler="on_showfromindex_activate" last_modification_time="Sun, 06 Nov 2005 08:43:05 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image615">
+			<widget class="GtkImage" id="image622">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-properties</property>
 			  <property name="icon_size">1</property>
