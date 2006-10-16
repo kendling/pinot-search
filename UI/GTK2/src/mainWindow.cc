@@ -3003,7 +3003,18 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 					type = "text/html";
 					foundAction = MIMEScanner::getDefaultAction(type, action);
 #ifdef DEBUG
-					cout << "mainWindow::view_documents: defaulting to test/html" << endl;
+					cout << "mainWindow::view_documents: defaulting to text/html" << endl;
+#endif
+				}
+				else if ((type.length() > 5) &&
+					(type.substr(0, 5) == "text/"))
+				{
+					// It's a subtype of text
+					// FIXME: MIMEScanner should return parent types !
+					type = "text/plain";
+					foundAction = MIMEScanner::getDefaultAction(type, action);
+#ifdef DEBUG
+					cout << "mainWindow::view_documents: defaulting to text/plain" << endl;
 #endif
 				}
 
