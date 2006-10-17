@@ -113,12 +113,16 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	Xapian::QueryParser parser;
 	Xapian::Stem stemmer;
 
+	// Set things up
 	if (stemLanguage.empty() == false)
 	{
 		stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
+		parser.set_stemming_strategy(Xapian::QueryParser::STEM_NONE);
 	}
-
-	// Set things up
+	else
+	{
+		parser.set_stemming_strategy(Xapian::QueryParser::STEM_ALL);
+	}
 	parser.set_stemmer(stemmer);
 	if (followOperators == true)
 	{
@@ -231,6 +235,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 				{
 					Xapian::docid docId = *mIter;
 					Xapian::Document doc(mIter.get_document());
+					AbstractGenerator abstractGen(pIndex, 50);
 					string record = doc.get_data();
 
 					// Get the title
@@ -259,15 +264,8 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 					// ...and the language, if available
 					string language = StringManip::extractField(record, "language=", "\n");
 
-					// Finally, get a summary
-					string summary = StringManip::extractField(record, "sample=", "\n");
-					if (summary.empty() == true)
-					{
-						AbstractGenerator abstractGen(pIndex, 50);
-
-						// Generate an abstract based on the query's terms
-						summary = abstractGen.generateAbstract(seedTerms, docId);
-					}
+					// Generate an abstract based on the query's terms
+					string summary = abstractGen.generateAbstract(seedTerms, docId);
 
 					// Add this result
 					Result thisResult(url, title, summary, language, (float)mIter.get_percent());

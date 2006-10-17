@@ -1186,8 +1186,6 @@ void IndexingThread::doWork(void)
 
 		if (m_done == false)
 		{
-			const set<string> &labels = m_docInfo.getLabels();
-
 			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
 
 			// Update an existing document or add to the index ?
@@ -1198,12 +1196,10 @@ void IndexingThread::doWork(void)
 				{
 					success = true;
 				}
-
-				// Set the document's labels
-				pIndex->setDocumentLabels(m_docId, labels, false);
 			}
 			else
 			{
+				const set<string> &labels = m_docInfo.getLabels();
 				unsigned int docId = 0;
 
 				// Index the document

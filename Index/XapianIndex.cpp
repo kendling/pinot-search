@@ -234,13 +234,13 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 		if ((mode == STORE_UNSTEM) ||
 			(pStemmer == NULL))
 		{
-			doc.add_posting(limitTermLength(prefix + term), termPos++);
+			doc.add_posting(limitTermLength(prefix + term), termPos);
 		}
 		else if (mode == STORE_STEM)
 		{
 			string stemmedTerm = pStemmer->stem_word(term);
 
-			doc.add_posting(limitTermLength(prefix + stemmedTerm), termPos++);
+			doc.add_posting(limitTermLength(prefix + stemmedTerm), termPos);
 		}
 		else if (mode == STORE_BOTH)
 		{
@@ -251,9 +251,11 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 			if (stemmedTerm != term)
 			{
 				// No point adding the same term twice
-				doc.add_posting(limitTermLength(prefix + stemmedTerm), termPos++);
+				doc.add_posting(limitTermLength(prefix + stemmedTerm), termPos);
 			}
 		}
+
+		++termPos;
 	}
 #ifdef DEBUG
 	cout << "XapianIndex::addPostingsToDocument: added " << termPos << " terms" << endl;
@@ -524,6 +526,9 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	char timeStr[64];
 	time_t timeT = TimeConverter::fromTimestamp(timestamp);
 
+	// Add this value to allow sorting by date
+	doc.add_value(0, StringManip::integerToBinaryString((uint32_t)timeT));
+
 	// Set the document data omindex-style
 	string record = "url=";
 	record += info.getLocation();
@@ -557,9 +562,6 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	cout << "XapianIndex::setDocumentData: document data is " << record << endl;
 #endif
 	doc.set_data(record);
-
-	// Add this value to allow sorting by date
-	doc.add_value(0, StringManip::integerToBinaryString((uint32_t)timeT));
 }
 
 //
