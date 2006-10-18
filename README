@@ -89,9 +89,25 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
       don't follow operators and stem terms
   Stemming is available only to Stored Queries for which a language is defined
   (Query parameters box, Indexes only tab).
-  While Stored Queries allow to define how terms should be used, live queries
-  are run with all terms AND'ed together when querying an index. Future
-  versions of Pinot will allow more flexibility in that respect.
+
+  Queries can be expressed in a very natural way, using a combination of operators
+  and filters. For instance "type:text/html and lang:en and (tcp near ip)" looks
+  for HTML files in English that mention TCP/IP. 
+
+  Supported filters are :
+	"site" for host name, eg "site:pinot.berlios.de"
+	"file" for file name, eg "file:index.html"
+	"title" for title, eg "title:Session"
+	"url" for URL, eg "url:http://pinot.berlios.de/"
+	"dir" for directory, eg "dir:/home/fabrice/test.txt"
+	"lang" for ISO language code, eg "lang:en"
+	"type" for MIME type, eg "type:text/html"
+	"label" for label, eg "label:Important"
+  Languages detected by this version are "da", "nl", "en", "fi", "fr", "de", "it",
+  "nn", "pt", "ru", "es" and "sv".
+
+  For more information about the query syntax, you may want to have a look at the
+  documentation for Xapian's QueryParser at http://www.xapian.org/docs/queryparser.html
 
 
 6. Viewing cached results
@@ -154,6 +170,7 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
   as a channel name. The standard defines Tags as a "space-delimited set of
   words that are used as keywords to identify and categorize this search
   content".
+
 
 8. File formats
 

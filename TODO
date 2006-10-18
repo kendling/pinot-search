@@ -5,7 +5,7 @@ General
 - MIMEScanner should also return parent types so that we don't filter out types unnecessarily
 - Update to gtk+'s xdgmime as it seems to be the reference now
 - Build a -devel package for those who want to write their own tokenizers
-- Allow building without the DBus daemon
+- Allow building without inotify/the DBus daemon
 
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
@@ -35,6 +35,7 @@ Search
 - Support for Google Buttons
 - Export search results as OpenSearch Response
 - Use pango_break() to tokenize abstracts
+- Use g_get_language_names() to get the locale's languages
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words

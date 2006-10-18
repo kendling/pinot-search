@@ -1,14 +1,26 @@
-??? version_0_6_1
+2006/10/18 version_0_6_1
+General :
+ - switched to gtk+'s version of xdgmime
 Index :
- - can now run queries like "type:text/html and lang:en and (tcp near ip)"
+ - can now run queries like "type:text/html and lang:en and (tcp near ip)".
+  See README for more information about the syntax and a list of filters.
+Search :
+ - don't reject MozSearch plugins
+ - added plugin for Google code search service
+ - filters 'site' and 'file' (host name, file name) apply to Web engines
+ - fixed abstract generation
 UI :
  - revamped the stored queries editor to allow any number of terms and filters
  - preferences relative to My Documents and My Web Pages gathered under the
   same tab
  - hide the stored queries and engines lists by default to avoid scaring
   people used to Beagle too much ;-)
+ - mail accounts configuration wasn't always saved correctly
+ - updating a document from the My Web Pages index messed the abstract
 Daemon :
  - index attachements in mbox files
+ - documents deleted since last crawl were not removed from the index if the
+  corresponding location wasn't monitored
 
 2006/09/25 version_0_6_0
 Build :
