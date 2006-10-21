@@ -22,6 +22,6 @@ GoogleSearch.h :
 GAPIClientLib.cpp : GoogleSearch.h
 	soapcpp2 -n -pGAPI -I /usr/include/gsoap/import GoogleSearch.h
 
-AM_CXXFLAGS = -I../../Utils -I../../Tokenize -I../../Collect -I.. \
+AM_CXXFLAGS = -I../../Utils -I../../Tokenize -I../../Collect -I../../Index -I.. \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ @INDEX_CFLAGS@ @MIME_CFLAGS@
 

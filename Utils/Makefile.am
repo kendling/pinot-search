@@ -3,19 +3,17 @@
 noinst_HEADERS = \
 	CommandLine.h \
 	Document.h \
-	Languages.h \
-	MIMEScanner.h \
-	NLS.h \
-	StringManip.h \
-	Timer.h \
-	XapianDatabase.h \
 	DocumentInfo.h \
 	IndexedDocument.h \
+	Languages.h \
 	MboxParser.h \
+	MIMEScanner.h \
+	NLS.h \
 	Result.h \
+	StringManip.h \
 	TimeConverter.h \
+	Timer.h \
 	Url.h \
-	XapianDatabaseFactory.h \
 	xdgmime/xdgmimealias.h \
 	xdgmime/xdgmimecache.h \
 	xdgmime/xdgmimeglob.h \
@@ -37,12 +35,10 @@ libBasicUtils_la_SOURCES = \
 libUtils_la_SOURCES = \
 	IndexedDocument.cpp \
 	Languages.cpp \
-	MIMEScanner.cpp \
 	MboxParser.cpp \
+	MIMEScanner.cpp \
 	Result.cpp \
 	Timer.cpp \
-	XapianDatabase.cpp \
-	XapianDatabaseFactory.cpp \
 	xdgmime/xdgmimealias.c \
 	xdgmime/xdgmime.c \
 	xdgmime/xdgmimecache.c \

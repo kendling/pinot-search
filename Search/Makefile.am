@@ -43,14 +43,14 @@ libSearchSOAP_la_SOURCES = \
 pinot_search_SOURCES = \
 	pinot-search.cpp
 
-pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect -LGoogle \
-	@SEARCH_LIBS@ -lCollect -lTokenize -lUtils -lBasicUtils \
+pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect -L../Index -LGoogle \
+	@SEARCH_LIBS@ -lIndex -lCollect -lTokenize -lUtils -lBasicUtils \
 	@GLIBMM_LIBS@ @INDEX_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 SOAPEnvC.cpp : SOAPEnv.h
 	soapcpp2 -pSOAPEnv SOAPEnv.h
 
-AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Collect -IGoogle \
+AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Collect -I$(srcdir)/../Index -IGoogle \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @MIME_CFLAGS@ @GLIBMM_CFLAGS@
 if HAVE_BOOST_SPIRIT
 AM_CXXFLAGS += -DHAVE_BOOST_SPIRIT
