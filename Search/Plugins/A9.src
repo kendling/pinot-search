@@ -17,8 +17,8 @@
 <INTERPRET
 resultListStart=""
 resultListEnd=""
-resultItemStart='style="margin-bottom:'
-resultItemEnd='</div>'
+resultItemStart='<div class="resBlock">'
+resultItemEnd='class="site-info">'
 >
 
 </SEARCH>
