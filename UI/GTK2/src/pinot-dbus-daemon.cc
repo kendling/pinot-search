@@ -264,7 +264,6 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 #endif
 			if (index.getDocumentLabels(docId, labels) == true)
 			{
-				dbus_uint32_t labelsCount = labels.size();
 				GPtrArray *pLabels = g_ptr_array_new();
 
 				for (set<string>::const_iterator labelIter = labels.begin();
@@ -309,7 +308,6 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
 		unsigned int crawledFilesCount = history.getItemsCount();
 		unsigned int docsCount = index.getDocumentsCount();
-		unsigned int docId = 0;
 
 #ifdef DEBUG
 		cout << "messageHandler: received GetStatistics" << endl;
@@ -434,7 +432,6 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 	{
 		char *pSearchText = NULL;
 		dbus_uint32_t maxHits = 0;
-		unsigned int docId = 0;
 
 		if (dbus_message_get_args(pMessage, &error,
 			DBUS_TYPE_STRING, &pSearchText,
@@ -667,16 +664,17 @@ int main(int argc, char **argv)
 	settings.enableDBus(false);
 
 	string confDirectory = PinotSettings::getConfigurationDirectory();
-	chdir(confDirectory.c_str());
-
-	// Redirect cout and cerr to a file
-	string logFileName = confDirectory;
-	logFileName += "/pinot-dbus-daemon.log";
-	g_outputFile.open(logFileName.c_str());
-	g_coutBuf = cout.rdbuf();
-	g_cerrBuf = cerr.rdbuf();
-	cout.rdbuf(g_outputFile.rdbuf());
-	cerr.rdbuf(g_outputFile.rdbuf());
+	if (chdir(confDirectory.c_str()) == 0)
+	{
+		// Redirect cout and cerr to a file
+		string logFileName = confDirectory;
+		logFileName += "/pinot-dbus-daemon.log";
+		g_outputFile.open(logFileName.c_str());
+		g_coutBuf = cout.rdbuf();
+		g_cerrBuf = cerr.rdbuf();
+		cout.rdbuf(g_outputFile.rdbuf());
+		cerr.rdbuf(g_outputFile.rdbuf());
+	}
 
 	// Localize language names
 	Languages::setIntlName(0, _("Unknown"));

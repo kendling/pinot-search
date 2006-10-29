@@ -151,16 +151,17 @@ int main(int argc, char **argv)
 	settings.enableDBus(true);
 
 	string confDirectory = PinotSettings::getConfigurationDirectory();
-	chdir(confDirectory.c_str());
-
-	// Redirect cout and cerr to a file
-	string logFileName = confDirectory;
-	logFileName += "/pinot.log";
-	g_outputFile.open(logFileName.c_str());
-	g_coutBuf = cout.rdbuf();
-	g_cerrBuf = cerr.rdbuf();
-	cout.rdbuf(g_outputFile.rdbuf());
-	cerr.rdbuf(g_outputFile.rdbuf());
+	if (chdir(confDirectory.c_str()) == 0)
+	{
+		// Redirect cout and cerr to a file
+		string logFileName = confDirectory;
+		logFileName += "/pinot.log";
+		g_outputFile.open(logFileName.c_str());
+		g_coutBuf = cout.rdbuf();
+		g_cerrBuf = cerr.rdbuf();
+		cout.rdbuf(g_outputFile.rdbuf());
+		cerr.rdbuf(g_outputFile.rdbuf());
+	}
 
 	// Localize language names
 	Languages::setIntlName(0, _("Unknown"));
