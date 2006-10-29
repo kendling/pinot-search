@@ -153,10 +153,17 @@ AC_CHECK_HEADERS([boost/spirit/core.hpp],
     [AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)
     ])
 
+dnl TextCat
+AC_CHECK_HEADERS([textcat.h])
+AC_CHECK_LIB(textcat, textcat_Cat,
+    [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)],
+    [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)]
+    )
+
 dnl Other libraries
 MISC_LIBS="-lcrypt"
 AC_SUBST(MISC_LIBS)
-AC_CHECK_HEADERS([textcat.h netinet/in.h arpa/inet.h])
+AC_CHECK_HEADERS([netinet/in.h arpa/inet.h])
 PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
 SHARED_MIME_INFO_PREFIX=`pkg-config --variable=prefix shared-mime-info`
 AC_SUBST(SHARED_MIME_INFO_PREFIX)

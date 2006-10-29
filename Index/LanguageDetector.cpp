@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <strings.h>
 #include <sys/time.h>
 #include <iostream>
 #include <utility>
@@ -61,7 +62,22 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 
 	candidates.clear();
 
-	confFile += "/share/pinot/textcat_conf.txt";
+	// What configuration file should we use ?
+	confFile += "/share/pinot/";
+	if (strncasecmp(textcat_Version(), "TextCat 3", 9) == 0)
+	{
+#ifdef DEBUG
+		cout << "LanguageDetector::guessLanguage: detected libtextcat 3" << endl;
+#endif
+		// Version 3
+		confFile += "textcat3_conf.txt";
+	}
+	else
+	{
+		confFile += "textcat_conf.txt";
+	}
+
+	// Initialize
 	void *td = textcat_Init(confFile.c_str());
 	if (td == NULL)
 	{
@@ -148,8 +164,8 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 	}
 #endif
 #ifdef DEBUG
-	cout << "LanguageDetector::guessLanguage: language guessing with "
-		<< textcat_Version() << " took " << timer.stop()/1000 << " ms" << endl;
+	cout << "LanguageDetector::guessLanguage: language guessing took "
+		<< timer.stop()/1000 << " ms" << endl;
 #endif
 
 	// Close the descriptor

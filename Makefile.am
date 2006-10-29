@@ -1,11 +1,11 @@
 # generated 2005/12/14 20:48:47 SGT by fabrice@amra.dyndns.org.(none)
 # using glademm V2.6.0
 
-SUBDIRS = po Utils Tokenize SQL Collect @SOAP_SUBDIRS@ Index \
+SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ \
 	Search Monitor UI/GTK2/src
 
 EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs pinot.desktop \
-	pinot.spec textcat_conf.txt globalconfig.xml \
+	pinot.spec textcat_conf.txt textcat3_conf.txt globalconfig.xml \
 	Search/Plugins/*src Search/Plugins/*.xml \
 	Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1 \
@@ -26,6 +26,7 @@ install-data-local:
 	$(INSTALL_DATA) UI/GTK2/src/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml
 	$(INSTALL_DATA) UI/GTK2/src/de.berlios.Pinot.service $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
 	$(INSTALL_DATA) textcat_conf.txt $(DESTDIR)$(datadir)/pinot/textcat_conf.txt
+	$(INSTALL_DATA) textcat3_conf.txt $(DESTDIR)$(datadir)/pinot/textcat3_conf.txt
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot/engines
 	$(INSTALL_DATA) Search/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
 	@mv $(DESTDIR)$(datadir)/pinot/engines/AmazonAPI.src $(DESTDIR)$(datadir)/pinot/
