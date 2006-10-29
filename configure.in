@@ -158,6 +158,10 @@ MISC_LIBS="-lcrypt"
 AC_SUBST(MISC_LIBS)
 AC_CHECK_HEADERS([textcat.h netinet/in.h arpa/inet.h])
 PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
+SHARED_MIME_INFO_PREFIX=`pkg-config --variable=prefix shared-mime-info`
+AC_SUBST(SHARED_MIME_INFO_PREFIX)
+AC_DEFINE_UNQUOTED(SHARED_MIME_INFO_PREFIX,"$SHARED_MIME_INFO_PREFIX",
+    [the shared-mime-info prefix])
 PKG_CHECK_MODULES(TAGLIB, taglib >= 1.4 )
 AC_SUBST(TAGLIB_CFLAGS)
 AC_SUBST(TAGLIB_LIBS)

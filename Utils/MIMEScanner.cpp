@@ -175,7 +175,7 @@ void MIMEScanner::initialize(void)
 		return;
 	}
 
-	string desktopFilesDirectory(PREFIX);
+	string desktopFilesDirectory(SHARED_MIME_INFO_PREFIX);
 	desktopFilesDirectory += "/share/applications/";
 
 	string defaultsFile(desktopFilesDirectory);
