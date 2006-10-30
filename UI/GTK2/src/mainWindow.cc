@@ -1379,6 +1379,13 @@ void mainWindow::on_configure_activate()
 				{
 					// Synchronize the labels list with the new settings
 					pIndexPage->populateLabelCombobox();
+
+					NotebookPageBox *pNotebookPage = dynamic_cast<NotebookPageBox*>(pPage);
+					if (pNotebookPage != NULL)
+					{
+						// The current label may have changed, refresh the list
+						browse_index(pNotebookPage->getTitle(), pIndexPage->getLabelName(), 0, false);
+					}
 				}
 			}
 		}
@@ -2870,8 +2877,8 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 //
 // Browse an index
 //
-void mainWindow::browse_index(const ustring &indexName,
-	const ustring &labelName, unsigned int startDoc)
+void mainWindow::browse_index(const ustring &indexName, const ustring &labelName,
+	unsigned int startDoc, bool changePage)
 {
 	// Rudimentary lock
 	if (m_state.m_browsingIndex == true)
@@ -2891,8 +2898,11 @@ void mainWindow::browse_index(const ustring &indexName,
 		}
 		pIndexPage->setFirstDocument(startDoc);
 
-		// Switch to that index page
-		m_pNotebook->set_current_page(get_page_number(indexName, NotebookPageBox::INDEX_PAGE));
+		if (changePage == true)
+		{
+			// Switch to that index page
+			m_pNotebook->set_current_page(get_page_number(indexName, NotebookPageBox::INDEX_PAGE));
+		}
 	}
 
 	// Spawn a new thread to browse the index

@@ -130,8 +130,8 @@ protected:
 		NotebookPageBox::PageType type);
 	void edit_query(QueryProperties &queryProps, bool newQuery);
 	void run_search(const QueryProperties &queryProps);
-	void browse_index(const Glib::ustring &indexName,
-		const Glib::ustring &labelName, unsigned int startDoc);
+	void browse_index(const Glib::ustring &indexName, const Glib::ustring &labelName,
+		unsigned int startDoc, bool changePage = true);
 	void view_documents(std::vector<DocumentInfo> &documentsList);
 	bool append_document(IndexPage *pIndexPage, const Glib::ustring &indexName,
 		const IndexedDocument &docInfo);

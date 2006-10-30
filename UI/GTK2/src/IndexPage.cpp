@@ -216,6 +216,7 @@ void IndexPage::populateLabelCombobox(void)
 	}
 
 	m_pLabelCombobox->set_active(0);
+	m_labelName.clear();
 }
 
 //
