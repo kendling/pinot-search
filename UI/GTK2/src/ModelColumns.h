@@ -65,6 +65,7 @@ public:
 
 	Gtk::TreeModelColumn<Glib::ustring> m_name;
 	Gtk::TreeModelColumn<Glib::ustring> m_lastRun;
+	Gtk::TreeModelColumn<time_t> m_lastRunTime;
 	Gtk::TreeModelColumn<Glib::ustring> m_summary;
 	Gtk::TreeModelColumn<QueryProperties> m_properties;
 
@@ -105,6 +106,7 @@ public:
 	Gtk::TreeModelColumn<Glib::ustring> m_language;
 	Gtk::TreeModelColumn<unsigned int> m_id;
 	Gtk::TreeModelColumn<Glib::ustring> m_timestamp;
+	Gtk::TreeModelColumn<time_t> m_timestampTime;
 
 };
 

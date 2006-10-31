@@ -20,10 +20,11 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/textbuffer.h>
 
-#include "QueryHistory.h"
-#include "ViewHistory.h"
 #include "config.h"
 #include "NLS.h"
+#include "TimeConverter.h"
+#include "QueryHistory.h"
+#include "ViewHistory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "IndexTree.h"
@@ -62,17 +63,17 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	set_model(m_refStore);
 
 	// The score column is used for status icons
-	TreeViewColumn *pColumn = create_column(_("Title"), m_indexColumns.m_text, true, true);
+	TreeViewColumn *pColumn = create_column(_("Title"), m_indexColumns.m_text, true, true, m_indexColumns.m_text);
 	if (pColumn != NULL)
 	{
 		append_column(*manage(pColumn));
 	}
-	pColumn = create_column(_("URL"), m_indexColumns.m_liveUrl, true, true);
+	pColumn = create_column(_("URL"), m_indexColumns.m_liveUrl, true, true, m_indexColumns.m_liveUrl);
 	if (pColumn != NULL)
 	{
 		append_column(*manage(pColumn));
 	}
-	pColumn = create_column(_("Timestamp"), m_indexColumns.m_timestamp, false, true);
+	pColumn = create_column(_("Timestamp"), m_indexColumns.m_timestamp, false, true, m_indexColumns.m_timestampTime);
 	if (pColumn != NULL)
 	{
 		append_column(*manage(pColumn));
@@ -175,7 +176,9 @@ bool IndexTree::appendDocument(const IndexedDocument &docInfo)
 	childRow[m_indexColumns.m_liveUrl] = to_utf8(docInfo.getOriginalLocation());
 	childRow[m_indexColumns.m_type] = to_utf8(docInfo.getType());
 	childRow[m_indexColumns.m_language] = to_utf8(docInfo.getLanguage());
-	childRow[m_indexColumns.m_timestamp] = to_utf8(docInfo.getTimestamp());
+	string timestamp(docInfo.getTimestamp());
+	childRow[m_indexColumns.m_timestamp] = to_utf8(timestamp);
+	childRow[m_indexColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
 	childRow[m_indexColumns.m_id] = docInfo.getID();
 
 	// If the tree was empty, it is no longer
@@ -337,7 +340,9 @@ void IndexTree::updateDocumentInfo(unsigned int docId, const DocumentInfo &docIn
 			row[m_indexColumns.m_text] = to_utf8(docInfo.getTitle());
 			row[m_indexColumns.m_type] = to_utf8(docInfo.getType());
 			row[m_indexColumns.m_language] = to_utf8(docInfo.getLanguage());
-			row[m_indexColumns.m_timestamp] = to_utf8(docInfo.getTimestamp());
+			string timestamp(docInfo.getTimestamp());
+			row[m_indexColumns.m_timestamp] = to_utf8(timestamp);
+			row[m_indexColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
 #ifdef DEBUG
 			cout << "IndexTree::updateDocumentInfo: language now " << docInfo.getLanguage() << endl;
 #endif

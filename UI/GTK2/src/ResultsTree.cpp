@@ -140,7 +140,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	append_column(*manage(pColumn));
 
 	// The last column is for the URL
-	pColumn = create_column(_("URL"), m_resultsColumns.m_url, false, true);
+	pColumn = create_column(_("URL"), m_resultsColumns.m_url, false, true, m_resultsColumns.m_url);
 	if (pColumn != NULL)
 	{
 		append_column(*manage(pColumn));

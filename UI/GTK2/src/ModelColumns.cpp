@@ -45,6 +45,7 @@ QueryModelColumns::QueryModelColumns()
 {
 	add(m_name);
 	add(m_lastRun);
+	add(m_lastRunTime);
 	add(m_summary);
 	add(m_properties);
 }
@@ -80,6 +81,7 @@ IndexModelColumns::IndexModelColumns()
 	add(m_language);
 	add(m_id);
 	add(m_timestamp);
+	add(m_timestampTime);
 }
 
 IndexModelColumns::~IndexModelColumns()

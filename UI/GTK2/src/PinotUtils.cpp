@@ -160,7 +160,7 @@ int get_column_height(TreeView *pTree)
 
 /// Create a text column.
 TreeViewColumn *create_column(const ustring &title, const TreeModelColumnBase& modelColumn,
-	bool isResizable, bool isSortable)
+	bool isResizable, bool isSortable, const TreeModelColumnBase &sortColumn)
 {
 	TreeViewColumn *pColumn = new TreeViewColumn(title);
 
@@ -170,7 +170,7 @@ TreeViewColumn *create_column(const ustring &title, const TreeModelColumnBase& m
 	pColumn->set_resizable(isResizable);
 	if (isSortable == true)
 	{
-		pColumn->set_sort_column(modelColumn);
+		pColumn->set_sort_column(sortColumn);
 	}
 
 	return pColumn;
@@ -179,7 +179,7 @@ TreeViewColumn *create_column(const ustring &title, const TreeModelColumnBase& m
 /// Create an icon and text column, rendered by renderTextAndIconCell.
 TreeViewColumn *create_column_with_icon(const ustring &title, const TreeModelColumnBase& modelColumn,
 	const TreeViewColumn::SlotCellData &renderTextAndIconCell,
-	bool isResizable, bool isSortable)
+	bool isResizable, bool isSortable, const TreeModelColumnBase &sortColumn)
 {
 	TreeViewColumn *pColumn = new TreeViewColumn(title);
 
@@ -196,7 +196,7 @@ TreeViewColumn *create_column_with_icon(const ustring &title, const TreeModelCol
 	pColumn->set_resizable(isResizable);
 	if (isSortable == true)
 	{
-		pColumn->set_sort_column(modelColumn);
+		pColumn->set_sort_column(sortColumn);
 	}
 
 	return pColumn;

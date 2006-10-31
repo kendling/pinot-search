@@ -137,12 +137,12 @@ mainWindow::mainWindow() :
 	// Associate the columns model to the query tree
 	m_refQueryTree = ListStore::create(m_queryColumns);
 	queryTreeview->set_model(m_refQueryTree);
-	TreeViewColumn *pColumn = create_column(_("Query Name"), m_queryColumns.m_name, true, true);
+	TreeViewColumn *pColumn = create_column(_("Query Name"), m_queryColumns.m_name, true, true, m_queryColumns.m_name);
 	if (pColumn != NULL)
 	{
 		queryTreeview->append_column(*manage(pColumn));
 	}
-	pColumn = create_column(_("Last Run"), m_queryColumns.m_lastRun, true, true);
+	pColumn = create_column(_("Last Run"), m_queryColumns.m_lastRun, true, true, m_queryColumns.m_lastRunTime);
 	if (pColumn != NULL)
 	{
 		queryTreeview->append_column(*manage(pColumn));
@@ -226,14 +226,20 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 		TreeModel::iterator iter = m_refQueryTree->append();
 		TreeModel::Row row = *iter;
 		string queryName = queryIter->first;
+		string lastRun = history.getLastRun(queryName);
+		time_t lastRunTime = time(NULL);
 
 		row[m_queryColumns.m_name] = to_utf8(queryName);
-		string lastRun = history.getLastRun(queryName);
 		if (lastRun.empty() == true)
 		{
 			lastRun = _("N/A");
 		}
+		else
+		{
+			lastRunTime = TimeConverter::fromTimestamp(lastRun);
+		}
 		row[m_queryColumns.m_lastRun] = to_utf8(lastRun);
+		row[m_queryColumns.m_lastRunTime] = lastRunTime;
 		string summary(StringManip::replaceSubString(queryIter->second.getFreeQuery(), "\n", " "));
 		if (summary.empty() == false)
 		{
@@ -2437,12 +2443,14 @@ void mainWindow::on_findQueryButton_clicked()
 	if (queryIter)
 	{
 		TreeModel::Row queryRow = *queryIter;
+		time_t lastRunTime = time(NULL);
 
 		QueryProperties queryProps = queryRow[m_queryColumns.m_properties];
 		run_search(queryProps);
 
 		// Update the Last Run column
-		queryRow[m_queryColumns.m_lastRun] = to_utf8(TimeConverter::toTimestamp(time(NULL)));
+		queryRow[m_queryColumns.m_lastRun] = to_utf8(TimeConverter::toTimestamp(lastRunTime));
+		queryRow[m_queryColumns.m_lastRunTime] = lastRunTime;
 	}
 }
 
