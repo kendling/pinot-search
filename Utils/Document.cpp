@@ -167,6 +167,13 @@ bool Document::setDataFromFile(const string &fileName)
 		return false;
 	}
 
+	if (fileStat.st_size == 0)
+	{
+		// The file is empty
+		freeData();
+		return true;
+	}
+
 	// Open the file in read-only mode
 	int fd = open(fileName.c_str(), O_RDONLY);
 	if (fd == -1)
