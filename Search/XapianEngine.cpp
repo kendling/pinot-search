@@ -140,14 +140,15 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		parser.set_database(*pIndex);
 	}
 	// ...including prefixes
+	// X prefixes should always include a colon
 	parser.add_boolean_prefix("site", "H");
 	parser.add_boolean_prefix("file", "P");
 	parser.add_boolean_prefix("title", "S");
 	parser.add_boolean_prefix("url", "U");
-	parser.add_boolean_prefix("dir", "XDIR");
+	parser.add_boolean_prefix("dir", "XDIR:");
 	parser.add_boolean_prefix("lang", "L");
 	parser.add_boolean_prefix("type", "T");
-	parser.add_boolean_prefix("label", "XLABEL");
+	parser.add_boolean_prefix("label", "XLABEL:");
 
 	// Activate all options and parse
 	return parser.parse_query(freeQuery,
