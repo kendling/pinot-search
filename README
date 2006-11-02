@@ -14,8 +14,9 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
 9. More Like This
 10. D-Bus service
 11. Deskbar Applet plugin
-12. Dependencies
-13. FAQ
+12. How to reset indexes
+13. Dependencies
+14. FAQ
 
 
 1. What is Pinot
@@ -175,7 +176,7 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
 8. File formats
 
 
-  Supported document types are
+  The following document types are supported and will be fully indexed
   * plain text
   * HTML
   * PDF (pdftotext is required)
@@ -186,6 +187,15 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
   * mbox
   * MP3 and Ogg Vorbis (TagLib required)
   More formats will be supported as the project matures.
+
+  For other document types, Pinot will only index metadata such as name,
+  location etc... In any case, starting with 0.62, it is possible to
+  skip indexing of files with glob(3) patterns.
+  These patterns are configured in the Indexing tab of the Preferences box.
+  For example, "*.mp3" will skip all files with the extension "mp3", even
+  though that particular document type is supported by Pinot.
+  If you have never run Pinot before, it will initialize the patterns list
+  to common picture and video types such as JPG, GIF, AVI and MPG.
 
 
 9. More Like This
@@ -225,6 +235,15 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
        for changes and should consume little resources, unless a huge
        quantity of files needs its attention.
 
+  If you have dbus-send installed, you can start the deamon manually by calling
+  the GetStatistics method with
+  $ dbus-send --session --print-reply --type=method_call \
+    --dest=de.berlios.Pinot /de/berlios/Pinot de.berlios.Pinot.GetStatistics
+  and stop it by calling the Stop method with
+  $ dbus-send --session --print-reply --type=method_call \
+    --dest=de.berlios.Pinot /de/berlios/Pinot de.berlios.Pinot.Stop
+  The daemon will also exit if killed.
+
   For a list of available D-Bus methods, see the file pinot-dbus-daemon.xml.
   Note that only the My Documents index is accessible through D-Bus for the
   time being.
@@ -246,7 +265,27 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
   results in the same order as the Pinot UI.
 
 
-12. Dependencies
+12. How to reset indexes
+
+
+  You may wish to reset one of the index and start from scratch. There
+  are several ways to do this, depending on which index it is.
+
+  If you want to reset My Web Pages, you can either :
+    * use Pinot to unindex every single document by selecting them all
+      and choosing Unindex in the Index menu
+    * or delete ~/.pinot/index or ~/.pinot/index/* while Pinot isn't running
+
+  If you want to reset My Documents, special considerations apply because
+  of the historical data maintained by the daemon. First, make sure the
+  daemon is stopped, then delete the index with
+  $ rm ~/.pinot/daemon/*
+  and remove historical data as follows
+  $ sqlite3 ~/.pinot/history "delete from CrawlHistory; \
+    delete from CrawlSources;"
+
+
+13. Dependencies
 
 
 ---------------------------------------------------------------
@@ -255,7 +294,7 @@ Name							Version
 SQLite							3.1.2
 http://www.sqlite.org/
 
-xapian-core						0.9.4
+xapian-core						0.9.6
 http://www.xapian.org/
 
 curl (1)						7.13.1
@@ -316,7 +355,7 @@ Notes :
 ---------------------------------------------------------------
 
 
-13. FAQ
+14. FAQ
 
 
   * At startup, when listing an index or indexing documents, Pinot complains
