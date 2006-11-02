@@ -105,11 +105,19 @@ bool importDialog::on_activity_timeout(void)
 void importDialog::import_url(const string &location)
 {
 	Url urlObj(location);
-	set<string> labels;
-	string title(from_utf8(m_title));
+	DocumentInfo docInfo(from_utf8(m_title), location, MIMEScanner::scanUrl(urlObj), "");
 
-   DocumentInfo docInfo(title, location, MIMEScanner::scanUrl(urlObj), "");
-	m_state.queue_index(docInfo);
+	// Was the document queued for indexing ?
+	ustring status = m_state.queue_index(docInfo);
+	if (status.empty() == true)
+	{
+		m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
+			&importDialog::on_activity_timeout), 1000);
+	}
+	else
+	{
+		importProgressbar->set_text(status);
+	}
 }
 
 void importDialog::on_thread_end(WorkerThread *pThread)
@@ -225,9 +233,6 @@ void importDialog::on_importButton_clicked()
 	importProgressbar->set_fraction(0.0);
 	// Disable the import button
 	importButton->set_sensitive(false);
-
-	m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
-		&importDialog::on_activity_timeout), 1000);
 
 	// Title
 	m_title = titleEntry->get_text();

@@ -1331,15 +1331,6 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 }
 
 //
-// Message reception from ListenerThread
-//
-void mainWindow::on_message_reception(DocumentInfo docInfo)
-{
-	// Queue this
-	m_state.queue_index(docInfo);
-}
-
-//
 // Message reception from IndexBrowserThread
 //
 void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, string indexName)
@@ -1792,7 +1783,11 @@ void mainWindow::on_indexresults_activate()
 #ifdef DEBUG
 					cout << "mainWindow::on_indexresults_activate: URL is " << resultIter->getLocation() << endl;
 #endif
-					m_state.queue_index(*resultIter);
+					ustring status = m_state.queue_index(*resultIter);
+					if (status.empty() == false)
+					{
+						set_status(status);
+					}
 				}
 
 				// We can update the rows right now
@@ -1902,7 +1897,11 @@ void mainWindow::on_refreshindex_activate()
 		DocumentInfo docInfo(docIter->getTitle(), url,
 			docIter->getType(), docIter->getLanguage());
 		docInfo.setTimestamp(docIter->getTimestamp());
-		m_state.queue_index(docInfo);
+		ustring status = m_state.queue_index(docInfo);
+		if (status.empty() == false)
+		{
+			set_status(status);
+		}
 	}
 }
 

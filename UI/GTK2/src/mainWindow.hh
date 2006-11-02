@@ -74,7 +74,6 @@ protected:
 	void on_close_page(Glib::ustring title, NotebookPageBox::PageType type);
 	void on_thread_end(WorkerThread *pThread);
 	void on_editindex(Glib::ustring indexName, Glib::ustring location);
-	void on_message_reception(DocumentInfo docInfo);
 	void on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, std::string indexName);
 
 	// Handlers inherited from the base class
