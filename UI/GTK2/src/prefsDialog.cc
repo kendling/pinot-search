@@ -86,6 +86,14 @@ prefsDialog::prefsDialog() :
 	mailTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	populate_mailTreeview();
 
+	// Associate the columns model to the file patterns tree
+	m_refPatternsTree = ListStore::create(m_patternsColumns);
+	patternsTreeview->set_model(m_refPatternsTree);
+	patternsTreeview->append_column_editable(_("Pattern"), m_patternsColumns.m_location);
+	// Allow only single selection
+	patternsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
+	populate_patternsTreeview();
+
 	// Hide the Google API entry field ?
 	if (SearchEngineFactory::isSupported("googleapi") == false)
 	{
@@ -319,6 +327,56 @@ bool prefsDialog::save_mailTreeview()
 	return startService;
 }
 
+void prefsDialog::populate_patternsTreeview()
+{
+	TreeModel::iterator iter;
+	TreeModel::Row row;
+
+	if (m_settings.m_filePatternsBlackList.empty() == true)
+	{
+		// This button will stay disabled until a ppatern is added to the list
+		removePatternButton->set_sensitive(false);
+		return;
+	}
+
+	// Populate the tree
+	for (set<ustring>::iterator patternIter = m_settings.m_filePatternsBlackList.begin();
+		patternIter != m_settings.m_filePatternsBlackList.end();
+		++patternIter)
+	{
+		// Create a new row
+		iter = m_refPatternsTree->append();
+		row = *iter;
+		// Set its name
+		row[m_patternsColumns.m_location] = *patternIter;
+	}
+
+	removePatternButton->set_sensitive(true);
+}
+
+void prefsDialog::save_patternsTreeview()
+{
+	// Clear the current settings
+	m_settings.m_filePatternsBlackList.clear();
+
+	// Go through the file patterns tree
+	TreeModel::Children children = m_refPatternsTree->children();
+	if (children.empty() == false)
+	{
+		TreeModel::Children::iterator iter = children.begin();
+		for (; iter != children.end(); ++iter)
+		{
+			TreeModel::Row row = *iter;
+			ustring pattern(row[m_patternsColumns.m_location]);
+
+			if (pattern.empty() == false)
+			{
+				m_settings.m_filePatternsBlackList.insert(pattern);
+			}
+		}
+	}
+}
+
 void prefsDialog::on_prefsOkbutton_clicked()
 {
 	// Synchronise widgets with settings
@@ -334,6 +392,7 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	save_labelsTreeview();
 	bool startForDirectories = save_directoriesTreeview();
 	bool startForMail = save_mailTreeview();
+	save_patternsTreeview();
 	if ((startForDirectories == true) ||
 		(startForMail == true))
 	{
@@ -509,3 +568,57 @@ void prefsDialog::on_removeAccountButton_clicked()
 		}
 	}
 }
+
+void prefsDialog::on_addPatternButton_clicked()
+{
+	TreeModel::Children children = m_refPatternsTree->children();
+	bool wasEmpty = children.empty();
+
+	// Create a new entry in the file patterns list
+	TreeModel::iterator iter = m_refPatternsTree->append();
+	TreeModel::Row row = *iter;
+
+	row[m_patternsColumns.m_location] = "";
+	row[m_patternsColumns.m_mTime] = time(NULL);
+
+	// Select and start editing the row
+	TreeViewColumn *pColumn = patternsTreeview->get_column(0);
+	if (pColumn != NULL)
+	{
+		TreeModel::Path path = m_refPatternsTree->get_path(iter);
+		patternsTreeview->set_cursor(path, *pColumn, true);
+	}
+
+	if (wasEmpty == true)
+	{
+		// Enable this button
+		removePatternButton->set_sensitive(true);
+	}
+}
+
+void prefsDialog::on_removePatternButton_clicked()
+{
+	// Get the selected file pattern in the list
+	TreeModel::iterator iter = patternsTreeview->get_selection()->get_selected();
+	if (iter)
+	{
+		// Unselect
+		patternsTreeview->get_selection()->unselect(iter);
+		// Select another row
+		TreeModel::Path path = m_refPatternsTree->get_path(iter);
+		path.next();
+		patternsTreeview->get_selection()->select(path);
+
+		// Erase
+		TreeModel::Row row = *iter;
+		m_refPatternsTree->erase(row);
+
+		TreeModel::Children children = m_refPatternsTree->children();
+		if (children.empty() == true)
+		{
+			// Disable this button
+			removePatternButton->set_sensitive(false);
+		}
+	}
+}
+

@@ -48,6 +48,8 @@ protected:
 	virtual void on_removeDirectoryButton_clicked();
 	virtual void on_addAccountButton_clicked();
 	virtual void on_removeAccountButton_clicked();
+	virtual void on_addPatternButton_clicked();
+	virtual void on_removePatternButton_clicked();
 
 	void populate_labelsTreeview();
 	void save_labelsTreeview();
@@ -55,6 +57,8 @@ protected:
 	bool save_directoriesTreeview();
 	void populate_mailTreeview();
 	bool save_mailTreeview();
+	void populate_patternsTreeview();
+	void save_patternsTreeview();
 
 private:
 	PinotSettings &m_settings;
@@ -66,6 +70,8 @@ private:
 	Glib::RefPtr<Gtk::ListStore> m_refDirectoriesTree;
 	TimestampedModelColumns m_mailColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refMailTree;
+	TimestampedModelColumns m_patternsColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refPatternsTree;
 	std::set<std::string> m_deletedLabels;
 	std::map<std::string, std::string> m_renamedLabels;
 	std::set<std::string> m_deletedDirectories;
