@@ -265,9 +265,6 @@ string MIMEScanner::scanFileType(const string &fileName)
 	if ((pType == NULL) ||
 		(strncasecmp(pType, xdg_mime_type_unknown, strlen(pType)) == 0))
 	{
-#ifdef DEBUG
-		cout << "MIMEScanner::scanFileType: couldn't determine type of " << fileName << endl;
-#endif
 		return "";
 	}
 
