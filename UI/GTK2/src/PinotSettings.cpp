@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <pwd.h>
+#include <fnmatch.h>
 #include <algorithm>
 #include <iostream>
 
@@ -206,6 +207,7 @@ void PinotSettings::clear(void)
 	m_labels.clear();
 	m_mailAccounts.clear();
 	m_indexableLocations.clear();
+	m_filePatternsBlackList.clear();
 	m_cacheProviders.clear();
 }
 
@@ -233,12 +235,23 @@ bool PinotSettings::load(void)
 	addIndex(_("My Web Pages"), m_docsIndexLocation);
 	addIndex(_("My Documents"), m_daemonIndexLocation);
 
-	// Add default labels on the first run
 	if (m_firstRun == true)
 	{
+		// Add default labels
 		m_labels.insert(_("Important"));
 		m_labels.insert(_("New"));
 		m_labels.insert(_("Personal"));
+		// Skip common image and video types
+		m_filePatternsBlackList.insert("*.avi");
+		m_filePatternsBlackList.insert("*.asf");
+		m_filePatternsBlackList.insert("*.gif");
+		m_filePatternsBlackList.insert("*.jpeg");
+		m_filePatternsBlackList.insert("*.jpg");
+		m_filePatternsBlackList.insert("*.png");
+		m_filePatternsBlackList.insert("*.mov");
+		m_filePatternsBlackList.insert("*.mpeg");
+		m_filePatternsBlackList.insert("*.mpg");
+		m_filePatternsBlackList.insert("*.wmv");
 	}
 
 	// Some search engines are hardcoded
@@ -318,6 +331,10 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 						continue;
 					}
 				}
+				else if (nodeName == "version")
+				{
+					m_version = nodeContent;
+				}
 				else if (nodeName == "googleapikey")
 				{
 					m_googleAPIKey = nodeContent;
@@ -375,6 +392,10 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 				else if (nodeName == "indexable")
 				{
 					loadIndexableLocations(pElem);
+				}
+				else if (nodeName == "blacklist")
+				{
+					loadFilePatterns(pElem);
 				}
 			}
 		}
@@ -874,6 +895,41 @@ bool PinotSettings::loadIndexableLocations(const Element *pElem)
 	return true;
 }
 
+bool PinotSettings::loadFilePatterns(const Element *pElem)
+{
+	if (pElem == NULL)
+	{
+		return false;
+	}
+
+	Node::NodeList childNodes = pElem->get_children();
+	if (childNodes.empty() == true)
+	{
+		return false;
+	}
+
+	// Load the file patterns list
+	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
+	{
+		Node *pNode = (*iter);
+		Element *pElem = dynamic_cast<Element*>(pNode);
+		if (pElem == NULL)
+		{
+			continue;
+		}
+
+		string nodeName = pElem->get_name();
+		string nodeContent = getElementContent(pElem);
+
+		if (nodeName == "pattern")
+		{
+			m_filePatternsBlackList.insert(nodeContent);
+		}
+	}
+
+	return true;
+}
+
 bool PinotSettings::loadCacheProviders(const Element *pElem)
 {
 	if (pElem == NULL)
@@ -1011,6 +1067,7 @@ bool PinotSettings::save(void)
 		return false;
 	}
 	// ...with text children nodes
+	addChildElement(pRootElem, "version", VERSION);
 	addChildElement(pRootElem, "googleapikey", m_googleAPIKey);
 	// User interface position and size
 	pElem = pRootElem->add_child("ui");
@@ -1127,6 +1184,16 @@ bool PinotSettings::save(void)
 		}
 		addChildElement(pElem, "name", locationIter->m_name);
 		addChildElement(pElem, "monitor", (locationIter->m_monitor ? "YES" : "NO"));
+	}
+	// File patterns that are blacklisted
+	pElem = pRootElem->add_child("blacklist");
+	if (pElem == NULL)
+	{
+		return false;
+	}
+	for (set<ustring>::iterator patternIter = m_filePatternsBlackList.begin(); patternIter != m_filePatternsBlackList.end() ; ++patternIter)
+	{
+		addChildElement(pElem, "pattern", *patternIter);
 	}
 
 	// Save to file
@@ -1415,6 +1482,35 @@ void PinotSettings::removeLabel(const string &name)
 void PinotSettings::clearLabels(void)
 {
 	m_labels.clear();
+}
+
+/// Determines if a file matches the blacklist.
+bool PinotSettings::isBlackListed(const string &fileName)
+{
+	if (m_filePatternsBlackList.empty() == true)
+	{
+		return false;
+	}
+
+#ifdef DEBUG
+	cout << "PinotSettings::isBlackListed: examining " << fileName << endl;
+#endif
+	// Any pattern matches this the file name ?
+	for (set<ustring>::iterator patternIter = m_filePatternsBlackList.begin(); patternIter != m_filePatternsBlackList.end() ; ++patternIter)
+	{
+		if (fnmatch(patternIter->c_str(), fileName.c_str(), FNM_NOESCAPE) == 0)
+		{
+#ifdef DEBUG
+			cout << "PinotSettings::isBlackListed: matched " << *patternIter << endl;
+#endif
+			return true;
+		}
+#ifdef DEBUG
+		cout << "PinotSettings::isBlackListed: didn't match " << *patternIter << endl;
+#endif
+	}
+
+	return false;
 }
 
 PinotSettings::Engine::Engine()

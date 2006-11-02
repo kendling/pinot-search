@@ -285,21 +285,21 @@ WorkerThread *ThreadsManager::get_thread(void)
 	return pWorkerThread;
 }
 
-bool ThreadsManager::index_document(const DocumentInfo &docInfo)
+ustring ThreadsManager::index_document(const DocumentInfo &docInfo)
 {
 	string location(docInfo.getLocation());
 
 	if (location.empty() == true)
 	{
 		// Nothing to do
-		return false;
+		return "";
 	}
 
 	// If the document is a mail message, we can't index it again
 	Url urlObj(location);
 	if (urlObj.getProtocol() == "mailbox")
 	{
-		return false;
+		return _("Couldn't index mailbox data here");
 	}
 
 	// Is the document being indexed/updated ?
@@ -318,15 +318,33 @@ bool ThreadsManager::index_document(const DocumentInfo &docInfo)
 		if (beingProcessed == true)
 		{
 			// FIXME: we may have to set labels on this document
-			return false;
+			ustring status(location);
+			status += " ";
+			status += _("is already being indexed");
+			return status;
 		}
+	}
+
+	// Is the document blacklisted ?
+	if (PinotSettings::getInstance().isBlackListed(location) == true)
+	{
+#ifdef DEBUG
+		cout << "ThreadsManager::index_document: " << docInfo.getLocation() << " is blacklisted" << endl;
+#endif
+		ustring status(location);
+		status += " ";
+		status += _("is blacklisted");
+		return status;
 	}
 
 	// Is it an update ?
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_defaultIndexLocation);
 	if (pIndex == NULL)
 	{
-		return false;
+		ustring status = _("Index error on");
+		status += " ";
+		status += m_defaultIndexLocation;
+		return status;
 	}
 
 	unsigned int docId = pIndex->hasDocument(docInfo.getLocation());
@@ -342,7 +360,7 @@ bool ThreadsManager::index_document(const DocumentInfo &docInfo)
 	}
 	delete pIndex;
 
-	return true;
+	return "";
 }
 
 bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground)
@@ -468,7 +486,7 @@ void ThreadsManager::on_thread_signal()
 	m_onThreadEndSignal.emit(pThread);
 }
 
-bool ThreadsManager::queue_index(const DocumentInfo &docInfo)
+ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 {
 	double averageLoad[3];
 	bool addToQueue = false;
@@ -497,7 +515,7 @@ bool ThreadsManager::queue_index(const DocumentInfo &docInfo)
 			unlock_lists();
 		}
 
-		return true;
+		return "";
 	}
 
 	return index_document(docInfo);
@@ -530,25 +548,27 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 			}
 		}
 
-		// Get the first item ?
-		if ((getItem == true) &&
-			(m_indexQueue.empty() == false))
+		// Get an item ?
+		if (getItem == true)
 		{
-			docInfo = m_indexQueue.front();
-			m_indexQueue.pop();
-			foundItem = true;
+			while (m_indexQueue.empty() == false)
+			{
+				docInfo = m_indexQueue.front();
+				m_indexQueue.pop();
+
+				ustring status = index_document(docInfo);
+				if (status.empty() == true)
+				{
+					foundItem = true;
+					break;
+				}
+			}
 		}
 
 		unlock_lists();
 	}
 
-	if (foundItem == false)
-	{
-		// Nothing to do
-		return false;
-	}
-
-	return index_document(docInfo);
+	return foundItem;
 }
 
 void ThreadsManager::get_statistics(unsigned int &queueSize)

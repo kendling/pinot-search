@@ -31,6 +31,7 @@
 #include "XapianDatabase.h"
 #include "TokenizerFactory.h"
 #include "FileCollector.h"
+#include "PinotSettings.h"
 #include "OnDiskHandler.h"
 
 using namespace std;
@@ -60,6 +61,15 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 	if ((m_index.isGood() == false) || 
 		(fileName.empty() == true))
 	{
+		return false;
+	}
+
+	// Is it black-listed ?
+	if (PinotSettings::getInstance().isBlackListed(fileName) == true)
+	{
+#ifdef DEBUG
+		cout << "OnDiskHandler::indexFile: " << location << " is black-listed" << endl;
+#endif
 		return false;
 	}
 

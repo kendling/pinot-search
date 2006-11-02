@@ -122,7 +122,7 @@ class ThreadsManager : public SigC::Object
 
 		void unlock_lists(void);
 
-		bool queue_index(const DocumentInfo &docInfo);
+		Glib::ustring queue_index(const DocumentInfo &docInfo);
 
 		bool pop_queue(const std::string &urlWasIndexed = "");
 
@@ -146,7 +146,7 @@ class ThreadsManager : public SigC::Object
 		bool write_lock_threads(void);
 		void unlock_threads(void);
 		WorkerThread *get_thread(void);
-		bool index_document(const DocumentInfo &docInfo);
+		Glib::ustring index_document(const DocumentInfo &docInfo);
 
 	private:
 		ThreadsManager(const ThreadsManager &other);

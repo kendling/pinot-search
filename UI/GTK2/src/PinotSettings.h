@@ -134,6 +134,9 @@ class PinotSettings
 		/// Clears the labels list.
 		void clearLabels(void);
 
+		/// Determines if a file matches the blacklist.
+		bool isBlackListed(const std::string &fileName);
+
 		class TimestampedItem
 		{
 			public:
@@ -181,6 +184,7 @@ class PinotSettings
 				std::set<Glib::ustring> m_protocols;
 		};
 
+		Glib::ustring m_version;
 		Glib::ustring m_googleAPIKey;
 		Glib::ustring m_docsIndexLocation;
 		Glib::ustring m_daemonIndexLocation;
@@ -199,6 +203,7 @@ class PinotSettings
 		unsigned short m_newResultsColourBlue;
 		std::set<TimestampedItem> m_mailAccounts;
 		std::set<IndexableLocation> m_indexableLocations;
+		std::set<Glib::ustring> m_filePatternsBlackList;
 		std::vector<CacheProvider> m_cacheProviders;
 		std::set<Glib::ustring> m_cacheProtocols;
 
@@ -224,6 +229,7 @@ class PinotSettings
 		bool loadColour(const xmlpp::Element *pElem);
 		bool loadMailAccounts(const xmlpp::Element *pElem);
 		bool loadIndexableLocations(const xmlpp::Element *pElem);
+		bool loadFilePatterns(const xmlpp::Element *pElem);
 		bool loadCacheProviders(const xmlpp::Element *pElem);
 
 	private:
