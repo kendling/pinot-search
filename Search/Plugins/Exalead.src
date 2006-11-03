@@ -21,8 +21,8 @@
 <INTERPRET
 resultListStart=''
 resultListEnd=''
-resultItemStart='<td class="d1"'
-resultItemEnd='</td></tr>'
+resultItemStart='alt="Preview" />'
+resultItemEnd='</span></span>'
 >
 
 </SEARCH>

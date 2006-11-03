@@ -17,8 +17,8 @@
 <INTERPRET
 resultListStart=""
 resultListEnd=""
-resultItemStart='<td class="webtitle" valign="top">'
-resultItemEnd='</span></td></tr>'
+resultItemStart='<span class="restit">'
+resultItemEnd='</table>'
 >
 
 </SEARCH>
