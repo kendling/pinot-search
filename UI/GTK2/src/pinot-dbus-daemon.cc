@@ -800,7 +800,7 @@ int main(int argc, char **argv)
 #ifdef DEBUG
 	cout << "Closing connection..." << endl;
 #endif
-	dbus_connection_close(pConnection);
+	dbus_connection_unref(pConnection);
 	dbus_g_connection_unref(pBus);
 
 	return EXIT_SUCCESS;
