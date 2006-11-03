@@ -67,9 +67,7 @@ TagLibTokenizer::TagLibTokenizer(const Document *pDocument) :
 			location += urlObj.getFile();
 
 			TagLib::FileRef fileRef(location.c_str(), false);
-
-			if ((fileRef.isNull() == false) &&
-				(fileRef.file()->isOpen() == true))
+			if (fileRef.isNull() == false)
 			{
 				TagLib::Tag *pTag = fileRef.tag();
 				if ((pTag != NULL) &&
