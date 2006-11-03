@@ -1500,6 +1500,7 @@ Signal3<void, const string&, const std::string&, bool>& MonitorThread::getDirect
 
 void MonitorThread::processEvents(void)
 {
+	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
 	queue<MonitorEvent> events;
 
 #ifdef DEBUG
@@ -1558,7 +1559,25 @@ void MonitorThread::processEvents(void)
 		{
 			if (event.m_isDirectory == false)
 			{
-				m_pHandler->fileModified(event.m_location);
+				CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
+				struct stat fileStat;
+				time_t itemDate;
+
+				if (history.hasItem("file://" + event.m_location, status, itemDate) == true)
+				{
+					// Was the file actually modified ?
+					if ((stat(event.m_location.c_str(), &fileStat) == 0) &&
+						(itemDate < fileStat.st_mtime))
+					{
+						m_pHandler->fileModified(event.m_location);
+					}
+#ifdef DEBUG
+					else cout << "MonitorThread::processEvents: file wasn't modified" << endl;
+#endif
+				}
+#ifdef DEBUG
+				else cout << "MonitorThread::processEvents: file wasn't crawled" << endl;
+#endif
 			}
 		}
 		else if (event.m_type == MonitorEvent::MOVED)
