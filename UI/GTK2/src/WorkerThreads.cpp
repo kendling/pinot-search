@@ -299,7 +299,7 @@ ustring ThreadsManager::index_document(const DocumentInfo &docInfo)
 	Url urlObj(location);
 	if (urlObj.getProtocol() == "mailbox")
 	{
-		return _("Couldn't index mailbox data here");
+		return _("Can't index mail here");
 	}
 
 	// Is the document being indexed/updated ?
