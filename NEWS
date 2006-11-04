@@ -1,3 +1,26 @@
+2006/11/04 version_0_6_2
+General :
+ - query shared-mime-info prefix, so that the applications database can be
+  loaded even when Pinot is installed under a different prefix
+ - copyright notice was missing in source
+Index :
+ - detect and support libtextcat 3.0 peculiarities
+ - can skip files based on glob pattern
+Search :
+ - fixed issue where label and directory filters were not applied correctly
+  when the filter doesn't start with an upper-case letter. Directory filters
+  starting with a non-alphanumeric character only work with Xapian >= 0.9.8.
+ - fixed A9, Accoona and Exalead plugins
+UI :
+ - file patterns to skip can be set in Preferences, Indexing
+ - columns showing a timestamp were sorted alphabetically
+ - refresh index lists correctly when exiting Preferences
+Daemon :
+ - fixed major bug where the daemon would loop endlessly reindexing mp3/ogg
+  files. When notified that a writable file was closed, check the file was
+  actually modified before reindexing it.
+ - fixed D-Bus warning about closing the connection when exiting
+
 2006/10/18 version_0_6_1
 General :
  - switched to gtk+'s version of xdgmime
