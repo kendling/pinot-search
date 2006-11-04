@@ -90,6 +90,9 @@ class XapianIndex : public IndexInterface
 		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId);
 
+		/// Unindexes the given document.
+		virtual bool unindexDocument(const std::string &location);
+
 		/// Unindexes documents with the given label.
 		virtual bool unindexDocuments(const std::string &labelName);
 

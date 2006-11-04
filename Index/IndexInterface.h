@@ -100,6 +100,9 @@ class IndexInterface
 		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId) = 0;
 
+		/// Unindexes the given document.
+		virtual bool unindexDocument(const std::string &location) = 0;
+
 		/// Unindexes documents with the given label.
 		virtual bool unindexDocuments(const std::string &labelName) = 0;
 

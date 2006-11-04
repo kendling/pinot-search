@@ -1291,6 +1291,48 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 	return unindexed;
 }
 
+/// Unindexes the given document.
+bool XapianIndex::unindexDocument(const string &location)
+{
+	bool unindexed = false;
+
+	if (location.empty() == true)
+	{
+		return false;
+	}
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			string term = limitTermLength(string("U") + Url::canonicalizeUrl(location), true);
+
+			// Only one document should have this term
+			pIndex->delete_document(term);
+			unindexed = true;
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't unindex documents: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't unindex documents, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+
+	return unindexed;
+}
+
 /// Unindexes documents with the given label.
 bool XapianIndex::unindexDocuments(const string &labelName)
 {
