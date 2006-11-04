@@ -70,6 +70,8 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
     * mbox mail accounts. Monitoring is always enabled.
   Both are configured with the Indexing tab in the Preferences box and are
   handled by the D-Bus service.
+  if you want to exclude specific files or directories from indexing, use
+  patterns as described in section "8. File formats".
   See section "10. D-Bus service".
 
 
@@ -194,8 +196,10 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
   These patterns are configured in the Indexing tab of the Preferences box.
   For example, "*.mp3" will skip all files with the extension "mp3", even
   though that particular document type is supported by Pinot.
+  Patterns also apply to directory; for instance "*/Desktop*" will skip
+  "~/Desktop" and not crawl nor monitor this directory's contents.
   If you have never run Pinot before, it will initialize the patterns list
-  to common picture and video types such as JPG, GIF, AVI and MPG.
+  to common picture, archive and video types such as JPG, GIF, ZIP and MPG.
 
 
 9. More Like This
@@ -234,6 +238,9 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
      * when finished crawling, the service will monitor these locations
        for changes and should consume little resources, unless a huge
        quantity of files needs its attention.
+     * any change detected by the monitor is immediately acted upon, ie the
+       daemon will reindex right away a file that was modified. Future
+       releases will queue events and act on them only when the system is idle.
 
   If you have dbus-send installed, you can start the deamon manually by calling
   the GetStatistics method with
@@ -362,8 +369,10 @@ Notes :
     of an "index error"
     This is likely because a previous instance didn't exit properly and one
     (or more) index is still locked. Quit Pinot and look for a "db_lock" file
-    in "~/.pinot/index" and "~/.pinot/mail". If it's there, delete it and
-    restart Pinot. This will be fixed in the future.
+    in "~/.pinot/index". If it's there, delete it and restart Pinot.
+    Starting with 0.60, indexes are created with the newer Flint back-end
+    which is immune to this issue. The easiest way to "upgrade" is to delete
+    the index, let Pinot recreate it, then reindex your data.
 
   * When compiling from source, you may run into linking problems related to
     libstdc++.la. Try patching xapian-config as explained in the post at
@@ -376,5 +385,9 @@ Notes :
 
   * If you have built Pinot from source, make sure you have done a "make install".
     Pinot will fail to start if it can't find stuff it needs, its icon for instance.
+
+  * The directory filter doesn't work as expected if the filter starts with a
+    non alpha-numeric character
+    This has been fixed in Xapian 0.9.8.
 
 
