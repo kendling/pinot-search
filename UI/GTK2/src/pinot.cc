@@ -200,17 +200,13 @@ int main(int argc, char **argv)
 	if ((pFirstDb == NULL) ||
 		(pFirstDb->isOpen() == false))
 	{
-		errorMsg = "Couldn't open index ";
+		errorMsg = _("Couldn't open index");
+		errorMsg += " ";
 		errorMsg += settings.m_docsIndexLocation;
 	}
 	// ...and the daemon index in read-only mode
+	// If it can't be open, it just means the daemon has not yet created it
 	XapianDatabase *pSecondDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation);
-	if ((pSecondDb == NULL) ||
-		(pSecondDb->isOpen() == false))
-	{
-		errorMsg = "Couldn't open index ";
-		errorMsg += settings.m_daemonIndexLocation;
-	}
 	// Merge these two, this will be useful later
 	XapianDatabaseFactory::mergeDatabases("MERGED", pFirstDb, pSecondDb);
 
@@ -219,7 +215,8 @@ int main(int argc, char **argv)
 		(QueryHistory::create(settings.m_historyDatabase) == false) ||
 		(ViewHistory::create(settings.m_historyDatabase) == false))
 	{
-		errorMsg = "Couldn't create history database ";
+		errorMsg = _("Couldn't create history database");
+		errorMsg += " ";
 		errorMsg += settings.m_historyDatabase;
 	}
 	else
