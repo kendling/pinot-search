@@ -1500,22 +1500,16 @@ bool PinotSettings::isBlackListed(const string &fileName)
 		return false;
 	}
 
-#ifdef DEBUG
-	cout << "PinotSettings::isBlackListed: examining " << fileName << endl;
-#endif
 	// Any pattern matches this the file name ?
 	for (set<ustring>::iterator patternIter = m_filePatternsBlackList.begin(); patternIter != m_filePatternsBlackList.end() ; ++patternIter)
 	{
 		if (fnmatch(patternIter->c_str(), fileName.c_str(), FNM_NOESCAPE) == 0)
 		{
 #ifdef DEBUG
-			cout << "PinotSettings::isBlackListed: matched " << *patternIter << endl;
+			cout << "PinotSettings::isBlackListed: " << fileName << " matches " << *patternIter << endl;
 #endif
 			return true;
 		}
-#ifdef DEBUG
-		cout << "PinotSettings::isBlackListed: didn't match " << *patternIter << endl;
-#endif
 	}
 
 	return false;

@@ -328,9 +328,6 @@ ustring ThreadsManager::index_document(const DocumentInfo &docInfo)
 	// Is the document blacklisted ?
 	if (PinotSettings::getInstance().isBlackListed(location) == true)
 	{
-#ifdef DEBUG
-		cout << "ThreadsManager::index_document: " << docInfo.getLocation() << " is blacklisted" << endl;
-#endif
 		ustring status(location);
 		status += " ";
 		status += _("is blacklisted");
@@ -1815,29 +1812,34 @@ bool DirectoryScannerThread::scanEntry(const string &entryName)
 	{
 		bool reportFile = false;
 
-		// It's actually a file
-		if (itemExists == false)
+		// Is this file blacklisted ?
+		// We have to check early so that if necessary the file's status stays at CRAWLING 
+		// and it is removed from the index at the end of this crawl
+		if (PinotSettings::getInstance().isBlackListed(entryName) == false)
 		{
-			// Record it
-			history.insertItem("file://" + entryName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
-#ifdef DEBUG
-			cout << "DirectoryScannerThread::scanEntry: reporting new file " << entryName << endl;
-#endif
-			reportFile = true;
-		}
-		else
-		{
-			// Update the record
-			history.updateItem("file://" + entryName, CrawlHistory::CRAWLED, fileStat.st_mtime);
-
-			// Was it last crawled after it was modified ?
-			if (itemDate < fileStat.st_mtime)
+			if (itemExists == false)
 			{
+				// Record it
+				history.insertItem("file://" + entryName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: reporting modified file " << entryName << endl;
+				cout << "DirectoryScannerThread::scanEntry: reporting new file " << entryName << endl;
 #endif
-				// No, crawl and index it again
 				reportFile = true;
+			}
+			else
+			{
+				// Update the record
+				history.updateItem("file://" + entryName, CrawlHistory::CRAWLED, fileStat.st_mtime);
+
+				// Was it last crawled after it was modified ?
+				if (itemDate < fileStat.st_mtime)
+				{
+#ifdef DEBUG
+					cout << "DirectoryScannerThread::scanEntry: reporting modified file " << entryName << endl;
+#endif
+					// No, crawl and index it again
+					reportFile = true;
+				}
 			}
 		}
 
@@ -1849,8 +1851,9 @@ bool DirectoryScannerThread::scanEntry(const string &entryName)
 	else if (S_ISDIR(fileStat.st_mode))
 	{
 		// Can we scan this directory ?
-		if ((m_maxLevel == 0) ||
-			(m_currentLevel < m_maxLevel))
+		if (((m_maxLevel == 0) ||
+			(m_currentLevel < m_maxLevel)) &&
+			(PinotSettings::getInstance().isBlackListed(entryName) == false))
 		{
 			++m_currentLevel;
 

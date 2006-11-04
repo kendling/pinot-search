@@ -67,9 +67,6 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 	// Is it black-listed ?
 	if (PinotSettings::getInstance().isBlackListed(fileName) == true)
 	{
-#ifdef DEBUG
-		cout << "OnDiskHandler::indexFile: " << location << " is black-listed" << endl;
-#endif
 		return false;
 	}
 
@@ -155,13 +152,8 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 
 bool OnDiskHandler::replaceFile(unsigned int docId, DocumentInfo &docInfo)
 {
-	// Has the destination file been indexed too ?
-	unsigned int destDocId = m_index.hasDocument(docInfo.getLocation());
-	if (destDocId > 0)
-	{
-		// Unindex it
-		m_index.unindexDocument(destDocId);
-	}
+	// Unindex the destination file
+	m_index.unindexDocument(docInfo.getLocation());
 
 	// Update the document info
 	return m_index.updateDocumentInfo(docId, docInfo);
@@ -345,7 +337,7 @@ bool OnDiskHandler::directoryMoved(const string &dirName,
 
 bool OnDiskHandler::fileDeleted(const string &fileName)
 {
-	bool handledEvent = false;
+	bool handledEvent = true;
 
 #ifdef DEBUG
 	cout << "OnDiskHandler::fileDeleted: " << fileName << endl;
