@@ -26,6 +26,8 @@ URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: xapian-core-libs >= 0.9.7, libtextcat >= 2.2, sqlite >= 3.1.2, curl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.6, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
+Requires: unzip, antiword, unrtf, %{pftotext_pkg}
+Obsoletes: pinot-pdf, pinot-word, pinot-text-docs
 BuildRequires: xapian-core-devel >= 0.9.7, libtextcat-devel >= 2.2, sqlite-devel >= 3.1.2, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4
@@ -38,17 +40,6 @@ BuildRequires: gsoap
 Pinot is a metasearch tool for the Free Desktop. It enables one to query
 sources, display as well as analyze and locally index the returned results.
 It may also be used as a lightweight personal space search tool.
-
-%package text-docs 
-Summary: Tokenizers for Pinot that handle various text document formats
-Group: Applications/Internet
-Requires: %{name} = %{version}
-Requires: unzip, antiword, unrtf, %{pftotext_pkg}
-Obsoletes: pinot-pdf, pinot-word
-
-%description text-docs 
-The included tokenizers add support for OpenDocument, Sun StarOffice,
-PDF, MS Word and RTF documents.
 
 %package audio-docs 
 Summary: Tokenizers for Pinot that handle various audio document formats
@@ -108,6 +99,11 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/pinot/metase-gtk2.gladep
 %{_datadir}/pinot/pinot-dbus-daemon.xml
 %{_datadir}/pinot/textcat_conf.txt
+%{_datadir}/pinot/textcat3_conf.txt
+%{_datadir}/pinot/tokenizers/libopendocumenttokenizer.so
+%{_datadir}/pinot/tokenizers/libpdftokenizer.so
+%{_datadir}/pinot/tokenizers/librtftokenizer.so
+%{_datadir}/pinot/tokenizers/libwordtokenizer.so
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/*.src
 %dir %{_datadir}/pinot/engines/
@@ -139,13 +135,6 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_mandir}/man1/pinot-dbus-daemon.*
 %{_mandir}/man1/pinot-index.*
 %{_mandir}/man1/pinot-search.*
-
-%files text-docs 
-%defattr(-, root, root, -)
-%{_datadir}/pinot/tokenizers/libopendocumenttokenizer.so
-%{_datadir}/pinot/tokenizers/libpdftokenizer.so
-%{_datadir}/pinot/tokenizers/librtftokenizer.so
-%{_datadir}/pinot/tokenizers/libwordtokenizer.so
 
 %files audio-docs 
 %defattr(-, root, root, -)
