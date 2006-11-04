@@ -7,6 +7,7 @@ Patches, bug reports and helpful comments :
 	Building with CygWin - Reini Urban <rurban at x-ray dot at>
 	SuSE-friendly spec file - Marcus Rueckert <darix at web dot de>
 	Simplified UI - Manuel Breitfeld <manu_foren at gmx dot net>
+	Missing copyright notice - Gauvain Pocentek <gauvainpocentek at gmail dot com>
 
 The file Monitor/linux-inotify-syscalls.h is originally from libinotify
 (Copyright © 2005 Ryan Lortie <desrt at desrt dot ca>).

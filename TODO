@@ -3,7 +3,6 @@ General
 - Get rid of dead code/classes/methods...
 - Advertise service via Rendezvous
 - MIMEScanner should also return parent types so that we don't filter out types unnecessarily
-- Update to gtk+'s xdgmime as it seems to be the reference now
 - Build a -devel package for those who want to write their own tokenizers
 - Allow building without inotify/the DBus daemon
 
@@ -11,6 +10,7 @@ Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
 - PDF tokenizer with poppler
 - WordPerfect tokenizer with libwpd
+- Office tokenizer with libgst
 - Spin tokenizers into separate project, a la libextractor
 - Check whether pdftotext flattens text in PDF documents that have columns
 - HtmlTokenizer should skip htdig_noindex blocks (http://www.htdig.org/attrs.html#noindex_start)
