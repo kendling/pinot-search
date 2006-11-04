@@ -221,7 +221,6 @@ void importDialog::on_locationEntry_changed()
 void importDialog::on_importButton_clicked()
 {
 	string location = from_utf8(locationEntry->get_text());
-	unsigned int level = 0;
 
 	// Rudimentary lock
 	if (m_state.m_importing == true)
