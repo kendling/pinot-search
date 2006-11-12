@@ -30,10 +30,8 @@ using std::cerr;
 using std::endl;
 
 GoogleAPIEngine::GoogleAPIEngine() :
-	SearchEngineInterface()
+	WebEngine()
 {
-	// SearchEngineInterface members
-	m_maxResultsCount = 10;
 }
 
 GoogleAPIEngine::~GoogleAPIEngine()
@@ -88,8 +86,10 @@ string GoogleAPIEngine::checkSpelling(const string &text)
 bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 {
 	string queryString(queryProps.getFreeQuery(true));
+
 	setHostNameFilter(queryProps.getHostFilter());
 	setFileNameFilter(queryProps.getFileFilter());
+	setQuery(queryString);
 
 	if (m_key.empty() == true)
 	{
@@ -130,11 +130,11 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 		for (int i = 0; i < searchResult->resultElements->__size; ++i)
 		{
 			struct gapi1__ResultElement *resultElement = searchResult->resultElements->__ptr[i];
+			Result result(resultElement->URL, resultElement->title, resultElement->snippet, "", pseudoScore);
 
-			string resultUrl(resultElement->URL);
-			if (processResult("http://www.google.com/", resultUrl) == true)
+			if (processResult("http://www.google.com/", result) == true)
 			{
-				m_resultsList.push_back(Result(resultUrl, resultElement->title, resultElement->snippet, "", pseudoScore));
+				m_resultsList.push_back(result);
 				--pseudoScore;
 			}
 		}

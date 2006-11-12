@@ -20,6 +20,7 @@
 #define _WEB_ENGINE_H
 
 #include <string>
+#include <set>
 
 #include "SearchEngineInterface.h"
 #include "Document.h"
@@ -33,8 +34,17 @@ class WebEngine : public SearchEngineInterface
 	protected:
 		std::string m_hostFilter;
 		std::string m_fileFilter;
+		std::set<std::string> m_queryTerms;
 
 		Document *downloadPage(const DocumentInfo &docInfo);
+
+		void setHostNameFilter(const string &filter);
+
+		void setFileNameFilter(const string &filter);
+
+		void setQuery(const std::string &queryString);
+
+		virtual bool processResult(const string &queryUrl, Result &result);
 
 	private:
 		WebEngine(const WebEngine &other);

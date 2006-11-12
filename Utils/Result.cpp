@@ -66,7 +66,13 @@ bool Result::operator<(const Result& other) const
 	return true;
 }
 
-/// Returns the result extract.
+/// Sets the result extract.
+void Result::setExtract(const string &extract)
+{
+	m_extract = extract;
+}
+
+/// Gets the result extract.
 string Result::getExtract(void) const
 {
 	return m_extract;

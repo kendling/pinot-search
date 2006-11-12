@@ -67,19 +67,11 @@ class SearchEngineInterface
 		time_t m_startTime;
 		unsigned int m_maxResultsCount;
 		bool m_expandQueries;
-		string m_hostFilter;
-		string m_fileFilter;
 		vector<Result> m_resultsList;
 		string m_charset;
 		set<string> m_expandTerms;
 
 		SearchEngineInterface();
-
-		void setHostNameFilter(const string &filter);
-
-		void setFileNameFilter(const string &filter);
-
-		virtual bool processResult(const string &queryUrl, string &resultUrl);
 
 };
 

@@ -26,7 +26,6 @@
 
 #include "Languages.h"
 #include "StringManip.h"
-#include "Tokenizer.h"
 #include "Url.h"
 #include "XapianDatabaseFactory.h"
 #include "AbstractGenerator.h"
@@ -39,51 +38,6 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::inserter;
-
-static bool extractWords(const string &text, const string &stemLanguage, vector<string> &wordsList)
-{
-	Xapian::Stem *pStemmer = NULL;
-
-	if (text.empty() == true)
-	{
-		return false;
-	}
-
-	if (stemLanguage.empty() == false)
-	{
-		pStemmer = new Xapian::Stem(StringManip::toLowerCase(stemLanguage));
-	}
-
-	Document doc;
-	doc.setData(text.c_str(), text.length());
-	Tokenizer tokens(&doc);
-
-	string token;
-	while (tokens.nextToken(token) == true)
-	{
-		string term = token;
-
-		// Lower case the term
-		term = StringManip::toLowerCase(term);
-		// Stem it ?
-		if (pStemmer != NULL)
-		{
-			string stemmedTerm = pStemmer->stem_word(term);
-			wordsList.push_back(stemmedTerm);
-		}
-		else
-		{
-			wordsList.push_back(term);
-		}
-	}
-
-	if (pStemmer != NULL)
-	{
-		delete pStemmer;
-	}
-
-	return true;
-}
 
 XapianEngine::XapianEngine(const string &database) :
 	SearchEngineInterface()

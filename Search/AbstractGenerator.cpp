@@ -19,6 +19,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/time.h>
+#include <glib.h>
 #include <map>
 #include <algorithm>
 #include <iostream>
@@ -215,18 +216,27 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	for (map<Xapian::termpos, string>::iterator wordIter = wordsBuffer.begin();
 		wordIter != wordsBuffer.end(); ++wordIter)
 	{
+		char *pEscWord = g_markup_escape_text(wordIter->second.c_str(), -1);
+
+		if (pEscWord == NULL)
+		{
+			continue;
+		}
+
 		// Is this a seed term ?
 		if (find(seedTerms.begin(), seedTerms.end(), wordIter->second) != seedTerms.end())
 		{
 			summary += "<b>";
-			summary += wordIter->second;
+			summary += pEscWord;
 			summary += "</b>";
 		}
 		else
 		{
-			summary += wordIter->second;
+			summary += pEscWord;
 		}
 		summary += " ";
+
+		g_free(pEscWord);
 	}
 #ifdef DEBUG
 	cout << "AbstractGenerator::generateAbstract: summarized document "

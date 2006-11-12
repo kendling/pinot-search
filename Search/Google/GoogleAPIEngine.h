@@ -22,11 +22,11 @@
 #include <string>
 
 #include "Document.h"
-#include "SearchEngineInterface.h"
+#include "WebEngine.h"
 
 using namespace std;
 
-class GoogleAPIEngine : public SearchEngineInterface
+class GoogleAPIEngine : public WebEngine
 {
 	public:
 		GoogleAPIEngine();

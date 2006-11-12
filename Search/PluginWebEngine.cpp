@@ -105,9 +105,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 	vector<Result>::iterator resultIter = m_resultsList.begin();
 	while (resultIter != m_resultsList.end())
 	{
-		string url(resultIter->getLocation());
-
-		if (processResult(formattedQuery, url) == false)
+		if (processResult(formattedQuery, *resultIter) == false)
 		{
 			// Remove this result
 			if (resultIter == m_resultsList.begin())
@@ -124,8 +122,6 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 		}
 		else
 		{
-			resultIter->setLocation(url);
-
 			// Next
 			++resultIter;
 		}
@@ -253,6 +249,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 
 	setHostNameFilter(queryProps.getHostFilter());
 	setFileNameFilter(queryProps.getFileFilter());
+	setQuery(queryString);
 
 #ifdef DEBUG
 	cout << "PluginWebEngine::runQuery: querying "

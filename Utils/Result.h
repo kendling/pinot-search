@@ -36,7 +36,10 @@ class Result : public DocumentInfo
 
 		bool operator<(const Result& other) const;
 
-		/// Returns the result extract.
+		/// Sets the result extract.
+		void setExtract(const std::string &extract);
+
+		/// Gets the result extract.
 		std::string getExtract(void) const;
 
 		/// Returns the result score.
