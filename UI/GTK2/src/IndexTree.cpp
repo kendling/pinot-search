@@ -47,10 +47,12 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	// This is the actual index tree
 	set_events(Gdk::BUTTON_PRESS_MASK);
 	set_flags(CAN_FOCUS);
+	set_headers_clickable(true);
 	set_headers_visible(true);
 	set_rules_hint(true);
 	set_reorderable(false);
 	set_enable_search(true);
+	get_selection()->set_mode(SELECTION_MULTIPLE);
 	m_pIndexScrolledwindow->set_flags(Gtk::CAN_FOCUS);
 	m_pIndexScrolledwindow->set_border_width(4);
 	m_pIndexScrolledwindow->set_shadow_type(Gtk::SHADOW_NONE);
@@ -66,23 +68,21 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	TreeViewColumn *pColumn = create_column(_("Title"), m_indexColumns.m_text, true, true, m_indexColumns.m_text);
 	if (pColumn != NULL)
 	{
+		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		append_column(*manage(pColumn));
 	}
 	pColumn = create_column(_("URL"), m_indexColumns.m_liveUrl, true, true, m_indexColumns.m_liveUrl);
 	if (pColumn != NULL)
 	{
+		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		append_column(*manage(pColumn));
 	}
 	pColumn = create_column(_("Timestamp"), m_indexColumns.m_timestamp, false, true, m_indexColumns.m_timestampTime);
 	if (pColumn != NULL)
 	{
+		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		append_column(*manage(pColumn));
 	}
-
-	// Make headers clickable
-	set_headers_clickable(true);
-	// Allow multiple selection
-	get_selection()->set_mode(SELECTION_MULTIPLE);
 
 	// Connect the signals
 	signal_button_press_event().connect_notify(

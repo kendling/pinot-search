@@ -25,7 +25,6 @@
 #include <gtkmm/image.h>
 #include <gtkmm/label.h>
 #include <gtkmm/stock.h>
-#include <gtkmm/textbuffer.h>
 #include <gtkmm/cellrendererprogress.h>
 
 #include "StringManip.h"
@@ -52,21 +51,23 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_pResultsScrolledwindow(NULL),
 	m_settings(settings),
 	m_pExtractScrolledwindow(NULL),
-	m_extractTextview(NULL),
+	m_extractTreeView(NULL),
 	m_showExtract(true),
 	m_groupBySearchEngine(true)
 {
 	m_pResultsScrolledwindow = manage(new ScrolledWindow());
 	m_pExtractScrolledwindow = manage(new ScrolledWindow());
-	m_extractTextview = manage(new TextView());
+	m_extractTreeView = manage(new TreeView());
 
 	// This is the actual results tree
 	set_events(Gdk::BUTTON_PRESS_MASK);
 	set_flags(CAN_FOCUS);
+	set_headers_clickable(true);
 	set_headers_visible(true);
 	set_rules_hint(true);
 	set_reorderable(false);
 	set_enable_search(true);
+	get_selection()->set_mode(SELECTION_MULTIPLE);
 	m_pResultsScrolledwindow->set_flags(CAN_FOCUS);
 	m_pResultsScrolledwindow->set_border_width(4);
 	m_pResultsScrolledwindow->set_shadow_type(SHADOW_NONE);
@@ -75,28 +76,20 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_pResultsScrolledwindow->add(*this);
 
 	// That's for the extract view
-	m_extractTextview->set_flags(CAN_FOCUS);
-	m_extractTextview->set_editable(false);
-	m_extractTextview->set_cursor_visible(false);
-	m_extractTextview->set_pixels_above_lines(0);
-	m_extractTextview->set_pixels_below_lines(0);
-	m_extractTextview->set_pixels_inside_wrap(0);
-	m_extractTextview->set_left_margin(0);
-	m_extractTextview->set_right_margin(0);
-	m_extractTextview->set_indent(0);
-	m_extractTextview->set_wrap_mode(WRAP_WORD);
-	m_extractTextview->set_justification(JUSTIFY_LEFT);
+	m_extractTreeView->set_events(Gdk::BUTTON_PRESS_MASK);
+	m_extractTreeView->set_flags(CAN_FOCUS);
+	m_extractTreeView->set_headers_clickable(false);
+	m_extractTreeView->set_headers_visible(false);
+	m_extractTreeView->set_rules_hint(true);
+	m_extractTreeView->set_reorderable(false);
+	m_extractTreeView->set_enable_search(true);
+	m_extractTreeView->get_selection()->set_mode(SELECTION_SINGLE);
 	m_pExtractScrolledwindow->set_flags(CAN_FOCUS);
 	m_pExtractScrolledwindow->set_border_width(4);
 	m_pExtractScrolledwindow->set_shadow_type(SHADOW_NONE);
 	m_pExtractScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_AUTOMATIC);
 	m_pExtractScrolledwindow->property_window_placement().set_value(CORNER_TOP_LEFT);
-	m_pExtractScrolledwindow->add(*m_extractTextview);
-
-	// Create a blod text tag to highlight extract terms with
-	RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
-	RefPtr<TextBuffer::Tag> refBoldTag = refBuffer->create_tag("bold-text");
-	refBoldTag->property_weight() = Pango::WEIGHT_BOLD;
+	m_pExtractScrolledwindow->add(*m_extractTreeView);
 
 	// Associate the columns model to the results tree
 	m_refStore = TreeStore::create(m_resultsColumns);
@@ -117,6 +110,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn->pack_start(*manage(pIconRenderer), false);
 	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
 	pColumn->set_resizable(true);
+	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 	append_column(*manage(pColumn));
 
 	// This is the score column
@@ -126,6 +120,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn->add_attribute(pProgressRenderer->property_text(), m_resultsColumns.m_scoreText);
 	pColumn->add_attribute(pProgressRenderer->property_value(), m_resultsColumns.m_score);
 	pColumn->set_resizable(true);
+	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 	pColumn->set_sort_column(m_resultsColumns.m_score);
 	append_column(*manage(pColumn));
 
@@ -133,9 +128,10 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn = new TreeViewColumn(_("Title"));
 	CellRendererText *pTextRenderer = new CellRendererText();
 	pColumn->pack_start(*manage(pTextRenderer));
-	pColumn->set_cell_data_func(*pTextRenderer, SigC::slot(*this, &ResultsTree::renderBackgroundColour));
+	pColumn->set_cell_data_func(*pTextRenderer, SigC::slot(*this, &ResultsTree::renderTitleColumn));
 	pColumn->add_attribute(pTextRenderer->property_text(), m_resultsColumns.m_text);
 	pColumn->set_resizable(true);
+	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 	pColumn->set_sort_column(m_resultsColumns.m_text);
 	append_column(*manage(pColumn));
 
@@ -143,13 +139,9 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn = create_column(_("URL"), m_resultsColumns.m_url, false, true, m_resultsColumns.m_url);
 	if (pColumn != NULL)
 	{
+		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		append_column(*manage(pColumn));
 	}
-
-	// Make headers clickable
-	set_headers_clickable(true);
-	// Allow multiple selection
-	get_selection()->set_mode(SELECTION_MULTIPLE);
 
 	// Connect the signals
 	signal_button_press_event().connect_notify(
@@ -170,10 +162,21 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_upIconPixbuf = render_icon(Stock::GO_UP, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_downIconPixbuf = render_icon(Stock::GO_DOWN, ICON_SIZE_MENU, "MetaSE-pinot");
 
+	// Associate the columns model to the extract tree
+	m_refExtractStore = ListStore::create(m_extractColumns);
+	m_extractTreeView->set_model(m_refExtractStore);
+	pColumn = new TreeViewColumn(_("Extract"));
+	pTextRenderer = new CellRendererText();
+	pColumn->pack_start(*manage(pTextRenderer));
+	pColumn->set_cell_data_func(*pTextRenderer, SigC::slot(*this, &ResultsTree::renderExtractColumn));
+	pColumn->add_attribute(pTextRenderer->property_text(), m_extractColumns.m_name);
+	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
+	m_extractTreeView->append_column(*manage(pColumn));
+
 	// Show all
 	show();
 	m_pResultsScrolledwindow->show();
-	m_extractTextview->show();
+	m_extractTreeView->show();
 	m_pExtractScrolledwindow->show();
 }
 
@@ -181,16 +184,16 @@ ResultsTree::~ResultsTree()
 {
 }
 
-void ResultsTree::renderViewStatus(CellRenderer *renderer, const TreeModel::iterator &iter)
+void ResultsTree::renderViewStatus(CellRenderer *pRenderer, const TreeModel::iterator &iter)
 {
 	TreeModel::Row row = *iter;
 
-	if (renderer == NULL)
+	if (pRenderer == NULL)
 	{
 		return;
 	}
 
-	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
+	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(pRenderer);
 	if (pIconRenderer != NULL)
 	{
 		// Has this result been already viewed ?
@@ -206,16 +209,16 @@ void ResultsTree::renderViewStatus(CellRenderer *renderer, const TreeModel::iter
 	}
 }
 
-void ResultsTree::renderIndexStatus(CellRenderer *renderer, const TreeModel::iterator &iter)
+void ResultsTree::renderIndexStatus(CellRenderer *pRenderer, const TreeModel::iterator &iter)
 {
 	TreeModel::Row row = *iter;
 
-	if (renderer == NULL)
+	if (pRenderer == NULL)
 	{
 		return;
 	}
 
-	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
+	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(pRenderer);
 	if (pIconRenderer != NULL)
 	{
 		// Is this result indexed ?
@@ -231,16 +234,16 @@ void ResultsTree::renderIndexStatus(CellRenderer *renderer, const TreeModel::ite
 	}
 }
 
-void ResultsTree::renderRanking(CellRenderer *renderer, const TreeModel::iterator &iter)
+void ResultsTree::renderRanking(CellRenderer *pRenderer, const TreeModel::iterator &iter)
 {
 	TreeModel::Row row = *iter;
 
-	if (renderer == NULL)
+	if (pRenderer == NULL)
 	{
 		return;
 	}
 
-	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(renderer);
+	CellRendererPixbuf *pIconRenderer = dynamic_cast<CellRendererPixbuf*>(pRenderer);
 	if (pIconRenderer != NULL)
 	{
 		int rankDiff = row[m_resultsColumns.m_rankDiff];
@@ -262,16 +265,16 @@ void ResultsTree::renderRanking(CellRenderer *renderer, const TreeModel::iterato
 	}
 }
 
-void ResultsTree::renderBackgroundColour(CellRenderer *renderer, const TreeModel::iterator &iter)
+void ResultsTree::renderTitleColumn(CellRenderer *pRenderer, const TreeModel::iterator &iter)
 {
 	TreeModel::Row row = *iter;
 
-	if (renderer == NULL)
+	if (pRenderer == NULL)
 	{
 		return;
 	}
 
-	CellRendererText *pTextRenderer = dynamic_cast<CellRendererText*>(renderer);
+	CellRendererText *pTextRenderer = dynamic_cast<CellRendererText*>(pRenderer);
 	if (pTextRenderer != NULL)
 	{
 		// Is this result new ?
@@ -290,6 +293,35 @@ void ResultsTree::renderBackgroundColour(CellRenderer *renderer, const TreeModel
 		{
 			pTextRenderer->property_background_gdk().reset_value();
 		}
+
+		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_type];
+		if ((type == ResultsModelColumns::RESULT_ROOT) ||
+			(type == ResultsModelColumns::RESULT_HOST))
+		{
+			ustring markup("<b>");
+			markup += row[m_resultsColumns.m_text];
+			markup += "</b>";
+			pTextRenderer->property_markup() = markup;
+		}
+	}
+}
+
+void ResultsTree::renderExtractColumn(CellRenderer *pRenderer, const TreeModel::iterator &iter)
+{
+	TreeModel::Row row = *iter;
+
+	if (pRenderer == NULL)
+	{
+		return;
+	}
+
+	CellRendererText *pTextRenderer = dynamic_cast<CellRendererText*>(pRenderer);
+	if (pTextRenderer != NULL)
+	{
+		ustring markup(row[m_extractColumns.m_name]);
+		pTextRenderer->property_markup() = markup;
+		pTextRenderer->property_wrap_mode() = Pango::WRAP_WORD;
+		pTextRenderer->property_wrap_width() = m_pExtractScrolledwindow->get_width();
 	}
 }
 
@@ -329,85 +361,21 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 
 	if (path_currently_selected == false)
 	{
-#ifdef DEBUG
-		cout << "ResultsTree::onSelectionSelect: selected entry " << row[m_resultsColumns.m_text] << endl;
-#endif
+		// Clear the extract
+		m_extractTreeView->get_selection()->unselect_all();
+		m_refExtractStore->clear();
 
 		// Is this an actual result ?
 		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_type];
 		if (type == ResultsModelColumns::RESULT_TITLE)
 		{
-			QueryHistory history(m_settings.m_historyDatabase);
-			set<string> engineNames, indexNames;
-			string extract;
-
-			string url = from_utf8(row[m_resultsColumns.m_url]);
-			unsigned int engineIds = row[m_resultsColumns.m_engines];
-			unsigned int indexIds = row[m_resultsColumns.m_indexes];
-
 #ifdef DEBUG
-			cout << "ResultsTree::onSelectionSelect: selected result (" << engineIds << "," << indexIds << ")" << endl;
+			cout << "ResultsTree::onSelectionSelect: extract for " << row[m_resultsColumns.m_text] << endl;
 #endif
-			m_settings.getEngineNames(engineIds, engineNames);
-			if (engineNames.empty() == false)
-			{
-				// Get the first engine this result was obtained from
-				string engineName = (*engineNames.begin());
-				if (engineName == "Xapian")
-				{
-					m_settings.getIndexNames(indexIds, indexNames);
-					if (indexNames.empty() == false)
-					{
-						// Use the name of the first index as engine name
-						engineName = (*indexNames.begin());
 
-						// Any internal index in there ?
-						for (set<string>::iterator indexIter = indexNames.begin(); indexIter != indexNames.end(); ++indexIter)
-						{
-							if  (m_settings.isInternalIndex(*indexIter) == true)
-							{
-								m_indexNames.insert(*indexIter);
-							}
-						}
-					}
-				}
-
-#ifdef DEBUG
-				cout << "ResultsTree::onSelectionSelect: first engine for " << url << " was " << engineName << endl;
-#endif
-				extract = history.getItemExtract(from_utf8(m_queryName), engineName, url);
-			}
-
-			RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
-			refBuffer->set_text(to_utf8(extract));
-
-			// Highlight the query's terms in the extract
-			ustring lowerExtract(StringManip::toLowerCase(to_utf8(extract)));
-			for (set<string>::iterator termIter = m_queryTerms.begin();
-				termIter != m_queryTerms.end(); ++termIter)
-			{
-				ustring term(to_utf8(StringManip::toLowerCase(*termIter)));
-
-				ustring::size_type pos = lowerExtract.find(term);
-				while (pos != ustring::npos)
-				{
-					if (((pos > 0) && (isspace(lowerExtract[pos - 1]) != 0)) ||
-						((pos + termIter->length() < lowerExtract.length() - 1) &&
-							(isspace(lowerExtract[pos + termIter->length()]) != 0)))
-					{
-						// Apply the tag
-						refBuffer->apply_tag_by_name("bold-text", refBuffer->get_iter_at_offset(pos),
-							refBuffer->get_iter_at_offset(pos + termIter->length()));
-					}
-
-					// Next
-					pos = lowerExtract.find(term, pos + 1);
-				}
-			}
-
-			// The extract is not editable
-			m_extractTextview->set_editable(false);
-			m_extractTextview->set_cursor_visible(false);
+			TreeModel::iterator iter = m_refExtractStore->append();
+			TreeModel::Row extractRow = *iter;
+			extractRow[m_extractColumns.m_name] = findResultsExtract(row);
 		}
 	}
 
@@ -1045,11 +1013,9 @@ void ResultsTree::clear(void)
 		}
 		m_refStore->clear();
 
-		// Clear the extract field
-		RefPtr<TextBuffer> refBuffer = m_extractTextview->get_buffer();
-		refBuffer->set_text("");
-		m_extractTextview->set_editable(false);
-		m_extractTextview->set_cursor_visible(false);
+		// Clear the extract
+		m_extractTreeView->get_selection()->unselect_all();
+		m_refExtractStore->clear();
 
 		onSelectionChanged();
 	}
@@ -1262,4 +1228,52 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 	row[m_resultsColumns.m_indexed] = indexed;
 	row[m_resultsColumns.m_viewed] = viewed;
 	row[m_resultsColumns.m_rankDiff] = rankDiff;
+}
+
+//
+// Retrieves the extract to show for the given row.
+//
+string ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
+{
+	QueryHistory history(m_settings.m_historyDatabase);
+	set<string> engineNames, indexNames;
+	string url(from_utf8(row[m_resultsColumns.m_url]));
+	string extract;
+	unsigned int engineIds = row[m_resultsColumns.m_engines];
+	unsigned int indexIds = row[m_resultsColumns.m_indexes];
+
+#ifdef DEBUG
+	cout << "ResultsTree::getExtract: engines " << engineIds << ", indexes " << indexIds << endl;
+#endif
+	m_settings.getEngineNames(engineIds, engineNames);
+	if (engineNames.empty() == false)
+	{
+		// Get the first engine this result was obtained from
+		string engineName = (*engineNames.begin());
+		if (engineName == "Xapian")
+		{
+			m_settings.getIndexNames(indexIds, indexNames);
+			if (indexNames.empty() == false)
+			{
+				// Use the name of the first index as engine name
+				engineName = (*indexNames.begin());
+
+				// Any internal index in there ?
+				for (set<string>::iterator indexIter = indexNames.begin(); indexIter != indexNames.end(); ++indexIter)
+				{
+					if  (m_settings.isInternalIndex(*indexIter) == true)
+					{
+						m_indexNames.insert(*indexIter);
+					}
+				}
+			}
+		}
+
+#ifdef DEBUG
+		cout << "ResultsTree::getExtract: first engine for " << url << " was " << engineName << endl;
+#endif
+		extract = history.getItemExtract(from_utf8(m_queryName), engineName, url);
+	}
+
+	return extract;
 }

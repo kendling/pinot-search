@@ -30,8 +30,8 @@
 #include <gtkmm/button.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/scrolledwindow.h>
-#include <gtkmm/textview.h>
 #include <gtkmm/treestore.h>
+#include <gtkmm/liststore.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/treeselection.h>
 
@@ -112,19 +112,23 @@ class ResultsTree : public Gtk::TreeView
 		std::map<std::string, Gtk::TreeModel::iterator> m_resultsGroups;
 		ResultsModelColumns m_resultsColumns;
 		Gtk::ScrolledWindow *m_pExtractScrolledwindow;
-		Gtk::TextView *m_extractTextview;
+		Gtk::TreeView *m_extractTreeView;
+		Glib::RefPtr<Gtk::ListStore> m_refExtractStore;
+		ComboModelColumns m_extractColumns;
 		std::set<std::string> m_indexNames;
 		bool m_showExtract;
 		bool m_groupBySearchEngine;
 		std::set<std::string> m_queryTerms;
 
-		void renderViewStatus(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
+		void renderViewStatus(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
 
-		void renderIndexStatus(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
+		void renderIndexStatus(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
 
-		void renderRanking(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
+		void renderRanking(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
 
-		void renderBackgroundColour(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
+		void renderTitleColumn(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
+
+		void renderExtractColumn(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
 
 		void onButtonPressEvent(GdkEventButton *ev);
 
@@ -153,6 +157,9 @@ class ResultsTree : public Gtk::TreeView
 		void updateRow(Gtk::TreeModel::Row &row, const Glib::ustring &text,
 			const Glib::ustring &url, int score, unsigned int engineId, unsigned int indexId,
 			ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff);
+
+		/// Retrieves the extract to show for the given row.
+		std::string findResultsExtract(const Gtk::TreeModel::Row &row);
 
 	private:
 		ResultsTree(const ResultsTree &other);

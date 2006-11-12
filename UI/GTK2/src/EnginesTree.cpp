@@ -49,9 +49,11 @@ EnginesTree::EnginesTree(VBox *enginesVbox, PinotSettings &settings) :
 	// This is the actual engines tree
 	set_events(Gdk::BUTTON_PRESS_MASK);
 	set_flags(CAN_FOCUS);
+	set_headers_clickable(true);
 	set_headers_visible(true);
 	set_reorderable(false);
 	set_enable_search(false);
+	get_selection()->set_mode(SELECTION_MULTIPLE);
 	enginesScrolledwindow->set_flags(CAN_FOCUS);
 	enginesScrolledwindow->set_shadow_type(SHADOW_NONE);
 	enginesScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_AUTOMATIC);
@@ -71,12 +73,8 @@ EnginesTree::EnginesTree(VBox *enginesVbox, PinotSettings &settings) :
 	pColumn->pack_start(*manage(pIconRenderer), false);
 	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &EnginesTree::renderEngineIcon));
 	pColumn->pack_end(m_enginesColumns.m_name, false);
+	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 	append_column(*manage(pColumn));
-
-	// Make headers clickable
-	set_headers_clickable(true);
-	// Allow multiple selection
-	get_selection()->set_mode(SELECTION_MULTIPLE);
 
 	// Handle button presses
 	signal_button_press_event().connect_notify(SigC::slot(*this, &EnginesTree::onButtonPressEvent));

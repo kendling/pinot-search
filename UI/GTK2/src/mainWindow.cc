@@ -140,11 +140,13 @@ mainWindow::mainWindow() :
 	TreeViewColumn *pColumn = create_column(_("Query Name"), m_queryColumns.m_name, true, true, m_queryColumns.m_name);
 	if (pColumn != NULL)
 	{
+		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		queryTreeview->append_column(*manage(pColumn));
 	}
 	pColumn = create_column(_("Last Run"), m_queryColumns.m_lastRun, true, true, m_queryColumns.m_lastRunTime);
 	if (pColumn != NULL)
 	{
+		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		queryTreeview->append_column(*manage(pColumn));
 	}
 	queryTreeview->append_column(_("Summary"), m_queryColumns.m_summary);
@@ -775,10 +777,10 @@ void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 #endif
 	}
 
+	show_global_menuitems(showResultsMenuitems);
 	// Did the page change ?
 	if (m_state.m_currentPage != p1)
 	{
-		show_global_menuitems(showResultsMenuitems);
 		show_selectionbased_menuitems(false);
 	}
 	m_state.m_currentPage = p1;

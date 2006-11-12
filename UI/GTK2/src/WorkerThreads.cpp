@@ -797,7 +797,6 @@ void QueryingThread::doWork(void)
 			resultIter != resultsList.end(); ++resultIter)
 		{
 			string title(_("No title"));
-			string extract(XmlTokenizer::stripTags(resultIter->getExtract()));
 			string language(resultIter->getLanguage());
 
 			// The title may contain formatting
@@ -817,7 +816,7 @@ void QueryingThread::doWork(void)
 
 			m_resultsList.push_back(Result(resultIter->getLocation(),
 				title,
-				extract,
+				resultIter->getExtract(),
 				language,
 				resultIter->getScore()));
 		}
