@@ -268,7 +268,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 					string language = StringManip::extractField(record, "language=", "\n");
 
 					// Generate an abstract based on the query's terms
-					string summary = abstractGen.generateAbstract(seedTerms, docId);
+					string summary = abstractGen.generateAbstract(docId, seedTerms);
 
 					// Add this result
 					Result thisResult(url, title, summary, language, (float)mIter.get_percent());

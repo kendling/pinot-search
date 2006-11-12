@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <sys/time.h>
 #include <map>
+#include <algorithm>
 #include <iostream>
 #include <utility>
 
@@ -32,8 +33,9 @@ using std::endl;
 using std::string;
 using std::vector;
 using std::map;
+using std::find;
 
-unsigned int AbstractGenerator::m_maxSeedTerms = 4;
+unsigned int AbstractGenerator::m_maxSeedTerms = 5;
 unsigned int AbstractGenerator::m_minTermPositions = 10;
 
 AbstractGenerator::PositionWindow::PositionWindow() :
@@ -58,8 +60,8 @@ AbstractGenerator::~AbstractGenerator()
 }
 
 /// Attempts to generate an abstract of wordsCount words.
-string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
-	Xapian::docid docId)
+string AbstractGenerator::generateAbstract(Xapian::docid docId,
+	const vector<string> &seedTerms)
 {
 	map<Xapian::termpos, PositionWindow> abstractWindows;
 	map<Xapian::termpos, string> wordsBuffer;
@@ -209,11 +211,22 @@ string AbstractGenerator::generateAbstract(const vector<string> &seedTerms,
 		return "";
 	}
 
+	// Generate the abstract
 	for (map<Xapian::termpos, string>::iterator wordIter = wordsBuffer.begin();
 		wordIter != wordsBuffer.end(); ++wordIter)
 	{
+		// Is this a seed term ?
+		if (find(seedTerms.begin(), seedTerms.end(), wordIter->second) != seedTerms.end())
+		{
+			summary += "<b>";
+			summary += wordIter->second;
+			summary += "</b>";
+		}
+		else
+		{
+			summary += wordIter->second;
+		}
 		summary += " ";
-		summary += wordIter->second;
 	}
 #ifdef DEBUG
 	cout << "AbstractGenerator::generateAbstract: summarized document "
