@@ -46,9 +46,11 @@ else
 		[Define to the package prefix.])
 fi
 
-dnl Set DBUS_SERVICES_DIR in de.berlios.Pinot.service.
 AS_AC_EXPAND(DATADIR, $datadir)
 AS_AC_EXPAND(BINDIR, $bindir)
+AS_AC_EXPAND(SYSCONFDIR, $sysconfdir)
+
+dnl Set DBUS_SERVICES_DIR in de.berlios.Pinot.service.
 DBUS_SERVICES_DIR="$DATADIR/dbus-1/services"
 AC_SUBST(BINDIR)
 AC_SUBST(DBUS_SERVICES_DIR)

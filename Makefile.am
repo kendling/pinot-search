@@ -4,8 +4,9 @@
 SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ \
 	Search Monitor UI/GTK2/src
 
-EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs pinot.desktop \
-	pinot.spec textcat_conf.txt textcat3_conf.txt globalconfig.xml \
+EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs \
+	pinot.desktop pinot-dbus-daemon.desktop pinot.spec \
+	textcat_conf.txt textcat3_conf.txt globalconfig.xml \
 	Search/Plugins/*src Search/Plugins/*.xml \
 	Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1 \
@@ -37,7 +38,9 @@ install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
 	$(INSTALL_DATA) UI/GTK2/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/applications
-	@desktop-file-install --vendor Amra --dir $(DESTDIR)$(datadir)/applications pinot.desktop
+	@desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications pinot.desktop
+	$(mkinstalldirs) $(DESTDIR)${sysconfdir}/xdg/autostart
+	@desktop-file-install --vendor="" --dir=$(DESTDIR)${sysconfdir}/xdg/autostart pinot-dbus-daemon.desktop
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 	$(INSTALL_DATA) UI/pinot-live.py $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 
