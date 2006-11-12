@@ -70,7 +70,7 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
     * mbox mail accounts. Monitoring is always enabled.
   Both are configured with the Indexing tab in the Preferences box and are
   handled by the D-Bus service.
-  if you want to exclude specific files or directories from indexing, use
+  If you want to exclude specific files or directories from indexing, use
   patterns as described in section "8. File formats".
   See section "10. D-Bus service".
 
@@ -219,15 +219,18 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
 10. D-Bus service
 
 
-   Thanks to D-Bus activation, the service is started whenever one of its
-   methods are invoked, either by the UI or any other consumer application.
-   When directories or mbox files are configured for indexing in the UI,
-   clicking OK on the Preferences box will call a method of the service
-   to make sure it is running.
+   D-Bus activation makes sure the service is running whenever one of its
+   methods is invoked by any consumer application. For instance, when
+   directories or mbox files are configured for indexing in the UI, clicking
+   OK on the Preferences box will call the service's GetStatistics method,
+   thus ensuring the service is running.
 
-   If you want the service to be started when you start a new X session,
-   add pinot-dbus-daemon to your desktop environment's startup programs
-   list.
+   Starting with 0.63, the service is auto-started. The file that enables
+   this is located at /etc/xdg/autostart/pinot-dbus-daemon.desktop.
+   For older versions, if you want the service to be started with your X
+   session, add pinot-dbus-daemon to your desktop environment's startup
+   programs list.
+
    A few things to keep in mind :
      * the service doesn't reload its configuration while running, so any
        change (adding or removing a directory or mbox file) will take effect
@@ -242,7 +245,7 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
        daemon will reindex right away a file that was modified. Future
        releases will queue events and act on them only when the system is idle.
 
-  If you have dbus-send installed, you can start the deamon manually by calling
+  If you have dbus-send installed, you can start the daemon manually by calling
   the GetStatistics method with
   $ dbus-send --session --print-reply --type=method_call \
     --dest=de.berlios.Pinot /de/berlios/Pinot de.berlios.Pinot.GetStatistics
