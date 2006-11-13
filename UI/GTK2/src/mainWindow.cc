@@ -193,6 +193,7 @@ mainWindow::mainWindow() :
 	set_status(_("Ready"));
 	m_pNotebook->show();
 	show();
+	liveQueryEntry->grab_focus();
 }
 
 //
@@ -1461,8 +1462,18 @@ void mainWindow::on_copy_activate()
 				ResultsTree *pResultsTree = pResultsPage->getTree();
 				if (pResultsTree != NULL)
 				{
-					// Get the current results selection
-					pResultsTree->getSelection(documentsList);
+					TreeView *pTree = pResultsTree->getExtractTree();
+					if ((pTree != NULL) &&
+						(pTree->is_focus() == true))
+					{
+						// Retrieve the extract
+						text = pResultsTree->getExtract();
+					}
+					else
+					{
+						// Get the current results selection
+						pResultsTree->getSelection(documentsList);
+					}
 				}
 			}
 
@@ -1483,13 +1494,18 @@ void mainWindow::on_copy_activate()
 			for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
 				docIter != documentsList.end(); ++docIter)
 			{
+				string location(docIter->getLocation());
+
 				if (firstItem == false)
 				{
 					text += "\n";
 				}
 				text += docIter->getTitle();
-				text += " ";
-				text += docIter->getLocation();
+				if (location.empty() == false)
+				{
+					text += " ";
+					text += location;
+				}
 				firstItem = false;
 			}
 		}

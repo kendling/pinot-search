@@ -53,6 +53,12 @@ class ResultsTree : public Gtk::TreeView
 		/// Returns the extract scrolled window.
 		Gtk::ScrolledWindow *getExtractScrolledWindow(void) const;
 
+		/// Returns the extract tree.
+		Gtk::TreeView *getExtractTree(void) const;
+
+		/// Returns the extract.
+		Glib::ustring getExtract(void) const;
+
 		/**
 		  * Adds a set of results.
 		  * Returns true if something was added to the tree.
@@ -63,9 +69,6 @@ class ResultsTree : public Gtk::TreeView
 
 		/// Sets how results are grouped.
 		void setGroupMode(bool groupBySearchEngine);
-
-		/// Gets the first selected item.
-		Result getFirstSelection(void);
 
 		/// Gets a list of selected items.
 		bool getSelection(std::vector<DocumentInfo> &resultsList);

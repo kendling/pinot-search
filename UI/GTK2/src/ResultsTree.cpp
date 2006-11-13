@@ -411,6 +411,33 @@ ScrolledWindow *ResultsTree::getExtractScrolledWindow(void) const
 }
 
 //
+// Returns the extract tree.
+//
+TreeView *ResultsTree::getExtractTree(void) const
+{
+	return m_extractTreeView;
+}
+
+//
+// Returns the extract.
+//
+ustring ResultsTree::getExtract(void) const
+{
+	ustring text;
+
+	TreeModel::Children children = m_refExtractStore->children();
+	for (TreeModel::Children::iterator iter = children.begin();
+		iter != children.end(); ++iter)
+	{
+		TreeModel::Row row = *iter;
+
+		text += row[m_extractColumns.m_name];
+	}
+
+	return text;
+}
+
+//
 // Adds a set of results.
 // Returns true if something was added to the tree.
 //
@@ -760,25 +787,6 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 }
 
 //
-// Gets the first selected item.
-//
-Result ResultsTree::getFirstSelection(void)
-{
-	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
-	if (selectedItems.empty() == true)
-	{
-		return Result("", "", "", "");
-	}
-
-	list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
-	TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
-	TreeModel::Row row = *iter;
-	return Result(from_utf8(row[m_resultsColumns.m_url]),
-		from_utf8(row[m_resultsColumns.m_text]),
-		"", "");
-}
-
-//
 // Gets a list of selected items.
 //
 bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList)
@@ -796,14 +804,8 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if (row[m_resultsColumns.m_type] != ResultsModelColumns::RESULT_TITLE)
-		{
-			continue;
-		}
-
 		resultsList.push_back(DocumentInfo(from_utf8(row[m_resultsColumns.m_text]),
-			from_utf8(row[m_resultsColumns.m_url]),
-			"", ""));
+			from_utf8(row[m_resultsColumns.m_url]), "", ""));
 	}
 #ifdef DEBUG
 	cout << "ResultsTree::getSelection: " << resultsList.size() << " results selected" << endl;
@@ -1243,7 +1245,7 @@ string ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 	unsigned int indexIds = row[m_resultsColumns.m_indexes];
 
 #ifdef DEBUG
-	cout << "ResultsTree::getExtract: engines " << engineIds << ", indexes " << indexIds << endl;
+	cout << "ResultsTree::findResultsExtract: engines " << engineIds << ", indexes " << indexIds << endl;
 #endif
 	m_settings.getEngineNames(engineIds, engineNames);
 	if (engineNames.empty() == false)
@@ -1270,7 +1272,7 @@ string ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 		}
 
 #ifdef DEBUG
-		cout << "ResultsTree::getExtract: first engine for " << url << " was " << engineName << endl;
+		cout << "ResultsTree::findResultsExtract: first engine for " << url << " was " << engineName << endl;
 #endif
 		extract = history.getItemExtract(from_utf8(m_queryName), engineName, url);
 	}
