@@ -22,8 +22,9 @@
 #include <string>
 #include <set>
 
-#include "SearchEngineInterface.h"
 #include "Document.h"
+#include "QueryProperties.h"
+#include "SearchEngineInterface.h"
 
 class WebEngine : public SearchEngineInterface
 {
@@ -42,7 +43,7 @@ class WebEngine : public SearchEngineInterface
 
 		void setFileNameFilter(const string &filter);
 
-		void setQuery(const std::string &queryString);
+		void setQuery(const QueryProperties &queryProps);
 
 		virtual bool processResult(const string &queryUrl, Result &result);
 

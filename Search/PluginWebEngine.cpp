@@ -249,7 +249,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 
 	setHostNameFilter(queryProps.getHostFilter());
 	setFileNameFilter(queryProps.getFileFilter());
-	setQuery(queryString);
+	setQuery(queryProps);
 
 #ifdef DEBUG
 	cout << "PluginWebEngine::runQuery: querying "

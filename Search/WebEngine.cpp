@@ -108,25 +108,9 @@ void WebEngine::setFileNameFilter(const string &filter)
 	m_fileFilter = filter;
 }
 
-void WebEngine::setQuery(const string &queryString)
+void WebEngine::setQuery(const QueryProperties &queryProps)
 {
-	if (queryString.empty() == true)
-	{
-		return;
-	}
-
-	Document doc;
-	doc.setData(queryString.c_str(), queryString.length());
-	Tokenizer tokens(&doc);
-
-	m_queryTerms.clear();
-
-	string token;
-	while (tokens.nextToken(token) == true)
-	{
-		// Lower case the word
-		m_queryTerms.insert(StringManip::toLowerCase(token));
-	}
+	queryProps.getTerms(m_queryTerms);
 }
 
 bool WebEngine::processResult(const string &queryUrl, Result &result)
