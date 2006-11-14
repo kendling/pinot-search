@@ -68,19 +68,16 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	TreeViewColumn *pColumn = create_column(_("Title"), m_indexColumns.m_text, true, true, m_indexColumns.m_text);
 	if (pColumn != NULL)
 	{
-		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		append_column(*manage(pColumn));
 	}
 	pColumn = create_column(_("URL"), m_indexColumns.m_liveUrl, true, true, m_indexColumns.m_liveUrl);
 	if (pColumn != NULL)
 	{
-		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		append_column(*manage(pColumn));
 	}
 	pColumn = create_column(_("Timestamp"), m_indexColumns.m_timestamp, false, true, m_indexColumns.m_timestampTime);
 	if (pColumn != NULL)
 	{
-		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		append_column(*manage(pColumn));
 	}
 

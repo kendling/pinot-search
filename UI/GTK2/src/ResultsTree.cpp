@@ -109,7 +109,6 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pIconRenderer = new CellRendererPixbuf();
 	pColumn->pack_start(*manage(pIconRenderer), false);
 	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
-	pColumn->set_resizable(true);
 	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 	append_column(*manage(pColumn));
 
@@ -119,7 +118,6 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn->pack_start(*manage(pProgressRenderer));
 	pColumn->add_attribute(pProgressRenderer->property_text(), m_resultsColumns.m_scoreText);
 	pColumn->add_attribute(pProgressRenderer->property_value(), m_resultsColumns.m_score);
-	pColumn->set_resizable(true);
 	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 	pColumn->set_sort_column(m_resultsColumns.m_score);
 	append_column(*manage(pColumn));
@@ -131,7 +129,6 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn->set_cell_data_func(*pTextRenderer, SigC::slot(*this, &ResultsTree::renderTitleColumn));
 	pColumn->add_attribute(pTextRenderer->property_text(), m_resultsColumns.m_text);
 	pColumn->set_resizable(true);
-	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 	pColumn->set_sort_column(m_resultsColumns.m_text);
 	append_column(*manage(pColumn));
 
@@ -320,8 +317,12 @@ void ResultsTree::renderExtractColumn(CellRenderer *pRenderer, const TreeModel::
 	{
 		ustring markup(row[m_extractColumns.m_name]);
 		pTextRenderer->property_markup() = markup;
+		pTextRenderer->property_single_paragraph_mode() = true;
+		// These properties are not available in gtkmm 2.8
+#if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>=10
 		pTextRenderer->property_wrap_mode() = Pango::WRAP_WORD;
 		pTextRenderer->property_wrap_width() = m_pExtractScrolledwindow->get_width();
+#endif
 	}
 }
 
