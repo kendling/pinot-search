@@ -111,7 +111,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 
 /// Validates a query and extracts its terms.
 bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefixed,
-	set<string> &terms)
+	vector<string> &terms)
 {
 	bool goodQuery = false;
 
@@ -127,7 +127,7 @@ bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefix
 				if ((includePrefixed == true) ||
 					(isupper((int)((*termIter)[0])) == 0))
 				{
-					terms.insert(*termIter);
+					terms.push_back(*termIter);
 				}
 			}
 

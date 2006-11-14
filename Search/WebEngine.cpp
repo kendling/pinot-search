@@ -212,9 +212,6 @@ bool WebEngine::processResult(const string &queryUrl, Result &result)
 	{
 		return true;
 	}
-#ifdef DEBUG
-	cout << "WebEngine::processResult: " << extract << endl;
-#endif
 
 	Document doc;
 	doc.setData(extract.c_str(), extract.length());
@@ -245,9 +242,6 @@ bool WebEngine::processResult(const string &queryUrl, Result &result)
 		extract += " ";
 
 		g_free(pEscToken);
-#ifdef DEBUG
-		cout << "WebEngine::processResult: " << extract << endl;
-#endif
 
 		result.setExtract(extract);
 	}

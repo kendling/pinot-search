@@ -107,10 +107,10 @@ void QueryProperties::removeFilters(void)
 		return;
 	}
 
-	set<string> terms;
+	vector<string> terms;
 	if (XapianEngine::validateQuery(*this, true, terms) == true)
 	{
-		for (set<string>::const_iterator termIter = terms.begin();
+		for (vector<string>::const_iterator termIter = terms.begin();
 			termIter != terms.end(); ++termIter)
 		{
 			string term(*termIter);
@@ -120,7 +120,7 @@ void QueryProperties::removeFilters(void)
 				continue;
 			}
 
-			// is this a prefixed term ?
+			// Is this a prefixed term ?
 			// The query shouldn't have the same filter twice
 			if (isupper((int)((*termIter)[0])) == 0)
 			{

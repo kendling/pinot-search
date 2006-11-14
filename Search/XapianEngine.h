@@ -36,7 +36,7 @@ class XapianEngine : public SearchEngineInterface
 
 		/// Validates a query and extracts its terms.
 		static bool validateQuery(QueryProperties& queryProps, bool includePrefixed,
-			std::set<std::string> &terms);
+			std::vector<std::string> &terms);
 
 		/// Sets whether the query should be expanded.
 		bool setQueryExpansion(std::set<unsigned int> &relevantDocuments);
