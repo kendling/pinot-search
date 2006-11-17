@@ -29,7 +29,8 @@
 using std::string;
 
 XmlTokenizer::XmlTokenizer(const Document *pDocument) :
-	Tokenizer(NULL)
+	Tokenizer(NULL),
+	m_pStrippedDocument(NULL)
 {
 	if (pDocument != NULL)
 	{
@@ -43,22 +44,20 @@ XmlTokenizer::XmlTokenizer(const Document *pDocument) :
 			string strippedData = parseXML(data);
 
 			// Pass the result to the parent class
-			Document *pStrippedDoc = new Document(pDocument->getTitle(),
+			m_pStrippedDocument = new Document(pDocument->getTitle(),
 				pDocument->getLocation(), pDocument->getType(),
 				pDocument->getLanguage());
-			pStrippedDoc->setData(strippedData.c_str(), strippedData.length());
-			setDocument(pStrippedDoc);
+			m_pStrippedDocument->setData(strippedData.c_str(), strippedData.length());
+			setDocument(m_pStrippedDocument);
 		}
 	}
 }
 
 XmlTokenizer::~XmlTokenizer()
 {
-	if (m_pDocument != NULL)
+	if (m_pStrippedDocument != NULL)
 	{
-		// This should have been set by setDocument(),
-		// called in initialize()
-		delete m_pDocument;
+		delete m_pStrippedDocument;
 	}
 }
 

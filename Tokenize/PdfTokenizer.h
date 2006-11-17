@@ -36,6 +36,9 @@ class PdfTokenizer : public Tokenizer
 		PdfTokenizer(const Document *pDocument);
 		virtual ~PdfTokenizer();
 
+	protected:
+		Document *m_pStrippedDocument;
+
 	private:
 		PdfTokenizer(const PdfTokenizer &other);
 		PdfTokenizer& operator=(const PdfTokenizer& other);

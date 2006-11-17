@@ -63,11 +63,34 @@ Tokenizer *getTokenizer(const Document *pDocument)
 }
 
 OpenDocumentTokenizer::OpenDocumentTokenizer(const Document *pDocument) :
-	XmlTokenizer(runHelperProgram(pDocument, "unzip -p", "content.xml"))
+	XmlTokenizer(NULL)
 {
+	Document *pXmlDocument = runHelperProgram(pDocument, "unzip -p", "content.xml");
+	if (pXmlDocument != NULL)
+	{
+		unsigned int length = 0;
+		const char *data = pXmlDocument->getData(length);
+
+		if ((data != NULL) &&
+			(length > 0))
+		{
+			// Remove XML tags
+			string strippedData = parseXML(data);
+
+			// Pass the result to the parent class
+			m_pStrippedDocument = new Document(pDocument->getTitle(),
+				pDocument->getLocation(), pDocument->getType(),
+				pDocument->getLanguage());
+			m_pStrippedDocument->setData(strippedData.c_str(), strippedData.length());
+			setDocument(m_pStrippedDocument);
+		}
+
+		delete pXmlDocument;
+	}
 	// FIXME: unzip meta.xml and extract document information
 }
 
 OpenDocumentTokenizer::~OpenDocumentTokenizer()
 {
+	// ~XmlTokenizer will delete m_pStrippedDocument
 }

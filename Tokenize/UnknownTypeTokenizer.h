@@ -19,6 +19,7 @@
 #ifndef _UNKNOWN_TYPE_TOKENIZER_H
 #define _UNKNOWN_TYPE_TOKENIZER_H
 
+#include "Document.h"
 #include "Tokenizer.h"
 
 class UnknownTypeTokenizer : public Tokenizer
@@ -26,6 +27,9 @@ class UnknownTypeTokenizer : public Tokenizer
 	public:
 		UnknownTypeTokenizer(const Document *pDocument);
 		virtual ~UnknownTypeTokenizer();
+
+	protected:
+		Document *m_pStrippedDocument;
 
 	private:
 		UnknownTypeTokenizer(const UnknownTypeTokenizer &other);

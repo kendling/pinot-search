@@ -98,8 +98,7 @@ class HtmlTokenizer : public Tokenizer
 
 	protected:
 		ParserState m_state;
-		bool m_isFragment;
-		std::string m_charset;
+		Document *m_pStrippedDocument;
 
 		bool parseHTML(const Document *pDocument);
 

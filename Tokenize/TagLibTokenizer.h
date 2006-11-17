@@ -36,6 +36,9 @@ class TagLibTokenizer : public Tokenizer
 		TagLibTokenizer(const Document *pDocument);
 		virtual ~TagLibTokenizer();
 
+	protected:
+		Document *m_pTagDocument;
+
 	private:
 		TagLibTokenizer(const TagLibTokenizer &other);
 		TagLibTokenizer& operator=(const TagLibTokenizer& other);

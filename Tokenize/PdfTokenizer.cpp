@@ -40,16 +40,21 @@ Tokenizer *getTokenizer(const Document *pDocument)
 }
 
 PdfTokenizer::PdfTokenizer(const Document *pDocument) :
-	Tokenizer(NULL)
+	Tokenizer(NULL),
+	m_pStrippedDocument(NULL)
 {
-	Document *pTextDocument = runHelperProgram(pDocument, "pdftotext", "-");
-	if (pTextDocument != NULL)
+	m_pStrippedDocument = runHelperProgram(pDocument, "pdftotext", "-");
+	if (m_pStrippedDocument != NULL)
 	{
 		// Pass the result to the parent class
-		setDocument(pTextDocument);
+		setDocument(m_pStrippedDocument);
 	}
 }
 
 PdfTokenizer::~PdfTokenizer()
 {
+	if (m_pStrippedDocument != NULL)
+	{
+		delete m_pStrippedDocument;
+	}
 }

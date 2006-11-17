@@ -491,7 +491,8 @@ HtmlTokenizer::ParserState::~ParserState()
 
 HtmlTokenizer::HtmlTokenizer(const Document *pDocument,
 	bool validateOnly, bool findAbstract) :
-	Tokenizer(NULL)
+	Tokenizer(NULL),
+	m_pStrippedDocument(NULL)
 {
 	if (validateOnly == true)
 	{
@@ -513,21 +514,20 @@ HtmlTokenizer::HtmlTokenizer(const Document *pDocument,
 		}
 
 		// Pass the result to the parent class
-		Document *pStrippedDoc = new Document(m_state.m_title,
+		m_pStrippedDocument = new Document(m_state.m_title,
 			pDocument->getLocation(), pDocument->getType(),
 			pDocument->getLanguage());
-		pStrippedDoc->setData(m_state.m_text.c_str(), m_state.m_text.length());
+		m_pStrippedDocument->setData(m_state.m_text.c_str(), m_state.m_text.length());
 
-		setDocument(pStrippedDoc);
+		setDocument(m_pStrippedDocument);
 	}
 }
 
 HtmlTokenizer::~HtmlTokenizer()
 {
-	if (m_pDocument != NULL)
+	if (m_pStrippedDocument != NULL)
 	{
-		// This should have been set by setDocument()
-		delete m_pDocument;
+		delete m_pStrippedDocument;
 	}
 }
 

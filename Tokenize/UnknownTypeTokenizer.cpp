@@ -23,24 +23,22 @@
 using namespace std;
 
 UnknownTypeTokenizer::UnknownTypeTokenizer(const Document *pDocument) :
-	Tokenizer(NULL)
+	Tokenizer(NULL),
+	m_pStrippedDocument(NULL)
 {
-	string cmdLine("strings --bytes=6");
-
 	// Run strings
-	Document *pOutputDocument = runHelperProgram(pDocument, cmdLine);
-	if (pOutputDocument != NULL)
+	m_pStrippedDocument = runHelperProgram(pDocument, "strings --bytes=6");
+	if (m_pStrippedDocument != NULL)
 	{
 		// Give the result to the parent class
-		setDocument(pOutputDocument);
+		setDocument(m_pStrippedDocument);
 	}
 }
 
 UnknownTypeTokenizer::~UnknownTypeTokenizer()
 {
-	if (m_pDocument != NULL)
+	if (m_pStrippedDocument != NULL)
 	{
-		// This should have been set by setDocument(),
-		delete m_pDocument;
+		delete m_pStrippedDocument;
 	}
 }

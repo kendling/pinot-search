@@ -49,7 +49,8 @@ Tokenizer *getTokenizer(const Document *pDocument)
 }
 
 TagLibTokenizer::TagLibTokenizer(const Document *pDocument) :
-	Tokenizer(NULL)
+	Tokenizer(NULL),
+	m_pTagDocument(NULL)
 {
 	if (pDocument != NULL)
 	{
@@ -95,21 +96,20 @@ TagLibTokenizer::TagLibTokenizer(const Document *pDocument) :
 				trackTitle = pseudoContent = pDocument->getTitle();
 			}
 
-			pPseudoDocument = new Document(trackTitle, pDocument->getLocation(),
+			m_pTagDocument = new Document(trackTitle, pDocument->getLocation(),
 				pDocument->getType(), pDocument->getLanguage());
-			pPseudoDocument->setData(pseudoContent.c_str(), pseudoContent.length());
+			m_pTagDocument->setData(pseudoContent.c_str(), pseudoContent.length());
 
 			// Give the result to the parent class
-			setDocument(pPseudoDocument);
+			setDocument(m_pTagDocument);
 		}
 	}
 }
 
 TagLibTokenizer::~TagLibTokenizer()
 {
-	if (m_pDocument != NULL)
+	if (m_pTagDocument != NULL)
 	{
-		// This should have been set by setDocument()
-		delete m_pDocument;
+		delete m_pTagDocument;
 	}
 }

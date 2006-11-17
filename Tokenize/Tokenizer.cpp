@@ -41,6 +41,7 @@ Tokenizer::Tokenizer(const Document *pDocument)
 
 Tokenizer::~Tokenizer()
 {
+	// The document is owned by the caller
 }
 
 Document *Tokenizer::runHelperProgram(const Document *pDocument,

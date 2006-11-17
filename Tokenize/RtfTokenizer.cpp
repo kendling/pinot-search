@@ -49,12 +49,12 @@ RtfTokenizer::RtfTokenizer(const Document *pDocument) :
 		if (parseHTML(pHtmlDocument) == true)
 		{
 			// Pass the result to the parent class
-			Document *pStrippedDoc = new Document(pHtmlDocument->getTitle(),
+			m_pStrippedDocument = new Document(pHtmlDocument->getTitle(),
 				pHtmlDocument->getLocation(), pHtmlDocument->getType(),
 				pHtmlDocument->getLanguage());
-			pStrippedDoc->setData(m_state.m_text.c_str(), m_state.m_text.length());
+			m_pStrippedDocument->setData(m_state.m_text.c_str(), m_state.m_text.length());
 
-			setDocument(pStrippedDoc);
+			setDocument(m_pStrippedDocument);
 		}
 
 		delete pHtmlDocument;
@@ -63,4 +63,5 @@ RtfTokenizer::RtfTokenizer(const Document *pDocument) :
 
 RtfTokenizer::~RtfTokenizer()
 {
+	// ~HtmlTokenizer will delete m_pStrippedDocument
 }
