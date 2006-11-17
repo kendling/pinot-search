@@ -3032,7 +3032,8 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 				Url urlObj(url);
 				bool foundAction = false;
 
-				if (urlObj.getProtocol() == "http")
+				if ((urlObj.getProtocol() == "http") ||
+					(urlObj.getProtocol() == "https"))
 				{
 					// Chances are the web browser will be able to open this
 					type = "text/html";
