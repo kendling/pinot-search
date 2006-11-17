@@ -250,6 +250,11 @@ int main(int argc, char **argv)
 		cerr << e.what() << endl;
 		return EXIT_FAILURE;
 	}
+	catch (const char *pMsg)
+	{
+		cerr << pMsg << endl;
+		return EXIT_FAILURE;
+	}
 	catch (...)
 	{
 		cerr << "Unknown exception" << endl;

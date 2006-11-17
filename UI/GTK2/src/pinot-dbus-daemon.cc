@@ -780,16 +780,35 @@ int main(int argc, char **argv)
 
 		dbus_connection_add_filter(pConnection, (DBusHandleMessageFunction)filterHandler, &server, NULL);
 
-		// Get the main loop
-		g_refMainLoop = Glib::MainLoop::create();
+		try
+		{
+			// Get the main loop
+			g_refMainLoop = Glib::MainLoop::create();
 
-		// Connect to threads' finished signal
-		server.connect();
+			// Connect to threads' finished signal
+			server.connect();
 
-		server.start();
+			server.start();
 
-		// Run the main loop
-		g_refMainLoop->run();
+			// Run the main loop
+			g_refMainLoop->run();
+
+		}
+		catch (const Glib::Exception &e)
+		{
+			cerr << e.what() << endl;
+			return EXIT_FAILURE;
+		}
+		catch (const char *pMsg)
+		{
+			cerr << pMsg << endl;
+			return EXIT_FAILURE;
+		}
+		catch (...)
+		{
+			cerr << "Unknown exception" << endl;
+			return EXIT_FAILURE;
+		}
 	}
 	else
 	{
@@ -800,7 +819,19 @@ int main(int argc, char **argv)
 #ifdef DEBUG
 	cout << "Closing connection..." << endl;
 #endif
-	dbus_connection_unref(pConnection);
+	// FIXME: use our friend the preprocessor
+	if (DBUS_GLIB_VERSION < 0.7)
+	{
+		// Don't unref the connection to avoid "assertion failed "!_dbus_transport_get_is_connected
+		// (connection->transport)" file "dbus-connection.c" line 1797 function _dbus_connection_last_unref"
+		dbus_connection_close(pConnection);
+	}
+	else
+	{
+		// Don't close the connection to avoid ""Applications can not close shared connections.
+		// Please fix this in your app. Ignoring close request and continuing."
+		dbus_connection_unref(pConnection);
+	}
 	dbus_g_connection_unref(pBus);
 
 	return EXIT_SUCCESS;
