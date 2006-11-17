@@ -17,6 +17,7 @@
  */
 
 #include <cstdio>
+#include <string.h>
 #include <strings.h>
 #include <stdarg.h>
 #include <iostream>
@@ -67,6 +68,17 @@ size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *p
 	memcpy(pInfo->m_pContent + pInfo->m_contentLen, pData, totalSize);
 	pInfo->m_contentLen += totalSize;
 	pInfo->m_pContent[pInfo->m_contentLen] = '\0';
+
+	if (totalSize < strlen((const char*)pData))
+	{
+		void *pBadChar = NULL;
+
+		// There's a NULL character in the buffer ? Replace it
+		while ((pBadChar = memchr((void*)pInfo->m_pContent, '\0', pInfo->m_contentLen)) != NULL)
+		{
+			((char*)pBadChar)[0] = ' ';
+		}
+	}
 
 	return totalSize;
 }
