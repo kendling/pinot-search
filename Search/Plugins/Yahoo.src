@@ -9,16 +9,8 @@
 	routeType="The Web"
 >
 
-<INPUT NAME="x" VALUE="op">
-<INPUT NAME="va" USER>
-<INPUT NAME="ve_vt" VALUE="any">
-<INPUT NAME="vst" VALUE="0">
-<INPUT NAME="vd" VALUE="all">
-<INPUT NAME="fl" VALUE="0">
-<INPUT NAME="vf" VALUE="all">
-<INPUT NAME="ei" VALUE="ISO-8859-1">
-<INPUT NAME="vm" VALUE="p">
-<INPUT NAME="n" VALUE="10">
+<INPUT NAME="p" USER>
+<INPUT NAME="ei" VALUE="UTF-8">
 <INPUTNEXT NAME="b" FACTOR="10" VALUE="1">
 
 <INTERPRET
