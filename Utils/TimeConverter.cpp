@@ -140,6 +140,10 @@ time_t TimeConverter::fromTimestamp(const string &timestamp, bool inGMTime)
 		return 0;
 	}
 
+	// Initialize the structure
+	timeTm.tm_sec = timeTm.tm_min = timeTm.tm_hour = timeTm.tm_mday = 0;
+	timeTm.tm_mon = timeTm.tm_year = timeTm.tm_wday = timeTm.tm_yday = timeTm.tm_isdst = 0;
+
 	// Find out if the date has an RFC-822/ISO 8601 time zone specification
 	// or a time zone name
 	// FIXME: it looks like strptime() can't diffentiate between %Z and %z
