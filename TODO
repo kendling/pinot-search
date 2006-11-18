@@ -34,8 +34,6 @@ Search
 - Make sure Description files' SyndicationRight is not private or closed
 - Support for Google Buttons
 - Export search results as OpenSearch Response
-- Use pango_break() to tokenize abstracts
-- Use g_get_language_names() to get the locale's languages
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
@@ -62,7 +60,6 @@ Mail
 - Keep track of attachments and avoid indexing the same file twice
 
 UI
-- Switching back and forth between grouping modes messes up results rankings : check scores
 - When sorting results by host name, give better score to results that appear several times
 - Show which threads are running, what they are doing, and allow to stop them selectively
 - Add an history window to edit Index and ViewHistory
@@ -78,7 +75,5 @@ UI
   we are waiting for something to finish ?
 - Replace labels with tags (Leaftag, http://www.chipx86.com/wiki/Leaftag). Enable to import
   all the documents that match a specific tag
-- When switching back and forth between results tabs and another tab, why does the
-  result list get shifted right to the Title column ?
 - Make Pinot a unique app (http://guniqueapp.akl.lt/)
 
