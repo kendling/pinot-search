@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include <libintl.h>
 #include <getopt.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <iostream>
 #include <fstream>
 #include <glibmm.h>
@@ -61,6 +63,7 @@ static streambuf *g_coutBuf = NULL;
 static streambuf *g_cerrBuf = NULL;
 static struct option g_longOptions[] = {
 	{"help", 0, 0, 'h'},
+	{"priority", 1, 0, 'p'},
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
@@ -613,10 +616,10 @@ int main(int argc, char **argv)
 {
 	string prefixDir(PREFIX);
 	struct sigaction newAction;
-	int longOptionIndex = 0;
+	int longOptionIndex = 0, priority = 15;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "hpv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -627,9 +630,21 @@ int main(int argc, char **argv)
 					<< "Usage: pinot-dbus-daemon [OPTIONS]\n\n"
 					<< "Options:\n"
 					<< "  -h, --help		display this help and exit\n"
+					<< "  -p, --priority	set the daemon's priority (default 15)\n"
 					<< "  -v, --version		output version information and exit\n"
 					<< "\nReport bugs to " << PACKAGE_BUGREPORT << endl;
 				return EXIT_SUCCESS;
+			case 'p':
+				if (optarg != NULL)
+				{
+					int newPriority = atoi(optarg);
+					if ((newPriority >= -20) &&
+						(newPriority < 20))
+					{
+						priority = newPriority;
+					}
+				}
+				break;
 			case 'v':
 				cout << "pinot-dbus-daemon - " << PACKAGE_STRING << "\n\n" 
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
@@ -641,7 +656,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "hpv", g_longOptions, &longOptionIndex);
 	}
 
 #if defined(ENABLE_NLS)
@@ -738,6 +753,12 @@ int main(int argc, char **argv)
 	}
 
 	atexit(closeAll);
+
+	// Change the daemon's priority
+	if (setpriority(PRIO_PROCESS, 0, priority) == -1)
+	{
+		cerr << "Couldn't set scheduling priority to " << priority << endl;
+	}
 
 	// Initialize the GType and the D-Bus thread system
 	g_type_init ();
