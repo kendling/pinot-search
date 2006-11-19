@@ -28,6 +28,7 @@
 #include <glibmm.h>
 #include <glibmm/thread.h>
 #include <glibmm/ustring.h>
+#include <glibmm/miscutils.h>
 #include <glibmm/convert.h>
 #include <glibmm/object.h>
 extern "C"
@@ -45,6 +46,7 @@ extern "C"
 #include "XapianDatabase.h"
 #include "XapianDatabaseFactory.h"
 #include "HtmlTokenizer.h"
+#include "ActionQueue.h"
 #include "CrawlHistory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
@@ -672,6 +674,8 @@ int main(int argc, char **argv)
 	HtmlTokenizer::initialize();
 	DownloaderInterface::initialize();
 	Glib::thread_init();
+	g_refMainLoop = Glib::MainLoop::create();
+	Glib::set_application_name("Pinot DBus Daemon");
 
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();
@@ -734,6 +738,7 @@ int main(int argc, char **argv)
 
 	// Do the same for the history database
 	if ((settings.m_historyDatabase.empty() == true) ||
+		(ActionQueue::create(settings.m_historyDatabase) == false) ||
 		(CrawlHistory::create(settings.m_historyDatabase) == false) ||
 		(QueryHistory::create(settings.m_historyDatabase) == false) ||
 		(ViewHistory::create(settings.m_historyDatabase) == false))
@@ -743,10 +748,13 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		ActionQueue actionQueue(settings.m_historyDatabase, Glib::get_application_name());
 		QueryHistory queryHistory(settings.m_historyDatabase);
 		ViewHistory viewHistory(settings.m_historyDatabase);
 		time_t timeNow = time(NULL);
 
+		// Expire all actions left from last time
+		actionQueue.expireItems(timeNow);
 		// Expire items older than a month
 		queryHistory.expireItems(timeNow - 2592000);
 		viewHistory.expireItems(timeNow - 2592000);
@@ -803,8 +811,6 @@ int main(int argc, char **argv)
 
 		try
 		{
-			// Get the main loop
-			g_refMainLoop = Glib::MainLoop::create();
 
 			// Connect to threads' finished signal
 			server.connect();

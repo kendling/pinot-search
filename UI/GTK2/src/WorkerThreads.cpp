@@ -31,6 +31,7 @@
 #include <sigc++/class_slot.h>
 #include <sigc++/compatibility.h>
 #include <sigc++/slot.h>
+#include <glibmm/miscutils.h>
 
 #include "HtmlTokenizer.h"
 #include "XmlTokenizer.h"
@@ -40,6 +41,7 @@
 #include "TimeConverter.h"
 #include "Url.h"
 #include "XapianDatabase.h"
+#include "ActionQueue.h"
 #include "CrawlHistory.h"
 #include "QueryHistory.h"
 #include "IndexedDocument.h"
@@ -505,12 +507,9 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 
 	if (addToQueue == true)
 	{
-		if (write_lock_lists() == true)
-		{
-			m_indexQueue.push(docInfo);
+		ActionQueue queue(PinotSettings::getInstance().m_historyDatabase, get_application_name());
 
-			unlock_lists();
-		}
+		queue.pushItem(ActionQueue::INDEX, docInfo);
 
 		return "";
 	}
@@ -531,8 +530,6 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 		getItem = false;
 	}
 
-	DocumentInfo docInfo;
-
 	if (write_lock_lists() == true)
 	{
 		// Update the in-progress list
@@ -548,10 +545,16 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 		// Get an item ?
 		if (getItem == true)
 		{
-			while (m_indexQueue.empty() == false)
+			ActionQueue queue(PinotSettings::getInstance().m_historyDatabase, get_application_name());
+			ActionQueue::ActionType type;
+			DocumentInfo docInfo;
+
+			while (queue.popItem(type, docInfo) == true)
 			{
-				docInfo = m_indexQueue.front();
-				m_indexQueue.pop();
+				if (type != ActionQueue::INDEX)
+				{
+					continue;
+				}
 
 				ustring status = index_document(docInfo);
 				if (status.empty() == true)

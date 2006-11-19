@@ -139,7 +139,6 @@ class ThreadsManager : public SigC::Object
 		unsigned int m_backgroundThreadsCount;
 		long m_numCPUs;
 		SigC::Signal1<void, WorkerThread *> m_onThreadEndSignal;
-		std::queue<DocumentInfo> m_indexQueue;
 		std::set<std::string> m_beingIndexed;
 
 		bool read_lock_threads(void);
