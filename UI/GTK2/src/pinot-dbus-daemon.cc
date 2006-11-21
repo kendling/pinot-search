@@ -769,7 +769,7 @@ int main(int argc, char **argv)
 	}
 
 	// Initialize the GType and the D-Bus thread system
-	g_type_init ();
+	g_type_init();
 	dbus_g_thread_init();
 
 	GError *pError = NULL;
@@ -841,6 +841,10 @@ int main(int argc, char **argv)
 	{
 		cerr << "Couldn't register object path: " << pError->message << endl;
 	}
+
+	// Stop everything before closing the connection
+	server.disconnect();
+	server.stop_threads();
 
 	dbus_error_free(&error);
 #ifdef DEBUG

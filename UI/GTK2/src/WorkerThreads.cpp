@@ -57,16 +57,30 @@ using namespace SigC;
 using namespace Glib;
 using namespace std;
 
-// A function object to stop and delete threads with for_each()
-struct DeleteMapPointer
+// A function object to stop threads with for_each()
+struct StopThreadFunc
 {
 public:
 	void operator()(map<WorkerThread *, Thread *>::value_type &p)
 	{
 		p.first->stop();
 #ifdef DEBUG
-		cout << "DeleteMapPointer: waiting for thread " << p.first->getId() << endl;
+		cout << "StopThreadFunc: stopped thread " << p.first->getId() << endl;
 #endif
+	}
+};
+
+// A function object to delete threads with for_each()
+struct DeleteThreadFunc
+{
+public:
+	void operator()(map<WorkerThread *, Thread *>::value_type &p)
+	{
+#ifdef DEBUG
+		cout << "DeleteThreadFunc: waiting for thread " << p.first->getId() << endl;
+#endif
+		// FIXME: the documentation says resources of the thread, including the Thread object
+		// are released by join()
 		p.second->join();
 		delete p.first;
 	}
@@ -430,9 +444,12 @@ void ThreadsManager::stop_threads(void)
 {
 	if (m_threads.empty() == false)
 	{
-		if (read_lock_threads() == true)
+		if (write_lock_threads() == true)
 		{
-			for_each(m_threads.begin(), m_threads.end(), DeleteMapPointer());
+			// Stop threads
+			for_each(m_threads.begin(), m_threads.end(), StopThreadFunc());
+			// Join them
+			for_each(m_threads.begin(), m_threads.end(), DeleteThreadFunc());
 			m_threads.clear();
 
 			unlock_threads();
@@ -490,8 +507,14 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 	double averageLoad[3];
 	bool addToQueue = false;
 
+#ifdef DEBUG
+	cout << "ThreadsManager::queue_index: called" << endl;
+#endif
 	if (get_threads_count() >= m_maxIndexThreads)
 	{
+#ifdef DEBUG
+		cout << "ThreadsManager::queue_index: too many threads" << endl;
+#endif
 		addToQueue = true;
 	}
 	// Get the load averaged over the last minute
@@ -522,6 +545,9 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 	bool getItem = true;
 	bool foundItem = false;
 
+#ifdef DEBUG
+	cout << "ThreadsManager::pop_queue: called" << endl;
+#endif
 	if (get_threads_count() >= m_maxIndexThreads)
 	{
 #ifdef DEBUG
@@ -620,7 +646,19 @@ unsigned int IndexBrowserThread::getDocumentsCount(void) const
 
 bool IndexBrowserThread::stop(void)
 {
+	// Disconnect the signal
+	Signal3<void, IndexedDocument, unsigned int, string>::slot_list_type slotsList = m_signalUpdate.slots();
+	Signal3<void, IndexedDocument, unsigned int, string>::slot_list_type::iterator slotIter = slotsList.begin();
+	if (slotIter != slotsList.end())
+	{
+		if (slotIter->empty() == false)
+		{
+			slotIter->block();
+			slotIter->disconnect();
+		}
+	}
 	m_done = true;
+
 	return true;
 }
 
@@ -1487,8 +1525,20 @@ string MonitorThread::getType(void) const
 
 bool MonitorThread::stop(void)
 {
+	// Disconnect the signal
+	Signal3<void, const string&, const std::string&, bool>::slot_list_type slotsList = m_signalDirectoryFound.slots();
+	Signal3<void, const string&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	if (slotIter != slotsList.end())
+	{
+		if (slotIter->empty() == false)
+		{
+			slotIter->block();
+			slotIter->disconnect();
+		}
+	}
 	m_done = true;
 	write(m_ctrlWritePipe, "Stop", 4);
+
 	return true;
 }
 
@@ -1743,7 +1793,19 @@ string DirectoryScannerThread::getDirectory(void) const
 
 bool DirectoryScannerThread::stop(void)
 {
+	// Disconnect the signal
+	Signal3<void, const string&, const std::string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
+	Signal3<void, const string&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	if (slotIter != slotsList.end())
+	{
+		if (slotIter->empty() == false)
+		{
+			slotIter->block();
+			slotIter->disconnect();
+		}
+	}
 	m_done = true;
+
 	return true;
 }
 
@@ -1756,7 +1818,8 @@ void DirectoryScannerThread::foundFile(const string &fileName)
 {
 	char labelStr[64];
 
-	if (fileName.empty() == true)
+	if ((fileName.empty() == true) ||
+		(m_done == true))
 	{
 		return;
 	}
@@ -1942,6 +2005,14 @@ void DirectoryScannerThread::doWork(void)
 		m_status = _("Couldn't open directory");
 		m_status += " ";
 		m_status += m_dirName;
+	}
+
+	if (m_done == true)
+	{
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::doWork: leaving cleanup until next crawl" << endl;
+#endif
+		return;
 	}
 
 	// All files with status set to CRAWLING were not found in this crawl
