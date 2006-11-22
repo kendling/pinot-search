@@ -17,7 +17,7 @@ libSearchGoogle_la_SOURCES = \
 	GoogleAPIEngine.cpp
 
 GoogleSearch.h :
-	wsdl2c -n gapi -o GoogleSearch.h googleapi/GoogleSearch.wsdl
+	wsdl2h -n gapi -o GoogleSearch.h googleapi/GoogleSearch.wsdl
 
 GAPIClientLib.cpp : GoogleSearch.h
 	soapcpp2 -n -pGAPI -I /usr/include/gsoap/import GoogleSearch.h
