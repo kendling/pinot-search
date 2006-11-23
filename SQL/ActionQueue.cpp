@@ -18,6 +18,8 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <iostream>
 
@@ -145,6 +147,11 @@ bool ActionQueue::pushItem(ActionType type, const DocumentInfo &docInfo)
 	info += "modtime=";
 	info += docInfo.getTimestamp();
 	info += "\n";
+	info += "size=";
+	char sizeStr[64];
+	snprintf(sizeStr, 64, "%ld", docInfo.getSize());
+	info += sizeStr;
+	info += "\n";
 
 	if (update == false)
 	{
@@ -230,12 +237,18 @@ bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo) const
 			docInfo.setType(StringManip::extractField(info, "type=", "\n"));
 			docInfo.setLanguage(StringManip::extractField(info, "language=", "\n"));
 			docInfo.setTimestamp(StringManip::extractField(info, "modtime=", "\n"));
+			string bytesSize(StringManip::extractField(info, "size=", "\n"));
+			if (bytesSize.empty() == false)
+			{
+				docInfo.setSize((off_t )atol(bytesSize.c_str()));
+			}
 #ifdef DEBUG
 			cout << "ActionQueue::getOldestItem: " << docInfo.getTitle() << ", "
 				<< docInfo.getLocation() << ", "
 				<< docInfo.getType() << ", "
 				<< docInfo.getLanguage() << ", "
-				<< docInfo.getTimestamp() << endl;
+				<< docInfo.getTimestamp() << ", "
+				<< docInfo.getSize() << endl;
 #endif
 
 			delete row;

@@ -171,12 +171,17 @@ Document *XapianCollector::retrieveUrl(const DocumentInfo &docInfo)
 		string type = StringManip::extractField(record, "type=", "\n");
 		string timestamp = StringManip::extractField(record, "timestamp=", "\n");
 		string language = StringManip::extractField(record, "language=", "\n");
+		string bytesSize = StringManip::extractField(record, "size=", "\n");
 #ifdef DEBUG
 		cout << "XapianCollector::retrieveUrl: " << docId << " was indexed from " << location << " at " << timestamp << endl;
 #endif
 
 		pIndexedDoc = new IndexedDocument(title, url, location, type, language);
 		pIndexedDoc->setTimestamp(timestamp);
+		if (bytesSize.empty() == false)
+		{
+			pIndexedDoc->setSize((off_t)atol(bytesSize.c_str()));
+		}
 
 		// Extract document's data ?
 		if (m_getDocData == true)

@@ -1188,6 +1188,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 						docInfo.getLocation(), docInfo.getType(),
 						docInfo.getLanguage());
 					indexedDoc.setTimestamp(docInfo.getTimestamp());
+					indexedDoc.setSize(docInfo.getSize());
 
 					append_document(pIndexPage, _("My Web Pages"), indexedDoc);
 				}
@@ -1913,6 +1914,8 @@ void mainWindow::on_refreshindex_activate()
 		DocumentInfo docInfo(docIter->getTitle(), url,
 			docIter->getType(), docIter->getLanguage());
 		docInfo.setTimestamp(docIter->getTimestamp());
+		docInfo.setSize(docIter->getSize());
+
 		ustring status = m_state.queue_index(docInfo);
 		if (status.empty() == false)
 		{

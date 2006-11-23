@@ -24,18 +24,20 @@ using std::string;
 using std::copy;
 using std::inserter;
 
-DocumentInfo::DocumentInfo()
+DocumentInfo::DocumentInfo() :
+	m_size(0)
 {
 	m_timestamp = TimeConverter::toTimestamp(time(NULL));
 }
 
 DocumentInfo::DocumentInfo(const string &title, const string &location,
-	const string &type, const string &language)
+	const string &type, const string &language) :
+	m_title(title),
+	m_location(location),
+	m_type(type),
+	m_language(language),
+	m_size(0)
 {
-	m_title = title;
-	m_location = location;
-	m_type = type;
-	m_language = language;
 	m_timestamp = TimeConverter::toTimestamp(time(NULL));
 }
 
@@ -44,7 +46,8 @@ DocumentInfo::DocumentInfo(const DocumentInfo &other) :
 	m_location(other.m_location),
 	m_type(other.m_type),
 	m_language(other.m_language),
-	m_timestamp(other.m_timestamp)
+	m_timestamp(other.m_timestamp),
+	m_size(other.m_size)
 {
 	copy(other.m_labels.begin(), other.m_labels.end(),
 		inserter(m_labels, m_labels.begin()));
@@ -63,6 +66,7 @@ DocumentInfo& DocumentInfo::operator=(const DocumentInfo& other)
 		m_type = other.m_type;
 		m_language = other.m_language;
 		m_timestamp = other.m_timestamp;
+		m_size = other.m_size;
 		m_labels.clear();
 		copy(other.m_labels.begin(), other.m_labels.end(),
 			inserter(m_labels, m_labels.begin()));
@@ -140,6 +144,19 @@ string DocumentInfo::getTimestamp(void) const
 {
 	return m_timestamp;
 }
+
+/// Sets the document's size in bytes.
+void DocumentInfo::setSize(off_t size)
+{
+	m_size = size;
+}
+
+/// Returns the document's size in bytes.
+off_t DocumentInfo::getSize(void) const
+{
+	return m_size;
+}
+
 /// Sets the document's labels.
 void DocumentInfo::setLabels(const set<string> &labels)
 {

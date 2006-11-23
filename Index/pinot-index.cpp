@@ -236,6 +236,7 @@ int main(int argc, char **argv)
 			cout << "Type: " << docInfo.getType() << endl;
 			cout << "Language: " << docInfo.getLanguage() << endl;
 			cout << "Timestamp: " << docInfo.getTimestamp() << endl;
+			cout << "Size: " << docInfo.getSize() << endl;
 		}
 		if (pIndex->getDocumentLabels(docId, labels) == true)
 		{

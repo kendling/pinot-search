@@ -423,6 +423,11 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 		}
 	}
 	docInfo.setTimestamp(timestamp);
+	string bytesSize(StringManip::extractField(record, "size=", "\n"));
+	if (bytesSize.empty() == false)
+	{
+		docInfo.setSize((off_t )atol(bytesSize.c_str()));
+	}
 	Url urlObj(docInfo.getLocation());
 
 	// FIXME: remove terms extracted from the title if they don't have more than one posting
@@ -525,7 +530,7 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 {
 	string title(info.getTitle());
 	string timestamp(info.getTimestamp());
-	char timeStr[64];
+	char tmpStr[64];
 	time_t timeT = TimeConverter::fromTimestamp(timestamp);
 
 	// Add this value to allow sorting by date
@@ -555,11 +560,15 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	record += info.getType();
 	// Append a timestamp, in a format compatible with Omega
 	record += "\nmodtime=";
-	snprintf(timeStr, 64, "%ld", timeT);
-	record += timeStr;
+	snprintf(tmpStr, 64, "%ld", timeT);
+	record += tmpStr;
 	// ...and the language
 	record += "\nlanguage=";
 	record += StringManip::toLowerCase(language);
+	// ...and the file size
+	record += "\nsize=";
+	snprintf(tmpStr, 64, "%ld", info.getSize());
+	record += tmpStr;
 #ifdef DEBUG
 	cout << "XapianIndex::setDocumentData: document data is " << record << endl;
 #endif
@@ -629,6 +638,11 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 					}
 				}
 				docInfo.setTimestamp(timestamp);
+				string bytesSize(StringManip::extractField(record, "size=", "\n"));
+				if (bytesSize.empty() == false)
+				{
+					docInfo.setSize((off_t )atol(bytesSize.c_str()));
+				}
 				foundDocument = true;
 			}
 		}
@@ -1008,6 +1022,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		DocumentInfo docInfo(pDocument->getTitle(), pDocument->getLocation(),
 			pDocument->getType(), pDocument->getLanguage());
 		docInfo.setTimestamp(pDocument->getTimestamp());
+		docInfo.setSize(pDocument->getSize());
 		docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
 		const char *pData = pDocument->getData(dataLength);
@@ -1085,6 +1100,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	DocumentInfo docInfo(pDocument->getTitle(), pDocument->getLocation(),
 		pDocument->getType(), pDocument->getLanguage());
 	docInfo.setTimestamp(pDocument->getTimestamp());
+	docInfo.setSize(pDocument->getSize());
 	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
 	// Don't scan the document if a language is specified

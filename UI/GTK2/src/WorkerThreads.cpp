@@ -742,10 +742,10 @@ void IndexBrowserThread::doWork(void)
 				type = "text/html";
 			}
 
-			string date = docInfo.getTimestamp();
 			IndexedDocument indexedDoc(docInfo.getTitle(), url, docInfo.getLocation(),
 				type, docInfo.getLanguage());
-			indexedDoc.setTimestamp(date);
+			indexedDoc.setTimestamp(docInfo.getTimestamp());
+			indexedDoc.setSize(docInfo.getSize());
 
 			// Signal
 			m_signalUpdate(indexedDoc, docId, m_indexName);
