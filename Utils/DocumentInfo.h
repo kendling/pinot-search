@@ -65,6 +65,12 @@ class DocumentInfo
 		/// Returns the document's timestamp.
 		virtual std::string getTimestamp(void) const;
 
+		/// Sets the document's size in bytes.
+		virtual void setSize(off_t size);
+
+		/// Returns the document's size in bytes.
+		virtual off_t getSize(void) const;
+
 		/// Sets the document's labels.
 		virtual void setLabels(const std::set<std::string> &labels);
 
@@ -77,6 +83,7 @@ class DocumentInfo
 		std::string m_type;
 		std::string m_language;
 		std::string m_timestamp;
+		off_t m_size;
 		std::set<std::string> m_labels;
 
 };
