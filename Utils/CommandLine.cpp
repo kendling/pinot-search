@@ -37,6 +37,12 @@ CommandLine::~CommandLine()
 {
 }
 
+/// Quotes a string so that the shell will interpret the quoted string to mean str.
+string CommandLine::quote(const string &str)
+{
+	return Glib::shell_quote(str);
+}
+
 /// Runs a command synchronously.
 bool CommandLine::runSync(const string &commandLine, string &output)
 {
@@ -53,7 +59,8 @@ bool CommandLine::runSync(const string &commandLine, string &output)
 		return true;
 	}
 #ifdef DEBUG
-	cout << "CommandLine::runSync: exit status is " << exitStatus << endl;
+	cout << "CommandLine::runSync: exit status is " << exitStatus
+		<< " for \"" << commandLine << "\"" << endl;
 #endif
 
 	return false;

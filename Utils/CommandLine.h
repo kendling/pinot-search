@@ -29,6 +29,9 @@ class CommandLine
 	public:
 		~CommandLine();
 
+		/// Quotes a string so that the shell will interpret the quoted string to mean str.
+		static std::string quote(const std::string &str);
+
 		/// Runs a command synchronously.
 		static bool runSync(const std::string &commandLine, std::string &output);
 
