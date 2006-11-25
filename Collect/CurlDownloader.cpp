@@ -183,6 +183,7 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				pDocument = new Document(docInfo);
 				pDocument->setData(pContentInfo->m_pContent, pContentInfo->m_contentLen);
 				pDocument->setLocation(url);
+				pDocument->setSize((off_t )pContentInfo->m_contentLen);
 
 				// What's the Content-Type ?
 				res = curl_easy_getinfo(pCurlHandler, CURLINFO_CONTENT_TYPE, &pContentType);

@@ -48,6 +48,9 @@ XmlTokenizer::XmlTokenizer(const Document *pDocument) :
 				pDocument->getLocation(), pDocument->getType(),
 				pDocument->getLanguage());
 			m_pStrippedDocument->setData(strippedData.c_str(), strippedData.length());
+			m_pStrippedDocument->setTimestamp(pDocument->getTimestamp());
+			m_pStrippedDocument->setSize(pDocument->getSize());
+
 			setDocument(m_pStrippedDocument);
 		}
 	}

@@ -218,22 +218,23 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	pop_queue(indexedUrl);
 }
 
-void DaemonState::on_message_filefound(const string &location, const string &sourceLabel, bool isDirectory)
+void DaemonState::on_message_filefound(const DocumentInfo &docInfo, const string &sourceLabel, bool isDirectory)
 {
 	if (isDirectory == false)
 	{
-		Url urlObj(location);
-		DocumentInfo docInfo(urlObj.getFile(), location, "", "");
+		DocumentInfo docCopy(docInfo);
 		set<string> labels;
 
 		// Insert a label that identifies the source
 		labels.insert(sourceLabel);
-		docInfo.setLabels(labels);
+		docCopy.setLabels(labels);
 
-		queue_index(docInfo);
+		queue_index(docCopy);
 	}
 	else
 	{
+		string location(docInfo.getLocation());
+
 		crawlLocation(location.substr(7), false, true);
 #ifdef DEBUG
 		cout << "DaemonState::on_message_filefound: new directory " << location.substr(7) << endl;

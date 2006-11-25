@@ -49,6 +49,7 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument,
 {
 	Document *pOutputDocument = NULL;
 	char inTemplate[15] = "/tmp/tokXXXXXX";
+	bool deleteInFile = false;
 
 	if ((pDocument == NULL) ||
 		(programName.empty() == true))
@@ -56,47 +57,73 @@ Document *Tokenizer::runHelperProgram(const Document *pDocument,
 		return NULL;
 	}
 
-	int inFd = mkstemp(inTemplate);
-	if (inFd != -1)
+	string cmdLine(programName);
+	string output;
+	unsigned int dataLength = 0;
+	const char *pData = pDocument->getData(dataLength);
+
+	cmdLine += " ";
+	if (pData == NULL)
 	{
-		unsigned int dataLength = 0;
-		const char *pData = pDocument->getData(dataLength);
+		Url urlObj(pDocument->getLocation());
 
-		// Save the data into a temporary file
-		if (write(inFd, (const void*)pData, dataLength) != -1)
+		if (urlObj.getProtocol() != "file")
 		{
-			string cmdLine(programName);
-			string output;
+			// Not much we can do I am afraid
+			return NULL;
+		}
 
-			cmdLine += " ";
-			cmdLine += inTemplate;
-			if (arguments.empty() == false)
+		// Point the helper program to the actual file
+		string fileName(urlObj.getLocation());
+		fileName += "/";
+		fileName += urlObj.getFile();
+		cmdLine += CommandLine::quote(fileName);
+	}
+	else
+	{
+		int inFd = mkstemp(inTemplate);
+
+		if (inFd != -1)
+		{
+			// Save the data into a temporary file
+			if (write(inFd, (const void*)pData, dataLength) != -1)
 			{
-				cmdLine += " ";
-				cmdLine += arguments;
-				cmdLine += " ";
+				cmdLine += inTemplate;
 			}
 
-			// Run the helper program
-			if ((CommandLine::runSync(cmdLine, output) == true) &&
-				(output.empty() == false))
-			{
-				// Pass the result to the parent class
-				pOutputDocument = new Document(pDocument->getTitle(),
-					pDocument->getLocation(), pDocument->getType(),
-					pDocument->getLanguage());
-				pOutputDocument->setData(output.c_str(), output.length());
-#ifdef DEBUG_TOKENIZER
-				cout << "Tokenizer::runHelperProgram: set " << output.length()
-					<< " bytes of data" << endl;
-#endif
-			}
+			deleteInFile = true;
+			close(inFd);
 		}
 	}
 
-	close(inFd);
+	// Any argument ?
+	if (arguments.empty() == false)
+	{
+		cmdLine += " ";
+		cmdLine += arguments;
+		cmdLine += " ";
+	}
 
-	if (unlink(inTemplate) != 0)
+	// Run the helper program
+	if ((CommandLine::runSync(cmdLine, output) == true) &&
+		(output.empty() == false))
+	{
+		// Pass the result to the parent class
+		pOutputDocument = new Document(pDocument->getTitle(),
+			pDocument->getLocation(), pDocument->getType(),
+			pDocument->getLanguage());
+		pOutputDocument->setData(output.c_str(), output.length());
+		pOutputDocument->setTimestamp(pDocument->getTimestamp());
+		pOutputDocument->setSize(pDocument->getSize());
+
+#ifdef DEBUG_TOKENIZER
+		cout << "Tokenizer::runHelperProgram: set " << output.length()
+			<< " bytes of data" << endl;
+#endif
+	}
+
+	if ((deleteInFile == true) &&
+		(unlink(inTemplate) != 0))
 	{
 #ifdef DEBUG_TOKENIZER
 		cout << "Tokenizer::runHelperProgram: couldn't delete temporary file" << endl;

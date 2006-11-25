@@ -41,6 +41,7 @@
 #endif
 
 #define GETTOKENIZERTYPES	"_Z17getTokenizerTypesRSt3setISsSt4lessISsESaISsEE"
+#define GETTOKENIZERDATANEEDS	"_Z21getTokenizerDataNeedsv"
 #define GETTOKENIZER		"_Z12getTokenizerPK8Document"
 
 using std::cout;
@@ -52,6 +53,7 @@ using std::set;
 
 map<string, string> TokenizerFactory::m_types;
 map<string, void *> TokenizerFactory::m_handles;
+map<string, Tokenizer::DataNeeds> TokenizerFactory::m_dataNeeds;
 
 TokenizerFactory::TokenizerFactory()
 {
@@ -161,13 +163,23 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 					void *pHandle = dlopen(fileName.c_str(), DLOPEN_FLAGS);
 					if (pHandle != NULL)
 					{
+						Tokenizer::DataNeeds dataNeeds = Tokenizer::ALL_DOCUMENTS;
+
+						// What documents's data does it need ?
+						getTokenizerDataNeedsFunc *pDataFunc = (getTokenizerDataNeedsFunc *)dlsym(pHandle,
+							GETTOKENIZERDATANEEDS);
+						if (pDataFunc != NULL)
+						{
+							dataNeeds = (Tokenizer::DataNeeds )(*pDataFunc)();
+						}
+
 						// What type(s) does this support ?
-						getTokenizerTypesFunc *pFunc = (getTokenizerTypesFunc *)dlsym(pHandle,
+						getTokenizerTypesFunc *pTypesFunc = (getTokenizerTypesFunc *)dlsym(pHandle,
 								GETTOKENIZERTYPES);
-						if (pFunc != NULL)
+						if (pTypesFunc != NULL)
 						{
 							set<string> types;
-							bool tokenizerOkay = (*pFunc)(types);
+							bool tokenizerOkay = (*pTypesFunc)(types);
 
 							if (tokenizerOkay == true)
 							{
@@ -178,11 +190,13 @@ unsigned int TokenizerFactory::loadTokenizers(const string &dirName)
 									m_types[*typeIter] = fileName;
 #ifdef DEBUG
 									cout << "TokenizerFactory::loadTokenizers: type "
-										<< *typeIter << " supported by " << pEntryName << endl;
+										<< *typeIter << ", " << dataNeeds
+										<< " is supported by " << pEntryName << endl;
 #endif
 								}
 
 								m_handles[fileName] = pHandle;
+								m_dataNeeds[fileName] = dataNeeds;
 							}
 						}
 						else cerr << "TokenizerFactory::loadTokenizers: " << dlerror() << endl;
@@ -293,19 +307,18 @@ void TokenizerFactory::getSupportedTypes(set<string> &types)
 	}
 }
 
-bool TokenizerFactory::isSupportedType(const string &type)
+bool TokenizerFactory::isSupportedType(const string &type, Tokenizer::DataNeeds &dataNeeds)
 {
 	string typeOnly = type;
 	string::size_type semiColonPos = type.find(";");
+
+	dataNeeds = Tokenizer::ALL_DOCUMENTS;
 
 	// Remove the charset, if any
 	if (semiColonPos != string::npos)
 	{
 		typeOnly = type.substr(0, semiColonPos);
 	}
-#ifdef DEBUG
-	cout << "TokenizerFactory::isSupportedType: file type is " << typeOnly << endl;
-#endif
 
 	// Is it a built-in type ?
 	if ((typeOnly == "text/html") ||
@@ -320,6 +333,17 @@ bool TokenizerFactory::isSupportedType(const string &type)
 	map<string, string>::iterator typeIter = m_types.find(typeOnly);
 	if (typeIter != m_types.end())
 	{
+		// What does it need ?
+		map<string, Tokenizer::DataNeeds>::iterator dataNeedsIter = m_dataNeeds.find(typeIter->second);
+		if (dataNeedsIter != m_dataNeeds.end())
+		{
+			dataNeeds = dataNeedsIter->second;
+		}
+#ifdef DEBUG
+		cout << "TokenizerFactory::isSupportedType: library-handled type "
+			<< typeOnly << " " << dataNeeds << endl;
+#endif
+
 		return true;
 	}
 

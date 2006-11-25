@@ -1135,6 +1135,9 @@ bool IndexingThread::stop(void)
 void IndexingThread::doWork(void)
 {
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
+	Url thisUrl(m_docInfo.getLocation());
+	Tokenizer::DataNeeds dataNeeds;
+	bool doDownload = true;
 
 	// First things first, get the index
 	if ((pIndex == NULL) ||
@@ -1150,10 +1153,50 @@ void IndexingThread::doWork(void)
 		return;
 	}
 
-	DownloadingThread::doWork();
+	// We may not have to download the document
+	if (thisUrl.getProtocol() == "file")
+	{
+		// If coming from a crawl, this will be empty
+		if (m_docInfo.getType().empty() == true)
+		{
+			m_docInfo.setType(MIMEScanner::scanFile(m_docInfo.getLocation()));
+		}
+
+		if (TokenizerFactory::isSupportedType(m_docInfo.getType(), dataNeeds) == false)
+		{
+			// Skip unsupported types ?
+			if (m_allowAllMIMETypes == false)
+			{
+				m_status = _("Cannot index document type");
+				m_status += " ";
+				m_status += m_docInfo.getType();
+				m_status += " ";
+				m_status += _("at");
+				m_status += " ";
+				m_status += m_docInfo.getLocation();
+				return;
+			}
+		}
+		else if (dataNeeds == Tokenizer::ALL_BUT_FILES)
+		{
+			doDownload = false;
+		}
+	}
+
+	if (doDownload == true)
+	{
+		DownloadingThread::doWork();
 #ifdef DEBUG
-	cout << "IndexingThread::doWork: downloaded " << m_docInfo.getLocation() << endl;
+		cout << "IndexingThread::doWork: downloaded " << m_docInfo.getLocation() << endl;
 #endif
+	}
+	else
+	{
+		m_pDoc = new Document(m_docInfo);
+#ifdef DEBUG
+		cout << "IndexingThread::doWork: skipped download of " << m_docInfo.getLocation() << endl;
+#endif
+	}
 
 	if (m_pDoc != NULL)
 	{
@@ -1185,7 +1228,8 @@ void IndexingThread::doWork(void)
 		cout << "IndexingThread::doWork: title is " << m_pDoc->getTitle() << endl;
 #endif
 
-		if (TokenizerFactory::isSupportedType(m_docInfo.getType()) == false)
+		// Check again as the downloader may have altered the MIME type
+		if (TokenizerFactory::isSupportedType(m_docInfo.getType(), dataNeeds) == false)
 		{
 			// Skip unsupported types ?
 			if (m_allowAllMIMETypes == false)
@@ -1526,8 +1570,8 @@ string MonitorThread::getType(void) const
 bool MonitorThread::stop(void)
 {
 	// Disconnect the signal
-	Signal3<void, const string&, const std::string&, bool>::slot_list_type slotsList = m_signalDirectoryFound.slots();
-	Signal3<void, const string&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type slotsList = m_signalDirectoryFound.slots();
+	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
 	if (slotIter != slotsList.end())
 	{
 		if (slotIter->empty() == false)
@@ -1542,7 +1586,7 @@ bool MonitorThread::stop(void)
 	return true;
 }
 
-Signal3<void, const string&, const std::string&, bool>& MonitorThread::getDirectoryFoundSignal(void)
+Signal3<void, const DocumentInfo&, const std::string&, bool>& MonitorThread::getDirectoryFoundSignal(void)
 {
 	return m_signalDirectoryFound;
 }
@@ -1600,8 +1644,10 @@ void MonitorThread::processEvents(void)
 			}
 			else
 			{
+				DocumentInfo docInfo("", string("file://") + event.m_location, "", "");
+
 				// Report this directory so that it is crawled
-				m_signalDirectoryFound(string("file://") + event.m_location, "", true);
+				m_signalDirectoryFound(docInfo, "", true);
 			}
 		}
 		else if (event.m_type == MonitorEvent::WRITE_CLOSED)
@@ -1794,8 +1840,8 @@ string DirectoryScannerThread::getDirectory(void) const
 bool DirectoryScannerThread::stop(void)
 {
 	// Disconnect the signal
-	Signal3<void, const string&, const std::string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
-	Signal3<void, const string&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
+	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
 	if (slotIter != slotsList.end())
 	{
 		if (slotIter->empty() == false)
@@ -1809,16 +1855,16 @@ bool DirectoryScannerThread::stop(void)
 	return true;
 }
 
-Signal3<void, const string&, const std::string&, bool>& DirectoryScannerThread::getFileFoundSignal(void)
+Signal3<void, const DocumentInfo&, const std::string&, bool>& DirectoryScannerThread::getFileFoundSignal(void)
 {
 	return m_signalFileFound;
 }
 
-void DirectoryScannerThread::foundFile(const string &fileName)
+void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 {
 	char labelStr[64];
 
-	if ((fileName.empty() == true) ||
+	if ((docInfo.getLocation().empty() == true) ||
 		(m_done == true))
 	{
 		return;
@@ -1827,7 +1873,7 @@ void DirectoryScannerThread::foundFile(const string &fileName)
 	// This identifies the source
 	snprintf(labelStr, 64, "SOURCE%u", m_sourceId);
 
-	m_signalFileFound(string("file://") + fileName, labelStr, false);
+	m_signalFileFound(docInfo, labelStr, false);
 }
 
 bool DirectoryScannerThread::scanEntry(const string &entryName)
@@ -1875,7 +1921,10 @@ bool DirectoryScannerThread::scanEntry(const string &entryName)
 	}
 	else if (S_ISREG(fileStat.st_mode))
 	{
+		DocumentInfo docInfo;
 		bool reportFile = false;
+
+		docInfo.setLocation("file://" + entryName);
 
 		// Is this file blacklisted ?
 		// We have to check early so that if necessary the file's status stays at CRAWLING 
@@ -1885,7 +1934,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName)
 			if (itemExists == false)
 			{
 				// Record it
-				history.insertItem("file://" + entryName, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
+				history.insertItem(docInfo.getLocation(), CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
 #ifdef DEBUG
 				cout << "DirectoryScannerThread::scanEntry: reporting new file " << entryName << endl;
 #endif
@@ -1894,7 +1943,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName)
 			else
 			{
 				// Update the record
-				history.updateItem("file://" + entryName, CrawlHistory::CRAWLED, fileStat.st_mtime);
+				history.updateItem(docInfo.getLocation(), CrawlHistory::CRAWLED, fileStat.st_mtime);
 
 				// Was it last crawled after it was modified ?
 				if (itemDate < fileStat.st_mtime)
@@ -1910,7 +1959,13 @@ bool DirectoryScannerThread::scanEntry(const string &entryName)
 
 		if (reportFile == true)
 		{
-			foundFile(entryName);
+			Url urlObj(docInfo.getLocation());
+
+			docInfo.setTitle(urlObj.getFile());
+			docInfo.setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
+			docInfo.setSize(fileStat.st_size);
+
+			foundFile(docInfo);
 		}
 	}
 	else if (S_ISDIR(fileStat.st_mode))

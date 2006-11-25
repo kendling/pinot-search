@@ -46,9 +46,6 @@ class MboxParser
 		MboxParser(const string &fileName, off_t mboxOffset = 0, int partNum = -1);
 		virtual ~MboxParser();
 
-		/// Gets the current message's date.
-		time_t getDate(void) const;
-
 		/// Jumps to the next message.
 		bool nextMessage(void);
 
@@ -65,7 +62,7 @@ class MboxParser
 		int m_partNum;
 		off_t m_messageStart;
 		Document *m_pCurrentDocument;
-		time_t m_messageDate;
+		string m_messageDate;
 
 		bool initialize(void);
 

@@ -42,6 +42,12 @@ bool getTokenizerTypes(set<string> &types)
 	return true;
 }
 
+/// This returns the data needs of the provided Tokenizer(s).
+int getTokenizerDataNeeds(void)
+{
+	return Tokenizer::ALL_DOCUMENTS;
+}
+
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument)
 {
@@ -99,6 +105,8 @@ TagLibTokenizer::TagLibTokenizer(const Document *pDocument) :
 			m_pTagDocument = new Document(trackTitle, pDocument->getLocation(),
 				pDocument->getType(), pDocument->getLanguage());
 			m_pTagDocument->setData(pseudoContent.c_str(), pseudoContent.length());
+			m_pTagDocument->setTimestamp(pDocument->getTimestamp());
+			m_pTagDocument->setSize(pDocument->getSize());
 
 			// Give the result to the parent class
 			setDocument(m_pTagDocument);

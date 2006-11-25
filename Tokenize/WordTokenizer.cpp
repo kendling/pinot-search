@@ -33,6 +33,12 @@ bool getTokenizerTypes(set<string> &types)
 	return true;
 }
 
+/// This returns the data needs of the provided Tokenizer(s).
+int getTokenizerDataNeeds(void)
+{
+	return Tokenizer::ALL_BUT_FILES;
+}
+
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument)
 {
@@ -40,22 +46,22 @@ Tokenizer *getTokenizer(const Document *pDocument)
 }
 
 WordTokenizer::WordTokenizer(const Document *pDocument) :
-	Tokenizer(NULL)
+	Tokenizer(NULL),
+	m_pStrippedDocument(NULL)
 {
 	// Run antiword
-	Document *pOutputDocument = runHelperProgram(pDocument, "antiword");
-	if (pOutputDocument != NULL)
+	m_pStrippedDocument = runHelperProgram(pDocument, "antiword");
+	if (m_pStrippedDocument != NULL)
 	{
 		// Give the result to the parent class
-		setDocument(pOutputDocument);
+		setDocument(m_pStrippedDocument);
 	}
 }
 
 WordTokenizer::~WordTokenizer()
 {
-	if (m_pDocument != NULL)
+	if (m_pStrippedDocument != NULL)
 	{
-		// This should have been set by setDocument()
-		delete m_pDocument;
+		delete m_pStrippedDocument;
 	}
 }

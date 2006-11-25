@@ -56,6 +56,12 @@ bool getTokenizerTypes(set<string> &types)
 	return true;
 }
 
+/// This returns the data needs of the provided Tokenizer(s).
+int getTokenizerDataNeeds(void)
+{
+	return Tokenizer::ALL_BUT_FILES;
+}
+
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument)
 {
@@ -82,6 +88,9 @@ OpenDocumentTokenizer::OpenDocumentTokenizer(const Document *pDocument) :
 				pDocument->getLocation(), pDocument->getType(),
 				pDocument->getLanguage());
 			m_pStrippedDocument->setData(strippedData.c_str(), strippedData.length());
+			m_pStrippedDocument->setTimestamp(pDocument->getTimestamp());
+			m_pStrippedDocument->setSize(pDocument->getSize());
+
 			setDocument(m_pStrippedDocument);
 		}
 

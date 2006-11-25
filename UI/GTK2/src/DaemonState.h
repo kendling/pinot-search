@@ -39,7 +39,7 @@ class DaemonState : public ThreadsManager
 
 		void on_thread_end(WorkerThread *pThread);
 
-		void on_message_filefound(const std::string &location, const std::string &sourceLabel,
+		void on_message_filefound(const DocumentInfo &docInfo, const std::string &sourceLabel,
 			bool isDirectory);
 
 	protected:

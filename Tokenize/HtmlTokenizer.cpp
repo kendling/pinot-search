@@ -518,6 +518,8 @@ HtmlTokenizer::HtmlTokenizer(const Document *pDocument,
 			pDocument->getLocation(), pDocument->getType(),
 			pDocument->getLanguage());
 		m_pStrippedDocument->setData(m_state.m_text.c_str(), m_state.m_text.length());
+		m_pStrippedDocument->setTimestamp(pDocument->getTimestamp());
+		m_pStrippedDocument->setSize(pDocument->getSize());
 
 		setDocument(m_pStrippedDocument);
 	}

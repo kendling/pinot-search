@@ -405,14 +405,14 @@ class MonitorThread : public WorkerThread
 
 		virtual bool stop(void);
 
-		SigC::Signal3<void, const std::string&, const std::string&, bool>& getDirectoryFoundSignal(void);
+		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool>& getDirectoryFoundSignal(void);
 
 	protected:
 		int m_ctrlReadPipe;
 		int m_ctrlWritePipe;
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
-		SigC::Signal3<void, const std::string&, const std::string&, bool> m_signalDirectoryFound;
+		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalDirectoryFound;
 
 		void processEvents(void);
 		virtual void doWork(void);
@@ -437,7 +437,7 @@ class DirectoryScannerThread : public WorkerThread
 
 		virtual bool stop(void);
 
-		SigC::Signal3<void, const std::string&, const std::string&, bool>& getFileFoundSignal(void);
+		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool>& getFileFoundSignal(void);
 
 	protected:
 		std::string m_dirName;
@@ -447,9 +447,9 @@ class DirectoryScannerThread : public WorkerThread
 		MonitorHandler *m_pHandler;
 		unsigned int m_currentLevel;
 		unsigned int m_sourceId;
-		SigC::Signal3<void, const std::string&, const std::string&, bool> m_signalFileFound;
+		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalFileFound;
 
-		void foundFile(const std::string &fileName);
+		void foundFile(const DocumentInfo &docInfo);
 		bool scanEntry(const std::string &entryName);
 		virtual void doWork(void);
 

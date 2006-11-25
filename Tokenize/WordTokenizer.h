@@ -27,6 +27,8 @@
 
 /// This returns the MIME types supported by the library's tokenizer.
 bool getTokenizerTypes(std::set<std::string> &types);
+/// This returns the data needs of the provided Tokenizer(s).
+int getTokenizerDataNeeds(void);
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument);
 
@@ -35,6 +37,9 @@ class WordTokenizer : public Tokenizer
 	public:
 		WordTokenizer(const Document *pDocument);
 		virtual ~WordTokenizer();
+
+	protected:
+		Document *m_pStrippedDocument;
 
 	private:
 		WordTokenizer(const WordTokenizer &other);

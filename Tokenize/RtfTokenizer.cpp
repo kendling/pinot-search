@@ -34,6 +34,12 @@ bool getTokenizerTypes(set<string> &types)
 	return true;
 }
 
+/// This returns the data needs of the provided Tokenizer(s).
+int getTokenizerDataNeeds(void)
+{
+	return Tokenizer::ALL_BUT_FILES;
+}
+
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument)
 {
@@ -53,6 +59,8 @@ RtfTokenizer::RtfTokenizer(const Document *pDocument) :
 				pHtmlDocument->getLocation(), pHtmlDocument->getType(),
 				pHtmlDocument->getLanguage());
 			m_pStrippedDocument->setData(m_state.m_text.c_str(), m_state.m_text.length());
+			m_pStrippedDocument->setTimestamp(pHtmlDocument->getTimestamp());
+			m_pStrippedDocument->setSize(pHtmlDocument->getSize());
 
 			setDocument(m_pStrippedDocument);
 		}

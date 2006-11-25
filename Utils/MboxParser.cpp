@@ -42,8 +42,7 @@ MboxParser::MboxParser(const string &fileName, off_t mboxOffset, int partNum) :
 	m_partsCount(-1),
 	m_partNum(partNum),
 	m_messageStart(mboxOffset),
-	m_pCurrentDocument(NULL),
-	m_messageDate(0)
+	m_pCurrentDocument(NULL)
 {
 	if (initialize() == true)
 	{
@@ -302,11 +301,11 @@ bool MboxParser::extractMessage(const string &subject)
 				const char *pDate = g_mime_message_get_header(m_pMimeMessage, "Date");
 				if (pDate != NULL)
 				{
-					m_messageDate = TimeConverter::fromTimestamp(pDate);
+					m_messageDate = pDate;
 				}
 				else
 				{
-					m_messageDate = 0;
+					m_messageDate = TimeConverter::toTimestamp(time(NULL));
 				}
 #ifdef DEBUG
 				cout << "MboxParser::extractMessage: message date is " << m_messageDate << endl;
@@ -354,6 +353,8 @@ bool MboxParser::extractMessage(const string &subject)
 					// New document
 					m_pCurrentDocument = new Document(msgSubject, location, contentType, "");
 					m_pCurrentDocument->setData(pPart, (unsigned int)partLength);
+					m_pCurrentDocument->setTimestamp(m_messageDate);
+					m_pCurrentDocument->setSize((off_t )partLength);
 
 					free(pPart);
 					g_mime_object_unref(pMimePart);
@@ -373,12 +374,6 @@ bool MboxParser::extractMessage(const string &subject)
 	}
 
 	return false;
-}
-
-/// Gets the current message's date.
-time_t MboxParser::getDate(void) const
-{
-	return m_messageDate;
 }
 
 /// Jumps to the next message.

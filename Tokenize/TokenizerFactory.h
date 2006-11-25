@@ -35,6 +35,8 @@ class TokenizerFactory
 		  * The character string is allocated with new[].
 		  */
 		typedef bool (getTokenizerTypesFunc)(std::set<std::string> &);
+		/// This returns the data needs of the provided Tokenizer(s).
+		typedef int (getTokenizerDataNeedsFunc)(void);
 		/// This returns a pointer to a Tokenizer, allocated with new.
 		typedef Tokenizer *(getTokenizerFunc)(const Document *);
 
@@ -51,7 +53,7 @@ class TokenizerFactory
 		static void getSupportedTypes(std::set<std::string> &types);
 
 		/// Indicates whether a MIME type is supported or not.
-		static bool isSupportedType(const std::string &type);
+		static bool isSupportedType(const std::string &type, Tokenizer::DataNeeds &dataNeeds);
 
 		/// Unloads all tokenizer libraries.
 		static void unloadTokenizers(void);
@@ -59,6 +61,7 @@ class TokenizerFactory
 	protected:
 		static std::map<std::string, std::string> m_types;
 		static std::map<std::string, void *> m_handles;
+		static std::map<std::string, Tokenizer::DataNeeds> m_dataNeeds;
 
 		TokenizerFactory();
 
