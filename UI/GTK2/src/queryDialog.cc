@@ -106,6 +106,9 @@ void queryDialog::populate_comboboxes()
 	row[m_filterColumns.m_name] = _("File name");
 	iter = m_refFilterTree->append();
 	row = *iter;
+	row[m_filterColumns.m_name] = _("File extension");
+	iter = m_refFilterTree->append();
+	row = *iter;
 	row[m_filterColumns.m_name] = _("Title");
 	iter = m_refFilterTree->append();
 	row = *iter;
@@ -201,21 +204,24 @@ void queryDialog::on_addFilterButton_clicked()
 			filter = "file";
 			break;
 		case 2:
-			filter = "title";
+			filter = "ext";
 			break;
 		case 3:
-			filter = "url";
+			filter = "title";
 			break;
 		case 4:
-			filter = "dir";
+			filter = "url";
 			break;
 		case 5:
-			filter = "lang";
+			filter = "dir";
 			break;
 		case 6:
-			filter = "type";
+			filter = "lang";
 			break;
 		case 7:
+			filter = "type";
+			break;
+		case 8:
 			filter = "label";
 			break;
 		default:

@@ -381,7 +381,18 @@ bool XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	string fileName(urlObj.getFile());
 	if (fileName.empty() == false)
 	{
+		string extension;
+
 		doc.add_term(limitTermLength(string("P") + StringManip::toLowerCase(fileName), true));
+
+		// Does it have an extension ?
+		string::size_type extPos = fileName.rfind('.');
+		if ((extPos != string::npos) &&
+			(extPos + 1 < fileName.length()))
+		{
+			extension = StringManip::toLowerCase(fileName.substr(extPos + 1));
+		}
+		doc.add_term(limitTermLength(string("XEXT:") + extension));
 	}
 	// Finally, add the language code with prefix L
 	doc.add_term(string("L") + Languages::toCode(m_stemLanguage));
@@ -476,7 +487,18 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	string fileName(urlObj.getFile());
 	if (fileName.empty() == false)
 	{
+		string extension;
+
 		doc.remove_term(limitTermLength(string("P") + StringManip::toLowerCase(fileName), true));
+
+		// Does it have an extension ?
+		string::size_type extPos = fileName.rfind('.');
+		if ((extPos != string::npos) &&
+			(extPos + 1 < fileName.length()))
+		{
+			extension = StringManip::toLowerCase(fileName.substr(extPos + 1));
+		}
+		doc.remove_term(limitTermLength(string("XEXT:") + extension));
 	}
 	// Language code
 	doc.remove_term(string("L") + Languages::toCode(language));
