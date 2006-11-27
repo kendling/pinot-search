@@ -69,8 +69,6 @@ class WorkerThread
 
 		bool isDone(void) const;
 
-		void reset(void);
-
 		std::string getStatus(void) const;
 
 	protected:
@@ -95,7 +93,7 @@ class WorkerThread
 
 };
 
-class ThreadsManager : public SigC::Object
+class ThreadsManager : virtual public SigC::Object
 {
 	public:
 		ThreadsManager(const std::string &defaultIndexLocation,

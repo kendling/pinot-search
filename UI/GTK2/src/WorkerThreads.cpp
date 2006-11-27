@@ -149,11 +149,6 @@ bool WorkerThread::isDone(void) const
 	return m_done;
 }
 
-void WorkerThread::reset(void)
-{
-	m_done = false;
-}
-
 string WorkerThread::getStatus(void) const
 {
 	return m_status;
@@ -189,7 +184,6 @@ void WorkerThread::emitSignal(void)
 
 ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	unsigned int maxIndexThreads) :
-	SigC::Object(),
 	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(maxIndexThreads),
 	m_nextThreadId(1),
