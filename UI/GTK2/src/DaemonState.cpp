@@ -212,7 +212,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	}
 
 	// Delete the thread
-	delete pThread;;
+	delete pThread;
 
 	// We might be able to run a queued action
 	pop_queue(indexedUrl);

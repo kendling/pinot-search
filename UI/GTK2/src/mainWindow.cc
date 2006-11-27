@@ -35,14 +35,12 @@
 #include <gtkmm/main.h>
 
 #include "CommandLine.h"
-#include "HtmlTokenizer.h"
 #include "IndexedDocument.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "XapianDatabase.h"
-#include "TokenizerFactory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderFactory.h"

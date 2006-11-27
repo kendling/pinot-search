@@ -19,7 +19,6 @@
 #ifndef _MBOX_PARSER_H
 #define _MBOX_PARSER_H
 
-#include <time.h>
 #include <string>
 #include <map>
 #include <utility>
