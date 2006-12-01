@@ -87,6 +87,7 @@ public:
 };
 
 Dispatcher WorkerThread::m_dispatcher;
+pthread_mutex_t WorkerThread::m_dispatcherMutex = PTHREAD_MUTEX_INITIALIZER;
 bool WorkerThread::m_immediateFlush = true;
 
 Dispatcher &WorkerThread::getDispatcher(void)
@@ -175,11 +176,19 @@ void WorkerThread::threadHandler(void)
 
 void WorkerThread::emitSignal(void)
 {
-#ifdef DEBUG
-	cout << "WorkerThread::emitSignal: end of thread " << m_id << endl;
-#endif
 	m_done = true;
-	m_dispatcher.emit();
+	if (pthread_mutex_lock(&m_dispatcherMutex) == 0)
+	{
+#ifdef DEBUG
+		cout << "WorkerThread::emitSignal: signaling end of thread " << m_id << endl;
+#endif
+		m_dispatcher();
+#ifdef DEBUG
+		cout << "WorkerThread::emitSignal: signaled end of thread " << m_id << endl;
+#endif
+
+		pthread_mutex_unlock(&m_dispatcherMutex);
+	}
 }
 
 ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
@@ -457,7 +466,7 @@ void ThreadsManager::connect(void)
 	WorkerThread *pThread = get_thread();
 	while (pThread != NULL)
 	{
-		m_onThreadEndSignal.emit(pThread);
+		m_onThreadEndSignal(pThread);
 
 		// Next
 		pThread = get_thread();
@@ -493,7 +502,7 @@ void ThreadsManager::on_thread_signal()
 #endif
 		return;
 	}
-	m_onThreadEndSignal.emit(pThread);
+	m_onThreadEndSignal(pThread);
 }
 
 ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
@@ -1291,8 +1300,15 @@ void IndexingThread::doWork(void)
 				// Update the document
 				if (pIndex->updateDocument(m_docId, *pTokens) == true)
 				{
+#ifdef DEBUG
+					cout << "IndexingThread::doWork: updated " << m_pDoc->getLocation()
+						<< " at " << m_docId << endl;
+#endif
 					success = true;
 				}
+#ifdef DEBUG
+				else cout << "IndexingThread::doWork: couldn't update " << m_pDoc->getLocation() << endl;
+#endif
 			}
 			else
 			{
@@ -1304,7 +1320,14 @@ void IndexingThread::doWork(void)
 				if (success == true)
 				{
 					m_docId = docId;
+#ifdef DEBUG
+					cout << "IndexingThread::doWork: indexed " << m_pDoc->getLocation()
+						<< " to " << m_docId << endl;
+#endif
 				}
+#ifdef DEBUG
+				else cout << "IndexingThread::doWork: couldn't index " << m_pDoc->getLocation() << endl;
+#endif
 			}
 
 			if (success == false)
@@ -1405,9 +1428,15 @@ void UnindexingThread::doWork(void)
 			// we effectively delete the label from the index
 			if (pIndex->unindexDocuments(labelName) == true)
 			{
+#ifdef DEBUG
+				cout << "UnindexingThread::doWork: removed label " << labelName << endl;
+#endif
 				// OK
 				++m_docsCount;
 			}
+#ifdef DEBUG
+			else cout << "UnindexingThread::doWork: couldn't remove label " << labelName << endl;
+#endif
 		}
 
 		// Nothing to report
@@ -1421,6 +1450,9 @@ void UnindexingThread::doWork(void)
 
 			if (pIndex->unindexDocument(docId) == true)
 			{
+#ifdef DEBUG
+				cout << "UnindexingThread::doWork: removed " << docId << endl;
+#endif
 				// OK
 				++m_docsCount;
 			}
@@ -1575,7 +1607,7 @@ bool MonitorThread::stop(void)
 		}
 	}
 	m_done = true;
-	write(m_ctrlWritePipe, "Stop", 4);
+	write(m_ctrlWritePipe, "X", 1);
 
 	return true;
 }

@@ -74,6 +74,7 @@ class WorkerThread
 	protected:
 		/// Use a Dispatcher for thread safety
 		static Glib::Dispatcher m_dispatcher;
+		static pthread_mutex_t m_dispatcherMutex;
 		static bool m_immediateFlush;
 		bool m_joinable;
 		unsigned int m_id;
