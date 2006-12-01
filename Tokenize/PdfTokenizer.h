@@ -23,7 +23,7 @@
 #include <set>
 
 #include "Document.h"
-#include "Tokenizer.h"
+#include "HtmlTokenizer.h"
 
 /// This returns the MIME types supported by the library's tokenizer.
 bool getTokenizerTypes(std::set<std::string> &types);
@@ -32,14 +32,11 @@ int getTokenizerDataNeeds(void);
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument);
 
-class PdfTokenizer : public Tokenizer
+class PdfTokenizer : public HtmlTokenizer
 {
 	public:
 		PdfTokenizer(const Document *pDocument);
 		virtual ~PdfTokenizer();
-
-	protected:
-		Document *m_pStrippedDocument;
 
 	private:
 		PdfTokenizer(const PdfTokenizer &other);
