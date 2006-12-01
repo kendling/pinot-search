@@ -57,7 +57,7 @@ class XapianDatabase
 	protected:
 		std::string m_databaseName;
 		bool m_readOnly;
-		pthread_rwlock_t m_rwLock;
+		pthread_mutex_t m_rwLock;
 		Xapian::Database *m_pDatabase;
 		bool m_isOpen;
 		bool m_merge;

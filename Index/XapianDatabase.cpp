@@ -39,7 +39,7 @@ XapianDatabase::XapianDatabase(const string &databaseName, bool readOnly) :
 	m_pFirst(NULL),
 	m_pSecond(NULL)
 {
-	pthread_rwlock_init(&m_rwLock, NULL);
+	pthread_mutex_init(&m_rwLock, NULL);
 	openDatabase();
 }
 
@@ -53,7 +53,7 @@ XapianDatabase::XapianDatabase(const string &databaseName,
 	m_pFirst(pFirst),
 	m_pSecond(pSecond)
 {
-	pthread_rwlock_init(&m_rwLock, NULL);
+	pthread_mutex_init(&m_rwLock, NULL);
 }
 
 XapianDatabase::XapianDatabase(const XapianDatabase &other) :
@@ -65,7 +65,7 @@ XapianDatabase::XapianDatabase(const XapianDatabase &other) :
 	m_pFirst(other.m_pFirst),
 	m_pSecond(other.m_pSecond)
 {
-	pthread_rwlock_init(&m_rwLock, NULL);
+	pthread_mutex_init(&m_rwLock, NULL);
 	if (other.m_pDatabase != NULL)
 	{
 		m_pDatabase = new Xapian::Database(*other.m_pDatabase);
@@ -78,7 +78,7 @@ XapianDatabase::~XapianDatabase()
 	{
 		delete m_pDatabase;
 	}
-	pthread_rwlock_destroy(&m_rwLock);
+	pthread_mutex_destroy(&m_rwLock);
 }
 
 XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
@@ -215,8 +215,6 @@ void XapianDatabase::openDatabase(void)
 		cerr << "XapianDatabase::openDatabase: couldn't open database: "
 			<< error.get_msg() << endl;
 	}
-
-	return;
 }
 
 /// Returns false if the database couldn't be opened.
@@ -230,14 +228,14 @@ void XapianDatabase::reopen(void)
 {
 	// This is provided by Xapian::Database
 	// FIXME: get the write lock to make sure read operations are not in progress ?
-	if (pthread_rwlock_rdlock(&m_rwLock) == 0)
+	if (pthread_mutex_lock(&m_rwLock) == 0)
 	{
 		if (m_pDatabase != NULL)
 		{
 			m_pDatabase->reopen();
 		}
 
-		pthread_rwlock_unlock(&m_rwLock);
+		pthread_mutex_unlock(&m_rwLock);
 	}
 }
 
@@ -246,8 +244,11 @@ Xapian::Database *XapianDatabase::readLock(void)
 {
 	if (m_merge == false)
 	{
-		if (pthread_rwlock_rdlock(&m_rwLock) == 0)
+		if (pthread_mutex_lock(&m_rwLock) == 0)
 		{
+#ifdef DEBUG
+			cout << "XapianDatabase::readLock: thread " << pthread_self() << endl;
+#endif
 			if (m_pDatabase == NULL)
 			{
 				// Try again
@@ -266,8 +267,11 @@ Xapian::Database *XapianDatabase::readLock(void)
 			return NULL;
 		}
 
-		if (pthread_rwlock_rdlock(&m_rwLock) == 0)
+		if (pthread_mutex_lock(&m_rwLock) == 0)
 		{
+#ifdef DEBUG
+			cout << "XapianDatabase::readLock: thread " << pthread_self() << endl;
+#endif
 			// Reopen the second index
 			m_pSecond->reopen();
 
@@ -301,13 +305,16 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 		return NULL;
 	}
 
-	if (pthread_rwlock_wrlock(&m_rwLock) == 0)
+	if (pthread_mutex_lock(&m_rwLock) == 0)
 	{
 		if (m_pDatabase == NULL)
 		{
 			// Try again
 			openDatabase();
 		}
+#ifdef DEBUG
+		cout << "XapianDatabase::writeLock: thread " << pthread_self() << endl;
+#endif
 		return dynamic_cast<Xapian::WritableDatabase *>(m_pDatabase);
 	}
 
@@ -317,7 +324,10 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 /// Unlocks the database.
 void XapianDatabase::unlock(void)
 {
-	pthread_rwlock_unlock(&m_rwLock);
+#ifdef DEBUG
+	cout << "XapianDatabase::unlock: thread " << pthread_self() << endl;
+#endif
+	pthread_mutex_unlock(&m_rwLock);
 
 	if (m_merge == true)
 	{
