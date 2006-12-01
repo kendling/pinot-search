@@ -1,8 +1,24 @@
+??? version_0_6_4
+Collect :
+ - don't needlessly load files that are going to be handled by an helper application
+Index :
+ - store documents size and file extension, if any
+ - fixed concurrency bug that could thrash the index on SMP systems
+ - very long capitalized terms could lead to document loss
+Search :
+ - regenerated the Google SOAP API stubs with gsoap 2.7.8c
+UI :
+ - added filter on file extension
+Daemon :
+ - set a lower scheduling priority
+ - queue events in the database, not in memory
+ - clean exit when signalled/stopped while crawling
+
 2006/11/18 version_0_6_3
 Collect :
  - watch out for NULL characters in data
 Tokenize :
- - fixed memory leak. Temporary documents were not deleted most of the time.
+ - fixed memory leak. Temporary documents were not deleted most of the time
 UI :
  - prettified results list
  - better abstract highlighting

@@ -236,14 +236,15 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
        change (adding or removing a directory or mbox file) will take effect
        when the service is restarted.
      * when starting, the service will first crawl all configured locations
-       and (re)index new and modified files. This might be CPU intensive,
-       but not so much that it prevents you from doing anything else.
+       and (re)index new and modified files. Starting with 0.64, the daemon's
+       scheduling priority is set very low (15, can be adjusted with --priority)
+       so that you can still play UT2004 while it is indexing !
      * when finished crawling, the service will monitor these locations
        for changes and should consume little resources, unless a huge
        quantity of files needs its attention.
-     * any change detected by the monitor is immediately acted upon, ie the
-       daemon will reindex right away a file that was modified. Future
-       releases will queue events and act on them only when the system is idle.
+     * any change detected by the monitor is immediately queued and acted upon
+       as soon as possible, eg reindex a file that was modified. This and low
+       priority should make the daemon not very intrusive.
 
   If you have dbus-send installed, you can start the daemon manually by calling
   the GetStatistics method with
@@ -265,7 +266,7 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
   Deskbar Applet provides an omnipresent versatile search interface for Gnome.
   Searching documents indexed by Pinot with the applet is possible. Users
   of RPM-based systems may install the pinot-desbar RPM. Otherwise, the
-  file UI/pinot-live.py can simply be copied into
+  file scripts/python/pinot-live.py can simply be copied into
   $PREFIX/lib/deskbar-applet/handlers (or, on 64 bit systems,
   $PREFIX/lib64/deskbar-applet/handlers) for use by all users, or into
   ~/.gnome2/deskbar-applet/handlers for use only by the current user.
@@ -298,6 +299,9 @@ Fabrice Colin <fabricecolin at users dot berlios dot de>
 13. Dependencies
 
 
+  The version numbers indicate the minimum version Pinot has been tested
+  with; older versions may or may not work.
+
 ---------------------------------------------------------------
 Name							Version
 ---------------------------------------------------------------
@@ -315,7 +319,7 @@ http://www.webdav.org/neon/
 
 Google SOAP API (2)	Search/Google/googleapi		beta2
 
- GSOAP							2.7.6e
+ gSOAP							2.7.8c
  http://www.cs.fsu.edu/~engelen/soap.html
 
 gtkmm							2.6.2
@@ -386,8 +390,21 @@ Notes :
     https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=178592
     The latest version seems to fix this issue.
 
+  * If the daemon crashes seemingly randomly while indexing, it may be because
+    SQLite wasn't built thread-safe. I have witnessed this mostly on dual CPU
+    machines, but others are not immune. Try rebuilding SQLite by passing
+    "--enable-threadsafe --enable-threads-override-locks" to configure.
+
   * If you have built Pinot from source, make sure you have done a "make install".
     Pinot will fail to start if it can't find stuff it needs, its icon for instance.
+
+  * If "make install" fails with an error about Categories in pinot.desktop
+    and you have desktop-file-utils 0.11, either downgrade to 0.10 or upgrade to 0.12
+    if possible, or edit the top-level Makefile and replace the line 
+     @desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications pinot.desktop
+    with
+     $(INSTALL_DATA) pinot.desktop $(DESTDIR)$(datadir)/applications/pinot.desktop
+    and run "make install" again.
 
   * The directory filter doesn't work as expected if the filter starts with a
     non alpha-numeric character

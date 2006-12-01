@@ -4,7 +4,6 @@ General
 - Advertise service via Rendezvous
 - MIMEScanner should also return parent types so that we don't filter out types unnecessarily
 - Build a -devel package for those who want to write their own tokenizers
-- Allow building without inotify/the DBus daemon
 
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
@@ -14,6 +13,7 @@ Tokenize
 - Spin tokenizers into separate project, a la libextractor
 - Check whether pdftotext flattens text in PDF documents that have columns
 - HtmlTokenizer should skip htdig_noindex blocks (http://www.htdig.org/attrs.html#noindex_start)
+- HtmlTokenizer to look for META tags Author, Creator, Publisher and CreationDate
 
 Monitor
 - Implement support for Solaris FEM
@@ -33,7 +33,7 @@ Search
 - Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
 - Make sure Description files' SyndicationRight is not private or closed
 - Support for Google Buttons
-- Export search results as OpenSearch Response
+- Export search results as OpenSearch Response or CSV
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
@@ -47,6 +47,9 @@ Index
 - Reopen connection to remote indexes when necessary; does Xapian throw a RemoteError ?
 - Allow to access remote Xapian indexes tunneled through ssh, using Xapian::Remote::open()
   defined in /usr/include/xapian/dbfactory.h
+- All indexes can be browsed with the new global posting list found in Xapian > 0.9.9, ie
+  Xapian::Database::postlist_begin("")
+- Store date as terms (D, M and Y prefixes), as done by omindex
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -58,6 +61,15 @@ Mail
     Date: Thu, 25 Aug 2005 11:04:49 +0800
   +0800 is basically same as SGT. At the moment the date is assumed to be GMT !
 - Keep track of attachments and avoid indexing the same file twice
+- Most mboxes are now correctly recognized as application/mbox so index their messages
+
+Daemon
+- Allow building without inotify/the DBus daemon
+- Clean up method names
+- Prefer ustring to string whenever possible
+- Make unique (http://guniqueapp.akl.lt/)
+- Queue unindexing too
+- Export Web searching over D-Bus
 
 UI
 - When sorting results by host name, give better score to results that appear several times
@@ -69,11 +81,10 @@ UI
 - Replace Combobox objects with ComboboxText's (glademm support required)
 - Replace glademm with libglademm ?
 - Filter documents by language, similarly to how labels are shown
-- Clean up method names
-- Prefer ustring to string whenever possible
 - Closing when threads are running gives the impression Pinot has crashed; how do we tell the user
   we are waiting for something to finish ?
 - Replace labels with tags (Leaftag, http://www.chipx86.com/wiki/Leaftag). Enable to import
   all the documents that match a specific tag
-- Make Pinot a unique app (http://guniqueapp.akl.lt/)
+- Either Live Query behaves like a live query (eg results list updated when new documents match)
+  or it is renamed to something else to avoid confusion
 
