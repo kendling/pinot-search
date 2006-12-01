@@ -13,7 +13,7 @@ EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs \
 	UI/GTK2/src/pinot-dbus-daemon.xml UI/GTK2/src/de.berlios.Pinot.service \
 	UI/GTK2/xapian-powered.png UI/GTK2/pinot.png \
 	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
-	scripts/python/pinot-live.py
+	scripts/bash/pinot-enum-index.sh scripts/python/pinot-live.py
 
 man_MANS = Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
