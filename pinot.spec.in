@@ -72,7 +72,7 @@ The included plugin enables Deskbar to search documents indexed by Pinot.
 %setup -q
 
 %build
-%configure %{?_with_soap:--with-soap=yes} %{?_with_debug:CXXFLAGS="%{optflags} -g -DDEBUG"}
+%configure %{?_with_soap:--with-soap=yes} %{?_with_debug:CXXFLAGS="-g -O0 -DDEBUG %{optflags}"}
 make
 
 %install
