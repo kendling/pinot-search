@@ -32,37 +32,6 @@
 
 using namespace std;
 
-static string g_locationHeaderValue;
-static string g_contentTypeHeaderValue;
-static void headerHandler(void *userdata, const char *value)
-{
-	long headerNum = (long)userdata;
-	if (headerNum == 1)
-	{
-		// Location
-		if (value == NULL)
-		{
-			g_locationHeaderValue.clear();
-		}
-		else
-		{
-			g_locationHeaderValue = value;
-		}
-	}
-	else if (headerNum == 2)
-	{
-		// Content-Type
-		if (value == NULL)
-		{
-			g_contentTypeHeaderValue.clear();
-		}
-		else
-		{
-			g_contentTypeHeaderValue = value;
-		}
-	}
-}
-
 unsigned int NeonDownloader::m_initialized = 0;
 
 NeonDownloader::NeonDownloader() :
@@ -100,7 +69,7 @@ string NeonDownloader::handleRedirection(const char *pBody, unsigned int length)
 
 	Document doc;
 	doc.setData(pBody, length);
-	HtmlTokenizer tokens(&doc);
+	HtmlTokenizer tokens(&doc, false);
 
 	// Extract the link from the 3xx message
 	set<Link> linksSet = tokens.getLinks();
@@ -167,6 +136,8 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	string location = urlObj.getLocation();
 	string file = urlObj.getFile();
 	string parameters = urlObj.getParameters();
+	string locationHeaderValue;
+	string contentTypeHeaderValue;
 
 	// Create a session
 	ne_session *pSession = ne_session_create(protocol.c_str(), hostName.c_str(), 80); // urlObj.getPort());
@@ -218,10 +189,8 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	int requestStatus = NE_RETRY;
 	while (requestStatus == NE_RETRY)
 	{
-		// FIXME: this is apparently the only way to get the value of an HTTP header
-		g_locationHeaderValue.clear();
-		ne_add_response_header_handler(pRequest, "Location", headerHandler, (void*)1);
-		ne_add_response_header_handler(pRequest, "Content-Type", headerHandler, (void*)2);
+		locationHeaderValue.clear();
+		contentTypeHeaderValue.clear();
 
 		// Begin the request
 		requestStatus = ne_begin_request(pRequest);
@@ -256,6 +225,18 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				contentLen += bytesRead;
 			}
 
+			// Get headers
+			const char *pValue = ne_get_response_header(pRequest, "Last-Modified");
+			if (pValue != NULL)
+			{
+				locationHeaderValue = pValue;
+			}
+			pValue = ne_get_response_header(pRequest, "Content-Type");
+			if (pValue != NULL)
+			{
+				contentTypeHeaderValue = pValue;
+			}
+
 			// Redirection ?
 			if ((statusCode >= 300) &&
 				(statusCode < 400) &&
@@ -269,7 +250,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				if (documentUrl.empty() == true)
 				{
 					// Did we find a Location header ?
-					if (g_locationHeaderValue.empty() == true)
+					if (locationHeaderValue.empty() == true)
 					{
 						// Fail
 						free(pContent);
@@ -277,7 +258,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 						contentLen = 0;
 						break;
 					}
-					documentUrl = g_locationHeaderValue;
+					documentUrl = locationHeaderValue;
 				}
 
 #ifdef DEBUG
@@ -356,7 +337,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 			pDocument = new Document(docInfo);
 			pDocument->setData(pContent, contentLen);
 			pDocument->setLocation(url);
-			pDocument->setType(g_contentTypeHeaderValue);
+			pDocument->setType(contentTypeHeaderValue);
 #ifdef DEBUG
 			cout << "NeonDownloader::retrieveUrl: document size is " << contentLen << endl;
 #endif
