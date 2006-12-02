@@ -71,7 +71,6 @@ DaemonState::~DaemonState()
 bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bool doMonitoring)
 {
 	DirectoryScannerThread *pScannerThread = NULL;
-	unsigned int sourceId = 0;
 
 	if (locationToCrawl.empty() == true)
 	{

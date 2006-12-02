@@ -60,7 +60,6 @@ TagLibTokenizer::TagLibTokenizer(const Document *pDocument) :
 {
 	if (pDocument != NULL)
 	{
-		Document *pPseudoDocument = NULL;
 		Url urlObj(pDocument->getLocation());
 		string pseudoContent;
 

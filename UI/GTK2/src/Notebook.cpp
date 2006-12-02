@@ -102,11 +102,12 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 	m_tabEventBox(NULL)
 #endif
 {
+#if _USE_BUTTON_TAB
 	int width, height;
 
 	// Lookup the standard icon size
 	bool gotDimensions = IconSize::lookup(ICON_SIZE_MENU, width, height);
-
+#endif
 	m_tabLabel = manage(new Label(title));
 	m_tabImage = manage(new Image(StockID("gtk-close"), IconSize(ICON_SIZE_MENU)));
 #if _USE_BUTTON_TAB

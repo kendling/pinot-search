@@ -70,7 +70,7 @@ string SQLiteRow::getColumn(int nColumn) const
 	if (nColumn < m_nColumns)
 	{
 		vector<string>::const_iterator colIter = m_columns.begin();
-		for (unsigned int i = 0; (i < m_nColumns) && (colIter != m_columns.end()); ++i)
+		for (int i = 0; (i < m_nColumns) && (colIter != m_columns.end()); ++i)
 		{
 			if (i == nColumn)
 			{
@@ -250,7 +250,6 @@ bool SQLiteBase::executeSimpleStatement(const string &sql) const
 SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...) const
 {
 	SQLiteResults *pResults = NULL;
-	const char *pzTail = NULL;
 #ifdef _USE_VSNPRINTF
 	char stringBuff[2048];
 #endif
