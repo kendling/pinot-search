@@ -67,6 +67,7 @@ public:
 #ifdef DEBUG
 		cout << "StopThreadFunc: stopped thread " << p.first->getId() << endl;
 #endif
+		Thread::yield();
 	}
 };
 

@@ -859,9 +859,15 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		// Don't close the connection to avoid ""Applications can not close shared connections.
+		// Don't close the connection to avoid "Applications can not close shared connections.
 		// Please fix this in your app. Ignoring close request and continuing."
-		dbus_connection_unref(pConnection);
+
+		// With dbus 1.0, unref() brings "The last reference on a connection was dropped without closing the connection.
+		// This is a bug in an application. See dbus_connection_unref() documentation for details.
+		// Most likely, the application called unref() too many times and removed a reference belonging to libdbus,
+		// since this is a shared connection." but of course shared connections cannot be closed !
+
+		//dbus_connection_unref(pConnection);
 	}
 	dbus_g_connection_unref(pBus);
 
