@@ -575,6 +575,8 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 			}
 		}
 
+		unlock_lists();
+
 		// Get an item ?
 		if (getItem == true)
 		{
@@ -597,8 +599,6 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 				}
 			}
 		}
-
-		unlock_lists();
 	}
 
 	return foundItem;
