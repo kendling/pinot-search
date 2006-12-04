@@ -805,8 +805,11 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		resultsList.push_back(DocumentInfo(from_utf8(row[m_resultsColumns.m_text]),
-			from_utf8(row[m_resultsColumns.m_url]), "", ""));
+		if (row[m_resultsColumns.m_type] == ResultsModelColumns::RESULT_TITLE)
+		{
+			resultsList.push_back(DocumentInfo(from_utf8(row[m_resultsColumns.m_text]),
+				from_utf8(row[m_resultsColumns.m_url]), "", ""));
+		}
 	}
 #ifdef DEBUG
 	cout << "ResultsTree::getSelection: " << resultsList.size() << " results selected" << endl;
