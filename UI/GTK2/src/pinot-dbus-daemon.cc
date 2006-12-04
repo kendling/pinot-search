@@ -673,7 +673,10 @@ int main(int argc, char **argv)
 	MIMEScanner::initialize();
 	HtmlTokenizer::initialize();
 	DownloaderInterface::initialize();
-	Glib::thread_init();
+	if (Glib::thread_supported() == false)
+	{
+		Glib::thread_init();
+	}
 	g_refMainLoop = Glib::MainLoop::create();
 	Glib::set_application_name("Pinot DBus Daemon");
 
