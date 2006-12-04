@@ -383,7 +383,7 @@ bool XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	{
 		string extension;
 
-		doc.add_term(limitTermLength(string("P") + StringManip::toLowerCase(fileName), true));
+		doc.add_term(limitTermLength(string("P") + fileName, true));
 
 		// Does it have an extension ?
 		string::size_type extPos = fileName.rfind('.');
@@ -489,7 +489,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	{
 		string extension;
 
-		doc.remove_term(limitTermLength(string("P") + StringManip::toLowerCase(fileName), true));
+		doc.remove_term(limitTermLength(string("P") + fileName, true));
 
 		// Does it have an extension ?
 		string::size_type extPos = fileName.rfind('.');
