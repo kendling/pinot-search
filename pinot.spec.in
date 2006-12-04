@@ -100,10 +100,10 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/pinot/pinot-dbus-daemon.xml
 %{_datadir}/pinot/textcat_conf.txt
 %{_datadir}/pinot/textcat3_conf.txt
-%{_datadir}/pinot/tokenizers/libopendocumenttokenizer.so
-%{_datadir}/pinot/tokenizers/libpdftokenizer.so
-%{_datadir}/pinot/tokenizers/librtftokenizer.so
-%{_datadir}/pinot/tokenizers/libwordtokenizer.so
+%{_datadir}/pinot/tokenizers/libopendocumenttokenizer.so*
+%{_datadir}/pinot/tokenizers/libpdftokenizer.so*
+%{_datadir}/pinot/tokenizers/librtftokenizer.so*
+%{_datadir}/pinot/tokenizers/libwordtokenizer.so*
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/*.src
 %dir %{_datadir}/pinot/engines/
@@ -128,6 +128,8 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %config(noreplace) %{_datadir}/pinot/engines/KodersDescription.xml
 %{_datadir}/locale/fr/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/es/LC_MESSAGES/pinot.mo
+%{_datadir}/locale/nl/LC_MESSAGES/pinot.mo
+%{_datadir}/locale/sv/LC_MESSAGES/pinot.mo
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
 %{_sysconfdir}/xdg/autostart/*.desktop
 %{_datadir}/applications/*.desktop
@@ -139,7 +141,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files audio-docs 
 %defattr(-, root, root, -)
-%{_datadir}/pinot/tokenizers/libtaglibtokenizer.so
+%{_datadir}/pinot/tokenizers/libtaglibtokenizer.so*
 
 %files omega
 %defattr(-, root, root, -)

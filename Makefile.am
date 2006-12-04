@@ -33,8 +33,8 @@ install-data-local:
 	@mv $(DESTDIR)$(datadir)/pinot/engines/AmazonAPI.src $(DESTDIR)$(datadir)/pinot/
 	$(INSTALL_DATA) Search/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/pinot/tokenizers
-	@rm -f $(DESTDIR)$(libdir)/lib*tokenizer.*
-	$(INSTALL_DATA) Tokenize/.libs/*.so $(DESTDIR)$(datadir)/pinot/tokenizers/
+	@rm $(DESTDIR)$(libdir)/lib*tokenizer.a $(DESTDIR)$(libdir)/lib*tokenizer.la
+	@mv $(DESTDIR)$(libdir)/lib*tokenizer* $(DESTDIR)$(datadir)/pinot/tokenizers/
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
 	$(INSTALL_DATA) UI/GTK2/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/applications
