@@ -867,6 +867,11 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			pIndexTree = pIndexPage->getTree();
 			if (pIndexTree != NULL)
 			{
+				const vector<IndexedDocument> &docsList = pBrowseThread->getDocuments();
+
+				// Add the documents to the tree
+				pIndexTree->addDocuments(docsList);
+
 				pIndexPage->setDocumentsCount(pBrowseThread->getDocumentsCount());
 				pIndexPage->updateButtonsState(m_maxDocsCount);
 
@@ -1328,25 +1333,6 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 	}
 
 	set_status(_("Edited index"));
-}
-
-//
-// Message reception from IndexBrowserThread
-//
-void mainWindow::on_message_indexupdate(IndexedDocument docInfo, unsigned int docId, string indexName)
-{
-	// Find the page for this index
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(to_utf8(indexName), NotebookPageBox::INDEX_PAGE));
-	if (pIndexPage == NULL)
-	{
-		// It's probably been closed by the user
-#ifdef DEBUG
-		cout << "mainWindow::on_message_indexupdate: " << indexName << " not being shown" << endl;
-#endif
-		return;
-	}
-
-	append_document(pIndexPage, to_utf8(indexName), docInfo);
 }
 
 //
@@ -2932,8 +2918,6 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &labelName
 	// Spawn a new thread to browse the index
 	IndexBrowserThread *pBrowseThread = new IndexBrowserThread(
 		from_utf8(indexName), labelName, m_maxDocsCount, startDoc);
-	pBrowseThread->getUpdateSignal().connect(SigC::slot(*this,
-		&mainWindow::on_message_indexupdate));
 	start_thread(pBrowseThread);
 }
 

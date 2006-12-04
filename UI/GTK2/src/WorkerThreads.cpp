@@ -158,6 +158,9 @@ string WorkerThread::getStatus(void) const
 
 void WorkerThread::threadHandler(void)
 {
+#ifdef DEBUG
+	cout << "WorkerThread::threadHandler: thread " << m_id << " " << pthread_self() << endl;
+#endif
 	try
 	{
 		doWork();
@@ -648,27 +651,15 @@ unsigned int IndexBrowserThread::getDocumentsCount(void) const
 	return m_indexDocsCount;
 }
 
-bool IndexBrowserThread::stop(void)
+const vector<IndexedDocument> &IndexBrowserThread::getDocuments(void) const
 {
-	// Disconnect the signal
-	Signal3<void, IndexedDocument, unsigned int, string>::slot_list_type slotsList = m_signalUpdate.slots();
-	Signal3<void, IndexedDocument, unsigned int, string>::slot_list_type::iterator slotIter = slotsList.begin();
-	if (slotIter != slotsList.end())
-	{
-		if (slotIter->empty() == false)
-		{
-			slotIter->block();
-			slotIter->disconnect();
-		}
-	}
-	m_done = true;
-
-	return true;
+	return m_documentsList;
 }
 
-SigC::Signal3<void, IndexedDocument, unsigned int, string>& IndexBrowserThread::getUpdateSignal(void)
+bool IndexBrowserThread::stop(void)
 {
-	return m_signalUpdate;
+	m_done = true;
+	return true;
 }
 
 void IndexBrowserThread::doWork(void)
@@ -725,6 +716,8 @@ void IndexBrowserThread::doWork(void)
 	{
 		pIndex->listDocumentsWithLabel(m_labelName, docIDList, m_maxDocsCount, m_startDoc);
 	}
+
+	m_documentsList.reserve(m_maxDocsCount);
 	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
 	{
 		if (m_done == true)
@@ -751,8 +744,8 @@ void IndexBrowserThread::doWork(void)
 			indexedDoc.setTimestamp(docInfo.getTimestamp());
 			indexedDoc.setSize(docInfo.getSize());
 
-			// Signal
-			m_signalUpdate(indexedDoc, docId, m_indexName);
+			// Insert that document
+			m_documentsList.push_back(indexedDoc);
 			++numDocs;
 		}
 #ifdef DEBUG

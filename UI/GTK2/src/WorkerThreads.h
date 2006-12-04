@@ -167,9 +167,9 @@ class IndexBrowserThread : public WorkerThread
 
 		unsigned int getDocumentsCount(void) const;
 
-		virtual bool stop(void);
+		const std::vector<IndexedDocument> &getDocuments(void) const;
 
-		SigC::Signal3<void, IndexedDocument, unsigned int, std::string>& getUpdateSignal(void);
+		virtual bool stop(void);
 
 	protected:
 		std::string m_indexName;
@@ -177,7 +177,7 @@ class IndexBrowserThread : public WorkerThread
 		unsigned int m_indexDocsCount;
 		unsigned int m_maxDocsCount;
 		unsigned int m_startDoc;
-		SigC::Signal3<void, IndexedDocument, unsigned int, std::string> m_signalUpdate;
+		std::vector<IndexedDocument> m_documentsList;
 
 		virtual void doWork(void);
 
