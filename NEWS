@@ -1,14 +1,20 @@
-??? version_0_6_4
+2006/12/05 version_0_6_4
 Collect :
  - don't needlessly load files that are going to be handled by an helper application
 Index :
  - store documents size and file extension, if any
  - fixed concurrency bug that could thrash the index on SMP systems
  - very long capitalized terms could lead to document loss
+ - file names were always lower-cased
 Search :
  - regenerated the Google SOAP API stubs with gsoap 2.7.8c
 UI :
  - added filter on file extension
+ - fixed crash on SMP systems when listing an index
+ - fixed deadlock when indexing a query's results. Oddly enough, it seems it
+  happened only on FreeBSD !
+ - Dutch translation by Tikkel
+ - Swedish translation by Daniel Nylander
 Daemon :
  - set a lower scheduling priority
  - queue events in the database, not in memory
