@@ -1308,9 +1308,6 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
-#ifdef DEBUG
-			cout << "XapianIndex::unindexDocument: indexed " << docId << endl;
-#endif
 			// Delete the document from the index
 			pIndex->delete_document(docId);
 			unindexed = true;
@@ -1353,9 +1350,6 @@ bool XapianIndex::unindexDocument(const string &location)
 		{
 			string term = limitTermLength(string("U") + Url::canonicalizeUrl(location), true);
 
-#ifdef DEBUG
-			cout << "XapianIndex::unindexDocuments: indexed " << term << endl;
-#endif
 			// Only one document should have this term
 			pIndex->delete_document(term);
 			unindexed = true;
@@ -1398,9 +1392,6 @@ bool XapianIndex::unindexDocuments(const string &labelName)
 		{
 			string term("XLABEL:");
 
-#ifdef DEBUG
-			cout << "XapianIndex::unindexDocuments: indexed " << labelName << endl;
-#endif
 			// Delete documents from the index
 			term += labelName;
 			pIndex->delete_document(term);
