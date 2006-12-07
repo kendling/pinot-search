@@ -33,7 +33,7 @@ BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 
 BuildRequires: taglib-devel >= 1.4
 BuildRequires: gcc-c++
 %if 0%{?_with_soap:1}
-BuildRequires: gsoap
+BuildRequires: gsoap >= 2.7.8c
 %endif
 
 %description
