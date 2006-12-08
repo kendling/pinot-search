@@ -152,15 +152,16 @@ fi
 dnl boost Spirit 
 AM_CONDITIONAL(HAVE_BOOST_SPIRIT, false)
 AC_CHECK_HEADERS([boost/spirit/core.hpp],
-    [AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)
-    ])
+   [AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)
+   ])
 
 dnl TextCat
-AC_CHECK_HEADERS([textcat.h])
+AC_CHECK_HEADERS([textcat.h],,
+   [AC_MSG_ERROR([Can't find textcat.h.])])
 AC_CHECK_LIB(textcat, textcat_Cat,
-    [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)],
-    [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)]
-    )
+   [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)],
+   [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)]
+   )
 
 dnl pthreads
 pthreadlib=""
