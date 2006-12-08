@@ -195,10 +195,10 @@ int main(int argc, char **argv)
 	settings.loadSearchEngines(prefixDir + string("/share/pinot/engines"));
 	settings.loadSearchEngines(confDirectory + string("/engines"));
 	// Load tokenizer libraries, if any
-	TokenizerFactory::loadTokenizers(prefixDir + string("/share/pinot/tokenizers"));
+	TokenizerFactory::loadTokenizers(string(LIBDIR) + string("/pinot/tokenizers"));
 	TokenizerFactory::loadTokenizers(confDirectory + string("/tokenizers"));
 	// Load the settings
-	settings.loadGlobal(prefixDir + string("/share/pinot/globalconfig.xml"));
+	settings.loadGlobal(string(SYSCONFDIR) + string("/pinot/globalconfig.xml"));
 	settings.load();
 
 	// Catch interrupts

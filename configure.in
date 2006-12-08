@@ -48,7 +48,14 @@ fi
 
 AS_AC_EXPAND(DATADIR, $datadir)
 AS_AC_EXPAND(BINDIR, $bindir)
+
+dnl Location of system directories
 AS_AC_EXPAND(SYSCONFDIR, $sysconfdir)
+AC_DEFINE_UNQUOTED(SYSCONFDIR, "$SYSCONFDIR",
+		[Define to the system configuration directory.])
+AS_AC_EXPAND(LIBDIR, $libdir)
+AC_DEFINE_UNQUOTED(LIBDIR, "$LIBDIR",
+		[Define to the libraries directory.])
 
 dnl Set DBUS_SERVICES_DIR in de.berlios.Pinot.service.
 DBUS_SERVICES_DIR="$DATADIR/dbus-1/services"

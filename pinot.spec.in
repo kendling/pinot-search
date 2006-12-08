@@ -27,7 +27,6 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: xapian-core-libs >= 0.9.7, libtextcat >= 2.2, sqlite >= 3.1.2, curl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.6, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
 Requires: unzip, antiword, unrtf, %{pftotext_pkg}
-Obsoletes: pinot-pdf, pinot-word, pinot-text-docs
 BuildRequires: xapian-core-devel >= 0.9.7, libtextcat-devel >= 2.2, sqlite-devel >= 3.1.2, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4
@@ -88,44 +87,44 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %files
 %defattr(-, root, root, -)
 %doc ChangeLog COPYING NEWS README TODO
+%{_sysconfdir}/pinot/globalconfig.xml
+%{_sysconfdir}/pinot/textcat_conf.txt
+%{_sysconfdir}/pinot/textcat3_conf.txt
 %{_bindir}/pinot
 %ghost %{_bindir}/pinot-collect
 %{_bindir}/pinot-dbus-daemon
 %{_bindir}/pinot-index
 %{_bindir}/pinot-search
-%{_datadir}/pinot/globalconfig.xml
+%{_libdir}/pinot/tokenizers/libopendocumenttokenizer.so*
+%{_libdir}/pinot/tokenizers/libpdftokenizer.so*
+%{_libdir}/pinot/tokenizers/librtftokenizer.so*
+%{_libdir}/pinot/tokenizers/libwordtokenizer.so*
 %{_datadir}/pinot/xapian-powered.png
 %{_datadir}/pinot/metase-gtk2.glade
 %{_datadir}/pinot/metase-gtk2.gladep
 %{_datadir}/pinot/pinot-dbus-daemon.xml
-%{_datadir}/pinot/textcat_conf.txt
-%{_datadir}/pinot/textcat3_conf.txt
-%{_datadir}/pinot/tokenizers/libopendocumenttokenizer.so*
-%{_datadir}/pinot/tokenizers/libpdftokenizer.so*
-%{_datadir}/pinot/tokenizers/librtftokenizer.so*
-%{_datadir}/pinot/tokenizers/libwordtokenizer.so*
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/*.src
 %dir %{_datadir}/pinot/engines/
-%config(noreplace) %{_datadir}/pinot/engines/A9.src
-%config(noreplace) %{_datadir}/pinot/engines/Accoona.src
-%config(noreplace) %{_datadir}/pinot/engines/Ask.src
-%config(noreplace) %{_datadir}/pinot/engines/BitTorrent.src
-%config(noreplace) %{_datadir}/pinot/engines/Clusty.src
-%config(noreplace) %{_datadir}/pinot/engines/CreativeCommons.src
-%config(noreplace) %{_datadir}/pinot/engines/Exalead.src
-%config(noreplace) %{_datadir}/pinot/engines/Freshmeat.src
-%config(noreplace) %{_datadir}/pinot/engines/Google.src
-%config(noreplace) %{_datadir}/pinot/engines/GoogleCodeSearch.src
-%config(noreplace) %{_datadir}/pinot/engines/MozDexDescription.xml
-%config(noreplace) %{_datadir}/pinot/engines/MSN.src
-%config(noreplace) %{_datadir}/pinot/engines/RollYOTopNews.src
-%config(noreplace) %{_datadir}/pinot/engines/Topix.src
-%config(noreplace) %{_datadir}/pinot/engines/WiseNut.src
-%config(noreplace) %{_datadir}/pinot/engines/Yahoo.src
-%config(noreplace) %{_datadir}/pinot/engines/YahooAPI.src
-%config(noreplace) %{_datadir}/pinot/engines/Wikipedia.src
-%config(noreplace) %{_datadir}/pinot/engines/KodersDescription.xml
+%{_datadir}/pinot/engines/A9.src
+%{_datadir}/pinot/engines/Accoona.src
+%{_datadir}/pinot/engines/Ask.src
+%{_datadir}/pinot/engines/BitTorrent.src
+%{_datadir}/pinot/engines/Clusty.src
+%{_datadir}/pinot/engines/CreativeCommons.src
+%{_datadir}/pinot/engines/Exalead.src
+%{_datadir}/pinot/engines/Freshmeat.src
+%{_datadir}/pinot/engines/Google.src
+%{_datadir}/pinot/engines/GoogleCodeSearch.src
+%{_datadir}/pinot/engines/MozDexDescription.xml
+%{_datadir}/pinot/engines/MSN.src
+%{_datadir}/pinot/engines/RollYOTopNews.src
+%{_datadir}/pinot/engines/Topix.src
+%{_datadir}/pinot/engines/WiseNut.src
+%{_datadir}/pinot/engines/Yahoo.src
+%{_datadir}/pinot/engines/YahooAPI.src
+%{_datadir}/pinot/engines/Wikipedia.src
+%{_datadir}/pinot/engines/KodersDescription.xml
 %{_datadir}/locale/fr/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/es/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/nl/LC_MESSAGES/pinot.mo
@@ -141,14 +140,15 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files audio-docs 
 %defattr(-, root, root, -)
-%{_datadir}/pinot/tokenizers/libtaglibtokenizer.so*
+%{_libdir}/pinot/tokenizers/libtaglibtokenizer.so*
 
 %files omega
 %defattr(-, root, root, -)
-%config(noreplace) %{_datadir}/pinot/engines/OmegaDescription.xml
+%{_datadir}/pinot/engines/OmegaDescription.xml
 
 %files deskbar
 %defattr(-, root, root, -)
 %{_libdir}/deskbar-applet/handlers/pinot-live.py*
 
 %changelog
+

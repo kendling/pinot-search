@@ -55,7 +55,7 @@ LanguageDetector::~LanguageDetector()
 void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 			std::vector<std::string> &candidates)
 {
-	string confFile(PREFIX);
+	string confFile(SYSCONFDIR);
 #ifdef HAVE_TEXTCAT_CAT
 	const char *catResults[10];
 #endif
@@ -63,7 +63,7 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 	candidates.clear();
 
 	// What configuration file should we use ?
-	confFile += "/share/pinot/";
+	confFile += "/pinot/";
 	if (strncasecmp(textcat_Version(), "TextCat 3", 9) == 0)
 	{
 #ifdef DEBUG
