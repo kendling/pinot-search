@@ -416,7 +416,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 		return;
 	}
 
-	string language(StringManip::extractField(record, "language=", ""));
+	string language(StringManip::extractField(record, "language=", "\n"));
 	string timestamp(StringManip::extractField(record, "timestamp=", "\n"));
 
 	docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
@@ -434,7 +434,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 		}
 	}
 	docInfo.setTimestamp(timestamp);
-	string bytesSize(StringManip::extractField(record, "size=", "\n"));
+	string bytesSize(StringManip::extractField(record, "size=", ""));
 	if (bytesSize.empty() == false)
 	{
 		docInfo.setSize((off_t )atol(bytesSize.c_str()));
@@ -641,7 +641,7 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 			string record = doc.get_data();
 			if (record.empty() == false)
 			{
-				string language(Languages::toLocale(StringManip::extractField(record, "language=", "")));
+				string language(Languages::toLocale(StringManip::extractField(record, "language=", "\n")));
 				// We used to use timestamp prior to 0.60
 				string timestamp(StringManip::extractField(record, "timestamp=", "\n"));
 
@@ -660,7 +660,7 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 					}
 				}
 				docInfo.setTimestamp(timestamp);
-				string bytesSize(StringManip::extractField(record, "size=", "\n"));
+				string bytesSize(StringManip::extractField(record, "size=", ""));
 				if (bytesSize.empty() == false)
 				{
 					docInfo.setSize((off_t )atol(bytesSize.c_str()));
