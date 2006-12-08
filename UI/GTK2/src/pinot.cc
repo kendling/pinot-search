@@ -28,6 +28,13 @@
 #include <glibmm/ustring.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/convert.h>
+extern "C"
+{
+#define DBUS_API_SUBJECT_TO_CHANGE
+#include <dbus/dbus.h>
+#include <dbus/dbus-glib.h>
+#include <dbus/dbus-glib-lowlevel.h>
+}
 #include <gtkmm/main.h>
 
 #include "TokenizerFactory.h"
@@ -241,6 +248,10 @@ int main(int argc, char **argv)
 	}
 
 	atexit(closeAll);
+
+	// Initialize the GType and the D-Bus thread system
+	g_type_init();
+	dbus_g_thread_init();
 
 	try
 	{
