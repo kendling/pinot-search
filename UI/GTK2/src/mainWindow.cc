@@ -2029,11 +2029,15 @@ void mainWindow::on_showfromindex_activate()
 #endif
 
 	// Now apply these labels to all the documents
-	for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
-		docIter != documentsList.end(); ++docIter)
+	if ((docLabels.empty() == false) ||
+		(labels.empty() == false))
 	{
-		// Set the document's labels list
-		pIndex->setDocumentLabels(docIter->getID(), labels);
+		for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
+			docIter != documentsList.end(); ++docIter)
+		{
+			// Set the document's labels list
+			pIndex->setDocumentLabels(docIter->getID(), labels);
+		}
 	}
 
 	if ((documentsList.size() == 1) &&
