@@ -90,12 +90,13 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 		bool oneArgumentOnly = true;
 
 		// Expand parameters
+		// See http://standards.freedesktop.org/desktop-entry-spec/latest/
 		// We assume that all arguments are full-blown URLs
 		string::size_type paramPos = commandLine.find('%');
 		while ((paramPos != string::npos) &&
 				(paramPos + 1 < commandLine.length()))
 		{
-			string replacement;
+			string shellReplacement, replacement;
 
 			foundParam = true;
 			switch (commandLine[paramPos + 1])
@@ -106,7 +107,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 					noArgument = false;
 					break;
 				case 'f':
-					if (firstUrl.getProtocol() != "file")
+					if (firstUrl.getProtocol() == "file")
 					{
 						replacement = firstUrl.getLocation();
 						replacement += "/";
@@ -115,14 +116,14 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 					noArgument = false;
 					break;
 				case 'd':
-					if (firstUrl.getProtocol() != "file")
+					if (firstUrl.getProtocol() == "file")
 					{
 						replacement = firstUrl.getLocation();
 					}
 					noArgument = false;
 					break;
 				case 'n':
-					if (firstUrl.getProtocol() != "file")
+					if (firstUrl.getProtocol() == "file")
 					{
 						replacement = firstUrl.getFile();
 					}
@@ -208,7 +209,10 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 					break;
 			}
 
-			string shellReplacement(Glib::shell_quote(replacement));
+			if (replacement.empty() == false)
+			{
+				shellReplacement = Glib::shell_quote(replacement);
+			}
 			commandLine.replace(paramPos, 2, shellReplacement);
 
 			// Next
@@ -218,8 +222,9 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 		if (foundParam == false)
 		{
 			// If no parameter was found, assume %f
-			if (firstUrl.getProtocol() != "file")
+			if (firstUrl.getProtocol() == "file")
 			{
+				commandLine += " ";
 				commandLine += firstUrl.getLocation();
 				commandLine += "/";
 				commandLine += firstUrl.getFile();
