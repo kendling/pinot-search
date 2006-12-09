@@ -4,6 +4,9 @@ General
 - Advertise service via Rendezvous
 - MIMEScanner should also return parent types so that we don't filter out types unnecessarily
 - Build a -devel package for those who want to write their own tokenizers
+- Generate doxygen documentation
+- Load desktop files from /usr/share/applications/kde ?
+- Build with -DNDEBUG in non-DEBUG mode
 
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
@@ -14,6 +17,7 @@ Tokenize
 - Check whether pdftotext flattens text in PDF documents that have columns
 - HtmlTokenizer should skip htdig_noindex blocks (http://www.htdig.org/attrs.html#noindex_start)
 - HtmlTokenizer to look for META tags Author, Creator, Publisher and CreationDate
+- Don't load documents' content for unsupported types
 
 Monitor
 - Implement support for Solaris FEM
@@ -34,6 +38,7 @@ Search
 - Make sure Description files' SyndicationRight is not private or closed
 - Support for Google Buttons
 - Export search results as OpenSearch Response or CSV
+- Nested queries
 
 Index
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers and don't index stop words
@@ -46,10 +51,12 @@ Index
 - Think about indexing archives (parent documents) and their contents (child documents)
 - Reopen connection to remote indexes when necessary; does Xapian throw a RemoteError ?
 - Allow to access remote Xapian indexes tunneled through ssh, using Xapian::Remote::open()
-  defined in /usr/include/xapian/dbfactory.h
+  defined in /usr/include/xapian/dbfactory.h (xapian-progsrv backend)
 - All indexes can be browsed with the new global posting list found in Xapian > 0.9.9, ie
   Xapian::Database::postlist_begin("")
 - Store date as terms (D, M and Y prefixes), as done by omindex
+- Index xattrs if any
+- pinot-index doesn't initialize tokenizers
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -70,6 +77,11 @@ Daemon
 - Make unique (http://guniqueapp.akl.lt/)
 - Queue unindexing too
 - Export Web searching over D-Bus
+- Labels should be managed by the daemon, and not saved to the configuration file
+- Make sure labels are alpha-numeric characters exclusively
+- DBus SetDocumentLabels should create labels if necessary
+- Reintroduce Index method in D-Bus interface
+- Actions stemming from DBus messages should be handled by a separate thread that posts replies
 
 UI
 - When sorting results by host name, give better score to results that appear several times
@@ -87,4 +99,7 @@ UI
   all the documents that match a specific tag
 - Either Live Query behaves like a live query (eg results list updated when new documents match)
   or it is renamed to something else to avoid confusion
+- Labels should be set by a separate thread
+- When viewing a result, all rows for that same URL should be updated with the Viewed icon
+- Prompt users for a command-line if the type of the document to open has no application
 
