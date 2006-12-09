@@ -196,6 +196,11 @@ string PinotSettings::getCurrentUserName(void)
 	return "";
 }
 
+bool PinotSettings::isFirstRun(void) const
+{
+	return m_firstRun;
+}
+
 void PinotSettings::clear(void)
 {
 	// Clear lists

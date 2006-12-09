@@ -100,6 +100,14 @@ prefsDialog::prefsDialog() :
 		apiKeyLabel->hide();
 		apiKeyEntry->hide();
 	}
+
+	// Show The Indexing tab on first run
+	if ((m_settings.isFirstRun() == true) &&
+		(prefsNotebook != NULL) &&
+		(prefsNotebook->get_n_pages() > 2))
+	{
+		prefsNotebook->set_current_page(2);
+	}
 }
 
 prefsDialog::~prefsDialog()

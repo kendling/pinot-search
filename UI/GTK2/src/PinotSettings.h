@@ -46,6 +46,8 @@ class PinotSettings
 
 		static std::string getCurrentUserName(void);
 
+		bool isFirstRun(void) const;
+
 		void clear(void);
 
 		bool loadGlobal(const std::string &fileName);

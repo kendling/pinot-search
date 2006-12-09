@@ -190,6 +190,12 @@ mainWindow::mainWindow() :
 	m_pNotebook->show();
 	show();
 	liveQueryEntry->grab_focus();
+
+	// Open the preferences on first run
+	if (m_settings.isFirstRun() == true)
+	{
+		on_configure_activate();
+	}
 }
 
 //
