@@ -991,7 +991,16 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		if ((queryProps.getIndexResults() == true) &&
 			(resultsList.empty() == false))
 		{
-			string labelName = queryProps.getLabelName();
+			IndexInterface *pDocsIndex = m_settings.getIndex(m_settings.m_docsIndexLocation);
+			IndexInterface *pDaemonIndex = m_settings.getIndex(m_settings.m_daemonIndexLocation);
+			set<string> labels;
+			string labelName(queryProps.getLabelName());
+
+			if (labelName.empty() == false)
+			{
+				// Queue this
+				labels.insert(labelName);
+			}
 
 #ifdef DEBUG
 			cout << "mainWindow::on_thread_end: indexing results, with label " << labelName << endl;
@@ -999,14 +1008,39 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			for (vector<Result>::const_iterator resultIter = resultsList.begin();
 				resultIter != resultsList.end(); ++resultIter)
 			{
-				set<string> labels;
-				DocumentInfo docInfo(resultIter->getTitle(), resultIter->getLocation(),
-					resultIter->getType(), resultIter->getLanguage());
+				unsigned int docId = 0;
 
-				// Queue this
-				labels.insert(labelName);
-				docInfo.setLabels(labels);
-				m_state.queue_index(docInfo);
+				if ((pDocsIndex != NULL) &&
+					(pDocsIndex->isGood() == true) &&
+					((docId = pDocsIndex->hasDocument(resultIter->getLocation())) > 0))
+				{
+					if (labelName.empty() == false)
+					{
+						// Only apply the new label to the document
+						pDocsIndex->setDocumentLabels(docId, labels, false);
+					}
+				}
+				// Is this a document the daemon indexed ?
+				else if ((pDaemonIndex != NULL) &&
+					(pDaemonIndex->isGood() == true) &&
+					((docId = pDaemonIndex->hasDocument(resultIter->getLocation())) > 0))
+				{
+					if (labelName.empty() == false)
+					{
+						// Only apply the new label to the document
+						pDaemonIndex->setDocumentLabels(docId, labels, false);
+					}
+				}
+				else
+				{
+					DocumentInfo docInfo(resultIter->getTitle(), resultIter->getLocation(),
+						resultIter->getType(), resultIter->getLanguage());
+
+					docInfo.setLabels(labels);
+
+					// No, this is a new document not found in either index
+					m_state.queue_index(docInfo);
+				}
 			}
 		}
 	}

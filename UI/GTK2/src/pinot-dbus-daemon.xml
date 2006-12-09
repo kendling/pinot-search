@@ -30,7 +30,7 @@
     <!--
 	Retrieves a document's labels.
 	 docId: the document's ID
-	 labels: array of labels to apply to the document
+	 labels: array of labels applied to the document
 	-->
     <method name="GetDocumentLabels">
       <annotation name="de.berlios.Pinot.GetDocumentLabels" value="pinotDBus"/>
