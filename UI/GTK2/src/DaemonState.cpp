@@ -33,7 +33,7 @@
 #include "OnDiskHandler.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
-#include "WorkerThreads.h"
+#include "ServerThreads.h"
 
 using namespace std;
 using namespace Glib;
@@ -196,18 +196,25 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	}
 	else if (type == "UnindexingThread")
 	{
-		UnindexingThread *pUnindexThread = dynamic_cast<UnindexingThread *>(pThread);
-		if (pUnindexThread == NULL)
-		{
-			delete pThread;
-			return;
-		}
-
 		// FIXME: anything to do ?
 	}
 	else if (type == "MonitorThread")
 	{
 		// FIXME: do something about this
+	}
+	else if (type == "DBusServletThread")
+	{
+		DBusServletThread *pDBusThread = dynamic_cast<DBusServletThread *>(pThread);
+		if (pDBusThread == NULL)
+		{
+			delete pThread;
+			return;
+		}
+
+		if (pDBusThread->mustQuit() == true)
+		{
+			m_signalQuit(0);
+		}
 	}
 
 	// Delete the thread
@@ -239,5 +246,10 @@ void DaemonState::on_message_filefound(const DocumentInfo &docInfo, const string
 		cout << "DaemonState::on_message_filefound: new directory " << location.substr(7) << endl;
 #endif
 	}
+}
+
+SigC::Signal1<void, int>& DaemonState::getQuitSignal(void)
+{
+	return m_signalQuit;
 }
 

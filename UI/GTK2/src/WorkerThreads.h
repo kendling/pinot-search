@@ -34,12 +34,10 @@
 #include <glibmm/ustring.h>
 
 #include "Document.h"
-#include "MonitorInterface.h"
 #include "IndexedDocument.h"
 #include "DownloaderInterface.h"
 #include "QueryProperties.h"
 #include "Result.h"
-#include "MonitorHandler.h"
 
 class WorkerThread
 {
@@ -391,70 +389,6 @@ class UpdateDocumentThread : public WorkerThread
 	private:
 		UpdateDocumentThread(const UpdateDocumentThread &other);
 		UpdateDocumentThread &operator=(const UpdateDocumentThread &other);
-
-};
-
-class MonitorThread : public WorkerThread
-{
-	public:
-		MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler);
-		virtual ~MonitorThread();
-
-		virtual std::string getType(void) const;
-
-		virtual bool stop(void);
-
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool>& getDirectoryFoundSignal(void);
-
-	protected:
-		int m_ctrlReadPipe;
-		int m_ctrlWritePipe;
-		MonitorInterface *m_pMonitor;
-		MonitorHandler *m_pHandler;
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalDirectoryFound;
-
-		void processEvents(void);
-		virtual void doWork(void);
-
-	private:
-		MonitorThread(const MonitorThread &other);
-		MonitorThread &operator=(const MonitorThread &other);
-
-};
-
-class DirectoryScannerThread : public WorkerThread
-{
-	public:
-		DirectoryScannerThread(const std::string &dirName, bool isSource,
-			unsigned int maxLevel, bool followSymLinks,
-			MonitorInterface *pMonitor, MonitorHandler *pHandler);
-		virtual ~DirectoryScannerThread();
-
-		virtual std::string getType(void) const;
-
-		virtual std::string getDirectory(void) const;
-
-		virtual bool stop(void);
-
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool>& getFileFoundSignal(void);
-
-	protected:
-		std::string m_dirName;
-		unsigned int m_maxLevel;
-		bool m_followSymLinks;
-		MonitorInterface *m_pMonitor;
-		MonitorHandler *m_pHandler;
-		unsigned int m_currentLevel;
-		unsigned int m_sourceId;
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalFileFound;
-
-		void foundFile(const DocumentInfo &docInfo);
-		bool scanEntry(const std::string &entryName);
-		virtual void doWork(void);
-
-	private:
-		DirectoryScannerThread(const DirectoryScannerThread &other);
-		DirectoryScannerThread &operator=(const DirectoryScannerThread &other);
 
 };
 

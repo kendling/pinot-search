@@ -31,13 +31,6 @@
 #include <glibmm/miscutils.h>
 #include <glibmm/convert.h>
 #include <glibmm/object.h>
-extern "C"
-{
-#define DBUS_API_SUBJECT_TO_CHANGE
-#include <dbus/dbus.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-}
 #include <glibmm/main.h>
 
 #include "TokenizerFactory.h"
@@ -57,6 +50,7 @@ extern "C"
 #include "NLS.h"
 #include "DaemonState.h"
 #include "PinotSettings.h"
+#include "ServerThreads.h"
 
 using namespace std;
 
@@ -116,22 +110,6 @@ static void quitAll(int sigNum)
 	}
 }
 
-static DBusMessage *newDBusReply(DBusMessage *pMessage)
-{
-	if (pMessage == NULL)
-	{
-		return NULL;
-	}
-
-	DBusMessage *pReply = dbus_message_new_method_return(pMessage);
-	if (pReply != NULL)
-	{
-		return pReply;
-	}
-
-	return NULL;
-}
-
 static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
 #ifdef DEBUG
@@ -164,454 +142,23 @@ static void unregisteredHandler(DBusConnection *pConnection, void *pData)
 
 static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
-	XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 	DaemonState *pServer = NULL;
-	DBusMessage *pReply = NULL;
-	DBusError error;
-	const char *pSender = dbus_message_get_sender(pMessage);
-	bool processedMessage = true, flushIndex = false, quitLoop = false;
 
 	if (pData != NULL)
 	{
 		pServer = (DaemonState *)pData;
 	}
 
-	dbus_error_init(&error);
-
-#ifdef DEBUG
-	if (pSender != NULL)
+	if ((pConnection != NULL) &&
+		(pMessage != NULL))
 	{
-		cout << "messageHandler: called by " << pSender << endl;
-	}
-	else
-	{
-		cout << "messageHandler: called by unknown sender" << endl;
-	}
-#endif
+		dbus_connection_ref(pConnection);
+		dbus_message_ref(pMessage);
 
-	if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "DeleteLabel") == TRUE)
-	{
-		char *pLabel = NULL;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_STRING, &pLabel,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-#ifdef DEBUG
-			cout << "messageHandler: received DeleteLabel " << pLabel << endl;
-#endif
-			// Delete the label
-			flushIndex = index.deleteLabel(pLabel);
-
-			// Prepare the reply
-			pReply = newDBusReply(pMessage);
-			if (pReply != NULL)
-			{
-				dbus_message_append_args(pReply,
-					DBUS_TYPE_STRING, &pLabel,
-					DBUS_TYPE_INVALID);
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetDocumentInfo") == TRUE)
-	{
-		unsigned int docId = 0;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_UINT32, &docId,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			DocumentInfo docInfo;
-
-#ifdef DEBUG
-			cout << "messageHandler: received GetDocumentInfo " << docId << endl;
-#endif
-			if (index.getDocumentInfo(docId, docInfo) == true)
-			{
-				// Prepare the reply
-				pReply = newDBusReply(pMessage);
-				if (pReply != NULL)
-				{
-					string language(Languages::toEnglish(docInfo.getLanguage()));
-					const char *pTitle = docInfo.getTitle().c_str();
-					const char *pLocation = docInfo.getLocation().c_str();
-					const char *pType = docInfo.getType().c_str();
-					const char *pLanguage = language.c_str();
-
-					dbus_message_append_args(pReply,
-						DBUS_TYPE_STRING, &pTitle,
-						DBUS_TYPE_STRING, &pLocation,
-						DBUS_TYPE_STRING, &pType,
-						DBUS_TYPE_STRING, &pLanguage,
-						DBUS_TYPE_INVALID);
-				}
-			}
-			else
-			{
-				pReply = dbus_message_new_error(pMessage,
-					"de.berlios.Pinot.GetDocumentInfo",
-					"Unknown document");
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetDocumentLabels") == TRUE)
-	{
-		unsigned int docId = 0;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_UINT32, &docId,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			set<string> labels;
-
-#ifdef DEBUG
-			cout << "messageHandler: received GetDocumentLabels " << docId << endl;
-#endif
-			if (index.getDocumentLabels(docId, labels) == true)
-			{
-				GPtrArray *pLabels = g_ptr_array_new();
-
-				for (set<string>::const_iterator labelIter = labels.begin();
-					labelIter != labels.end(); ++labelIter)
-				{
-					string labelName(*labelIter);
-
-					g_ptr_array_add(pLabels, const_cast<char*>(labelName.c_str()));
-#ifdef DEBUG
-					cout << "messageHandler: adding label " << pLabels->len << " " << labelName << endl;
-#endif
-				}
-
-				// Prepare the reply
-				pReply = newDBusReply(pMessage);
-				if (pReply != NULL)
-				{
-					dbus_message_append_args(pReply,
-						DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pLabels->pdata, pLabels->len,
-						DBUS_TYPE_INVALID);
-
-					// Send the reply here
-					dbus_connection_send(pConnection, pReply, NULL);
-					dbus_message_unref(pReply);
-
-					pReply = NULL;
-				}
-
-				// Free the array
-				g_ptr_array_free(pLabels, TRUE);
-			}
-			else
-			{
-				pReply = dbus_message_new_error(pMessage,
-					"de.berlios.Pinot.GetDocumentLabels",
-					" failed");
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "GetStatistics") == TRUE)
-	{
-		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
-		unsigned int crawledFilesCount = history.getItemsCount();
-		unsigned int docsCount = index.getDocumentsCount();
-
-#ifdef DEBUG
-		cout << "messageHandler: received GetStatistics" << endl;
-#endif
-		// Prepare the reply
-		pReply = newDBusReply(pMessage);
-		if (pReply != NULL)
-		{
-			dbus_message_append_args(pReply,
-				DBUS_TYPE_UINT32, &crawledFilesCount,
-				DBUS_TYPE_UINT32, &docsCount,
-				DBUS_TYPE_INVALID);
-		}
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "RenameLabel") == TRUE)
-	{
-		char *pOldLabel = NULL;
-		char *pNewLabel = NULL;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_STRING, &pOldLabel,
-			DBUS_TYPE_STRING, &pNewLabel,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-#ifdef DEBUG
-			cout << "messageHandler: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
-#endif
-			// Rename the label
-			flushIndex = index.renameLabel(pOldLabel, pNewLabel);
-
-			// Prepare the reply
-			pReply = newDBusReply(pMessage);
-			if (pReply != NULL)
-			{
-				dbus_message_append_args(pReply,
-					DBUS_TYPE_STRING, &pNewLabel,
-					DBUS_TYPE_INVALID);
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SetDocumentInfo") == TRUE)
-	{
-		char *pTitle = NULL;
-		char *pLocation = NULL;
-		char *pType = NULL;
-		char *pLanguage = NULL;
-		unsigned int docId = 0;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_UINT32, &docId,
-			DBUS_TYPE_STRING, &pTitle,
-			DBUS_TYPE_STRING, &pLocation,
-			DBUS_TYPE_STRING, &pType,
-			DBUS_TYPE_STRING, &pLanguage,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			DocumentInfo docInfo(pTitle, pLocation, pType,
-				((pLanguage != NULL) ? Languages::toLocale(pLanguage) : ""));
-
-#ifdef DEBUG
-			cout << "messageHandler: received SetDocumentInfo " << docId << ", " << pTitle
-				<< ", " << pLocation << ", " << pType << ", " << pLanguage << endl;
-#endif
-
-			// Update the document info
-			flushIndex = index.updateDocumentInfo(docId, docInfo);
-
-			// Prepare the reply
-			pReply = newDBusReply(pMessage);
-			if (pReply != NULL)
-			{
-				dbus_message_append_args(pReply,
-					DBUS_TYPE_UINT32, &docId,
-					DBUS_TYPE_INVALID);
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SetDocumentLabels") == TRUE)
-	{
-		char **ppLabels = NULL;
-		dbus_uint32_t labelsCount = 0;
-		unsigned int docId = 0;
-		gboolean resetLabels = TRUE;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_UINT32, &docId,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &ppLabels, &labelsCount,
-			DBUS_TYPE_BOOLEAN, &resetLabels,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			set<string> labels;
-
-			for (dbus_uint32_t labelIndex = 0; labelIndex < labelsCount; ++labelIndex)
-			{
-				if (ppLabels[labelIndex] == NULL)
-				{
-					break;
-				}
-				labels.insert(ppLabels[labelIndex]);
-			}
-#ifdef DEBUG
-			cout << "messageHandler: received SetDocumentLabels " << docId << ", " << resetLabels
-				<< " with " << labelsCount << " labels" << endl;
-#endif
-			// Set labels
-			flushIndex = index.setDocumentLabels(docId, labels, ((resetLabels == TRUE) ? true : false));
-
-			// Free container types
-			g_strfreev(ppLabels);
-
-			// Prepare the reply
-			pReply = newDBusReply(pMessage);
-			if (pReply != NULL)
-			{
-				dbus_message_append_args(pReply,
-					DBUS_TYPE_UINT32, &docId,
-					DBUS_TYPE_INVALID);
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "SimpleQuery") == TRUE)
-	{
-		char *pSearchText = NULL;
-		dbus_uint32_t maxHits = 0;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_STRING, &pSearchText,
-			DBUS_TYPE_UINT32, &maxHits,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			XapianEngine engine(PinotSettings::getInstance().m_daemonIndexLocation);
-			bool replyWithError = true;
-
-#ifdef DEBUG
-			cout << "messageHandler: received SimpleQuery " << pSearchText << ", " << maxHits << endl;
-#endif
-			if (pSearchText != NULL)
-			{
-				QueryProperties queryProps("DBUS", pSearchText);
-
-				// Run the query
-				engine.setMaxResultsCount(maxHits);
-				if (engine.runQuery(queryProps) == true)
-				{
-					const vector<Result> &resultsList = engine.getResults();
-					vector<string> docIds;
-					GPtrArray *pDocIds = g_ptr_array_new();
-
-					for (vector<Result>::const_iterator resultIter = resultsList.begin();
-						resultIter != resultsList.end(); ++resultIter)
-					{
-						// We only need the document ID
-						unsigned int docId = index.hasDocument(resultIter->getLocation());
-						if (docId > 0)
-						{
-							char docIdStr[64];
-							snprintf(docIdStr, 64, "%u", docId);
-							docIds.push_back(docIdStr);
-						}
-					}
-
-					for (vector<string>::const_iterator docIter = docIds.begin();
-						docIter != docIds.end(); ++docIter)
-					{
-#ifdef DEBUG
-						cout << "messageHandler: adding result " << pDocIds->len << " " << *docIter << endl;
-#endif
-						g_ptr_array_add(pDocIds, const_cast<char*>(docIter->c_str()));
-					}
-
-					// Prepare the reply
-					pReply = newDBusReply(pMessage);
-					if (pReply != NULL)
-					{
-						dbus_message_append_args(pReply,
-							DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &pDocIds->pdata, pDocIds->len,
-							DBUS_TYPE_INVALID);
-
-						// Send the reply here
-						dbus_connection_send(pConnection, pReply, NULL);
-						dbus_message_unref(pReply);
-
-						pReply = NULL;
-						replyWithError = false;
-					}
-
-					// Free the array
-					g_ptr_array_free(pDocIds, TRUE);
-				}
-			}
-
-			if (replyWithError == true)
-			{
-				pReply = dbus_message_new_error(pMessage,
-					"de.berlios.Pinot.SimpleQuery",
-					"Query failed");
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "Stop") == TRUE)
-	{
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			int exitStatus = EXIT_SUCCESS;
-
-#ifdef DEBUG
-			cout << "messageHandler: received Stop" << endl;
-#endif
-			// Prepare the reply
-			pReply = newDBusReply(pMessage);
-			if (pReply != NULL)
-			{
-				dbus_message_append_args(pReply,
-					DBUS_TYPE_INT32, &exitStatus,
-					DBUS_TYPE_INVALID);
-			}
-
-			quitLoop = true;
-		}
-	}
-	else if (dbus_message_is_method_call(pMessage, g_pinotDBusService, "UpdateDocument") == TRUE)
-	{
-		unsigned int docId = 0;
-
-		if (dbus_message_get_args(pMessage, &error,
-			DBUS_TYPE_UINT32, &docId,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			DocumentInfo docInfo;
-
-#ifdef DEBUG
-			cout << "messageHandler: received UpdateDocument " << docId << endl;
-#endif
-			if (index.getDocumentInfo(docId, docInfo) == true)
-			{
-				// Update document
-				pServer->queue_index(docInfo);
-			}
-
-			// Prepare the reply
-			pReply = newDBusReply(pMessage);
-			if (pReply != NULL)
-			{
-				dbus_message_append_args(pReply,
-					DBUS_TYPE_UINT32, &docId,
-					DBUS_TYPE_INVALID);
-			}
-		}
-	}
-	else
-	{
-#ifdef DEBUG
-		cout << "messageHandler: foreign message for/from " << dbus_message_get_interface(pMessage)
-			<< " " << dbus_message_get_member(pMessage) << endl;
-#endif
-		processedMessage = false;
+		pServer->start_thread(new DBusServletThread(pServer, pConnection, pMessage));
 	}
 
-	// Did an error occur ?
-	if (error.message != NULL)
-	{
-#ifdef DEBUG
-		cout << "messageHandler: error occured: " << error.message << endl;
-#endif
-		// Use the error message as reply
-		pReply = dbus_message_new_error(pMessage, error.name, error.message);
-	}
-
-	dbus_error_free(&error);
-
-	if (flushIndex == true)
-	{
-		// Flush now for the sake of the client application
-		index.flush();
-	}
-
-	// Send a reply ?
-	if (pReply != NULL)
-	{
-		dbus_connection_send(pConnection, pReply, NULL);
-		dbus_connection_flush(pConnection);
-#ifdef DEBUG
-		cout << "messageHandler: sent reply" << endl;
-#endif
-		dbus_message_unref(pReply);
-	}
-
-	if (quitLoop == true)
-	{
-		quitAll(0);
-	}
-
-	if (processedMessage == true)
-	{
-		return DBUS_HANDLER_RESULT_HANDLED;
-	}
-
-	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+	return DBUS_HANDLER_RESULT_HANDLED;
 }
 
 int main(int argc, char **argv)
@@ -814,6 +361,7 @@ int main(int argc, char **argv)
 
 		try
 		{
+			server.getQuitSignal().connect(SigC::slot(&quitAll));
 
 			// Connect to threads' finished signal
 			server.connect();

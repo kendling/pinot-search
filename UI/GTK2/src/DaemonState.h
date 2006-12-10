@@ -23,8 +23,9 @@
 #include <queue>
 #include <set>
 
-#include "MonitorInterface.h"
 #include "IndexedDocument.h"
+#include "MonitorInterface.h"
+#include "MonitorHandler.h"
 #include "WorkerThreads.h"
 
 class DaemonState : public ThreadsManager
@@ -42,12 +43,15 @@ class DaemonState : public ThreadsManager
 		void on_message_filefound(const DocumentInfo &docInfo, const std::string &sourceLabel,
 			bool isDirectory);
 
+		SigC::Signal1<void, int>& getQuitSignal(void);
+
 	protected:
 		MonitorInterface *m_pMailMonitor;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pMailHandler;
 		MonitorHandler *m_pDiskHandler;
 		std::string m_locationBeingCrawled;
+		SigC::Signal1<void, int> m_signalQuit;
 
 		bool crawlLocation(const std::string &locationToCrawl, bool isSource, bool doMonitoring);
 

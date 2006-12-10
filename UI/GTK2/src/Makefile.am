@@ -24,6 +24,7 @@ noinst_HEADERS = \
 	PinotSettings.h \
 	PinotUtils.h \
 	ResultsTree.h \
+	ServerThreads.h \
 	WorkerThreads.h
 
 pinot_SOURCES = \
@@ -57,6 +58,7 @@ pinot_dbus_daemon_SOURCES = \
 	MboxHandler.cpp \
 	OnDiskHandler.cpp \
 	PinotSettings.cpp \
+	ServerThreads.cpp \
 	WorkerThreads.cpp
 
 bin_PROGRAMS = pinot pinot-dbus-daemon
