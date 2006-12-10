@@ -347,5 +347,8 @@ bool TokenizerFactory::isSupportedType(const string &type, Tokenizer::DataNeeds 
 		return true;
 	}
 
+	// This type is not supported, so don't bother loading anything
+	dataNeeds = Tokenizer::NO_DOCUMENTS;
+
 	return false;
 }

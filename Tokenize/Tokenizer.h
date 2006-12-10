@@ -29,7 +29,7 @@ class Tokenizer
 		Tokenizer(const Document *pDocument);
 		virtual ~Tokenizer();
 
-		typedef enum { ALL_DOCUMENTS = 0, ALL_BUT_FILES } DataNeeds;
+		typedef enum { ALL_DOCUMENTS = 0, ALL_BUT_FILES, NO_DOCUMENTS } DataNeeds;
 
 		/// Converts a document using an helper program.
 		static Document *runHelperProgram(const Document *pDocument,
