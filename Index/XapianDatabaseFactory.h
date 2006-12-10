@@ -25,6 +25,7 @@
 
 #include "XapianDatabase.h"
 
+/// Factory for Xapian database objects.
 class XapianDatabaseFactory
 {
 	public:

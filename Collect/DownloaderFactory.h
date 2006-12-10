@@ -23,7 +23,7 @@
 
 #include "DownloaderInterface.h"
 
-// Downloader factory class.
+/// Downloader factory class.
 class DownloaderFactory
 {
 	public:

@@ -22,6 +22,7 @@
 #include <string>
 #include <set>
 
+/// This represents all the properties of a document.
 class DocumentInfo
 {
 	public:

@@ -26,6 +26,7 @@
 
 using namespace std;
 
+/// Manages view history.
 class ViewHistory : public SQLiteBase
 {
 	public:

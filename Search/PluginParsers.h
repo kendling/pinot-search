@@ -26,9 +26,7 @@
 #include "Result.h"
 #include "SearchPluginProperties.h"
 
-/**
-  * Interface implemented by response parsers.
-  */
+/// Interface implemented by response parsers.
 class ResponseParserInterface
 {
 	public:
@@ -47,9 +45,7 @@ class ResponseParserInterface
 		
 };
 	
-/**
-  * Interface implemented by plugin parsers.
-  */
+/// Interface implemented by plugin parsers.
 class PluginParserInterface
 {
 	public:

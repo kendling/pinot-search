@@ -28,6 +28,7 @@
 #include "SearchEngineInterface.h"
 #include "DownloaderFactory.h"
 
+/// Wraps Xapian's search funtionality.
 class XapianEngine : public SearchEngineInterface
 {
 	public:

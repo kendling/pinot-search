@@ -24,6 +24,7 @@
 
 #include "XapianIndex.h"
 
+/// Allows to write to the daemon index via D-Bus. 
 class DBusXapianIndex : public XapianIndex
 {
 	public:

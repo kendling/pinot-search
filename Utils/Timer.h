@@ -22,6 +22,7 @@
 #include <time.h>
 #include <sys/time.h>
 
+/// A timer with microseconds precision.
 class Timer
 {
 	public:

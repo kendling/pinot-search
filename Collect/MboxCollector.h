@@ -23,6 +23,7 @@
 
 #include "DownloaderInterface.h"
 
+/// Pseudo-downloader for messages in mbox files.
 class MboxCollector : public DownloaderInterface
 {
 	public:

@@ -25,6 +25,7 @@
 
 #include "MonitorEvent.h"
 
+/// Interface implemented by all monitors.
 class MonitorInterface
 {
 	public:

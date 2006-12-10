@@ -26,6 +26,7 @@
 
 using namespace std;
 
+/// Engine that makes use of Google's SOAP API.
 class GoogleAPIEngine : public WebEngine
 {
 	public:

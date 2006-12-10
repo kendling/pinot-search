@@ -32,6 +32,7 @@ int getTokenizerDataNeeds(void);
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument);
 
+/// Taglib-based tokenizer for MP3, OOgg Vorbis etc...
 class TagLibTokenizer : public Tokenizer
 {
 	public:

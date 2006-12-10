@@ -26,6 +26,7 @@
 
 #include "MonitorInterface.h"
 
+/// Linux inotify monitor.
 class INotifyMonitor : public MonitorInterface
 {
 	public:

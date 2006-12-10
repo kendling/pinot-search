@@ -23,6 +23,9 @@
 
 #include "Document.h"
 
+/** Basic text-only tokenizer.
+  * Its role it to split documents into individual tokens or terms.
+  */
 class Tokenizer
 {
 	public:

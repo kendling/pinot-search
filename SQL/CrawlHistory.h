@@ -28,6 +28,7 @@
 
 using namespace std;
 
+/// Manages crawl history.
 class CrawlHistory : public SQLiteBase
 {
 	public:

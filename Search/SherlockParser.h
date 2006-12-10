@@ -25,6 +25,7 @@
 #include "Document.h"
 #include "PluginParsers.h"
 
+/// Parses output of Sherlock-based search engines.
 class SherlockResponseParser : public ResponseParserInterface
 {
 	public:
@@ -53,8 +54,7 @@ class SherlockResponseParser : public ResponseParserInterface
 
 };
 
-/**
-  * A parser for Sherlock plugin files.
+/** A parser for Sherlock plugin files.
   * See http://developer.apple.com/technotes/tn/tn1141.html
   * and http://mycroft.mozdev.org/deepdocs/deepdocs.html
   */

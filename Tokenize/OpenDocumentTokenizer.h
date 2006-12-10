@@ -32,6 +32,7 @@ int getTokenizerDataNeeds(void);
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument);
 
+/// A tokenizer for OpenDocument and other OpenOffice.org file formats.
 class OpenDocumentTokenizer : public XmlTokenizer
 {
 	public:

@@ -23,6 +23,7 @@
 
 #include "DownloaderInterface.h"
 
+/// Simple downloader for files.
 class FileCollector : public DownloaderInterface
 {
 	public:

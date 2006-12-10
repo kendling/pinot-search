@@ -26,6 +26,7 @@
 
 using namespace std;
 
+/// A row in a SQLite table.
 class SQLiteRow
 {
 	public:
@@ -42,6 +43,7 @@ class SQLiteRow
 
 };
 
+/// Results extracted from a SQLite table.
 class SQLiteResults
 {
 	public:
@@ -68,6 +70,7 @@ class SQLiteResults
 
 };
 
+/// Simple C++ wrapper around the SQLite API.
 class SQLiteBase
 {
 	public:

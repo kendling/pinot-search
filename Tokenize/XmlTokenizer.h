@@ -24,6 +24,7 @@
 #include "Document.h"
 #include "Tokenizer.h"
 
+/// XML tokenizer that strips all tags and only preserves text.
 class XmlTokenizer : public Tokenizer
 {
 	public:

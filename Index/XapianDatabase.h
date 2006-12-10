@@ -25,6 +25,7 @@
 
 #include <xapian.h>
 
+/// Lockable Xapian database.
 class XapianDatabase
 {
 	public:

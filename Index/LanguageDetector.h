@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+/// Detects a document's language with libextcat.
 class LanguageDetector
 {
 	public:

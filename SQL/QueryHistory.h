@@ -27,6 +27,7 @@
 
 using namespace std;
 
+/// Manages query history.
 class QueryHistory : public SQLiteBase
 {
 	public:

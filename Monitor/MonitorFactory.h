@@ -21,6 +21,7 @@
 
 #include "MonitorInterface.h"
 
+/// Factory for monitors.
 class MonitorFactory
 {
 	public:

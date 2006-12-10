@@ -23,6 +23,7 @@
 
 #include "DownloaderInterface.h"
 
+/// Wrapper around the curl API.
 class CurlDownloader : public DownloaderInterface
 {
 	public:

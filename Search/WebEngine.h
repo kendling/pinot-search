@@ -26,6 +26,7 @@
 #include "QueryProperties.h"
 #include "SearchEngineInterface.h"
 
+/// Base class for all Web search engines.
 class WebEngine : public SearchEngineInterface
 {
 	public:

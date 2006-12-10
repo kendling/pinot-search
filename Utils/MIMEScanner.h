@@ -25,6 +25,10 @@
 
 #include "Url.h"
 
+/** MIMEAction stores useful information extracted from desktop files.
+  * The desktop files format is defined by
+  * http://standards.freedesktop.org/desktop-entry-spec/latest/
+  */
 class MIMEAction
 {
 	public:
@@ -45,6 +49,9 @@ class MIMEAction
 
 };
 
+/**
+  * Utility class to get a file's MIME type and the default application associated with it.
+  */
 class MIMEScanner
 {
 	public:

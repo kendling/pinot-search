@@ -22,6 +22,7 @@
 #include "Document.h"
 #include "Tokenizer.h"
 
+/// Tokenizer for unknown types.
 class UnknownTypeTokenizer : public Tokenizer
 {
 	public:

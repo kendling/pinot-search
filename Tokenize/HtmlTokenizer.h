@@ -27,6 +27,7 @@
 #include "Document.h"
 #include "Tokenizer.h"
 
+/// A link in an HTML page.
 class Link
 {
 	public:
@@ -46,6 +47,7 @@ class Link
 
 };
 
+/// Tokenizer for HTML.
 class HtmlTokenizer : public Tokenizer
 {
 	public:

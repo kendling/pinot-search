@@ -25,6 +25,7 @@
 
 #include "Tokenizer.h"
 
+/// Factory for tokenizers with related utility methods.
 class TokenizerFactory
 {
 	public:

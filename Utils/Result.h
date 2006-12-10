@@ -23,6 +23,7 @@
 
 #include "DocumentInfo.h"
 
+/// A document returned by a search engine.
 class Result : public DocumentInfo
 {
 	public:

@@ -21,6 +21,7 @@
 
 #include <string>
 
+/// Utility class for string manipulation.
 class StringManip
 {
 	public:

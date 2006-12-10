@@ -23,6 +23,7 @@
 
 #include "Document.h"
 
+/// An entry in the index.
 class IndexedDocument : public Document
 {
 	public:

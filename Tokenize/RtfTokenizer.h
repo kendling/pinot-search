@@ -32,6 +32,7 @@ int getTokenizerDataNeeds(void);
 /// This returns a pointer to a Tokenizer, allocated with new.
 Tokenizer *getTokenizer(const Document *pDocument);
 
+/// Rich Text Format tokenizer.
 class RtfTokenizer : public HtmlTokenizer
 {
 	public:

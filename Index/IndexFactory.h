@@ -23,6 +23,7 @@
 
 #include "IndexInterface.h"
 
+/// Factory for indexes.
 class IndexFactory
 {
 	public:

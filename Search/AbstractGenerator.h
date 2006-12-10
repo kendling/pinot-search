@@ -24,6 +24,7 @@
 
 #include <xapian.h>
 
+/// Generates abstracts for indexed documents.
 class AbstractGenerator
 {
 	public:

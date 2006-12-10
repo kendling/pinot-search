@@ -32,8 +32,7 @@
 
 using namespace std;
 
-/**
-  * A parser for mbox files. Each message is extracted and
+/** A parser for mbox files. Each message is extracted and
   * returned in a separate document by getDocument(). The value
   * returned by getDocumentIncrement() enables to determine a new
   * message has been extracted and is ready to be tokenized.

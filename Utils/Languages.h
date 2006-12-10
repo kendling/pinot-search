@@ -22,6 +22,7 @@
 #include <string>
 #include <map>
 
+/// Utility class for manipulating languages.
 class Languages
 {
 	public:

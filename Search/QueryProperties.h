@@ -26,6 +26,7 @@
 
 using namespace std;
 
+/// This represents a query.
 class QueryProperties
 {
 	public:

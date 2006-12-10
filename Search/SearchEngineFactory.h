@@ -29,6 +29,7 @@ using std::string;
 using std::map;
 using std::set;
 
+/// Factory for search engines.
 class SearchEngineFactory
 {
 	public:

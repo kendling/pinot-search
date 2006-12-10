@@ -23,6 +23,7 @@
 
 using namespace std;
 
+/// This class handles time conversions.
 class TimeConverter
 {
 	public:

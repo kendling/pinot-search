@@ -23,6 +23,7 @@
 #include <map>
 #include <set>
 
+/// Properties of a search plugin.
 class SearchPluginProperties
 {
 	public:

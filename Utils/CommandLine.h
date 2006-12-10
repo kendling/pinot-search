@@ -24,6 +24,7 @@
 
 #include "MIMEScanner.h"
 
+/// Utilities for running commands.
 class CommandLine
 {
 	public:

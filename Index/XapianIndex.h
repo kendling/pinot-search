@@ -25,6 +25,7 @@
 #include "XapianDatabase.h"
 #include "IndexInterface.h"
 
+/// A Xapian-based index.
 class XapianIndex : public IndexInterface
 {
 	public:

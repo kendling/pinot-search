@@ -29,9 +29,7 @@
 
 using namespace std;
 
-/**
-  * Interface implemented by search engines.
-  */
+/// Interface implemented by search engines.
 class SearchEngineInterface
 {
 	public:

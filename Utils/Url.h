@@ -21,6 +21,7 @@
 
 #include <string>
 
+/// This dissects and manipulates URLs returned by search engines.
 class Url
 {
 	public:
@@ -45,13 +46,28 @@ class Url
 		/// Unescapes an URL.
 		static std::string unescapeUrl(const std::string &escapedUrl);
 
+		/// Returns the protocol, eg "file".
 		std::string getProtocol(void) const;
+
+		/// Returns the user name if any.
 		std::string getUser(void) const;
+
+		/// Returns the password if any.
 		std::string getPassword(void) const;
+
+		/// Returns the host name.
 		std::string getHost(void) const;
+
+		/// Returns the directory that leads to the file.
 		std::string getLocation(void) const;
+
+		/// Returns the file name.
 		std::string getFile(void) const;
+
+		/// Returns parameters that may follow the file name.
 		std::string getParameters(void) const;
+
+		/// Returns whether the Url points to a local file.
 		bool isLocal(void) const ;
 
 	protected:

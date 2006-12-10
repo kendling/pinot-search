@@ -23,6 +23,7 @@
 
 #include "DocumentInfo.h"
 
+/// Document wraps a document's properties and data.
 class Document : public DocumentInfo
 {
 	public:

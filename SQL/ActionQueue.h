@@ -25,6 +25,7 @@
 #include "DocumentInfo.h"
 #include "SQLiteBase.h"
 
+/// Handles the ActionQueue table.
 class ActionQueue : public SQLiteBase
 {
 	public:

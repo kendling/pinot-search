@@ -23,6 +23,7 @@
 
 #include "DownloaderInterface.h"
 
+/// Wrapper around the neon API. 
 class NeonDownloader : public DownloaderInterface
 {
 	public:

@@ -25,6 +25,7 @@
 
 #include "DownloaderInterface.h"
 
+/// Downloader for documents in a Xapian index.
 class XapianCollector : public DownloaderInterface
 {
 	public:
