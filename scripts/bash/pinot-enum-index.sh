@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # A script that enumerates files in an index created by Pinot
 # and gives an estimate of how much disk space those take.
 
@@ -7,11 +7,19 @@ if [ $# == 0 ]; then
   exit 1
 fi
 
+# delve might be called something else
+DELVE="delve"
+
 # Check programs we need are available
 WHICH_DELVE=`which delve`
 if [ $? != 0 ]; then
-  echo "Couldn't find delve. Is the xapian-core package installed ?"
-  exit 1
+  WHICH_DELVE=`which xapian-delve`
+  if [ $? != 0 ]; then
+    echo "Couldn't find delve. Is the xapian-core package installed ?"
+    exit 1
+  else
+    DELVE="xapian-delve"
+  fi
 fi
 WHICH_DU=`which du`
 if [ $? != 0 ]; then
@@ -33,7 +41,7 @@ fi
 rm -f "$1/urls.txt" "$1/filesizes.txt"
 
 # Get a list of documents
-DOCIDS=`delve -t X-MetaSE-Doc "$1"`
+DOCIDS=`$DELVE -t X-MetaSE-Doc "$1"`
 if [ $? != 0 ]; then
   echo "Couldn't query database at $1"
 fi
@@ -42,7 +50,7 @@ echo "Listing documents in index"
 echo "0" >> "$1/filesizes.txt"
 for DOCID in `echo $DOCIDS | sed -e "s/[^0-9 ]//g"` ;
 do
-  FILENAME=`delve -d -r $DOCID "$1" | grep "url=file" | sed -e "s/url=\(.*\):\/\///g"`
+  FILENAME=`$DELVE -d -r $DOCID "$1" | grep "url=file" | sed -e "s/url=\(.*\):\/\///g"`
   if [ $? != 0 ] || [ -z "$FILENAME" ]; then
     echo "Skipping document $DOCID, it doesn't look like a file"
   else
