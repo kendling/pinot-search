@@ -1048,7 +1048,8 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
 		const char *pData = pDocument->getData(dataLength);
-		if (pData != NULL)
+		if ((pData != NULL) &&
+			(dataLength > 0))
 		{
 			m_stemLanguage = scanDocument(pData, dataLength, docInfo);
 		}
@@ -1093,7 +1094,6 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 /// Updates the given document; true if success.
 bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 {
-	unsigned int dataLength = 0;
 	bool updated = false;
 
 	const Document *pDocument = tokens.getDocument();
@@ -1109,12 +1109,6 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 		return false;
 	}
 
-	const char *pData = pDocument->getData(dataLength);
-	if (pData == NULL)
-	{
-		return false;
-	}
-
 	// Cache the document's properties
 	DocumentInfo docInfo(pDocument->getTitle(), pDocument->getLocation(),
 		pDocument->getType(), pDocument->getLanguage());
@@ -1126,7 +1120,14 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	m_stemLanguage = Languages::toEnglish(pDocument->getLanguage());
 	if (m_stemLanguage.empty() == true)
 	{
-		m_stemLanguage = scanDocument(pData, dataLength, docInfo);
+		unsigned int dataLength = 0;
+		const char *pData = pDocument->getData(dataLength);
+
+		if ((pData != NULL) &&
+			(dataLength > 0))
+		{
+			m_stemLanguage = scanDocument(pData, dataLength, docInfo);
+		}
 	}
 
 	try
