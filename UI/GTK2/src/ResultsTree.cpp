@@ -450,9 +450,6 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 	ResultsModelColumns::ResultType rootType;
 	unsigned int count = 0;
 
-	// Get this query's terms
-	queryProps.getTerms(m_queryTerms);
-
 	// What's the grouping criteria ?
 	if (groupBySearchEngine == true)
 	{

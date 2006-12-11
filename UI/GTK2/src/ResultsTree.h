@@ -121,7 +121,6 @@ class ResultsTree : public Gtk::TreeView
 		std::set<std::string> m_indexNames;
 		bool m_showExtract;
 		bool m_groupBySearchEngine;
-		std::set<std::string> m_queryTerms;
 
 		void renderViewStatus(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
 
