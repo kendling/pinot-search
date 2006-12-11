@@ -50,10 +50,9 @@ echo "Listing documents in index"
 echo "0" >> "$1/filesizes.txt"
 for DOCID in `echo $DOCIDS | sed -e "s/[^0-9 ]//g"` ;
 do
+  # Skip documents with a scheme other than file
   FILENAME=`$DELVE -d -r $DOCID "$1" | grep "url=file" | sed -e "s/url=\(.*\):\/\///g"`
-  if [ $? != 0 ] || [ -z "$FILENAME" ]; then
-    echo "Skipping document $DOCID, it doesn't look like a file"
-  else
+  if [ $? == 0 ] && [ ! -z "$FILENAME" ]; then
     FILESIZE=`du -b "$FILENAME" | sed -e "s/\([0-9]*\)\(.*\)/\1/g"`
     if [ ! -z "$FILESIZE" ]; then
       echo $FILENAME >> "$1/urls.txt"
