@@ -119,6 +119,7 @@ int main(int argc, char **argv)
 	MIMEScanner::initialize();
 	HtmlTokenizer::initialize();
 	DownloaderInterface::initialize();
+	TokenizerFactory::loadTokenizers(string(LIBDIR) + string("/pinot/tokenizers"));
 
 	// Make sure the index is open in the correct mode
 	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(argv[optind + 1], (indexDocument ? false : true));
@@ -252,6 +253,7 @@ int main(int argc, char **argv)
 	delete pIndex;
 
 	XapianDatabaseFactory::closeAll();
+	TokenizerFactory::unloadTokenizers();
 	DownloaderInterface::shutdown();
 	HtmlTokenizer::shutdown();
 	MIMEScanner::shutdown();
