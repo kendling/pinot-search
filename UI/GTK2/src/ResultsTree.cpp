@@ -353,7 +353,7 @@ void ResultsTree::onSelectionChanged(void)
 }
 
 bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
-		const TreeModel::Path& path, bool path_currently_selected)
+	const TreeModel::Path& path, bool path_currently_selected)
 {
 	const TreeModel::iterator iter = model->get_iter(path);
 	const TreeModel::Row row = *iter;
@@ -533,14 +533,14 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 			{
 				// Update this result whatever the current and previous rankings were
 				history.updateItem(m_queryName, engineName, location,
-					title, extract, "", currentScore);
+					title, extract, charset, currentScore);
 				rankDiff = (int)(currentScore - previousScore);
 			}
 			else
 			{
 				// No, this is a new result
 				history.insertItem(m_queryName, engineName, location,
-					resultIter->getTitle(), extract, "", currentScore);
+					resultIter->getTitle(), extract, charset, currentScore);
 				// New results are displayed as such only if the query has already been run on the engine
 				if (isNewQuery == false)
 				{
@@ -1090,9 +1090,6 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 						row[m_resultsColumns.m_engines] = row[m_resultsColumns.m_engines] | engineId;
 						// ...and the indexes column too
 						row[m_resultsColumns.m_indexes] = row[m_resultsColumns.m_indexes] | engineId;
-#ifdef DEBUG
-						cout << "ResultsTree::appendResult: merged " << text << " " << engineId << " (" << row[m_resultsColumns.m_engines] << "," << row[m_resultsColumns.m_indexes] << ")" << endl;
-#endif
 
 						newRowIter = childIter;
 						return true;
@@ -1102,10 +1099,6 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 		}
 
 		newRowIter = m_refStore->append(parentRow->children());
-#ifdef DEBUG
-		cout << "ResultsTree::appendResult: added " << text << ", " << score << " to "
-			<< (*parentRow)[m_resultsColumns.m_text] << endl;
-#endif
 	}
 
 	IndexInterface *pIndex = m_settings.getIndex("MERGED");
@@ -1220,28 +1213,39 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 	const ustring &url, int score, unsigned int engineId,  unsigned int indexId,
 	ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff)
 {
-	row[m_resultsColumns.m_text] = text;
-	row[m_resultsColumns.m_url] = url;
-	row[m_resultsColumns.m_score] = score;
-	row[m_resultsColumns.m_scoreText] = "";
-	row[m_resultsColumns.m_engines] = engineId;
-	row[m_resultsColumns.m_indexes] = indexId;
-	row[m_resultsColumns.m_type] = type;
+	try
+	{
+		row[m_resultsColumns.m_text] = text;
+		row[m_resultsColumns.m_url] = url;
+		row[m_resultsColumns.m_score] = score;
+		row[m_resultsColumns.m_scoreText] = "";
+		row[m_resultsColumns.m_engines] = engineId;
+		row[m_resultsColumns.m_indexes] = indexId;
+		row[m_resultsColumns.m_type] = type;
 
-	row[m_resultsColumns.m_indexed] = indexed;
-	row[m_resultsColumns.m_viewed] = viewed;
-	row[m_resultsColumns.m_rankDiff] = rankDiff;
+		row[m_resultsColumns.m_indexed] = indexed;
+		row[m_resultsColumns.m_viewed] = viewed;
+		row[m_resultsColumns.m_rankDiff] = rankDiff;
+	}
+	catch (Error &error)
+	{
+		cerr << "ResultsTree::updateRow: " << error.what() << endl;
+	}
+	catch (...)
+	{
+		cerr << "ResultsTree::updateRow: caught unknown exception" << endl;
+	}
 }
 
 //
 // Retrieves the extract to show for the given row.
 //
-string ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
+ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 {
 	QueryHistory history(m_settings.m_historyDatabase);
 	set<string> engineNames, indexNames;
 	string url(from_utf8(row[m_resultsColumns.m_url]));
-	string extract;
+	string extract, charset;
 	unsigned int engineIds = row[m_resultsColumns.m_engines];
 	unsigned int indexIds = row[m_resultsColumns.m_indexes];
 
@@ -1275,8 +1279,8 @@ string ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 #ifdef DEBUG
 		cout << "ResultsTree::findResultsExtract: first engine for " << url << " was " << engineName << endl;
 #endif
-		extract = history.getItemExtract(from_utf8(m_queryName), engineName, url);
+		extract = history.getItemExtract(from_utf8(m_queryName), engineName, url, charset);
 	}
 
-	return extract;
+	return to_utf8(extract, charset);
 }

@@ -161,7 +161,7 @@ class ResultsTree : public Gtk::TreeView
 			ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff);
 
 		/// Retrieves the extract to show for the given row.
-		std::string findResultsExtract(const Gtk::TreeModel::Row &row);
+		Glib::ustring findResultsExtract(const Gtk::TreeModel::Row &row);
 
 	private:
 		ResultsTree(const ResultsTree &other);
