@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include "Document.h"
+#include "TimeConverter.h"
 
 using std::cout;
 using std::cerr;
@@ -191,6 +192,8 @@ bool Document::setDataFromFile(const string &fileName)
 	{
 		m_pData = (char*)mapSpace;
 		m_dataLength = fileStat.st_size;
+		setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
+		setSize(fileStat.st_size);
 		m_isMapped = true;
 	}
 	else
