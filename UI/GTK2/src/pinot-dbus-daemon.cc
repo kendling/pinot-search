@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 #endif //ENABLE_NLS
 
 	// This should make Xapian use Flint rather than Quartz
-	setenv("XAPIAN_PREFER_FLINT", "1", 1);
+	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
 
 	MIMEScanner::initialize();
 	HtmlTokenizer::initialize();
