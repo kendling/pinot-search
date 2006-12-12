@@ -68,7 +68,7 @@ bool QueryHistory::create(const string &database)
 
 /// Inserts an URL.
 bool QueryHistory::insertItem(const string &queryName, const string &engineName, const string &url,
-	const string &title, const string &extract, const string &language, float score)
+	const string &title, const string &extract, const string &charset, float score)
 {
 	Url urlObj(url);
 	string hostName = urlObj.getHost();
@@ -78,7 +78,7 @@ bool QueryHistory::insertItem(const string &queryName, const string &engineName,
 	SQLiteResults *results = executeStatement("INSERT INTO QueryHistory \
 		VALUES('%q', '%q', '%q', '%q', '%q', '%q', '%q', '%f', '0.0', '%d');",
 		queryName.c_str(), engineName.c_str(), hostName.c_str(),
-		escapedUrl.c_str(), title.c_str(), extract.c_str(), language.c_str(),
+		escapedUrl.c_str(), title.c_str(), extract.c_str(), charset.c_str(),
 		score, time(NULL));
 	if (results != NULL)
 	{
@@ -117,14 +117,14 @@ float QueryHistory::hasItem(const string &queryName, const string &engineName, c
 
 /// Updates an URL's details.
 bool QueryHistory::updateItem(const string &queryName, const string &engineName, const string &url,
-	const string &title, const string &extract, const string &language, float score)
+	const string &title, const string &extract, const string &charset, float score)
 {
 	bool success = false;
 
 	SQLiteResults *results = executeStatement("UPDATE QueryHistory SET PrevScore=Score, \
 		Score=%f, Date='%d', Title='%q', Extract='%q', Language='%q' \
 		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q';",
-		score, time(NULL), title.c_str(), extract.c_str(), language.c_str(),
+		score, time(NULL), title.c_str(), extract.c_str(), charset.c_str(),
 		queryName.c_str(), engineName.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
@@ -172,11 +172,12 @@ bool QueryHistory::getItems(const string &queryName, const string &engineName,
 }
 
 /// Gets an item's extract.
-string QueryHistory::getItemExtract(const string &queryName, const string &engineName, const string &url) const
+string QueryHistory::getItemExtract(const string &queryName, const string &engineName,
+	const string &url, string &charset) const
 {
 	string extract;
 
-	SQLiteResults *results = executeStatement("SELECT Extract FROM QueryHistory \
+	SQLiteResults *results = executeStatement("SELECT Extract, Language FROM QueryHistory \
 		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q';",
 		queryName.c_str(), engineName.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
@@ -185,6 +186,7 @@ string QueryHistory::getItemExtract(const string &queryName, const string &engin
 		if (row != NULL)
 		{
 			extract = row->getColumn(0);
+			charset = row->getColumn(1);
 
 			delete row;
 		}

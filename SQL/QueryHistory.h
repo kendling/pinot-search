@@ -39,7 +39,7 @@ class QueryHistory : public SQLiteBase
 
 		/// Inserts an URL.
 		bool insertItem(const string &queryName, const string &engineName, const string &url,
-			const string &title, const string &extract, const string &language, float score);
+			const string &title, const string &extract, const string &charset, float score);
 
 		/**
 		  * Checks if an URL is in the query's history.
@@ -50,14 +50,15 @@ class QueryHistory : public SQLiteBase
 
 		/// Updates an URL's details.
 		bool updateItem(const string &queryName, const string &engineName, const string &url,
-			const string &title, const string &extract, const string &language, float score);
+			const string &title, const string &extract, const string &charset, float score);
 
 		/// Gets the first max items for the given query, engine pair.
 		bool getItems(const string &queryName, const string &engineName,
 			unsigned int max, vector<Result> &resultsList) const;
 
 		/// Gets an item's extract.
-		string getItemExtract(const string &queryName, const string &engineName, const string &url) const;
+		string getItemExtract(const string &queryName, const string &engineName,
+			const string &url, string &charset) const;
 
 		/// Gets a query's last run time.
 		string getLastRun(const string &queryName, const string &engineName = "") const;
