@@ -222,7 +222,17 @@ bool WebEngine::processResult(const string &queryUrl, Result &result)
 	string token;
 	while (tokens.nextToken(token) == true)
 	{
-		char *pEscToken = g_markup_escape_text(token.c_str(), -1);
+		gchar *pEscToken = NULL;
+		gchar *pUTF8Token = NULL;
+		gsize bytesWritten = 0;
+
+		pUTF8Token = g_locale_to_utf8(token.c_str(), token.length(),
+			NULL, &bytesWritten, NULL);
+		if (pUTF8Token != NULL)
+		{
+			pEscToken = g_markup_escape_text(pUTF8Token, -1);
+			g_free(pUTF8Token);
+		}
 		if (pEscToken == NULL)
 		{
 			continue;
