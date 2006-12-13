@@ -141,6 +141,7 @@ int main(int argc, char **argv)
 		cerr << "Couldn't obtain index of type " << argv[optind] << endl;
 
 		XapianDatabaseFactory::closeAll();
+		TokenizerFactory::unloadTokenizers();
 		DownloaderInterface::shutdown();
 		HtmlTokenizer::shutdown();
 		MIMEScanner::shutdown();
@@ -171,6 +172,7 @@ int main(int argc, char **argv)
 			cerr << "Couldn't obtain downloader for protocol " << thisUrl.getProtocol() << endl;
 
 			XapianDatabaseFactory::closeAll();
+			TokenizerFactory::unloadTokenizers();
 			DownloaderInterface::shutdown();
 			HtmlTokenizer::shutdown();
 			MIMEScanner::shutdown();
