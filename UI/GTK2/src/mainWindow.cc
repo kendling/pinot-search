@@ -994,6 +994,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			IndexInterface *pDocsIndex = m_settings.getIndex(m_settings.m_docsIndexLocation);
 			IndexInterface *pDaemonIndex = m_settings.getIndex(m_settings.m_daemonIndexLocation);
 			set<string> labels;
+			set<unsigned int> docsIds, daemonIds;
 			string labelName(queryProps.getLabelName());
 
 			if (labelName.empty() == false)
@@ -1016,8 +1017,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				{
 					if (labelName.empty() == false)
 					{
-						// Only apply the new label to the document
-						pDocsIndex->setDocumentLabels(docId, labels, false);
+						docsIds.insert(docId);
 					}
 				}
 				// Is this a document the daemon indexed ?
@@ -1027,8 +1027,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				{
 					if (labelName.empty() == false)
 					{
-						// Only apply the new label to the document
-						pDaemonIndex->setDocumentLabels(docId, labels, false);
+						daemonIds.insert(docId);
 					}
 				}
 				else
@@ -1040,6 +1039,19 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 					// No, this is a new document not found in either index
 					m_state.queue_index(docInfo);
+				}
+			}
+
+			// Apply the new label to existing documents
+			if (labelName.empty() == false)
+			{
+				if (pDocsIndex != NULL)
+				{
+					pDocsIndex->setDocumentsLabels(docsIds, labels, false);
+				}
+				if (pDaemonIndex != NULL)
+				{
+					pDaemonIndex->setDocumentsLabels(daemonIds, labels, false);
 				}
 			}
 		}
@@ -2070,14 +2082,19 @@ void mainWindow::on_showfromindex_activate()
 
 	// Now apply these labels to all the documents
 	if ((docLabels.empty() == false) ||
-		(labels.empty() == false))
+		(labels.empty() == false) ||
+		(documentsList.size() > 1))
 	{
+		set<unsigned int> docIds;
+
 		for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
 			docIter != documentsList.end(); ++docIter)
 		{
-			// Set the document's labels list
-			pIndex->setDocumentLabels(docIter->getID(), labels);
+			docIds.insert(docIter->getID());
 		}
+
+		// Set the document's labels list
+		pIndex->setDocumentsLabels(docIds, labels);
 	}
 
 	if ((documentsList.size() == 1) &&

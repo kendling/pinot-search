@@ -88,6 +88,10 @@ class XapianIndex : public IndexInterface
 		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
 			bool resetLabels = true);
 
+		/// Sets documents' labels.
+		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
+			const std::set<std::string> &labels, bool resetLabels = true);
+
 		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId);
 

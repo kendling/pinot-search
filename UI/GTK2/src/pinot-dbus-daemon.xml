@@ -89,6 +89,19 @@
       <arg type="u" name="docId" direction="out"/>
     </method>
     <!--
+	Sets a group of documents' labels.
+	 docIds: array of document IDs
+	 labels: array of labels to apply to the documents
+	 resetLabels: TRUE if existing labels should be unset
+	-->
+    <method name="SetDocumentLabels">
+      <annotation name="de.berlios.Pinot.SetDocumentLabels" value="pinotDBus"/>
+      <arg type="as" name="docIds" direction="in"/>
+      <arg type="as" name="labels" direction="in"/>
+      <arg type="b" name="resetLabels" direction="in"/>
+      <arg type="b" name="status" direction="out"/>
+    </method>
+    <!--
 	Queries the index.
 	 searchText : search text, as would be entered in Pinot's live query field
 	 maxHits: the maximum number of hits desired

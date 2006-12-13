@@ -1226,6 +1226,16 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
 	bool resetLabels)
 {
+	set<unsigned int> docIds;
+
+	docIds.insert(docId);
+	return setDocumentsLabels(docIds, labels, resetLabels);
+}
+
+/// Sets documents' labels.
+bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
+	const set<string> &labels, bool resetLabels)
+{
 	bool updatedLabels = false;
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
@@ -1235,11 +1245,18 @@ bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &label
 		return false;
 	}
 
-	try
+	for (set<unsigned int>::const_iterator docIter = docIds.begin();
+		docIter != docIds.end(); ++docIter)
 	{
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-		if (pIndex != NULL)
+		try
 		{
+			Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+			if (pIndex == NULL)
+			{
+				break;
+			}
+
+			unsigned int docId = (*docIter);
 			Xapian::Document doc = pIndex->get_document(docId);
 
 			// Reset existing labels ?
@@ -1273,16 +1290,17 @@ bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &label
 			pIndex->replace_document(docId, doc);
 			updatedLabels = true;
 		}
+		catch (const Xapian::Error &error)
+		{
+			cerr << "Couldn't update document's labels: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		}
+		catch (...)
+		{
+			cerr << "Couldn't update document's labels, unknown exception occured" << endl;
+		}
+
+		pDatabase->unlock();
 	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't update document's labels: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't update document's labels, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
 
 	return updatedLabels;
 }

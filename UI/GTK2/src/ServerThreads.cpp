@@ -916,8 +916,8 @@ void DBusServletThread::doWork(void)
 				labels.insert(ppLabels[labelIndex]);
 			}
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received SetDocumentLabels " << docId << ", " << resetLabels
-				<< " with " << labelsCount << " labels" << endl;
+			cout << "DBusServletThread::doWork: received SetDocumentLabels on ID " << docId
+				<< ", " << labelsCount << " labels" << ", " << resetLabels << endl;
 #endif
 			// Set labels
 			flushIndex = index.setDocumentLabels(docId, labels, ((resetLabels == TRUE) ? true : false));
@@ -931,6 +931,60 @@ void DBusServletThread::doWork(void)
 			{
 				dbus_message_append_args(m_pReply,
 					DBUS_TYPE_UINT32, &docId,
+					DBUS_TYPE_INVALID);
+			}
+		}
+	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "SetDocumentsLabels") == TRUE)
+	{
+		char **ppDocIds = NULL;
+		char **ppLabels = NULL;
+		dbus_uint32_t idsCount = 0;
+		dbus_uint32_t labelsCount = 0;
+		gboolean resetLabels = TRUE;
+
+		if (dbus_message_get_args(m_pRequest, &error,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &ppDocIds, &idsCount,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &ppLabels, &labelsCount,
+			DBUS_TYPE_BOOLEAN, &resetLabels,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			set<unsigned int> docIds;
+			set<string> labels;
+
+			for (dbus_uint32_t idIndex = 0; idIndex < idsCount; ++idIndex)
+			{
+				if (ppDocIds[idIndex] == NULL)
+				{
+					break;
+				}
+				docIds.insert((unsigned int)atoi(ppDocIds[idIndex]));
+			}
+			for (dbus_uint32_t labelIndex = 0; labelIndex < labelsCount; ++labelIndex)
+			{
+				if (ppLabels[labelIndex] == NULL)
+				{
+					break;
+				}
+				labels.insert(ppLabels[labelIndex]);
+			}
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received SetDocumentLabels on " << docIds.size()
+				<< " IDs, " << labelsCount << " labels" << ", " << resetLabels << endl;
+#endif
+			// Set labels
+			flushIndex = index.setDocumentsLabels(docIds, labels, ((resetLabels == TRUE) ? true : false));
+
+			// Free container types
+			g_strfreev(ppDocIds);
+			g_strfreev(ppLabels);
+
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_BOOLEAN, &flushIndex,
 					DBUS_TYPE_INVALID);
 			}
 		}

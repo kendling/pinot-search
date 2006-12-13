@@ -97,6 +97,10 @@ class IndexInterface
 		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
 			bool resetLabels = true) = 0;
 
+		/// Sets documents' labels.
+		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
+			const std::set<std::string> &labels, bool resetLabels = true) = 0;
+
 		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId) = 0;
 

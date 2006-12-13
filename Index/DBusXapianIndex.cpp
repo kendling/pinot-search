@@ -412,6 +412,95 @@ bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &l
 	return updatedLabels;
 }
 
+/// Sets documents' labels.
+bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
+	const set<string> &labels, bool resetLabels)
+{
+	bool updatedLabels = false;
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusXapianIndex::setDocumentsLabels: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	dbus_uint32_t idsCount = docIds.size();
+	dbus_uint32_t labelsCount = labels.size();
+	char *pDocIds[idsCount + 1];
+	char *pLabels[labelsCount + 1];
+	unsigned int idIndex = 0, labelIndex = 0;
+
+	for (set<unsigned int>::const_iterator idIter = docIds.begin();
+		idIter != docIds.end(); ++idIter)
+	{
+		pDocIds[idIndex] = g_strdup_printf("%u", *idIter); 
+#ifdef DEBUG
+		cout << "DBusXapianIndex::setDocumentsLabels: document " << pDocIds[idIndex] << endl;
+#endif
+		++idIndex;
+	}
+	pDocIds[idIndex] = NULL;
+
+	for (set<string>::const_iterator labelIter = labels.begin();
+		labelIter != labels.end(); ++labelIter)
+	{
+		pLabels[labelIndex] = g_strdup(labelIter->c_str());
+#ifdef DEBUG
+		cout << "DBusXapianIndex::setDocumentsLabels: label " << pLabels[labelIndex] << endl;
+#endif
+		++labelIndex;
+	}
+	pLabels[labelIndex] = NULL;
+
+	// FIXME: for some reason the call to dbus_g_proxy_call() changes pDocIds ! Why !?
+	char **pOrigDocIds = pDocIds;
+	// G_TYPE_STRV is the GLib equivalent of DBUS_TYPE_ARRAY, DBUS_TYPE_STRING
+	if (dbus_g_proxy_call(pBusProxy, "SetDocumentsLabels", &pError,
+		G_TYPE_STRV, pDocIds,
+		G_TYPE_STRV, pLabels,
+		G_TYPE_BOOLEAN, resetLabels,
+		G_TYPE_INVALID,
+		G_TYPE_BOOLEAN, &updatedLabels,
+		G_TYPE_INVALID) == FALSE)
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusXapianIndex::setDocumentsLabels: " << pError->message << endl;
+			g_error_free(pError);
+		}
+		updatedLabels = false;
+	}
+
+	// Free the arrays
+	if (idsCount > 0)
+	{
+		for (unsigned int idNum = 0; idNum < idIndex; ++idNum)
+		{
+			g_free(pOrigDocIds[idNum]);
+		}
+	}
+	if (labelsCount > 0)
+	{
+		for (unsigned int labelNum = 0; labelNum < labelIndex; ++labelNum)
+		{
+			g_free(pLabels[labelNum]);
+		}
+	}
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	return updatedLabels;
+}
+
 /// Unindexes the given document; true if success.
 bool DBusXapianIndex::unindexDocument(unsigned int docId)
 {
