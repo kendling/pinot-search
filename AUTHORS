@@ -4,12 +4,14 @@ Pinot is written by :
 
 Patches, bug reports and helpful comments :
 
-	Building with CygWin - Reini Urban <rurban at x-ray dot at>
-	SuSE-friendly spec file - Marcus Rueckert <darix at web dot de>
-	Simplified UI - Manuel Breitfeld <manu_foren at gmx dot net>
-	Missing copyright notice - Gauvain Pocentek <gauvainpocentek at gmail dot com>
-	Desktop file installation - Oskar <???>
-	Search-and-index UI deadlock - Thierry Thomas <thierry at freebsd dot org>
+	Reini Urban <rurban at x-ray dot at>
+	Marcus Rueckert <darix at web dot de>
+	Manuel Breitfeld <manu_foren at gmx dot net>
+	Gauvain Pocentek <gauvainpocentek at gmail dot com>
+	Oskar <???>
+	Thierry Thomas <thierry at freebsd dot org>
+	Neal Becker <ndbecker2 at gmail dot com>
+	Gabriel C <nix dot or dot die at googlemail dot com> 
 
 The file Monitor/linux-inotify-syscalls.h is originally from libinotify
 (Copyright © 2005 Ryan Lortie <desrt at desrt dot ca>).
