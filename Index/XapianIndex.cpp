@@ -394,6 +394,16 @@ bool XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 		}
 		doc.add_term(limitTermLength(string("XEXT:") + extension));
 	}
+	// Add the date terms D, M and Y
+	time_t timeT = TimeConverter::fromTimestamp(info.getTimestamp());
+	struct tm *tm = localtime(&timeT);
+	string yyyymmdd = TimeConverter::toTimestamp(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+	if (yyyymmdd.length() == 8)
+	{
+		doc.add_term(string("D") + yyyymmdd);
+		doc.add_term(string("M") + yyyymmdd.substr(0, 6));
+		doc.add_term(string("Y") + yyyymmdd.substr(0, 4));
+	}
 	// Finally, add the language code with prefix L
 	doc.add_term(string("L") + Languages::toCode(m_stemLanguage));
 	// ...and the MIME type with prefix T
@@ -499,6 +509,16 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 			extension = StringManip::toLowerCase(fileName.substr(extPos + 1));
 		}
 		doc.remove_term(limitTermLength(string("XEXT:") + extension));
+	}
+	// Date terms
+	time_t timeT = TimeConverter::fromTimestamp(docInfo.getTimestamp());
+	struct tm *tm = localtime(&timeT);
+	string yyyymmdd = TimeConverter::toTimestamp(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+	if (yyyymmdd.length() == 8)
+	{
+		doc.remove_term(string("D") + yyyymmdd);
+		doc.remove_term(string("M") + yyyymmdd.substr(0, 6));
+		doc.remove_term(string("Y") + yyyymmdd.substr(0, 4));
 	}
 	// Language code
 	doc.remove_term(string("L") + Languages::toCode(language));

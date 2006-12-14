@@ -238,3 +238,41 @@ time_t TimeConverter::fromTimestamp(const string &timestamp, bool inGMTime)
 
 	return 0;
 }
+
+/// Converts into a YYYYMMDD timestamp.
+string TimeConverter::toTimestamp(int year, int month, int day)
+{
+	char timeStr[64];
+
+	if (year < 0)
+	{
+		year = 0;
+	}
+	else if (year > 9999)
+	{
+		year = 9999;
+	}
+	if (month < 1)
+	{
+		month = 1;
+	}
+	else if (month > 12)
+	{
+		month = 12;
+	}
+	if (day < 1)
+	{
+		day = 1;
+	}
+	else if (day > 31)
+	{
+		day = 31;
+	}
+
+	if (snprintf(timeStr, 63, "%04d%02d%02d", year, month, day) > 0)
+	{
+		return timeStr;
+	}
+
+	return "";
+}

@@ -32,7 +32,10 @@ class TimeConverter
 
 		/// Converts from a RFC 822 timestamp.
 		static time_t fromTimestamp(const string &timestamp, bool inGMTime = false);
-	
+
+		/// Converts into a YYYYMMDD timestamp.
+		static string toTimestamp(int year, int month, int day);
+
 	protected:
 		TimeConverter();
 
