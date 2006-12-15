@@ -2133,7 +2133,7 @@ void mainWindow::on_showfromindex_activate()
 		{
 			// The current label may have been applied to or removed from
 			// one or more of the selected documents, so refresh the list
-			start_thread(new IndexBrowserThread(indexName, labelName, 0, 0));
+			browse_index(indexName, labelName, 0, 0);
 		}
 	}
 
