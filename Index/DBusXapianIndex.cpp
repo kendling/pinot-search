@@ -316,7 +316,8 @@ bool DBusXapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo 
 	const char *pTitle = docInfo.getTitle().c_str();
 	const char *pLocation = docInfo.getLocation().c_str();
 	const char *pType = docInfo.getType().c_str();
-	const char *pLanguage = Languages::toEnglish(docInfo.getLanguage()).c_str();
+	string language(Languages::toEnglish(docInfo.getLanguage()));
+	const char *pLanguage = language.c_str();
 
 	if (dbus_g_proxy_call(pBusProxy, "SetDocumentInfo", &pError,
 		G_TYPE_UINT, docId,
@@ -366,9 +367,10 @@ bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &l
 
 	GError *pError = NULL;
 	dbus_uint32_t labelsCount = labels.size();
-	char *pLabels[labelsCount + 1];
+	char **pLabels;
 	unsigned int labelIndex = 0;
 
+	pLabels = g_new(char *, labelsCount + 1);
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{
@@ -397,14 +399,8 @@ bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &l
 		}
 	}
 
-	if (labelsCount > 0)
-	{
-		// Free the array
-		for (unsigned int labelNum = 0; labelNum < labelIndex; ++labelNum)
-		{
-			g_free(pLabels[labelNum]);
-		}
-	}
+	// Free the array
+	g_strfreev(pLabels);
 
 	g_object_unref(pBusProxy);
 	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
@@ -434,10 +430,12 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	GError *pError = NULL;
 	dbus_uint32_t idsCount = docIds.size();
 	dbus_uint32_t labelsCount = labels.size();
-	char *pDocIds[idsCount + 1];
-	char *pLabels[labelsCount + 1];
+	char **pDocIds;
+	char **pLabels;
 	unsigned int idIndex = 0, labelIndex = 0;
 
+	pDocIds = g_new(char *, idsCount + 1);
+	pLabels = g_new(char *, labelsCount + 1);
 	for (set<unsigned int>::const_iterator idIter = docIds.begin();
 		idIter != docIds.end(); ++idIter)
 	{
@@ -448,7 +446,6 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 		++idIndex;
 	}
 	pDocIds[idIndex] = NULL;
-
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{
@@ -460,8 +457,6 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	}
 	pLabels[labelIndex] = NULL;
 
-	// FIXME: for some reason the call to dbus_g_proxy_call() changes pDocIds ! Why !?
-	char **pOrigDocIds = pDocIds;
 	// G_TYPE_STRV is the GLib equivalent of DBUS_TYPE_ARRAY, DBUS_TYPE_STRING
 	if (dbus_g_proxy_call(pBusProxy, "SetDocumentsLabels", &pError,
 		G_TYPE_STRV, pDocIds,
@@ -480,20 +475,8 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	}
 
 	// Free the arrays
-	if (idsCount > 0)
-	{
-		for (unsigned int idNum = 0; idNum < idIndex; ++idNum)
-		{
-			g_free(pOrigDocIds[idNum]);
-		}
-	}
-	if (labelsCount > 0)
-	{
-		for (unsigned int labelNum = 0; labelNum < labelIndex; ++labelNum)
-		{
-			g_free(pLabels[labelNum]);
-		}
-	}
+	g_strfreev(pDocIds);
+	g_strfreev(pLabels);
 
 	g_object_unref(pBusProxy);
 	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
