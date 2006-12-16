@@ -45,7 +45,7 @@ bool getTokenizerTypes(set<string> &types)
 /// This returns the data needs of the provided Tokenizer(s).
 int getTokenizerDataNeeds(void)
 {
-	return Tokenizer::ALL_DOCUMENTS;
+	return Tokenizer::ALL_BUT_FILES;
 }
 
 /// This returns a pointer to a Tokenizer, allocated with new.
@@ -61,18 +61,41 @@ TagLibTokenizer::TagLibTokenizer(const Document *pDocument) :
 	if (pDocument != NULL)
 	{
 		Url urlObj(pDocument->getLocation());
-		string pseudoContent;
+		string location;
+		unsigned int dataLength = 0;
+		const char *pData = pDocument->getData(dataLength);
+		char inTemplate[15] = "/tmp/tokXXXXXX";
+		bool deleteInFile = false;
 
-		if ((urlObj.isLocal() == true) &&
+		// Is this a file ?
+		if ((urlObj.getProtocol() == "file") &&
 			(urlObj.getFile().empty() == false))
 		{
-			string location(urlObj.getLocation());
-			string trackTitle;
-
+			location = urlObj.getLocation();
 			location += "/";
 			location += urlObj.getFile();
+		}
+		else
+		{
+			int inFd = mkstemp(inTemplate);
+			if (inFd != -1)
+			{
+				// Save the data into a temporary file
+				if (write(inFd, (const void*)pData, dataLength) != -1)
+				{
+					location = inTemplate;
+				}
 
+				deleteInFile = true;
+				close(inFd);
+			}
+		}
+
+		if (location.empty() == false)
+		{
 			TagLib::FileRef fileRef(location.c_str(), false);
+			string trackTitle, pseudoContent;
+
 			if (fileRef.isNull() == false)
 			{
 				TagLib::Tag *pTag = fileRef.tag();
@@ -109,6 +132,12 @@ TagLibTokenizer::TagLibTokenizer(const Document *pDocument) :
 
 			// Give the result to the parent class
 			setDocument(m_pTagDocument);
+		}
+
+		// Delete the temporary file ?
+		if (deleteInFile == true)
+		{
+			unlink(inTemplate);
 		}
 	}
 }
