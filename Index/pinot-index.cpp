@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 
 	if ((argc < 3) ||
 		(optind >= argc) ||
-		(optind + 2 < argc) ||
+		(optind + 2 != argc) ||
 		((indexDocument == false) && (checkDocument == false)))
 	{
 		cerr << "Incorrect parameters" << endl;
