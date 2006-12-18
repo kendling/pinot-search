@@ -16,8 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _WORD_TOKENIZER_H
-#define _WORD_TOKENIZER_H
+#ifndef _TAGLIB_TOKENIZER_H
+#define _TAGLIB_TOKENIZER_H
 
 #include <string>
 #include <set>
@@ -48,4 +48,4 @@ class TagLibTokenizer : public Tokenizer
 
 };
 
-#endif // _WORD_TOKENIZER_H
+#endif // _TAGLIB_TOKENIZER_H
