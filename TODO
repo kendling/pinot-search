@@ -3,21 +3,17 @@ General
 - Get rid of dead code/classes/methods...
 - Advertise service via Rendezvous
 - MIMEScanner should also return parent types so that we don't filter out types unnecessarily
-- Build a -devel package for those who want to write their own tokenizers
-- Generate doxygen documentation
 - Load desktop files from /usr/share/applications/kde ?
-- Build with -DNDEBUG in non-DEBUG mode
+- DBUS_API_SUBJECT_TO_CHANGE only needed for DBus < 1.0
 
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
 - PDF tokenizer with poppler
 - WordPerfect tokenizer with libwpd
 - Office tokenizer with libgst
-- Spin tokenizers into separate project, a la libextractor
 - Check whether pdftotext flattens text in PDF documents that have columns
 - HtmlTokenizer should skip htdig_noindex blocks (http://www.htdig.org/attrs.html#noindex_start)
 - HtmlTokenizer to look for META tags Author, Creator, Publisher and CreationDate
-- Don't load documents' content for unsupported types
 
 Monitor
 - Implement support for Solaris FEM
@@ -28,6 +24,7 @@ Collect
 - Make User-Agent string configurable
 - Make download timeout configurable
 - Support for HTML frames
+- Curl and Neon must support a proxy, so allow to configure that
 
 Search
 - With engines that provide a redirection URL for results (eg Acoona), it looks like
@@ -54,9 +51,7 @@ Index
   defined in /usr/include/xapian/dbfactory.h (xapian-progsrv backend)
 - All indexes can be browsed with the new global posting list found in Xapian > 0.9.9, ie
   Xapian::Database::postlist_begin("")
-- Store date as terms (D, M and Y prefixes), as done by omindex
 - Index xattrs if any
-- pinot-index doesn't initialize tokenizers
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -79,9 +74,9 @@ Daemon
 - Export Web searching over D-Bus
 - Labels should be managed by the daemon, and not saved to the configuration file
 - Make sure labels are alpha-numeric characters exclusively
-- DBus SetDocumentLabels should create labels if necessary
+- DBus SetDocument[s]Labels should create labels if necessary
 - Reintroduce Index method in D-Bus interface
-- Actions stemming from DBus messages should be handled by a separate thread that posts replies
+- Allow notifications when new locations need crawling !
 
 UI
 - When sorting results by host name, give better score to results that appear several times
@@ -93,13 +88,13 @@ UI
 - Replace Combobox objects with ComboboxText's (glademm support required)
 - Replace glademm with libglademm ?
 - Filter documents by language, similarly to how labels are shown
-- Closing when threads are running gives the impression Pinot has crashed; how do we tell the user
-  we are waiting for something to finish ?
 - Replace labels with tags (Leaftag, http://www.chipx86.com/wiki/Leaftag). Enable to import
   all the documents that match a specific tag
 - Either Live Query behaves like a live query (eg results list updated when new documents match)
   or it is renamed to something else to avoid confusion
 - Labels should be set by a separate thread
 - When viewing a result, all rows for that same URL should be updated with the Viewed icon
-- Prompt users for a command-line if the type of the document to open has no application
+- Prompt users for a command-line if the type of the document to open has no application,
+  with default to xdg-open if it's available
+
 
