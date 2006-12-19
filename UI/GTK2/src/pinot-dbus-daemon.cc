@@ -260,9 +260,6 @@ int main(int argc, char **argv)
 	Languages::setIntlName(11, _("Spanish"));
 	Languages::setIntlName(12, _("Swedish"));
 
-	// Load search engines
-	settings.loadSearchEngines(prefixDir + string("/share/pinot/engines"));
-	settings.loadSearchEngines(confDirectory + string("/engines"));
 	// Load tokenizer libraries, if any
 	TokenizerFactory::loadTokenizers(string(LIBDIR) + string("/pinot/tokenizers"));
 	TokenizerFactory::loadTokenizers(confDirectory + string("/tokenizers"));
