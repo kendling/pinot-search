@@ -130,7 +130,7 @@ class XapianIndex : public IndexInterface
 		void removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Document &doc,
 			const std::string &prefix, const std::string &language, StemmingMode mode) const;
 
-		bool addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
+		void addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
 			Xapian::termcount &termPos) const;
 
 		void removeCommonTerms(Xapian::Document &doc);

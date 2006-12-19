@@ -326,7 +326,7 @@ void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Doc
 	}
 }
 
-bool XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
+void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
 	Xapian::termcount &termPos) const
 {
 	string title(info.getTitle());
@@ -408,17 +408,16 @@ bool XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	doc.add_term(string("L") + Languages::toCode(m_stemLanguage));
 	// ...and the MIME type with prefix T
 	doc.add_term(string("T") + info.getType());
-
-	return true;
 }
 
 void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 {
 	DocumentInfo docInfo;
+	set<string> commonTerms;
 	string record(doc.get_data());
 
 	// First, remove the magic term
-	doc.remove_term(MAGIC_TERM);
+	commonTerms.insert(MAGIC_TERM);
 
 	if (record.empty() == true)
         {
@@ -464,16 +463,16 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	}
 
 	// Title
-	doc.remove_term(limitTermLength(string("U") + docInfo.getLocation(), true));
+	commonTerms.insert(limitTermLength(string("U") + docInfo.getLocation(), true));
 	// Host name
 	string hostName(StringManip::toLowerCase(urlObj.getHost()));
 	if (hostName.empty() == false)
 	{
-		doc.remove_term(limitTermLength(string("H") + hostName, true));
+		commonTerms.insert(limitTermLength(string("H") + hostName, true));
 		string::size_type dotPos = hostName.find('.');
 		while (dotPos != string::npos)
 		{
-			doc.remove_term(limitTermLength(string("H") + hostName.substr(dotPos + 1), true));
+			commonTerms.insert(limitTermLength(string("H") + hostName.substr(dotPos + 1), true));
 
 			// Next
 			dotPos = hostName.find('.', dotPos + 1);
@@ -483,11 +482,11 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	string tree(urlObj.getLocation());
 	if (tree.empty() == false)
 	{
-		doc.remove_term(limitTermLength(string("XDIR:") + tree, true));
+		commonTerms.insert(limitTermLength(string("XDIR:") + tree, true));
 		string::size_type slashPos = tree.find('/', 1);
 		while (slashPos != string::npos)
 		{
-			doc.remove_term(limitTermLength(string("XDIR:") + tree.substr(0, slashPos), true));
+			commonTerms.insert(limitTermLength(string("XDIR:") + tree.substr(0, slashPos), true));
 
 			// Next
 			slashPos = tree.find('/', slashPos + 1);
@@ -499,7 +498,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	{
 		string extension;
 
-		doc.remove_term(limitTermLength(string("P") + fileName, true));
+		commonTerms.insert(limitTermLength(string("P") + fileName, true));
 
 		// Does it have an extension ?
 		string::size_type extPos = fileName.rfind('.');
@@ -508,7 +507,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 		{
 			extension = StringManip::toLowerCase(fileName.substr(extPos + 1));
 		}
-		doc.remove_term(limitTermLength(string("XEXT:") + extension));
+		commonTerms.insert(limitTermLength(string("XEXT:") + extension));
 	}
 	// Date terms
 	time_t timeT = TimeConverter::fromTimestamp(docInfo.getTimestamp());
@@ -516,14 +515,28 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	string yyyymmdd = TimeConverter::toTimestamp(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 	if (yyyymmdd.length() == 8)
 	{
-		doc.remove_term(string("D") + yyyymmdd);
-		doc.remove_term(string("M") + yyyymmdd.substr(0, 6));
-		doc.remove_term(string("Y") + yyyymmdd.substr(0, 4));
+		commonTerms.insert(string("D") + yyyymmdd);
+		commonTerms.insert(string("M") + yyyymmdd.substr(0, 6));
+		commonTerms.insert(string("Y") + yyyymmdd.substr(0, 4));
 	}
 	// Language code
-	doc.remove_term(string("L") + Languages::toCode(language));
+	commonTerms.insert(string("L") + Languages::toCode(language));
 	// MIME type
-	doc.remove_term(string("T") + docInfo.getType());
+	commonTerms.insert(string("T") + docInfo.getType());
+
+	for (set<string>::const_iterator termIter = commonTerms.begin(); termIter != commonTerms.end(); ++termIter)
+	{
+		try
+		{
+			doc.remove_term(*termIter);
+		}
+		catch (const Xapian::Error &error)
+		{
+#ifdef DEBUG
+			cout << "XapianIndex::removeCommonTerms: " << error.get_errno() << " " << error.get_msg() << endl;
+#endif
+		}
+	}
 }
 
 string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
@@ -1085,17 +1098,15 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		{
 			doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
 		}
-		if (addCommonTerms(docInfo, doc, termPos) == true)
-		{
-			setDocumentData(docInfo, doc, m_stemLanguage);
+		addCommonTerms(docInfo, doc, termPos);
+		setDocumentData(docInfo, doc, m_stemLanguage);
 
-			Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-			if (pIndex != NULL)
-			{
-				// Add this document to the Xapian index
-				docId = pIndex->add_document(doc);
-				indexed = true;
-			}
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			// Add this document to the Xapian index
+			docId = pIndex->add_document(doc);
+			indexed = true;
 		}
 	}
 	catch (const Xapian::Error &error)
@@ -1168,17 +1179,15 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 				doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
 			}
 		}
-		if (addCommonTerms(docInfo, doc, termPos) == true)
-		{
-			setDocumentData(docInfo, doc, m_stemLanguage);
+		addCommonTerms(docInfo, doc, termPos);
+		setDocumentData(docInfo, doc, m_stemLanguage);
 
-			Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-			if (pIndex != NULL)
-			{
-				// Update the document in the database
-				pIndex->replace_document(docId, doc);
-				updated = true;
-			}
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			// Update the document in the database
+			pIndex->replace_document(docId, doc);
+			updated = true;
 		}
 	}
 	catch (const Xapian::Error &error)
