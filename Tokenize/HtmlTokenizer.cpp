@@ -407,8 +407,9 @@ static void errorHandler(void *pData, const char *pMsg, ...)
 	va_start(args, pMsg);
 	vsnprintf(pErr, 1000, pMsg, args );
 	va_end(args);
-
-	cerr << "HtmlTokenizer::errorHandler: " << pErr << endl;
+#ifdef DEBUG
+	cout << "HtmlTokenizer::errorHandler: " << pErr << endl;
+#endif
 
 	// Be lenient as much as possible
 	xmlResetLastError();
@@ -424,8 +425,9 @@ static void warningHandler(void *pData, const char *pMsg, ...)
 	va_start(args, pMsg);
 	vsnprintf(pErr, 1000, pMsg, args );
 	va_end(args);
-
-	cerr << "HtmlTokenizer::warningHandler: " << pErr << endl;
+#ifdef DEBUG
+	cout << "HtmlTokenizer::warningHandler: " << pErr << endl;
+#endif
 }
 
 Link::Link() :
@@ -626,7 +628,7 @@ bool HtmlTokenizer::parseHTML(const Document *pDocument)
 #endif
 	else
 	{
-		cerr << "HtmlTokenizer::parseHTML: couldn't create parser context" << endl;
+		cerr << "Couldn't create HTML parser" << endl;
 	}
 
 	// The text after the last link might make a good abstract
