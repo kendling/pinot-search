@@ -227,9 +227,33 @@ int main(int argc, char **argv)
 	g_refMainLoop = Glib::MainLoop::create();
 	Glib::set_application_name("Pinot DBus Daemon");
 
+	char *pLocale = setlocale(LC_ALL, NULL);
+	if (pLocale != NULL)
+	{
+		string locale(pLocale);
+
+		if (locale != "C")
+		{
+			string::size_type pos = locale.find_last_of(".");
+			if (pos != string::npos)
+			{
+				locale.resize(pos);
+			}
+			locale += ".UTF-8";
+
+			pLocale = setlocale(LC_ALL, locale.c_str());
+			if (pLocale != NULL)
+			{
+#ifdef DEBUG
+				cout << "Changed locale to " << pLocale << endl;
+#endif
+			}
+		}
+	}
+
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();
-	// This is the daemon so disable DBus
+	// This is the daemon so disable DBus client
 	settings.enableDBus(false);
 
 	string confDirectory = PinotSettings::getConfigurationDirectory();

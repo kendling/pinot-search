@@ -417,63 +417,63 @@ msgstr "_Help"
 msgid "Pinot"
 msgstr "Pinot"
 
-#: UI/GTK2/src/pinot.cc:180 UI/GTK2/src/pinot-dbus-daemon.cc:249
+#: UI/GTK2/src/pinot.cc:204 UI/GTK2/src/pinot-dbus-daemon.cc:273
 msgid "Unknown"
 msgstr "Niet bekend"
 
-#: UI/GTK2/src/pinot.cc:181 UI/GTK2/src/pinot-dbus-daemon.cc:250
+#: UI/GTK2/src/pinot.cc:205 UI/GTK2/src/pinot-dbus-daemon.cc:274
 msgid "Danish"
 msgstr "Deens"
 
-#: UI/GTK2/src/pinot.cc:182 UI/GTK2/src/pinot-dbus-daemon.cc:251
+#: UI/GTK2/src/pinot.cc:206 UI/GTK2/src/pinot-dbus-daemon.cc:275
 msgid "Dutch"
 msgstr "Nederlands"
 
-#: UI/GTK2/src/pinot.cc:183 UI/GTK2/src/pinot-dbus-daemon.cc:252
+#: UI/GTK2/src/pinot.cc:207 UI/GTK2/src/pinot-dbus-daemon.cc:276
 msgid "English"
 msgstr "Engels"
 
-#: UI/GTK2/src/pinot.cc:184 UI/GTK2/src/pinot-dbus-daemon.cc:253
+#: UI/GTK2/src/pinot.cc:208 UI/GTK2/src/pinot-dbus-daemon.cc:277
 msgid "Finnish"
 msgstr "Fins"
 
-#: UI/GTK2/src/pinot.cc:185 UI/GTK2/src/pinot-dbus-daemon.cc:254
+#: UI/GTK2/src/pinot.cc:209 UI/GTK2/src/pinot-dbus-daemon.cc:278
 msgid "French"
 msgstr "Frans"
 
-#: UI/GTK2/src/pinot.cc:186 UI/GTK2/src/pinot-dbus-daemon.cc:255
+#: UI/GTK2/src/pinot.cc:210 UI/GTK2/src/pinot-dbus-daemon.cc:279
 msgid "German"
 msgstr "Duits"
 
-#: UI/GTK2/src/pinot.cc:187 UI/GTK2/src/pinot-dbus-daemon.cc:256
+#: UI/GTK2/src/pinot.cc:211 UI/GTK2/src/pinot-dbus-daemon.cc:280
 msgid "Italian"
 msgstr "Italiaans"
 
-#: UI/GTK2/src/pinot.cc:188 UI/GTK2/src/pinot-dbus-daemon.cc:257
+#: UI/GTK2/src/pinot.cc:212 UI/GTK2/src/pinot-dbus-daemon.cc:281
 msgid "Norwegian"
 msgstr "Noors"
 
-#: UI/GTK2/src/pinot.cc:189 UI/GTK2/src/pinot-dbus-daemon.cc:258
+#: UI/GTK2/src/pinot.cc:213 UI/GTK2/src/pinot-dbus-daemon.cc:282
 msgid "Portuguese"
 msgstr "Portugees"
 
-#: UI/GTK2/src/pinot.cc:190 UI/GTK2/src/pinot-dbus-daemon.cc:259
+#: UI/GTK2/src/pinot.cc:214 UI/GTK2/src/pinot-dbus-daemon.cc:283
 msgid "Russian"
 msgstr "Russisch"
 
-#: UI/GTK2/src/pinot.cc:191 UI/GTK2/src/pinot-dbus-daemon.cc:260
+#: UI/GTK2/src/pinot.cc:215 UI/GTK2/src/pinot-dbus-daemon.cc:284
 msgid "Spanish"
 msgstr "Spaans"
 
-#: UI/GTK2/src/pinot.cc:192 UI/GTK2/src/pinot-dbus-daemon.cc:261
+#: UI/GTK2/src/pinot.cc:216 UI/GTK2/src/pinot-dbus-daemon.cc:285
 msgid "Swedish"
 msgstr "Zweeds"
 
-#: UI/GTK2/src/pinot.cc:216
+#: UI/GTK2/src/pinot.cc:240
 msgid "Couldn't open index"
 msgstr "Kan index niet openen"
 
-#: UI/GTK2/src/pinot.cc:232
+#: UI/GTK2/src/pinot.cc:256
 msgid "Couldn't create history database"
 msgstr "Kon historische database niet maken"
 

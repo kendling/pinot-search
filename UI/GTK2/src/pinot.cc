@@ -158,6 +158,30 @@ int main(int argc, char **argv)
 	Gtk::Main m(&argc, &argv);
 	Glib::set_application_name("Pinot GTK2 UI");
 
+	char *pLocale = setlocale(LC_ALL, NULL);
+	if (pLocale != NULL)
+	{
+		string locale(pLocale);
+
+		if (locale != "C")
+		{
+			string::size_type pos = locale.find_last_of(".");
+			if (pos != string::npos)
+			{
+				locale.resize(pos);
+			}
+			locale += ".UTF-8";
+
+			pLocale = setlocale(LC_ALL, locale.c_str());
+			if (pLocale != NULL)
+			{
+#ifdef DEBUG
+				cout << "Changed locale to " << pLocale << endl;
+#endif
+			}
+		}
+	}
+
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();
 	// Talk to the daemon through DBus
