@@ -1,3 +1,27 @@
+2006/12/21 version_0_6_5
+Build :
+ - added option --enable-debug to configure, --enable-soap replaces --with-soap
+ - complain bitterly if libtextcat header is not found
+ - Pthreads may be provided by a library other than libpthread
+ - install configuration files in sysconfdir, libraries in libdir
+Tokenize :
+ - optimized Ogg/MP3 filter
+Index :
+ - fixed extraction of language and size from document data
+ - store date terms for future date range filtering
+ - fixed argument checking in pinot-index
+Daemon :
+ - new DBus method SetDocumentsLabels to relabel several documents at once
+ - process DBus messages in a separate thread, not in the main thread
+UI :
+ - fixed expansion of .desktop's Exec
+ - initialize D-Bus ! Not sure why this didn't cause problems before.
+ - fixes for when the locale is not UTF-8
+ - on first run, open the Preferences box and show the Indexing tab
+ - for stored queries set to index and label results, only apply the new label
+  to results that already are in one of the indexes, don't do a full update
+ - refresh labelled documents list correctly after properties are changed
+
 2006/12/05 version_0_6_4
 Collect :
  - don't needlessly load files that are going to be handled by an helper application
