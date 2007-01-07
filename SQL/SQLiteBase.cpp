@@ -191,15 +191,34 @@ sqlite3 *SQLiteBase::open(const string &database) const
 	sqlite3 *pDatabase = NULL;
 
 	// Open the new database
-	if ((sqlite3_open(database.c_str(), &pDatabase) != SQLITE_OK) ||
-		(pDatabase == NULL))
+	if (sqlite3_open(database.c_str(), &pDatabase) != SQLITE_OK)
+	{
+		// An handle is returned even when an error occurs !
+		if (pDatabase != NULL)
+		{
+			cerr << "SQLiteBase::open: " << sqlite3_errmsg(pDatabase) << endl;
+#if 1
+			string cmdLine("echo SQLiteBase::open; ls -l /proc/");
+			char pidStr[64];
+
+			snprintf(pidStr, 64, "%u", getpid());
+			cmdLine += pidStr;
+			cmdLine += "/fd/";
+			system(cmdLine.c_str());
+#endif
+			close(pDatabase);
+			pDatabase = NULL;
+		}
+	}
+	else if (pDatabase == NULL)
 	{
 		cerr << "SQLiteBase::open: couldn't open " << database << endl;
-		pDatabase = NULL;
 	}
-
-	// Set up a busy handler
-	sqlite3_busy_handler(pDatabase, busyHandler, NULL);
+	else
+	{
+		// Set up a busy handler
+		sqlite3_busy_handler(pDatabase, busyHandler, NULL);
+	}
 
 	return pDatabase;
 }

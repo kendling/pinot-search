@@ -48,6 +48,9 @@ string CrawlHistory::statusToText(CrawlStatus status)
 		case CRAWLED:
 			text = "CRAWLED";
 			break;
+		case ERROR:
+			text = "ERROR";
+			break;
 		default:
 			break;
 	}
@@ -66,6 +69,10 @@ CrawlHistory::CrawlStatus CrawlHistory::textToStatus(const string &text)
 	else if (text == "CRAWLED")
 	{
 		status = CRAWLED;
+	}
+	else if (text == "ERROR")
+	{
+		status = ERROR;
 	}
 
 	return status;
@@ -176,7 +183,7 @@ unsigned int CrawlHistory::getSources(map<unsigned int, string> &sources) const
 				break;
 			}
 
-			sources[(unsigned int)atoi(row->getColumn(0).c_str())] = row->getColumn(1);
+			sources[(unsigned int)atoi(row->getColumn(0).c_str())] = Url::unescapeUrl(row->getColumn(1));
 			++count;
 
 			delete row;
@@ -327,11 +334,12 @@ unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus sta
 }
 
 /// Returns the number of URLs.
-unsigned int CrawlHistory::getItemsCount(void) const
+unsigned int CrawlHistory::getItemsCount(CrawlStatus status) const
 {
 	unsigned int count = 0;
 
-	SQLiteResults *results = executeStatement("SELECT COUNT(*) FROM CrawlHistory;");
+	SQLiteResults *results = executeStatement("SELECT COUNT(*) FROM CrawlHistory WHERE Status='%q';",
+		statusToText(status).c_str());
 	if (results != NULL)
 	{
 		SQLiteRow *row = results->nextRow();
@@ -365,12 +373,23 @@ bool CrawlHistory::deleteItem(const string &url)
 }
 
 /// Deletes URLs belonging to a source.
-bool CrawlHistory::deleteItems(unsigned int sourceId)
+bool CrawlHistory::deleteItems(unsigned int sourceId, CrawlStatus status)
 {
+	SQLiteResults *results = NULL;
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("DELETE FROM CrawlHistory \
-		WHERE SourceID='%u';", sourceId);
+	if (status == UNKNOWN)
+	{
+		results = executeStatement("DELETE FROM CrawlHistory \
+			WHERE SourceID='%u';", sourceId);
+	}
+	else
+	{
+		results = executeStatement("DELETE FROM CrawlHistory \
+			WHERE SourceID='%u' AND Status='%q';",
+			sourceId, statusToText(status).c_str());
+	}
+
 	if (results != NULL)
 	{
 		success = true;

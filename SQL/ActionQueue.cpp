@@ -227,9 +227,6 @@ bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo) const
 			type = textToType(row->getColumn(1));
 			string info(Url::unescapeUrl(row->getColumn(2)));
 			success = true;
-#ifdef DEBUG
-			cout << "ActionQueue::getOldestItem: " << info << endl;
-#endif
 
 			// Deserialize DocumentInfo
 			docInfo.setTitle(StringManip::extractField(info, "caption=", "\n"));
@@ -242,14 +239,6 @@ bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo) const
 			{
 				docInfo.setSize((off_t )atol(bytesSize.c_str()));
 			}
-#ifdef DEBUG
-			cout << "ActionQueue::getOldestItem: " << docInfo.getTitle() << ", "
-				<< docInfo.getLocation() << ", "
-				<< docInfo.getType() << ", "
-				<< docInfo.getLanguage() << ", "
-				<< docInfo.getTimestamp() << ", "
-				<< docInfo.getSize() << endl;
-#endif
 
 			delete row;
 		}
