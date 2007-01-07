@@ -30,7 +30,6 @@
 #include "NLS.h"
 #include "Url.h"
 #include "MonitorFactory.h"
-#include "IndexFactory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "importDialog.hh"
