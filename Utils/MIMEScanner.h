@@ -73,7 +73,7 @@ class MIMEScanner
 		static std::string scanUrl(const Url &urlObj);
 
 		/// Adds a user-defined action for the given type.
-		static bool addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction);
+		static void addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction);
 
 		/// Determines the default action for the given type.
 		static bool getDefaultAction(const std::string &mimeType, MIMEAction &typeAction);

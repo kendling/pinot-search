@@ -1149,7 +1149,7 @@ void IndexingThread::doWork(void)
 	// If coming from a crawl, this will be empty
 	if (m_docInfo.getType().empty() == true)
 	{
-		m_docInfo.setType(MIMEScanner::scanFile(m_docInfo.getLocation()));
+		m_docInfo.setType(MIMEScanner::scanUrl(thisUrl));
 	}
 
 	if (TokenizerFactory::isSupportedType(m_docInfo.getType(), dataNeeds) == false)

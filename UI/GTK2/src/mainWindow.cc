@@ -3136,6 +3136,9 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 					else if (remember == true)
 					{
 						// Add this to MIMESCanner's list
+#ifdef DEBUG
+						cout << "mainWindow::view_documents: adding user-defined action for type " << type << endl;
+#endif
 						MIMEScanner::addDefaultAction(type, action);
 						// FIXME: save this in the settings ?
 					}

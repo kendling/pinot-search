@@ -358,7 +358,7 @@ string MIMEScanner::scanUrl(const Url &urlObj)
 }
 
 /// Adds a user-defined action for the given type.
-bool MIMEScanner::addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction)
+void MIMEScanner::addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction)
 {
 	m_defaultActions.insert(pair<string, MIMEAction>(mimeType, typeAction));
 }
