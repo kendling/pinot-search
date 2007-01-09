@@ -120,13 +120,21 @@ void Url::parse(const string &url)
 
 	if (hasHostName == true)
 	{
+		string userAndPassword;
+
 		// User and password
-		pos2 = url.find_first_of(":", pos1);
+		string::size_type atPos = url.find_first_of("@", pos1);
+		if (atPos != string::npos)
+		{
+			userAndPassword = url.substr(pos1, atPos - pos1);
+		}
+
+		pos2 = userAndPassword.find_first_of(":");
 		if (pos2 != string::npos)
 		{
 			bool isPartOfLocation = false;
 
-			string::size_type firstSlash = url.find_first_of("/", pos1);
+			string::size_type firstSlash = userAndPassword.find_first_of("/");
 			if (firstSlash != string::npos)
 			{
 				// The : is part of the location if it follows the /, eg like in this URL :
@@ -139,14 +147,14 @@ void Url::parse(const string &url)
 
 			if (isPartOfLocation == false)
 			{
-				m_user = url.substr(pos1, pos2 - pos1);
+				m_user = userAndPassword.substr(0, pos2);
 				pos1 = pos2 + 1;
 
-				pos2 = url.find_first_of("@", pos1);
+				pos2 = userAndPassword.find_first_of("@", pos1);
 				if (pos2 != string::npos)
 				{
-					m_password = url.substr(pos1, pos2 - pos1);
-					pos1 = pos2 + 1;
+					m_password = userAndPassword.substr(pos2 + 1);
+					pos1 = atPos + 1;
 				}
 			}
 		}
