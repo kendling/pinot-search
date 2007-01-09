@@ -1,18 +1,20 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
+	importDialog_glade.hh \
+	importDialog.hh \
+	indexDialog_glade.hh \
+	indexDialog.hh \
 	mainWindow_glade.hh \
 	mainWindow.hh \
 	prefsDialog_glade.hh \
 	prefsDialog.hh \
-	queryDialog_glade.hh \
-	queryDialog.hh \
-	importDialog_glade.hh \
-	importDialog.hh \
 	propertiesDialog_glade.hh \
 	propertiesDialog.hh \
-	indexDialog_glade.hh \
-	indexDialog.hh \
+	queryDialog_glade.hh \
+	queryDialog.hh \
+	statisticsDialog_glade.hh \
+	statisticsDialog.hh \
 	DaemonState.h \
 	EnginesTree.h \
 	IndexPage.h \
@@ -29,18 +31,20 @@ noinst_HEADERS = \
 
 pinot_SOURCES = \
 	pinot.cc \
+	importDialog_glade.cc \
+	importDialog.cc \
+	indexDialog_glade.cc \
+	indexDialog.cc \
 	mainWindow_glade.cc \
 	mainWindow.cc \
 	prefsDialog_glade.cc \
 	prefsDialog.cc \
-	queryDialog_glade.cc \
-	queryDialog.cc \
-	importDialog_glade.cc \
-	importDialog.cc \
 	propertiesDialog_glade.cc \
 	propertiesDialog.cc \
-	indexDialog_glade.cc \
-	indexDialog.cc \
+	queryDialog_glade.cc \
+	queryDialog.cc \
+	statisticsDialog_glade.cc \
+	statisticsDialog.cc \
 	EnginesTree.cpp \
 	IndexPage.cpp \
 	IndexTree.cpp \

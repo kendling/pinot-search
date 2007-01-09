@@ -24,4 +24,6 @@ UI/GTK2/src/propertiesDialog_glade.cc
 UI/GTK2/src/queryDialog.cc
 UI/GTK2/src/queryDialog_glade.cc
 UI/GTK2/src/ResultsTree.cpp
+UI/GTK2/src/statisticsDialog.cc
+UI/GTK2/src/statisticsDialog_glade.cc
 UI/GTK2/src/WorkerThreads.cpp
