@@ -290,7 +290,10 @@ string Url::prettifyUrl(const string &url, unsigned int maxLen)
 		prettyUrl += ":";
 		prettyUrl += password;
 	}
-	prettyUrl += host;
+	if (urlObj.isLocal() == false)
+	{
+		prettyUrl += host;
+	}
 	prettyUrl += "/";
 
 	if (url.length() <= diffLen)
@@ -298,7 +301,10 @@ string Url::prettifyUrl(const string &url, unsigned int maxLen)
 		// That's the bare minimum...
 		prettyUrl = protocol;
 		prettyUrl += "://";
-		prettyUrl += host;
+		if (urlObj.isLocal() == false)
+		{
+			prettyUrl += host;
+		}
 		prettyUrl += "/...";
 	}
 	else if (location.length() > diffLen + 3)

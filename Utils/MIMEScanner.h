@@ -33,11 +33,14 @@ class MIMEAction
 {
 	public:
 		MIMEAction();
+		MIMEAction(const std::string &name, const std::string &cmdLine);
 		MIMEAction(const std::string &desktopFile);
 		MIMEAction(const MIMEAction &other);
 		virtual ~MIMEAction();
 
 		MIMEAction &operator=(const MIMEAction &other);
+
+		void parseExec(void);
 
 		bool m_multipleArgs;
 		bool m_localOnly;
@@ -68,6 +71,9 @@ class MIMEScanner
 
 		/// Finds out the given URL's MIME type.
 		static std::string scanUrl(const Url &urlObj);
+
+		/// Adds a user-defined action for the given type.
+		static bool addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction);
 
 		/// Determines the default action for the given type.
 		static bool getDefaultAction(const std::string &mimeType, MIMEAction &typeAction);

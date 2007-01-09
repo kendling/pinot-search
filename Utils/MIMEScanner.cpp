@@ -75,6 +75,15 @@ MIMEAction::MIMEAction() :
 {
 }
 
+MIMEAction::MIMEAction(const string &name, const string &cmdLine) :
+	m_multipleArgs(false),
+	m_localOnly(true),
+	m_name(name),
+	m_exec(cmdLine)
+{
+	parseExec();
+}
+
 MIMEAction::MIMEAction(const string &desktopFile) :
 	m_multipleArgs(false),
 	m_localOnly(true),
@@ -96,22 +105,7 @@ MIMEAction::MIMEAction(const string &desktopFile) :
 			m_icon = getKeyValue(pDesktopFile, "Icon");
 			m_device = getKeyValue(pDesktopFile, "Device");
 
-			// Does it support multiple arguments ?
-			if ((m_exec.find("%U") != string::npos) ||
-				(m_exec.find("%F") != string::npos) ||
-				(m_exec.find("%D") != string::npos) ||
-				(m_exec.find("%N") != string::npos))
-			{
-				// Yes, it does
-				m_multipleArgs = true;
-			}
-			// What about URLs as parameters ?
-			if ((m_exec.find("%u") != string::npos) ||
-				(m_exec.find("%U") != string::npos))
-			{
-				// It does, therefore it's not exclusively local
-				m_localOnly = false;
-			}
+			parseExec();
 		}
 		else
 		{
@@ -151,6 +145,26 @@ MIMEAction &MIMEAction::operator=(const MIMEAction &other)
 	}
 
 	return *this;
+}
+
+void MIMEAction::parseExec(void)
+{
+	// Does it support multiple arguments ?
+	if ((m_exec.find("%U") != string::npos) ||
+		(m_exec.find("%F") != string::npos) ||
+		(m_exec.find("%D") != string::npos) ||
+		(m_exec.find("%N") != string::npos))
+	{
+		// Yes, it does
+		m_multipleArgs = true;
+	}
+	// What about URLs as parameters ?
+	if ((m_exec.find("%u") != string::npos) ||
+		(m_exec.find("%U") != string::npos))
+	{
+		// It does, therefore it's not exclusively local
+		m_localOnly = false;
+	}
 }
 
 map<string, MIMEAction> MIMEScanner::m_defaultActions;
@@ -341,6 +355,12 @@ string MIMEScanner::scanUrl(const Url &urlObj)
 	}
 
 	return mimeType;
+}
+
+/// Adds a user-defined action for the given type.
+bool MIMEScanner::addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction)
+{
+	m_defaultActions.insert(pair<string, MIMEAction>(mimeType, typeAction));
 }
 
 /// Determines the default action for the given type.
