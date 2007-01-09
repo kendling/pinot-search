@@ -54,6 +54,7 @@
 #include "propertiesDialog.hh"
 #include "prefsDialog.hh"
 #include "queryDialog.hh"
+#include "statisticsDialog.hh"
 
 using namespace std;
 using namespace Glib;
@@ -1388,7 +1389,17 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 }
 
 //
-// Session > Configure menu selected
+// Session > Statistics menu selected
+//
+void mainWindow::on_statistics_activate()
+{
+	statisticsDialog statsDialog;
+	statsDialog.show();
+	statsDialog.run();
+}
+
+//
+// Edit > Preferences menu selected
 //
 void mainWindow::on_configure_activate()
 {
@@ -2209,8 +2220,9 @@ void mainWindow::on_about_activate()
 {
 	AboutDialog aboutBox;
 
-	aboutBox.set_comments(_("A metasearch tool for the Free Desktop"));
-	aboutBox.set_copyright(_("(C) 2005-2006 Fabrice Colin"));
+	aboutBox.set_comments(_("A metasearch tool for the Free Desktop") + string(".\n") +
+		_("Search the Web and your documents !"));
+	aboutBox.set_copyright(_("(C) 2005 Fabrice Colin"));
 	aboutBox.set_name("Pinot");
 	aboutBox.set_version(VERSION);
 	aboutBox.set_website("http://pinot.berlios.de/");

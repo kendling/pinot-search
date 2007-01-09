@@ -76,6 +76,7 @@ protected:
 	void on_editindex(Glib::ustring indexName, Glib::ustring location);
 
 	// Handlers inherited from the base class
+	virtual void on_statistics_activate();
 	virtual void on_configure_activate();
 	virtual void on_quit_activate();
 
