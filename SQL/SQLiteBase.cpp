@@ -197,15 +197,6 @@ sqlite3 *SQLiteBase::open(const string &database) const
 		if (pDatabase != NULL)
 		{
 			cerr << "SQLiteBase::open: " << sqlite3_errmsg(pDatabase) << endl;
-#if 1
-			string cmdLine("echo SQLiteBase::open; ls -l /proc/");
-			char pidStr[64];
-
-			snprintf(pidStr, 64, "%u", getpid());
-			cmdLine += pidStr;
-			cmdLine += "/fd/";
-			system(cmdLine.c_str());
-#endif
 			close(pDatabase);
 			pDatabase = NULL;
 		}
