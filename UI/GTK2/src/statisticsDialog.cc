@@ -34,7 +34,8 @@ using namespace std;
 using namespace Glib;
 using namespace Gtk;
 
-statisticsDialog::statisticsDialog()
+statisticsDialog::statisticsDialog() :
+	statisticsDialog_glade()
 {
 	// Associate the columns model to the engines tree
 	m_refStore = TreeStore::create(m_statsColumns);

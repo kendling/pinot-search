@@ -5,6 +5,8 @@ noinst_HEADERS = \
 	importDialog.hh \
 	indexDialog_glade.hh \
 	indexDialog.hh \
+	launcherDialog.hh \
+	launcherDialog_glade.hh \
 	mainWindow_glade.hh \
 	mainWindow.hh \
 	prefsDialog_glade.hh \
@@ -35,6 +37,8 @@ pinot_SOURCES = \
 	importDialog.cc \
 	indexDialog_glade.cc \
 	indexDialog.cc \
+	launcherDialog.cc \
+	launcherDialog_glade.cc \
 	mainWindow_glade.cc \
 	mainWindow.cc \
 	prefsDialog_glade.cc \

@@ -51,6 +51,7 @@
 #include "mainWindow.hh"
 #include "importDialog.hh"
 #include "indexDialog.hh"
+#include "launcherDialog.hh"
 #include "propertiesDialog.hh"
 #include "prefsDialog.hh"
 #include "queryDialog.hh"
@@ -3114,11 +3115,30 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 
 				if (foundAction == false)
 				{
-					ustring statusText = _("No default application defined for type");
-					statusText += " ";
-					statusText += type;
-					set_status(statusText);
-					continue;
+					launcherDialog launcher(url);
+					bool remember = true;
+
+					launcher.show();
+					if (launcher.run() == RESPONSE_OK)
+					{
+
+						foundAction = launcher.getInput(action, remember);
+					}
+
+					if (foundAction == false)
+					{
+						ustring statusText = _("No default application defined for type");
+						statusText += " ";
+						statusText += type;
+						set_status(statusText);
+						continue;
+					}
+					else if (remember == true)
+					{
+						// Add this to MIMESCanner's list
+						MIMEScanner::addDefaultAction(type, action);
+						// FIXME: save this in the settings ?
+					}
 				}
 			}
 		}
