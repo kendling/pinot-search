@@ -43,7 +43,6 @@
 #include "IndexedDocument.h"
 #include "DownloaderFactory.h"
 #include "SearchEngineFactory.h"
-#include "IndexFactory.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
