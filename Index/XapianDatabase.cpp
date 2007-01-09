@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <iostream>
 
+#include "Url.h"
 #include "XapianDatabase.h"
 
 using std::cout;
@@ -126,12 +127,9 @@ void XapianDatabase::openDatabase(void)
 
 	// Is it a remote database ?
 	string::size_type slashPos = m_databaseName.find("/");
-	string::size_type colonPos = m_databaseName.find(":");
-	if ((slashPos == string::npos) &&
-		(colonPos != string::npos))
+	if (slashPos != 0)
 	{
-		string hostName = m_databaseName.substr(0, colonPos);
-		unsigned int port = (unsigned int)atoi(m_databaseName.substr(colonPos + 1).c_str());
+		Url urlObj(m_databaseName);
 
 		if (m_readOnly == false)
 		{
@@ -139,25 +137,68 @@ void XapianDatabase::openDatabase(void)
 			return;
 		}
 
-		try
+		if (m_databaseName.find("://") == string::npos)
 		{
+			// It's an old style remote specification without the protocol
+			urlObj = Url("tcpsrv://" + m_databaseName);
+		}
+
+		string hostName(urlObj.getHost());
+		// A port number should be included
+		string::size_type colonPos = hostName.find(":");
+		if (colonPos != string::npos)
+		{
+			string protocol(urlObj.getProtocol());
+			string portStr(hostName.substr(colonPos + 1));
+			unsigned int port = (unsigned int)atoi(portStr.c_str());
+
+			hostName.resize(colonPos);
+			try
+			{
+				if (protocol == "progsrv+ssh")
+				{
+					string args("-p");
+
+					args += " ";
+					args += portStr;
+					args += " -f ";
+					args += hostName;
+					args += " xapian-progsrv /";
+					args += urlObj.getLocation();
+					args += "/";
+					args += urlObj.getFile();
 #ifdef DEBUG
-			cout << "XapianDatabase::openDatabase: remote database at "
-				<< hostName << ":" << port << endl;
+					cout << "XapianDatabase::openDatabase: remote ssh access with ssh "
+						<< args << endl;
 #endif
-			Xapian::Database remoteDatabase = Xapian::Remote::open(hostName, port);
-			m_pDatabase = new Xapian::Database(remoteDatabase);
-			m_isOpen = true;
+					Xapian::Database remoteDatabase = Xapian::Remote::open("ssh", args);
+					m_pDatabase = new Xapian::Database(remoteDatabase);
+				}
+				else
+				{
+#ifdef DEBUG
+					cout << "XapianDatabase::openDatabase: remote database at "
+						<< hostName << " " << port << endl;
+#endif
+					Xapian::Database remoteDatabase = Xapian::Remote::open(hostName, port);
+					m_pDatabase = new Xapian::Database(remoteDatabase);
+					m_isOpen = true;
+				}
 
-			return;
+				return;
+			}
+			catch (const Xapian::Error &error)
+			{
+				cerr << "XapianDatabase::openDatabase: couldn't open remote database: "
+					<< error.get_msg() << endl;
+			}
 		}
-		catch (const Xapian::Error &error)
-		{
-			cerr << "XapianDatabase::openDatabase: couldn't open remote database: "
-				<< error.get_msg() << endl;
-		}
+#ifdef DEBUG
+		else cout << "XapianDatabase::openDatabase: invalid remote database at "
+			<< hostName << "/" << urlObj.getLocation() << "/" << urlObj.getFile() << endl;
+#endif
 
-		return;		
+		return;
 	}
 
 	// It's a local database : the specified path must be a directory

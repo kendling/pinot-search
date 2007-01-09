@@ -20,6 +20,7 @@
 
 #include "config.h"
 #include "NLS.h"
+#include "Url.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "indexDialog.hh"
@@ -42,6 +43,7 @@ indexDialog::indexDialog() :
 
 	// By default, type is set to local
 	typeCombobox->set_active(0);
+	hostEntry->set_sensitive(false);
 	portSpinbutton->set_sensitive(false);
 	// ...and both name and location are empty
 	indexOkbutton->set_sensitive(false);
@@ -54,7 +56,6 @@ indexDialog::indexDialog(const ustring &name, const ustring &location) :
 	m_editIndex(false),
 	m_badName(true)
 {
-	ustring dirName = location;
 	unsigned int port = 1024;
 
 	// Associate the columns model to the type combo
@@ -69,26 +70,53 @@ indexDialog::indexDialog(const ustring &name, const ustring &location) :
 
 	// Type and location
 	ustring::size_type slashPos = location.find("/");
-	ustring::size_type colonPos = location.find(":");
-	if ((slashPos == ustring::npos) &&
-		(colonPos != ustring::npos))
+	if (slashPos == 0) 
 	{
-		// This is a remote index
-		dirName = location.substr(0, colonPos);
-		port = (unsigned int)atoi(location.substr(colonPos + 1).c_str());
-
-		typeCombobox->set_active(1);
-		locationButton->set_sensitive(false);
-
-		// Port
-		portSpinbutton->set_value((double)port);
+		// Local index
+		typeCombobox->set_active(0);
+		locationEntry->set_text(location);
+		hostEntry->set_sensitive(false);
+		portSpinbutton->set_sensitive(false);
 	}
 	else
 	{
-		typeCombobox->set_active(0);
-		portSpinbutton->set_sensitive(false);
+		Url urlObj(location);
+
+		if (location.find("://") == ustring::npos)
+		{
+			// It's an old style remote specification without the protocol
+			urlObj = Url("tcpsrv://" + location);
+		}
+
+		// Remote index
+		ustring hostName(urlObj.getHost());
+		// A port number should be included
+		ustring::size_type colonPos = hostName.find(":");
+		if (colonPos != ustring::npos)
+		{
+			port = (unsigned int)atoi(hostName.substr(colonPos + 1).c_str());
+			hostName.resize(colonPos);
+		}
+
+#ifdef _SSH_TUNNEL
+		if (urlObj.getProtocol() == "progsrv+ssh")
+		{
+			// SSH tunnel
+			typeCombobox->set_active(2);
+			locationEntry->set_text("/" + urlObj.getLocation());
+			locationButton->set_sensitive(false);
+		}
+		else
+#endif
+		{
+			// Assume vanilla TCP/IP
+			typeCombobox->set_active(1);
+			locationEntry->set_sensitive(false);
+			locationButton->set_sensitive(false);
+		}
+		hostEntry->set_text(hostName);
+		portSpinbutton->set_value((double)port);
 	}
-	locationEntry->set_text(dirName);
 
 	m_editIndex = true;
 }
@@ -99,53 +127,81 @@ indexDialog::~indexDialog()
 
 void indexDialog::populate_typeCombobox(void)
 {
+	ustring servedBy(_("Served by"));
+
 	TreeModel::iterator iter = m_refTypeTree->append();
 	TreeModel::Row row = *iter;
-	row[m_typeColumns.m_name] = "Local";
+	row[m_typeColumns.m_name] = _("Local");
 	iter = m_refTypeTree->append();
 	row = *iter;
-	row[m_typeColumns.m_name] = "Remote";
+	row[m_typeColumns.m_name] = servedBy + " xapian-tcpsrv";
+#ifdef _SSH_TUNNEL
+	iter = m_refTypeTree->append();
+	row = *iter;
+	row[m_typeColumns.m_name] = servedBy + " xapian-progsrv+ssh";
+#endif
 }
 
 void indexDialog::checkFields(void)
 {
-	bool isLocal = false, enableOkButton = false;
+	bool needsLocation = false, needsHost = false, enableOkButton = true;
 
 	if (typeCombobox->get_active_row_number() == 0)
 	{
-		// Local index
-		portSpinbutton->set_sensitive(false);
+		// Local index : location only
+		locationEntry->set_sensitive(true);
 		locationButton->set_sensitive(true);
-		isLocal = true;
+		hostEntry->set_sensitive(false);
+		portSpinbutton->set_sensitive(false);
+		needsLocation = true;
 	}
+	else if (typeCombobox->get_active_row_number() == 1)
+	{
+		// Vanilla TCP/IP : host and port only
+		locationEntry->set_sensitive(false);
+		locationButton->set_sensitive(false);
+		hostEntry->set_sensitive(true);
+		portSpinbutton->set_sensitive(true);
+		needsHost = true;
+	}
+#ifdef _SSH_TUNNEL
 	else
 	{
-		// Remote index
-		portSpinbutton->set_sensitive(true);
+		// SSH tunnel : location, host and port 
+		locationEntry->set_sensitive(true);
 		locationButton->set_sensitive(false);
+		hostEntry->set_sensitive(true);
+		portSpinbutton->set_sensitive(true);
+		needsLocation = true;
+		needsHost = true;
 	}
+#endif
 
-	ustring location = locationEntry->get_text();
-	if (location.empty() == false)
+	// Enable the OK button only if host name and location make sense
+	if (needsLocation == true)
 	{
-		bool hasSlash = true;
-
-		ustring::size_type slashPos = location.find("/");
-		if (slashPos == ustring::npos)
+		ustring location(locationEntry->get_text());
+		if (location.empty() == true)
 		{
-			hasSlash = false;
+			enableOkButton = false;
 		}
-
-		// Disable the OK button if the type+location pair doesn't make sense
-		// or if name is empty
-		ustring name = nameEntry->get_text();
-		if ((name.empty() == false) &&
-			(hasSlash == isLocal))
+		else
 		{
-			enableOkButton = true;
+			ustring::size_type slashPos = location.find("/");
+			if (slashPos != 0)
+			{
+				enableOkButton = false;
+			}
 		}
 	}
-
+	if (needsHost == true)
+	{
+		ustring hostName(hostEntry->get_text());
+		if (hostName.empty() == true)
+		{
+			enableOkButton = false;
+		}
+	}
 	indexOkbutton->set_sensitive(enableOkButton);
 }
 
@@ -167,22 +223,41 @@ ustring indexDialog::getLocation(void) const
 void indexDialog::on_indexOkbutton_clicked()
 {
 	PinotSettings &settings = PinotSettings::getInstance();
-
 	// The changed() methods ensure name and location are set
-	ustring name = nameEntry->get_text();
-	ustring location = locationEntry->get_text();
+	ustring location, name = nameEntry->get_text();
+
 	m_badName = false;
 
 	// Is it a remote index ?
-	if (typeCombobox->get_active_row_number() == 1)
+	if (typeCombobox->get_active_row_number() == 0)
+	{
+		location = locationEntry->get_text();
+	}
+	else
 	{
 		char portStr[64];
 		int port = portSpinbutton->get_value_as_int();
-		snprintf(portStr, 64, "%d", port);
 
-		// Append the port number
-		location += ":";
-		location += portStr;
+		snprintf(portStr, 64, "%d", port);
+		if (typeCombobox->get_active_row_number() == 1)
+		{
+			// Vanilla TCP/IP
+			location = "tcpsrv://";
+			location += hostEntry->get_text();
+			location += ":";
+			location += portStr;
+		}
+#ifdef _SSH_TUNNEL
+		else
+		{
+			// SSH tunnel
+			location = "progsrv+ssh://";
+			location += hostEntry->get_text();
+			location += ":";
+			location += portStr;
+			location += locationEntry->get_text();
+		}
+#endif
 	}
 #ifdef DEBUG
 	cout << "indexDialog::on_indexOkbutton_clicked: " << name << ", " << location << endl;
