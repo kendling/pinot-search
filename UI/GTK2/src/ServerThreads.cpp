@@ -35,7 +35,6 @@
 #include "Languages.h"
 #include "TimeConverter.h"
 #include "Url.h"
-#include "CrawlHistory.h"
 #include "XapianIndex.h"
 #include "XapianEngine.h"
 #include "config.h"
@@ -401,16 +400,19 @@ void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 	m_signalFileFound(docInfo, labelStr, false);
 }
 
-bool DirectoryScannerThread::scanEntry(const string &entryName)
+bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &history)
 {
-	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
 	CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
 	time_t itemDate;
 	struct stat fileStat;
 	int statSuccess = 0;
+	bool scanSuccess = true;
 
 	if (entryName.empty() == true)
 	{
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::scanEntry: no name" << endl;
+#endif
 		return false;
 	}
 
@@ -418,6 +420,9 @@ bool DirectoryScannerThread::scanEntry(const string &entryName)
 	Url urlObj("file://" + entryName);
 	if (urlObj.getFile()[0] == '.')
 	{
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::scanEntry: skipped dotfile " << urlObj.getFile() << endl;
+#endif
 		return false;
 	}
 
@@ -431,17 +436,23 @@ bool DirectoryScannerThread::scanEntry(const string &entryName)
 		statSuccess = stat(entryName.c_str(), &fileStat);
 	}
 
-	if (statSuccess == -1)
-	{
-		return false;
-	}
-
+	// Is this item in the database already ?
 	bool itemExists = history.hasItem("file://" + entryName, status, itemDate);
 
+	if (statSuccess == -1)
+	{
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::scanEntry: stat failed with error " << errno << " " << strerror(errno) << endl;
+#endif
+		scanSuccess = false;
+	}
 	// Is it a file or a directory ?
-	if (S_ISLNK(fileStat.st_mode))
+	else if (S_ISLNK(fileStat.st_mode))
 	{
 		// This won't happen when m_followSymLinks is true
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::scanEntry: skipped symlink" << endl;
+#endif
 		return false;
 	}
 	else if (S_ISREG(fileStat.st_mode))
@@ -504,67 +515,90 @@ bool DirectoryScannerThread::scanEntry(const string &entryName)
 
 			// Open the directory
 			DIR *pDir = opendir(entryName.c_str());
-			if (pDir == NULL)
+			if (pDir != NULL)
 			{
-				return false;
-			}
 #ifdef DEBUG
-			cout << "DirectoryScannerThread::scanEntry: entering " << entryName << endl;
+				cout << "DirectoryScannerThread::scanEntry: entering " << entryName << endl;
 #endif
-
-			if (m_pMonitor != NULL)
-			{
-				// Monitor first so that we don't miss events
-				m_pMonitor->addLocation(entryName, true);
-			}
-
-			// Iterate through this directory's entries
-			struct dirent *pDirEntry = readdir(pDir);
-			while ((m_done == false) &&
-				(pDirEntry != NULL))
-			{
-				char *pEntryName = pDirEntry->d_name;
-
-				// Skip . .. and dotfiles
-				if ((pEntryName != NULL) &&
-					(pEntryName[0] != '.'))
+				if (m_pMonitor != NULL)
 				{
-					string subEntryName(entryName);
-
-					if (entryName[entryName.length() - 1] != '/')
-					{
-						subEntryName += "/";
-					}
-					subEntryName += pEntryName;
-
-					// Scan this entry
-					if (scanEntry(subEntryName) == false)
-					{
-#ifdef DEBUG
-						cout << "DirectoryScannerThread::scanEntry: failed to open "
-							<< subEntryName << endl;
-#endif
-					}
+					// Monitor first so that we don't miss events
+					m_pMonitor->addLocation(entryName, true);
 				}
 
-				// Next entry
-				pDirEntry = readdir(pDir);
-			}
+				// Iterate through this directory's entries
+				struct dirent *pDirEntry = readdir(pDir);
+				while ((m_done == false) &&
+					(pDirEntry != NULL))
+				{
+					char *pEntryName = pDirEntry->d_name;
+
+					// Skip . .. and dotfiles
+					if ((pEntryName != NULL) &&
+						(pEntryName[0] != '.'))
+					{
+						string subEntryName(entryName);
+
+						if (entryName[entryName.length() - 1] != '/')
+						{
+							subEntryName += "/";
+						}
+						subEntryName += pEntryName;
+
+						// Scan this entry
+						if (scanEntry(subEntryName, history) == false)
+						{
 #ifdef DEBUG
-			cout << "DirectoryScannerThread::scanEntry: done with " << entryName << endl;
+							cout << "DirectoryScannerThread::scanEntry: failed to open "
+								<< subEntryName << endl;
+#endif
+						}
+					}
+
+					// Next entry
+					pDirEntry = readdir(pDir);
+				}
+#ifdef DEBUG
+				cout << "DirectoryScannerThread::scanEntry: done with " << entryName << endl;
 #endif
 
-			// Close the directory
-			closedir(pDir);
-			--m_currentLevel;
+				// Close the directory
+				closedir(pDir);
+				--m_currentLevel;
+			}
+			else
+			{
+#ifdef DEBUG
+				cout << "DirectoryScannerThread::scanEntry: opendir failed with error " << errno << " " << strerror(errno) << endl;
+#endif
+				scanSuccess = false;
+			}
 		}
 	}
 	else
 	{
-		return false;
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::scanEntry: unknown entry type" << endl;
+#endif
+		scanSuccess = false;
 	}
 
-	return true;
+	if (scanSuccess == false)
+	{
+		time_t timeNow = time(NULL);
+
+		// Record this error
+		if (itemExists == false)
+		{
+			history.insertItem("file://" + entryName, CrawlHistory::ERROR, m_sourceId, timeNow);
+		}
+		else
+		{
+			history.updateItem("file://" + entryName, CrawlHistory::ERROR, timeNow);
+		}
+	}
+
+	return scanSuccess;
 }
 
 void DirectoryScannerThread::doWork(void)
@@ -579,8 +613,10 @@ void DirectoryScannerThread::doWork(void)
 
 	// Update this source's items status
 	history.updateItemsStatus(m_sourceId, CrawlHistory::CRAWLED, CrawlHistory::CRAWLING);
+	// Remove errors
+	history.deleteItems(m_sourceId, CrawlHistory::ERROR);
 
-	if (scanEntry(m_dirName) == false)
+	if (scanEntry(m_dirName, history) == false)
 	{
 		m_status = _("Couldn't open directory");
 		m_status += " ";
@@ -813,7 +849,7 @@ void DBusServletThread::doWork(void)
 	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetStatistics") == TRUE)
 	{
 		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
-		unsigned int crawledFilesCount = history.getItemsCount();
+		unsigned int crawledFilesCount = history.getItemsCount(CrawlHistory::CRAWLED);
 		unsigned int docsCount = index.getDocumentsCount();
 
 #ifdef DEBUG

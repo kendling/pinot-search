@@ -33,6 +33,7 @@ extern "C"
 #include <glibmm/ustring.h>
 
 #include "DocumentInfo.h"
+#include "CrawlHistory.h"
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
 #include "WorkerThreads.h"
@@ -92,7 +93,7 @@ class DirectoryScannerThread : public WorkerThread
 		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalFileFound;
 
 		void foundFile(const DocumentInfo &docInfo);
-		bool scanEntry(const std::string &entryName);
+		bool scanEntry(const std::string &entryName, CrawlHistory &history);
 		virtual void doWork(void);
 
 	private:
