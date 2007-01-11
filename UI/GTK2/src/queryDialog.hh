@@ -21,6 +21,7 @@
 
 #include <string>
 #include <set>
+#include <glibmm/date.h>
 #include <gtkmm/liststore.h>
 
 #include "QueryProperties.h"
@@ -44,6 +45,8 @@ protected:
 	Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
 	ComboModelColumns m_filterColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refFilterTree;
+	Glib::Date m_fromDate;
+	Glib::Date m_toDate;
 	bool m_badName;
 
 	void populate_comboboxes();
@@ -51,6 +54,8 @@ protected:
 	virtual void on_queryOkbutton_clicked();
 	virtual void on_nameEntry_changed();
 	virtual void on_addFilterButton_clicked();
+        virtual void on_fromButton_clicked();
+        virtual void on_toButton_clicked();
 
 };
 #endif

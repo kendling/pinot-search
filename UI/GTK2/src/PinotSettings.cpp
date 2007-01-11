@@ -28,6 +28,7 @@
 #include <iostream>
 
 #include <glibmm/convert.h>
+#include <glibmm/date.h>
 #include <libxml++/parsers/domparser.h>
 #include <libxml++/nodes/node.h>
 #include <libxml++/nodes/textnode.h>
@@ -594,7 +595,12 @@ bool PinotSettings::loadQueries(const Element *pElem)
 	}
 
 	QueryProperties queryProps;
+	Date minDate, maxDate;
 	string backCompatString;
+	bool enableMinDate = false, enableMaxDate = false;
+
+	minDate.set_time_current();
+	maxDate.set_time_current();
 
 	// Load the query's properties
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
@@ -701,6 +707,32 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		{
 			int count = atoi(nodeContent.c_str());
 			queryProps.setMaximumResultsCount((unsigned int)max(count, 10));
+		}
+		else if (nodeName == "enablemindate")
+		{
+			if (nodeContent == "YES")
+			{
+				enableMinDate = true;
+			}
+			queryProps.setMinimumDate(enableMinDate, minDate.get_day(), minDate.get_month(), minDate.get_year());
+		}
+		else if (nodeName == "mindate")
+		{
+			minDate.set_parse(nodeContent);
+			queryProps.setMinimumDate(enableMinDate, minDate.get_day(), minDate.get_month(), minDate.get_year());
+		}
+		else if (nodeName == "enablemaxdate")
+		{
+			if (nodeContent == "YES")
+			{
+				enableMaxDate = true;
+			}
+			queryProps.setMaximumDate(enableMaxDate, maxDate.get_day(), maxDate.get_month(), maxDate.get_year());
+		}
+		else if (nodeName == "maxdate")
+		{
+			maxDate.set_parse(nodeContent);
+			queryProps.setMaximumDate(enableMaxDate, maxDate.get_day(), maxDate.get_month(), maxDate.get_year());
 		}
 		else if (nodeName == "index")
 		{
@@ -1145,10 +1177,28 @@ bool PinotSettings::save(void)
 		{
 			return false;
 		}
+
+		Date aDate;
+		unsigned int day, month, year;
+
 		addChildElement(pElem, "name", queryIter->first);
 		addChildElement(pElem, "text", queryIter->second.getFreeQuery());
 		sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
 		addChildElement(pElem, "maxresults", numStr);
+		bool enable = queryIter->second.getMinimumDate(day, month, year);
+		if (year > 0)
+		{
+			addChildElement(pElem, "enablemindate", (enable ? "YES" : "NO"));
+			aDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
+			addChildElement(pElem, "mindate", aDate.format_string("%F"));
+		}
+		enable = queryIter->second.getMaximumDate(day, month, year);
+		if (year > 0)
+		{
+			addChildElement(pElem, "enablemaxdate", (enable ? "YES" : "NO"));
+			aDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
+			addChildElement(pElem, "maxdate", aDate.format_string("%F"));
+		}
 		addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
 		addChildElement(pElem, "label", queryIter->second.getLabelName());
 	}
@@ -1508,7 +1558,7 @@ bool PinotSettings::isBlackListed(const string &fileName)
 		return false;
 	}
 
-	// Any pattern matches this the file name ?
+	// Any pattern matches this file name ?
 	for (set<ustring>::iterator patternIter = m_filePatternsBlackList.begin(); patternIter != m_filePatternsBlackList.end() ; ++patternIter)
 	{
 		if (fnmatch(patternIter->c_str(), fileName.c_str(), FNM_NOESCAPE) == 0)

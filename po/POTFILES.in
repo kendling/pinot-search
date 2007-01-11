@@ -1,6 +1,10 @@
 # List of source files containing translatable strings.
 UI/GTK2/src/DaemonState.cpp
 UI/GTK2/src/EnginesTree.cpp
+UI/GTK2/src/dateDialog.cc
+UI/GTK2/src/dateDialog_glade.cc
+UI/GTK2/src/indexDialog.cc
+UI/GTK2/src/indexDialog_glade.cc
 UI/GTK2/src/importDialog.cc
 UI/GTK2/src/importDialog_glade.cc
 UI/GTK2/src/indexDialog.cc
