@@ -296,7 +296,7 @@ string StringManip::hashString(const string &str)
 		return "";
 	}
 
-	// The following was lifed from Xapian's xapian-applications/omega/hashterm.cc
+	// The following was lifted from Xapian's xapian-applications/omega/hashterm.cc
 	// and prettified slightly
 	for (string::const_iterator i = str.begin(); i != str.end(); ++i)
 	{

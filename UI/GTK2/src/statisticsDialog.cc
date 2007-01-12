@@ -102,12 +102,12 @@ void statisticsDialog::populate(void)
 	snprintf(countStr, 64, "%u", crawledFilesCount);
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
-	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("crawled files");
+	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("files were crawled");
 	unsigned int crawlingFilesCount = history.getItemsCount(CrawlHistory::CRAWLING);
 	snprintf(countStr, 64, "%u", crawlingFilesCount);
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
-	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("files being crawled");
+	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("files are being crawled");
 
 	TreeModel::iterator errIter = m_refStore->append(folderIter->children());
 	row = *errIter;

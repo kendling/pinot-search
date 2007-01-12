@@ -21,6 +21,7 @@
 #include "DocumentInfo.h"
 
 using std::string;
+using std::set;
 using std::copy;
 using std::inserter;
 

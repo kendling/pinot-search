@@ -1090,6 +1090,9 @@ bool PinotSettings::loadSearchEngines(const string &directoryName)
 					m_engineChannels.insert(pair<string, bool>(engineChannel, true));
 				}
 			}
+#ifdef DEBUG
+			else cout << "PinotSettings::loadSearchEngines: stat failed on " << location << endl;
+#endif
 		}
 
 		// Next entry
