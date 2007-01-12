@@ -54,6 +54,9 @@ class XapianEngine : public SearchEngineInterface
 
 		bool queryDatabase(Xapian::Database *pIndex, Xapian::Query &query);
 
+		static Xapian::Query dateFilter(unsigned int minDay, unsigned int minMonth, unsigned int minYear,
+		        unsigned int maxDay, unsigned int maxMonth, unsigned int maxYear);
+
 		static Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 			const string &stemLanguage, bool followOperators);
 

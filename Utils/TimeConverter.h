@@ -21,20 +21,21 @@
 
 #include <string>
 
-using namespace std;
-
 /// This class handles time conversions.
 class TimeConverter
 {
 	public:
 		/// Converts into an RFC 822 timestamp.
-		static string toTimestamp(time_t aTime, bool inGMTime = false);
+		static std::string toTimestamp(time_t aTime, bool inGMTime = false);
 
 		/// Converts from a RFC 822 timestamp.
-		static time_t fromTimestamp(const string &timestamp, bool inGMTime = false);
+		static time_t fromTimestamp(const std::string &timestamp, bool inGMTime = false);
 
-		/// Converts into a YYYYMMDD timestamp.
-		static string toTimestamp(int year, int month, int day);
+		/// Converts to a YYYYMMDD-formatted string.
+		static std::string toYYYYMMDDString(int year, int month, int day);
+
+		/// Converts from a YYYYMMDD-formatted string.
+		static time_t fromYYYYMMDDString(const std::string &yyyymmdd, bool inGMTime = false);
 
 	protected:
 		TimeConverter();

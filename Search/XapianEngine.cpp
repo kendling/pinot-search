@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <time.h>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -26,6 +27,7 @@
 
 #include "Languages.h"
 #include "StringManip.h"
+#include "TimeConverter.h"
 #include "Url.h"
 #include "XapianDatabaseFactory.h"
 #include "AbstractGenerator.h"
@@ -38,6 +40,21 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::inserter;
+
+// The following function was lifted from Xapian's xapian-applications/omega/date.cc
+// where it's called last_day(), and prettified slightly
+static int lastDay(int year, int month)
+{
+	static const int lastDays[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+	if (month != 2)
+	{
+		return lastDays[month];
+	}
+
+	// Good until 2100
+	return 28 + (year % 4 == 0);
+}
 
 XapianEngine::XapianEngine(const string &database) :
 	SearchEngineInterface()
@@ -62,12 +79,93 @@ XapianEngine::~XapianEngine()
 	m_resultsList.clear();
 }
 
+Xapian::Query XapianEngine::dateFilter(unsigned int minDay, unsigned int minMonth, unsigned int minYear,
+	unsigned int maxDay, unsigned int maxMonth, unsigned int maxYear)
+{
+	// The following was lifted from Xapian's date_range_filter() in
+	// xapian-applications/omega/date.cc and prettified slightly
+	vector<Xapian::Query> v;
+	char buf[10];
+
+	snprintf(buf, 10, "D%04d%02d", minYear, minMonth);
+	int d_last = lastDay(minYear, minMonth);
+	int d_end = d_last;
+	if (minYear == maxYear && minMonth == maxMonth && maxDay < d_last)
+	{
+		d_end = maxDay;
+	}
+	// Deal with any initial partial month
+	if (minDay > 1 || d_end < d_last)
+	{
+		for ( ; minDay <= d_end ; minDay++)
+		{
+			snprintf(buf + 7, 3, "%02d", minDay);
+			v.push_back(Xapian::Query(buf));
+		}
+	} else {
+		buf[0] = 'M';
+		v.push_back(Xapian::Query(buf));
+	}
+	
+	if (minYear == maxYear && minMonth == maxMonth)
+	{
+		return Xapian::Query(Xapian::Query::OP_OR, v.begin(), v.end());
+	}
+
+	int m_last = (minYear < maxYear) ? 12 : maxMonth - 1;
+	while (++minMonth <= m_last)
+	{
+		snprintf(buf + 5, 5, "%02d", minMonth);
+		buf[0] = 'M';
+		v.push_back(Xapian::Query(buf));
+	}
+	
+	if (minYear < maxYear)
+	{
+		while (++minYear < maxYear)
+		{
+			snprintf(buf + 1, 9, "%04d", minYear);
+			buf[0] = 'Y';
+			v.push_back(Xapian::Query(buf));
+		}
+		snprintf(buf + 1, 9, "%04d", maxYear);
+		buf[0] = 'M';
+		for (minMonth = 1; minMonth < maxMonth; minMonth++)
+		{
+			snprintf(buf + 5, 5, "%02d", minMonth);
+			v.push_back(Xapian::Query(buf));
+		}
+	}
+	
+	snprintf(buf + 5, 5, "%02d", maxMonth);
+
+	// Deal with any final partial month
+	if (maxDay < lastDay(maxYear, maxMonth))
+	{
+		buf[0] = 'D';
+		for (minDay = 1 ; minDay <= maxDay; minDay++)
+		{
+			snprintf(buf + 7, 3, "%02d", minDay);
+			v.push_back(Xapian::Query(buf));
+		}
+	}
+	else
+	{
+		buf[0] = 'M';
+		v.push_back(Xapian::Query(buf));
+	}
+
+	return Xapian::Query(Xapian::Query::OP_OR, v.begin(), v.end());
+}
+
 Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 	const string &stemLanguage, bool followOperators)
 {
 	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
 	Xapian::QueryParser parser;
 	Xapian::Stem stemmer;
+	unsigned int minDay, minMonth, minYear = 0;
+	unsigned int maxDay, maxMonth, maxYear = 0;
 
 	// Set things up
 	if (stemLanguage.empty() == false)
@@ -106,8 +204,53 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_boolean_prefix("label", "XLABEL:");
 
 	// Activate all options and parse
-	return parser.parse_query(freeQuery,
+	Xapian::Query parsedQuery = parser.parse_query(freeQuery,
 		Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|Xapian::QueryParser::FLAG_WILDCARD);
+	// Apply a date range ?
+	bool enableMin = queryProps.getMinimumDate(minDay, minMonth, minYear);
+	bool enableMax = queryProps.getMaximumDate(maxDay, maxMonth, maxYear);
+	if ((enableMin == false) && 
+		(enableMax == false))
+	{
+		// No
+		return parsedQuery;
+	}
+
+	// Anyone going as far back as Year 0 is taking the piss :-)
+	if ((enableMin == false) ||
+		(minYear == 0))
+	{
+		minDay = minMonth = 1;
+		minYear = 1970;
+	}
+	// If the second date is older than the Epoch, the first date should be set too
+	if ((enableMax == false) ||
+		(maxYear == 0))
+	{
+		time_t nowTime = time(NULL);
+		struct tm *timeTm = localtime(&nowTime);
+		maxYear = timeTm->tm_year + 1900;
+		maxMonth = timeTm->tm_mon + 1;
+		maxDay = timeTm->tm_mday;
+	}
+
+	string yyyymmddMin(TimeConverter::toYYYYMMDDString(minDay, minMonth, minYear));
+	string yyyymmddMax(TimeConverter::toYYYYMMDDString(maxDay, maxMonth, maxYear));
+	time_t startTime = TimeConverter::fromYYYYMMDDString(yyyymmddMin);
+	time_t endTime = TimeConverter::fromYYYYMMDDString(yyyymmddMax);
+  
+	double diffTime = difftime(endTime, startTime);
+	if (diffTime > 0)
+	{
+		return Xapian::Query(Xapian::Query::OP_FILTER, parsedQuery,
+			dateFilter(minDay, minMonth, minYear, maxDay, maxMonth, maxYear));
+	}
+#ifdef DEBUG
+	else cout << "XapianEngine::parseQuery: date range is zero or bogus ("
+		<< yyyymmddMax << " <= " << yyyymmddMin << ")" << endl;
+#endif
+
+	return parsedQuery;
 }
 
 /// Validates a query and extracts its terms.
@@ -118,11 +261,11 @@ bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefix
 
 	try
 	{
-		Xapian::Query freeQuery = parseQuery(NULL, queryProps, "", true);
-		if (freeQuery.empty() == false)
+		Xapian::Query fullQuery = parseQuery(NULL, queryProps, "", true);
+		if (fullQuery.empty() == false)
 		{
-			for (Xapian::TermIterator termIter = freeQuery.get_terms_begin();
-				termIter != freeQuery.get_terms_end(); ++termIter)
+			for (Xapian::TermIterator termIter = fullQuery.get_terms_begin();
+				termIter != fullQuery.get_terms_end(); ++termIter)
 			{
 				// Skip prefixed terms unless instructed otherwise
 				if ((includePrefixed == true) ||
@@ -279,7 +422,7 @@ bool XapianEngine::setQueryExpansion(set<unsigned int> &relevantDocuments)
 	copy(relevantDocuments.begin(), relevantDocuments.end(),
 		inserter(m_relevantDocuments, m_relevantDocuments.begin()));
 
-        return true;
+	return true;
 }
 
 /// Runs a query; true if success.
@@ -309,19 +452,19 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 		// 3. if no results, don't follow operators and don't stem terms
 		// 4. if no results, don't follow operators and stem terms
 		// Steps 2 and 4 depend on a language being defined for the query
-		Xapian::Query freeQuery = parseQuery(pIndex, queryProps, "", followOperators);
-		while (freeQuery.empty() == false)
+		Xapian::Query fullQuery = parseQuery(pIndex, queryProps, "", followOperators);
+		while (fullQuery.empty() == false)
 		{
 #ifdef DEBUG
 			cout << "XapianEngine::runQuery: query terms are " << endl;
-			for (Xapian::TermIterator termIter = freeQuery.get_terms_begin();
-				termIter != freeQuery.get_terms_end(); ++termIter)
+			for (Xapian::TermIterator termIter = fullQuery.get_terms_begin();
+				termIter != fullQuery.get_terms_end(); ++termIter)
 			{
 				cout << " " << *termIter << endl;
 			}
 #endif
 			// Query the database
-			if (queryDatabase(pIndex, freeQuery) == false)
+			if (queryDatabase(pIndex, fullQuery) == false)
 			{
 				break;
 			}
@@ -360,7 +503,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 #ifdef DEBUG
 				cout << "XapianEngine::runQuery: trying step " << searchStep << endl;
 #endif
-				freeQuery = parseQuery(pIndex, queryProps,
+				fullQuery = parseQuery(pIndex, queryProps,
 					Languages::toEnglish(stemLanguage), followOperators);
 				continue;
 			}

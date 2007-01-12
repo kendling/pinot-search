@@ -101,6 +101,7 @@ static time_t mktime_from_utc (struct tm *t)
 
 using std::cout;
 using std::endl;
+using std::string;
 
 TimeConverter::TimeConverter()
 {
@@ -239,8 +240,8 @@ time_t TimeConverter::fromTimestamp(const string &timestamp, bool inGMTime)
 	return 0;
 }
 
-/// Converts into a YYYYMMDD timestamp.
-string TimeConverter::toTimestamp(int year, int month, int day)
+/// Converts to a YYYYMMDD-formatted string.
+string TimeConverter::toYYYYMMDDString(int year, int month, int day)
 {
 	char timeStr[64];
 
@@ -276,3 +277,23 @@ string TimeConverter::toTimestamp(int year, int month, int day)
 
 	return "";
 }
+
+/// Converts from a YYYYMMDD-formatted string.
+time_t TimeConverter::fromYYYYMMDDString(const string &yyyymmdd, bool inGMTime)
+{
+	struct tm timeTm;
+	time_t gmTime = 0;
+
+	strptime(yyyymmdd.c_str(), "%Y%m%d", &timeTm);
+	if (inGMTime == true)
+	{
+		gmTime = timegm(&timeTm);
+	}
+	else
+	{
+		gmTime = mktime(&timeTm);
+	}
+
+	return gmTime;
+}
+

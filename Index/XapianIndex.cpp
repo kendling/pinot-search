@@ -45,8 +45,10 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+using std::vector;
 using std::set;
 using std::min;
+using std::max;
 
 // This puts a limit to terms length.
 const unsigned int XapianIndex::m_maxTermLength = 240;
@@ -397,7 +399,7 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	// Add the date terms D, M and Y
 	time_t timeT = TimeConverter::fromTimestamp(info.getTimestamp());
 	struct tm *tm = localtime(&timeT);
-	string yyyymmdd = TimeConverter::toTimestamp(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+	string yyyymmdd = TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 	if (yyyymmdd.length() == 8)
 	{
 		doc.add_term(string("D") + yyyymmdd);
@@ -512,7 +514,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	// Date terms
 	time_t timeT = TimeConverter::fromTimestamp(docInfo.getTimestamp());
 	struct tm *tm = localtime(&timeT);
-	string yyyymmdd = TimeConverter::toTimestamp(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+	string yyyymmdd = TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 	if (yyyymmdd.length() == 8)
 	{
 		commonTerms.insert(string("D") + yyyymmdd);
