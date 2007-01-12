@@ -313,13 +313,16 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 					termIter != query.get_terms_end(); ++termIter)
 				{
 					string termName(*termIter);
-					Xapian::weight termWeight = maxWeight - matches.get_termweight(termName);
+					Xapian::weight termWeight = matches.get_termweight(termName);
 
-					queryTerms.insert(pair<Xapian::weight, string>(termWeight, termName));
+					if (termWeight > 0)
+					{
+						queryTerms.insert(pair<Xapian::weight, string>(maxWeight - termWeight, termName));
 #ifdef DEBUG
-					cout << "XapianEngine::queryDatabase: term " << termName
-						<< " has weight " << matches.get_termweight(termName) << "/" << maxWeight << endl;
+						cout << "XapianEngine::queryDatabase: term " << termName
+							<< " has weight " << termWeight << "/" << maxWeight << endl;
 #endif
+					}
 				}
 
 				for (multimap<Xapian::weight, string>::iterator weightIter = queryTerms.begin();
