@@ -51,7 +51,7 @@ void dateDialog::getChoice(Date &chosenDate) const
 	Date dateNow;
 	guint year, month, day;
 
-	dateNow.set_time_current();
+	dateNow.set_time(time(NULL));
 	dateCalendar->get_date(year, month, day);
 #ifdef DEBUG
 	cout << "dateDialog::getChoice: selected " << year << " " << month << " " << day << endl;

@@ -599,8 +599,8 @@ bool PinotSettings::loadQueries(const Element *pElem)
 	string backCompatString;
 	bool enableMinDate = false, enableMaxDate = false;
 
-	minDate.set_time_current();
-	maxDate.set_time_current();
+	minDate.set_time(time(NULL));
+	maxDate.set_time(time(NULL));
 
 	// Load the query's properties
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)

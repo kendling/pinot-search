@@ -65,7 +65,7 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	}
 	else
 	{
-		m_fromDate.set_time_current();
+		m_fromDate.set_time(time(NULL));
 	}
 	fromCheckbutton->set_active(enable);
 	fromButton->set_label(m_fromDate.format_string("%x"));
@@ -76,7 +76,7 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	}
 	else
 	{
-		m_toDate.set_time_current();
+		m_toDate.set_time(time(NULL));
 	}
 	toCheckbutton->set_active(enable);
 	toButton->set_label(m_toDate.format_string("%x"));
