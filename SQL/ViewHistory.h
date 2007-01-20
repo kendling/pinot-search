@@ -42,6 +42,9 @@ class ViewHistory : public SQLiteBase
 		/// Checks if an URL is in the history.
 		bool hasItem(const string &url) const;
 
+		/// Returns the number of items.
+		unsigned int getItemsCount(void) const;
+
 		/// Deletes an URL.
 		bool deleteItem(const string &url);
 

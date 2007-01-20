@@ -126,6 +126,28 @@ bool ViewHistory::hasItem(const string &url) const
 	return success;
 }
 
+/// Returns the number of items.
+unsigned int ViewHistory::getItemsCount(void) const
+{
+	unsigned int count = 0;
+
+	SQLiteResults *results = executeStatement("SELECT COUNT(*) FROM ViewHistory;");
+	if (results != NULL)
+	{
+		SQLiteRow *row = results->nextRow();
+		if (row != NULL)
+		{
+			count = atoi(row->getColumn(0).c_str());
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return count;
+}
+
 /// Deletes an URL.
 bool ViewHistory::deleteItem(const string &url)
 {

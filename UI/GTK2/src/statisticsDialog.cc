@@ -26,6 +26,7 @@
 #include "NLS.h"
 #include "Url.h"
 #include "CrawlHistory.h"
+#include "ViewHistory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "statisticsDialog.hh"
@@ -56,7 +57,8 @@ statisticsDialog::~statisticsDialog()
 
 void statisticsDialog::populate(void)
 {
-	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+	CrawlHistory crawlerHistory(PinotSettings::getInstance().m_historyDatabase);
+	ViewHistory viewHistory(PinotSettings::getInstance().m_historyDatabase);
 	std::map<unsigned int, string> sources;
 	char countStr[64];
 	bool hasErrors = false;
@@ -95,15 +97,26 @@ void statisticsDialog::populate(void)
 
 	folderIter = m_refStore->append();
 	row = *folderIter;
+	row[m_statsColumns.m_name] = _("History");
+
+	// Show view statistics
+	unsigned int viewCount = viewHistory.getItemsCount();
+	snprintf(countStr, 64, "%u", viewCount);
+	statIter = m_refStore->append(folderIter->children());
+	row = *statIter;
+	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("results were viewed");
+
+	folderIter = m_refStore->append();
+	row = *folderIter;
 	row[m_statsColumns.m_name] = _("Crawler");
 
-	// Show statistics
-	unsigned int crawledFilesCount = history.getItemsCount(CrawlHistory::CRAWLED);
+	// Show crawler statistics
+	unsigned int crawledFilesCount = crawlerHistory.getItemsCount(CrawlHistory::CRAWLED);
 	snprintf(countStr, 64, "%u", crawledFilesCount);
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
 	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("files were crawled");
-	unsigned int crawlingFilesCount = history.getItemsCount(CrawlHistory::CRAWLING);
+	unsigned int crawlingFilesCount = crawlerHistory.getItemsCount(CrawlHistory::CRAWLING);
 	snprintf(countStr, 64, "%u", crawlingFilesCount);
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
@@ -113,14 +126,14 @@ void statisticsDialog::populate(void)
 	row = *errIter;
 	row[m_statsColumns.m_name] = _("Errors");
 
-	history.getSources(sources);
+	crawlerHistory.getSources(sources);
 	for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
 		sourceIter != sources.end(); ++sourceIter)
 	{
 		set<string> errors;
 
 		// Did any error occur on this source ?
-		unsigned int errorCount = history.getSourceItems(sourceIter->first, CrawlHistory::ERROR, errors);
+		unsigned int errorCount = crawlerHistory.getSourceItems(sourceIter->first, CrawlHistory::ERROR, errors);
 		if (errorCount > 0)
 		{
 			Url urlObj(sourceIter->second);
