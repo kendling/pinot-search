@@ -818,6 +818,9 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 		show_global_menuitems(false);
 		show_selectionbased_menuitems(false);
 	}
+
+	// Reset
+	set_status("");
 }
 
 //
@@ -1823,13 +1826,6 @@ void mainWindow::on_indexresults_activate()
 {
 	vector<DocumentInfo> resultsList;
 
-	// Make sure this has been configured
-	if (m_settings.m_docsIndexLocation.empty() == true)
-	{
-		set_status(_("Please set a location for the index first"));
-		return;
-	}
-
 	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
@@ -1839,7 +1835,7 @@ void mainWindow::on_indexresults_activate()
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				pResultsTree->getSelection(resultsList);
+				pResultsTree->getSelection(resultsList, true);
 
 				// Go through selected results
 				for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
@@ -1918,13 +1914,6 @@ void mainWindow::on_viewfromindex_activate()
 void mainWindow::on_refreshindex_activate()
 {
 	vector<IndexedDocument> documentsList;
-
-	// Make sure this has been configured
-	if (m_settings.m_docsIndexLocation.empty() == true)
-	{
-		set_status(_("Please set a location for the index first"));
-		return;
-	}
 
 	// Get the current documents selection
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());

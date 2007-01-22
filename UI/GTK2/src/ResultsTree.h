@@ -71,7 +71,7 @@ class ResultsTree : public Gtk::TreeView
 		void setGroupMode(bool groupBySearchEngine);
 
 		/// Gets a list of selected items.
-		bool getSelection(std::vector<DocumentInfo> &resultsList);
+		bool getSelection(std::vector<DocumentInfo> &resultsList, bool skipIndexed = false);
 
 		/// Sets the selected items' state.
 		void setSelectionState(bool viewed, bool indexed);

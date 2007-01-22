@@ -787,7 +787,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 //
 // Gets a list of selected items.
 //
-bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList)
+bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndexed)
 {
 	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
 	if (selectedItems.empty() == true)
@@ -802,7 +802,9 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if (row[m_resultsColumns.m_type] == ResultsModelColumns::RESULT_TITLE)
+		if ((row[m_resultsColumns.m_type] == ResultsModelColumns::RESULT_TITLE) &&
+			((skipIndexed == false) ||
+			(row[m_resultsColumns.m_indexed] = false)))
 		{
 			resultsList.push_back(DocumentInfo(from_utf8(row[m_resultsColumns.m_text]),
 				from_utf8(row[m_resultsColumns.m_url]), "", ""));
