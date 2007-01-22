@@ -323,7 +323,7 @@ bool TokenizerFactory::isSupportedType(const string &type, Tokenizer::DataNeeds 
 	// Is it a built-in type ?
 	if ((typeOnly == "text/html") ||
 		(typeOnly == "text/xml") ||
-		(typeOnly == "application/html") ||
+		(typeOnly == "application/xml") ||
 		(strncasecmp(typeOnly.c_str(), "text", 4) == 0))
 	{
 		return true;
