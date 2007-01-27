@@ -42,7 +42,7 @@ statisticsDialog::statisticsDialog() :
 	m_refStore = TreeStore::create(m_statsColumns);
 	statisticsTreeview->set_model(m_refStore);
 
-	TreeViewColumn *pColumn = create_column(_("Statistics"), m_statsColumns.m_name, true, true, m_statsColumns.m_name);
+	TreeViewColumn *pColumn = create_column(_("Status"), m_statsColumns.m_name, true, true, m_statsColumns.m_name);
 	if (pColumn != NULL)
 	{
 		statisticsTreeview->append_column(*manage(pColumn));
@@ -116,11 +116,6 @@ void statisticsDialog::populate(void)
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
 	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("files were crawled");
-	unsigned int crawlingFilesCount = crawlerHistory.getItemsCount(CrawlHistory::CRAWLING);
-	snprintf(countStr, 64, "%u", crawlingFilesCount);
-	statIter = m_refStore->append(folderIter->children());
-	row = *statIter;
-	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("files are being crawled");
 
 	TreeModel::iterator errIter = m_refStore->append(folderIter->children());
 	row = *errIter;
