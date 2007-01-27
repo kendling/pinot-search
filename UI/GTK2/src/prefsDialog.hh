@@ -40,6 +40,8 @@ public:
 
 	const std::map<std::string, std::string> &getLabelsToRename(void) const;
 
+	bool startDaemon(void) const;
+
 protected:
 	virtual void on_prefsOkbutton_clicked();
 	virtual void on_addLabelButton_clicked();
@@ -76,6 +78,7 @@ private:
 	std::map<std::string, std::string> m_renamedLabels;
 	std::set<std::string> m_deletedDirectories;
 	std::set<std::string> m_deletedMail;
+	bool m_startDaemon;
 
 };
 #endif

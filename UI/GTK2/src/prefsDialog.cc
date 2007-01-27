@@ -25,7 +25,6 @@
 #include <gtkmm/messagedialog.h>
 
 #include "MIMEScanner.h"
-#include "DBusXapianIndex.h"
 #include "SearchEngineFactory.h"
 #include "QueryHistory.h"
 #include "config.h"
@@ -40,7 +39,8 @@ using namespace Gtk;
 
 prefsDialog::prefsDialog() :
 	prefsDialog_glade(),
-	m_settings(PinotSettings::getInstance())
+	m_settings(PinotSettings::getInstance()),
+	m_startDaemon(false)
 {
 	Color newColour;
 
@@ -122,6 +122,11 @@ const set<string> &prefsDialog::getLabelsToDelete(void) const
 const map<string, string> &prefsDialog::getLabelsToRename(void) const
 {
 	return m_renamedLabels;
+}
+
+bool prefsDialog::startDaemon(void) const
+{
+	return m_startDaemon;
 }
 
 void prefsDialog::populate_labelsTreeview()
@@ -404,17 +409,9 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	if ((startForDirectories == true) ||
 		(startForMail == true))
 	{
-		unsigned int crawledCount = 0, docsCount = 0;
-
 		// Save the settings
 		m_settings.save();
-		// ... and let D-Bus activate the service if necessary
-		// If it was already running, changes will take effect when it's restarted
-		DBusXapianIndex::getStatistics(crawledCount, docsCount);
-#ifdef DEBUG
-		cout << "prefsDialog::on_prefsOkbutton_clicked: crawled " << crawledCount
-			<< ", indexed " << docsCount << endl;
-#endif
+		m_startDaemon = true;
 	}
 }
 
