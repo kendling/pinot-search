@@ -169,6 +169,12 @@ bool DBusXapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo)
 	return XapianIndex::getDocumentInfo(docId, docInfo);
 }
 
+/// Returns a document's terms count.
+unsigned int DBusXapianIndex::getDocumentTermsCount(unsigned int docId) const
+{
+	return XapianIndex::getDocumentTermsCount(docId);
+}
+
 /// Determines whether a document has a label.
 bool DBusXapianIndex::hasLabel(unsigned int docId, const string &name) const
 {

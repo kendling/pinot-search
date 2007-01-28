@@ -38,7 +38,7 @@ using std::string;
 using std::vector;
 using std::min;
 
-unsigned int LanguageDetector::m_maxTextSize = 10000;
+unsigned int LanguageDetector::m_maxTextSize = 1000;
 
 LanguageDetector::LanguageDetector()
 {

@@ -46,6 +46,9 @@ class DBusXapianIndex : public XapianIndex
 		/// Returns a document's properties.
 		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const;
 
+		/// Returns a document's terms count.
+		virtual unsigned int getDocumentTermsCount(unsigned int docId) const;
+
 		/// Determines whether a document has a label.
 		virtual bool hasLabel(unsigned int docId, const std::string &name) const;
 

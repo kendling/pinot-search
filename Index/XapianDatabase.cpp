@@ -127,13 +127,16 @@ void XapianDatabase::openDatabase(void)
 
 	// Is it a remote database ?
 	string::size_type slashPos = m_databaseName.find("/");
-	if (slashPos != 0)
+	string::size_type colonPos = m_databaseName.find(":");
+	if (((slashPos == string::npos) ||
+		(slashPos > 0)) &&
+		(colonPos != string::npos))
 	{
 		Url urlObj(m_databaseName);
 
 		if (m_readOnly == false)
 		{
-			cerr << "XapianDatabase::openDatabase: remote databases are read-only" << endl;
+			cerr << "XapianDatabase::openDatabase: remote databases " << m_databaseName << " are read-only" << endl;
 			return;
 		}
 
@@ -145,7 +148,7 @@ void XapianDatabase::openDatabase(void)
 
 		string hostName(urlObj.getHost());
 		// A port number should be included
-		string::size_type colonPos = hostName.find(":");
+		colonPos = hostName.find(":");
 		if (colonPos != string::npos)
 		{
 			string protocol(urlObj.getProtocol());

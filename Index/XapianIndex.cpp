@@ -717,6 +717,44 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 	return foundDocument;
 }
 
+/// Returns a document's terms count.
+unsigned int XapianIndex::getDocumentTermsCount(unsigned int docId) const
+{
+	unsigned int termsCount = 0;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return 0;
+	}
+
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			Xapian::Document doc = pIndex->get_document(docId);
+
+			termsCount = doc.termlist_count();
+#ifdef DEBUG
+			cout << "XapianIndex::getDocumentTermsCount: " << termsCount << " terms in document " << docId << endl;
+#endif
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get document terms count: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get document terms count, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+
+	return termsCount;
+}
+
 /// Determines whether a document has a label.
 bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 {

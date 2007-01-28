@@ -50,6 +50,9 @@ class IndexInterface
 		/// Returns a document's properties.
 		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const = 0;
 
+		/// Returns a document's terms count.
+		virtual unsigned int getDocumentTermsCount(unsigned int docId) const = 0;
+
 		/// Determines whether a document has a label.
 		virtual bool hasLabel(unsigned int docId, const std::string &name) const = 0;
 
