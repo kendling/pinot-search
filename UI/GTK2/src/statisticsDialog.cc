@@ -66,6 +66,7 @@ void statisticsDialog::populate(void)
 	TreeModel::iterator folderIter = m_refStore->append();
 	TreeModel::Row row = *folderIter;
 	row[m_statsColumns.m_name] = _("Indexes");
+	statisticsTreeview->get_selection()->select(folderIter);
 
 	TreeModel::iterator statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
@@ -104,7 +105,7 @@ void statisticsDialog::populate(void)
 	snprintf(countStr, 64, "%u", viewCount);
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
-	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("results were viewed");
+	row[m_statsColumns.m_name] = ustring(_("Viewed")) + " " + countStr + " " + _("results");
 
 	folderIter = m_refStore->append();
 	row = *folderIter;
@@ -115,7 +116,7 @@ void statisticsDialog::populate(void)
 	snprintf(countStr, 64, "%u", crawledFilesCount);
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
-	row[m_statsColumns.m_name] = ustring(countStr) + " " + _("files were crawled");
+	row[m_statsColumns.m_name] = ustring(_("Crawled")) + " " + countStr + " " + _("files");
 
 	TreeModel::iterator errIter = m_refStore->append(folderIter->children());
 	row = *errIter;
@@ -164,7 +165,10 @@ void statisticsDialog::populate(void)
 		row[m_statsColumns.m_name] = _("None");
 	}
 
+	// Expand everything except errors
 	statisticsTreeview->expand_all();
+	TreeModel::Path errPath = m_refStore->get_path(errIter);
+	statisticsTreeview->collapse_row(errPath);
 
 	Adjustment *pAdjustement = statisticsScrolledwindow->get_hadjustment();
 #ifdef DEBUG

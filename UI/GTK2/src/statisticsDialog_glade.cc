@@ -84,7 +84,7 @@ statisticsDialog_glade::statisticsDialog_glade(
    statisticsDialog->get_vbox()->set_homogeneous(false);
    statisticsDialog->get_vbox()->set_spacing(0);
    statisticsDialog->get_vbox()->pack_start(*statisticsScrolledwindow);
-   statisticsDialog->set_title(_("Statistics"));
+   statisticsDialog->set_title(_("Status"));
    statisticsDialog->set_default_size(150,350);
    statisticsDialog->set_modal(false);
    statisticsDialog->property_window_position().set_value(Gtk::WIN_POS_NONE);
