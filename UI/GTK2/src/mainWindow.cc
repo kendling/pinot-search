@@ -40,6 +40,7 @@
 #include "TimeConverter.h"
 #include "MIMEScanner.h"
 #include "Url.h"
+#include "DBusXapianIndex.h"
 #include "XapianDatabase.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
@@ -234,7 +235,7 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 		TreeModel::Row row = *iter;
 		string queryName = queryIter->first;
 		string lastRun = history.getLastRun(queryName);
-		time_t lastRunTime = time(NULL);
+		time_t lastRunTime = 0;
 
 		row[m_queryColumns.m_name] = to_utf8(queryName);
 		if (lastRun.empty() == true)
@@ -254,7 +255,7 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 		}
 		else
 		{
-			row[m_queryColumns.m_summary] = _("<undefined>");
+			row[m_queryColumns.m_summary] = _("Undefined");
 		}
 		row[m_queryColumns.m_properties] = queryIter->second;
 
@@ -1443,6 +1444,21 @@ void mainWindow::on_configure_activate()
 		m_state.unlock_lists();
 	}
 
+	// Is starting the daemon necessary ?
+	if (prefsBox.startDaemon() == true)
+	{
+		unsigned int crawledCount = 0, docsCount = 0;
+
+		// ... and let D-Bus activate the service if necessary
+		// If it was already running, changes will take effect when it's restarted
+		// FIXME: put this in a thread
+		DBusXapianIndex::getStatistics(crawledCount, docsCount);
+#ifdef DEBUG
+		cout << "mainWindow::on_configure_activate: crawled " << crawledCount
+			<< ", indexed " << docsCount << endl;
+#endif
+	}
+
 	// Any labels to delete or rename ?
 	const set<string> &labelsToDelete = prefsBox.getLabelsToDelete();
 	const std::map<string, string> &labelsToRename = prefsBox.getLabelsToRename();
@@ -1970,7 +1986,7 @@ void mainWindow::on_showfromindex_activate()
 	set<string> docLabels;
 	string indexName, labelName;
 	DocumentInfo docInfo;
-	unsigned int docId = 0;
+	unsigned int docId = 0, termsCount = 0;
 	int width, height;
 	bool matchedLabel = false, editDocument = false;
 
@@ -2031,6 +2047,7 @@ void mainWindow::on_showfromindex_activate()
 		// by the tree for display purposes
 		pIndex->getDocumentInfo(docId, docInfo);
 		pIndex->getDocumentLabels(docId, docLabels);
+		termsCount = pIndex->getDocumentTermsCount(docId);
 
 		// Does it match the current label ?
 		if ((labelName.empty() == false) &&
@@ -2064,7 +2081,7 @@ void mainWindow::on_showfromindex_activate()
 
 	// Let the user set the labels
 	get_size(width, height);
-	propertiesDialog propertiesBox(docLabels, docInfo, editDocument);
+	propertiesDialog propertiesBox(docLabels, docInfo, termsCount, editDocument);
 	propertiesBox.setHeight(height / 2);
 	propertiesBox.show();
 	if (propertiesBox.run() != RESPONSE_OK)

@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdio.h>
 #include <iostream>
 #include <utility>
 
@@ -31,7 +32,7 @@ using namespace Glib;
 using namespace Gtk;
 
 propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
-	const DocumentInfo &docInfo, bool editDocument) :
+	const DocumentInfo &docInfo, unsigned int termsCount, bool editDocument) :
 	propertiesDialog_glade(),
 	m_editDocument(editDocument),
 	m_docInfo(docInfo)
@@ -54,8 +55,29 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 
 	if (m_editDocument == true)
 	{
+		unsigned int size = docInfo.getSize();
+		char numStr[128];
+
 		titleEntry->set_text(to_utf8(docInfo.getTitle()));
 		typeEntry->set_text(to_utf8(docInfo.getType()));
+		if (size == 0)
+		{
+			sizeEntry->set_text(_("Unknown"));
+		}
+		else
+		{
+			snprintf(numStr, 128, "%u", size);
+			sizeEntry->set_text(numStr);
+		}
+		if (termsCount == 0)
+		{
+			termsEntry->set_text(_("Unknown"));
+		}
+		else
+		{
+			snprintf(numStr, 128, "%u", termsCount);
+			termsEntry->set_text(numStr);
+		}
 	}
 	else
 	{
@@ -69,6 +91,10 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 		titleEntry->hide();
 		typeLabel->hide();
 		typeEntry->hide();
+		sizeLabel->hide();
+		sizeEntry->hide();
+		termsLabel->hide();
+		termsEntry->hide();
 	}
 
 	populate_languageCombobox(language, notALanguageName);

@@ -158,7 +158,7 @@ mainWindow_glade::mainWindow_glade(
    Gtk::HBox *mainHbox = Gtk::manage(new class Gtk::HBox(false, 0));
    Gtk::VBox *mainVbox = Gtk::manage(new class Gtk::VBox(false, 0));
    
-   sessionMenuitem_menu->items().push_back(Gtk::Menu_Helpers::MenuElem(_("Statistics")));
+   sessionMenuitem_menu->items().push_back(Gtk::Menu_Helpers::MenuElem(_("Status")));
    statistics1 = (Gtk::MenuItem *)&sessionMenuitem_menu->items().back();
    
    sessionMenuitem_menu->items().push_back(Gtk::Menu_Helpers::SeparatorElem());

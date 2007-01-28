@@ -32,7 +32,8 @@ class propertiesDialog : public propertiesDialog_glade
 {  
 public:
 	propertiesDialog(const std::set<std::string> &docLabels,
-		const DocumentInfo &docInfo, bool editDocument = true);
+		const DocumentInfo &docInfo, unsigned int termsCount,
+		bool editDocument = true);
 	virtual ~propertiesDialog();
 
 	void setHeight(int maxHeight);

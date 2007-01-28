@@ -20,6 +20,7 @@
 #define _MODELCOLUMNS_HH
 
 #include <time.h>
+#include <sys/types.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 #include <gdkmm/event.h>
@@ -107,6 +108,7 @@ public:
 	Gtk::TreeModelColumn<unsigned int> m_id;
 	Gtk::TreeModelColumn<Glib::ustring> m_timestamp;
 	Gtk::TreeModelColumn<time_t> m_timestampTime;
+	Gtk::TreeModelColumn<off_t> m_size;
 
 };
 

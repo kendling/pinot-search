@@ -248,11 +248,15 @@ IndexedDocument IndexTree::getFirstSelection(void)
 	TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 	TreeModel::Row row = *iter;
 
-	return IndexedDocument(from_utf8(row[m_indexColumns.m_text]),
+	IndexedDocument indexedDoc(from_utf8(row[m_indexColumns.m_text]),
 		from_utf8(row[m_indexColumns.m_url]),
 		from_utf8(row[m_indexColumns.m_liveUrl]),
 		from_utf8(row[m_indexColumns.m_type]),
 		from_utf8(row[m_indexColumns.m_language]));
+	indexedDoc.setTimestamp(from_utf8(row[m_indexColumns.m_timestamp]));
+	indexedDoc.setSize(row[m_indexColumns.m_size]);
+
+	return indexedDoc;
 }
 
 //
@@ -273,10 +277,14 @@ bool IndexTree::getSelection(std::vector<DocumentInfo> &documentsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		documentsList.push_back(DocumentInfo(from_utf8(row[m_indexColumns.m_text]),
+		DocumentInfo docInfo(from_utf8(row[m_indexColumns.m_text]),
 			from_utf8(row[m_indexColumns.m_liveUrl]),
 			from_utf8(row[m_indexColumns.m_type]),
-			from_utf8(row[m_indexColumns.m_language])));
+			from_utf8(row[m_indexColumns.m_language]));
+		docInfo.setTimestamp(from_utf8(row[m_indexColumns.m_timestamp]));
+		docInfo.setSize(row[m_indexColumns.m_size]);
+
+		documentsList.push_back(docInfo);
 	}
 #ifdef DEBUG
 	cout << "IndexTree::getSelection: " << documentsList.size() << " documents selected" << endl;
@@ -303,11 +311,15 @@ bool IndexTree::getSelection(std::vector<IndexedDocument> &documentsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		documentsList.push_back(IndexedDocument(from_utf8(row[m_indexColumns.m_text]),
+		IndexedDocument indexedDoc(from_utf8(row[m_indexColumns.m_text]),
 			from_utf8(row[m_indexColumns.m_url]),
 			from_utf8(row[m_indexColumns.m_liveUrl]),
 			from_utf8(row[m_indexColumns.m_type]),
-			from_utf8(row[m_indexColumns.m_language])));
+			from_utf8(row[m_indexColumns.m_language]));
+		indexedDoc.setTimestamp(from_utf8(row[m_indexColumns.m_timestamp]));
+		indexedDoc.setSize(row[m_indexColumns.m_size]);
+
+		documentsList.push_back(indexedDoc);
 	}
 #ifdef DEBUG
 	cout << "IndexTree::getSelection: " << documentsList.size() << " documents selected" << endl;

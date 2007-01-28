@@ -82,6 +82,7 @@ IndexModelColumns::IndexModelColumns()
 	add(m_id);
 	add(m_timestamp);
 	add(m_timestampTime);
+	add(m_size);
 }
 
 IndexModelColumns::~IndexModelColumns()
