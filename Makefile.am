@@ -1,8 +1,5 @@
-# generated 2005/12/14 20:48:47 SGT by fabrice@amra.dyndns.org.(none)
-# using glademm V2.6.0
 
-SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ \
-	Search Monitor UI/GTK2/src
+SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ Search Monitor UI/GTK2/src
 
 EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs \
 	globalconfig.xml textcat_conf.txt textcat3_conf.txt \

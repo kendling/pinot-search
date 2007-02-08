@@ -18,9 +18,9 @@ if HAVE_LINUX_INOTIFY
 libMonitor_la_SOURCES += INotifyMonitor.cpp
 endif
 
-AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../SQL \
-	-I$(srcdir)/../Collect -I$(srcdir)/../Index -I$(srcdir)/../Search \
-	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @MIME_CFLAGS@ @SIGCPP_CFLAGS@
+AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Tokenize/filters \
+	-I$(srcdir)/../SQL -I$(srcdir)/../Collect -I$(srcdir)/../Index -I$(srcdir)/../Search \
+	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @GMIME_CFLAGS@ @SIGCPP_CFLAGS@
 if HAVE_LINUX_INOTIFY
 AM_CXXFLAGS += -DHAVE_LINUX_INOTIFY
 endif

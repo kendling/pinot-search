@@ -1,71 +1,50 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
-	HtmlTokenizer.h \
-	OpenDocumentTokenizer.h \
-	PdfTokenizer.h \
-	RtfTokenizer.h \
-	TagLibTokenizer.h \
 	Tokenizer.h \
-	TokenizerFactory.h \
-	UnknownTypeTokenizer.h \
-	WordTokenizer.h \
-	XmlTokenizer.h
+	filters/ExternalFilter.h \
+	filters/HtmlFilter.h \
+	filters/GMimeMboxFilter.h \
+	filters/TagLibMusicFilter.h \
+	filters/TextFilter.h \
+	filters/Filter.h \
+	filters/FilterFactory.h \
+	filters/GMimeMboxFilter.h \
+	filters/XmlFilter.h
 
-lib_LTLIBRARIES = libopendocumenttokenizer.la libpdftokenizer.la librtftokenizer.la \
-	libwordtokenizer.la libtaglibtokenizer.la
+lib_LTLIBRARIES = libexternalfilter.la libmboxfilter.la libtaglibfilter.la
 
 noinst_LTLIBRARIES = libTokenize.la
 
-libopendocumenttokenizer_la_SOURCES = \
-	OpenDocumentTokenizer.cpp \
-	XmlTokenizer.cpp \
-	Tokenizer.cpp
+libexternalfilter_la_SOURCES = \
+	filters/ExternalFilter.cc
 
-libopendocumenttokenizer_la_LDFLAGS = -module
+libexternalfilter_la_LDFLAGS = -module @XML_CFLAGS@
 
-libopendocumenttokenizer_la_LIBADD = -L../Utils -lBasicUtils
+libexternalfilter_la_LIBADD = -L../Utils -lBasicUtils
 
-libpdftokenizer_la_SOURCES = \
-	PdfTokenizer.cpp \
-	HtmlTokenizer.cpp \
-	Tokenizer.cpp
+libmboxfilter_la_SOURCES = \
+	filters/GMimeMboxFilter.cc
 
-libpdftokenizer_la_LDFLAGS = -module
+libmboxfilter_la_LDFLAGS = -module @GMIME_CFLAGS@
 
-libpdftokenizer_la_LIBADD = -L../Utils -lBasicUtils
+libmboxfilter_la_LIBADD = -L../Utils -lBasicUtils
 
-librtftokenizer_la_SOURCES = \
-	RtfTokenizer.cpp \
-	HtmlTokenizer.cpp \
-	Tokenizer.cpp
+libtaglibfilter_la_SOURCES = \
+	filters/TagLibMusicFilter.cc
 
-librtftokenizer_la_LDFLAGS = -module
+libtaglibfilter_la_LDFLAGS = -module @TAGLIB_LIBS@
 
-librtftokenizer_la_LIBADD = -L../Utils -lBasicUtils
-
-libwordtokenizer_la_SOURCES = \
-	WordTokenizer.cpp \
-	Tokenizer.cpp
-
-libwordtokenizer_la_LDFLAGS = -module
-
-libwordtokenizer_la_LIBADD = -L../Utils -lBasicUtils
-
-libtaglibtokenizer_la_SOURCES = \
-	TagLibTokenizer.cpp \
-	Tokenizer.cpp
-
-libtaglibtokenizer_la_LDFLAGS = -module @TAGLIB_LIBS@
-
-libtaglibtokenizer_la_LIBADD = -L../Utils -lBasicUtils
+libtaglibfilter_la_LIBADD = -L../Utils -lBasicUtils
 
 libTokenize_la_SOURCES = \
-	HtmlTokenizer.cpp \
 	Tokenizer.cpp \
-	TokenizerFactory.cpp \
-	UnknownTypeTokenizer.cpp \
-	XmlTokenizer.cpp
+	filters/FilterFactory.cc \
+	filters/HtmlFilter.cc \
+	filters/TextFilter.cc \
+	filters/XmlFilter.cc
 
-AM_CXXFLAGS = -fPIC -I$(srcdir)/../Utils @XML_CFLAGS@ @TAGLIB_CFLAGS@
+AM_CXXFLAGS = -fPIC -I$(srcdir)/../Utils \
+	@GMIME_CFLAGS@ @XML_CFLAGS@ @TAGLIB_CFLAGS@ -D_DYNAMIC_DIJON_FILTERS \
+	-D_DIJON_EXTERNALFILTER_CONFFILE=\"$(sysconfdir)/pinot/external-filters.xml\"
 

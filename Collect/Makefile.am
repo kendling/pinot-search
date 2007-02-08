@@ -26,8 +26,8 @@ pinot_collect_SOURCES = \
 
 pinot_collect_LDADD = -L../Utils -L../Tokenize \
 	-lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @INDEX_LIBS@ @XML_LIBS@ @MIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+	@GLIBMM_LIBS@ @INDEX_LIBS@ @XML_LIBS@ @GMIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
-AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize \
-	@INDEX_CFLAGS@ @XML_CFLAGS@ @HTTP_CFLAGS@ @MIME_CFLAGS@ @GLIBMM_CFLAGS@
+AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Tokenize/filters \
+	@INDEX_CFLAGS@ @XML_CFLAGS@ @HTTP_CFLAGS@ @GMIME_CFLAGS@ @GLIBMM_CFLAGS@
 

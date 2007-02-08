@@ -25,7 +25,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
 		[the gettext domain])
 
 dnl Add the languages which your application supports here.
-ALL_LINGUAS="fr es nl sv"
+ALL_LINGUAS="fr es nl pt_BR ru sv"
 #AM_GNU_GETTEXT([external]) 
 AM_GLIB_GNU_GETTEXT
 
@@ -227,9 +227,9 @@ HTTP_CFLAGS="$NEON_CFLAGS $SSL_CFLAGS $CURL_CFLAGS -D$HTTP_LIBRARY"
 HTTP_LIBS="$NEON_LIBS $SSL_LIBS $CURL_LIBS"
 AC_SUBST(HTTP_CFLAGS)
 AC_SUBST(HTTP_LIBS)
-PKG_CHECK_MODULES(MIME, gmime-2.0 >= 2.0 )
-AC_SUBST(MIME_CFLAGS)
-AC_SUBST(MIME_LIBS)
+PKG_CHECK_MODULES(GMIME, gmime-2.0 >= 2.0 )
+AC_SUBST(GMIME_CFLAGS)
+AC_SUBST(GMIME_LIBS)
 PKG_CHECK_MODULES(XML, libxml++-2.6 >= 2.12 )
 AC_SUBST(XML_CFLAGS)
 AC_SUBST(XML_LIBS)
@@ -259,8 +259,7 @@ AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 
 AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
-	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in \
-	Collect/Makefile )
+	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile )
 if test "$SOAP_SUBDIRS" != "" ; then
 AC_OUTPUT( Search/Google/Makefile )
 fi
