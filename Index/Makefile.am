@@ -16,7 +16,7 @@ bin_PROGRAMS = pinot-index
 
 libIndex_la_SOURCES = \
 	DBusXapianIndex.cpp \
-	FilterWrapper.cc \
+	FilterWrapper.cpp \
 	IndexFactory.cpp \
 	LanguageDetector.cpp \
 	XapianDatabase.cpp \

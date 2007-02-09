@@ -26,7 +26,7 @@ URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: xapian-core-libs >= 0.9.7, libtextcat >= 2.2, sqlite >= 3.1.2, curl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.6, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
-Requires: unzip, antiword, unrtf, %{pftotext_pkg}
+Requires: unzip, antiword, unrtf, %{pftotext_pkg}, openssh-askpass
 BuildRequires: xapian-core-devel >= 0.9.7, libtextcat-devel >= 2.2, sqlite-devel >= 3.1.2, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4
@@ -47,7 +47,7 @@ Requires: %{name} = %{version}
 Requires: taglib >= 1.4
 
 %description audio-docs 
-The included tokenizer adds support for OGG, MP3 and FLAC files.
+The included filter adds support for OGG, MP3 and FLAC files.
 
 %package omega 
 Summary: Xapian Omega plugin for Pinot
@@ -86,7 +86,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files
 %defattr(-, root, root, -)
-%doc ChangeLog COPYING NEWS README TODO
+%doc AUTHORS ChangeLog COPYING NEWS README TODO
 %config(noreplace) %{_sysconfdir}/pinot/globalconfig.xml
 %config(noreplace) %{_sysconfdir}/pinot/textcat_conf.txt
 %config(noreplace) %{_sysconfdir}/pinot/textcat3_conf.txt
@@ -95,10 +95,8 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_bindir}/pinot-dbus-daemon
 %{_bindir}/pinot-index
 %{_bindir}/pinot-search
-%{_libdir}/pinot/tokenizers/libopendocumenttokenizer.so*
-%{_libdir}/pinot/tokenizers/libpdftokenizer.so*
-%{_libdir}/pinot/tokenizers/librtftokenizer.so*
-%{_libdir}/pinot/tokenizers/libwordtokenizer.so*
+%{_libdir}/pinot/filters/libexternalfilter.so*
+%{_libdir}/pinot/filters/libmboxfilter.so*
 %{_datadir}/pinot/xapian-powered.png
 %{_datadir}/pinot/metase-gtk2.glade
 %{_datadir}/pinot/metase-gtk2.gladep
@@ -128,6 +126,8 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/locale/fr/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/es/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/nl/LC_MESSAGES/pinot.mo
+%{_datadir}/locale/pt_BR/LC_MESSAGES/pinot.mo
+%{_datadir}/locale/ru/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/sv/LC_MESSAGES/pinot.mo
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
 %{_sysconfdir}/xdg/autostart/*.desktop
@@ -140,7 +140,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files audio-docs 
 %defattr(-, root, root, -)
-%{_libdir}/pinot/tokenizers/libtaglibtokenizer.so*
+%{_libdir}/pinot/filters/libtaglibfilter.so*
 
 %files omega
 %defattr(-, root, root, -)

@@ -1,7 +1,7 @@
 
 SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ Search Monitor UI/GTK2/src
 
-EXTRA_DIST = ChangeLog NEWS README TODO mkinstalldirs \
+EXTRA_DIST = AUTHORS ChangeLog NEWS README TODO mkinstalldirs \
 	globalconfig.xml textcat_conf.txt textcat3_conf.txt \
 	pinot.desktop pinot-dbus-daemon.desktop pinot.spec \
 	Search/Plugins/*src Search/Plugins/*.xml \
@@ -30,9 +30,9 @@ install-data-local:
 	$(INSTALL_DATA) Search/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
 	@mv $(DESTDIR)$(datadir)/pinot/engines/AmazonAPI.src $(DESTDIR)$(datadir)/pinot/
 	$(INSTALL_DATA) Search/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
-	$(mkinstalldirs) $(DESTDIR)$(libdir)/pinot/tokenizers
-	@rm $(DESTDIR)$(libdir)/lib*tokenizer.a $(DESTDIR)$(libdir)/lib*tokenizer.la
-	@mv $(DESTDIR)$(libdir)/lib*tokenizer* $(DESTDIR)$(libdir)/pinot/tokenizers/
+	$(mkinstalldirs) $(DESTDIR)$(libdir)/pinot/filters
+	@rm $(DESTDIR)$(libdir)/lib*filter.a $(DESTDIR)$(libdir)/lib*filter.la
+	@mv $(DESTDIR)$(libdir)/lib*filter* $(DESTDIR)$(libdir)/pinot/filters/
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
 	$(INSTALL_DATA) UI/GTK2/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/applications

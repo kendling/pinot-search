@@ -364,6 +364,10 @@ http://www.gnu.org/software/unrtf/unrtf.html
 
 TagLib							1.4
 http://ktown.kde.org/~wheeler/taglib/
+
+openssh-askpass						4.3
+http://www.openssh.com/portable.html
+
 ---------------------------------------------------------------
 Notes :
 (1) enabled with "./configure --with-http=neon|curl"
