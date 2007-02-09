@@ -33,12 +33,11 @@
 #include <glibmm/object.h>
 #include <glibmm/main.h>
 
-#include "TokenizerFactory.h"
+#include "FilterFactory.h"
 #include "Languages.h"
 #include "MIMEScanner.h"
 #include "XapianDatabase.h"
 #include "XapianDatabaseFactory.h"
-#include "HtmlTokenizer.h"
 #include "ActionQueue.h"
 #include "CrawlHistory.h"
 #include "QueryHistory.h"
@@ -82,7 +81,7 @@ static void closeAll(void)
 	XapianDatabaseFactory::closeAll();
 
 	// Close the tokenizer libraries
-	TokenizerFactory::unloadTokenizers();
+	Dijon::FilterFactory::unloadFilters();
 
 	// Restore the stream buffers
 	if (g_coutBuf != NULL)
@@ -96,7 +95,6 @@ static void closeAll(void)
 	g_outputFile.close();
 
 	DownloaderInterface::shutdown();
-	HtmlTokenizer::shutdown();
 	MIMEScanner::shutdown();
 }
 
@@ -218,7 +216,6 @@ int main(int argc, char **argv)
 	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
 
 	MIMEScanner::initialize();
-	HtmlTokenizer::initialize();
 	DownloaderInterface::initialize();
 	if (Glib::thread_supported() == false)
 	{
@@ -285,10 +282,10 @@ int main(int argc, char **argv)
 	Languages::setIntlName(12, _("Swedish"));
 
 	// Load tokenizer libraries, if any
-	TokenizerFactory::loadTokenizers(string(LIBDIR) + string("/pinot/tokenizers"));
-	TokenizerFactory::loadTokenizers(confDirectory + string("/tokenizers"));
+	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
+	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
 	// Load the settings
-	settings.loadGlobal(string(SYSCONFDIR) + string("/pinot/globalconfig.xml"));
+	settings.loadGlobal(string(SYSCONFDIR) + "/pinot/globalconfig.xml");
 	settings.load();
 
 	// Catch interrupts

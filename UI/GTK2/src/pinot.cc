@@ -37,12 +37,11 @@ extern "C"
 }
 #include <gtkmm/main.h>
 
-#include "TokenizerFactory.h"
+#include "FilterFactory.h"
 #include "Languages.h"
 #include "MIMEScanner.h"
 #include "XapianDatabase.h"
 #include "XapianDatabaseFactory.h"
-#include "HtmlTokenizer.h"
 #include "ActionQueue.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
@@ -78,7 +77,7 @@ static void closeAll(void)
 	XapianDatabaseFactory::closeAll();
 
 	// Close the tokenizer libraries
-	TokenizerFactory::unloadTokenizers();
+	Dijon::FilterFactory::unloadFilters();
 
 	// Restore the stream buffers
 	if (g_coutBuf != NULL)
@@ -92,7 +91,6 @@ static void closeAll(void)
 	g_outputFile.close();
 
 	DownloaderInterface::shutdown();
-	HtmlTokenizer::shutdown();
 	MIMEScanner::shutdown();
 }
 
@@ -147,9 +145,10 @@ int main(int argc, char **argv)
 
 	// This should make Xapian use Flint rather than Quartz
 	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
+	// This will be useful for indexes served by xapian-progsrv+ssh
+	Glib::setenv("SSH_ASKPASS", prefixDir + "/libexec/openssh/ssh-askpass");
 
 	MIMEScanner::initialize();
-	HtmlTokenizer::initialize();
 	DownloaderInterface::initialize();
 	if (Glib::thread_supported() == false)
 	{
@@ -216,13 +215,13 @@ int main(int argc, char **argv)
 	Languages::setIntlName(12, _("Swedish"));
 
 	// Load search engines
-	settings.loadSearchEngines(prefixDir + string("/share/pinot/engines"));
-	settings.loadSearchEngines(confDirectory + string("/engines"));
+	settings.loadSearchEngines(prefixDir + "/share/pinot/engines");
+	settings.loadSearchEngines(confDirectory + "/engines");
 	// Load tokenizer libraries, if any
-	TokenizerFactory::loadTokenizers(string(LIBDIR) + string("/pinot/tokenizers"));
-	TokenizerFactory::loadTokenizers(confDirectory + string("/tokenizers"));
+	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
+	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
 	// Load the settings
-	settings.loadGlobal(string(SYSCONFDIR) + string("/pinot/globalconfig.xml"));
+	settings.loadGlobal(string(SYSCONFDIR) + "/pinot/globalconfig.xml");
 	settings.load();
 
 	// Catch interrupts
@@ -280,7 +279,7 @@ int main(int argc, char **argv)
 	try
 	{
 		// Set an icon for all windows
-		Gtk::Window::set_default_icon_from_file(prefixDir + string("/share/icons/hicolor/48x48/apps/pinot.png"));
+		Gtk::Window::set_default_icon_from_file(prefixDir + "/share/icons/hicolor/48x48/apps/pinot.png");
 
 		// Create and open the main dialog box
 		mainWindow mainBox;

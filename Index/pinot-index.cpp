@@ -25,10 +25,10 @@
 
 #include "MIMEScanner.h"
 #include "Url.h"
-#include "HtmlTokenizer.h"
+#include "FilterFactory.h"
 #include "XapianDatabaseFactory.h"
-#include "TokenizerFactory.h"
 #include "DownloaderFactory.h"
+#include "FilterWrapper.h"
 #include "IndexFactory.h"
 #include "config.h"
 
@@ -36,6 +36,7 @@ using namespace std;
 
 static struct option g_longOptions[] = {
 	{"check", 1, 0, 'c'},
+	{"db", 1, 0, 'd'},
 	{"help", 0, 0, 'h'},
 	{"index", 1, 0, 'i'},
 	{"showinfo", 0, 0, 's'},
@@ -46,13 +47,13 @@ static struct option g_longOptions[] = {
 int main(int argc, char **argv)
 {
 	string type, option;
-	string urlToCheck, urlToIndex;
+	string databaseName, urlToCheck, urlToIndex;
 	int longOptionIndex = 0;
 	unsigned int docId = 0;
 	bool checkDocument = false, indexDocument = false, showInfo = false, success = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "c:hi:sv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "c:d:hi:sv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		set<string> engines;
@@ -66,12 +67,20 @@ int main(int argc, char **argv)
 				}
 				checkDocument = true;
 				break;
+			case 'd':
+				if (optarg != NULL)
+				{
+					databaseName = optarg;
+				}
+				checkDocument = true;
+				break;
 			case 'h':
 				// Help
 				cout << "pinot-index - Index documents from the command-line\n\n"
-					<< "Usage: pinot-index [OPTIONS] INDEXTYPE INDEXLOCATION\n\n"
+					<< "Usage: pinot-index [OPTIONS]\n\n"
 					<< "Options:\n"
 					<< "  -c, --check               check whether the given URL is in the index\n"
+					<< "  -d, --db                  path to index to use (mandatory)\n"
 					<< "  -h, --help                display this help and exit\n"
 					<< "  -i, --index               index the given URL\n"
 					<< "  -s, --showinfo            show information about the document\n"
@@ -79,8 +88,8 @@ int main(int argc, char **argv)
 				// Don't mention type dbus here as it doesn't support indexing and
 				// is identical to xapian when checking for URLs
 				cout << "Examples:\n"
-					<< "pinot-index --check file:///home/fabrice/Documents/Bozo.txt --showinfo xapian ~/.pinot/daemon\n\n"
-					<< "pinot-index --index http://pinot.berlios.de/ xapian ~/.pinot/index\n\n"
+					<< "pinot-index --check file:///home/fabrice/Documents/Bozo.txt --showinfo --db ~/.pinot/daemon\n\n"
+					<< "pinot-index --index http://pinot.berlios.de/ --db ~/.pinot/index\n\n"
 					<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 				return EXIT_SUCCESS;
 			case 'i':
@@ -104,46 +113,43 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "c:hi:sv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "c:d:hi:sv", g_longOptions, &longOptionIndex);
 	}
 
-	if ((argc < 3) ||
-		(optind >= argc) ||
-		(optind + 2 != argc) ||
-		((indexDocument == false) && (checkDocument == false)))
+	if (((indexDocument == false) &&
+		(checkDocument == false)) ||
+		(databaseName.empty() == true))
 	{
 		cerr << "Incorrect parameters" << endl;
 		return EXIT_FAILURE;
 	}
 
 	MIMEScanner::initialize();
-	HtmlTokenizer::initialize();
 	DownloaderInterface::initialize();
-	TokenizerFactory::loadTokenizers(string(LIBDIR) + string("/pinot/tokenizers"));
+	Dijon::FilterFactory::loadFilters(string(LIBDIR) + string("/pinot/filters"));
 
 	// Make sure the index is open in the correct mode
-	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(argv[optind + 1], (indexDocument ? false : true));
+	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(databaseName, (indexDocument ? false : true));
 	if (pDb == NULL)
 	{
-		cerr << "Couldn't open index " << argv[optind + 1] << endl;
+		cerr << "Couldn't open index " << databaseName << endl;
 
+		Dijon::FilterFactory::unloadFilters();
 		DownloaderInterface::shutdown();
-		HtmlTokenizer::shutdown();
 		MIMEScanner::shutdown();
 
 		return EXIT_FAILURE;
 	}
 
 	// Get a read-write index of the given type
-	IndexInterface *pIndex = IndexFactory::getIndex(argv[optind], argv[optind + 1]);
+	IndexInterface *pIndex = IndexFactory::getIndex("xapian", databaseName);
 	if (pIndex == NULL)
 	{
-		cerr << "Couldn't obtain index of type " << argv[optind] << endl;
+		cerr << "Couldn't obtain index for " << databaseName << endl;
 
 		XapianDatabaseFactory::closeAll();
-		TokenizerFactory::unloadTokenizers();
+		Dijon::FilterFactory::unloadFilters();
 		DownloaderInterface::shutdown();
-		HtmlTokenizer::shutdown();
 		MIMEScanner::shutdown();
 
 		return EXIT_FAILURE;
@@ -172,9 +178,8 @@ int main(int argc, char **argv)
 			cerr << "Couldn't obtain downloader for protocol " << thisUrl.getProtocol() << endl;
 
 			XapianDatabaseFactory::closeAll();
-			TokenizerFactory::unloadTokenizers();
+			Dijon::FilterFactory::unloadFilters();
 			DownloaderInterface::shutdown();
-			HtmlTokenizer::shutdown();
 			MIMEScanner::shutdown();
 
 			return EXIT_FAILURE;
@@ -188,37 +193,30 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			// Tokenize this document
-			Tokenizer *pTokens = TokenizerFactory::getTokenizerByType(docInfo.getType(), pDoc);
-			if (pTokens != NULL)
+			set<string> labels;
+
+			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
+
+			// Update an existing document or add to the index ?
+			docId = pIndex->hasDocument(urlToIndex);
+			if (docId > 0)
 			{
-				set<string> labels;
-
-				pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
-
-				// Update an existing document or add to the index ?
-				docId = pIndex->hasDocument(urlToIndex);
-				if (docId > 0)
+				// Update the document
+				if (FilterWrapper::updateDocument(docId, *pIndex, *pDoc) == true)
 				{
-					// Update the document
-					if (pIndex->updateDocument(docId, *pTokens) == true)
-					{
-						success = true;
-					}
+					success = true;
 				}
-				else
-				{
-					// Index the document
-					success = pIndex->indexDocument(*pTokens, labels, docId);
-				}
+			}
+			else
+			{
+				// Index the document
+				success = FilterWrapper::indexDocument(*pIndex, *pDoc, labels, docId);
+			}
 
-				if (success == true)
-				{
-					// Flush the index
-					pIndex->flush();
-				}
-
-				delete pTokens;
+			if (success == true)
+			{
+				// Flush the index
+				pIndex->flush();
 			}
 
 			delete pDoc;
@@ -255,9 +253,8 @@ int main(int argc, char **argv)
 	delete pIndex;
 
 	XapianDatabaseFactory::closeAll();
-	TokenizerFactory::unloadTokenizers();
+	Dijon::FilterFactory::unloadFilters();
 	DownloaderInterface::shutdown();
-	HtmlTokenizer::shutdown();
 	MIMEScanner::shutdown();
 
 	// Did whatever operation we carried out succeed ?
