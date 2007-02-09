@@ -25,8 +25,9 @@
 
 #include "StringManip.h"
 #include "Url.h"
-#include "HtmlTokenizer.h"
+#include "HtmlFilter.h"
 #include "DownloaderFactory.h"
+#include "FilterWrapper.h"
 #include "WebEngine.h"
 
 using std::cout;
@@ -81,15 +82,24 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 		m_charset = getCharset(contentType);
 		if (m_charset.empty() == true)
 		{
-			HtmlTokenizer tokens(pDoc, true);
+			Dijon::HtmlFilter htmlFilter("text/html");
 
-			// Content-Type might be specified as a META tag 
-			contentType = tokens.getMetaTag("Content-Type");
-			m_charset = getCharset(contentType);
-			if (m_charset.empty() == false)
+			if (FilterWrapper::feedFilter(*pDoc, &htmlFilter) == true)
 			{
-				// Reset the document's type
-				pDoc->setType(contentType);
+				// Content-Type might be specified as a META tag
+				const map<string, string> &metaData = htmlFilter.get_meta_data();
+				map<string, string>::const_iterator typeIter = metaData.find("Content-Type");
+
+				if (typeIter != metaData.end())
+				{
+					contentType = typeIter->second;
+					m_charset = getCharset(contentType);
+					if (m_charset.empty() == false)
+					{
+						// Reset the document's type
+						pDoc->setType(contentType);
+					}
+				}
 			}
 		}
 	}

@@ -29,8 +29,8 @@
 #include "Timer.h"
 #include "TimeConverter.h"
 #include "Url.h"
+#include "FilterWrapper.h"
 #include "XapianDatabase.h"
-#include "TokenizerFactory.h"
 #include "MboxHandler.h"
 
 using namespace std;
@@ -167,26 +167,14 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLa
 		{
 			m_index.setStemmingMode(IndexInterface::STORE_BOTH);
 
-			// Get an ad hoc tokenizer for the message
-			Tokenizer *pTokenizer = TokenizerFactory::getTokenizerByType(pMessage->getType(), pMessage);
-			if (pTokenizer == NULL)
-			{
-#ifdef DEBUG
-				cout << "MboxHandler::parseMailAccount: no tokenizer for message " << docNum << endl;
-#endif
-				break;	
-			}
-
 			unsigned int docId = 0;
-			indexedFile = m_index.indexDocument(*pTokenizer, labels, docId);
+			indexedFile = FilterWrapper::indexDocument(m_index, *pMessage, labels, docId);
 #ifdef DEBUG
 			if (indexedFile == false)
 			{
 				cout << "MboxHandler::parseMailAccount: couldn't index message " << docNum << endl;
 			}
 #endif
-
-			delete pTokenizer;
 		}
 		else
 		{

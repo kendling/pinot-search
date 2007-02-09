@@ -28,8 +28,8 @@
 #include "MIMEScanner.h"
 #include "StringManip.h"
 #include "Url.h"
+#include "FilterWrapper.h"
 #include "XapianDatabase.h"
-#include "TokenizerFactory.h"
 #include "FileCollector.h"
 #include "PinotSettings.h"
 #include "OnDiskHandler.h"
@@ -117,24 +117,14 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 	}
 
 	// Get an ad hoc tokenizer for the message
-	Tokenizer *pTokenizer = TokenizerFactory::getTokenizerByType(docInfo.getType(), pDoc);
-	if (pTokenizer == NULL)
-	{
-#ifdef DEBUG
-		cout << "OnDiskHandler::indexFile: no tokenizer for type " << docInfo.getType() << endl;
-#endif
-		delete pDoc;
-		return false;
-	}
-
 	// Index or update ?
 	if (docId == 0)
 	{
-		indexedFile = m_index.indexDocument(*pTokenizer, labels, docId);
+		indexedFile = FilterWrapper::indexDocument(m_index, *pDoc, labels, docId);
 	}
 	else
 	{
-		indexedFile = m_index.updateDocument(docId, *pTokenizer);
+		indexedFile = FilterWrapper::updateDocument(docId, m_index, *pDoc);
 	}
 
 #ifdef DEBUG
@@ -144,7 +134,6 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 	}
 #endif
 
-	delete pTokenizer;
 	delete pDoc;
 
 	return indexedFile;

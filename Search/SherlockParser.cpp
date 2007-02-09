@@ -25,9 +25,10 @@
 
 #include "StringManip.h"
 #include "Url.h"
-#include "HtmlTokenizer.h"
-#include "XmlTokenizer.h"
+#include "HtmlFilter.h"
+#include "FilterFactory.h"
 #include "FileCollector.h"
+#include "FilterWrapper.h"
 #include "SherlockParser.h"
 
 using std::cout;
@@ -360,40 +361,52 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 #endif
 			chunkDoc.setData(dummyHtml.c_str(), dummyHtml.length());
 
-			HtmlTokenizer chunkTokens(&chunkDoc, false, true);
-			set<Link> &chunkLinks = chunkTokens.getLinks();
-			unsigned int endOfFirstLink = 0, startOfSecondLink = 0, endOfSecondLink = 0, startOfThirdLink = 0;
-
-			// The result's URL and title should be given by the first link
-			for (set<Link>::iterator linkIter = chunkLinks.begin(); linkIter != chunkLinks.end(); ++linkIter)
+			// Feed this chunk to the filter
+			Dijon::HtmlFilter chunkFilter("text/html");
+			if ((FilterWrapper::feedFilter(chunkDoc, &chunkFilter) == true) &&
+				(chunkFilter.next_document() == true))
 			{
-				if (linkIter->m_index == 0)
+				set<Dijon::Link> chunkLinks;
+				unsigned int endOfFirstLink = 0, startOfSecondLink = 0, endOfSecondLink = 0, startOfThirdLink = 0;
+
+				chunkFilter.get_links(chunkLinks);
+
+				// The result's URL and title should be given by the first link
+				for (set<Dijon::Link>::iterator linkIter = chunkLinks.begin(); linkIter != chunkLinks.end(); ++linkIter)
 				{
-					url = linkIter->m_url;
-					name = linkIter->m_name;
+					if (linkIter->m_index == 0)
+					{
+						url = linkIter->m_url;
+						name = linkIter->m_name;
 #ifdef DEBUG
-					cout << "SherlockResponseParser::parse: first link in chunk is "
-						<< url << endl;
+						cout << "SherlockResponseParser::parse: first link in chunk is "
+							<< url << endl;
 #endif
-					endOfFirstLink = linkIter->m_endPos;
+						endOfFirstLink = linkIter->m_endPos;
+					}
+					else if (linkIter->m_index == 1)
+					{
+						startOfSecondLink = linkIter->m_startPos;
+						endOfSecondLink = linkIter->m_endPos;
+					}
+					else if (linkIter->m_index == 2)
+					{
+						startOfThirdLink = linkIter->m_startPos;
+					}
 				}
-				else if (linkIter->m_index == 1)
-				{
-					startOfSecondLink = linkIter->m_startPos;
-					endOfSecondLink = linkIter->m_endPos;
-				}
-				else if (linkIter->m_index == 2)
-				{
-					startOfThirdLink = linkIter->m_startPos;
-				}
-			}
 
-			// Any extract ?
-			extract = chunkTokens.getAbstract();
-			if (extract.empty() == true)
-			{
-				extract = XmlTokenizer::stripTags(resultItem);
-				StringManip::trimSpaces(extract);
+				// Any extract ?
+				const map<string, string> &metaData = chunkFilter.get_meta_data();
+				map<string, string>::const_iterator abstractIter = metaData.find("abstract");
+				if (abstractIter == metaData.end())
+				{
+					extract = FilterWrapper::stripMarkup(resultItem);
+					StringManip::trimSpaces(extract);
+				}
+				else
+				{
+					extract = abstractIter->second;
+				}
 			}
 		}
 		else

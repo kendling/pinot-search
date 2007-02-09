@@ -30,13 +30,13 @@
 #include <sigc++/slot.h>
 #include <glibmm/miscutils.h>
 
-#include "HtmlTokenizer.h"
-#include "XmlTokenizer.h"
 #include "MIMEScanner.h"
-#include "TokenizerFactory.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
+#include "HtmlFilter.h"
+#include "FilterFactory.h"
+#include "FilterWrapper.h"
 #include "XapianDatabase.h"
 #include "ActionQueue.h"
 #include "QueryHistory.h"
@@ -835,7 +835,7 @@ void QueryingThread::doWork(void)
 			// The title may contain formatting
 			if (resultIter->getTitle().empty() == false)
 			{
-				title = XmlTokenizer::stripTags(resultIter->getTitle());
+				title = FilterWrapper::stripMarkup(resultIter->getTitle());
 			}
 #ifdef DEBUG
 			cout << "QueryingThread::doWork: title is " << title << endl;
@@ -1128,7 +1128,6 @@ void IndexingThread::doWork(void)
 {
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
 	Url thisUrl(m_docInfo.getLocation());
-	Tokenizer::DataNeeds dataNeeds;
 	bool doDownload = true;
 
 	// First things first, get the index
@@ -1152,7 +1151,7 @@ void IndexingThread::doWork(void)
 		m_docInfo.setType(MIMEScanner::scanUrl(thisUrl));
 	}
 
-	if (TokenizerFactory::isSupportedType(m_docInfo.getType(), dataNeeds) == false)
+	if (Dijon::FilterFactory::isSupportedType(m_docInfo.getType()) == false)
 	{
 		// Skip unsupported types ?
 		if (m_allowAllMIMETypes == false)
@@ -1168,6 +1167,7 @@ void IndexingThread::doWork(void)
 		}
 	}
 
+#if 0
 	if ((dataNeeds == Tokenizer::ALL_BUT_FILES) &&
 		(thisUrl.getProtocol() == "file"))
 	{
@@ -1177,6 +1177,7 @@ void IndexingThread::doWork(void)
 	{
 		doDownload = false;
 	}
+#endif
 
 	if (doDownload == true)
 	{
@@ -1195,7 +1196,6 @@ void IndexingThread::doWork(void)
 
 	if (m_pDoc != NULL)
 	{
-		Tokenizer *pTokens = NULL;
 		string docType(m_pDoc->getType());
 		bool success = false;
 
@@ -1224,7 +1224,7 @@ void IndexingThread::doWork(void)
 #endif
 
 		// Check again as the downloader may have altered the MIME type
-		if (TokenizerFactory::isSupportedType(m_docInfo.getType(), dataNeeds) == false)
+		if (Dijon::FilterFactory::isSupportedType(m_docInfo.getType()) == false)
 		{
 			// Skip unsupported types ?
 			if (m_allowAllMIMETypes == false)
@@ -1245,42 +1245,33 @@ void IndexingThread::doWork(void)
 			// Create an empty document so that the file's details are indexed but not its content
 			delete m_pDoc;
 			m_pDoc = new Document(m_docInfo);
-			// A simple text tokenizer will do the job
-			pTokens = new Tokenizer(m_pDoc);
+			m_pDoc->setType("text/plain");
 		}
+#if 0
 		else
 		{
-			pTokens = TokenizerFactory::getTokenizerByType(m_docInfo.getType(), m_pDoc);
-		}
-
-		if (pTokens == NULL)
-                {
-                        m_status = _("Couldn't tokenize");
-                        m_status += " ";
-                        m_status += m_docInfo.getLocation();
-                        return;
-                }
-
-		// Is indexing allowed ?
-		HtmlTokenizer *pHtmlTokens = dynamic_cast<HtmlTokenizer*>(pTokens);
-		if ((m_ignoreRobotsDirectives == false) &&
-			(pHtmlTokens != NULL))
-		{
-			// See if the document has a ROBOTS META tag
-			string robotsDirectives = pHtmlTokens->getMetaTag("robots");
-			string::size_type pos1 = robotsDirectives.find("none");
-			string::size_type pos2 = robotsDirectives.find("noindex");
-			if ((pos1 != string::npos) ||
-				(pos2 != string::npos))
+			// Is indexing allowed ?
+			HtmlFilter *pHtmlFilter = dynamic_cast<HtmlFilter*>(pFilter);
+			if ((m_ignoreRobotsDirectives == false) &&
+				(pHtmlTokens != NULL))
 			{
-				// No, it's not
-				delete pTokens;
-				m_status = _("Robots META tag forbids indexing");
-				m_status += " ";
-				m_status += m_docInfo.getLocation();
-				return;
+		// See if the document has a ROBOTS META tag
+		string robotsDirectives = pHtmlTokens->getMetaTag("robots");
+		string::size_type pos1 = robotsDirectives.find("none");
+		string::size_type pos2 = robotsDirectives.find("noindex");
+		if ((pos1 != string::npos) ||
+			(pos2 != string::npos))
+		{
+			// No, it's not
+			delete pTokens;
+			m_status = _("Robots META tag forbids indexing");
+			m_status += " ";
+			m_status += m_docInfo.getLocation();
+			return;
+		}
 			}
 		}
+#endif
 
 		if (m_done == false)
 		{
@@ -1290,7 +1281,7 @@ void IndexingThread::doWork(void)
 			if (m_update == true)
 			{
 				// Update the document
-				if (pIndex->updateDocument(m_docId, *pTokens) == true)
+				if (FilterWrapper::updateDocument(m_docId, *pIndex, *m_pDoc) == true)
 				{
 #ifdef DEBUG
 					cout << "IndexingThread::doWork: updated " << m_pDoc->getLocation()
@@ -1308,7 +1299,7 @@ void IndexingThread::doWork(void)
 				unsigned int docId = 0;
 
 				// Index the document
-				success = pIndex->indexDocument(*pTokens, labels, docId);
+				success = FilterWrapper::indexDocument(*pIndex, *m_pDoc, labels, docId);
 				if (success == true)
 				{
 					m_docId = docId;
@@ -1340,8 +1331,6 @@ void IndexingThread::doWork(void)
 				pIndex->getDocumentInfo(m_docId, m_docInfo);
 			}
 		}
-
-		delete pTokens;
 	}
 
 	delete pIndex;
