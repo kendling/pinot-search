@@ -19,6 +19,7 @@
 #ifndef _DOCUMENT_INFO_H
 #define _DOCUMENT_INFO_H
 
+#include <sys/types.h>
 #include <string>
 #include <set>
 
