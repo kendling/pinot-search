@@ -87,6 +87,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %files
 %defattr(-, root, root, -)
 %doc AUTHORS ChangeLog COPYING NEWS README TODO
+%config(noreplace) %{_sysconfdir}/pinot/external-filters.xml
 %config(noreplace) %{_sysconfdir}/pinot/globalconfig.xml
 %config(noreplace) %{_sysconfdir}/pinot/textcat_conf.txt
 %config(noreplace) %{_sysconfdir}/pinot/textcat3_conf.txt

@@ -2,7 +2,8 @@
 SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ Search Monitor UI/GTK2/src
 
 EXTRA_DIST = AUTHORS ChangeLog NEWS README TODO mkinstalldirs \
-	globalconfig.xml textcat_conf.txt textcat3_conf.txt \
+	Tokenize/filters/external-filters.xml globalconfig.xml \
+	textcat_conf.txt textcat3_conf.txt \
 	pinot.desktop pinot-dbus-daemon.desktop pinot.spec \
 	Search/Plugins/*src Search/Plugins/*.xml \
 	Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
@@ -17,6 +18,7 @@ man_MANS = Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/pinot
+	$(INSTALL_DATA) Tokenize/filters/external-filters.xml $(DESTDIR)$(sysconfdir)/pinot/external-filters.xml
 	$(INSTALL_DATA) globalconfig.xml $(DESTDIR)$(sysconfdir)/pinot/globalconfig.xml
 	$(INSTALL_DATA) textcat_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat_conf.txt
 	$(INSTALL_DATA) textcat3_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat3_conf.txt
