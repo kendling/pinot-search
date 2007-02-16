@@ -6,7 +6,6 @@ noinst_HEADERS = \
 	DocumentInfo.h \
 	IndexedDocument.h \
 	Languages.h \
-	MboxParser.h \
 	MIMEScanner.h \
 	NLS.h \
 	Result.h \
@@ -35,7 +34,6 @@ libBasicUtils_la_SOURCES = \
 libUtils_la_SOURCES = \
 	IndexedDocument.cpp \
 	Languages.cpp \
-	MboxParser.cpp \
 	MIMEScanner.cpp \
 	Result.cpp \
 	Timer.cpp \

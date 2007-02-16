@@ -29,6 +29,8 @@
 #include "Timer.h"
 #include "TimeConverter.h"
 #include "Url.h"
+#include "FilterFactory.h"
+#include "FilterUtils.h"
 #include "FilterWrapper.h"
 #include "XapianDatabase.h"
 #include "MboxHandler.h"
@@ -123,10 +125,24 @@ bool MboxHandler::indexMessages(const string &fileName, PinotSettings::Timestamp
 		return false;
 	}
 
-	// Get a parser
-	MboxParser boxParser(fileName, mboxOffset);
+	// Get the mbox filter
+	Dijon::Filter *pFilter = Dijon::FilterFactory::getFilter("application/mbox");
+	if (pFilter == NULL)
+	{
+		return false;
+	}
 
-	bool indexedFile = parseMailAccount(boxParser, sourceLabel);
+	Document emptyDoc;
+	emptyDoc.setLocation(string("file://") + fileName);
+	if (FilterUtils::feedFilter(emptyDoc, pFilter) == false)
+	{
+		delete pFilter;
+		return false;
+	}
+
+	bool indexedFile = parseMailAccount(pFilter, sourceLabel);
+
+	delete pFilter;
 
 	// Flush the index
 	m_index.flush();
@@ -137,11 +153,10 @@ bool MboxHandler::indexMessages(const string &fileName, PinotSettings::Timestamp
 	return indexedFile;
 }
 
-bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLabel)
+bool MboxHandler::parseMailAccount(Dijon::Filter *pFilter, const string &sourceLabel)
 {
 	set<unsigned int> docIdList;
 	set<string> labels;
-	const Document *pMessage = boxParser.getDocument();
 	char sourceStr[64];
 	unsigned int docNum = 0;
 	bool indexedFile = false;
@@ -159,16 +174,20 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLa
 	labels.insert(sourceLabel);
 
 	// Parse the mbox file
-	while (pMessage != NULL)
+	while (pFilter->next_document() == true)
 	{
+		Document currentMessage;
+
+		FilterUtils::populateDocument(currentMessage, pFilter);
+
 		// Has this message already been indexed ?
-		unsigned int docId = m_index.hasDocument(pMessage->getLocation());
+		unsigned int docId = m_index.hasDocument(currentMessage.getLocation());
 		if (docId == 0)
 		{
 			m_index.setStemmingMode(IndexInterface::STORE_BOTH);
 
 			unsigned int docId = 0;
-			indexedFile = FilterWrapper::indexDocument(m_index, *pMessage, labels, docId);
+			indexedFile = FilterWrapper::indexDocument(m_index, currentMessage, labels, docId);
 #ifdef DEBUG
 			if (indexedFile == false)
 			{
@@ -190,15 +209,6 @@ bool MboxHandler::parseMailAccount(MboxParser &boxParser, const string &sourceLa
 			}
 		}
 
-		// More messages ?
-		if (boxParser.nextMessage() == false)
-		{
-#ifdef DEBUG
-			cout << "MboxHandler::parseMailAccount: no more messages from parser" << endl;
-#endif
-			break;
-		}
-		pMessage = boxParser.getDocument();
 		++docNum;
 	}
 #ifdef DEBUG

@@ -16,41 +16,37 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _FILTER_WRAPPER_H
-#define _FILTER_WRAPPER_H
+#ifndef _FILTER_UTILS_H
+#define _FILTER_UTILS_H
 
 #include <string>
 #include <set>
 
 #include "Document.h"
 #include "Filter.h"
-#include "IndexInterface.h"
 
-/// A wrapper around Dijon filters.
-class FilterWrapper
+/// Utility functions for dealing with Dijon filters.
+class FilterUtils
 {
 	public:
-		virtual ~FilterWrapper();
+		virtual ~FilterUtils();
 
-		/// Indexes the given data.
-		static bool indexDocument(IndexInterface &index, const Document &doc,
-			const std::set<std::string> &labels, unsigned int &docId);
+		/// Feeds a document's data to a filter.
+		static bool feedFilter(const Document &doc, Dijon::Filter *pFilter);
 
-		/// Updates the given document.
-		static bool updateDocument(unsigned int docId, IndexInterface &index,
-			const Document &doc);
+		/// Populates a document based on metadata extracted by the filter.
+		static bool populateDocument(Document &doc, Dijon::Filter *pFilter);
+
+		/// Strips markup from a piece of text.
+		static std::string stripMarkup(const std::string &text);
 
 	protected:
-		FilterWrapper();
-
-		static bool filterDocument(IndexInterface &index, Document &doc,
-			unsigned int count, const std::set<std::string> &labels, unsigned int &docId,
-			bool doUpdate);
+		FilterUtils();
 
 	private:
-		FilterWrapper(const FilterWrapper &other);
-		FilterWrapper &operator=(const FilterWrapper &other);
+		FilterUtils(const FilterUtils &other);
+		FilterUtils &operator=(const FilterUtils &other);
 
 };
 
-#endif // _FILTER_WRAPPER_H
+#endif // _FILTER_UTILS_H

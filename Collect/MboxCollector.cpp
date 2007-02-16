@@ -19,9 +19,10 @@
 #include <iostream>
 #include <algorithm>
 
-#include "MboxParser.h"
 #include "StringManip.h"
 #include "Url.h"
+#include "FilterFactory.h"
+#include "FilterUtils.h"
 #include "MboxCollector.h"
 
 using namespace std;
@@ -43,9 +44,8 @@ MboxCollector::~MboxCollector()
 Document *MboxCollector::retrieveUrl(const DocumentInfo &docInfo)
 {
 	Url thisUrl(docInfo.getLocation());
-	string protocol = thisUrl.getProtocol();
-	off_t messageOffset = 0;
-	int partNum = 0;
+	string protocol(thisUrl.getProtocol());
+	string parameters(thisUrl.getParameters());
 
 	if (protocol != "mailbox")
 	{
@@ -53,36 +53,35 @@ Document *MboxCollector::retrieveUrl(const DocumentInfo &docInfo)
 		return NULL;
 	}
 
-	// Extract the offset
-	string offset = StringManip::extractField(thisUrl.getParameters(), "o=", "&p=");
-	if (offset.empty() == true)
+	// Is there an offset and part number ?
+	if ((parameters.find("o=") == string::npos) ||
+		(parameters.find("p=") == string::npos))
 	{
 		return NULL;
 	}
-	messageOffset = (off_t)atol(offset.c_str());
-	// ...and the part number
-	string number = StringManip::extractField(thisUrl.getParameters(), "p=", "");
-	if (number.empty() == false)
+
+	// Get the mbox filter
+	Dijon::Filter *pFilter = Dijon::FilterFactory::getFilter("application/mbox");
+	if (pFilter == NULL)
 	{
-		partNum = atoi(number.c_str());
+		return NULL;
 	}
 
-	string directoryName = thisUrl.getLocation();
-	string fileName = thisUrl.getFile();
-	string fileLocation = directoryName;
-	fileLocation += "/";
-	fileLocation += fileName;
+	Document *pMessage = new Document(docInfo);
+	if ((FilterUtils::feedFilter(*pMessage, pFilter) == false) ||
+		(pFilter->skip_to_document(parameters) == false))
+	{
+		delete pFilter;
+		return NULL;
+	}
 
-	// Get a parser
-	MboxParser boxParser(fileLocation, messageOffset, partNum);
 	// The first document should be the message we are interested in
-	// FIXME: don't ignore the part number (p=...)
-	const Document *pMessage = boxParser.getDocument();
-	if (pMessage == NULL)
+	if (pFilter->has_documents() == true)
 	{
-		return NULL;
+		FilterUtils::populateDocument(*pMessage, pFilter);
 	}
 
-	// Copy the message
-	return new Document(*pMessage);
+	delete pFilter;
+
+	return pMessage;
 }

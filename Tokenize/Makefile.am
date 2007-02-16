@@ -1,6 +1,7 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
+	FilterUtils.h \
 	Tokenizer.h \
 	filters/ExternalFilter.h \
 	filters/HtmlFilter.h \
@@ -38,13 +39,14 @@ libtaglibfilter_la_LDFLAGS = -module @TAGLIB_LIBS@
 libtaglibfilter_la_LIBADD = -L../Utils -lBasicUtils
 
 libTokenize_la_SOURCES = \
+	FilterUtils.cpp \
 	Tokenizer.cpp \
 	filters/FilterFactory.cc \
 	filters/HtmlFilter.cc \
 	filters/TextFilter.cc \
 	filters/XmlFilter.cc
 
-AM_CXXFLAGS = -fPIC -I$(srcdir)/../Utils \
+AM_CXXFLAGS = -fPIC -I$(srcdir)/../Utils -Ifilters \
 	@GMIME_CFLAGS@ @XML_CFLAGS@ @TAGLIB_CFLAGS@ -D_DYNAMIC_DIJON_FILTERS \
 	-D_DIJON_EXTERNALFILTER_CONFFILE=\"$(sysconfdir)/pinot/external-filters.xml\"
 

@@ -25,7 +25,7 @@
 #include <sigc++/slot.h>
 
 #include "IndexedDocument.h"
-#include "MboxParser.h"
+#include "Filter.h"
 #include "CrawlHistory.h"
 #include "MonitorHandler.h"
 #include "XapianIndex.h"
@@ -76,7 +76,7 @@ class MboxHandler : public MonitorHandler
 		bool indexMessages(const std::string &fileName, PinotSettings::TimestampedItem &mailAccount,
 			off_t mboxOffset);
 
-		bool parseMailAccount(MboxParser &boxParser, const std::string &sourceLabel);
+		bool parseMailAccount(Dijon::Filter *pFilter, const std::string &sourceLabel);
 
 		bool deleteMessages(std::set<unsigned int> &docIdList);
 
