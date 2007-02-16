@@ -27,7 +27,8 @@
 #include "Url.h"
 #include "HtmlFilter.h"
 #include "DownloaderFactory.h"
-#include "FilterWrapper.h"
+#include "FilterUtils.h"
+#include "Tokenizer.h"
 #include "WebEngine.h"
 
 using std::cout;
@@ -84,7 +85,7 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 		{
 			Dijon::HtmlFilter htmlFilter("text/html");
 
-			if (FilterWrapper::feedFilter(*pDoc, &htmlFilter) == true)
+			if (FilterUtils::feedFilter(*pDoc, &htmlFilter) == true)
 			{
 				// Content-Type might be specified as a META tag
 				const map<string, string> &metaData = htmlFilter.get_meta_data();

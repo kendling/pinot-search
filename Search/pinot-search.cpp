@@ -26,7 +26,7 @@
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "XapianDatabaseFactory.h"
-#include "FilterWrapper.h"
+#include "FilterUtils.h"
 #include "SearchEngineFactory.h"
 #include "DownloaderFactory.h"
 #include "config.h"
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 				cout << count << " Host     : " << thisUrl.getHost() << endl;
 				cout << count << " Location : " << thisUrl.getLocation() << "/" << thisUrl.getFile() << endl;
 				cout << count << " Title    : " << resultIter->getTitle() << endl;
-				cout << count << " Extract  : " << FilterWrapper::stripMarkup(resultIter->getExtract()) << endl;
+				cout << count << " Extract  : " << FilterUtils::stripMarkup(resultIter->getExtract()) << endl;
 				cout << count << " Score    : " << resultIter->getScore() << endl;
 				count++;
 

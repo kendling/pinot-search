@@ -28,7 +28,7 @@
 #include "HtmlFilter.h"
 #include "FilterFactory.h"
 #include "FileCollector.h"
-#include "FilterWrapper.h"
+#include "FilterUtils.h"
 #include "SherlockParser.h"
 
 using std::cout;
@@ -363,7 +363,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 
 			// Feed this chunk to the filter
 			Dijon::HtmlFilter chunkFilter("text/html");
-			if ((FilterWrapper::feedFilter(chunkDoc, &chunkFilter) == true) &&
+			if ((FilterUtils::feedFilter(chunkDoc, &chunkFilter) == true) &&
 				(chunkFilter.next_document() == true))
 			{
 				set<Dijon::Link> chunkLinks;
@@ -400,7 +400,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 				map<string, string>::const_iterator abstractIter = metaData.find("abstract");
 				if (abstractIter == metaData.end())
 				{
-					extract = FilterWrapper::stripMarkup(resultItem);
+					extract = FilterUtils::stripMarkup(resultItem);
 					StringManip::trimSpaces(extract);
 				}
 				else
