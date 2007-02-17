@@ -31,7 +31,9 @@ Result::Result(const string &location, const string &title, const string &extrac
 Result::Result(const Result &other) :
 	DocumentInfo(other),
 	m_extract(other.m_extract),
-	m_score(other.m_score)
+	m_score(other.m_score),
+	m_indexId(other.m_indexId),
+	m_docId(other.m_docId)
 {
 }
 
@@ -46,6 +48,8 @@ Result &Result::operator=(const Result &other)
 		DocumentInfo::operator=(other);
 		m_extract = other.m_extract;
 		m_score = other.m_score;
+		m_indexId = other.m_indexId;
+		m_docId = other.m_docId;
 	}
 
 	return *this;
@@ -78,8 +82,41 @@ string Result::getExtract(void) const
 	return m_extract;
 }
 
-/// Returns the result score.
+/// Gets the result score.
 float Result::getScore(void) const
 {
 	return m_score;
+}
+
+/// Sets that the result is indexed.
+void Result::setIsIndexed(unsigned int indexId, unsigned int docId)
+{
+	m_indexId = indexId;
+	m_docId = docId;
+}
+
+/// Sets that the result is not indexed.
+void Result::setIsNotIndexed(void)
+{
+	m_indexId = 0;
+	m_docId = 0;
+}
+
+/// Gets whether the result is indexed.
+bool Result::getIsIndexed(void) const
+{
+	if (m_docId > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+/// Gets whether the result is indexed.
+unsigned int Result::getIsIndexed(unsigned int &indexId) const
+{
+	indexId = m_indexId;
+
+	return m_docId;
 }

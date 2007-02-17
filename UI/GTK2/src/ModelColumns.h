@@ -88,6 +88,7 @@ public:
 	Gtk::TreeModelColumn<Glib::ustring> m_scoreText;
 	Gtk::TreeModelColumn<unsigned int> m_engines;
 	Gtk::TreeModelColumn<unsigned int> m_indexes;
+	Gtk::TreeModelColumn<unsigned int> m_docId;
 	typedef enum { RESULT_ROOT = 0, RESULT_TITLE, RESULT_HOST, RESULT_OTHER } ResultType;
 	Gtk::TreeModelColumn<ResultType> m_type;
 

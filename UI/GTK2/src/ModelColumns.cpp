@@ -65,6 +65,7 @@ ResultsModelColumns::ResultsModelColumns()
 	add(m_scoreText);
 	add(m_engines);
 	add(m_indexes);
+	add(m_docId);
 	add(m_type);
 }
 

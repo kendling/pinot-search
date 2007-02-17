@@ -437,7 +437,7 @@ void mainWindow::on_enginesTreeviewSelection_changed()
 //
 void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 {
-	vector<DocumentInfo> resultsList;
+	vector<Result> resultsList;
 	string url;
 	bool hasSelection = false;
 
@@ -458,10 +458,9 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 	if ((hasSelection == true) &&
 		(resultsList.empty() == false))
 	{
-		IndexInterface *pIndex = m_settings.getIndex("MERGED");
 		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = true;
 
-		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
+		for (vector<Result>::iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
 		{
 			string url(resultIter->getLocation());
@@ -495,14 +494,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 					isCached = true;
 				}
 
-				if ((pIndex != NULL) &&
-					(pIndex->isGood() == true))
-				{
-					if (pIndex->hasDocument(url) > 0)
-					{
-						isIndexed = true;
-					}
-				}
+				isIndexed = resultIter->getIsIndexed();
 			}
 		}
 
@@ -511,11 +503,6 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 		viewcache1->set_sensitive(isCached);
 		morelikethis1->set_sensitive(isIndexed);
 		indexresults1->set_sensitive(isIndexable);
-
-		if (pIndex != NULL)
-		{
-			delete pIndex;
-		}
 	}
 	else
 	{
@@ -997,15 +984,13 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		if ((queryProps.getIndexResults() == true) &&
 			(resultsList.empty() == false))
 		{
-			IndexInterface *pDocsIndex = m_settings.getIndex(m_settings.m_docsIndexLocation);
-			IndexInterface *pDaemonIndex = m_settings.getIndex(m_settings.m_daemonIndexLocation);
 			set<string> labels;
 			set<unsigned int> docsIds, daemonIds;
 			string labelName(queryProps.getLabelName());
 
+			// Set the list of labels
 			if (labelName.empty() == false)
 			{
-				// Queue this
 				labels.insert(labelName);
 			}
 
@@ -1015,50 +1000,40 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			for (vector<Result>::const_iterator resultIter = resultsList.begin();
 				resultIter != resultsList.end(); ++resultIter)
 			{
-				unsigned int docId = 0;
+				unsigned int indexId;
+				unsigned int docId = resultIter->getIsIndexed(indexId);
 
-				if ((pDocsIndex != NULL) &&
-					(pDocsIndex->isGood() == true) &&
-					((docId = pDocsIndex->hasDocument(resultIter->getLocation())) > 0))
+				if (docId == 0)
+				{
+					DocumentInfo docInfo(resultIter->getTitle(), resultIter->getLocation(),
+						resultIter->getType(), resultIter->getLanguage());
+
+					// Set/reset labels
+					docInfo.setLabels(labels);
+
+					// This document is not in either index
+					m_state.queue_index(docInfo);
+				}
+				else if (indexId == m_settings.getIndexId(m_settings.m_docsIndexLocation))
 				{
 					if (labelName.empty() == false)
 					{
 						docsIds.insert(docId);
 					}
 				}
-				// Is this a document the daemon indexed ?
-				else if ((pDaemonIndex != NULL) &&
-					(pDaemonIndex->isGood() == true) &&
-					((docId = pDaemonIndex->hasDocument(resultIter->getLocation())) > 0))
+				else if (indexId == m_settings.getIndexId(m_settings.m_daemonIndexLocation))
 				{
 					if (labelName.empty() == false)
 					{
 						daemonIds.insert(docId);
 					}
 				}
-				else
-				{
-					DocumentInfo docInfo(resultIter->getTitle(), resultIter->getLocation(),
-						resultIter->getType(), resultIter->getLanguage());
-
-					docInfo.setLabels(labels);
-
-					// No, this is a new document not found in either index
-					m_state.queue_index(docInfo);
-				}
 			}
 
-			// Apply the new label to existing documents
 			if (labelName.empty() == false)
 			{
-				if (pDocsIndex != NULL)
-				{
-					pDocsIndex->setDocumentsLabels(docsIds, labels, false);
-				}
-				if (pDaemonIndex != NULL)
-				{
-					pDaemonIndex->setDocumentsLabels(daemonIds, labels, false);
-				}
+				// Apply the new label to existing documents
+				start_thread(new LabelUpdateThread(labelName, docsIds, daemonIds));
 			}
 		}
 	}
@@ -1755,7 +1730,7 @@ void mainWindow::on_viewresults_activate()
 void mainWindow::on_morelikethis_activate()
 {
 	QueryProperties queryProps;
-	vector<DocumentInfo> resultsList;
+	vector<Result> resultsList;
 	string queryName;
 
 	NotebookPageBox *pNotebookPage = get_current_page();
@@ -1809,29 +1784,20 @@ void mainWindow::on_morelikethis_activate()
 		}
 	}
 
-	IndexInterface *pIndex = m_settings.getIndex("MERGED");
-        if (pIndex != NULL)
+	set<string> locations;
+	for (vector<Result>::const_iterator docIter = resultsList.begin();
+		docIter != resultsList.end(); ++docIter)
 	{
-       	set<unsigned int> docIdList;
-
-		if (pIndex->isGood() == true)
+		if (docIter->getIsIndexed() == true)
 		{
-			for (vector<DocumentInfo>::const_iterator docIter = resultsList.begin();
-				docIter != resultsList.end(); ++docIter)
-			{
-				unsigned int docId = pIndex->hasDocument(docIter->getLocation());
-				if (docId > 0)
-				{
-					docIdList.insert(docId);
-				}
-			}
-
-			// Spawn a new thread
-			start_thread(new ExpandQueryThread("xapian", "MERGED",
-				queryProps, docIdList));
+			locations.insert(docIter->getLocation());
 		}
+	}
 
-		delete pIndex;
+	if (locations.empty() == false)
+	{
+		// Spawn a new thread
+		start_thread(new ExpandQueryThread(queryProps, locations));
 	}
 }
 
@@ -2002,7 +1968,7 @@ void mainWindow::on_showfromindex_activate()
 		pIndexTree = pIndexPage->getTree();
 	}
 
-	const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
+	const std::map<string, string> &indexesMap = m_settings.getIndexes();
 	std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);	
 	if (mapIter == indexesMap.end())
 	{
@@ -3198,7 +3164,7 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 	ustring labelName = pIndexPage->getLabelName();
 	if (labelName.empty() == false)
 	{
-		const std::map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
+		const std::map<string, string> &indexesMap = m_settings.getIndexes();
 		std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
 		if (mapIter != indexesMap.end())
 		{

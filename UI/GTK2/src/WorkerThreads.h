@@ -222,8 +222,8 @@ class QueryingThread : public WorkerThread
 class ExpandQueryThread : public WorkerThread
 {
 	public:
-		ExpandQueryThread(const std::string &engineName, const std::string &engineOption,
-			const QueryProperties &queryProps, const std::set<unsigned int> &relevantDocs);
+		ExpandQueryThread(const QueryProperties &queryProps,
+			const std::set<std::string> &relevantDocs);
 		virtual ~ExpandQueryThread();
 
 		virtual std::string getType(void) const;
@@ -235,10 +235,8 @@ class ExpandQueryThread : public WorkerThread
 		virtual bool stop(void);
 
 	protected:
-		std::string m_engineName;
-		std::string m_engineOption;
 		QueryProperties m_queryProps;
-		std::set<unsigned int> m_relevantDocs;
+		std::set<std::string> m_relevantDocs;
 		std::set<std::string> m_expandTerms;
 
 		virtual void doWork(void);
@@ -254,6 +252,10 @@ class LabelUpdateThread : public WorkerThread
 	public:
 		LabelUpdateThread(const std::set<std::string> &labelsToDelete,
 			const std::map<std::string, std::string> &labelsToRename);
+		LabelUpdateThread(const std::string &labelName,
+			const std::set<unsigned int> &docsIds,
+			const std::set<unsigned int> &daemonIds);
+
 		virtual ~LabelUpdateThread();
 
 		virtual std::string getType(void) const;
@@ -263,6 +265,9 @@ class LabelUpdateThread : public WorkerThread
 	protected:
 		std::set<std::string> m_labelsToDelete;
 		std::map<std::string, std::string> m_labelsToRename;
+		std::string m_labelName;
+		std::set<unsigned int> m_docsIds;
+		std::set<unsigned int> m_daemonIds;
 
 		virtual void doWork(void);
 
@@ -302,8 +307,8 @@ class DownloadingThread : public WorkerThread
 class IndexingThread : public DownloadingThread
 {
 	public:
-		IndexingThread(const DocumentInfo &docInfo, unsigned int docId,
-			const std::string &indexLocation, bool allowAllMIMETypes = true);
+		IndexingThread(const DocumentInfo &docInfo, const std::string &indexLocation,
+			bool allowAllMIMETypes = true);
 		virtual ~IndexingThread();
 
 		virtual std::string getType(void) const;
@@ -323,7 +328,6 @@ class IndexingThread : public DownloadingThread
 		unsigned int m_docId;
 		std::string m_indexLocation;
 		bool m_allowAllMIMETypes;
-		bool m_ignoreRobotsDirectives;
 		bool m_update;
 
 		virtual void doWork(void);

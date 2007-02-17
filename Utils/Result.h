@@ -43,12 +43,26 @@ class Result : public DocumentInfo
 		/// Gets the result extract.
 		std::string getExtract(void) const;
 
-		/// Returns the result score.
+		/// Gets the result score.
 		float getScore(void) const;
+
+		/// Sets that the result is indexed.
+		void setIsIndexed(unsigned int indexId, unsigned int docId);
+
+		/// Sets that the result is not indexed.
+		void setIsNotIndexed(void);
+
+		/// Gets whether the result is indexed.
+		bool getIsIndexed(void) const;
+
+		/// Gets whether the result is indexed.
+		unsigned int getIsIndexed(unsigned int &indexId) const;
 
 	protected:
 		std::string m_extract;
 		float m_score;
+		unsigned int m_indexId;
+		unsigned int m_docId;
 
 };
 

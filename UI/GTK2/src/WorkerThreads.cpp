@@ -36,6 +36,7 @@
 #include "Url.h"
 #include "HtmlFilter.h"
 #include "FilterFactory.h"
+#include "FilterUtils.h"
 #include "FilterWrapper.h"
 #include "XapianDatabase.h"
 #include "ActionQueue.h"
@@ -352,28 +353,7 @@ ustring ThreadsManager::index_document(const DocumentInfo &docInfo)
 		return status;
 	}
 
-	// Is it an update ?
-	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_defaultIndexLocation);
-	if (pIndex == NULL)
-	{
-		ustring status = _("Index error on");
-		status += " ";
-		status += m_defaultIndexLocation;
-		return status;
-	}
-
-	unsigned int docId = pIndex->hasDocument(docInfo.getLocation());
-	if (docId > 0)
-	{
-		// Yes, it is
-		start_thread(new IndexingThread(docInfo, docId, m_defaultIndexLocation));
-	}
-	else
-	{
-		// This is a new document
-		start_thread(new IndexingThread(docInfo, docId, m_defaultIndexLocation));
-	}
-	delete pIndex;
+	start_thread(new IndexingThread(docInfo, m_defaultIndexLocation));
 
 	return "";
 }
@@ -820,22 +800,42 @@ void QueryingThread::doWork(void)
 	else
 	{
 		const vector<Result> &resultsList = pEngine->getResults();
+		PinotSettings &settings = PinotSettings::getInstance();
 
 		m_resultsList.clear();
 		m_resultsList.reserve(resultsList.size());
 		m_resultsCharset = pEngine->getResultsCharset();
+
+		IndexInterface *pDocsIndex = settings.getIndex(settings.m_docsIndexLocation);
+		if ((pDocsIndex != NULL) &&
+			(pDocsIndex->isGood() == false))
+		{
+			delete pDocsIndex;
+			pDocsIndex = NULL;
+		}
+
+		IndexInterface *pDaemonIndex = settings.getIndex(settings.m_daemonIndexLocation);
+		if ((pDaemonIndex != NULL) &&
+			(pDaemonIndex->isGood() == false))
+		{
+			delete pDaemonIndex;
+			pDaemonIndex = NULL;
+		}
+
 
 		// Copy the results list
 		for (vector<Result>::const_iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
 		{
 			string title(_("No title"));
+			string location(resultIter->getLocation());
 			string language(resultIter->getLanguage());
+			unsigned int indexId = 0, docId = 0;
 
 			// The title may contain formatting
 			if (resultIter->getTitle().empty() == false)
 			{
-				title = FilterWrapper::stripMarkup(resultIter->getTitle());
+				title = FilterUtils::stripMarkup(resultIter->getTitle());
 			}
 #ifdef DEBUG
 			cout << "QueryingThread::doWork: title is " << title << endl;
@@ -847,23 +847,53 @@ void QueryingThread::doWork(void)
 				language = m_queryProps.getLanguage();
 			}
 
-			m_resultsList.push_back(Result(resultIter->getLocation(),
-				title,
-				resultIter->getExtract(),
-				language,
-				resultIter->getScore()));
+			Result current(location, title, resultIter->getExtract(),
+				language, resultIter->getScore());
+
+			// Is this in one of the indexes ?
+			if (pDocsIndex != NULL)
+			{
+				docId = pDocsIndex->hasDocument(location);
+				if (docId > 0)
+				{
+					indexId = settings.getIndexId(_("My Web Pages"));
+				}
+			}
+			if (pDaemonIndex != NULL)
+			{
+				docId = pDaemonIndex->hasDocument(location);
+				if (docId > 0)
+				{
+					indexId = settings.getIndexId(_("My Documents"));
+				}
+			}
+			if (docId > 0)
+			{
+				current.setIsIndexed(indexId, docId);
+#ifdef DEBUG
+				cout << "QueryingThread::doWork: found in index " << indexId << endl;
+#endif
+			}
+
+			m_resultsList.push_back(current);
+		}
+
+		if (pDocsIndex != NULL)
+		{
+			delete pDocsIndex;
+		}
+		if (pDaemonIndex != NULL)
+		{
+			delete pDaemonIndex;
 		}
 	}
 
 	delete pEngine;
 }
 
-ExpandQueryThread::ExpandQueryThread(const string &engineName,
-	const string &engineOption, const QueryProperties &queryProps,
-	const set<unsigned int> &relevantDocs) :
+ExpandQueryThread::ExpandQueryThread(const QueryProperties &queryProps,
+	const set<string> &relevantDocs) :
 	WorkerThread(),
-	m_engineName(engineName),
-	m_engineOption(engineOption),
 	m_queryProps(queryProps)
 {
 	copy(relevantDocs.begin(), relevantDocs.end(),
@@ -897,8 +927,31 @@ bool ExpandQueryThread::stop(void)
 
 void ExpandQueryThread::doWork(void)
 {
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex("MERGED");
+	set<unsigned int> relevantDocIds;
+
+	if ((pIndex == NULL) ||
+		(pIndex->isGood() == false))
+	{
+		m_status = _("Index error on");
+		m_status += " MERGED";
+		if (pIndex != NULL)
+		{
+			delete pIndex;
+		}
+		return;
+	}
+
+	for (set<string>::iterator locationIter = m_relevantDocs.begin();
+		locationIter != m_relevantDocs.end(); ++locationIter)
+	{
+		relevantDocIds.insert(pIndex->hasDocument(*locationIter));
+	}
+
+	delete pIndex;
+
 	// Get the SearchEngine
-	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(m_engineName, m_engineOption);
+	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine("xapian", "MERGED");
 	if (pEngine == NULL)
 	{
 		m_status = _("Couldn't create search engine");
@@ -910,14 +963,13 @@ void ExpandQueryThread::doWork(void)
 	// Set the maximum number of results
 	pEngine->setMaxResultsCount(m_queryProps.getMaximumResultsCount());
 	// Set whether to expand the query
-	pEngine->setQueryExpansion(m_relevantDocs);
+	pEngine->setQueryExpansion(relevantDocIds);
 
 	// Run the query
 	if (pEngine->runQuery(m_queryProps) == false)
 	{
 		m_status = _("Couldn't run query on search engine");
-		m_status += " ";
-		m_status += m_engineName;
+		m_status += " xapian";
 	}
 	else
 	{
@@ -931,10 +983,20 @@ void ExpandQueryThread::doWork(void)
 }
 
 LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToDelete,
-	const map<string, string> &labelsToRename)
+	const map<string, string> &labelsToRename) :
+	WorkerThread()
 {
 	copy(labelsToDelete.begin(), labelsToDelete.end(), inserter(m_labelsToDelete, m_labelsToDelete.begin()));
 	copy(labelsToRename.begin(), labelsToRename.end(), inserter(m_labelsToRename, m_labelsToRename.begin()));
+}
+
+LabelUpdateThread::LabelUpdateThread(const string &labelName,
+	const set<unsigned int> &docsIds, const set<unsigned int> &daemonIds) :
+	WorkerThread(),
+	m_labelName(labelName)
+{
+	copy(docsIds.begin(), docsIds.end(), inserter(m_docsIds, m_docsIds.begin()));
+	copy(daemonIds.begin(), daemonIds.end(), inserter(m_daemonIds, m_daemonIds.begin()));
 }
 
 LabelUpdateThread::~LabelUpdateThread()
@@ -973,6 +1035,21 @@ void LabelUpdateThread::doWork(void)
 		return;
 	}
 
+	// Apply the new label to existing documents
+	if (m_labelName.empty() == false)
+	{
+		set<string> labels;
+
+		labels.insert(m_labelName);
+		if (m_docsIds.empty() == false)
+		{
+			pDocsIndex->setDocumentsLabels(m_docsIds, labels, false);
+		}
+		if (m_daemonIds.empty() == false)
+		{
+			pDaemonIndex->setDocumentsLabels(m_daemonIds, labels, false);
+		}
+	}
 	// Delete labels
 	for (set<string>::iterator iter = m_labelsToDelete.begin(); iter != m_labelsToDelete.end(); ++iter)
 	{
@@ -1062,26 +1139,15 @@ void DownloadingThread::doWork(void)
 	}
 }
 
-IndexingThread::IndexingThread(const DocumentInfo &docInfo, unsigned int docId,
-	const string &indexLocation, bool allowAllMIMETypes) :
+IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &indexLocation,
+	bool allowAllMIMETypes) :
 	DownloadingThread(docInfo),
 	m_docInfo(docInfo),
-	m_docId(docId),
+	m_docId(0),
 	m_indexLocation(indexLocation),
-	m_allowAllMIMETypes(allowAllMIMETypes)
+	m_allowAllMIMETypes(allowAllMIMETypes),
+	m_update(false)
 {
-	if (m_docId > 0)
-	{
-		// Ignore robots directives on updates
-		m_ignoreRobotsDirectives = true;
-		m_update = true;
-	}
-	else
-	{
-		m_ignoreRobotsDirectives = PinotSettings::getInstance().m_ignoreRobotsDirectives;
-		// This is not an update
-		m_update = false;
-	}
 }
 
 IndexingThread::~IndexingThread()
@@ -1144,6 +1210,14 @@ void IndexingThread::doWork(void)
 		return;
 	}
 
+	// Is it an update ?
+	m_docId = pIndex->hasDocument(m_docInfo.getLocation());
+	if (m_docId > 0)
+	{
+		// Ignore robots directives on updates
+		m_update = true;
+	}
+
 	// We may not have to download the document
 	// If coming from a crawl, this will be empty
 	if (m_docInfo.getType().empty() == true)
@@ -1189,6 +1263,9 @@ void IndexingThread::doWork(void)
 	else
 	{
 		m_pDoc = new Document(m_docInfo);
+
+		m_pDoc->setTimestamp(m_docInfo.getTimestamp());
+		m_pDoc->setSize(m_docInfo.getSize());
 #ifdef DEBUG
 		cout << "IndexingThread::doWork: skipped download of " << m_docInfo.getLocation() << endl;
 #endif
@@ -1252,7 +1329,7 @@ void IndexingThread::doWork(void)
 		{
 			// Is indexing allowed ?
 			HtmlFilter *pHtmlFilter = dynamic_cast<HtmlFilter*>(pFilter);
-			if ((m_ignoreRobotsDirectives == false) &&
+			if ((m_update == false) &&
 				(pHtmlTokens != NULL))
 			{
 		// See if the document has a ROBOTS META tag
