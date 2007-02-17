@@ -74,7 +74,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 		(pFilter->is_data_input_ok(Filter::DOCUMENT_DATA) == true))
 	{
 #ifdef DEBUG
-		cout << "FilterUtils::getFilter: feeding data" << endl;
+		cout << "FilterUtils::feedFilter: feeding data" << endl;
 #endif
 		fedInput = pFilter->set_document_data(pData, dataLength);
 	}
@@ -85,7 +85,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 		if (pFilter->is_data_input_ok(Filter::DOCUMENT_FILE_NAME) == true)
 		{
 #ifdef DEBUG
-			cout << "FilterUtils::getFilter: feeding file " << fileName << endl;
+			cout << "FilterUtils::feedFilter: feeding file " << fileName << endl;
 #endif
 			fedInput = pFilter->set_document_file(fileName);
 		}
@@ -102,7 +102,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 				return false;
 			}
 #ifdef DEBUG
-			cout << "FilterUtils::getFilter: feeding contents of file " << fileName << endl;
+			cout << "FilterUtils::feedFilter: feeding contents of file " << fileName << endl;
 #endif
 
 			pData = docCopy.getData(dataLength);
@@ -185,8 +185,12 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 
 string FilterUtils::stripMarkup(const string &text)
 {
+	if (text.empty() == true)
+	{
+		return "";
+	}
+
 	Dijon::Filter *pFilter = Dijon::FilterFactory::getFilter("text/xml");
-	string strippedText;
 
 	if (pFilter == NULL)
 	{
@@ -194,6 +198,8 @@ string FilterUtils::stripMarkup(const string &text)
 	}
 
 	Document doc;
+	string strippedText;
+
 	doc.setData(text.c_str(), text.length());
 	if ((feedFilter(doc, pFilter) == true) &&
 		(pFilter->next_document() == true))

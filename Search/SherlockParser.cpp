@@ -363,13 +363,13 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 
 			// Feed this chunk to the filter
 			Dijon::HtmlFilter chunkFilter("text/html");
+			set<Dijon::Link> chunkLinks;
 			if ((FilterUtils::feedFilter(chunkDoc, &chunkFilter) == true) &&
+				(chunkFilter.get_links(chunkLinks) == true) &&
 				(chunkFilter.next_document() == true))
 			{
-				set<Dijon::Link> chunkLinks;
 				unsigned int endOfFirstLink = 0, startOfSecondLink = 0, endOfSecondLink = 0, startOfThirdLink = 0;
 
-				chunkFilter.get_links(chunkLinks);
 
 				// The result's URL and title should be given by the first link
 				for (set<Dijon::Link>::iterator linkIter = chunkLinks.begin(); linkIter != chunkLinks.end(); ++linkIter)
