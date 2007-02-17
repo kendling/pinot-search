@@ -24,7 +24,9 @@ Result::Result(const string &location, const string &title, const string &extrac
 	const string &language, float percentageScore) :
 	DocumentInfo(title, location, "", language),
 	m_extract(extract),
-	m_score(percentageScore)
+	m_score(percentageScore),
+	m_indexId(0),
+	m_docId(0)
 {
 }
 

@@ -859,7 +859,8 @@ void QueryingThread::doWork(void)
 					indexId = settings.getIndexId(_("My Web Pages"));
 				}
 			}
-			if (pDaemonIndex != NULL)
+			if ((pDaemonIndex != NULL) &&
+				(docId == 0))
 			{
 				docId = pDaemonIndex->hasDocument(location);
 				if (docId > 0)
@@ -874,6 +875,9 @@ void QueryingThread::doWork(void)
 				cout << "QueryingThread::doWork: found in index " << indexId << endl;
 #endif
 			}
+#ifdef DEBUG
+			else cout << "QueryingThread::doWork: not found in any index" << endl;
+#endif
 
 			m_resultsList.push_back(current);
 		}
