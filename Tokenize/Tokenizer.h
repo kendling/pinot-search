@@ -34,10 +34,6 @@ class Tokenizer
 
 		typedef enum { ALL_DOCUMENTS = 0, ALL_BUT_FILES, NO_DOCUMENTS } DataNeeds;
 
-		/// Converts a document using an helper program.
-		static Document *runHelperProgram(const Document *pDocument,
-			const std::string &programName, const std::string &arguments = "");
-
 		/// Returns a pointer to the document being tokenized.
 		virtual const Document *getDocument(void);
 

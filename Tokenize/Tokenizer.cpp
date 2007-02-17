@@ -17,7 +17,6 @@
  */
 
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <iostream>
@@ -42,95 +41,6 @@ Tokenizer::Tokenizer(const Document *pDocument)
 Tokenizer::~Tokenizer()
 {
 	// The document is owned by the caller
-}
-
-Document *Tokenizer::runHelperProgram(const Document *pDocument,
-	const string &programName, const string &arguments)
-{
-	Document *pOutputDocument = NULL;
-	char inTemplate[15] = "/tmp/tokXXXXXX";
-	bool deleteInFile = false;
-
-	if ((pDocument == NULL) ||
-		(programName.empty() == true))
-	{
-		return NULL;
-	}
-
-	string cmdLine(programName);
-	string output;
-	unsigned int dataLength = 0;
-	const char *pData = pDocument->getData(dataLength);
-
-	cmdLine += " ";
-	if (pData == NULL)
-	{
-		Url urlObj(pDocument->getLocation());
-
-		if (urlObj.getProtocol() != "file")
-		{
-			// Not much we can do I am afraid
-			return NULL;
-		}
-
-		// Point the helper program to the actual file
-		string fileName(urlObj.getLocation());
-		fileName += "/";
-		fileName += urlObj.getFile();
-		cmdLine += CommandLine::quote(fileName);
-	}
-	else
-	{
-		int inFd = mkstemp(inTemplate);
-
-		if (inFd != -1)
-		{
-			// Save the data into a temporary file
-			if (write(inFd, (const void*)pData, dataLength) != -1)
-			{
-				cmdLine += inTemplate;
-			}
-
-			deleteInFile = true;
-			close(inFd);
-		}
-	}
-
-	// Any argument ?
-	if (arguments.empty() == false)
-	{
-		cmdLine += " ";
-		cmdLine += arguments;
-		cmdLine += " ";
-	}
-
-	// Run the helper program
-	if ((CommandLine::runSync(cmdLine, output) == true) &&
-		(output.empty() == false))
-	{
-		// Pass the result to the parent class
-		pOutputDocument = new Document(pDocument->getTitle(),
-			pDocument->getLocation(), pDocument->getType(),
-			pDocument->getLanguage());
-		pOutputDocument->setData(output.c_str(), output.length());
-		pOutputDocument->setTimestamp(pDocument->getTimestamp());
-		pOutputDocument->setSize(pDocument->getSize());
-
-#ifdef DEBUG_TOKENIZER
-		cout << "Tokenizer::runHelperProgram: set " << output.length()
-			<< " bytes of data" << endl;
-#endif
-	}
-
-	if ((deleteInFile == true) &&
-		(unlink(inTemplate) != 0))
-	{
-#ifdef DEBUG_TOKENIZER
-		cout << "Tokenizer::runHelperProgram: couldn't delete temporary file" << endl;
-#endif
-	}
-
-	return pOutputDocument;
 }
 
 void Tokenizer::setDocument(const Document *pDocument)
