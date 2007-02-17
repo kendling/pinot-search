@@ -18,11 +18,12 @@
 
 #include <stdlib.h>
 #include <signal.h>
-#include <unistd.h>
 #include <libintl.h>
 #include <getopt.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <glibmm.h>
@@ -54,6 +55,7 @@
 using namespace std;
 
 static ofstream g_outputFile;
+static string g_pidFileName;
 static streambuf *g_coutBuf = NULL;
 static streambuf *g_cerrBuf = NULL;
 static struct option g_longOptions[] = {
@@ -93,6 +95,10 @@ static void closeAll(void)
 		cerr.rdbuf(g_cerrBuf);
 	}
 	g_outputFile.close();
+	if (g_pidFileName.empty() == false)
+	{
+		unlink(g_pidFileName.c_str());
+	}
 
 	DownloaderInterface::shutdown();
 	MIMEScanner::shutdown();
@@ -256,14 +262,22 @@ int main(int argc, char **argv)
 	string confDirectory = PinotSettings::getConfigurationDirectory();
 	if (chdir(confDirectory.c_str()) == 0)
 	{
+		ofstream pidFile;
+		string fileName(confDirectory);
+
 		// Redirect cout and cerr to a file
-		string logFileName = confDirectory;
-		logFileName += "/pinot-dbus-daemon.log";
-		g_outputFile.open(logFileName.c_str());
+		fileName += "/pinot-dbus-daemon.log";
+		g_outputFile.open(fileName.c_str());
 		g_coutBuf = cout.rdbuf();
 		g_cerrBuf = cerr.rdbuf();
 		cout.rdbuf(g_outputFile.rdbuf());
 		cerr.rdbuf(g_outputFile.rdbuf());
+
+		// Save the PID to file
+		g_pidFileName = confDirectory + "/pinot-dbus-daemon.pid";
+		pidFile.open(g_pidFileName.c_str());
+		pidFile << getpid() << endl;
+		pidFile.close();
 	}
 
 	// Localize language names

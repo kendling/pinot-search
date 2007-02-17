@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <map>
@@ -109,7 +110,30 @@ void statisticsDialog::populate(void)
 
 	folderIter = m_refStore->append();
 	row = *folderIter;
-	row[m_statsColumns.m_name] = _("Crawler");
+	row[m_statsColumns.m_name] = _("Daemon");
+
+	// Is the daemon still running ?
+	string pidFileName(PinotSettings::getInstance().getConfigurationDirectory() + "/pinot-dbus-daemon.pid");
+	pid_t daemonPID = 0;
+	ifstream pidFile;
+	pidFile.open(pidFileName.c_str());
+	if (pidFile.is_open() == true)
+	{
+		pidFile >> daemonPID;
+		pidFile.close();
+	}
+	snprintf(countStr, 64, "%u", daemonPID);
+	statIter = m_refStore->append(folderIter->children());
+	row = *statIter;
+	if (daemonPID > 0)
+	{
+		// FIXME: check whether it's actually running !
+		row[m_statsColumns.m_name] = ustring(_("Running under PID")) + " " + countStr;
+	}
+	else
+	{
+		row[m_statsColumns.m_name] = ustring(_("Currently not running"));
+	}
 
 	// Show crawler statistics
 	unsigned int crawledFilesCount = crawlerHistory.getItemsCount(CrawlHistory::CRAWLED);
@@ -118,9 +142,7 @@ void statisticsDialog::populate(void)
 	row = *statIter;
 	row[m_statsColumns.m_name] = ustring(_("Crawled")) + " " + countStr + " " + _("files");
 
-	TreeModel::iterator errIter = m_refStore->append(folderIter->children());
-	row = *errIter;
-	row[m_statsColumns.m_name] = _("Errors");
+	TreeModel::iterator errIter;
 
 	crawlerHistory.getSources(sources);
 	for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
@@ -130,10 +152,21 @@ void statisticsDialog::populate(void)
 
 		// Did any error occur on this source ?
 		unsigned int errorCount = crawlerHistory.getSourceItems(sourceIter->first, CrawlHistory::ERROR, errors);
-		if (errorCount > 0)
+		if ((errorCount > 0) &&
+			(errors.empty() == false))
 		{
 			Url urlObj(sourceIter->second);
 			ustring sourceName(urlObj.getLocation());
+
+			if (hasErrors == false)
+			{
+				// Add an errors row
+				errIter  = m_refStore->append(folderIter->children());
+				row = *errIter;
+				row[m_statsColumns.m_name] = _("Errors");
+
+				hasErrors = true;
+			}
 
 			// Add the source
 			TreeModel::iterator srcIter = m_refStore->append(errIter->children());
@@ -153,22 +186,16 @@ void statisticsDialog::populate(void)
 				row = *statIter;
 				row[m_statsColumns.m_name] = (*errorIter);
 			}
-
-			hasErrors = true;
 		}
-	}
-
-	if (hasErrors == false)
-	{
-		statIter = m_refStore->append(errIter->children());
-		row = *statIter;
-		row[m_statsColumns.m_name] = _("None");
 	}
 
 	// Expand everything except errors
 	statisticsTreeview->expand_all();
-	TreeModel::Path errPath = m_refStore->get_path(errIter);
-	statisticsTreeview->collapse_row(errPath);
+	if (hasErrors == true)
+	{
+		TreeModel::Path errPath = m_refStore->get_path(errIter);
+		statisticsTreeview->collapse_row(errPath);
+	}
 
 	Adjustment *pAdjustement = statisticsScrolledwindow->get_hadjustment();
 #ifdef DEBUG
