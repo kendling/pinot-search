@@ -288,131 +288,139 @@ bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefix
 
 bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 {
-	bool bStatus = false;
-
-	if (pIndex != NULL)
+	if (pIndex == NULL)
 	{
-		try
-		{
-			// Start an enquire session on the database
-			Xapian::Enquire enquire(*pIndex);
-
-			// Give the query object to the enquire session
-			enquire.set_query(query);
-
-			// Get the top results of the query
-			Xapian::MSet matches = enquire.get_mset(0, m_maxResultsCount);
-			if (matches.empty() == false)
-			{
-				multimap<Xapian::weight, string> queryTerms;
-				vector<string> seedTerms;
-				Xapian::weight maxWeight = matches.get_max_attained();
-
-				// Sort query terms by weight
-				for (Xapian::TermIterator termIter = query.get_terms_begin();
-					termIter != query.get_terms_end(); ++termIter)
-				{
-					string termName(*termIter);
-					Xapian::weight termWeight = matches.get_termweight(termName);
-
-					if (termWeight > 0)
-					{
-						queryTerms.insert(pair<Xapian::weight, string>(maxWeight - termWeight, termName));
-#ifdef DEBUG
-						cout << "XapianEngine::queryDatabase: term " << termName
-							<< " has weight " << termWeight << "/" << maxWeight << endl;
-#endif
-					}
-				}
-
-				for (multimap<Xapian::weight, string>::iterator weightIter = queryTerms.begin();
-					weightIter != queryTerms.end(); ++weightIter)
-				{
-					seedTerms.push_back(weightIter->second);
-				}
-
-				// Get the results
-#ifdef DEBUG
-				cout << "XapianEngine::queryDatabase: " << matches.get_matches_estimated() << "/" << m_maxResultsCount << " results found" << endl;
-#endif
-				for (Xapian::MSetIterator mIter = matches.begin(); mIter != matches.end(); ++mIter)
-				{
-					Xapian::docid docId = *mIter;
-					Xapian::Document doc(mIter.get_document());
-					AbstractGenerator abstractGen(pIndex, 50);
-					string record = doc.get_data();
-
-					// Get the title
-					string title = StringManip::extractField(record, "caption=", "\n");
-#ifdef DEBUG
-					cout << "XapianEngine::queryDatabase: found omindex title " << title << endl;
-#endif
-					// Get the URL
-					string url = StringManip::extractField(record, "url=", "\n");
-					if (url.empty() == true)
-					{
-						// Hmmm this shouldn't be empty...
-						// Use this instead, even though the document isn't cached in the index
-						url = XapianDatabase::buildUrl(m_databaseName, *mIter);
-					}
-					else
-					{
-#ifdef DEBUG
-						cout << "XapianEngine::queryDatabase: found omindex URL " << url << endl;
-#endif
-						url = Url::canonicalizeUrl(url);
-					}
-
-					// Get the type
-					string type = StringManip::extractField(record, "type=", "\n");
-					// ...and the language, if available
-					string language = StringManip::extractField(record, "language=", "\n");
-
-					// Generate an abstract based on the query's terms
-					string summary = abstractGen.generateAbstract(docId, seedTerms);
-
-					// Add this result
-					Result thisResult(url, title, summary, language, (float)mIter.get_percent());
-					m_resultsList.push_back(thisResult);
-				}
-			}
-
-			m_expandTerms.clear();
-
-			// Expand the query ?
-			if (m_relevantDocuments.empty() == false)
-			{
-				Xapian::RSet relevantDocs;
-				unsigned int count = 0;
-
-				for (set<unsigned int>::const_iterator docIter = m_relevantDocuments.begin();
-					docIter != m_relevantDocuments.end(); ++docIter)
-				{
-					relevantDocs.add_document(*docIter);
-				}
-
-				// Get 10 non-prefixed terms
-				Xapian::ESet expandTerms = enquire.get_eset(20, relevantDocs);
-				for (Xapian::ESetIterator termIter = expandTerms.begin();
-					(termIter != expandTerms.end()) && (count < 10); ++termIter)
-				{
-					if (isupper((int)((*termIter)[0])) == 0)
-					{
-						m_expandTerms.insert(*termIter);
-						++count;
-					}
-				}
-			}
-
-			bStatus = true;
-		}
-		catch (const Xapian::Error &error)
-		{
-			cerr << "XapianEngine::queryDatabase: " << error.get_type() << ": " << error.get_msg() << endl;
-		}
+		return false;
 	}
 
-	return bStatus;
+	// Start an enquire session on the database
+	Xapian::Enquire enquire(*pIndex);
+
+	try
+	{
+		// Give the query object to the enquire session
+		enquire.set_query(query);
+
+		// Get the top results of the query
+		Xapian::MSet matches = enquire.get_mset(0, m_maxResultsCount);
+		if (matches.empty() == false)
+		{
+			multimap<Xapian::weight, string> queryTerms;
+			vector<string> seedTerms;
+			Xapian::weight maxWeight = matches.get_max_attained();
+
+			// Sort query terms by weight
+			for (Xapian::TermIterator termIter = query.get_terms_begin();
+				termIter != query.get_terms_end(); ++termIter)
+			{
+				string termName(*termIter);
+				Xapian::weight termWeight = matches.get_termweight(termName);
+
+				if (termWeight > 0)
+				{
+					queryTerms.insert(pair<Xapian::weight, string>(maxWeight - termWeight, termName));
+#ifdef DEBUG
+					cout << "XapianEngine::queryDatabase: term " << termName
+						<< " has weight " << termWeight << "/" << maxWeight << endl;
+#endif
+				}
+			}
+
+			for (multimap<Xapian::weight, string>::iterator weightIter = queryTerms.begin();
+				weightIter != queryTerms.end(); ++weightIter)
+			{
+				seedTerms.push_back(weightIter->second);
+			}
+
+			// Get the results
+#ifdef DEBUG
+			cout << "XapianEngine::queryDatabase: " << matches.get_matches_estimated() << "/" << m_maxResultsCount << " results found" << endl;
+#endif
+			for (Xapian::MSetIterator mIter = matches.begin(); mIter != matches.end(); ++mIter)
+			{
+				Xapian::docid docId = *mIter;
+				Xapian::Document doc(mIter.get_document());
+				AbstractGenerator abstractGen(pIndex, 50);
+				string record = doc.get_data();
+
+#ifdef DEBUG
+				cout << "XapianEngine::queryDatabase: found document ID " << docId << endl;
+#endif
+				// Get the title
+				string title = StringManip::extractField(record, "caption=", "\n");
+				// Get the URL
+				string url = StringManip::extractField(record, "url=", "\n");
+				if (url.empty() == true)
+				{
+					// Hmmm this shouldn't be empty...
+					// Use this instead, even though the document isn't cached in the index
+					url = XapianDatabase::buildUrl(m_databaseName, *mIter);
+				}
+				else
+				{
+					url = Url::canonicalizeUrl(url);
+				}
+
+				// Get the type
+				string type = StringManip::extractField(record, "type=", "\n");
+				// ...and the language, if available
+				string language = StringManip::extractField(record, "language=", "\n");
+
+				// Generate an abstract based on the query's terms
+				string summary = abstractGen.generateAbstract(docId, seedTerms);
+
+				// Add this result
+				Result thisResult(url, title, summary, language, (float)mIter.get_percent());
+				m_resultsList.push_back(thisResult);
+			}
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "XapianEngine::queryDatabase: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+
+	try
+	{
+		m_expandTerms.clear();
+
+		// Expand the query ?
+		if (m_relevantDocuments.empty() == false)
+		{
+			Xapian::RSet relevantDocs;
+			unsigned int count = 0;
+
+			for (set<unsigned int>::const_iterator docIter = m_relevantDocuments.begin();
+				docIter != m_relevantDocuments.end(); ++docIter)
+			{
+				relevantDocs.add_document(*docIter);
+			}
+
+			// Get 10 non-prefixed terms
+			Xapian::ESet expandTerms = enquire.get_eset(20, relevantDocs);
+			for (Xapian::ESetIterator termIter = expandTerms.begin();
+				(termIter != expandTerms.end()) && (count < 10); ++termIter)
+			{
+				if (isupper((int)((*termIter)[0])) == 0)
+				{
+					m_expandTerms.insert(*termIter);
+					++count;
+				}
+			}
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "XapianEngine::queryDatabase: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+
+	// Be tolerant of errors as long as we got some results
+	if (m_resultsList.empty() == false)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 //
