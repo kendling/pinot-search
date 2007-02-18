@@ -22,6 +22,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <list>
 #include <sigc++/class_slot.h>
 #include <glibmm/ustring.h>
 #include <glibmm/stringutils.h>
@@ -40,7 +41,6 @@
 #include "TimeConverter.h"
 #include "MIMEScanner.h"
 #include "Url.h"
-#include "DBusXapianIndex.h"
 #include "XapianDatabase.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
@@ -1291,6 +1291,12 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		status = _("Updated document properties");
 		set_status(status);
 	}
+	else if (type == "StartDaemonThread")
+	{
+#ifdef DEBUG
+		cout << "mainWindow::on_thread_end: started daemon" << endl;
+#endif
+	}
 
 	// Delete the thread
 	delete pThread;;
@@ -1422,16 +1428,7 @@ void mainWindow::on_configure_activate()
 	// Is starting the daemon necessary ?
 	if (prefsBox.startDaemon() == true)
 	{
-		unsigned int crawledCount = 0, docsCount = 0;
-
-		// ... and let D-Bus activate the service if necessary
-		// If it was already running, changes will take effect when it's restarted
-		// FIXME: put this in a thread
-		DBusXapianIndex::getStatistics(crawledCount, docsCount);
-#ifdef DEBUG
-		cout << "mainWindow::on_configure_activate: crawled " << crawledCount
-			<< ", indexed " << docsCount << endl;
-#endif
+		start_thread(new StartDaemonThread());
 	}
 
 	// Any labels to delete or rename ?
@@ -2829,7 +2826,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 	}
 
 	// Go through the tree and check selected nodes
-	vector<TreeModel::iterator> engineIters;
+	list<TreeModel::iterator> engineIters;
 	EnginesModelColumns &engineColumns = m_pEnginesTree->getColumnRecord();
 	for (list<TreeModel::Path>::iterator enginePath = selectedEngines.begin();
 		enginePath != selectedEngines.end(); ++enginePath)
@@ -2863,6 +2860,11 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 				engineIters.push_back(folderEngineIter);
 			}
 		}
+		else if (engineType == EnginesModelColumns::INTERNAL_INDEX_ENGINE)
+		{
+			// Push this at the beginning of the list
+			engineIters.push_front(engineIter);
+		}
 		else
 		{
 			engineIters.push_back(engineIter);
@@ -2875,7 +2877,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 
 	// Now go through the selected search engines
 	set<ustring> engineDisplayableNames;
-	for (vector<TreeModel::iterator>::iterator iter = engineIters.begin();
+	for (list<TreeModel::iterator>::iterator iter = engineIters.begin();
 		iter != engineIters.end(); ++iter)
 	{
 		TreeModel::Row engineRow = **iter;

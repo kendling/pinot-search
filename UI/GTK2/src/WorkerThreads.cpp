@@ -38,6 +38,7 @@
 #include "FilterFactory.h"
 #include "FilterUtils.h"
 #include "FilterWrapper.h"
+#include "DBusXapianIndex.h"
 #include "XapianDatabase.h"
 #include "ActionQueue.h"
 #include "QueryHistory.h"
@@ -973,7 +974,6 @@ void ExpandQueryThread::doWork(void)
 	if (pEngine->runQuery(m_queryProps) == false)
 	{
 		m_status = _("Couldn't run query on search engine");
-		m_status += " xapian";
 	}
 	else
 	{
@@ -1624,6 +1624,43 @@ void UpdateDocumentThread::doWork(void)
 		}
 
 		delete pIndex;
+	}
+}
+
+StartDaemonThread::StartDaemonThread() :
+	WorkerThread()
+{
+}
+
+StartDaemonThread::~StartDaemonThread()
+{
+}
+
+string StartDaemonThread::getType(void) const
+{
+	return "StartDaemonThread";
+}
+
+bool StartDaemonThread::stop(void)
+{
+	m_done = true;
+	return true;
+}
+
+void StartDaemonThread::doWork(void)
+{
+	unsigned int crawledCount = 0, docsCount = 0;
+
+	if (m_done == false)
+        {
+		// ... and let D-Bus activate the service if necessary
+		// If it was already running, changes will take effect when it's restarted
+		DBusXapianIndex::getStatistics(crawledCount, docsCount);
+
+#ifdef DEBUG
+		cout << "StartDaemonThread::doWork: crawled " << crawledCount
+			<< ", indexed " << docsCount << endl;
+#endif
 	}
 }
 

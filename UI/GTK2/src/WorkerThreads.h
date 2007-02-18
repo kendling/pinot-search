@@ -396,4 +396,24 @@ class UpdateDocumentThread : public WorkerThread
 
 };
 
+class StartDaemonThread : public WorkerThread
+{
+	public:
+		// Start the daemon
+		StartDaemonThread();
+		virtual ~StartDaemonThread();
+
+		virtual std::string getType(void) const;
+
+		virtual bool stop(void);
+
+	protected:
+		virtual void doWork(void);
+
+	private:
+		StartDaemonThread(const StartDaemonThread &other);
+		StartDaemonThread &operator=(const StartDaemonThread &other);
+
+};
+
 #endif // _WORKERTHREADS_HH
