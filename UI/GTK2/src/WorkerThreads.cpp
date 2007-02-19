@@ -800,44 +800,56 @@ void QueryingThread::doWork(void)
 	}
 	else
 	{
-		const vector<Result> &resultsList = pEngine->getResults();
+		IndexInterface *pDocsIndex = NULL;
+		IndexInterface *pDaemonIndex = NULL;
 		PinotSettings &settings = PinotSettings::getInstance();
+		const vector<Result> &resultsList = pEngine->getResults();
+		unsigned int indexId = 0;
+		bool isIndexQuery = false;
 
 		m_resultsList.clear();
 		m_resultsList.reserve(resultsList.size());
 		m_resultsCharset = pEngine->getResultsCharset();
 
-		IndexInterface *pDocsIndex = settings.getIndex(settings.m_docsIndexLocation);
-		if ((pDocsIndex != NULL) &&
-			(pDocsIndex->isGood() == false))
+		// Are we querying an index ?
+		if (m_engineName == "xapian")
 		{
-			delete pDocsIndex;
-			pDocsIndex = NULL;
+			// Internal index ?
+			if (m_engineOption == settings.m_docsIndexLocation)
+			{
+				indexId = settings.getIndexId(_("My Web Pages"));
+				isIndexQuery = true;
+			}
+			else if (m_engineOption == settings.m_daemonIndexLocation)
+			{
+				indexId = settings.getIndexId(_("My Documents"));
+				isIndexQuery = true;
+			}
 		}
 
-		IndexInterface *pDaemonIndex = settings.getIndex(settings.m_daemonIndexLocation);
-		if ((pDaemonIndex != NULL) &&
-			(pDaemonIndex->isGood() == false))
+		// Will we have to query internal indices ?
+		if (isIndexQuery == false)
 		{
-			delete pDaemonIndex;
-			pDaemonIndex = NULL;
+			pDocsIndex = settings.getIndex(settings.m_docsIndexLocation);
+			pDaemonIndex = settings.getIndex(settings.m_daemonIndexLocation);
 		}
-
 
 		// Copy the results list
 		for (vector<Result>::const_iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
 		{
+			Result current(*resultIter);
 			string title(_("No title"));
-			string location(resultIter->getLocation());
-			string language(resultIter->getLanguage());
-			unsigned int indexId = 0, docId = 0;
+			string location(current.getLocation());
+			string language(current.getLanguage());
+			unsigned int docId = 0;
 
 			// The title may contain formatting
-			if (resultIter->getTitle().empty() == false)
+			if (current.getTitle().empty() == false)
 			{
-				title = FilterUtils::stripMarkup(resultIter->getTitle());
+				title = FilterUtils::stripMarkup(current.getTitle());
 			}
+			current.setTitle(title);
 #ifdef DEBUG
 			cout << "QueryingThread::doWork: title is " << title << endl;
 #endif
@@ -847,12 +859,19 @@ void QueryingThread::doWork(void)
 			{
 				language = m_queryProps.getLanguage();
 			}
+			current.setLanguage(language);
 
-			Result current(location, title, resultIter->getExtract(),
-				language, resultIter->getScore());
+			if (isIndexQuery == true)
+			{
+				unsigned int tmpId = 0;
+
+				// The index engine should have set this
+				docId = current.getIsIndexed(tmpId);
+			}
 
 			// Is this in one of the indexes ?
-			if (pDocsIndex != NULL)
+			if ((pDocsIndex != NULL) &&
+				(pDocsIndex->isGood() == true))
 			{
 				docId = pDocsIndex->hasDocument(location);
 				if (docId > 0)
@@ -861,6 +880,7 @@ void QueryingThread::doWork(void)
 				}
 			}
 			if ((pDaemonIndex != NULL) &&
+				(pDaemonIndex->isGood() == true) &&
 				(docId == 0))
 			{
 				docId = pDaemonIndex->hasDocument(location);
@@ -869,6 +889,7 @@ void QueryingThread::doWork(void)
 					indexId = settings.getIndexId(_("My Documents"));
 				}
 			}
+
 			if (docId > 0)
 			{
 				current.setIsIndexed(indexId, docId);

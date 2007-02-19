@@ -238,10 +238,14 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	string yyyymmddMax(TimeConverter::toYYYYMMDDString(maxDay, maxMonth, maxYear));
 	time_t startTime = TimeConverter::fromYYYYMMDDString(yyyymmddMin);
 	time_t endTime = TimeConverter::fromYYYYMMDDString(yyyymmddMax);
-  
+ 
 	double diffTime = difftime(endTime, startTime);
 	if (diffTime > 0)
 	{
+#ifdef DEBUG
+		cout << "XapianEngine::parseQuery: applied date range ("
+			<< yyyymmddMax << " <= " << yyyymmddMin << ")" << endl;
+#endif
 		return Xapian::Query(Xapian::Query::OP_FILTER, parsedQuery,
 			dateFilter(minDay, minMonth, minYear, maxDay, maxMonth, maxYear));
 	}
@@ -334,7 +338,8 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 
 			// Get the results
 #ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: " << matches.get_matches_estimated() << "/" << m_maxResultsCount << " results found" << endl;
+			cout << "XapianEngine::queryDatabase: " << matches.get_matches_estimated()
+				<< "/" << m_maxResultsCount << " results found" << endl;
 #endif
 			for (Xapian::MSetIterator mIter = matches.begin(); mIter != matches.end(); ++mIter)
 			{
@@ -347,9 +352,9 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 				cout << "XapianEngine::queryDatabase: found document ID " << docId << endl;
 #endif
 				// Get the title
-				string title = StringManip::extractField(record, "caption=", "\n");
+				string title(StringManip::extractField(record, "caption=", "\n"));
 				// Get the URL
-				string url = StringManip::extractField(record, "url=", "\n");
+				string url(StringManip::extractField(record, "url=", "\n"));
 				if (url.empty() == true)
 				{
 					// Hmmm this shouldn't be empty...
@@ -362,15 +367,26 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 				}
 
 				// Get the type
-				string type = StringManip::extractField(record, "type=", "\n");
-				// ...and the language, if available
-				string language = StringManip::extractField(record, "language=", "\n");
+				string type(StringManip::extractField(record, "type=", "\n"));
+				// ... the language, if available
+				string language(StringManip::extractField(record, "language=", "\n"));
+				// ... and the timestamp
+				string timestamp, modTime(StringManip::extractField(record, "modtime=", "\n"));
+				if (modTime.empty() == false)
+				{
+					time_t timeT = (time_t )atol(modTime.c_str());
+					timestamp = TimeConverter::toTimestamp(timeT);
+				}
 
 				// Generate an abstract based on the query's terms
-				string summary = abstractGen.generateAbstract(docId, seedTerms);
+				string summary(abstractGen.generateAbstract(docId, seedTerms));
+
+				Result thisResult(url, title, summary, language, (float)mIter.get_percent());
+				thisResult.setTimestamp(timestamp);
+				// We don't know the index ID, just the document ID
+				thisResult.setIsIndexed(0, docId);
 
 				// Add this result
-				Result thisResult(url, title, summary, language, (float)mIter.get_percent());
 				m_resultsList.push_back(thisResult);
 			}
 		}
