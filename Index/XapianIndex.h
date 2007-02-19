@@ -114,7 +114,6 @@ class XapianIndex : public IndexInterface
 		virtual bool flush(void);
 
 	protected:
-		static const unsigned int m_maxTermLength;
 		static const std::string MAGIC_TERM;
 		std::string m_databaseName;
 		bool m_goodIndex;

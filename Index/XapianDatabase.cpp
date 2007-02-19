@@ -31,6 +31,9 @@ using std::cerr;
 using std::endl;
 using std::string;
 
+// This puts a limit to terms length.
+const unsigned int XapianDatabase::m_maxTermLength = 240;
+
 XapianDatabase::XapianDatabase(const string &databaseName, bool readOnly) :
 	m_databaseName(databaseName),
 	m_readOnly(readOnly),

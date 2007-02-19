@@ -29,6 +29,8 @@
 class XapianDatabase
 {
 	public:
+		static const unsigned int m_maxTermLength;
+
 		XapianDatabase(const std::string &databaseName, bool readOnly = true);
 		XapianDatabase(const std::string &databaseName,
 			XapianDatabase *pFirst, XapianDatabase *pSecond);

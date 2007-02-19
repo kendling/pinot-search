@@ -50,8 +50,6 @@ using std::set;
 using std::min;
 using std::max;
 
-// This puts a limit to terms length.
-const unsigned int XapianIndex::m_maxTermLength = 240;
 const string XapianIndex::MAGIC_TERM = "X-MetaSE-Doc";
 
 static void removeFirstPosting(Xapian::Document &doc,
@@ -117,16 +115,16 @@ XapianIndex &XapianIndex::operator=(const XapianIndex &other)
 
 string XapianIndex::limitTermLength(const string &term, bool makeUnique)
 {
-	if (term.length() > XapianIndex::m_maxTermLength)
+	if (term.length() > XapianDatabase::m_maxTermLength)
 	{
 		if (makeUnique == false)
 		{
 			// Truncate
-			return term.substr(0, XapianIndex::m_maxTermLength);
+			return term.substr(0, XapianDatabase::m_maxTermLength);
 		}
 		else
 		{
-			return StringManip::hashString(term, XapianIndex::m_maxTermLength);
+			return StringManip::hashString(term, XapianDatabase::m_maxTermLength);
 		}
 	}
 
