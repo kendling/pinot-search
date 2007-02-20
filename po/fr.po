@@ -28,22 +28,24 @@ msgstr "Utilisateur"
 #: UI/GTK2/src/EnginesTree.cpp:339 UI/GTK2/src/mainWindow.cc:325
 #: UI/GTK2/src/mainWindow.cc:328 UI/GTK2/src/mainWindow.cc:541
 #: UI/GTK2/src/mainWindow.cc:1186 UI/GTK2/src/mainWindow.cc:1229
-#: UI/GTK2/src/mainWindow.cc:1249 UI/GTK2/src/mainWindow.cc:1280
-#: UI/GTK2/src/mainWindow.cc:1859 UI/GTK2/src/PinotSettings.cpp:241
+#: UI/GTK2/src/mainWindow.cc:1251 UI/GTK2/src/mainWindow.cc:1282
+#: UI/GTK2/src/mainWindow.cc:1855 UI/GTK2/src/PinotSettings.cpp:241
 #: UI/GTK2/src/PinotSettings.cpp:1281 UI/GTK2/src/PinotSettings.cpp:1337
-#: UI/GTK2/src/statisticsDialog.cc:88 UI/GTK2/src/WorkerThreads.cpp:859
+#: UI/GTK2/src/statisticsDialog.cc:88 UI/GTK2/src/WorkerThreads.cpp:820
+#: UI/GTK2/src/WorkerThreads.cpp:879
 msgid "My Web Pages"
 msgstr "Mes Pages Web"
 
 #: UI/GTK2/src/EnginesTree.cpp:340 UI/GTK2/src/mainWindow.cc:319
 #: UI/GTK2/src/mainWindow.cc:322 UI/GTK2/src/PinotSettings.cpp:242
 #: UI/GTK2/src/PinotSettings.cpp:1282 UI/GTK2/src/PinotSettings.cpp:1338
-#: UI/GTK2/src/statisticsDialog.cc:74 UI/GTK2/src/WorkerThreads.cpp:867
+#: UI/GTK2/src/statisticsDialog.cc:74 UI/GTK2/src/WorkerThreads.cpp:825
+#: UI/GTK2/src/WorkerThreads.cpp:889
 msgid "My Documents"
 msgstr "Mes Documents"
 
 #: UI/GTK2/src/dateDialog_glade.cc:76 UI/GTK2/src/queryDialog_glade.cc:91
-#: UI/GTK2/src/queryDialog_glade.cc:92
+#: UI/GTK2/src/queryDialog_glade.cc:92 UI/GTK2/src/ResultsTree.cpp:145
 msgid "Date"
 msgstr "Date"
 
@@ -104,17 +106,17 @@ msgstr "Appliquer l'etiquette:"
 msgid "Import"
 msgstr "Importer"
 
-#: UI/GTK2/src/importDialog_glade.cc:148 UI/GTK2/src/mainWindow_glade.cc:221
+#: UI/GTK2/src/importDialog_glade.cc:148 UI/GTK2/src/mainWindow_glade.cc:217
 msgid "Import URL"
 msgstr "Importer une URL"
 
 #: UI/GTK2/src/IndexTree.cpp:68 UI/GTK2/src/queryDialog.cc:139
-#: UI/GTK2/src/ResultsTree.cpp:126
+#: UI/GTK2/src/ResultsTree.cpp:127
 msgid "Title"
 msgstr "Titre"
 
 #: UI/GTK2/src/IndexTree.cpp:73 UI/GTK2/src/queryDialog.cc:142
-#: UI/GTK2/src/ResultsTree.cpp:136
+#: UI/GTK2/src/ResultsTree.cpp:137
 msgid "URL"
 msgstr "URL"
 
@@ -210,7 +212,7 @@ msgstr "au total, a partir de"
 msgid "Query"
 msgstr "La recherche"
 
-#: UI/GTK2/src/mainWindow.cc:924 UI/GTK2/src/mainWindow.cc:2922
+#: UI/GTK2/src/mainWindow.cc:924 UI/GTK2/src/mainWindow.cc:2923
 msgid "on"
 msgstr "sur"
 
@@ -234,224 +236,224 @@ msgstr "Mis a jour le document"
 msgid "Indexed"
 msgstr "Indexe"
 
-#: UI/GTK2/src/mainWindow.cc:1250
+#: UI/GTK2/src/mainWindow.cc:1252
 msgid "Unindexed document(s)"
 msgstr "Desindexe le(s) document(s)"
 
-#: UI/GTK2/src/mainWindow.cc:1291
+#: UI/GTK2/src/mainWindow.cc:1293
 msgid "Updated document properties"
 msgstr "Mis a jour les proprietes du document"
 
-#: UI/GTK2/src/mainWindow.cc:1338
+#: UI/GTK2/src/mainWindow.cc:1346
 msgid "Couldn't rename index, name"
 msgstr "N'a pas pu renommer l'index, le nom"
 
-#: UI/GTK2/src/mainWindow.cc:1342 UI/GTK2/src/mainWindow.cc:2246
-#: UI/GTK2/src/mainWindow.cc:2757
+#: UI/GTK2/src/mainWindow.cc:1350 UI/GTK2/src/mainWindow.cc:2242
+#: UI/GTK2/src/mainWindow.cc:2753
 msgid "is already in use"
 msgstr "est deja utilise"
 
-#: UI/GTK2/src/mainWindow.cc:1355
+#: UI/GTK2/src/mainWindow.cc:1363
 msgid "Couldn't rename index"
 msgstr "N'a pas pu renommer l'index"
 
-#: UI/GTK2/src/mainWindow.cc:1368
+#: UI/GTK2/src/mainWindow.cc:1376
 msgid "Edited index"
 msgstr "Edite l'index"
 
-#: UI/GTK2/src/mainWindow.cc:1753 UI/GTK2/src/mainWindow.cc:2416
+#: UI/GTK2/src/mainWindow.cc:1752 UI/GTK2/src/mainWindow.cc:2412
 msgid "Live query"
 msgstr "Recherche"
 
-#: UI/GTK2/src/mainWindow.cc:1779
+#: UI/GTK2/src/mainWindow.cc:1778
 msgid "Couldn't find query"
 msgstr "N'a pas pu trouver"
 
-#: UI/GTK2/src/mainWindow.cc:1975 UI/GTK2/src/WorkerThreads.cpp:650
-#: UI/GTK2/src/WorkerThreads.cpp:1583
+#: UI/GTK2/src/mainWindow.cc:1971 UI/GTK2/src/WorkerThreads.cpp:651
+#: UI/GTK2/src/WorkerThreads.cpp:1608
 msgid "Index"
 msgstr "L'index"
 
-#: UI/GTK2/src/mainWindow.cc:1979 UI/GTK2/src/WorkerThreads.cpp:654
-#: UI/GTK2/src/WorkerThreads.cpp:1587
+#: UI/GTK2/src/mainWindow.cc:1975 UI/GTK2/src/WorkerThreads.cpp:655
+#: UI/GTK2/src/WorkerThreads.cpp:1612
 msgid "doesn't exist"
 msgstr "n'existe pas"
 
-#: UI/GTK2/src/mainWindow.cc:2133
+#: UI/GTK2/src/mainWindow.cc:2129
 msgid "Remove this document from the index ?"
 msgstr "Enlever ce document de l'index ?"
 
-#: UI/GTK2/src/mainWindow.cc:2152
+#: UI/GTK2/src/mainWindow.cc:2148
 msgid "Remove these documents from the index ?"
 msgstr "Enlever ces documents de l'index ?"
 
-#: UI/GTK2/src/mainWindow.cc:2196
+#: UI/GTK2/src/mainWindow.cc:2192
 msgid "A metasearch tool for the Free Desktop"
 msgstr "Un outil de recherche pour le Bureau Libre"
 
-#: UI/GTK2/src/mainWindow.cc:2197
+#: UI/GTK2/src/mainWindow.cc:2193
 msgid "Search the Web and your documents !"
 msgstr "Cherche le Web et vos documents"
 
-#: UI/GTK2/src/mainWindow.cc:2198
+#: UI/GTK2/src/mainWindow.cc:2194
 msgid "(C) 2005 Fabrice Colin"
 msgstr "(C) 2005 Fabrice Colin"
 
-#: UI/GTK2/src/mainWindow.cc:2242
+#: UI/GTK2/src/mainWindow.cc:2238
 msgid "Index name"
 msgstr "Nom de l'index"
 
-#: UI/GTK2/src/mainWindow.cc:2257
+#: UI/GTK2/src/mainWindow.cc:2253
 msgid "Couldn't add index"
 msgstr "N'a pas pu ajouter l'index"
 
-#: UI/GTK2/src/mainWindow.cc:2271
+#: UI/GTK2/src/mainWindow.cc:2267
 msgid "Added new index"
 msgstr "Ajoute un nouvel index"
 
-#: UI/GTK2/src/mainWindow.cc:2306
+#: UI/GTK2/src/mainWindow.cc:2302
 msgid "Couldn't remove index"
 msgstr "N'a pas pu enlever l'index"
 
-#: UI/GTK2/src/mainWindow.cc:2571
+#: UI/GTK2/src/mainWindow.cc:2567
 msgid "At least one task hasn't completed yet. Quit now ?"
 msgstr "Au moins une tache n'est pas terminee. Quitter maintenant ?"
 
-#: UI/GTK2/src/mainWindow.cc:2753
+#: UI/GTK2/src/mainWindow.cc:2749
 msgid "Query name"
 msgstr "Nom de la recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2780
+#: UI/GTK2/src/mainWindow.cc:2776
 msgid "Couldn't update query"
 msgstr "N'a pas pu mettre a jour la recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2788
+#: UI/GTK2/src/mainWindow.cc:2784
 msgid "Edited query"
 msgstr "Edite la recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2795
+#: UI/GTK2/src/mainWindow.cc:2791
 msgid "Couldn't add query"
 msgstr "N'a pas pu ajouter la recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2803
+#: UI/GTK2/src/mainWindow.cc:2799
 msgid "Added new query"
 msgstr "Ajoute une nouvelle recherche"
 
-#: UI/GTK2/src/mainWindow.cc:2816
+#: UI/GTK2/src/mainWindow.cc:2812
 msgid "Query is not set"
 msgstr "Recherche indefinie"
 
-#: UI/GTK2/src/mainWindow.cc:2827
+#: UI/GTK2/src/mainWindow.cc:2823
 msgid "No search engine selected"
 msgstr "Pas de moteur selectionne"
 
-#: UI/GTK2/src/mainWindow.cc:2909
+#: UI/GTK2/src/mainWindow.cc:2910
 msgid "Please set the Google API key first"
 msgstr "Configurez la clef de l'API Google"
 
-#: UI/GTK2/src/mainWindow.cc:2918
+#: UI/GTK2/src/mainWindow.cc:2919
 msgid "Running query"
 msgstr "Recherche en cours"
 
-#: UI/GTK2/src/mainWindow.cc:3102
+#: UI/GTK2/src/mainWindow.cc:3103
 msgid "No default application defined for type"
 msgstr "Pas d'application definie pour le type"
 
-#: UI/GTK2/src/mainWindow_glade.cc:126
+#: UI/GTK2/src/mainWindow_glade.cc:125
 msgid "Query:"
 msgstr "Recherche:"
 
-#: UI/GTK2/src/mainWindow_glade.cc:138
+#: UI/GTK2/src/mainWindow_glade.cc:137
 msgid "Edit"
 msgstr "Editer"
 
-#: UI/GTK2/src/mainWindow_glade.cc:147
+#: UI/GTK2/src/mainWindow_glade.cc:146
 msgid "Stored queries"
 msgstr "Recherches sauvegardees"
 
-#: UI/GTK2/src/mainWindow_glade.cc:161 UI/GTK2/src/statisticsDialog.cc:46
+#: UI/GTK2/src/mainWindow_glade.cc:163 UI/GTK2/src/statisticsDialog.cc:46
 #: UI/GTK2/src/statisticsDialog_glade.cc:87
 msgid "Status"
 msgstr "Statistiques"
 
-#: UI/GTK2/src/mainWindow_glade.cc:188
+#: UI/GTK2/src/mainWindow_glade.cc:184
 msgid "Search Engine"
 msgstr "Moteur"
 
-#: UI/GTK2/src/mainWindow_glade.cc:191
+#: UI/GTK2/src/mainWindow_glade.cc:187
 msgid "Host Name"
 msgstr "Nom de Machine"
 
-#: UI/GTK2/src/mainWindow_glade.cc:194
+#: UI/GTK2/src/mainWindow_glade.cc:190
 msgid "Show Extract"
 msgstr "Montrer l'Extrait"
 
-#: UI/GTK2/src/mainWindow_glade.cc:197
+#: UI/GTK2/src/mainWindow_glade.cc:193
 msgid "Group By"
 msgstr "Grouper Par"
 
-#: UI/GTK2/src/mainWindow_glade.cc:200
+#: UI/GTK2/src/mainWindow_glade.cc:196
 msgid "Clear List"
 msgstr "Nettoyer la Liste"
 
-#: UI/GTK2/src/mainWindow_glade.cc:206
+#: UI/GTK2/src/mainWindow_glade.cc:202
 msgid "Vie_w"
 msgstr "Voir"
 
-#: UI/GTK2/src/mainWindow_glade.cc:209
+#: UI/GTK2/src/mainWindow_glade.cc:205
 msgid "View Cache"
 msgstr "Voir le Cache"
 
-#: UI/GTK2/src/mainWindow_glade.cc:212
+#: UI/GTK2/src/mainWindow_glade.cc:208
 msgid "More Like This"
 msgstr "Documents similaires"
 
-#: UI/GTK2/src/mainWindow_glade.cc:215 UI/GTK2/src/mainWindow_glade.cc:251
+#: UI/GTK2/src/mainWindow_glade.cc:211 UI/GTK2/src/mainWindow_glade.cc:247
 msgid "_Index"
 msgstr "Index"
 
-#: UI/GTK2/src/mainWindow_glade.cc:218
+#: UI/GTK2/src/mainWindow_glade.cc:214
 msgid "List Contents Of"
 msgstr "Lister le Contenu de"
 
-#: UI/GTK2/src/mainWindow_glade.cc:227
+#: UI/GTK2/src/mainWindow_glade.cc:223
 msgid "View"
 msgstr "Voir"
 
-#: UI/GTK2/src/mainWindow_glade.cc:230
+#: UI/GTK2/src/mainWindow_glade.cc:226
 msgid "Update"
 msgstr "Mettre a Jour"
 
-#: UI/GTK2/src/mainWindow_glade.cc:233
+#: UI/GTK2/src/mainWindow_glade.cc:229
 msgid "Unindex"
 msgstr "Desindexer"
 
-#: UI/GTK2/src/mainWindow_glade.cc:236
+#: UI/GTK2/src/mainWindow_glade.cc:232
 #: UI/GTK2/src/propertiesDialog_glade.cc:177
 msgid "Properties"
 msgstr "Proprietes"
 
-#: UI/GTK2/src/mainWindow_glade.cc:239
+#: UI/GTK2/src/mainWindow_glade.cc:235
 msgid "_About"
 msgstr "A Propos"
 
-#: UI/GTK2/src/mainWindow_glade.cc:242
+#: UI/GTK2/src/mainWindow_glade.cc:238
 msgid "_Session"
 msgstr "Session"
 
-#: UI/GTK2/src/mainWindow_glade.cc:245
+#: UI/GTK2/src/mainWindow_glade.cc:241
 msgid "_Edit"
 msgstr "Editer"
 
-#: UI/GTK2/src/mainWindow_glade.cc:248
+#: UI/GTK2/src/mainWindow_glade.cc:244
 msgid "_Results"
 msgstr "Resultats"
 
-#: UI/GTK2/src/mainWindow_glade.cc:254
+#: UI/GTK2/src/mainWindow_glade.cc:250
 msgid "_Help"
 msgstr "Aide"
 
-#: UI/GTK2/src/mainWindow_glade.cc:391
+#: UI/GTK2/src/mainWindow_glade.cc:387
 msgid "Pinot"
 msgstr "Pinot"
 
@@ -709,11 +711,11 @@ msgstr "Date de fin:"
 msgid "Query parameters"
 msgstr "Parametres de la recherche"
 
-#: UI/GTK2/src/ResultsTree.cpp:116
+#: UI/GTK2/src/ResultsTree.cpp:117
 msgid "Score"
 msgstr "Score"
 
-#: UI/GTK2/src/ResultsTree.cpp:165
+#: UI/GTK2/src/ResultsTree.cpp:174
 msgid "Extract"
 msgstr "Extrait"
 
@@ -761,65 +763,65 @@ msgstr "fichiers"
 msgid "Errors"
 msgstr "Erreurs"
 
-#: UI/GTK2/src/WorkerThreads.cpp:321
+#: UI/GTK2/src/WorkerThreads.cpp:322
 msgid "Can't index mail here"
 msgstr "Ne peut pas indexer le courrier ici"
 
-#: UI/GTK2/src/WorkerThreads.cpp:342
+#: UI/GTK2/src/WorkerThreads.cpp:343
 msgid "is already being indexed"
 msgstr "est deja indexe"
 
-#: UI/GTK2/src/WorkerThreads.cpp:352
+#: UI/GTK2/src/WorkerThreads.cpp:353
 msgid "is blacklisted"
 msgstr "est exclus"
 
-#: UI/GTK2/src/WorkerThreads.cpp:663 UI/GTK2/src/WorkerThreads.cpp:936
-#: UI/GTK2/src/WorkerThreads.cpp:1022 UI/GTK2/src/WorkerThreads.cpp:1031
-#: UI/GTK2/src/WorkerThreads.cpp:1203 UI/GTK2/src/WorkerThreads.cpp:1463
-#: UI/GTK2/src/WorkerThreads.cpp:1596
+#: UI/GTK2/src/WorkerThreads.cpp:664 UI/GTK2/src/WorkerThreads.cpp:962
+#: UI/GTK2/src/WorkerThreads.cpp:1047 UI/GTK2/src/WorkerThreads.cpp:1056
+#: UI/GTK2/src/WorkerThreads.cpp:1228 UI/GTK2/src/WorkerThreads.cpp:1488
+#: UI/GTK2/src/WorkerThreads.cpp:1621
 msgid "Index error on"
 msgstr "Erreur sur l'index"
 
-#: UI/GTK2/src/WorkerThreads.cpp:784 UI/GTK2/src/WorkerThreads.cpp:957
+#: UI/GTK2/src/WorkerThreads.cpp:785 UI/GTK2/src/WorkerThreads.cpp:983
 msgid "Couldn't create search engine"
 msgstr "N'a pas pu creer le moteur"
 
-#: UI/GTK2/src/WorkerThreads.cpp:796 UI/GTK2/src/WorkerThreads.cpp:971
+#: UI/GTK2/src/WorkerThreads.cpp:797 UI/GTK2/src/WorkerThreads.cpp:997
 msgid "Couldn't run query on search engine"
 msgstr "N'a pas pu lancer la recherche sur le moteur"
 
-#: UI/GTK2/src/WorkerThreads.cpp:830
+#: UI/GTK2/src/WorkerThreads.cpp:842
 msgid "No title"
 msgstr "Pas de titre"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1125
+#: UI/GTK2/src/WorkerThreads.cpp:1150
 msgid "Couldn't obtain downloader for protocol"
 msgstr "N'a pas pu obtenir un brouteur pour"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1136
+#: UI/GTK2/src/WorkerThreads.cpp:1161
 msgid "Couldn't retrieve"
 msgstr "N'a pas pu telecharger"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1233 UI/GTK2/src/WorkerThreads.cpp:1309
+#: UI/GTK2/src/WorkerThreads.cpp:1258 UI/GTK2/src/WorkerThreads.cpp:1334
 msgid "Cannot index document type"
 msgstr "Impossible d'indexer ce type de documents"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1237 UI/GTK2/src/WorkerThreads.cpp:1313
+#: UI/GTK2/src/WorkerThreads.cpp:1262 UI/GTK2/src/WorkerThreads.cpp:1338
 msgid "at"
 msgstr "a"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1344
+#: UI/GTK2/src/WorkerThreads.cpp:1369
 msgid "Robots META tag forbids indexing"
 msgstr "Le META tag Robots interdit d'indexer"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1395
+#: UI/GTK2/src/WorkerThreads.cpp:1420
 msgid "Couldn't index"
 msgstr "N'a pas pu indexer"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1474
+#: UI/GTK2/src/WorkerThreads.cpp:1499
 msgid "Couldn't unindex document(s)"
 msgstr "N'a pas pu desindexer le(s) document(s)"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1608
+#: UI/GTK2/src/WorkerThreads.cpp:1633
 msgid "Couldn't update document"
 msgstr "N'a pas pu mettre a jour le document"
