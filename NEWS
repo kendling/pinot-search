@@ -1,3 +1,22 @@
+??? version_0_7_0
+Tokenize :
+ - now use Dijon's filters (http://dijon.berlios.de/)
+Index :
+ - support for remote indexes served by xapian-progsrv+ssh
+ - index to use by pinot-index specified with --db
+Search :
+ - limit the number of results returned by pinot-search with --max
+UI :
+ - stored queries can do date range filtering. If dates don't make sense
+  (eg From >= To), they are ignored.
+ - under the Session menu, Status shows various bits of information about
+  the indexes and the daemon's crawler
+ - prompt for command to use to open documents of a type for which no
+  application is defined
+ - revamped configuration dialog for external indexes
+ - Index > Properties now shows a document's size and number of unique terms
+ - most operations that involve peeking at the index are done in the background
+
 2006/12/21 version_0_6_5
 Build :
  - added option --enable-debug to configure, --enable-soap replaces --with-soap
