@@ -16,8 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -26,7 +24,6 @@
 #include <strings.h>
 #include <time.h>
 #include <ctype.h>
-#include <regex.h>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -113,46 +110,6 @@ XapianIndex &XapianIndex::operator=(const XapianIndex &other)
 	return *this;
 }
 
-string XapianIndex::limitTermLength(const string &term, bool makeUnique)
-{
-	if (term.length() > XapianDatabase::m_maxTermLength)
-	{
-		if (makeUnique == false)
-		{
-			// Truncate
-			return term.substr(0, XapianDatabase::m_maxTermLength);
-		}
-		else
-		{
-			return StringManip::hashString(term, XapianDatabase::m_maxTermLength);
-		}
-	}
-
-	return term;
-}
-
-bool XapianIndex::badField(const string &field)
-{
-	regex_t fieldRegex;
-	regmatch_t pFieldMatches[1];
-	bool isBadField = false;
-
-	// A bad field is one that includes one of our field delimiters
-	if (regcomp(&fieldRegex,
-		"(url|sample|caption|type|timestamp|language)=",
-		REG_EXTENDED|REG_ICASE) == 0)
-	{
-		if (regexec(&fieldRegex, field.c_str(), 1,
-			pFieldMatches, REG_NOTBOL|REG_NOTEOL) == 0)
-		{
-			isBadField = true;
-		}
-	}
-	regfree(&fieldRegex);
-
-	return isBadField;
-}
-
 bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
@@ -227,7 +184,7 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 		if (isupper((int)term[0]) != 0)
 		{
 			// R-prefix the raw term
-			doc.add_posting(limitTermLength(string("R") + term), termPos);
+			doc.add_posting(XapianDatabase::limitTermLength(string("R") + term), termPos);
 		}
 		// Lower case the term
 		term = StringManip::toLowerCase(term);
@@ -236,24 +193,24 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 		if ((mode == STORE_UNSTEM) ||
 			(pStemmer == NULL))
 		{
-			doc.add_posting(limitTermLength(prefix + term), termPos);
+			doc.add_posting(XapianDatabase::limitTermLength(prefix + term), termPos);
 		}
 		else if (mode == STORE_STEM)
 		{
 			string stemmedTerm = pStemmer->stem_word(term);
 
-			doc.add_posting(limitTermLength(prefix + stemmedTerm), termPos);
+			doc.add_posting(XapianDatabase::limitTermLength(prefix + stemmedTerm), termPos);
 		}
 		else if (mode == STORE_BOTH)
 		{
 			string stemmedTerm = pStemmer->stem_word(term);
 
 			// Add both at the same position
-			doc.add_posting(limitTermLength(prefix + term), termPos);
+			doc.add_posting(XapianDatabase::limitTermLength(prefix + term), termPos);
 			if (stemmedTerm != term)
 			{
 				// No point adding the same term twice
-				doc.add_posting(limitTermLength(prefix + stemmedTerm), termPos);
+				doc.add_posting(XapianDatabase::limitTermLength(prefix + stemmedTerm), termPos);
 			}
 		}
 
@@ -302,20 +259,20 @@ void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Doc
 		if ((mode == STORE_UNSTEM) ||
 			(pStemmer == NULL))
 		{
-			removeFirstPosting(doc, termListIter, limitTermLength(prefix + term));
+			removeFirstPosting(doc, termListIter, XapianDatabase::limitTermLength(prefix + term));
 		}
 		else if (mode == STORE_STEM)
 		{
-			removeFirstPosting(doc, termListIter, limitTermLength(prefix + pStemmer->stem_word(term)));
+			removeFirstPosting(doc, termListIter, XapianDatabase::limitTermLength(prefix + pStemmer->stem_word(term)));
 		}
 		else if (mode == STORE_BOTH)
 		{
 			string stemmedTerm = pStemmer->stem_word(term);
 
-			removeFirstPosting(doc, termListIter, limitTermLength(prefix + term));
+			removeFirstPosting(doc, termListIter, XapianDatabase::limitTermLength(prefix + term));
 			if (stemmedTerm != term)
 			{
-				removeFirstPosting(doc, termListIter, limitTermLength(prefix + stemmedTerm));
+				removeFirstPosting(doc, termListIter, XapianDatabase::limitTermLength(prefix + stemmedTerm));
 			}
 		}
 	}
@@ -348,16 +305,16 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	}
 
 	// Index the full URL with prefix U
-	doc.add_term(limitTermLength(string("U") + location, true));
+	doc.add_term(XapianDatabase::limitTermLength(string("U") + location, true));
 	// ...the host name and included domains with prefix H
 	string hostName(StringManip::toLowerCase(urlObj.getHost()));
 	if (hostName.empty() == false)
 	{
-		doc.add_term(limitTermLength(string("H") + hostName, true));
+		doc.add_term(XapianDatabase::limitTermLength(string("H") + hostName, true));
 		string::size_type dotPos = hostName.find('.');
 		while (dotPos != string::npos)
 		{
-			doc.add_term(limitTermLength(string("H") + hostName.substr(dotPos + 1), true));
+			doc.add_term(XapianDatabase::limitTermLength(string("H") + hostName.substr(dotPos + 1), true));
 
 			// Next
 			dotPos = hostName.find('.', dotPos + 1);
@@ -367,11 +324,11 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	string tree(urlObj.getLocation());
 	if (tree.empty() == false)
 	{
-		doc.add_term(limitTermLength(string("XDIR:") + tree, true));
+		doc.add_term(XapianDatabase::limitTermLength(string("XDIR:") + tree, true));
 		string::size_type slashPos = tree.find('/', 1);
 		while (slashPos != string::npos)
 		{
-			doc.add_term(limitTermLength(string("XDIR:") + tree.substr(0, slashPos), true));
+			doc.add_term(XapianDatabase::limitTermLength(string("XDIR:") + tree.substr(0, slashPos), true));
 
 			// Next
 			slashPos = tree.find('/', slashPos + 1);
@@ -383,7 +340,7 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	{
 		string extension;
 
-		doc.add_term(limitTermLength(string("P") + fileName, true));
+		doc.add_term(XapianDatabase::limitTermLength(string("P") + fileName, true));
 
 		// Does it have an extension ?
 		string::size_type extPos = fileName.rfind('.');
@@ -392,7 +349,7 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 		{
 			extension = StringManip::toLowerCase(fileName.substr(extPos + 1));
 		}
-		doc.add_term(limitTermLength(string("XEXT:") + extension));
+		doc.add_term(XapianDatabase::limitTermLength(string("XEXT:") + extension));
 	}
 	// Add the date terms D, M and Y
 	time_t timeT = TimeConverter::fromTimestamp(info.getTimestamp());
@@ -463,16 +420,16 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	}
 
 	// Title
-	commonTerms.insert(limitTermLength(string("U") + docInfo.getLocation(), true));
+	commonTerms.insert(XapianDatabase::limitTermLength(string("U") + docInfo.getLocation(), true));
 	// Host name
 	string hostName(StringManip::toLowerCase(urlObj.getHost()));
 	if (hostName.empty() == false)
 	{
-		commonTerms.insert(limitTermLength(string("H") + hostName, true));
+		commonTerms.insert(XapianDatabase::limitTermLength(string("H") + hostName, true));
 		string::size_type dotPos = hostName.find('.');
 		while (dotPos != string::npos)
 		{
-			commonTerms.insert(limitTermLength(string("H") + hostName.substr(dotPos + 1), true));
+			commonTerms.insert(XapianDatabase::limitTermLength(string("H") + hostName.substr(dotPos + 1), true));
 
 			// Next
 			dotPos = hostName.find('.', dotPos + 1);
@@ -482,11 +439,11 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	string tree(urlObj.getLocation());
 	if (tree.empty() == false)
 	{
-		commonTerms.insert(limitTermLength(string("XDIR:") + tree, true));
+		commonTerms.insert(XapianDatabase::limitTermLength(string("XDIR:") + tree, true));
 		string::size_type slashPos = tree.find('/', 1);
 		while (slashPos != string::npos)
 		{
-			commonTerms.insert(limitTermLength(string("XDIR:") + tree.substr(0, slashPos), true));
+			commonTerms.insert(XapianDatabase::limitTermLength(string("XDIR:") + tree.substr(0, slashPos), true));
 
 			// Next
 			slashPos = tree.find('/', slashPos + 1);
@@ -498,7 +455,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	{
 		string extension;
 
-		commonTerms.insert(limitTermLength(string("P") + fileName, true));
+		commonTerms.insert(XapianDatabase::limitTermLength(string("P") + fileName, true));
 
 		// Does it have an extension ?
 		string::size_type extPos = fileName.rfind('.');
@@ -507,7 +464,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 		{
 			extension = StringManip::toLowerCase(fileName.substr(extPos + 1));
 		}
-		commonTerms.insert(limitTermLength(string("XEXT:") + extension));
+		commonTerms.insert(XapianDatabase::limitTermLength(string("XEXT:") + extension));
 	}
 	// Date terms
 	time_t timeT = TimeConverter::fromTimestamp(docInfo.getTimestamp());
@@ -583,51 +540,14 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &doc,
 	const string &language) const
 {
-	string title(info.getTitle());
-	string timestamp(info.getTimestamp());
-	char tmpStr[64];
-	time_t timeT = TimeConverter::fromTimestamp(timestamp);
+	time_t timeT = TimeConverter::fromTimestamp(info.getTimestamp());
 
 	// Add this value to allow sorting by date
 	doc.add_value(0, StringManip::integerToBinaryString((uint32_t)timeT));
 
-	// Set the document data omindex-style
-	string record = "url=";
-	record += info.getLocation();
-	// The sample will be generated at query time
-	record += "\nsample=";
-	record += "\ncaption=";
-	if (badField(title) == true)
-	{
-		// Modify the title if necessary
-		string::size_type pos = title.find("=");
-		while (pos != string::npos)
-		{
-			title[pos] = ' ';
-			pos = title.find("=", pos + 1);
-		}
-#ifdef DEBUG
-		cout << "XapianIndex::setDocumentData: modified title" << endl;
-#endif
-	}
-	record += title;
-	record += "\ntype=";
-	record += info.getType();
-	// Append a timestamp, in a format compatible with Omega
-	record += "\nmodtime=";
-	snprintf(tmpStr, 64, "%ld", timeT);
-	record += tmpStr;
-	// ...and the language
-	record += "\nlanguage=";
-	record += StringManip::toLowerCase(language);
-	// ...and the file size
-	record += "\nsize=";
-	snprintf(tmpStr, 64, "%ld", info.getSize());
-	record += tmpStr;
-#ifdef DEBUG
-	cout << "XapianIndex::setDocumentData: document data is " << record << endl;
-#endif
-	doc.set_data(record);
+	DocumentInfo docCopy(info);
+	docCopy.setLanguage(language);
+	doc.set_data(XapianDatabase::propsToRecord(&docCopy));
 }
 
 //
@@ -870,7 +790,7 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 		Xapian::Database *pIndex = pDatabase->readLock();
 		if (pIndex != NULL)
 		{
-			string term = limitTermLength(string("U") + Url::canonicalizeUrl(url), true);
+			string term = XapianDatabase::limitTermLength(string("U") + Url::canonicalizeUrl(url), true);
 
 			// Get documents that have this term
 			Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
@@ -1134,7 +1054,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 			++labelIter)
 		{
-			doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
+			doc.add_term(XapianDatabase::limitTermLength(string("XLABEL:") + *labelIter));
 		}
 		addCommonTerms(docInfo, doc, termPos);
 		setDocumentData(docInfo, doc, m_stemLanguage);
@@ -1214,7 +1134,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 				++labelIter)
 			{
-				doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
+				doc.add_term(XapianDatabase::limitTermLength(string("XLABEL:") + *labelIter));
 			}
 		}
 		addCommonTerms(docInfo, doc, termPos);
@@ -1350,7 +1270,7 @@ bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 			{
 				if (labelIter->empty() == false)
 				{
-					doc.add_term(limitTermLength(string("XLABEL:") + *labelIter));
+					doc.add_term(XapianDatabase::limitTermLength(string("XLABEL:") + *labelIter));
 				}
 			}
 
@@ -1434,7 +1354,7 @@ bool XapianIndex::unindexDocument(const string &location)
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
-			string term = limitTermLength(string("U") + Url::canonicalizeUrl(location), true);
+			string term = XapianDatabase::limitTermLength(string("U") + Url::canonicalizeUrl(location), true);
 
 			// Only one document should have this term
 			pIndex->delete_document(term);
@@ -1528,7 +1448,7 @@ bool XapianIndex::renameLabel(const string &name, const string &newName)
 				// Remove the term
 				doc.remove_term(term);
 				// ...add the new one
-				doc.add_term(limitTermLength(string("XLABEL:") + newName));
+				doc.add_term(XapianDatabase::limitTermLength(string("XLABEL:") + newName));
 				// ...and update the document
 				pIndex->replace_document(docId, doc);
 			}

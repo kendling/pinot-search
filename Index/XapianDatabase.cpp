@@ -20,9 +20,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <regex.h>
 #include <stdio.h>
 #include <iostream>
 
+#include "StringManip.h"
+#include "TimeConverter.h"
 #include "Url.h"
 #include "XapianDatabase.h"
 
@@ -386,6 +389,112 @@ void XapianDatabase::unlock(void)
 	}
 }
 
+bool XapianDatabase::badRecordField(const string &field)
+{
+	regex_t fieldRegex;
+	regmatch_t pFieldMatches[1];
+	bool isBadField = false;
+
+	// A bad field is one that includes one of our field delimiters
+	if (regcomp(&fieldRegex,
+		"(url|sample|caption|type|timestamp|language)=",
+		REG_EXTENDED|REG_ICASE) == 0)
+	{
+		if (regexec(&fieldRegex, field.c_str(), 1,
+			pFieldMatches, REG_NOTBOL|REG_NOTEOL) == 0)
+		{
+			isBadField = true;
+		}
+	}
+	regfree(&fieldRegex);
+
+	return isBadField;
+}
+
+/// Returns a record for the document's properties.
+string XapianDatabase::propsToRecord(DocumentInfo *pDoc)
+{
+	if (pDoc == NULL)
+	{
+		return "";
+	}
+
+	string record("url=");
+	string title(pDoc->getTitle());
+	string timestamp(pDoc->getTimestamp());
+	time_t timeT = TimeConverter::fromTimestamp(timestamp);
+	char tmpStr[64];
+
+	// Set the document data omindex-style
+	record += pDoc->getLocation();
+	// The sample will be generated at query time
+	record += "\nsample=";
+	record += "\ncaption=";
+	if (badRecordField(title) == true)
+	{
+		// Modify the title if necessary
+		string::size_type pos = title.find("=");
+		while (pos != string::npos)
+		{
+			title[pos] = ' ';
+			pos = title.find("=", pos + 1);
+		}
+#ifdef DEBUG
+		cout << "XapianDatabase::propsToRecord: modified title" << endl;
+#endif
+	}
+	record += title;
+	record += "\ntype=";
+	record += pDoc->getType();
+	// Append a timestamp, in a format compatible with Omega
+	record += "\nmodtime=";
+	snprintf(tmpStr, 64, "%ld", timeT);
+	record += tmpStr;
+	// ...and the language
+	record += "\nlanguage=";
+	record += StringManip::toLowerCase(pDoc->getLanguage());
+	// ...and the file size
+	record += "\nsize=";
+	snprintf(tmpStr, 64, "%ld", pDoc->getSize());
+	record += tmpStr;
+#ifdef DEBUG
+	cout << "XapianDatabase::propsToRecord: document data is " << record << endl;
+#endif
+
+	return record;
+}
+
+/// Sets the document's properties acording to the record.
+void XapianDatabase::recordToProps(const string &record, DocumentInfo *pDoc)
+{
+	if (pDoc == NULL)
+	{
+		return;
+	}
+
+	// Get the title
+	pDoc->setTitle(StringManip::extractField(record, "caption=", "\n"));
+	// Get the URL
+	string url(StringManip::extractField(record, "url=", "\n"));
+	if (url.empty() == false)
+	{
+		url = Url::canonicalizeUrl(url);
+	}
+	pDoc->setLocation(url);
+	// Get the type
+	pDoc->setType(StringManip::extractField(record, "type=", "\n"));
+	// ... the language, if available
+	pDoc->setLanguage(StringManip::extractField(record, "language=", "\n"));
+	// ... and the timestamp
+	string timestamp, modTime(StringManip::extractField(record, "modtime=", "\n"));
+	if (modTime.empty() == false)
+	{
+		time_t timeT = (time_t )atol(modTime.c_str());
+		timestamp = TimeConverter::toTimestamp(timeT);
+	}
+	pDoc->setTimestamp(timestamp);
+}
+
 /// Returns the URL for the given document in the given index.
 string XapianDatabase::buildUrl(const string &database, unsigned int docId)
 {
@@ -398,4 +507,23 @@ string XapianDatabase::buildUrl(const string &database, unsigned int docId)
 	url += docIdStr;
 
 	return url;
+}
+
+/// Truncates or partially hashes a term.
+string XapianDatabase::limitTermLength(const string &term, bool makeUnique)
+{
+	if (term.length() > XapianDatabase::m_maxTermLength)
+	{
+		if (makeUnique == false)
+		{
+			// Truncate
+			return term.substr(0, XapianDatabase::m_maxTermLength);
+		}
+		else
+		{
+			return StringManip::hashString(term, XapianDatabase::m_maxTermLength);
+		}
+	}
+
+	return term;
 }

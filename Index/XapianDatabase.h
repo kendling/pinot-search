@@ -22,15 +22,14 @@
 #include <string>
 #include <set>
 #include <pthread.h>
-
 #include <xapian.h>
+
+#include "DocumentInfo.h"
 
 /// Lockable Xapian database.
 class XapianDatabase
 {
 	public:
-		static const unsigned int m_maxTermLength;
-
 		XapianDatabase(const std::string &databaseName, bool readOnly = true);
 		XapianDatabase(const std::string &databaseName,
 			XapianDatabase *pFirst, XapianDatabase *pSecond);
@@ -54,10 +53,20 @@ class XapianDatabase
 		/// Unlocks the database.
 		void unlock(void);
 
+		/// Returns a record for the document's properties.
+		static std::string propsToRecord(DocumentInfo *pDoc);
+
+		/// Sets the document's properties acording to the record.
+		static void recordToProps(const std::string &record, DocumentInfo *pDoc);
+
 		/// Returns the URL for the given document in the given index.
 		static std::string buildUrl(const std::string &database, unsigned int docId);
 
+		/// Truncates or partially hashes a term.
+		static std::string limitTermLength(const std::string &term, bool makeUnique = false);
+
 	protected:
+		static const unsigned int m_maxTermLength;
 		std::string m_databaseName;
 		bool m_readOnly;
 		pthread_mutex_t m_rwLock;
@@ -68,6 +77,8 @@ class XapianDatabase
 		XapianDatabase *m_pSecond;
 
 		void openDatabase(void);
+
+		static bool badRecordField(const std::string &field);
 
 };
 

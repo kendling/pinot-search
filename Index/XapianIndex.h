@@ -119,10 +119,6 @@ class XapianIndex : public IndexInterface
 		bool m_goodIndex;
 		std::string m_stemLanguage;
 
-		static std::string limitTermLength(const std::string &term, bool makeUnique = false);
-
-		static bool badField(const std::string &field);
-
 		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 

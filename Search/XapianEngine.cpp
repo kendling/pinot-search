@@ -346,43 +346,22 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 				Xapian::docid docId = *mIter;
 				Xapian::Document doc(mIter.get_document());
 				AbstractGenerator abstractGen(pIndex, 50);
-				string record = doc.get_data();
+				Result thisResult("", "", abstractGen.generateAbstract(docId, seedTerms),
+					"", (float)mIter.get_percent());
 
 #ifdef DEBUG
 				cout << "XapianEngine::queryDatabase: found document ID " << docId << endl;
 #endif
-				// Get the title
-				string title(StringManip::extractField(record, "caption=", "\n"));
-				// Get the URL
-				string url(StringManip::extractField(record, "url=", "\n"));
+				XapianDatabase::recordToProps(doc.get_data(), &thisResult);
+
+				string url(thisResult.getLocation());
 				if (url.empty() == true)
 				{
 					// Hmmm this shouldn't be empty...
 					// Use this instead, even though the document isn't cached in the index
-					url = XapianDatabase::buildUrl(m_databaseName, *mIter);
-				}
-				else
-				{
-					url = Url::canonicalizeUrl(url);
+					thisResult.setLocation(XapianDatabase::buildUrl(m_databaseName, docId));
 				}
 
-				// Get the type
-				string type(StringManip::extractField(record, "type=", "\n"));
-				// ... the language, if available
-				string language(StringManip::extractField(record, "language=", "\n"));
-				// ... and the timestamp
-				string timestamp, modTime(StringManip::extractField(record, "modtime=", "\n"));
-				if (modTime.empty() == false)
-				{
-					time_t timeT = (time_t )atol(modTime.c_str());
-					timestamp = TimeConverter::toTimestamp(timeT);
-				}
-
-				// Generate an abstract based on the query's terms
-				string summary(abstractGen.generateAbstract(docId, seedTerms));
-
-				Result thisResult(url, title, summary, language, (float)mIter.get_percent());
-				thisResult.setTimestamp(timestamp);
 				// We don't know the index ID, just the document ID
 				thisResult.setIsIndexed(0, docId);
 
