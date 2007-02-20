@@ -28,6 +28,7 @@
 #include <gtkmm/cellrendererprogress.h>
 
 #include "StringManip.h"
+#include "TimeConverter.h"
 #include "Url.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
@@ -132,7 +133,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn->set_sort_column(m_resultsColumns.m_text);
 	append_column(*manage(pColumn));
 
-	// The last column is for the URL
+	// URL
 	pColumn = create_column(_("URL"), m_resultsColumns.m_url, false, true, m_resultsColumns.m_url);
 	if (pColumn != NULL)
 	{
@@ -140,6 +141,14 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 		append_column(*manage(pColumn));
 	}
 
+	// The last column is for the timestamp
+	pColumn = create_column(_("Date"), m_resultsColumns.m_timestamp, false, true, m_resultsColumns.m_timestampTime);
+	if (pColumn != NULL)
+	{
+		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
+		append_column(*manage(pColumn));
+	}
+	
 	// Connect the signals
 	signal_button_press_event().connect_notify(
 		SigC::slot(*this, &ResultsTree::onButtonPressEvent));
@@ -560,11 +569,12 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 			}
 
 			if (appendResult(title, location, (int)currentScore, rankDiff, isIndexed,
-				docId, engineId, indexId, titleIter, &(*groupIter), true) == true)
+				docId, resultIter->getTimestamp(), engineId, indexId, titleIter, &(*groupIter), true) == true)
 			{
 #ifdef DEBUG
 				cout << "ResultsTree::addResults: added row for result " << count
-					<< ", " << currentScore << ", " << isIndexed << " " << indexId << endl;
+					<< ", " << currentScore << ", " << isIndexed << " " << indexId
+					<< " " << resultIter->getTimestamp() << endl;
 #endif
 
 				// Update this map, so that we know which groups need updating
@@ -694,6 +704,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 							childRow[m_resultsColumns.m_rankDiff],
 							childRow[m_resultsColumns.m_indexed],
 							childRow[m_resultsColumns.m_docId],
+							childRow[m_resultsColumns.m_timestamp],
 							engineIds, indexIds,
 							newIter, &(*groupIter), true);
 					}
@@ -764,6 +775,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 									childRow[m_resultsColumns.m_rankDiff],
 									childRow[m_resultsColumns.m_indexed],
 									childRow[m_resultsColumns.m_docId],
+									childRow[m_resultsColumns.m_timestamp],
 									engineId, indexId,
 									newIter, &(*groupIter), true);
 #ifdef DEBUG
@@ -826,9 +838,13 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if ((row[m_resultsColumns.m_type] == ResultsModelColumns::RESULT_TITLE) &&
-			((skipIndexed == false) ||
-			(row[m_resultsColumns.m_indexed] = false)))
+		if (row[m_resultsColumns.m_type] != ResultsModelColumns::RESULT_TITLE)
+		{
+			continue;
+		}
+
+		if ((skipIndexed == false) ||
+			(row[m_resultsColumns.m_indexed] == false))
 		{
 			resultsList.push_back(DocumentInfo(from_utf8(row[m_resultsColumns.m_text]),
 				from_utf8(row[m_resultsColumns.m_url]), "", ""));
@@ -877,6 +893,9 @@ bool ResultsTree::getSelection(vector<Result> &resultsList)
 				{
 					if  (m_settings.isInternalIndex(*indexIter) == true)
 					{
+#ifdef DEBUG
+						cout << "ResultsTree::getSelection: result in internal index " << *indexIter << endl;
+#endif
 						current.setIsIndexed(m_settings.getIndexId(*indexIter), row[m_resultsColumns.m_docId]);
 						break;
 					}
@@ -896,7 +915,7 @@ bool ResultsTree::getSelection(vector<Result> &resultsList)
 //
 // Sets the selected items' state.
 //
-void ResultsTree::setSelectionState(bool viewed, bool indexed)
+void ResultsTree::setSelectionState(bool viewed)
 {
 	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
 	if (selectedItems.empty() == true)
@@ -919,10 +938,6 @@ void ResultsTree::setSelectionState(bool viewed, bool indexed)
 		if (viewed == true)
 		{
 			row[m_resultsColumns.m_viewed] = true;
-		}
-		if (indexed == true)
-		{
-			row[m_resultsColumns.m_indexed] = true;
 		}
 	}
 }
@@ -1141,7 +1156,7 @@ Signal0<void>& ResultsTree::getViewResultsSignal(void)
 //
 bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 	int score, int rankDiff, bool isIndexed, unsigned int docId,
-	unsigned int engineId, unsigned int indexId,
+	const ustring &timestamp, unsigned int engineId, unsigned int indexId,
 	TreeModel::iterator &newRowIter, const TreeModel::Row *parentRow, bool noDuplicates)
 {
 	if (parentRow == NULL)
@@ -1186,7 +1201,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 
 	TreeModel::Row childRow = *newRowIter;
 	updateRow(childRow, text, url, score, engineId, indexId,
-		docId, ResultsModelColumns::RESULT_TITLE, isIndexed,
+		docId, timestamp, ResultsModelColumns::RESULT_TITLE, isIndexed,
 		wasViewed, rankDiff);
 
 	return true;
@@ -1208,7 +1223,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::Resu
 		groupIter = m_refStore->append();
 		TreeModel::Row groupRow = *groupIter;
 		updateRow(groupRow, to_utf8(groupName),
-			"", 0, 0, 0, 0, groupType,
+			"", 0, 0, 0, 0, "", groupType,
 			false, false, false);
 
 		// Update the map
@@ -1276,8 +1291,8 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 //
 void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 	const ustring &url, int score, unsigned int engineId, unsigned int indexId,
-	unsigned int docId, ResultsModelColumns::ResultType type,
-	bool indexed, bool viewed, int rankDiff)
+	unsigned int docId, const ustring &timestamp,
+	ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff)
 {
 	try
 	{
@@ -1289,6 +1304,8 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 		row[m_resultsColumns.m_indexes] = indexId;
 		row[m_resultsColumns.m_docId] = docId;
 		row[m_resultsColumns.m_type] = type;
+		row[m_resultsColumns.m_timestamp] = timestamp;
+		row[m_resultsColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
 
 		row[m_resultsColumns.m_indexed] = indexed;
 		row[m_resultsColumns.m_viewed] = viewed;

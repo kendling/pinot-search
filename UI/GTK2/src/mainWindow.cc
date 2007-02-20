@@ -707,7 +707,7 @@ void mainWindow::on_cache_changed(PinotSettings::CacheProvider cacheProvider)
 					view_documents(resultsList);
 
 					// Update the rows right now
-					pResultsTree->setSelectionState(true, false);
+					pResultsTree->setSelectionState(true);
 				}
 			}
 		}
@@ -1231,6 +1231,8 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
 				pIndexPage->updateButtonsState(m_maxDocsCount);
 			}
+
+			// FIXME: update the result's indexed status in the results list !
 		}
 
 		set_status(status);
@@ -1714,7 +1716,7 @@ void mainWindow::on_viewresults_activate()
 					view_documents(resultsList);
 
 					// We can update the rows right now
-					pResultsTree->setSelectionState(true, false);
+					pResultsTree->setSelectionState(true);
 				}
 			}
 		}
@@ -1829,9 +1831,6 @@ void mainWindow::on_indexresults_activate()
 						set_status(status);
 					}
 				}
-
-				// We can update the rows right now
-				pResultsTree->setSelectionState(false, true);
 			}
 		}
 	}

@@ -67,6 +67,8 @@ ResultsModelColumns::ResultsModelColumns()
 	add(m_indexes);
 	add(m_docId);
 	add(m_type);
+	add(m_timestamp);
+	add(m_timestampTime);
 }
 
 ResultsModelColumns::~ResultsModelColumns()

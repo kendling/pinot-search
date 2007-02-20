@@ -77,7 +77,7 @@ class ResultsTree : public Gtk::TreeView
 		bool getSelection(std::vector<Result> &resultsList);
 
 		/// Sets the selected items' state.
-		void setSelectionState(bool viewed, bool indexed);
+		void setSelectionState(bool viewed);
 
 		/**
 		  * Deletes the current selection.
@@ -152,7 +152,7 @@ class ResultsTree : public Gtk::TreeView
 		/// Adds a new row in the results tree.
 		bool appendResult(const Glib::ustring &text, const Glib::ustring &url,
 			int score, int rankDiff, bool isIndexed, unsigned int docId,
-			unsigned int engineId, unsigned int indexId,
+			const Glib::ustring &timestamp, unsigned int engineId, unsigned int indexId,
 			Gtk::TreeModel::iterator &newRowIter, const Gtk::TreeModel::Row *parentRow = NULL,
 			bool noDuplicates = false);
 
@@ -162,8 +162,8 @@ class ResultsTree : public Gtk::TreeView
 		/// Updates a row.
 		void updateRow(Gtk::TreeModel::Row &row, const Glib::ustring &text,
 			const Glib::ustring &url, int score, unsigned int engineId, unsigned int indexId,
-			unsigned int indexId, ResultsModelColumns::ResultType type,
-			bool indexed, bool viewed, int rankDiff);
+			unsigned int docId, const Glib::ustring &timestamp,
+			ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff);
 
 		/// Retrieves the extract to show for the given row.
 		Glib::ustring findResultsExtract(const Gtk::TreeModel::Row &row);
