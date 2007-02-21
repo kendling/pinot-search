@@ -20,11 +20,11 @@
 
 #include "Url.h"
 #include "FilterFactory.h"
+#include "TextFilter.h"
 #include "FilterUtils.h"
 #include "FilterWrapper.h"
 
 using std::cout;
-using std::cerr;
 using std::endl;
 using std::string;
 using std::set;
@@ -41,32 +41,45 @@ FilterWrapper::~FilterWrapper()
 bool FilterWrapper::indexDocument(IndexInterface &index, const Document &doc,
 	const set<string> &labels, unsigned int &docId)
 {
-	Document docCopy(doc);
-
-	return filterDocument(index, docCopy, 0, labels, docId, false);
+	return filterDocument(index, doc, 0, labels, docId, false);
 }
 
 bool FilterWrapper::updateDocument(unsigned int docId, IndexInterface &index, const Document &doc)
 {
-	Document docCopy(doc);
 	set<string> labels;
 
-	return filterDocument(index, docCopy, 0, labels, docId, true);
+	return filterDocument(index, doc, 0, labels, docId, true);
 }
 
-bool FilterWrapper::filterDocument(IndexInterface &index, Document &doc,
-	unsigned int count, const set<string> &labels, unsigned int &docId,
-	bool doUpdate)
+bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
+	unsigned int count, const set<string> &labels,
+	unsigned int &docId, bool doUpdate)
 {
 	Filter *pFilter = FilterFactory::getFilter(doc.getType());
-	bool success = false;
+	bool fedFilter = false, success = false;
 
-	if (pFilter == NULL)
+	if (pFilter != NULL)
 	{
-		return false;
+		fedFilter = FilterUtils::feedFilter(doc, pFilter);
+	}
+	else
+	{
+		// Chances are this type is not supported
+		pFilter = new TextFilter("text/plain");
+
+		Document emptyDoc(doc.getTitle(), doc.getLocation(), doc.getType(), doc.getLanguage());
+
+		emptyDoc.setTimestamp(doc.getTimestamp());
+		emptyDoc.setSize(doc.getSize());
+		emptyDoc.setData(" ", 1);
+
+#ifdef DEBUG
+		cout << "FilterWrapper::filterDocument: unsupported type " << doc.getType() << endl;
+#endif
+		fedFilter = FilterUtils::feedFilter(emptyDoc, pFilter);
 	}
 
-	if (FilterUtils::feedFilter(doc, pFilter) == false)
+	if (fedFilter == false)
 	{
 		delete pFilter;
 
@@ -75,12 +88,15 @@ bool FilterWrapper::filterDocument(IndexInterface &index, Document &doc,
 
 	while (pFilter->has_documents() == true)
 	{
-		Document filteredDoc(doc.getTitle(), doc.getLocation(), "text/plain", doc.getLanguage());
-
 		if (pFilter->next_document() == false)
 		{
 			break;
 		}
+
+		Document filteredDoc(doc.getTitle(), doc.getLocation(), "text/plain", doc.getLanguage());
+
+		filteredDoc.setTimestamp(doc.getTimestamp());
+		filteredDoc.setSize(doc.getSize());
 
 		if (FilterUtils::populateDocument(filteredDoc, pFilter) == false)
 		{
@@ -90,12 +106,16 @@ bool FilterWrapper::filterDocument(IndexInterface &index, Document &doc,
 		// Pass it down to another filter ?
 		if (filteredDoc.getType() != "text/plain")
 		{
-			filterDocument(index, filteredDoc, count, labels, docId, doUpdate);
+			success = filterDocument(index, filteredDoc, count, labels, docId, doUpdate);
+			delete pFilter;
+
+			return success;
 		}
 		else
 		{
-			Tokenizer tokens(&filteredDoc);
+			filteredDoc.setType(doc.getType());
 
+			Tokenizer tokens(&filteredDoc);
 			if (doUpdate == false)
 			{
 				success = index.indexDocument(tokens, labels, docId);
@@ -108,6 +128,13 @@ bool FilterWrapper::filterDocument(IndexInterface &index, Document &doc,
 	}
 
 	delete pFilter;
+
+#ifdef DEBUG
+	if (success == false)
+	{
+		cout << "FilterWrapper::filterDocument: didn't index " << doc.getLocation() << endl;
+	}
+#endif
 
 	return success;
 }

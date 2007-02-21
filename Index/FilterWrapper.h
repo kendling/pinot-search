@@ -43,9 +43,9 @@ class FilterWrapper
 	protected:
 		FilterWrapper();
 
-		static bool filterDocument(IndexInterface &index, Document &doc,
-			unsigned int count, const std::set<std::string> &labels, unsigned int &docId,
-			bool doUpdate);
+		static bool filterDocument(IndexInterface &index, const Document &doc,
+			unsigned int count, const std::set<std::string> &labels,
+			unsigned int &docId, bool doUpdate);
 
 	private:
 		FilterWrapper(const FilterWrapper &other);
