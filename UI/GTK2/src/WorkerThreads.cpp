@@ -1340,40 +1340,44 @@ void IndexingThread::doWork(void)
 				m_status += m_docInfo.getLocation();
 				return;
 			}
-#ifdef DEBUG
-			cout << "IndexingThread::doWork: can't index document content" << endl;
-#endif
 
-			// Create an empty document so that the file's details are indexed but not its content
-			delete m_pDoc;
-			m_pDoc = new Document(m_docInfo);
-			m_pDoc->setType("text/plain");
+			// Let FilterWrapper handle unspported documents
 		}
-#if 0
-		else
+		else if ((PinotSettings::getInstance().m_ignoreRobotsDirectives == false) &&
+			(m_docInfo.getType().length() >= 9) &&
+			(m_docInfo.getType().substr(9) == "text/html"))
 		{
-			// Is indexing allowed ?
-			HtmlFilter *pHtmlFilter = dynamic_cast<HtmlFilter*>(pFilter);
-			if ((m_update == false) &&
-				(pHtmlTokens != NULL))
+			Dijon::HtmlFilter htmlFilter(m_docInfo.getType());
+
+			if ((FilterUtils::feedFilter(*m_pDoc, &htmlFilter) == true) &&
+				(htmlFilter.next_document() == true))
 			{
-		// See if the document has a ROBOTS META tag
-		string robotsDirectives = pHtmlTokens->getMetaTag("robots");
-		string::size_type pos1 = robotsDirectives.find("none");
-		string::size_type pos2 = robotsDirectives.find("noindex");
-		if ((pos1 != string::npos) ||
-			(pos2 != string::npos))
-		{
-			// No, it's not
-			delete pTokens;
-			m_status = _("Robots META tag forbids indexing");
-			m_status += " ";
-			m_status += m_docInfo.getLocation();
-			return;
-		}
+				const map<string, string> &metaData = htmlFilter.get_meta_data();
+
+				// See if the document has a ROBOTS META tag
+				map<string, string>::const_iterator robotsIter = metaData.find("robots");
+				if (robotsIter != metaData.end())
+				{
+					string robotsDirectives(robotsIter->second);
+	
+					// Is indexing allowed ?
+					string::size_type pos1 = robotsDirectives.find("none");
+					string::size_type pos2 = robotsDirectives.find("noindex");
+					if ((pos1 != string::npos) ||
+						(pos2 != string::npos))
+					{
+						// No, it isn't
+						m_status = _("Robots META tag forbids indexing");
+						m_status += " ";
+						m_status += m_docInfo.getLocation();
+						return;
+					}
+				}
 			}
-		}
+#ifdef DEBUG
+			else cout << "IndexingThread::doWork: couldn't check document for ROBOTS directive" << endl;
 #endif
+		}
 
 		if (m_done == false)
 		{
