@@ -111,6 +111,11 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 			{
 				fedInput = pFilter->set_document_data(pData, dataLength);
 			}
+			else
+			{
+				// The file may be empty
+				fedInput = pFilter->set_document_data(" ", 1);
+			}
 		}
 	}
 
