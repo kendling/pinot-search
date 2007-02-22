@@ -251,10 +251,8 @@ bool PinotSettings::load(void)
 		m_filePatternsBlackList.insert("*.Z");
 		m_filePatternsBlackList.insert("*.avi");
 		m_filePatternsBlackList.insert("*.asf");
-		m_filePatternsBlackList.insert("*.bz2");
 		m_filePatternsBlackList.insert("*.deb");
 		m_filePatternsBlackList.insert("*.gif");
-		m_filePatternsBlackList.insert("*.gz");
 		m_filePatternsBlackList.insert("*.jpeg");
 		m_filePatternsBlackList.insert("*.jpg");
 		m_filePatternsBlackList.insert("*.png");
@@ -263,11 +261,8 @@ bool PinotSettings::load(void)
 		m_filePatternsBlackList.insert("*.msf");
 		m_filePatternsBlackList.insert("*.mpeg");
 		m_filePatternsBlackList.insert("*.mpg");
-		m_filePatternsBlackList.insert("*.rpm");
 		m_filePatternsBlackList.insert("*.sh");
-		m_filePatternsBlackList.insert("*.tar");
 		m_filePatternsBlackList.insert("*.wmv");
-		m_filePatternsBlackList.insert("*.zip");
 	}
 
 	// Some search engines are hardcoded
