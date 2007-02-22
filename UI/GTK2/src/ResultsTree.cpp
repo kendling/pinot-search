@@ -879,8 +879,8 @@ bool ResultsTree::getSelection(vector<Result> &resultsList)
 		{
 			bool isIndexed = row[m_resultsColumns.m_indexed];
 
-			Result current(from_utf8(row[m_resultsColumns.m_text]),
-				from_utf8(row[m_resultsColumns.m_url]), "", "");
+			Result current(from_utf8(row[m_resultsColumns.m_url]),
+				from_utf8(row[m_resultsColumns.m_text]), "", "");
 
 			if (isIndexed == true)
 			{
