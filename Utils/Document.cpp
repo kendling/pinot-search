@@ -71,7 +71,7 @@ Document::Document(const Document &other) :
 
 Document::~Document()
 {
-	freeData();
+	resetData();
 }
 
 Document& Document::operator=(const Document& other)
@@ -102,27 +102,6 @@ bool Document::operator<(const Document& other) const
 	return true;
 }
 
-void Document::freeData(void)
-{
-	if (m_pData != NULL)
-	{
-		if (m_isMapped == false)
-		{
-			// Free
-			free(m_pData);
-		}
-		else
-		{
-			// Unmap
-			munmap((void*)m_pData, m_dataLength);
-		}
-	}
-
-	m_pData = NULL;
-	m_dataLength = 0;
-	m_isMapped = false;
-}
-
 /// Copies the given data in the document.
 bool Document::setData(const char *data, unsigned int length)
 {
@@ -133,7 +112,7 @@ bool Document::setData(const char *data, unsigned int length)
 	}
 
 	// Discard existing data
-	freeData();
+	resetData();
 
 	m_pData = (char *)malloc(sizeof(char) * (length + 1));
 	if (m_pData != NULL)
@@ -171,7 +150,7 @@ bool Document::setDataFromFile(const string &fileName)
 	if (fileStat.st_size == 0)
 	{
 		// The file is empty
-		freeData();
+		resetData();
 		return true;
 	}
 
@@ -184,7 +163,7 @@ bool Document::setDataFromFile(const string &fileName)
 	}
 
 	// Discard existing data
-	freeData();
+	resetData();
 
 	// Request a private mapping of the whole file
 	void *mapSpace = mmap(NULL, fileStat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -217,6 +196,28 @@ const char *Document::getData(unsigned int &length) const
 {
 	length = m_dataLength;
 	return m_pData;
+}
+
+/// Resets the document's data.
+void Document::resetData(void)
+{
+	if (m_pData != NULL)
+	{
+		if (m_isMapped == false)
+		{
+			// Free
+			free(m_pData);
+		}
+		else
+		{
+			// Unmap
+			munmap((void*)m_pData, m_dataLength);
+		}
+	}
+
+	m_pData = NULL;
+	m_dataLength = 0;
+	m_isMapped = false;
 }
 
 /// Checks whether the document is binary.

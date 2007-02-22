@@ -47,6 +47,9 @@ class Document : public DocumentInfo
 		/// Returns the document's data; NULL if document is empty.
 		virtual const char *getData(unsigned int &length) const;
 
+		/// Resets the document's data.
+		void resetData(void);
+
 		/// Checks whether the document is binary.
 		virtual bool isBinary(void) const;
 
@@ -54,8 +57,6 @@ class Document : public DocumentInfo
 		char *m_pData;
 		unsigned int m_dataLength;
 		bool m_isMapped;
-
-		void freeData(void);
 
 };
 
