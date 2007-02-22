@@ -346,6 +346,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 				Xapian::docid docId = *mIter;
 				Xapian::Document doc(mIter.get_document());
 				AbstractGenerator abstractGen(pIndex, 50);
+				// FIXME: we could use enquire.get_matching_terms_begin(docId) to populate seedTerms
 				Result thisResult("", "", abstractGen.generateAbstract(docId, seedTerms),
 					"", (float)mIter.get_percent());
 
