@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <node name="/de/berlios/Pinot">
+  <!--
+	This interface WILL change before 1.0 is released !
+	-->
   <interface name="de.berlios.Pinot">
     <!--
 	Deletes a label.
