@@ -71,7 +71,7 @@ void statisticsDialog::populate(void)
 
 	TreeModel::iterator statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
-	row[m_statsColumns.m_name] = _("My Documents");
+	row[m_statsColumns.m_name] = _("My Web Pages");
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_docsIndexLocation);
 	if ((pIndex != NULL) &&
 		(pIndex->isGood() == true))
@@ -85,7 +85,7 @@ void statisticsDialog::populate(void)
 
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
-	row[m_statsColumns.m_name] = _("My Web Pages");
+	row[m_statsColumns.m_name] = _("My Documents");
 	pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
 	if ((pIndex != NULL) &&
 		(pIndex->isGood() == true))
