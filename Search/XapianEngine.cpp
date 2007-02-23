@@ -292,6 +292,8 @@ bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefix
 
 bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 {
+	bool completedQuery = false;
+
 	if (pIndex == NULL)
 	{
 		return false;
@@ -370,6 +372,8 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 				m_resultsList.push_back(thisResult);
 			}
 		}
+
+		completedQuery = true;
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -411,7 +415,8 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 	}
 
 	// Be tolerant of errors as long as we got some results
-	if (m_resultsList.empty() == false)
+	if ((completedQuery == true) ||
+		(m_resultsList.empty() == false))
 	{
 		return true;
 	}
