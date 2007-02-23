@@ -1002,7 +1002,8 @@ bool XapianIndex::listDocumentsInDirectory(const string &dirName, set<unsigned i
 	string term("XDIR:");
 
 	term += dirName;
-	return listDocumentsWithTerm(term, docIds, maxDocsCount, startDoc);
+	return listDocumentsWithTerm(XapianDatabase::limitTermLength(term, true),
+		docIds, maxDocsCount, startDoc);
 }
 
 /// Indexes the given data.
@@ -1374,12 +1375,12 @@ bool XapianIndex::unindexDocument(const string &location)
 	return unindexed;
 }
 
-/// Unindexes documents with the given label.
-bool XapianIndex::unindexDocuments(const string &labelName)
+/// Unindexes documents with the given label or under the given directory.
+bool XapianIndex::unindexDocuments(const string &name, bool isDirectory)
 {
 	bool unindexed = false;
 
-	if (labelName.empty() == true)
+	if (name.empty() == true)
 	{
 		return false;
 	}
@@ -1398,9 +1399,21 @@ bool XapianIndex::unindexDocuments(const string &labelName)
 		{
 			string term("XLABEL:");
 
+			if (isDirectory == true)
+			{
+				term = XapianDatabase::limitTermLength(string("XDIR:") + name, true);
+			}
+			else
+			{
+				term += name;
+			}
+#ifdef DEBUG
+			cout << "XapianIndex::unindexDocuments: term is " << term << endl;
+#endif
+
 			// Delete documents from the index
-			term += labelName;
 			pIndex->delete_document(term);
+
 			unindexed = true;
 		}
 	}

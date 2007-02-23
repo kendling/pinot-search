@@ -280,7 +280,7 @@ void MboxHandler::initialize(void)
 					<< sourceLabel << endl;
 #endif
 				// All documents with this label will be unindexed
-				m_index.unindexDocuments(sourceLabel);
+				m_index.unindexDocuments(sourceLabel, false);
 
 				// Delete this item
 				m_history.deleteItem(*mailIter);

@@ -372,6 +372,22 @@ bool CrawlHistory::deleteItem(const string &url)
 	return success;
 }
 
+/// Deletes all items under a given URL.
+bool CrawlHistory::deleteItems(const string &url)
+{
+	bool success = false;
+
+	SQLiteResults *results = executeStatement("DELETE FROM CrawlHistory \
+		WHERE Url LIKE '%q%%';", Url::escapeUrl(url).c_str());
+	if (results != NULL)
+	{
+		success = true;
+		delete results;
+	}
+
+	return success;
+}
+
 /// Deletes URLs belonging to a source.
 bool CrawlHistory::deleteItems(unsigned int sourceId, CrawlStatus status)
 {

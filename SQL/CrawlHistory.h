@@ -74,6 +74,9 @@ class CrawlHistory : public SQLiteBase
 		/// Deletes an URL.
 		bool deleteItem(const string &url);
 
+		/// Deletes all items under a given URL.
+		bool deleteItems(const string &url);
+
 		/// Deletes URLs belonging to a source.
 		bool deleteItems(unsigned int sourceId, CrawlStatus status = UNKNOWN);
 

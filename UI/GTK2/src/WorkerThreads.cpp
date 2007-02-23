@@ -1513,7 +1513,7 @@ void UnindexingThread::doWork(void)
 
 			// By unindexing all documents that match the label,
 			// we effectively delete the label from the index
-			if (pIndex->unindexDocuments(labelName) == true)
+			if (pIndex->unindexDocuments(labelName, false) == true)
 			{
 #ifdef DEBUG
 				cout << "UnindexingThread::doWork: removed label " << labelName << endl;

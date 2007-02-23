@@ -497,8 +497,8 @@ bool DBusXapianIndex::unindexDocument(unsigned int docId)
 	return false;
 }
 
-/// Unindexes documents with the given label.
-bool DBusXapianIndex::unindexDocuments(const string &labelName)
+/// Unindexes documents with the given label or under the given directory.
+bool DBusXapianIndex::unindexDocuments(const string &name, bool isDirectory)
 {
 	cerr << "DBusXapianIndex::unindexDocuments: not allowed" << endl;
 	return false;

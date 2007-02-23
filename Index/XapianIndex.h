@@ -101,8 +101,8 @@ class XapianIndex : public IndexInterface
 		/// Unindexes the given document.
 		virtual bool unindexDocument(const std::string &location);
 
-		/// Unindexes documents with the given label.
-		virtual bool unindexDocuments(const std::string &labelName);
+		/// Unindexes documents with the given label or under the given directory.
+		virtual bool unindexDocuments(const std::string &name, bool isDirectory);
 
 		/// Renames a label.
 		virtual bool renameLabel(const std::string &name, const std::string &newName);

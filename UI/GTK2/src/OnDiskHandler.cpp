@@ -186,7 +186,7 @@ void OnDiskHandler::initialize(void)
 					<< ", source " << sourceId << " was removed" << endl;
 #endif
 				// All documents with this label will be unindexed
-				if (m_index.unindexDocuments(sourceStr) == true)
+				if (m_index.unindexDocuments(sourceStr, false) == true)
 				{
 					// Delete the source itself and all its items
 					m_history.deleteSource(sourceId);
@@ -356,25 +356,11 @@ bool OnDiskHandler::directoryDeleted(const string &dirName)
 	cout << "OnDiskHandler::directoryDeleted: " << dirName << endl;
 #endif
 	pthread_mutex_lock(&m_mutex);
-	if (m_index.listDocumentsInDirectory(dirName, docIdList) == true)
+	if (m_index.unindexDocuments(dirName, true) == true)
 	{
-		for (set<unsigned int>::const_iterator iter = docIdList.begin();
-			iter != docIdList.end(); ++iter)
-		{
-			DocumentInfo docInfo;
-
-			if ((m_index.getDocumentInfo(*iter, docInfo) == true) &&
-				(m_index.unindexDocument(*iter) == true))
-			{
-				m_history.deleteItem(docInfo.getLocation());
-			}
-		}
-
+		m_history.deleteItems(string("file://") + dirName);
 		handledEvent = true;
 	}
-#ifdef DEBUG
-	else cout << "OnDiskHandler::directoryDeleted: no documents in " << dirName << endl;
-#endif
 	pthread_mutex_unlock(&m_mutex);
 
 	return handledEvent;
