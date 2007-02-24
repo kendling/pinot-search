@@ -43,7 +43,8 @@ MboxCollector::~MboxCollector()
 /// Retrieves the specified document; NULL if error.
 Document *MboxCollector::retrieveUrl(const DocumentInfo &docInfo)
 {
-	Url thisUrl(docInfo.getLocation());
+	string location(docInfo.getLocation());
+	Url thisUrl(location);
 	string protocol(thisUrl.getProtocol());
 	string parameters(thisUrl.getParameters());
 
@@ -68,15 +69,24 @@ Document *MboxCollector::retrieveUrl(const DocumentInfo &docInfo)
 	}
 
 	Document *pMessage = new Document(docInfo);
-	if ((FilterUtils::feedFilter(*pMessage, pFilter) == false) ||
-		(pFilter->skip_to_document(parameters) == false))
+
+	location.replace(0, 7, "file");
+	string::size_type paramPos = location.find_last_of("?");
+	if (paramPos != string::npos)
+	{
+		location.resize(paramPos);
+	}
+
+	pMessage->setLocation(location);
+	if (FilterUtils::feedFilter(*pMessage, pFilter) == false)
 	{
 		delete pFilter;
 		return NULL;
 	}
 
 	// The first document should be the message we are interested in
-	if (pFilter->has_documents() == true)
+	if ((pFilter->skip_to_document(parameters) == true) &&
+		(pFilter->has_documents() == true))
 	{
 		FilterUtils::populateDocument(*pMessage, pFilter);
 	}

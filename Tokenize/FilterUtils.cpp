@@ -16,9 +16,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdlib.h>
+#include <unistd.h> 
 #include <iostream>
 #include <map>
 
+#include "StringManip.h"
 #include "Url.h"
 #include "FilterFactory.h"
 #include "FilterUtils.h"
@@ -57,16 +60,6 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 		(location .length() > 7))
 	{
 		fileName = location.substr(7);
-	}
-	else if ((urlObj.getProtocol() == "mailbox") &&
-		(location .length() > 10))
-	{
-		fileName = location.substr(10);
-		string::size_type pos = fileName.find("?");
-		if (pos != string::npos)
-		{
-			fileName.resize(pos);
-		}
 	}
 
 	// Prefer feeding the data
@@ -118,6 +111,34 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 			}
 		}
 	}
+	// ... to feeding data through a temporary file
+	if ((fedInput == false) &&
+		((dataLength > 0) && (pData != NULL)) &&
+		(pFilter->is_data_input_ok(Filter::DOCUMENT_FILE_NAME) == true))
+	{
+		char inTemplate[18] = "/tmp/filterXXXXXX";
+
+		int inFd = mkstemp(inTemplate);
+		if (inFd != -1)
+		{
+#ifdef DEBUG
+			cout << "FilterUtils::feedFilter: feeding temporary file " << inTemplate << endl;
+#endif
+
+			// Save the data
+			if (write(inFd, (const void*)pData, dataLength) != -1)
+			{
+				fedInput = pFilter->set_document_file(inTemplate, true);
+				if (fedInput == false)
+				{
+					// We might as well delete the file now
+					unlink(inTemplate);
+				}
+			}
+
+			close(inFd);
+		}
+	}
 
 	if (fedInput == false)
 	{
@@ -160,7 +181,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		}
 		else if (metaIter->first == "mimetype")
 		{
-			doc.setType(metaIter->second);
+			doc.setType(StringManip::toLowerCase(metaIter->second));
 		}
 		else if (metaIter->first == "size")
 		{
@@ -173,6 +194,13 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		else if (metaIter->first == "uri")
 		{
 			uri = metaIter->second;
+
+			if ((uri.length() >= 18) &&
+				(uri.substr(0, 18) == "file:///tmp/filter"))
+			{
+				// We fed the filter a temporary file
+				uri.clear();
+			}
 		}
 	}
 

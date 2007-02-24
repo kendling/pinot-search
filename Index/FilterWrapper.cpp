@@ -41,18 +41,21 @@ FilterWrapper::~FilterWrapper()
 bool FilterWrapper::indexDocument(IndexInterface &index, const Document &doc,
 	const set<string> &labels, unsigned int &docId)
 {
-	return filterDocument(index, doc, 0, labels, docId, false);
+	string originalType(doc.getType());
+
+	return filterDocument(index, doc, originalType, labels, docId, false);
 }
 
 bool FilterWrapper::updateDocument(unsigned int docId, IndexInterface &index, const Document &doc)
 {
 	set<string> labels;
+	string originalType(doc.getType());
 
-	return filterDocument(index, doc, 0, labels, docId, true);
+	return filterDocument(index, doc, originalType, labels, docId, true);
 }
 
 bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
-	unsigned int count, const set<string> &labels,
+	const string &originalType, const set<string> &labels,
 	unsigned int &docId, bool doUpdate)
 {
 	Filter *pFilter = FilterFactory::getFilter(doc.getType());
@@ -88,6 +91,8 @@ bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
 
 	while (pFilter->has_documents() == true)
 	{
+		string actualType(originalType);
+
 		if (pFilter->next_document() == false)
 		{
 			break;
@@ -103,17 +108,21 @@ bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
 			continue;
 		}
 
-		// Pass it down to another filter ?
-		if (filteredDoc.getType() != "text/plain")
+		// Is this a nested document ?
+		if (filteredDoc.getLocation().length() > doc.getLocation().length())
 		{
-			success = filterDocument(index, filteredDoc, count, labels, docId, doUpdate);
-			delete pFilter;
-
-			return success;
+			actualType = filteredDoc.getType();
+#ifdef DEBUG
+			cout << "FilterWrapper::filterDocument: nested document of type " << actualType << endl;
+#endif
 		}
-		else
+
+		// Pass it down to another filter ?
+		if ((filteredDoc.getType().length() >= 10) &&
+			(filteredDoc.getType().substr(0, 10) == "text/plain"))
 		{
-			filteredDoc.setType(doc.getType());
+			// No, it's been reduced to plain text
+			filteredDoc.setType(actualType);
 
 			Tokenizer tokens(&filteredDoc);
 			if (doUpdate == false)
@@ -124,6 +133,13 @@ bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
 			{
 				success = index.updateDocument(docId, tokens);
 			}
+		}
+		else
+		{
+			success = filterDocument(index, filteredDoc, originalType, labels, docId, doUpdate);
+			delete pFilter;
+
+			return success;
 		}
 	}
 
