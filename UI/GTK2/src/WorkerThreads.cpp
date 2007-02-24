@@ -1265,18 +1265,24 @@ void IndexingThread::doWork(void)
 			return;
 		}
 	}
+	else
+	{
+		Dijon::Filter *pFilter = Dijon::FilterFactory::getFilter(m_docInfo.getType());
 
-#if 0
-	if ((dataNeeds == Tokenizer::ALL_BUT_FILES) &&
-		(thisUrl.getProtocol() == "file"))
-	{
-		doDownload = false;
+		if (pFilter != NULL)
+		{
+			// We may able to feed the document directly to the filter
+			if (((pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_FILE_NAME) == true) &&
+				(thisUrl.getProtocol() == "file")) ||
+				((pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_URI) == true) &&
+				(thisUrl.getProtocol() == "http")))
+			{
+				doDownload = false;
+			}
+
+			delete pFilter;
+		}
 	}
-	else if (dataNeeds == Tokenizer::NO_DOCUMENTS)
-	{
-		doDownload = false;
-	}
-#endif
 
 	if (doDownload == true)
 	{
