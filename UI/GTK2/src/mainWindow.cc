@@ -1014,14 +1014,14 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 					// This document is not in either index
 					m_state.queue_index(docInfo);
 				}
-				else if (indexId == m_settings.getIndexId(m_settings.m_docsIndexLocation))
+				else if (indexId == m_settings.getIndexId(_("My Web Pages")))
 				{
 					if (labelName.empty() == false)
 					{
 						docsIds.insert(docId);
 					}
 				}
-				else if (indexId == m_settings.getIndexId(m_settings.m_daemonIndexLocation))
+				else if (indexId == m_settings.getIndexId(_("My Documents")))
 				{
 					if (labelName.empty() == false)
 					{
@@ -1030,7 +1030,9 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				}
 			}
 
-			if (labelName.empty() == false)
+			if ((labelName.empty() == false) &&
+				((docsIds.empty() == false) ||
+				(daemonIds.empty() == false)))
 			{
 				// Apply the new label to existing documents
 				start_thread(new LabelUpdateThread(labelName, docsIds, daemonIds));
