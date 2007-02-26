@@ -26,7 +26,7 @@ URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: xapian-core-libs >= 0.9.7, libtextcat >= 2.2, sqlite >= 3.1.2, curl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.6, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
-Requires: unzip, antiword, unrtf, %{pftotext_pkg}, openssh-askpass
+Requires: unzip, antiword, unrtf, %{pftotext_pkg}
 BuildRequires: xapian-core-devel >= 0.9.7, libtextcat-devel >= 2.2, sqlite-devel >= 3.1.2, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4
@@ -36,9 +36,10 @@ BuildRequires: gsoap >= 2.7.8c
 %endif
 
 %description
-Pinot is a metasearch tool for the Free Desktop. It enables one to query
-sources, display as well as analyze and locally index the returned results.
-It may also be used as a lightweight personal space search tool.
+Pinot is a D-Bus service that crawls, indexes your documents and monitors them
+for changes, as well as a GTK-based user interface that enables to query
+the index built by the service and your favourite Web engines, and display and
+analyze the results.
 
 %package audio-docs 
 Summary: Tokenizers for Pinot that handle various audio document formats
