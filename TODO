@@ -17,11 +17,14 @@ Tokenize
 - Check whether pdftotext flattens text in PDF documents that have columns
 - HtmlFilter should skip htdig_noindex blocks (http://www.htdig.org/attrs.html#noindex_start)
 - HtmlFilter to look for META tags Author, Creator, Publisher and CreationDate
+- XmLFilter is slow
 - Filters should have a version number so that new versions force reindexing documents of the
  given type
 
 Monitor
 - Implement support for Solaris FEM
+- Moves to unmonitored locations queue MOVED_FROM events but we never receive MOVED_TO's;
+ time out MOVED_FROM's after a while and generate DELETE events
 
 Collect
 - Comply with robot stuff defined at http://www.robotstxt.org/
@@ -63,7 +66,9 @@ Index
 - Make sure prefixed terms are (space-)escaped
 - With Xapian 1.0, all indexes can be browsed with the new global posting list, ie
   Xapian::Database::postlist_begin("")
-- Use Xapian 1.0 TextSplitter class
+- Use Xapian new TextSplitter class
+- Index Nautilus metadata (http://linuxboxadmin.com/articles/nautilus.php)
+- Automatically categorize documents based on MIME type into picture, video, etc...
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -87,6 +92,7 @@ Daemon
 - Make sure labels are alpha-numeric characters exclusively
 - DBus SetDocument[s]Labels should create labels if necessary
 - Reintroduce Index method in D-Bus interface
+- There's currently no way to get a document's ID without running a search
 - Allow notifications when configuration should be reloaded
 - Implement Wasabi draft(s)
 
@@ -104,4 +110,8 @@ UI
 - Set results' indexed status after IndexingThread returns
 - Show date ranges in queries summary
 - Add Group By None to show all results at the same level
+- Opening when the daemon is busy indexing is awfully slow : is it because we are trying
+ to get hold of a revision of the index ?
+- GTK has a file chooser button, does glade-- have support for it ?
+- Query expansion should be interactive
 
