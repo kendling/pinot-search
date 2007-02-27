@@ -234,8 +234,8 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		maxDay = timeTm->tm_mday;
 	}
 
-	string yyyymmddMin(TimeConverter::toYYYYMMDDString(minDay, minMonth, minYear));
-	string yyyymmddMax(TimeConverter::toYYYYMMDDString(maxDay, maxMonth, maxYear));
+	string yyyymmddMin(TimeConverter::toYYYYMMDDString(minYear, minMonth, minDay));
+	string yyyymmddMax(TimeConverter::toYYYYMMDDString(maxYear, maxMonth, maxDay));
 	time_t startTime = TimeConverter::fromYYYYMMDDString(yyyymmddMin);
 	time_t endTime = TimeConverter::fromYYYYMMDDString(yyyymmddMax);
  

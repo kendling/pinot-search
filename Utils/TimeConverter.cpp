@@ -284,7 +284,14 @@ time_t TimeConverter::fromYYYYMMDDString(const string &yyyymmdd, bool inGMTime)
 	struct tm timeTm;
 	time_t gmTime = 0;
 
+	// Initialize the structure
+	timeTm.tm_sec = timeTm.tm_min = timeTm.tm_hour = timeTm.tm_mday = 0;
+	timeTm.tm_mon = timeTm.tm_year = timeTm.tm_wday = timeTm.tm_yday = timeTm.tm_isdst = 0;
+
 	strptime(yyyymmdd.c_str(), "%Y%m%d", &timeTm);
+#ifdef DEBUG
+	cout << "TimeConverter::fromYYYYMMDDString: " << timeTm.tm_year << " " << timeTm.tm_mon << " " << timeTm.tm_mday << endl;
+#endif
 	if (inGMTime == true)
 	{
 		gmTime = timegm(&timeTm);
