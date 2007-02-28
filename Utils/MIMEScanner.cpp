@@ -101,7 +101,22 @@ MIMEAction::MIMEAction(const string &desktopFile) :
 			m_name = getKeyValue(pDesktopFile, "Name");
 			// This may contain parameters described here :
 			// http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s06.html
-			m_exec = getKeyValue(pDesktopFile, "Exec");
+			string execKey(getKeyValue(pDesktopFile, "Exec"));
+			// The name or path of the executable program may not contain the equal sign
+			string::size_type pos = execKey.find("=");
+			if (pos == string::npos)
+			{
+				m_exec = execKey;
+			}
+			else
+			{
+				pos = execKey.find(" ", pos);
+				if ((pos != string::npos) &&
+					(pos + 1 < execKey.length()))
+				{
+					m_exec = execKey.substr(pos + 1);
+				}
+			}
 			m_icon = getKeyValue(pDesktopFile, "Icon");
 			m_device = getKeyValue(pDesktopFile, "Device");
 
