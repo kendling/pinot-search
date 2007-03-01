@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 					<< "Usage: pinot-search [OPTIONS] SEARCHENGINETYPE SEARCHENGINENAME|SEARCHENGINEOPTION QUERYSTRING\n\n"
 					<< "Options:\n"
 					<< "  -h, --help		display this help and exit\n"
-					<< "  -m, --max			maximum number of results (default: 10)\n"
+					<< "  -m, --max 		maximum number of results (default: 10)\n"
 					<< "  -v, --version		output version information and exit\n\n"
 					<< "Supported search engine types are";
 				for (set<string>::iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
