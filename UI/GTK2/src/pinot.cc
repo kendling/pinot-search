@@ -143,19 +143,27 @@ int main(int argc, char **argv)
 	textdomain(GETTEXT_PACKAGE);
 #endif //ENABLE_NLS
 
-	// This should make Xapian use Flint rather than Quartz
-	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
-	// This will be useful for indexes served by xapian-progsrv+ssh
-	Glib::setenv("SSH_ASKPASS", prefixDir + "/libexec/openssh/ssh-askpass");
-
-	MIMEScanner::initialize();
-	DownloaderInterface::initialize();
+	// Initialize threads support before doing anything else
 	if (Glib::thread_supported() == false)
 	{
 		Glib::thread_init();
 	}
+	// Initialize the GType and the D-Bus thread system
+	g_type_init();
+#if DBUS_VERSION > 1000000
+	dbus_threads_init_default();
+#endif
+	dbus_g_thread_init();
+
+	MIMEScanner::initialize();
+	DownloaderInterface::initialize();
 	Gtk::Main m(&argc, &argv);
 	Glib::set_application_name("Pinot GTK2 UI");
+
+	// This should make Xapian use Flint rather than Quartz
+	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
+	// This will be useful for indexes served by xapian-progsrv+ssh
+	Glib::setenv("SSH_ASKPASS", prefixDir + "/libexec/openssh/ssh-askpass");
 
 	char *pLocale = setlocale(LC_ALL, NULL);
 	if (pLocale != NULL)
@@ -271,10 +279,6 @@ int main(int argc, char **argv)
 	}
 
 	atexit(closeAll);
-
-	// Initialize the GType and the D-Bus thread system
-	g_type_init();
-	dbus_g_thread_init();
 
 	try
 	{

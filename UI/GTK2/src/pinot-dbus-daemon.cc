@@ -218,17 +218,25 @@ int main(int argc, char **argv)
 	textdomain(GETTEXT_PACKAGE);
 #endif //ENABLE_NLS
 
-	// This should make Xapian use Flint rather than Quartz
-	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
-
-	MIMEScanner::initialize();
-	DownloaderInterface::initialize();
+	// Initialize threads support before doing anything else
 	if (Glib::thread_supported() == false)
 	{
 		Glib::thread_init();
 	}
+	// Initialize the GType and the D-Bus thread system
+	g_type_init();
+#if DBUS_VERSION > 1000000
+	dbus_threads_init_default();
+#endif
+	dbus_g_thread_init();
+
+	MIMEScanner::initialize();
+	DownloaderInterface::initialize();
 	g_refMainLoop = Glib::MainLoop::create();
 	Glib::set_application_name("Pinot DBus Daemon");
+
+	// This should make Xapian use Flint rather than Quartz
+	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
 
 	char *pLocale = setlocale(LC_ALL, NULL);
 	if (pLocale != NULL)
@@ -350,10 +358,6 @@ int main(int argc, char **argv)
 		cerr << "Couldn't set scheduling priority to " << priority << endl;
 	}
 
-	// Initialize the GType and the D-Bus thread system
-	g_type_init();
-	dbus_g_thread_init();
-
 	GError *pError = NULL;
 	DBusGConnection *pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
 	if (pBus == NULL)
@@ -433,25 +437,9 @@ int main(int argc, char **argv)
 #ifdef DEBUG
 	cout << "Closing connection..." << endl;
 #endif
-	// FIXME: use our friend the preprocessor
-	if (DBUS_GLIB_VERSION < 0.7)
-	{
-		// Don't unref the connection to avoid "assertion failed "!_dbus_transport_get_is_connected
-		// (connection->transport)" file "dbus-connection.c" line 1797 function _dbus_connection_last_unref"
-		dbus_connection_close(pConnection);
-	}
-	else
-	{
-		// Don't close the connection to avoid "Applications can not close shared connections.
-		// Please fix this in your app. Ignoring close request and continuing."
-
-		// With dbus 1.0, unref() brings "The last reference on a connection was dropped without closing the connection.
-		// This is a bug in an application. See dbus_connection_unref() documentation for details.
-		// Most likely, the application called unref() too many times and removed a reference belonging to libdbus,
-		// since this is a shared connection." but of course shared connections cannot be closed !
-
-		//dbus_connection_unref(pConnection);
-	}
+#if DBUS_VERSION < 33000
+	dbus_connection_disconnect(pConnection);
+#endif
 	dbus_g_connection_unref(pBus);
 
 	return EXIT_SUCCESS;

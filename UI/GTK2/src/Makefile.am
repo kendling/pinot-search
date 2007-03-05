@@ -78,7 +78,6 @@ bin_PROGRAMS = pinot pinot-dbus-daemon
 AM_CXXFLAGS = -I$(top_srcdir)/Utils -I$(top_srcdir)/Tokenize -I$(top_srcdir)/Tokenize/filters \
 	-I$(top_srcdir)/SQL -I$(top_srcdir)/Monitor -I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/Index -I$(top_srcdir)/Search -I$(top_srcdir)/Search/Google \
-	-DDBUS_GLIB_VERSION=@DBUS_GLIB_VERSION@ \
 	@SQL_CFLAGS@ @HTTP_CFLAGS@ @GMIME_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ @DBUS_CFLAGS@ @INDEX_CFLAGS@ @UI_CFLAGS@
 
 pinot_LDADD = -L$(top_srcdir)/Utils -L$(top_srcdir)/Tokenize -L$(top_srcdir)/SQL -L$(top_srcdir)/Monitor \
