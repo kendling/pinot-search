@@ -1,4 +1,4 @@
-??? version_0_7_0
+2007/03/05 version_0_7_0
 Tokenize :
  - now use Dijon's filters (http://dijon.berlios.de/)
 Index :
@@ -10,6 +10,7 @@ Search :
 Daemon :
  - log the daemon's PID
  - sped up unindexing of documents after a directory is deleted
+ - caught up with changes in D-Bus 1.0
 UI :
  - stored queries can do date range filtering. If dates don't make sense
   (eg From >= To), they are ignored
@@ -20,6 +21,8 @@ UI :
  - revamped configuration dialog for external indexes
  - Index > Properties now shows a document's size and number of unique terms
  - most operations that involve peeking at the index are done in the background
+ - work-around for desktop files that attempt setting env variables in Exec
+ - caught up with changes in D-Bus 1.0
  - Brazilian Portuguese translation by Leonardo Melo
  - Russian translation by Sergey Vostrikov
 
