@@ -85,9 +85,8 @@ Daemon
 - Allow building without inotify/the DBus daemon
 - Clean up method names
 - Prefer ustring to string whenever possible
-- Make unique (http://guniqueapp.akl.lt/)
 - Queue unindexing too
-- Export Web searching over D-Bus
+- Don't link against SOAP stuff, it's not needed here
 - Labels should be managed by the daemon, and not saved to the configuration file
 - Make sure labels are alpha-numeric characters exclusively
 - DBus SetDocument[s]Labels should create labels if necessary
@@ -103,6 +102,7 @@ UI
 - Display search engines icons (Gtk::IconSource::set_filename() and Gtk::Style::render_icon())
 - Replace Combobox objects with ComboboxText's (glademm support required)
 - Replace glademm with libglademm ?
+- Make unique (http://guniqueapp.akl.lt/)
 - Filter documents by language, similarly to how labels are shown
 - Either Live Query behaves like a live query (eg results list updated when new documents match)
   or it is renamed to something else to avoid confusion
