@@ -403,18 +403,24 @@ Notes :
     "--enable-threadsafe --enable-threads-override-locks" to configure.
 
   * If you have built Pinot from source, make sure you have done a "make install".
-    Pinot will fail to start if it can't find stuff it needs, its icon for instance.
+    Pinot will fail to start if it can't find stuff it needs, its icon for
+    instance.
 
   * If "make install" fails with an error about Categories in pinot.desktop
-    and you have desktop-file-utils 0.11, either downgrade to 0.10 or upgrade to 0.12
-    if possible, or edit the top-level Makefile and replace the line 
+    and you have desktop-file-utils 0.11, either downgrade to 0.10 or upgrade
+    to 0.12 if possible, or edit the top-level Makefile and replace the line
      @desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications pinot.desktop
     with
      $(INSTALL_DATA) pinot.desktop $(DESTDIR)$(datadir)/applications/pinot.desktop
     and run "make install" again.
 
-  * The directory filter doesn't work as expected if the filter starts with a
-    non alpha-numeric character
-    This has been fixed in Xapian 0.9.8.
+  * In stored queries, the directory filter doesn't work as expected if the
+    directory name starts with a non alpha-numeric character. This has been
+    fixed in Xapian 0.9.8.
 
+  * On FreeBSD, threading issues may cause the daemon to crash unexpectedly.
+    A fix is to add the following lines to /etc/libmap.conf (which may not exist) :
+     libpthread.so.2         libc_r.so.6
+     libpthread.so           libc_r.so
+    Refer to the libmap.conf(5) man page for details.
 
