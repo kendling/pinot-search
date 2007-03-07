@@ -19,50 +19,55 @@
 #include <pthread.h>
 #include <iostream>
 
+#ifdef USE_SSL
 #include <openssl/crypto.h>
+#endif
 
 #include "DownloaderInterface.h"
 
 using namespace std;
 
+#ifdef USE_SSL
 // OpenSSL multi-thread support, required by Curl
 static pthread_mutex_t locksTable[CRYPTO_NUM_LOCKS];
 
 // OpenSSL locking functiom
 static void lockingCallback(int mode, int n, const char *file, int line)
 {
-        int status = 0;
+	int status = 0;
 
-        if (mode & CRYPTO_LOCK)
-        {
-                status = pthread_mutex_lock(&(locksTable[n]));
+	if (mode & CRYPTO_LOCK)
+	{
+		status = pthread_mutex_lock(&(locksTable[n]));
 #ifdef DEBUG
-                if (status != 0)
-                {
-                        cout << "lockingCallback: failed to lock mutex " << n << endl;
-                }
+		if (status != 0)
+		{
+			cout << "lockingCallback: failed to lock mutex " << n << endl;
+		}
 #endif
-        }
-        else
-        {
-                status = pthread_mutex_unlock(&(locksTable[n]));
+	}
+	else
+	{
+		status = pthread_mutex_unlock(&(locksTable[n]));
 #ifdef DEBUG
-                if (status != 0)
-                {
-                        cout << "lockingCallback: failed to unlock mutex " << n << endl;
-                }
+		if (status != 0)
+		{
+			cout << "lockingCallback: failed to unlock mutex " << n << endl;
+		}
 #endif
-        }
+	}
 }
 
 static unsigned long idCallback(void)
 {
-        return (unsigned long)pthread_self();
+	return (unsigned long)pthread_self();
 }
+#endif
 
 /// Initialize downloaders.
 void DownloaderInterface::initialize(void)
 {
+#ifdef USE_SSL
 	pthread_mutexattr_t mutexAttr;
 
 	pthread_mutexattr_init(&mutexAttr);
@@ -78,11 +83,13 @@ void DownloaderInterface::initialize(void)
 	CRYPTO_set_id_callback(idCallback);
 
 	pthread_mutexattr_destroy(&mutexAttr);
+#endif
 }
 
 /// Shutdown downloaders.
 void DownloaderInterface::shutdown(void)
 {
+#ifdef USE_SSL
 	// Reset the OpenSSL callbacks
 	CRYPTO_set_id_callback(NULL);
 	CRYPTO_set_locking_callback(NULL);
@@ -92,6 +99,7 @@ void DownloaderInterface::shutdown(void)
 	{
 		pthread_mutex_destroy(&(locksTable[lockNum]));
 	}
+#endif
 }
 
 DownloaderInterface::DownloaderInterface() :
