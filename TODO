@@ -1,3 +1,14 @@
+Documentation
+- dotfiles are skipped
+- symlinks to GAIM logs and hidden mail will enable indexing
+- how is My Web Pages populated; talk about use as document storage
+- how to show Web engines
+- difference between setting up external indexes with + and installing plugins
+- list what files from libtextcat 2.2 go where ?
+- MIME type should be as returned by xdg-utils' 'xdg-mime query filetype ...'
+- try listing names of dependency packages for most distros
+- how to trouble-shoot with delve, get to a file with filters and labels
+
 General
 - Fix the FIXMEs
 - Get rid of dead code/classes/methods...
@@ -33,6 +44,7 @@ Collect
 - Make download timeout configurable
 - Support for HTML frames
 - Curl and Neon must support a proxy, so allow to configure that
+- MBoxCollector should return headers too !
 
 Search
 - With engines that provide a redirection URL for results (eg Acoona), it looks like
@@ -49,6 +61,7 @@ Search
 - Allow sorting by date
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers
  and remove stopwords from queries as first step of search
+- Make multi-step index search optional
 
 Index
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
@@ -94,6 +107,7 @@ Daemon
 - There's currently no way to get a document's ID without running a search
 - Allow notifications when configuration should be reloaded
 - Implement Wasabi draft(s)
+- SimpleQuery to switch multi-step search on
 
 UI
 - When sorting results by host name, give better score to results that appear several times
@@ -114,4 +128,8 @@ UI
  to get hold of a revision of the index ?
 - GTK has a file chooser button, does glade-- have support for it ?
 - Query expansion should be interactive
-
+- UI doesn't show documents indexed by the daemon the very first time it's run, at least until
+ it's restarted; doing a flush at startup if the index is empty might fix that
+- Status window should be live. Errors should say what failed !
+- Multi-step search should be off to start with. If no exact match is found, show a button
+ in the results group to allow the user to try step 2 and beyond
