@@ -126,6 +126,7 @@ int main(int argc, char **argv)
 
 	MIMEScanner::initialize();
 	DownloaderInterface::initialize();
+	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + string("/pinot/filters"));
 
 	// Make sure the index is open in the correct mode
@@ -135,6 +136,7 @@ int main(int argc, char **argv)
 		cerr << "Couldn't open index " << databaseName << endl;
 
 		Dijon::FilterFactory::unloadFilters();
+		Dijon::HtmlFilter::shutdown();
 		DownloaderInterface::shutdown();
 		MIMEScanner::shutdown();
 
@@ -149,6 +151,7 @@ int main(int argc, char **argv)
 
 		XapianDatabaseFactory::closeAll();
 		Dijon::FilterFactory::unloadFilters();
+		Dijon::HtmlFilter::shutdown();
 		DownloaderInterface::shutdown();
 		MIMEScanner::shutdown();
 
@@ -179,6 +182,7 @@ int main(int argc, char **argv)
 
 			XapianDatabaseFactory::closeAll();
 			Dijon::FilterFactory::unloadFilters();
+			Dijon::HtmlFilter::shutdown();
 			DownloaderInterface::shutdown();
 			MIMEScanner::shutdown();
 
@@ -254,6 +258,7 @@ int main(int argc, char **argv)
 
 	XapianDatabaseFactory::closeAll();
 	Dijon::FilterFactory::unloadFilters();
+	Dijon::HtmlFilter::shutdown();
 	DownloaderInterface::shutdown();
 	MIMEScanner::shutdown();
 

@@ -78,6 +78,7 @@ static void closeAll(void)
 
 	// Close the tokenizer libraries
 	Dijon::FilterFactory::unloadFilters();
+	Dijon::HtmlFilter::shutdown();
 
 	// Restore the stream buffers
 	if (g_coutBuf != NULL)
@@ -226,6 +227,7 @@ int main(int argc, char **argv)
 	settings.loadSearchEngines(prefixDir + "/share/pinot/engines");
 	settings.loadSearchEngines(confDirectory + "/engines");
 	// Load tokenizer libraries, if any
+	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
 	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
 	// Load the settings

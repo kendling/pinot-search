@@ -84,6 +84,7 @@ static void closeAll(void)
 
 	// Close the tokenizer libraries
 	Dijon::FilterFactory::unloadFilters();
+	Dijon::HtmlFilter::shutdown();
 
 	// Restore the stream buffers
 	if (g_coutBuf != NULL)
@@ -304,6 +305,7 @@ int main(int argc, char **argv)
 	Languages::setIntlName(12, _("Swedish"));
 
 	// Load tokenizer libraries, if any
+	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
 	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
 	// Load the settings
