@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "XapianCollector.h"
 #ifdef USE_NEON
 #include "NeonDownloader.h"
 #else
@@ -53,10 +52,6 @@ DownloaderInterface *DownloaderFactory::getDownloader(const string &protocol)
 		pDownloader = new CurlDownloader();
 #endif
 #endif
-	}
-	else if (protocol == "xapian")
-	{
-		pDownloader = new XapianCollector();
 	}
 	else if (protocol == "file")
 	{

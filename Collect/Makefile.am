@@ -6,27 +6,16 @@ noinst_HEADERS = \
 	DownloaderInterface.h \
 	FileCollector.h \
 	MboxCollector.h \
-	NeonDownloader.h \
-	XapianCollector.h
+	NeonDownloader.h
 
 noinst_LTLIBRARIES = libCollect.la
-
-bin_PROGRAMS = pinot-collect
 
 libCollect_la_SOURCES = \
 	@HTTP_DOWNLOADER@.cpp \
 	DownloaderFactory.cpp \
 	DownloaderInterface.cpp \
 	FileCollector.cpp \
-	MboxCollector.cpp \
-	XapianCollector.cpp
-
-pinot_collect_SOURCES = \
-	pinot-collect.cpp
-
-pinot_collect_LDADD = -L../Utils -L../Tokenize \
-	-lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @INDEX_LIBS@ @XML_LIBS@ @GMIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+	MboxCollector.cpp
 
 AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Tokenize/filters \
 	@INDEX_CFLAGS@ @XML_CFLAGS@ @HTTP_CFLAGS@ @GMIME_CFLAGS@ @GLIBMM_CFLAGS@

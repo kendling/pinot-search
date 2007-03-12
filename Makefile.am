@@ -6,14 +6,14 @@ EXTRA_DIST = AUTHORS ChangeLog NEWS README TODO mkinstalldirs \
 	textcat_conf.txt textcat3_conf.txt \
 	pinot.desktop pinot-dbus-daemon.desktop pinot.spec \
 	Search/Plugins/*src Search/Plugins/*.xml \
-	Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
+	Index/pinot-index.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1 \
 	UI/GTK2/src/pinot-dbus-daemon.xml UI/GTK2/src/de.berlios.Pinot.service \
 	UI/GTK2/xapian-powered.png UI/GTK2/pinot.png \
 	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
 	scripts/bash/pinot-enum-index.sh scripts/python/pinot-live.py
 
-man_MANS = Collect/pinot-collect.1 Index/pinot-index.1 Search/pinot-search.1 \
+man_MANS = Index/pinot-index.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
 
 install-data-local:

@@ -93,7 +93,6 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %config(noreplace) %{_sysconfdir}/pinot/textcat_conf.txt
 %config(noreplace) %{_sysconfdir}/pinot/textcat3_conf.txt
 %{_bindir}/pinot
-%ghost %{_bindir}/pinot-collect
 %{_bindir}/pinot-dbus-daemon
 %{_bindir}/pinot-index
 %{_bindir}/pinot-search
@@ -135,7 +134,6 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_sysconfdir}/xdg/autostart/*.desktop
 %{_datadir}/applications/*.desktop
 %{_mandir}/man1/pinot.*
-%ghost %{_mandir}/man1/pinot-collect.*
 %{_mandir}/man1/pinot-dbus-daemon.*
 %{_mandir}/man1/pinot-index.*
 %{_mandir}/man1/pinot-search.*
