@@ -84,6 +84,9 @@ Document *MboxCollector::retrieveUrl(const DocumentInfo &docInfo)
 		return NULL;
 	}
 
+	// We want to get extra content like headers
+	pFilter->set_property(Dijon::Filter::OPERATING_MODE, "view");
+
 	// The first document should be the message we are interested in
 	if ((pFilter->skip_to_document(parameters) == true) &&
 		(pFilter->has_documents() == true))
