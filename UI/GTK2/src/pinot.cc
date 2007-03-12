@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <libintl.h>
 #include <getopt.h>
+#include <strings.h>
 #include <iostream>
 #include <fstream>
 #include <glibmm.h>
@@ -166,6 +167,7 @@ int main(int argc, char **argv)
 	// This will be useful for indexes served by xapian-progsrv+ssh
 	Glib::setenv("SSH_ASKPASS", prefixDir + "/libexec/openssh/ssh-askpass");
 
+	// This is a hack to force the locale to UTF-8
 	char *pLocale = setlocale(LC_ALL, NULL);
 	if (pLocale != NULL)
 	{
@@ -173,19 +175,28 @@ int main(int argc, char **argv)
 
 		if (locale != "C")
 		{
+			bool appendUTF8 = false;
+
 			string::size_type pos = locale.find_last_of(".");
-			if (pos != string::npos)
+			if ((pos != string::npos) &&
+				((strcasecmp(locale.substr(pos).c_str(), ".utf8") != 0) &&
+				(strcasecmp(locale.substr(pos).c_str(), ".utf-8") != 0)))
 			{
 				locale.resize(pos);
+				appendUTF8 = true;
 			}
-			locale += ".UTF-8";
 
-			pLocale = setlocale(LC_ALL, locale.c_str());
-			if (pLocale != NULL)
+			if (appendUTF8 == true)
 			{
+				locale += ".UTF-8";
+
+				pLocale = setlocale(LC_ALL, locale.c_str());
+				if (pLocale != NULL)
+				{
 #ifdef DEBUG
-				cout << "Changed locale to " << pLocale << endl;
+					cout << "Changed locale to " << pLocale << endl;
 #endif
+				}
 			}
 		}
 	}
