@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdlib.h>
 #include <strings.h>
 #include <glibmm/shell.h>
 #include <glibmm/spawn.h>
@@ -70,6 +71,20 @@ bool CommandLine::runSync(const string &commandLine, string &output)
 bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &arguments)
 {
 	string commandLine(action.m_exec);
+
+	string::size_type equalPos = action.m_exec.find("=");
+	if (equalPos != string::npos)
+	{
+		// The .desktop spec says that the program name or path in Exec may not contain it
+		// but that's ignored by some .desktop files. So it could be either of :
+		//  FOO=bar my program				- not valid
+		//  sh -c "FOO=bar exec myprogram"		- valid
+		//  myprogram --option FOO=bar			- valid
+		// There's no easy way to find out which, so be lenient and use system()
+		commandLine = "sh -c \"";
+		commandLine += action.m_exec;
+		commandLine += "\"";
+	}
 
 	if (commandLine.empty() == true)
 	{
