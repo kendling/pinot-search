@@ -19,7 +19,9 @@
 #include <iostream>
 extern "C"
 {
+#if DBUS_VERSION < 1000000
 #define DBUS_API_SUBJECT_TO_CHANGE
+#endif
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
@@ -35,6 +37,7 @@ using std::endl;
 using std::string;
 using std::set;
 using std::min;
+
 
 static DBusGConnection *getBusConnection(void)
 {
@@ -100,6 +103,200 @@ void DBusXapianIndex::reopen(void) const
 		cout << "DBusXapianIndex::reopen: done" << endl;
 #endif
 	}
+}
+
+/// Extracts docId and docInfo from a dbus message.
+bool DBusXapianIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
+	DocumentInfo &docInfo)
+{
+	DBusMessageIter array_iter;
+	DBusMessageIter struct_iter;
+
+	if (iter == NULL)
+	{
+		return false;
+	}
+
+	int type = dbus_message_iter_get_arg_type(iter);
+	if (type != DBUS_TYPE_UINT32)
+	{
+#ifdef DEBUG
+		cout << "DBusXapianIndex::documentInfoFromDBus: expected unsigned integer, got " << type << endl;
+#endif
+		return false;
+	}
+	dbus_message_iter_get_basic(iter, &docId);
+	dbus_message_iter_next(iter);
+	
+	type = dbus_message_iter_get_arg_type(iter);
+	if (type != DBUS_TYPE_ARRAY)
+	{
+#ifdef DEBUG
+		cout << "DBusXapianIndex::documentInfoFromDBus: expected array, got " << type << endl;
+#endif
+		return false;
+	}
+	dbus_message_iter_recurse(iter, &array_iter);
+
+	do
+	{
+		const gchar *pName = NULL;
+		const gchar *pValue = NULL;
+
+		type = dbus_message_iter_get_arg_type(&array_iter);
+		if (type != DBUS_TYPE_STRUCT)
+		{
+#ifdef DEBUG
+			cout << "DBusXapianIndex::documentInfoFromDBus: expected struct, got " << type << endl;
+#endif
+			return false;
+		}
+
+		dbus_message_iter_recurse(&array_iter, &struct_iter);
+		dbus_message_iter_get_basic(&struct_iter, &pName);
+		if (pName == NULL)
+		{
+#ifdef DEBUG
+			cout << "DBusXapianIndex::documentInfoFromDBus: invalid field name" << endl;
+#endif
+		}
+
+		dbus_message_iter_next(&struct_iter);
+		dbus_message_iter_get_basic(&struct_iter, &pValue);
+		if (pValue == NULL)
+		{
+#ifdef DEBUG
+			cout << "DBusXapianIndex::documentInfoFromDBus: invalid field value" << endl;
+#endif
+			continue;
+		}
+#ifdef DEBUG
+		cout << "DBusXapianIndex::documentInfoFromDBus: field " << pName << "=" << pValue << endl;
+#endif
+
+		// Populate docInfo
+		string fieldName(pName);
+		if (fieldName == "title")
+		{
+			docInfo.setTitle(pValue);
+		}
+		else if (fieldName == "location")
+		{
+			docInfo.setLocation(pValue);
+		}
+		else if (fieldName == "mimetype")
+		{
+			docInfo.setType(pValue);
+		}
+		else if (fieldName == "language")
+		{
+			docInfo.setLanguage(Languages::toLocale(pValue));
+		}
+		else if (fieldName == "timestamp")
+		{
+			docInfo.setTimestamp(pValue);
+		}
+		else if (fieldName == "size")
+		{
+			docInfo.setSize((off_t )atoi(pValue));
+		}
+	}
+	while (dbus_message_iter_next(&array_iter));
+
+	return true;
+}
+
+/// Converts docId and docInfo to a dbus message.
+bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
+	const DocumentInfo &docInfo)
+{
+        DBusMessageIter array_iter;
+	DBusMessageIter struct_iter;
+	const char *fieldNames[] = { "title", "location", "mimetype", "language", "timestamp", "size", NULL };
+
+	if (iter == NULL)
+	{
+		return false;
+	}
+
+	// Append the document ID ?
+	if (docId != 0)
+	{
+		dbus_message_iter_append_basic(iter, DBUS_TYPE_UINT32, &docId);
+	}
+	if (!dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY,
+		DBUS_STRUCT_BEGIN_CHAR_AS_STRING \
+		DBUS_TYPE_STRING_AS_STRING \
+		DBUS_TYPE_STRING_AS_STRING \
+		DBUS_STRUCT_END_CHAR_AS_STRING, &array_iter))
+	{
+#ifdef DEBUG
+		cout << "DBusXapianIndex::documentInfoToDBus: couldn't open array container" << endl;
+#endif
+		return false;
+	}
+
+	for (unsigned int fieldNum = 0; fieldNames[fieldNum] != NULL; ++fieldNum)
+	{
+		const char *pValue = NULL;
+		char sizeStr[64];
+
+		if (!dbus_message_iter_open_container(&array_iter,
+			DBUS_TYPE_STRUCT, NULL, &struct_iter))
+		{
+#ifdef DEBUG
+			cout << "DBusXapianIndex::documentInfoToDBus: couldn't open struct container" << endl;
+#endif
+			return false;
+		}
+
+		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &fieldNames[fieldNum]);
+		switch (fieldNum)
+		{
+			case 0:
+				pValue = docInfo.getTitle().c_str();
+				break;
+			case 1:
+				pValue = docInfo.getLocation().c_str();
+				break;
+			case 2:
+				pValue = docInfo.getType().c_str();
+				break;
+			case 3:
+				pValue = Languages::toEnglish(docInfo.getLanguage()).c_str();
+				break;
+			case 4:
+				pValue = docInfo.getTimestamp().c_str();
+				break;
+			case 5:
+			default:
+				snprintf(sizeStr, 64, "%u", docInfo.getSize());
+				pValue = sizeStr;
+				break;
+		}
+		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &pValue);
+#ifdef DEBUG
+		cout << "DBusXapianIndex::documentInfoToDBus: field " << fieldNames[fieldNum] << "=" << pValue << endl;
+#endif
+
+		if (!dbus_message_iter_close_container(&array_iter, &struct_iter))
+		{
+#ifdef DEBUG
+			cout << "DBusXapianIndex::documentInfoToDBus: couldn't close struct container" << endl;
+#endif
+			return false;
+		}
+	}
+
+	if (!dbus_message_iter_close_container(iter, &array_iter))
+	{
+#ifdef DEBUG
+		cout << "DBusXapianIndex::documentInfoToDBus: couldn't close array container" << endl;
+#endif
+		return false;
+	}
+
+	return true;
 }
 
 /// Asks the D-Bus service for statistics.
@@ -303,6 +500,7 @@ bool DBusXapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 /// Updates a document's properties.
 bool DBusXapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo)
 {
+	DBusMessageIter iter;
 	bool updated = false;
 
 	DBusGConnection *pBus = getBusConnection();
@@ -311,42 +509,47 @@ bool DBusXapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo 
 		return false;
 	}
 
-	DBusGProxy *pBusProxy = getBusProxy(pBus);
-	if (pBusProxy == NULL)
+	// FIXME: AFAIK we can't use DBusGProxy with message iterators
+	DBusMessage *pMsg = dbus_message_new_method_call("de.berlios.Pinot",
+		"/de/berlios/Pinot", "de.berlios.Pinot", "SetDocumentInfo");
+	if (pMsg == NULL)
 	{
-		cerr << "DBusXapianIndex::updateDocumentInfo: couldn't get bus proxy" << endl;
+		cerr << "DBusXapianIndex::updateDocumentInfo: couldn't call method" << endl;
 		return false;
 	}
 
-	GError *pError = NULL;
-	const char *pTitle = docInfo.getTitle().c_str();
-	const char *pLocation = docInfo.getLocation().c_str();
-	const char *pType = docInfo.getType().c_str();
-	string language(Languages::toEnglish(docInfo.getLanguage()));
-	const char *pLanguage = language.c_str();
-
-	if (dbus_g_proxy_call(pBusProxy, "SetDocumentInfo", &pError,
-		G_TYPE_UINT, docId,
-		G_TYPE_STRING, pTitle,
-		G_TYPE_STRING, pLocation,
-		G_TYPE_STRING, pType,
-		G_TYPE_STRING, pLanguage,
-		G_TYPE_INVALID,
-		G_TYPE_UINT, &docId,
-		G_TYPE_INVALID) == TRUE)
+	dbus_message_iter_init_append(pMsg, &iter);
+	if (DBusXapianIndex::documentInfoToDBus(&iter, docId, docInfo) == false)
 	{
-		updated = true;
+		dbus_message_unref(pMsg);
 	}
 	else
 	{
-		if (pError != NULL)
+		DBusError err;
+
+		dbus_error_init(&err);
+		DBusMessage *pReply = dbus_connection_send_with_reply_and_block(dbus_g_connection_get_connection(pBus),
+			pMsg, 1000 * 10, &err);
+		dbus_message_unref(pMsg);
+
+		if (dbus_error_is_set(&err))
 		{
-			cerr << "DBusXapianIndex::updateDocumentInfo: " << pError->message << endl;
-			g_error_free(pError);
+			cerr << "DBusXapianIndex::updateDocumentInfo: " << err.message << endl;
+			dbus_error_free(&err);
+			return false;
+		}
+
+		if (pReply != NULL)
+		{
+			dbus_message_get_args(pReply, NULL,
+				DBUS_TYPE_UINT32, &docId,
+				DBUS_TYPE_INVALID);
+			updated = true;
+
+			dbus_message_unref(pReply);
 		}
 	}
 
-	g_object_unref(pBusProxy);
 	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
 
 	return updated;

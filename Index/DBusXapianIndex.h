@@ -21,6 +21,13 @@
 
 #include <string>
 #include <set>
+extern "C"
+{
+#if DBUS_VERSION < 1000000
+#define DBUS_API_SUBJECT_TO_CHANGE
+#endif
+#include <dbus/dbus.h>
+}
 
 #include "XapianIndex.h"
 
@@ -33,6 +40,14 @@ class DBusXapianIndex : public XapianIndex
 		virtual ~DBusXapianIndex();
 
 		DBusXapianIndex &operator=(const DBusXapianIndex &other);
+
+		/// Extracts docId and docInfo from a dbus message.
+		static bool documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
+			DocumentInfo &docInfo);
+
+		/// Converts docId and docInfo to a dbus message.
+		static bool documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
+			const DocumentInfo &docInfo);
 
 		/// Asks the D-Bus service for statistics.
 		static bool getStatistics(unsigned int &crawledCount, unsigned int &docsCount);

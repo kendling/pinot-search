@@ -35,6 +35,7 @@
 #include "Languages.h"
 #include "TimeConverter.h"
 #include "Url.h"
+#include "DBusXapianIndex.h"
 #include "XapianIndex.h"
 #include "XapianEngine.h"
 #include "config.h"
@@ -736,7 +737,52 @@ void DBusServletThread::doWork(void)
 	}
 #endif
 
-	if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "DeleteLabel") == TRUE)
+	if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetStatistics") == TRUE)
+	{
+		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+		unsigned int crawledFilesCount = history.getItemsCount(CrawlHistory::CRAWLED);
+		unsigned int docsCount = index.getDocumentsCount();
+
+#ifdef DEBUG
+		cout << "DBusServletThread::doWork: received GetStatistics" << endl;
+#endif
+		// Prepare the reply
+		m_pReply = newDBusReply(m_pRequest);
+		if (m_pReply != NULL)
+		{
+			dbus_message_append_args(m_pReply,
+				DBUS_TYPE_UINT32, &crawledFilesCount,
+				DBUS_TYPE_UINT32, &docsCount,
+				DBUS_TYPE_INVALID);
+		}
+	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "RenameLabel") == TRUE)
+	{
+		char *pOldLabel = NULL;
+		char *pNewLabel = NULL;
+
+		if (dbus_message_get_args(m_pRequest, &error,
+			DBUS_TYPE_STRING, &pOldLabel,
+			DBUS_TYPE_STRING, &pNewLabel,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
+#endif
+			// Rename the label
+			flushIndex = index.renameLabel(pOldLabel, pNewLabel);
+
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_STRING, &pNewLabel,
+					DBUS_TYPE_INVALID);
+			}
+		}
+	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "DeleteLabel") == TRUE)
 	{
 		char *pLabel = NULL;
 
@@ -757,47 +803,6 @@ void DBusServletThread::doWork(void)
 				dbus_message_append_args(m_pReply,
 					DBUS_TYPE_STRING, &pLabel,
 					DBUS_TYPE_INVALID);
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetDocumentInfo") == TRUE)
-	{
-		unsigned int docId = 0;
-
-		if (dbus_message_get_args(m_pRequest, &error,
-			DBUS_TYPE_UINT32, &docId,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			DocumentInfo docInfo;
-
-#ifdef DEBUG
-			cout << "DBusServletThread::doWork: received GetDocumentInfo " << docId << endl;
-#endif
-			if (index.getDocumentInfo(docId, docInfo) == true)
-			{
-				// Prepare the reply
-				m_pReply = newDBusReply(m_pRequest);
-				if (m_pReply != NULL)
-				{
-					string language(Languages::toEnglish(docInfo.getLanguage()));
-					const char *pTitle = docInfo.getTitle().c_str();
-					const char *pLocation = docInfo.getLocation().c_str();
-					const char *pType = docInfo.getType().c_str();
-					const char *pLanguage = language.c_str();
-
-					dbus_message_append_args(m_pReply,
-						DBUS_TYPE_STRING, &pTitle,
-						DBUS_TYPE_STRING, &pLocation,
-						DBUS_TYPE_STRING, &pType,
-						DBUS_TYPE_STRING, &pLanguage,
-						DBUS_TYPE_INVALID);
-				}
-			}
-			else
-			{
-				m_pReply = dbus_message_new_error(m_pRequest,
-					"de.berlios.Pinot.GetDocumentInfo",
-					"Unknown document");
 			}
 		}
 	}
@@ -843,88 +848,6 @@ void DBusServletThread::doWork(void)
 				m_pReply = dbus_message_new_error(m_pRequest,
 					"de.berlios.Pinot.GetDocumentLabels",
 					" failed");
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetStatistics") == TRUE)
-	{
-		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
-		unsigned int crawledFilesCount = history.getItemsCount(CrawlHistory::CRAWLED);
-		unsigned int docsCount = index.getDocumentsCount();
-
-#ifdef DEBUG
-		cout << "DBusServletThread::doWork: received GetStatistics" << endl;
-#endif
-		// Prepare the reply
-		m_pReply = newDBusReply(m_pRequest);
-		if (m_pReply != NULL)
-		{
-			dbus_message_append_args(m_pReply,
-				DBUS_TYPE_UINT32, &crawledFilesCount,
-				DBUS_TYPE_UINT32, &docsCount,
-				DBUS_TYPE_INVALID);
-		}
-	}
-	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "RenameLabel") == TRUE)
-	{
-		char *pOldLabel = NULL;
-		char *pNewLabel = NULL;
-
-		if (dbus_message_get_args(m_pRequest, &error,
-			DBUS_TYPE_STRING, &pOldLabel,
-			DBUS_TYPE_STRING, &pNewLabel,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-#ifdef DEBUG
-			cout << "DBusServletThread::doWork: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
-#endif
-			// Rename the label
-			flushIndex = index.renameLabel(pOldLabel, pNewLabel);
-
-			// Prepare the reply
-			m_pReply = newDBusReply(m_pRequest);
-			if (m_pReply != NULL)
-			{
-				dbus_message_append_args(m_pReply,
-					DBUS_TYPE_STRING, &pNewLabel,
-					DBUS_TYPE_INVALID);
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "SetDocumentInfo") == TRUE)
-	{
-		char *pTitle = NULL;
-		char *pLocation = NULL;
-		char *pType = NULL;
-		char *pLanguage = NULL;
-		unsigned int docId = 0;
-
-		if (dbus_message_get_args(m_pRequest, &error,
-			DBUS_TYPE_UINT32, &docId,
-			DBUS_TYPE_STRING, &pTitle,
-			DBUS_TYPE_STRING, &pLocation,
-			DBUS_TYPE_STRING, &pType,
-			DBUS_TYPE_STRING, &pLanguage,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			DocumentInfo docInfo(pTitle, pLocation, pType,
-				((pLanguage != NULL) ? Languages::toLocale(pLanguage) : ""));
-
-#ifdef DEBUG
-			cout << "DBusServletThread::doWork: received SetDocumentInfo " << docId << ", " << pTitle
-				<< ", " << pLocation << ", " << pType << ", " << pLanguage << endl;
-#endif
-
-			// Update the document info
-			flushIndex = index.updateDocumentInfo(docId, docInfo);
-
-			// Prepare the reply
-			m_pReply = newDBusReply(m_pRequest);
-			if (m_pReply != NULL)
-			{
-				dbus_message_append_args(m_pReply,
-					DBUS_TYPE_UINT32, &docId,
-					DBUS_TYPE_INVALID);
 			}
 		}
 	}
@@ -1005,7 +928,7 @@ void DBusServletThread::doWork(void)
 				labels.insert(ppLabels[labelIndex]);
 			}
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received SetDocumentLabels on " << docIds.size()
+			cout << "DBusServletThread::doWork: received SetDocumentsLabels on " << docIds.size()
 				<< " IDs, " << labelsCount << " labels" << ", " << resetLabels << endl;
 #endif
 			// Set labels
@@ -1021,6 +944,77 @@ void DBusServletThread::doWork(void)
 			{
 				dbus_message_append_args(m_pReply,
 					DBUS_TYPE_BOOLEAN, &flushIndex,
+					DBUS_TYPE_INVALID);
+			}
+		}
+	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetDocumentInfo") == TRUE)
+	{
+		unsigned int docId = 0;
+
+		if (dbus_message_get_args(m_pRequest, &error,
+			DBUS_TYPE_UINT32, &docId,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			DocumentInfo docInfo;
+
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received GetDocumentInfo on " << docId << endl;
+#endif
+			if (index.getDocumentInfo(docId, docInfo) == true)
+			{
+				// Prepare the reply
+				m_pReply = newDBusReply(m_pRequest);
+				if (m_pReply != NULL)
+				{
+					DBusMessageIter iter;
+
+					dbus_message_iter_init_append(m_pReply, &iter);
+					if (DBusXapianIndex::documentInfoToDBus(&iter, 0, docInfo) == false)
+					{
+						dbus_message_unref(m_pReply);
+						m_pReply = dbus_message_new_error(m_pRequest,
+							"de.berlios.Pinot.GetDocumentInfo",
+							"Unknown error");
+					}
+				}
+			}
+			else
+			{
+				m_pReply = dbus_message_new_error(m_pRequest,
+					"de.berlios.Pinot.GetDocumentInfo",
+					"Unknown document");
+			}
+		}
+	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "SetDocumentInfo") == TRUE)
+	{
+		DBusMessageIter iter;
+		DocumentInfo docInfo;
+		unsigned int docId = 0;
+
+		dbus_message_iter_init(m_pRequest, &iter);
+		if (DBusXapianIndex::documentInfoFromDBus(&iter, docId, docInfo) == false)
+		{
+			m_pReply = dbus_message_new_error(m_pRequest,
+				"de.berlios.Pinot.SetDocumentInfo",
+				"Unknown error");
+		}
+		else
+		{
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received SetDocumentInfo on " << docId << endl;
+#endif
+
+			// Update the document info
+			flushIndex = index.updateDocumentInfo(docId, docInfo);
+
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_UINT32, &docId,
 					DBUS_TYPE_INVALID);
 			}
 		}

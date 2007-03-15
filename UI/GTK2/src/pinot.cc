@@ -31,7 +31,9 @@
 #include <glibmm/convert.h>
 extern "C"
 {
+#if DBUS_VERSION < 1000000
 #define DBUS_API_SUBJECT_TO_CHANGE
+#endif
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
