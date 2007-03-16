@@ -38,6 +38,7 @@ using std::string;
 using std::set;
 using std::min;
 
+const char *g_fieldNames[] = { "caption", "url", "type", "language", "modtime", "size", NULL };
 
 static DBusGConnection *getBusConnection(void)
 {
@@ -176,27 +177,27 @@ bool DBusXapianIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &
 
 		// Populate docInfo
 		string fieldName(pName);
-		if (fieldName == "title")
+		if (fieldName == g_fieldNames[0])
 		{
 			docInfo.setTitle(pValue);
 		}
-		else if (fieldName == "location")
+		else if (fieldName == g_fieldNames[1])
 		{
 			docInfo.setLocation(pValue);
 		}
-		else if (fieldName == "mimetype")
+		else if (fieldName == g_fieldNames[2])
 		{
 			docInfo.setType(pValue);
 		}
-		else if (fieldName == "language")
+		else if (fieldName == g_fieldNames[3])
 		{
 			docInfo.setLanguage(Languages::toLocale(pValue));
 		}
-		else if (fieldName == "timestamp")
+		else if (fieldName == g_fieldNames[4])
 		{
 			docInfo.setTimestamp(pValue);
 		}
-		else if (fieldName == "size")
+		else if (fieldName == g_fieldNames[5])
 		{
 			docInfo.setSize((off_t )atoi(pValue));
 		}
@@ -212,7 +213,6 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 {
         DBusMessageIter array_iter;
 	DBusMessageIter struct_iter;
-	const char *fieldNames[] = { "title", "location", "mimetype", "language", "timestamp", "size", NULL };
 
 	if (iter == NULL)
 	{
@@ -236,7 +236,7 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 		return false;
 	}
 
-	for (unsigned int fieldNum = 0; fieldNames[fieldNum] != NULL; ++fieldNum)
+	for (unsigned int fieldNum = 0; g_fieldNames[fieldNum] != NULL; ++fieldNum)
 	{
 		const char *pValue = NULL;
 		char sizeStr[64];
@@ -250,7 +250,7 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 			return false;
 		}
 
-		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &fieldNames[fieldNum]);
+		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &g_fieldNames[fieldNum]);
 		switch (fieldNum)
 		{
 			case 0:
@@ -276,7 +276,7 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 		}
 		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &pValue);
 #ifdef DEBUG
-		cout << "DBusXapianIndex::documentInfoToDBus: field " << fieldNames[fieldNum] << "=" << pValue << endl;
+		cout << "DBusXapianIndex::documentInfoToDBus: field " << g_fieldNames[fieldNum] << "=" << pValue << endl;
 #endif
 
 		if (!dbus_message_iter_close_container(&array_iter, &struct_iter))
