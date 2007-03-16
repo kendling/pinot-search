@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <regex.h>
 #include <stdio.h>
 #include <iostream>
@@ -397,7 +398,7 @@ bool XapianDatabase::badRecordField(const string &field)
 
 	// A bad field is one that includes one of our field delimiters
 	if (regcomp(&fieldRegex,
-		"(url|sample|caption|type|timestamp|language)=",
+		"(url|sample|caption|type|modtime|language|size)=",
 		REG_EXTENDED|REG_ICASE) == 0)
 	{
 		if (regexec(&fieldRegex, field.c_str(), 1,
@@ -493,6 +494,11 @@ void XapianDatabase::recordToProps(const string &record, DocumentInfo *pDoc)
 		timestamp = TimeConverter::toTimestamp(timeT);
 	}
 	pDoc->setTimestamp(timestamp);
+	string bytesSize(StringManip::extractField(record, "size=", ""));
+	if (bytesSize.empty() == false)
+	{
+		pDoc->setSize((off_t)atol(bytesSize.c_str()));
+	}
 }
 
 /// Returns the URL for the given document in the given index.

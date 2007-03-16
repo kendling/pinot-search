@@ -203,6 +203,41 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_boolean_prefix("type", "T");
 	parser.add_boolean_prefix("label", "XLABEL:");
 
+	// Do some pre-processing : look for filters with quoted values
+	string::size_type escapedFilterEnd = 0;
+	string::size_type escapedFilterStart = freeQuery.find(":\"");
+	while ((escapedFilterStart != string::npos) &&
+		(escapedFilterStart < freeQuery.length() - 2))
+	{
+		escapedFilterEnd = freeQuery.find("\"", escapedFilterStart + 2);
+		if (escapedFilterEnd == string::npos)
+		{
+			break;
+		}
+
+		string filterValue = freeQuery.substr(escapedFilterStart + 2, escapedFilterEnd - escapedFilterStart - 2);
+		if (filterValue.empty() == false)
+		{
+			string escapedValue(Url::escapeUrl(filterValue));
+
+			freeQuery.replace(escapedFilterStart + 1, escapedFilterEnd - escapedFilterStart,
+				escapedValue);
+			escapedFilterEnd = escapedFilterEnd + escapedValue.length() - filterValue.length();
+		}
+		else
+		{
+			// No value !
+			freeQuery.replace(escapedFilterStart, escapedFilterEnd - escapedFilterStart + 1, ":");
+			escapedFilterEnd -= 2;
+		}
+#ifdef DEBUG
+		cout << "XapianEngine::parseQuery: replaced filter: " << freeQuery << endl;
+#endif
+
+		// Next
+		escapedFilterStart = freeQuery.find(":\"", escapedFilterEnd);
+	}
+
 	// Activate all options and parse
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery,
 		Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|Xapian::QueryParser::FLAG_WILDCARD);
