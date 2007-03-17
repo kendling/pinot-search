@@ -1,5 +1,6 @@
 
-SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ Search Monitor UI/GTK2/src
+SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ Search Monitor \
+	UI/GTK2/src
 
 EXTRA_DIST = AUTHORS ChangeLog NEWS README TODO mkinstalldirs \
 	Tokenize/filters/external-filters.xml globalconfig.xml \
@@ -9,7 +10,9 @@ EXTRA_DIST = AUTHORS ChangeLog NEWS README TODO mkinstalldirs \
 	Index/pinot-index.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1 \
 	UI/GTK2/src/pinot-dbus-daemon.xml UI/GTK2/src/de.berlios.Pinot.service \
-	UI/GTK2/xapian-powered.png UI/GTK2/pinot.png \
+	UI/GTK2/xapian-powered.png UI/icons/48x48/pinot.png \
+	UI/icons/32x32/pinot.png UI/icons/24x24/pinot.png \
+	UI/icons/22x22/pinot.png UI/icons/16x16/pinot.png \
 	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
 	scripts/bash/pinot-enum-index.sh scripts/python/pinot-live.py
 
@@ -36,7 +39,15 @@ install-data-local:
 	@rm $(DESTDIR)$(libdir)/lib*filter.a $(DESTDIR)$(libdir)/lib*filter.la
 	@mv $(DESTDIR)$(libdir)/lib*filter* $(DESTDIR)$(libdir)/pinot/filters/
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
-	$(INSTALL_DATA) UI/GTK2/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
+	$(INSTALL_DATA) UI/icons/48x48/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
+	$(mkinstalldirs) $(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/
+	$(INSTALL_DATA) UI/icons/32x32/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/pinot.png
+	$(mkinstalldirs) $(DESTDIR)$(datadir)/icons/hicolor/24x24/apps/
+	$(INSTALL_DATA) UI/icons/24x24/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/24x24/apps/pinot.png
+	$(mkinstalldirs) $(DESTDIR)$(datadir)/icons/hicolor/22x22/apps/
+	$(INSTALL_DATA) UI/icons/22x22/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/22x22/apps/pinot.png
+	$(mkinstalldirs) $(DESTDIR)$(datadir)/icons/hicolor/16x16/apps/
+	$(INSTALL_DATA) UI/icons/16x16/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/16x16/apps/pinot.png
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/applications
 	@desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications pinot.desktop
 	$(mkinstalldirs) $(DESTDIR)${sysconfdir}/xdg/autostart

@@ -131,6 +131,10 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/locale/ru/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/sv/LC_MESSAGES/pinot.mo
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
+%{_datadir}/icons/hicolor/32x32/apps/pinot.png
+%{_datadir}/icons/hicolor/24x24/apps/pinot.png
+%{_datadir}/icons/hicolor/22x22/apps/pinot.png
+%{_datadir}/icons/hicolor/16x16/apps/pinot.png
 %{_sysconfdir}/xdg/autostart/*.desktop
 %{_datadir}/applications/*.desktop
 %{_mandir}/man1/pinot.*
