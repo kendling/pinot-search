@@ -56,6 +56,40 @@ static int lastDay(int year, int month)
 	return 28 + (year % 4 == 0);
 }
 
+static void checkFilter(const string &freeQuery, string::size_type filterValueStart,
+	bool &escapeValue, bool &hashValue)
+{
+	string filterName;
+	string::size_type filterNameStart = freeQuery.rfind(' ', filterValueStart);
+
+	escapeValue = hashValue = false;
+
+	if (filterNameStart == string::npos)
+	{
+		filterName = freeQuery.substr(0, filterValueStart);
+	}
+	else
+	{
+		filterName = freeQuery.substr(filterNameStart + 1, filterValueStart - filterNameStart - 1);
+	}
+#ifdef DEBUG
+	cout << "checkFilter: filter " << filterName << endl;
+#endif
+
+	// In XapianIndex, these are escaped and hashed
+	if ((filterName == "file") ||
+		(filterName =="dir") ||
+		(filterName == "url"))
+	{
+		escapeValue = hashValue = true;
+	}
+	// except label which is only escaped
+	else if (filterName == "label")
+	{
+		escapeValue = true;
+	}
+}
+
 XapianEngine::XapianEngine(const string &database) :
 	SearchEngineInterface()
 {
@@ -219,6 +253,25 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		if (filterValue.empty() == false)
 		{
 			string escapedValue(Url::escapeUrl(filterValue));
+			bool escapeValue = false, hashValue = false;
+
+			// The value should be escaped and length-limited as done at indexing time
+			checkFilter(freeQuery, escapedFilterStart, escapeValue, hashValue);
+
+			if (escapeValue == false)
+			{
+				// No escaping
+				escapedValue = filterValue;
+			}
+			if (hashValue == true)
+			{
+				// Partially hash if necessary
+				escapedValue = XapianDatabase::limitTermLength(escapedValue, true);
+			}
+			else
+			{
+				escapedValue = XapianDatabase::limitTermLength(escapedValue);
+			}
 
 			freeQuery.replace(escapedFilterStart + 1, escapedFilterEnd - escapedFilterStart,
 				escapedValue);
