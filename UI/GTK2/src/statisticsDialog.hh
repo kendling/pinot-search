@@ -19,6 +19,9 @@
 #ifndef _STATISTICSDIALOG_HH
 #define _STATISTICSDIALOG_HH
 
+#include <time.h>
+#include <sigc++/slot.h>
+#include <sigc++/connection.h>
 #include <glibmm/refptr.h>
 #include <gtkmm/treestore.h>
 
@@ -34,8 +37,20 @@ public:
 protected:
 	Glib::RefPtr<Gtk::TreeStore> m_refStore;
 	ComboModelColumns m_statsColumns;
+	Gtk::TreeModel::iterator m_myWebPagesIter;
+	Gtk::TreeModel::iterator m_myDocumentsIter;
+	Gtk::TreeModel::iterator m_viewStatIter;
+	Gtk::TreeModel::iterator m_daemonIter;
+	Gtk::TreeModel::iterator m_daemonStatIter;
+	Gtk::TreeModel::iterator m_crawledStatIter;
+	Gtk::TreeModel::iterator m_errorsIter;
+	bool m_hasErrors;
+	time_t m_lastErrorDate;
+	SigC::Connection m_idleConnection;
 
 	void populate(void);
+
+	bool on_activity_timeout(void);
 
 };
 #endif
