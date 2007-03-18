@@ -66,7 +66,7 @@ class CrawlHistory : public SQLiteBase
 
 		/// Returns items that belong to a source.
 		unsigned int getSourceItems(unsigned int sourceId, CrawlStatus status,
-			set<string> &urls, time_t maxDate = 0) const;
+			set<string> &urls, time_t minDate = 0) const;
 
 		/// Returns the number of URLs.
 		unsigned int getItemsCount(CrawlStatus status) const;

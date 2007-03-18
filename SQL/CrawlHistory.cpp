@@ -292,16 +292,16 @@ bool CrawlHistory::updateItemsStatus(unsigned int sourceId, CrawlStatus currentS
 
 /// Returns items that belong to a source.
 unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus status,
-	set<string> &urls, time_t maxDate) const
+	set<string> &urls, time_t minDate) const
 {
 	SQLiteResults *results = NULL;
 	unsigned int count = 0;
 
-	if (maxDate > 0)
+	if (minDate > 0)
 	{
 		results = executeStatement("SELECT Url FROM CrawlHistory \
-			WHERE SourceId='%u' AND Status='%q' AND Date<'%d';",
-			sourceId, statusToText(status).c_str(), maxDate);
+			WHERE SourceId='%u' AND Status='%q' AND Date>'%d';",
+			sourceId, statusToText(status).c_str(), minDate);
 	}
 	else
 	{
