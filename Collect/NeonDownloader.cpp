@@ -35,7 +35,8 @@ using namespace std;
 unsigned int NeonDownloader::m_initialized = 0;
 
 NeonDownloader::NeonDownloader() :
-	DownloaderInterface()
+	DownloaderInterface(),
+	m_proxyPort(0)
 {
 	if (m_initialized == 0)
 	{
@@ -96,14 +97,33 @@ string NeonDownloader::handleRedirection(const char *pBody, unsigned int length)
 // Implementation of DownloaderInterface
 //
 
-/// Sets a (name, value) setting; true if success.
+/**
+  * Sets a (name, value) setting. Setting names include :
+  * proxyaddress - the address of the proxy to use
+  * proxyport - the port of the proxy to use (positive integer)
+  * proxytype - the type of the proxy to use
+  * Returns true if success.
+  */
 bool NeonDownloader::setSetting(const string &name, const string &value)
 {
 	bool goodSetting = true;
 
-	if (name == "User-Agent")
+	if (name == "useragent")
 	{
 		m_userAgent = value;
+	}
+	else if (name == "proxyaddress")
+	{
+		m_proxyAddress = value;
+	}
+	else if ((name == "proxyport") &&
+		(value.empty() == false))
+	{
+		m_proxyPort = (unsigned int )atoi(value.c_str());
+	}
+	else if (name == "proxytype")
+	{
+		m_proxyType = value;
 	}
 	else
 	{
@@ -152,6 +172,13 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	ne_set_useragent(pSession, m_userAgent.c_str());
 	// ...and the timeout
 	ne_set_read_timeout(pSession, (int)m_timeout);
+	// Is a proxy defined ?
+	if ((m_proxyAddress.empty() == false) &&
+		(m_proxyPort > 0))
+	{
+		// Type is HTTP
+		ne_session_proxy(pSession, m_proxyAddress.c_str(), m_proxyPort);
+	}
 
 	string fullLocation = "/";
 	if (location.empty() == false)

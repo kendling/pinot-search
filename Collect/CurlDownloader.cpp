@@ -86,7 +86,8 @@ size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *p
 unsigned int CurlDownloader::m_initialized = 0;
 
 CurlDownloader::CurlDownloader() :
-	DownloaderInterface()
+	DownloaderInterface(),
+	m_proxyPort(0)
 {
 	if (m_initialized == 0)
 	{
@@ -114,15 +115,34 @@ CurlDownloader::~CurlDownloader()
 // Implementation of DownloaderInterface
 //
 
-/// Sets a (name, value) setting; true if success.
+/**
+  * Sets a (name, value) setting. Setting names include :
+  * proxyaddress - the address of the proxy to use
+  * proxyport - the port of the proxy to use (positive integer)
+  * proxytype - the type of the proxy to use
+  * Returns true if success.
+  */
 bool CurlDownloader::setSetting(const string &name, const string &value)
 {
         bool goodSetting = true;
 
-        if (name == "User-Agent")
+        if (name == "useragent")
         {
                 m_userAgent = value;
         }
+	else if (name == "proxyaddress")
+	{
+		m_proxyAddress = value;
+	}
+	else if ((name == "proxyport") &&
+		(value.empty() == false))
+	{
+		m_proxyPort = (unsigned int )atoi(value.c_str());
+	}
+	else if (name == "proxytype")
+	{
+		m_proxyType = value;
+	}
         else
         {
                 goodSetting = false;
@@ -170,6 +190,29 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 		cout << "CurlDownloader::retrieveUrl: URL is " << url << endl;
 #endif
 		curl_easy_setopt(pCurlHandler, CURLOPT_URL, url.c_str());
+		// Is a proxy defined ?
+		// Curl automatically checks and makes use of the *_proxy environment variables 
+		if ((m_proxyAddress.empty() == false) &&
+			(m_proxyPort > 0))
+		{
+			curl_proxytype proxyType = CURLPROXY_HTTP;
+
+			curl_easy_setopt(pCurlHandler, CURLOPT_PROXY, m_proxyAddress.c_str());
+			curl_easy_setopt(pCurlHandler, CURLOPT_PROXYPORT, m_proxyPort);
+			// Type defaults to HTTP
+			if (m_proxyType.empty() == false)
+			{
+				if (m_proxyType == "SOCKS4")
+				{
+					proxyType = CURLPROXY_SOCKS4;
+				}
+				else if (m_proxyType == "SOCKS5")
+				{
+					proxyType = CURLPROXY_SOCKS5;
+				}
+			}
+			curl_easy_setopt(pCurlHandler, CURLOPT_PROXYTYPE, proxyType);
+		}
 
 		CURLcode res = curl_easy_perform(pCurlHandler);
 		if (res == CURLE_OK)

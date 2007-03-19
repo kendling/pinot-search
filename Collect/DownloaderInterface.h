@@ -35,7 +35,13 @@ class DownloaderInterface
 		/// Shutdowns downloaders.
 		static void shutdown(void);
 
-		/// Sets a (name, value) setting; true if success.
+		/**
+		  * Sets a (name, value) setting. Setting names include :
+		  * proxyaddress - the address of the proxy to use
+		  * proxyport - the port of the proxy to use (positive integer)
+		  * proxytype - the type of the proxy to use
+		  * Returns true if success.
+		  */
 		virtual bool setSetting(const std::string &name, const std::string &value);
 
 		/// Sets timeout.
