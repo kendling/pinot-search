@@ -4,7 +4,7 @@
 pinot-index \- Index documents from the command-line
 .SH SYNOPSIS
 .B pinot-index
-[\fIOPTIONS\fR]
+[\fIOPTIONS\fR] \fIURL\fR
 .SH DESCRIPTION
 pinot\-index \- Index documents from the command\-line
 .SH OPTIONS
@@ -21,15 +21,24 @@ display this help and exit
 \fB\-i\fR, \fB\-\-index\fR
 index the given URL
 .TP
+\fB\-a\fR, \fB\-\-proxyaddress\fR
+proxy address
+.TP
+\fB\-p\fR, \fB\-\-proxyport\fR
+proxy port
+.TP
+\fB\-t\fR, \fB\-\-proxytype\fR
+proxy type (default HTTP, SOCKS4, SOCKS5)
+.TP
 \fB\-s\fR, \fB\-\-showinfo\fR
 show information about the document
 .TP
 \fB\-v\fR, \fB\-\-version\fR
 output version information and exit
 .SH EXAMPLES
-pinot\-index \fB\-\-check\fR file:///home/fabrice/Documents/Bozo.txt \fB\-\-showinfo\fR \fB\-\-db\fR ~/.pinot/daemon
+pinot\-index \fB\-\-check\fR \fB\-\-showinfo\fR \fB\-\-db\fR ~/.pinot/daemon file:///home/fabrice/Documents/Bozo.txt
 .PP
-pinot\-index \fB\-\-index\fR http://pinot.berlios.de/ \fB\-\-db\fR ~/.pinot/index
+pinot\-index \fB\-\-index\fR \fB\-\-db\fR ~/.pinot/index http://pinot.berlios.de/
 .SH "REPORTING BUGS"
 Report bugs to fabricecolin@users.berlios.de
 .PP

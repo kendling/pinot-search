@@ -35,36 +35,64 @@
 using namespace std;
 
 static struct option g_longOptions[] = {
-	{"check", 1, 0, 'c'},
+	{"check", 0, 0, 'c'},
 	{"db", 1, 0, 'd'},
 	{"help", 0, 0, 'h'},
-	{"index", 1, 0, 'i'},
+	{"index", 0, 0, 'i'},
+	{"proxyaddress", 1, 0, 'a'},
+	{"proxyport", 1, 0, 'p'},
+	{"proxytype", 1, 0, 't'},
 	{"showinfo", 0, 0, 's'},
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
 
+static void printHelp(void)
+{
+	// Help
+	cout << "pinot-index - Index documents from the command-line\n\n"
+		<< "Usage: pinot-index [OPTIONS] URL\n\n"
+		<< "Options:\n"
+		<< "  -c, --check               check whether the given URL is in the index\n"
+		<< "  -d, --db                  path to index to use (mandatory)\n"
+		<< "  -h, --help                display this help and exit\n"
+		<< "  -i, --index               index the given URL\n"
+		<< "  -a, --proxyaddress        proxy address\n"
+		<< "  -p, --proxyport           proxy port\n"
+		<< "  -t, --proxytype           proxy type (default HTTP, SOCKS4, SOCKS5)\n"
+		<< "  -s, --showinfo            show information about the document\n"
+		<< "  -v, --version             output version information and exit\n\n";
+	// Don't mention type dbus here as it doesn't support indexing and
+	// is identical to xapian when checking for URLs
+	cout << "Examples:\n"
+		<< "pinot-index --check --showinfo --db ~/.pinot/daemon file:///home/fabrice/Documents/Bozo.txt\n\n"
+		<< "pinot-index --index --db ~/.pinot/index http://pinot.berlios.de/\n\n"
+		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
+}
+
 int main(int argc, char **argv)
 {
 	string type, option;
-	string databaseName, urlToCheck, urlToIndex;
+	string databaseName, proxyAddress, proxyPort, proxyType;
 	int longOptionIndex = 0;
 	unsigned int docId = 0;
 	bool checkDocument = false, indexDocument = false, showInfo = false, success = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "c:d:hi:sv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "cd:hia:p:t:sv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		set<string> engines;
 
 		switch (optionChar)
 		{
-			case 'c':
+			case 'a':
 				if (optarg != NULL)
 				{
-					urlToCheck = optarg;
+					proxyAddress = optarg;
 				}
+				break;
+			case 'c':
 				checkDocument = true;
 				break;
 			case 'd':
@@ -72,35 +100,27 @@ int main(int argc, char **argv)
 				{
 					databaseName = optarg;
 				}
-				checkDocument = true;
 				break;
 			case 'h':
-				// Help
-				cout << "pinot-index - Index documents from the command-line\n\n"
-					<< "Usage: pinot-index [OPTIONS]\n\n"
-					<< "Options:\n"
-					<< "  -c, --check               check whether the given URL is in the index\n"
-					<< "  -d, --db                  path to index to use (mandatory)\n"
-					<< "  -h, --help                display this help and exit\n"
-					<< "  -i, --index               index the given URL\n"
-					<< "  -s, --showinfo            show information about the document\n"
-					<< "  -v, --version             output version information and exit\n\n";
-				// Don't mention type dbus here as it doesn't support indexing and
-				// is identical to xapian when checking for URLs
-				cout << "Examples:\n"
-					<< "pinot-index --check file:///home/fabrice/Documents/Bozo.txt --showinfo --db ~/.pinot/daemon\n\n"
-					<< "pinot-index --index http://pinot.berlios.de/ --db ~/.pinot/index\n\n"
-					<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
+				printHelp();
 				return EXIT_SUCCESS;
 			case 'i':
+				indexDocument = true;
+				break;
+			case 'p':
 				if (optarg != NULL)
 				{
-					urlToIndex = optarg;
+					proxyPort = optarg;
 				}
-				indexDocument = true;
 				break;
 			case 's':
 				showInfo = true;
+				break;
+			case 't':
+				if (optarg != NULL)
+				{
+					proxyType = optarg;
+				}
 				break;
 			case 'v':
 				cout << "pinot-index - " << PACKAGE_STRING << "\n\n"
@@ -113,7 +133,20 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "c:d:hi:sv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "cd:hia:p:t:sv", g_longOptions, &longOptionIndex);
+	}
+
+	if (argc == 1)
+	{
+		printHelp();
+		return EXIT_SUCCESS;
+	}
+
+	if ((argc < 2) ||
+		(argc - optind != 1))
+	{
+		cerr << "Not enough parameters" << endl;
+		return EXIT_FAILURE;
 	}
 
 	if (((indexDocument == false) &&
@@ -158,21 +191,23 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	string urlParam(argv[optind]);
+
 	if (checkDocument == true)
 	{
 		if (pIndex->isGood() == true)
 		{
-			docId = pIndex->hasDocument(urlToCheck);
+			docId = pIndex->hasDocument(urlParam);
 			if (docId > 0)
 			{
-				cout << urlToCheck << ": document ID " << docId << endl;
+				cout << urlParam << ": document ID " << docId << endl;
 				success = true;
 			}
 		}
 	}
 	if (indexDocument == true)
 	{
-		Url thisUrl(urlToIndex);
+		Url thisUrl(urlParam);
 
 		// Which Downloader ?
 		DownloaderInterface *pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
@@ -189,7 +224,16 @@ int main(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 
-		DocumentInfo docInfo(urlToIndex, urlToIndex, MIMEScanner::scanUrl(thisUrl), "");
+		// Set up the proxy
+		if ((proxyAddress.empty() == false) &&
+			(proxyPort.empty() == false))
+		{
+			pDownloader->setSetting("proxyaddress", proxyAddress);
+			pDownloader->setSetting("proxyport", proxyPort);
+			pDownloader->setSetting("proxytype", proxyType);
+		}
+
+		DocumentInfo docInfo(urlParam, urlParam, MIMEScanner::scanUrl(thisUrl), "");
 		Document *pDoc = pDownloader->retrieveUrl(docInfo);
 		if (pDoc == NULL)
 		{
@@ -202,7 +246,7 @@ int main(int argc, char **argv)
 			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
 
 			// Update an existing document or add to the index ?
-			docId = pIndex->hasDocument(urlToIndex);
+			docId = pIndex->hasDocument(urlParam);
 			if (docId > 0)
 			{
 				// Update the document
