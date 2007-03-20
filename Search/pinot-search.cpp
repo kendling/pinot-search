@@ -36,52 +36,81 @@ using namespace std;
 static struct option g_longOptions[] = {
 	{"help", 0, 0, 'h'},
 	{"max", 1, 0, 'm'},
+	{"proxyaddress", 1, 0, 'a'},
+	{"proxyport", 1, 0, 'p'},
+	{"proxytype", 1, 0, 't'},
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
 
+static void printHelp(void)
+{
+	set<string> engines;
+
+	// Help
+	SearchEngineFactory::getSupportedEngines(engines);
+	cout << "pinot-search - Query search engines from the command-line\n\n"
+		<< "Usage: pinot-search [OPTIONS] SEARCHENGINETYPE SEARCHENGINENAME|SEARCHENGINEOPTION QUERYSTRING\n\n"
+		<< "Options:\n"
+		<< "  -h, --help                display this help and exit\n"
+		<< "  -m, --max                 maximum number of results (default 10)\n"
+		<< "  -a, --proxyaddress        proxy address\n"
+		<< "  -p, --proxyport           proxy port\n"
+		<< "  -t, --proxytype           proxy type (default HTTP, SOCKS4, SOCKS5)\n"
+		<< "  -v, --version             output version information and exit\n\n"
+		<< "Supported search engine types are";
+	for (set<string>::iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
+	{
+		cout << " " << *engineIter;
+	}
+	cout << "\n\nExamples:\n"
+#ifdef HAVE_GOOGLEAPI
+		<< "pinot-search googleapi mygoogleapikey \"clowns\" 10\n\n"
+#endif
+		<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\"\n\n"
+		<< "pinot-search --max 20 sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
+		<< "pinot-search --max 10 xapian ~/.pinot/index \"clowns\"\n\n"
+		<< "pinot-search xapian somehostname:12345 \"clowns\" 10\n\n"
+		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
+}
+
 int main(int argc, char **argv)
 {
-	string type, option;
+	string type, option, proxyAddress, proxyPort, proxyType;
 	unsigned int count = 10; 
 	int longOptionIndex = 0;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "hm:v", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "hm:a:p:t:v", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
-		set<string> engines;
-
 		switch (optionChar)
 		{
-			case 'h':
-				// Help
-				SearchEngineFactory::getSupportedEngines(engines);
-				cout << "pinot-search - Query search engines from the command-line\n\n"
-					<< "Usage: pinot-search [OPTIONS] SEARCHENGINETYPE SEARCHENGINENAME|SEARCHENGINEOPTION QUERYSTRING\n\n"
-					<< "Options:\n"
-					<< "  -h, --help		display this help and exit\n"
-					<< "  -m, --max 		maximum number of results (default: 10)\n"
-					<< "  -v, --version		output version information and exit\n\n"
-					<< "Supported search engine types are";
-				for (set<string>::iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
+			case 'a':
+				if (optarg != NULL)
 				{
-					cout << " " << *engineIter;
+					proxyAddress = optarg;
 				}
-				cout << "\n\nExamples:\n"
-#ifdef HAVE_GOOGLEAPI
-					<< "pinot-search googleapi mygoogleapikey \"clowns\" 10\n\n"
-#endif
-					<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\"\n\n"
-					<< "pinot-search --max 20 sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
-					<< "pinot-search --max 10 xapian ~/.pinot/index \"clowns\"\n\n"
-					<< "pinot-search xapian somehostname:12345 \"clowns\" 10\n\n"
-					<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
+				break;
+			case 'h':
+				printHelp();
 				return EXIT_SUCCESS;
 			case 'm':
 				if (optarg != NULL)
 				{
 					count = (unsigned int )atoi(optarg);
+				}
+				break;
+			case 'p':
+				if (optarg != NULL)
+				{
+					proxyPort = optarg;
+				}
+				break;
+			case 't':
+				if (optarg != NULL)
+				{
+					proxyType = optarg;
 				}
 				break;
 			case 'v':
@@ -95,7 +124,13 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "hm:v", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "hm:a:p:t:v", g_longOptions, &longOptionIndex);
+	}
+
+	if (argc == 1)
+	{
+		printHelp();
+		return EXIT_SUCCESS;
 	}
 
 	if ((argc < 4) ||
@@ -124,6 +159,17 @@ int main(int argc, char **argv)
 
 	// How many results ?
 	pEngine->setMaxResultsCount(count);
+
+	// Set up the proxy
+	DownloaderInterface *pDownloader = pEngine->getDownloader();
+	if ((pDownloader != NULL) &&
+		(proxyAddress.empty() == false) &&
+		(proxyPort.empty() == false))
+	{
+		pDownloader->setSetting("proxyaddress", proxyAddress);
+		pDownloader->setSetting("proxyport", proxyPort);
+		pDownloader->setSetting("proxytype", proxyType);
+	}
 
 	QueryProperties queryProps("senginetest", argv[optind + 2]);
 	if (pEngine->runQuery(queryProps) == true)

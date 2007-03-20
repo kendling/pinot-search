@@ -63,6 +63,12 @@ bool SearchEngineInterface::setQueryExpansion(set<unsigned int> &relevantDocumen
 	return false;
 }
 
+/// Returns the downloader used if any.
+DownloaderInterface *SearchEngineInterface::getDownloader(void)
+{
+	return NULL;
+}
+
 /// Returns the results for the previous query.
 const vector<Result> &SearchEngineInterface::getResults(void) const
 {

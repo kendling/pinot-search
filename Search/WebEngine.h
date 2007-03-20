@@ -33,7 +33,11 @@ class WebEngine : public SearchEngineInterface
 		WebEngine();
 		virtual ~WebEngine();
 
+		/// Returns the downloader used if any.
+		virtual DownloaderInterface *getDownloader(void);
+
 	protected:
+		DownloaderInterface *m_pDownloader;
 		std::string m_hostFilter;
 		std::string m_fileFilter;
 		std::set<std::string> m_queryTerms;

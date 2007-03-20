@@ -54,27 +54,30 @@ static string getCharset(const string &contentType)
 }
 
 WebEngine::WebEngine() :
-	SearchEngineInterface()
+	SearchEngineInterface(),
+	m_pDownloader(DownloaderFactory::getDownloader("http"))
 {
 }
 
 WebEngine::~WebEngine()
 {
 	m_resultsList.clear();
+	if (m_pDownloader != NULL)
+	{
+		delete m_pDownloader;
+	}
 }
 
 Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 {
 	m_charset.clear();
 
-	// Any type of downloader will do...
-	DownloaderInterface *pDownloader = DownloaderFactory::getDownloader("http");
-	if (pDownloader == NULL)
+	if (m_pDownloader == NULL)
 	{
 		return NULL;
 	}
 
-	Document *pDoc = pDownloader->retrieveUrl(docInfo);
+	Document *pDoc = m_pDownloader->retrieveUrl(docInfo);
 	if (pDoc != NULL)
 	{
 		string contentType(pDoc->getType());
@@ -104,7 +107,6 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 			}
 		}
 	}
-	delete pDownloader;
 
 	return pDoc;
 }
@@ -268,4 +270,10 @@ bool WebEngine::processResult(const string &queryUrl, Result &result)
 	}
 
 	return true;
+}
+
+/// Returns the downloader used if any.
+DownloaderInterface *WebEngine::getDownloader(void)
+{
+	return m_pDownloader;
 }

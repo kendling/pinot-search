@@ -24,6 +24,7 @@
 #include <set>
 #include <vector>
 
+#include "DownloaderInterface.h"
 #include "QueryProperties.h"
 #include "Result.h"
 
@@ -46,6 +47,9 @@ class SearchEngineInterface
 
 		/// Sets whether the query should be expanded.
 		virtual bool setQueryExpansion(set<unsigned int> &relevantDocuments);
+
+		/// Returns the downloader used if any.
+		virtual DownloaderInterface *getDownloader(void);
 
 		/// Runs a query; true if success.
 		virtual bool runQuery(QueryProperties& queryProps) = 0;
