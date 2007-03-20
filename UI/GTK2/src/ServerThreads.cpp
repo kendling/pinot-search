@@ -153,6 +153,16 @@ void MonitorThread::processEvents(void)
 			<< event.m_location << " " << event.m_isDirectory << endl;
 #endif
 
+		// Skip dotfiles and blacklisted files
+		Url urlObj("file://" + event.m_location);
+		if ((urlObj.getFile()[0] == '.') ||
+			(PinotSettings::getInstance().isBlackListed(event.m_location) == true))
+		{
+			// Next
+			events.pop();
+			continue;
+		}
+
 		// What's the event code ?
 		if (event.m_type == MonitorEvent::EXISTS)
 		{
