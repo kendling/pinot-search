@@ -201,6 +201,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		cout << "INotifyMonitor::retrievePendingEvents: read "
 			<< bytesRead << " bytes at offset " << offset << endl;
 #endif
+
 		// What location is this event for ?
 		map<int, string>::iterator watchIter = m_watches.find(pEvent->wd);
 		if (watchIter == m_watches.end())
@@ -230,8 +231,6 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 			monEvent.m_isWatch = false;
 		}
 
-		map<uint32_t, MonitorEvent>::iterator movedIter = m_movedFrom.end();
-
 		// What type of event ?
 		if (pEvent->mask & IN_CREATE)
 		{
@@ -239,11 +238,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 			cout << "INotifyMonitor::retrievePendingEvents: created "
 				<< monEvent.m_location << endl;
 #endif
-			// Skip regular files
-			if (monEvent.m_isDirectory == true)
-			{
-				monEvent.m_type = MonitorEvent::CREATED;
-			}
+			monEvent.m_type = MonitorEvent::CREATED;
 		}
 		else if (pEvent->mask & IN_CLOSE_WRITE)
 		{
@@ -269,7 +264,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 				<< monEvent.m_location << " " << pEvent->cookie << endl;
 #endif
 			// What was the previous location ?
-			movedIter = m_movedFrom.find(pEvent->cookie);
+			map<uint32_t, MonitorEvent>::iterator movedIter = m_movedFrom.find(pEvent->cookie);
 			if (movedIter != m_movedFrom.end())
 			{
 				monEvent.m_previousLocation = movedIter->second.m_location;
@@ -305,6 +300,8 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		}
 		else if (pEvent->mask & IN_MOVE_SELF)
 		{
+			map<uint32_t, MonitorEvent>::iterator movedIter = m_movedFrom.end();
+
 #ifdef DEBUG
 			cout << "INotifyMonitor::retrievePendingEvents: moved self on "
 				<< monEvent.m_location << " " << pEvent->cookie << endl;
@@ -380,6 +377,33 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		if (monEvent.m_type != MonitorEvent::UNKNOWN)
 		{
 			events.push(monEvent);
+		}
+
+		// Any IN_MOVED_FROM event for which we didn't get a IN_MOVED_TO ?
+		time_t now = time(NULL);
+		map<uint32_t, MonitorEvent>::iterator movedIter = m_movedFrom.begin();
+		while (movedIter != m_movedFrom.end())
+		{
+			// The file was probably moved to an unmonitored location on the same filesystem
+			if (movedIter->second.m_time + 60 < now)
+			{
+				// It's as good as if it was deleted
+				movedIter->second.m_type = MonitorEvent::DELETED;
+				events.push(movedIter->second);
+#ifdef DEBUG
+				cout << "INotifyMonitor::retrievePendingEvents: don't know where "
+					<< movedIter->second.m_location << " was moved to" << endl;
+#endif
+
+				map<uint32_t, MonitorEvent>::iterator nextMovedIter = movedIter;
+				++nextMovedIter;
+				m_movedFrom.erase(movedIter);
+				movedIter = nextMovedIter;
+			}
+			else
+			{
+				++movedIter;
+			}
 		}
 
 		offset += eventSize;

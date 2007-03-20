@@ -24,7 +24,8 @@ using std::string;
 MonitorEvent::MonitorEvent() :
 	m_isWatch(false),
 	m_type(UNKNOWN),
-	m_isDirectory(false)
+	m_isDirectory(false),
+	m_time(time(NULL))
 {
 }
 
@@ -33,7 +34,8 @@ MonitorEvent::MonitorEvent(const MonitorEvent &other) :
 	m_previousLocation(other.m_previousLocation),
 	m_isWatch(other.m_isWatch),
 	m_type(other.m_type),
-	m_isDirectory(other.m_isDirectory)
+	m_isDirectory(other.m_isDirectory),
+	m_time(other.m_time)
 {
 }
 
@@ -50,6 +52,7 @@ MonitorEvent& MonitorEvent::operator=(const MonitorEvent& other)
 		m_isWatch = other.m_isWatch;
 		m_type = other.m_type;
 		m_isDirectory = other.m_isDirectory;
+		m_time = other.m_time;
 	}
 
 	return *this;
@@ -58,6 +61,24 @@ MonitorEvent& MonitorEvent::operator=(const MonitorEvent& other)
 bool MonitorEvent::operator<(const MonitorEvent& other) const
 {
 	if (m_location < other.m_location)
+	{
+		return true;
+	}
+	else if (m_location == other.m_location)
+	{
+		if (m_type < other.m_type)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool MonitorEvent::operator==(const MonitorEvent& other) const
+{
+	if ((m_location == other.m_location) &&
+		(m_type == other.m_type))
 	{
 		return true;
 	}
