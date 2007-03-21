@@ -1,5 +1,23 @@
-import gnome
+#!/usr/bin/env python
+#
+# Copyright 2005-2007 Fabrice Colin
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#
 
+import gnome
 import deskbar
 import deskbar.Handler, deskbar
 import gobject
@@ -55,7 +73,11 @@ class PinotFileMatch (deskbar.Match.Match):
 
 	def action(self, text=None):
 		print "Opening Pinot hit: ", self.url
-		gnome.url_show (self.url)
+		# Prefer deskbar's url_show is available
+		try:
+			deskbar.Utils.url_show (self.url)
+		except AttributeError:
+			gnome.url_show (self.url)
 
 	def get_category (self):
 		return "files"
@@ -102,7 +124,23 @@ class PinotFileSearchHandler(deskbar.Handler.SignallingHandler):
 		except Exception, msg:
 			print 'Caught exception: ', msg
 
-	def __receive_hits (self, name, url, mime_type, main_language):
+	def __receive_hits (self, fields):
+		name = "Unknown"
+		url = ""
+		mime_type = "application/octet-stream"
+		main_language = ""
+
+		# Get the fields we need to build a match
+		for field in fields:
+			if field[0] == "caption":
+				name = field[1]
+			elif field[0] == "url":
+				url = field[1]
+			elif field[0] == "type":
+				mime_type = field[1]
+			elif field[0] == "language":
+				main_language = field[1]
+
 		self.results.append( PinotFileMatch(self, name, url, mime_type, main_language) )
 		print "Got hit ", len(self.results)
 		if len(self.results) == self.results_count:

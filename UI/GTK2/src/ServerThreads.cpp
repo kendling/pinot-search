@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <exception>
 #include <iostream>
+#include <fstream>
 #include <sigc++/class_slot.h>
 #include <sigc++/compatibility.h>
 #include <sigc++/slot.h>
@@ -62,6 +63,40 @@ static DBusMessage *newDBusReply(DBusMessage *pMessage)
         }
 
         return NULL;
+}
+
+static ustring g_xmlDescription;
+
+static bool loadXMLDescription(void)
+{
+	if (g_xmlDescription.empty() == false)
+	{
+		return true;
+	}
+
+	ifstream xmlFile;
+	string xmlFileName(PREFIX);
+
+	xmlFileName += "/share/doc/pinot-dbus-daemon.xml";
+	xmlFile.open(xmlFileName.c_str());
+	if (xmlFile.good() == true)
+	{
+		xmlFile.seekg(0, ios::end);
+		int length = xmlFile.tellg();
+		xmlFile.seekg(0, ios::beg);
+
+		char *pXmlBuffer = new char[length + 1];
+		xmlFile.read(pXmlBuffer, length);
+		if (xmlFile.fail() == false)
+		{
+			pXmlBuffer[length] = '\0';
+			g_xmlDescription = pXmlBuffer;
+		}
+		delete[] pXmlBuffer;
+	}
+	xmlFile.close();
+
+	return true;	
 }
 
 MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler) :
@@ -1147,6 +1182,25 @@ void DBusServletThread::doWork(void)
 			{
 				dbus_message_append_args(m_pReply,
 					DBUS_TYPE_UINT32, &docId,
+					DBUS_TYPE_INVALID);
+			}
+		}
+	}
+	else if (dbus_message_is_method_call(m_pRequest, "org.freedesktop.DBus.Introspectable", "Introspect") == TRUE)
+	{
+#ifdef DEBUG
+		cout << "DBusServletThread::doWork: received Introspect" << endl;
+#endif
+		if (loadXMLDescription() == true)
+		{
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				const char *pXmlData = g_xmlDescription.c_str();
+
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_STRING, &pXmlData,
 					DBUS_TYPE_INVALID);
 			}
 		}
