@@ -58,8 +58,11 @@ Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 
 	Document *pDocument = new Document(docInfo);
 
-	// Determine the file type
-	pDocument->setType(MIMEScanner::scanFile(fileLocation));
+	if (pDocument->getType().empty() == true)
+	{
+		// Determine the file type
+		pDocument->setType(MIMEScanner::scanFile(fileLocation));
+	}
 	if (pDocument->setDataFromFile(fileLocation) == false)
 	{
 		delete pDocument;

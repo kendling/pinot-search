@@ -138,16 +138,19 @@ bool Document::setDataFromFile(const string &fileName)
 	}
 
 	// Make sure the file exists
-	if ((stat(fileName.c_str(), &fileStat) != 0) ||
-		(!S_ISREG(fileStat.st_mode)))
+	if (stat(fileName.c_str(), &fileStat) != 0)
 	{
-#ifdef DEBUG
-		cout << "Document::setDataFromFile: " << fileName << " is not a file" << endl;
-#endif
 		return false;
 	}
 
-	if (fileStat.st_size == 0)
+	if ((!S_ISDIR(fileStat.st_mode)) && 
+		(!S_ISREG(fileStat.st_mode)))
+	{
+		return false;
+	}
+
+	if ((S_ISDIR(fileStat.st_mode)) ||
+		(fileStat.st_size == 0))
 	{
 		// The file is empty
 		resetData();

@@ -449,10 +449,11 @@ void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &history)
 {
 	CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
+	string location("file://" + entryName);
 	time_t itemDate;
 	struct stat fileStat;
 	int statSuccess = 0;
-	bool scanSuccess = true;
+	bool scanSuccess = true, reportFile = false;
 
 	if (entryName.empty() == true)
 	{
@@ -463,7 +464,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 	}
 
 	// Skip . .. and dotfiles
-	Url urlObj("file://" + entryName);
+	Url urlObj(location);
 	if (urlObj.getFile()[0] == '.')
 	{
 #ifdef DEBUG
@@ -483,7 +484,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 	}
 
 	// Is this item in the database already ?
-	bool itemExists = history.hasItem("file://" + entryName, status, itemDate);
+	bool itemExists = history.hasItem(location, status, itemDate);
 
 	if (statSuccess == -1)
 	{
@@ -503,51 +504,12 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 	}
 	else if (S_ISREG(fileStat.st_mode))
 	{
-		DocumentInfo docInfo;
-		bool reportFile = false;
-
-		docInfo.setLocation("file://" + entryName);
-
 		// Is this file blacklisted ?
 		// We have to check early so that if necessary the file's status stays at CRAWLING 
 		// and it is removed from the index at the end of this crawl
 		if (PinotSettings::getInstance().isBlackListed(entryName) == false)
 		{
-			if (itemExists == false)
-			{
-				// Record it
-				history.insertItem(docInfo.getLocation(), CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
-#ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: reporting new file " << entryName << endl;
-#endif
-				reportFile = true;
-			}
-			else
-			{
-				// Update the record
-				history.updateItem(docInfo.getLocation(), CrawlHistory::CRAWLED, fileStat.st_mtime);
-
-				// Was it last crawled after it was modified ?
-				if (itemDate < fileStat.st_mtime)
-				{
-#ifdef DEBUG
-					cout << "DirectoryScannerThread::scanEntry: reporting modified file " << entryName << endl;
-#endif
-					// No, crawl and index it again
-					reportFile = true;
-				}
-			}
-		}
-
-		if (reportFile == true)
-		{
-			Url urlObj(docInfo.getLocation());
-
-			docInfo.setTitle(urlObj.getFile());
-			docInfo.setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
-			docInfo.setSize(fileStat.st_size);
-
-			foundFile(docInfo);
+			reportFile = true;
 		}
 	}
 	else if (S_ISDIR(fileStat.st_mode))
@@ -611,6 +573,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 				// Close the directory
 				closedir(pDir);
 				--m_currentLevel;
+				reportFile = true;
 			}
 			else
 			{
@@ -629,6 +592,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 		scanSuccess = false;
 	}
 
+	// Did an error occur ?
 	if (scanSuccess == false)
 	{
 		time_t timeNow = time(NULL);
@@ -636,11 +600,53 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 		// Record this error
 		if (itemExists == false)
 		{
-			history.insertItem("file://" + entryName, CrawlHistory::ERROR, m_sourceId, timeNow);
+			history.insertItem(location, CrawlHistory::ERROR, m_sourceId, timeNow);
 		}
 		else
 		{
-			history.updateItem("file://" + entryName, CrawlHistory::ERROR, timeNow);
+			history.updateItem(location, CrawlHistory::ERROR, timeNow);
+		}
+	}
+	else if (reportFile == true)
+	{
+		if (itemExists == false)
+		{
+			// Record it
+			history.insertItem(location, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
+#ifdef DEBUG
+			cout << "DirectoryScannerThread::scanEntry: reporting new file " << entryName << endl;
+#endif
+		}
+		else
+		{
+			// Update the record
+			history.updateItem(location, CrawlHistory::CRAWLED, fileStat.st_mtime);
+
+			// Was it last crawled after it was modified ?
+			if (itemDate >= fileStat.st_mtime)
+			{
+				// Yes, it was
+				reportFile = false;
+			}
+#ifdef DEBUG
+			else cout << "DirectoryScannerThread::scanEntry: reporting modified file " << entryName << endl;
+#endif
+		}
+
+		if (reportFile == true)
+		{
+			DocumentInfo docInfo;
+
+			docInfo.setLocation(location);
+			docInfo.setTitle(urlObj.getFile());
+			if (S_ISDIR(fileStat.st_mode))
+			{
+				docInfo.setType("x-directory/normal");
+			}
+			docInfo.setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
+			docInfo.setSize(fileStat.st_size);
+
+			foundFile(docInfo);
 		}
 	}
 
