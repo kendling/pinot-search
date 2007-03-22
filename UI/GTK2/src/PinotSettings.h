@@ -203,6 +203,10 @@ class PinotSettings
 		unsigned short m_newResultsColourRed;
 		unsigned short m_newResultsColourGreen;
 		unsigned short m_newResultsColourBlue;
+		Glib::ustring m_proxyAddress;
+		unsigned int m_proxyPort;
+		unsigned int m_proxyType;
+		bool m_proxyEnabled;
 		std::set<TimestampedItem> m_mailAccounts;
 		std::set<IndexableLocation> m_indexableLocations;
 		std::set<Glib::ustring> m_filePatternsBlackList;
@@ -229,6 +233,7 @@ class PinotSettings
 		bool loadQueries(const xmlpp::Element *pElem);
 		bool loadLabels(const xmlpp::Element *pElem);
 		bool loadColour(const xmlpp::Element *pElem);
+		bool loadProxy(const xmlpp::Element *pElem);
 		bool loadMailAccounts(const xmlpp::Element *pElem);
 		bool loadIndexableLocations(const xmlpp::Element *pElem);
 		bool loadFilePatterns(const xmlpp::Element *pElem);

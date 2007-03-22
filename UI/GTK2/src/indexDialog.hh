@@ -20,7 +20,6 @@
 #define _INDEXDIALOG_HH
 
 #include <glibmm/ustring.h>
-#include <gtkmm/liststore.h>
 
 #include "ModelColumns.h"
 #include "indexDialog_glade.hh"
@@ -41,8 +40,6 @@ public:
 protected:
 	Glib::ustring m_name;
 	Glib::ustring m_location;
-	ComboModelColumns m_typeColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refTypeTree;
 	bool m_editIndex;
 	bool m_badName;
 

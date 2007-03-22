@@ -34,11 +34,7 @@ indexDialog::indexDialog() :
 	m_editIndex(false),
 	m_badName(true)
 {
-	// Associate the columns model to the type combo
-	m_refTypeTree = ListStore::create(m_typeColumns);
-	typeCombobox->set_model(m_refTypeTree);
-	typeCombobox->pack_start(m_typeColumns.m_name);
-	// Populate
+	// Populate the type combo
 	populate_typeCombobox();
 
 	// By default, type is set to local
@@ -58,11 +54,7 @@ indexDialog::indexDialog(const ustring &name, const ustring &location) :
 {
 	unsigned int port = 1024;
 
-	// Associate the columns model to the type combo
-	m_refTypeTree = ListStore::create(m_typeColumns);
-	typeCombobox->set_model(m_refTypeTree);
-	typeCombobox->pack_start(m_typeColumns.m_name);
-	// Populate
+	// Populate the type combo
 	populate_typeCombobox();
 
 	// Name
@@ -129,16 +121,10 @@ void indexDialog::populate_typeCombobox(void)
 {
 	ustring servedBy(_("Served by"));
 
-	TreeModel::iterator iter = m_refTypeTree->append();
-	TreeModel::Row row = *iter;
-	row[m_typeColumns.m_name] = _("Local");
-	iter = m_refTypeTree->append();
-	row = *iter;
-	row[m_typeColumns.m_name] = servedBy + " xapian-tcpsrv";
+	typeCombobox->append_text(_("Local"));
+	typeCombobox->append_text(servedBy + " xapian-tcpsrv");
 #ifdef _SSH_TUNNEL
-	iter = m_refTypeTree->append();
-	row = *iter;
-	row[m_typeColumns.m_name] = servedBy + " xapian-progsrv+ssh";
+	typeCombobox->append_text(servedBy + " xapian-progsrv+ssh");
 #endif
 }
 

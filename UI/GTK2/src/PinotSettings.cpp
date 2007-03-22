@@ -101,6 +101,9 @@ PinotSettings::PinotSettings() :
 	m_newResultsColourRed(65535),
 	m_newResultsColourGreen(0),
 	m_newResultsColourBlue(0),
+	m_proxyPort(8080),
+	m_proxyType(0),
+	m_proxyEnabled(false),
 	m_firstRun(false)
 {
 	// Find out if there is a .pinot directory
@@ -396,6 +399,10 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 				else if (nodeName == "newresults")
 				{
 					loadColour(pElem);
+				}
+				else if (nodeName == "proxy")
+				{
+					loadProxy(pElem);
 				}
 				else if (nodeName == "mailaccount")
 				{
@@ -839,6 +846,59 @@ bool PinotSettings::loadColour(const Element *pElem)
 	return true;
 }
 
+bool PinotSettings::loadProxy(const Element *pElem)
+{
+	if (pElem == NULL)
+	{
+		return false;
+	}
+
+	Node::NodeList childNodes = pElem->get_children();
+	if (childNodes.empty() == true)
+	{
+		return false;
+	}
+
+	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
+	{
+		Node *pNode = (*iter);
+		Element *pElem = dynamic_cast<Element*>(pNode);
+		if (pElem == NULL)
+		{
+			continue;
+		}
+
+		string nodeName = pElem->get_name();
+		string nodeContent = getElementContent(pElem);
+
+		if (nodeName == "address")
+		{
+			m_proxyAddress = nodeContent;
+		}
+		else if (nodeName == "port")
+		{
+			m_proxyPort = (unsigned int)atoi(nodeContent.c_str());
+		}
+		else if (nodeName == "type")
+		{
+			m_proxyType = (unsigned int)atoi(nodeContent.c_str());
+		}
+		else if (nodeName == "enable")
+		{
+			if (nodeContent == "YES")
+			{
+				m_proxyEnabled = true;
+			}
+			else
+			{
+				m_proxyEnabled = false;
+			}
+		}	
+	}
+
+	return true;
+}
+
 bool PinotSettings::loadMailAccounts(const Element *pElem)
 {
 	if (pElem == NULL)
@@ -1209,6 +1269,8 @@ bool PinotSettings::save(void)
 	}
 	// Ignore robots directives
 	addChildElement(pRootElem, "robots", (m_ignoreRobotsDirectives ? "IGNORE" : "OBEY"));
+	// Enable terms suggestion
+	addChildElement(pRootElem, "suggestterms", (m_suggestQueryTerms ? "YES" : "NO"));
 	// New results colour
 	pElem = pRootElem->add_child("newresults");
 	if (pElem == NULL)
@@ -1221,8 +1283,18 @@ bool PinotSettings::save(void)
 	addChildElement(pElem, "green", numStr);
 	sprintf(numStr, "%u", m_newResultsColourBlue);
 	addChildElement(pElem, "blue", numStr);
-	// Enable terms suggestion
-	addChildElement(pRootElem, "suggestterms", (m_suggestQueryTerms ? "YES" : "NO"));
+	// Proxy
+	pElem = pRootElem->add_child("proxy");
+	if (pElem == NULL)
+	{
+		return false;
+	}
+	addChildElement(pElem, "address", m_proxyAddress);
+	sprintf(numStr, "%u", m_proxyPort);
+	addChildElement(pElem, "port", numStr);
+	sprintf(numStr, "%u", m_proxyType);
+	addChildElement(pElem, "type", numStr);
+	addChildElement(pElem, "enable", (m_proxyEnabled ? "YES" : "NO"));
 	// Mail accounts
 	for (set<TimestampedItem>::iterator mailIter = m_mailAccounts.begin(); mailIter != m_mailAccounts.end(); ++mailIter)
 	{

@@ -24,7 +24,6 @@
 #include <gtkmm/menu.h>
 #include <gtkmm/messagedialog.h>
 
-#include "MIMEScanner.h"
 #include "SearchEngineFactory.h"
 #include "QueryHistory.h"
 #include "config.h"
@@ -60,6 +59,17 @@ prefsDialog::prefsDialog() :
 	newResultsColorbutton->set_color(newColour);
 	// Enable terms suggestion
 	enableCompletionCheckbutton->set_active(m_settings.m_suggestQueryTerms);
+
+	populate_proxyTypeCombobox();
+	proxyRadiobutton->set_active(m_settings.m_proxyEnabled);
+	proxyAddressEntry->set_text(m_settings.m_proxyAddress);
+	proxyPortSpinbutton->set_value((double)m_settings.m_proxyPort);
+	// FIXME: sync with settings
+	if (m_settings.m_proxyType > 2)
+	{
+		m_settings.m_proxyType = 0;
+	}
+	proxyTypeCombobox->set_active(m_settings.m_proxyType);
 
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
@@ -127,6 +137,13 @@ const map<string, string> &prefsDialog::getLabelsToRename(void) const
 bool prefsDialog::startDaemon(void) const
 {
 	return m_startDaemon;
+}
+
+void prefsDialog::populate_proxyTypeCombobox()
+{
+	proxyTypeCombobox->append_text("HTTP");
+	proxyTypeCombobox->append_text("SOCKS v4");
+	proxyTypeCombobox->append_text("SOCKS v5");
 }
 
 void prefsDialog::populate_labelsTreeview()
@@ -401,6 +418,11 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	m_settings.m_suggestQueryTerms = enableCompletionCheckbutton->get_active();
 	m_settings.m_googleAPIKey = apiKeyEntry->get_text();
 
+	m_settings.m_proxyEnabled = proxyRadiobutton->get_active();
+	m_settings.m_proxyAddress = proxyAddressEntry->get_text();
+	m_settings.m_proxyPort = (unsigned int)proxyPortSpinbutton->get_value();
+	m_settings.m_proxyType = proxyTypeCombobox->get_active_row_number();
+
 	// Validate the current lists
 	save_labelsTreeview();
 	bool startForDirectories = save_directoriesTreeview();
@@ -521,11 +543,8 @@ void prefsDialog::on_addAccountButton_clicked()
 
 	if (select_file_name(*this, _("Mbox File Location"), fileName, true) == true)
 	{
-		string mimeType = MIMEScanner::scanFile(fileName);
-
 #ifdef DEBUG
-		cout << "prefsDialog::on_addAccountButton_clicked: " << fileName
-			<< " has format " << mimeType << endl;
+		cout << "prefsDialog::on_addAccountButton_clicked: " << fileName << endl;
 #endif
 		// FIXME: unlike libmagic, shared-mime-info fails to identify most mbox files
 		// as being of type text/x-mail

@@ -35,7 +35,7 @@ public:
 #include <gtkmm/button.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/spinbutton.h>
-#include <gtkmm/combobox.h>
+#include <gtkmm/comboboxtext.h>
 
 class indexDialog_glade : public Gtk::Dialog
 {  
@@ -48,7 +48,7 @@ protected:
         class Gtk::Button * locationButton;
         class Gtk::Entry * nameEntry;
         class Gtk::SpinButton * portSpinbutton;
-        class Gtk::ComboBox * typeCombobox;
+        class Gtk::ComboBoxText * typeCombobox;
         class Gtk::Entry * hostEntry;
         
         indexDialog_glade();
