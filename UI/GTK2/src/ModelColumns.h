@@ -81,6 +81,7 @@ public:
 
 	Gtk::TreeModelColumn<Glib::ustring> m_text;
 	Gtk::TreeModelColumn<Glib::ustring> m_url;
+	Gtk::TreeModelColumn<Glib::ustring> m_type;
 	Gtk::TreeModelColumn<bool> m_indexed;
 	Gtk::TreeModelColumn<bool> m_viewed;
 	Gtk::TreeModelColumn<int> m_rankDiff;
@@ -90,7 +91,7 @@ public:
 	Gtk::TreeModelColumn<unsigned int> m_indexes;
 	Gtk::TreeModelColumn<unsigned int> m_docId;
 	typedef enum { RESULT_ROOT = 0, RESULT_TITLE, RESULT_HOST, RESULT_OTHER } ResultType;
-	Gtk::TreeModelColumn<ResultType> m_type;
+	Gtk::TreeModelColumn<ResultType> m_resultType;
 	Gtk::TreeModelColumn<Glib::ustring> m_timestamp;
 	Gtk::TreeModelColumn<time_t> m_timestampTime;
 

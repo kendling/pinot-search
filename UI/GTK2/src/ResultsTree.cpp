@@ -300,7 +300,7 @@ void ResultsTree::renderTitleColumn(CellRenderer *pRenderer, const TreeModel::it
 			pTextRenderer->property_background_gdk().reset_value();
 		}
 
-		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_type];
+		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_resultType];
 		if ((type == ResultsModelColumns::RESULT_ROOT) ||
 			(type == ResultsModelColumns::RESULT_HOST))
 		{
@@ -376,7 +376,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 		m_refExtractStore->clear();
 
 		// Is this an actual result ?
-		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_type];
+		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_resultType];
 		if (type == ResultsModelColumns::RESULT_TITLE)
 		{
 #ifdef DEBUG
@@ -568,7 +568,7 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 				isIndexed = true;
 			}
 
-			if (appendResult(title, location, (int)currentScore, rankDiff, isIndexed,
+			if (appendResult(title, location, resultIter->getType(), (int)currentScore, rankDiff, isIndexed,
 				docId, resultIter->getTimestamp(), engineId, indexId, titleIter, &(*groupIter), true) == true)
 			{
 #ifdef DEBUG
@@ -662,7 +662,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 #ifdef DEBUG
 		cout << "ResultsTree::setGroupMode: looking at " << row[m_resultsColumns.m_text] << endl;
 #endif
-		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_type];
+		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_resultType];
 		// Skip new type rows
 		if (type == newType)
 		{
@@ -700,6 +700,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 						// Add result
 						success = appendResult(childRow[m_resultsColumns.m_text],
 							childRow[m_resultsColumns.m_url],
+							childRow[m_resultsColumns.m_type],
 							childRow[m_resultsColumns.m_score],
 							childRow[m_resultsColumns.m_rankDiff],
 							childRow[m_resultsColumns.m_indexed],
@@ -771,6 +772,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 								// Add result
 								appendResult(childRow[m_resultsColumns.m_text],
 									childRow[m_resultsColumns.m_url],
+									childRow[m_resultsColumns.m_type],
 									childRow[m_resultsColumns.m_score],
 									childRow[m_resultsColumns.m_rankDiff],
 									childRow[m_resultsColumns.m_indexed],
@@ -838,7 +840,7 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if (row[m_resultsColumns.m_type] != ResultsModelColumns::RESULT_TITLE)
+		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_TITLE)
 		{
 			continue;
 		}
@@ -847,7 +849,8 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 			(row[m_resultsColumns.m_indexed] == false))
 		{
 			resultsList.push_back(DocumentInfo(from_utf8(row[m_resultsColumns.m_text]),
-				from_utf8(row[m_resultsColumns.m_url]), "", ""));
+				from_utf8(row[m_resultsColumns.m_url]),
+				from_utf8(row[m_resultsColumns.m_type]), ""));
 		}
 	}
 #ifdef DEBUG
@@ -875,7 +878,7 @@ bool ResultsTree::getSelection(vector<Result> &resultsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if (row[m_resultsColumns.m_type] == ResultsModelColumns::RESULT_TITLE)
+		if (row[m_resultsColumns.m_resultType] == ResultsModelColumns::RESULT_TITLE)
 		{
 			bool isIndexed = row[m_resultsColumns.m_indexed];
 
@@ -901,6 +904,7 @@ bool ResultsTree::getSelection(vector<Result> &resultsList)
 					}
 				}
 			}
+			current.setType(from_utf8(row[m_resultsColumns.m_type]));
 
 			resultsList.push_back(current);
 		}
@@ -930,7 +934,7 @@ void ResultsTree::setSelectionState(bool viewed)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if (row[m_resultsColumns.m_type] != ResultsModelColumns::RESULT_TITLE)
+		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_TITLE)
 		{
 			continue;
 		}
@@ -960,7 +964,7 @@ bool ResultsTree::deleteSelection(void)
 		bool updateParent = false;
 
 		// This could be a group that's in the map and should be removed first
-		if (row[m_resultsColumns.m_type] != ResultsModelColumns::RESULT_TITLE)
+		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_TITLE)
 		{
 			string groupName = from_utf8(row[m_resultsColumns.m_text]);
 			std::map<string, TreeModel::iterator>::iterator mapIter = m_resultsGroups.find(groupName);
@@ -1030,8 +1034,8 @@ bool ResultsTree::deleteResults(QueryProperties &queryProps, const string &engin
 	{
 		TreeModel::Row row = *parentIter;
 
-		if ((row[m_resultsColumns.m_type] != ResultsModelColumns::RESULT_ROOT) &&
-			(row[m_resultsColumns.m_type] != ResultsModelColumns::RESULT_HOST))
+		if ((row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_ROOT) &&
+			(row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_HOST))
 		{
 			continue;
 		}
@@ -1042,7 +1046,7 @@ bool ResultsTree::deleteResults(QueryProperties &queryProps, const string &engin
 		{
 			row = *iter;
 
-			if ((row[m_resultsColumns.m_type] == ResultsModelColumns::RESULT_TITLE) &&
+			if ((row[m_resultsColumns.m_resultType] == ResultsModelColumns::RESULT_TITLE) &&
 				(row[m_resultsColumns.m_engines] == engineId) &&
 				(row[m_resultsColumns.m_indexes] == indexId))
 			{
@@ -1155,9 +1159,10 @@ Signal0<void>& ResultsTree::getViewResultsSignal(void)
 // Adds a new row in the results tree.
 //
 bool ResultsTree::appendResult(const ustring &text, const ustring &url,
-	int score, int rankDiff, bool isIndexed, unsigned int docId,
-	const ustring &timestamp, unsigned int engineId, unsigned int indexId,
-	TreeModel::iterator &newRowIter, const TreeModel::Row *parentRow, bool noDuplicates)
+	const ustring &type, int score, int rankDiff, bool isIndexed,
+	unsigned int docId, const ustring &timestamp, unsigned int engineId,
+	unsigned int indexId, TreeModel::iterator &newRowIter,
+	const TreeModel::Row *parentRow, bool noDuplicates)
 {
 	if (parentRow == NULL)
 	{
@@ -1200,7 +1205,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 	bool wasViewed = viewHistory.hasItem(url);
 
 	TreeModel::Row childRow = *newRowIter;
-	updateRow(childRow, text, url, score, engineId, indexId,
+	updateRow(childRow, text, url, type, score, engineId, indexId,
 		docId, timestamp, ResultsModelColumns::RESULT_TITLE, isIndexed,
 		wasViewed, rankDiff);
 
@@ -1223,7 +1228,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::Resu
 		groupIter = m_refStore->append();
 		TreeModel::Row groupRow = *groupIter;
 		updateRow(groupRow, to_utf8(groupName),
-			"", 0, 0, 0, 0, "", groupType,
+			"", "", 0, 0, 0, 0, "", groupType,
 			false, false, false);
 
 		// Update the map
@@ -1255,7 +1260,7 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 	int averageScore = 0;
 
 	// Check the iterator doesn't point to a result
-	if (groupRow[m_resultsColumns.m_type] == ResultsModelColumns::RESULT_TITLE)
+	if (groupRow[m_resultsColumns.m_resultType] == ResultsModelColumns::RESULT_TITLE)
 	{
 		return;
 	}
@@ -1290,20 +1295,22 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 // Updates a row.
 //
 void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
-	const ustring &url, int score, unsigned int engineId, unsigned int indexId,
+	const ustring &url, const ustring &type, int score,
+	unsigned int engineId, unsigned int indexId,
 	unsigned int docId, const ustring &timestamp,
-	ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff)
+	ResultsModelColumns::ResultType resultType, bool indexed, bool viewed, int rankDiff)
 {
 	try
 	{
 		row[m_resultsColumns.m_text] = text;
 		row[m_resultsColumns.m_url] = url;
+		row[m_resultsColumns.m_type] = type;
 		row[m_resultsColumns.m_score] = score;
 		row[m_resultsColumns.m_scoreText] = "";
 		row[m_resultsColumns.m_engines] = engineId;
 		row[m_resultsColumns.m_indexes] = indexId;
 		row[m_resultsColumns.m_docId] = docId;
-		row[m_resultsColumns.m_type] = type;
+		row[m_resultsColumns.m_resultType] = resultType;
 		row[m_resultsColumns.m_timestamp] = timestamp;
 		row[m_resultsColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
 
