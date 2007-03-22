@@ -309,17 +309,19 @@ string MIMEScanner::scanFile(const string &fileName)
 
 		if (pType != NULL)
 		{
-			return pType;
+			mimeType = pType;
 		}
-
-#ifdef DEBUG
-		cout << "MIMEScanner::scanFile: couldn't determine type of " << fileName << endl;
-#endif
-		if (xdg_mime_type_unknown != NULL)
+		else
 		{
-			mimeType = xdg_mime_type_unknown;
+			if (xdg_mime_type_unknown != NULL)
+			{
+				mimeType = xdg_mime_type_unknown;
+			}
 		}
 	}
+#ifdef DEBUG
+	cout << "MIMEScanner::scanFile: " << fileName << " " << mimeType << endl;
+#endif
 
 	return mimeType;
 }

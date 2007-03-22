@@ -556,12 +556,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 		while (fullQuery.empty() == false)
 		{
 #ifdef DEBUG
-			cout << "XapianEngine::runQuery: query terms are " << endl;
-			for (Xapian::TermIterator termIter = fullQuery.get_terms_begin();
-				termIter != fullQuery.get_terms_end(); ++termIter)
-			{
-				cout << " " << *termIter << endl;
-			}
+			cout << "XapianEngine::runQuery: " << fullQuery.get_description() << endl;
 #endif
 			// Query the database
 			if (queryDatabase(pIndex, fullQuery) == false)
