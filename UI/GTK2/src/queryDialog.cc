@@ -83,14 +83,6 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	// Index all results
 	indexCheckbutton->set_active(m_properties.getIndexResults());
 
-	// Associate the columns model to the index label combo
-	m_refLabelNameTree = ListStore::create(m_labelNameColumns);
-	labelNameCombobox->set_model(m_refLabelNameTree);
-	labelNameCombobox->pack_start(m_labelNameColumns.m_name);
-	// ...and the filter combo
-	m_refFilterTree = ListStore::create(m_filterColumns);
-	filterCombobox->set_model(m_refFilterTree);
-	filterCombobox->pack_start(m_filterColumns.m_name);
 	// Populate
 	populate_comboboxes();
 }
@@ -103,9 +95,7 @@ void queryDialog::populate_comboboxes()
 {
 	unsigned int labelNum = 1;
 
-	TreeModel::iterator iter = m_refLabelNameTree->append();
-	TreeModel::Row row = *iter;
-	row[m_labelNameColumns.m_name] = _("None");
+	labelNameCombobox->append_text(_("None"));
 	labelNameCombobox->set_active(0);
 
 	// Add all labels to the label combo and select the one defined for the query
@@ -113,9 +103,7 @@ void queryDialog::populate_comboboxes()
 	{
 		string labelName(*labelIter);
 
-		iter = m_refLabelNameTree->append();
-		row = *iter;
-		row[m_labelNameColumns.m_name] = to_utf8(labelName);
+		labelNameCombobox->append_text(to_utf8(labelName));
 		if (labelName == m_properties.getLabelName())
 		{
 			labelNameCombobox->set_active(labelNum);
@@ -125,33 +113,15 @@ void queryDialog::populate_comboboxes()
 	}
 
 	// All supported filters
-	iter = m_refFilterTree->append();
-	row = *iter;
-	row[m_filterColumns.m_name] = _("Host name");
-	iter = m_refFilterTree->append();
-	row = *iter;
-	row[m_filterColumns.m_name] = _("File name");
-	iter = m_refFilterTree->append();
-	row = *iter;
-	row[m_filterColumns.m_name] = _("File extension");
-	iter = m_refFilterTree->append();
-	row = *iter;
-	row[m_filterColumns.m_name] = _("Title");
-	iter = m_refFilterTree->append();
-	row = *iter;
-	row[m_filterColumns.m_name] = _("URL");
-	iter = m_refFilterTree->append();
-	row = *iter;
-	row[m_filterColumns.m_name] = _("Directory");
-	iter = m_refFilterTree->append();
-	row = *iter;
-	row[m_filterColumns.m_name] = _("Language code");
-	iter = m_refFilterTree->append();
-	row = *iter;
-	row[m_filterColumns.m_name] = _("MIME type");
-	iter = m_refFilterTree->append();
-	row = *iter;
-	row[m_filterColumns.m_name] = _("Label");
+	filterCombobox->append_text(_("Host name"));
+	filterCombobox->append_text(_("File name"));
+	filterCombobox->append_text(_("File extension"));
+	filterCombobox->append_text(_("Title"));
+	filterCombobox->append_text(_("URL"));
+	filterCombobox->append_text(_("Directory"));
+	filterCombobox->append_text(_("Language code"));
+	filterCombobox->append_text(_("MIME type"));
+	filterCombobox->append_text(_("Label"));
 	filterCombobox->set_active(0);
 }
 
@@ -197,11 +167,7 @@ void queryDialog::on_queryOkbutton_clicked()
 	int chosenLabel = labelNameCombobox->get_active_row_number();
 	if (chosenLabel > 0)
 	{
-		TreeModel::iterator iter = labelNameCombobox->get_active();
-		TreeModel::Row row = *iter;
-		string labelName = from_utf8(row[m_labelNameColumns.m_name]);
-
-		m_properties.setLabelName(labelName);
+		m_properties.setLabelName(from_utf8(labelNameCombobox->get_active_text()));
 	}
 }
 

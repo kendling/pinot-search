@@ -66,7 +66,7 @@ importDialog_glade::importDialog_glade(
    
    Gtk::Label *locationLabel = Gtk::manage(new class Gtk::Label(_("Location:")));
    titleLabel = Gtk::manage(new class Gtk::Label(_("Title:")));
-   labelNameCombobox = Gtk::manage(new class Gtk::ComboBox());
+   labelNameCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    
    Gtk::Label *labelNameLabel = Gtk::manage(new class Gtk::Label(_("Apply label:")));
    locationEntry = Gtk::manage(new class Gtk::Entry());

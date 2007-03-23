@@ -43,8 +43,6 @@ public:
 	const std::set<std::string> &getLabels(void) const;
 
 protected:
-	ComboModelColumns m_languageColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refLanguageTree;
 	LabelModelColumns m_labelsColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
 	std::set<std::string> m_labels;

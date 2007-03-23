@@ -63,7 +63,7 @@ propertiesDialog_glade::propertiesDialog_glade(
    labelOkButton = Gtk::manage(new class Gtk::Button(Gtk::StockID("gtk-ok")));
    titleEntry = Gtk::manage(new class Gtk::Entry());
    typeEntry = Gtk::manage(new class Gtk::Entry());
-   languageCombobox = Gtk::manage(new class Gtk::ComboBox());
+   languageCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    titleLabel = Gtk::manage(new class Gtk::Label(_("Title:")));
    languageLabel = Gtk::manage(new class Gtk::Label(_("Language:")));
    typeLabel = Gtk::manage(new class Gtk::Label(_("MIME type:")));

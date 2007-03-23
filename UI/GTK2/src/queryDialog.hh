@@ -22,10 +22,8 @@
 #include <string>
 #include <set>
 #include <glibmm/date.h>
-#include <gtkmm/liststore.h>
 
 #include "QueryProperties.h"
-#include "ModelColumns.h"
 #include "PinotSettings.h"
 #include "queryDialog_glade.hh"
 
@@ -41,10 +39,6 @@ protected:
 	std::string m_name;
 	QueryProperties& m_properties;
 	const std::set<std::string> &m_labels;
-	ComboModelColumns m_labelNameColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
-	ComboModelColumns m_filterColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refFilterTree;
 	Glib::Date m_fromDate;
 	Glib::Date m_toDate;
 	bool m_badName;

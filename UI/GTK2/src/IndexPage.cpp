@@ -45,7 +45,7 @@ IndexPage::IndexPage(const ustring &indexName, IndexTree *pTree,
 	m_docsCount(0),
 	m_firstDoc(0)
 {
-	m_pLabelCombobox = manage(new ComboBox());
+	m_pLabelCombobox = manage(new ComboBoxText());
 
 	Image *image521 = manage(new Image(StockID("gtk-media-rewind"), IconSize(4)));
 	Label *label52 = manage(new Label(_("Show Previous")));
@@ -105,10 +105,6 @@ IndexPage::IndexPage(const ustring &indexName, IndexTree *pTree,
 		pack_start(*pTree->getScrolledWindow());
 	}
 
-	// Associate the columns model to the label combo
-	m_refLabelNameTree = ListStore::create(m_labelNameColumns);
-	m_pLabelCombobox->set_model(m_refLabelNameTree);
-	m_pLabelCombobox->pack_start(m_labelNameColumns.m_name);
 	// Populate
 	populateLabelCombobox();
 
@@ -147,21 +143,15 @@ IndexPage::~IndexPage()
 
 void IndexPage::onLabelChanged(void)
 {
-	TreeModel::iterator labelIter = m_pLabelCombobox->get_active();
-	if (labelIter)
-	{
-		TreeModel::Row row = *labelIter;
-
-		m_labelName = row[m_labelNameColumns.m_name];
+	m_labelName = m_pLabelCombobox->get_active_text();
 #ifdef DEBUG
-		cout << "IndexPage::onLabelChanged: current label now " << m_labelName << endl;
+	cout << "IndexPage::onLabelChanged: current label now " << m_labelName << endl;
 #endif
-		if (m_labelName == _("All labels"))
-		{
-			m_labelName.clear();
-		}
-		m_signalLabelChanged(m_title, m_labelName);
+	if (m_labelName == _("All labels"))
+	{
+		m_labelName.clear();
 	}
+	m_signalLabelChanged(m_title, m_labelName);
 }
 
 void IndexPage::onBackClicked(void)
@@ -195,24 +185,13 @@ ustring IndexPage::getLabelName(void) const
 //
 void IndexPage::populateLabelCombobox(void)
 {
-	TreeModel::iterator iter;
-	TreeModel::Row row;
-
-	m_refLabelNameTree->clear();
-
-	iter = m_refLabelNameTree->append();
-	row = *iter;
-	row[m_labelNameColumns.m_name] = _("All labels");
+	m_pLabelCombobox->append_text(_("All labels"));
 
 	const set<string> &labels = m_settings.getLabels();
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{
-		string labelName(*labelIter);
-
-		iter = m_refLabelNameTree->append();
-		row = *iter;
-		row[m_labelNameColumns.m_name] = to_utf8(labelName);
+		m_pLabelCombobox->append_text(to_utf8(*labelIter));
 	}
 
 	m_pLabelCombobox->set_active(0);

@@ -34,7 +34,7 @@ public:
 #include <gtkmm/dialog.h>
 #include <gtkmm/button.h>
 #include <gtkmm/entry.h>
-#include <gtkmm/combobox.h>
+#include <gtkmm/comboboxtext.h>
 #include <gtkmm/label.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/scrolledwindow.h>
@@ -49,7 +49,7 @@ protected:
         class Gtk::Button * labelOkButton;
         class Gtk::Entry * titleEntry;
         class Gtk::Entry * typeEntry;
-        class Gtk::ComboBox * languageCombobox;
+        class Gtk::ComboBoxText * languageCombobox;
         class Gtk::Label * titleLabel;
         class Gtk::Label * languageLabel;
         class Gtk::Label * typeLabel;

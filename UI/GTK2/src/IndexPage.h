@@ -26,18 +26,16 @@
 #include <glibmm/ustring.h>
 #include <gtkmm/menu.h>
 #include <gdkmm/pixbuf.h>
-#include <gtkmm/combobox.h>
+#include <gtkmm/comboboxtext.h>
 #include <gtkmm/button.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/textview.h>
-#include <gtkmm/liststore.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/treeselection.h>
 
 #include "QueryProperties.h"
 #include "IndexedDocument.h"
 #include "IndexTree.h"
-#include "ModelColumns.h"
 #include "Notebook.h"
 #include "PinotSettings.h"
 
@@ -85,9 +83,7 @@ class IndexPage : public NotebookPageBox
 		Glib::ustring m_indexName;
 		Glib::ustring m_labelName;
 		IndexTree *m_pTree;
-		ComboModelColumns m_labelNameColumns;
-		Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
-		Gtk::ComboBox *m_pLabelCombobox;
+		Gtk::ComboBoxText *m_pLabelCombobox;
 		Gtk::Button *m_pBackButton;
 		Gtk::Button *m_pForwardButton;
 		unsigned int m_docsCount;

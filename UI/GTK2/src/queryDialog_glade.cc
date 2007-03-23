@@ -70,7 +70,7 @@ queryDialog_glade::queryDialog_glade(
    
    Gtk::Table *nameTable = Gtk::manage(new class Gtk::Table(2, 2, false));
    Gtk::Label *filterLabel = Gtk::manage(new class Gtk::Label(_("New filter:")));
-   filterCombobox = Gtk::manage(new class Gtk::ComboBox());
+   filterCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    
    Gtk::Button *addFilterButton = Gtk::manage(new class Gtk::Button(Gtk::StockID("gtk-add")));
    Gtk::HBox *queryHbox = Gtk::manage(new class Gtk::HBox(false, 0));
@@ -81,7 +81,7 @@ queryDialog_glade::queryDialog_glade(
    Gtk::Label *queryFrameLabel = Gtk::manage(new class Gtk::Label(_("Query Text")));
    Gtk::Frame *queryFrame = Gtk::manage(new class Gtk::Frame());
    indexCheckbutton = Gtk::manage(new class Gtk::CheckButton(_("Index results with label")));
-   labelNameCombobox = Gtk::manage(new class Gtk::ComboBox());
+   labelNameCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    
    Gtk::Label *resultsCountLabel = Gtk::manage(new class Gtk::Label(_("Number of results:")));
    Gtk::Adjustment *resultsCountSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(10, 10, 100, 10, 20, 20));

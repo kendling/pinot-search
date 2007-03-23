@@ -54,10 +54,6 @@ importDialog::importDialog() :
 	m_docsCount(0),
 	m_state(10, this)
 {
-	// Associate the columns model to the label combo
-	m_refLabelNameTree = ListStore::create(m_labelNameColumns);
-	labelNameCombobox->set_model(m_refLabelNameTree);
-	labelNameCombobox->pack_start(m_labelNameColumns.m_name);
 	// Populate
 	populate_comboboxes();
 
@@ -77,20 +73,15 @@ importDialog::~importDialog()
 
 void importDialog::populate_comboboxes(void)
 {
-	TreeModel::iterator iter = m_refLabelNameTree->append();
-	TreeModel::Row row = *iter;
-	row[m_labelNameColumns.m_name] = _("None");
+	labelNameCombobox->append_text(_("None"));
 	labelNameCombobox->set_active(0);
+
 	// Add all labels
 	const set<string> &labels = PinotSettings::getInstance().getLabels();
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{
-		string labelName(*labelIter);
-
-		iter = m_refLabelNameTree->append();
-		row = *iter;
-		row[m_labelNameColumns.m_name] = to_utf8(labelName);
+		labelNameCombobox->append_text(to_utf8(*labelIter));
 	}
 }
 
@@ -239,9 +230,7 @@ void importDialog::on_importButton_clicked()
 	int chosenLabel = labelNameCombobox->get_active_row_number();
 	if (chosenLabel > 0)
 	{
-		TreeModel::iterator iter = labelNameCombobox->get_active();
-		TreeModel::Row row = *iter;
-		m_labelName = from_utf8(row[m_labelNameColumns.m_name]);
+		m_labelName = from_utf8(labelNameCombobox->get_active_text());
 	}
 
 	import_url(location);

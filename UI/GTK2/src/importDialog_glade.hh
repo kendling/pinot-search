@@ -34,7 +34,7 @@ public:
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/label.h>
-#include <gtkmm/combobox.h>
+#include <gtkmm/comboboxtext.h>
 #include <gtkmm/table.h>
 #include <gtkmm/progressbar.h>
 #include <gtkmm/button.h>
@@ -46,7 +46,7 @@ class importDialog_glade : public Gtk::Dialog
 protected:
         class Gtk::Entry * titleEntry;
         class Gtk::Label * titleLabel;
-        class Gtk::ComboBox * labelNameCombobox;
+        class Gtk::ComboBoxText * labelNameCombobox;
         class Gtk::Entry * locationEntry;
         class Gtk::Table * docTable;
         class Gtk::ProgressBar * importProgressbar;

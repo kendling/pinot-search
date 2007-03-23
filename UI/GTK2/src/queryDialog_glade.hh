@@ -34,7 +34,7 @@ public:
 #include <gtkmm/dialog.h>
 #include <gtkmm/button.h>
 #include <gtkmm/entry.h>
-#include <gtkmm/combobox.h>
+#include <gtkmm/comboboxtext.h>
 #include <gtkmm/textview.h>
 #include <gtkmm/checkbutton.h>
 #include <gtkmm/spinbutton.h>
@@ -48,10 +48,10 @@ public:
 protected:
         class Gtk::Button * queryOkbutton;
         class Gtk::Entry * nameEntry;
-        class Gtk::ComboBox * filterCombobox;
+        class Gtk::ComboBoxText * filterCombobox;
         class Gtk::TextView * queryTextview;
         class Gtk::CheckButton * indexCheckbutton;
-        class Gtk::ComboBox * labelNameCombobox;
+        class Gtk::ComboBoxText * labelNameCombobox;
         class Gtk::SpinButton * resultsCountSpinbutton;
         class Gtk::CheckButton * fromCheckbutton;
         class Gtk::CheckButton * toCheckbutton;

@@ -26,11 +26,9 @@
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/button.h>
-#include <gtkmm/liststore.h>
 
 #include "DocumentInfo.h"
 #include "MonitorInterface.h"
-#include "ModelColumns.h"
 #include "WorkerThreads.h"
 #include "importDialog_glade.hh"
 
@@ -52,9 +50,6 @@ protected:
 	void on_thread_end(WorkerThread *pThread);
 
 private:
-	// Label
-	ComboModelColumns m_labelNameColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refLabelNameTree;
 	Glib::ustring m_title;
 	std::string m_labelName;
 	unsigned int m_docsCount;

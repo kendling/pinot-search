@@ -40,11 +40,6 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 	string language(docInfo.getLanguage());
 	bool notALanguageName = false;
 
-	// Associate the columns model to the language combo
-	m_refLanguageTree = ListStore::create(m_languageColumns);
-	languageCombobox->set_model(m_refLanguageTree);
-	languageCombobox->pack_start(m_languageColumns.m_name);
-
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
 	labelsTreeview->set_model(m_refLabelsTree);
@@ -107,18 +102,12 @@ propertiesDialog::~propertiesDialog()
 
 void propertiesDialog::populate_languageCombobox(const string &language, bool notALanguageName)
 {
-	TreeModel::iterator iter;
-	TreeModel::Row row;
 	unsigned int languageStart = 0;
 	bool foundLanguage = false;
 
 	if (notALanguageName == true)
 	{
-		iter = m_refLanguageTree->append();
-		row = *iter;
-
-		// This is not a language name as such
-		row[m_languageColumns.m_name] = language;
+		languageCombobox->append_text(to_utf8(language));
 		languageCombobox->set_active(0);
 		languageStart = 1;
 	}
@@ -126,11 +115,9 @@ void propertiesDialog::populate_languageCombobox(const string &language, bool no
 	// Add all supported languages
 	for (unsigned int languageNum = 0; languageNum < Languages::m_count; ++languageNum)
 	{
-		string languageName = Languages::getIntlName(languageNum);
-		iter = m_refLanguageTree->append();
-		row = *iter;
-		row[m_languageColumns.m_name] = languageName;
+		string languageName(Languages::getIntlName(languageNum));
 
+		languageCombobox->append_text(to_utf8(languageName));
 		if ((notALanguageName == false) &&
 			(languageName == language))
 		{
@@ -224,11 +211,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 	int chosenLanguage = languageCombobox->get_active_row_number();
 	if (chosenLanguage >= languageStart)
 	{
-		TreeModel::iterator iter = languageCombobox->get_active();
-		TreeModel::Row row = *iter;
-		string languageName = from_utf8(row[m_languageColumns.m_name]);
-
-		m_docInfo.setLanguage(languageName);
+		m_docInfo.setLanguage(from_utf8(languageCombobox->get_active_text()));
 	}
 
 	// Go through the labels tree
