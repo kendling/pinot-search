@@ -102,7 +102,6 @@ PinotSettings::PinotSettings() :
 	m_newResultsColourGreen(0),
 	m_newResultsColourBlue(0),
 	m_proxyPort(8080),
-	m_proxyType(0),
 	m_proxyEnabled(false),
 	m_firstRun(false)
 {
@@ -881,7 +880,7 @@ bool PinotSettings::loadProxy(const Element *pElem)
 		}
 		else if (nodeName == "type")
 		{
-			m_proxyType = (unsigned int)atoi(nodeContent.c_str());
+			m_proxyType = nodeContent;
 		}
 		else if (nodeName == "enable")
 		{
@@ -1292,8 +1291,7 @@ bool PinotSettings::save(void)
 	addChildElement(pElem, "address", m_proxyAddress);
 	sprintf(numStr, "%u", m_proxyPort);
 	addChildElement(pElem, "port", numStr);
-	sprintf(numStr, "%u", m_proxyType);
-	addChildElement(pElem, "type", numStr);
+	addChildElement(pElem, "type", m_proxyType);
 	addChildElement(pElem, "enable", (m_proxyEnabled ? "YES" : "NO"));
 	// Mail accounts
 	for (set<TimestampedItem>::iterator mailIter = m_mailAccounts.begin(); mailIter != m_mailAccounts.end(); ++mailIter)

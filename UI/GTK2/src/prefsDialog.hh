@@ -44,6 +44,7 @@ public:
 
 protected:
 	virtual void on_prefsOkbutton_clicked();
+	virtual void on_directConnectionRadiobutton_toggled();
 	virtual void on_addLabelButton_clicked();
 	virtual void on_removeLabelButton_clicked();
 	virtual void on_addDirectoryButton_clicked();
@@ -65,7 +66,6 @@ protected:
 
 private:
 	PinotSettings &m_settings;
-	ComboModelColumns m_viewColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refViewTree;
 	LabelModelColumns m_labelsColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;

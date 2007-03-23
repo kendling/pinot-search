@@ -64,12 +64,17 @@ prefsDialog::prefsDialog() :
 	proxyRadiobutton->set_active(m_settings.m_proxyEnabled);
 	proxyAddressEntry->set_text(m_settings.m_proxyAddress);
 	proxyPortSpinbutton->set_value((double)m_settings.m_proxyPort);
-	// FIXME: sync with settings
-	if (m_settings.m_proxyType > 2)
+	int proxyType = 0;
+	if (m_settings.m_proxyType == "SOCKS4")
 	{
-		m_settings.m_proxyType = 0;
+		proxyType = 1;
 	}
-	proxyTypeCombobox->set_active(m_settings.m_proxyType);
+	else if (m_settings.m_proxyType == "SOCKS5")
+	{
+		proxyType = 2;
+	}
+	proxyTypeCombobox->set_active(proxyType);
+	on_directConnectionRadiobutton_toggled();
 
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
@@ -421,7 +426,19 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	m_settings.m_proxyEnabled = proxyRadiobutton->get_active();
 	m_settings.m_proxyAddress = proxyAddressEntry->get_text();
 	m_settings.m_proxyPort = (unsigned int)proxyPortSpinbutton->get_value();
-	m_settings.m_proxyType = proxyTypeCombobox->get_active_row_number();
+	int proxyType = proxyTypeCombobox->get_active_row_number();
+	if (proxyType == 1)
+	{
+		m_settings.m_proxyType = "SOCKS4";
+	}
+	else if (proxyType == 2)
+	{
+		m_settings.m_proxyType = "SOCKS5";
+	}
+	else
+	{
+		m_settings.m_proxyType = "HTTP";
+	}
 
 	// Validate the current lists
 	save_labelsTreeview();
@@ -435,6 +452,15 @@ void prefsDialog::on_prefsOkbutton_clicked()
 		m_settings.save();
 		m_startDaemon = true;
 	}
+}
+
+void prefsDialog::on_directConnectionRadiobutton_toggled()
+{
+	bool enabled = proxyRadiobutton->get_active();
+
+	proxyAddressEntry->set_sensitive(enabled);
+	proxyPortSpinbutton->set_sensitive(enabled);
+	proxyTypeCombobox->set_sensitive(enabled);
 }
 
 void prefsDialog::on_addLabelButton_clicked()

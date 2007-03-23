@@ -205,7 +205,7 @@ class PinotSettings
 		unsigned short m_newResultsColourBlue;
 		Glib::ustring m_proxyAddress;
 		unsigned int m_proxyPort;
-		unsigned int m_proxyType;
+		Glib::ustring  m_proxyType;
 		bool m_proxyEnabled;
 		std::set<TimestampedItem> m_mailAccounts;
 		std::set<IndexableLocation> m_indexableLocations;
