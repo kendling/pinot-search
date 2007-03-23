@@ -44,6 +44,12 @@ class IndexInterface
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const = 0;
 
+		/// Gets the version number.
+		virtual double getVersion(void) const = 0;
+
+		/// Sets the version number.
+		virtual bool setVersion(double version) const = 0;
+
 		/// Gets the index location.
 		virtual std::string getLocation(void) const = 0;
 
@@ -112,6 +118,9 @@ class IndexInterface
 
 		/// Unindexes documents with the given label or under the given directory.
 		virtual bool unindexDocuments(const std::string &name, bool isDirectory) = 0;
+
+		/// Unindexes all documents.
+		virtual bool unindexAllDocuments(void) = 0;
 
 		/// Renames a label.
 		virtual bool renameLabel(const std::string &name, const std::string &newName) = 0;

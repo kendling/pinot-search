@@ -52,17 +52,11 @@ class DBusXapianIndex : public XapianIndex
 		/// Asks the D-Bus service for statistics.
 		static bool getStatistics(unsigned int &crawledCount, unsigned int &docsCount);
 
-		/// Returns false if the index couldn't be opened.
-		virtual bool isGood(void) const;
-
-		/// Gets the index location.
-		virtual std::string getLocation(void) const;
+		/// Sets the version number.
+		virtual bool setVersion(double version) const;
 
 		/// Returns a document's properties.
 		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const;
-
-		/// Returns a document's terms count.
-		virtual unsigned int getDocumentTermsCount(unsigned int docId) const;
 
 		/// Determines whether a document has a label.
 		virtual bool hasLabel(unsigned int docId, const std::string &name) const;
@@ -117,6 +111,9 @@ class DBusXapianIndex : public XapianIndex
 
 		/// Unindexes documents with the given label or under the given directory.
 		virtual bool unindexDocuments(const std::string &name, bool isDirectory);
+
+		/// Unindexes all documents.
+		virtual bool unindexAllDocuments(void);
 
 		/// Renames a label.
 		virtual bool renameLabel(const std::string &name, const std::string &newName);

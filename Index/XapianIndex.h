@@ -38,6 +38,12 @@ class XapianIndex : public IndexInterface
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const;
 
+		/// Gets the version number.
+		virtual double getVersion(void) const;
+
+		/// Sets the version number.
+		virtual bool setVersion(double version) const;
+
 		/// Gets the index location.
 		virtual std::string getLocation(void) const;
 
@@ -104,6 +110,9 @@ class XapianIndex : public IndexInterface
 		/// Unindexes documents with the given label or under the given directory.
 		virtual bool unindexDocuments(const std::string &name, bool isDirectory);
 
+		/// Unindexes all documents.
+		virtual bool unindexAllDocuments(void);
+
 		/// Renames a label.
 		virtual bool renameLabel(const std::string &name, const std::string &newName);
 
@@ -138,6 +147,8 @@ class XapianIndex : public IndexInterface
 
 		void setDocumentData(const DocumentInfo &info, Xapian::Document &doc,
 			const std::string &language) const;
+
+		bool deleteDocuments(const std::string &term);
 
 };
 

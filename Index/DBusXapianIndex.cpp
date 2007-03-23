@@ -346,16 +346,11 @@ bool DBusXapianIndex::getStatistics(unsigned int &crawledCount, unsigned int &do
 // Implementation of IndexInterface
 //
 
-/// Returns false if the index couldn't be opened.
-bool DBusXapianIndex::isGood(void) const
+/// Sets the version number.
+bool DBusXapianIndex::setVersion(double version) const
 {
-	return XapianIndex::isGood();
-}
-
-/// Gets the index location.
-string DBusXapianIndex::getLocation(void) const
-{
-	return XapianIndex::getLocation();
+	cerr << "DBusXapianIndex::setVersion: not allowed" << endl;
+	return false;
 }
 
 /// Returns a document's properties.
@@ -364,12 +359,6 @@ bool DBusXapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo)
 	reopen();
 
 	return XapianIndex::getDocumentInfo(docId, docInfo);
-}
-
-/// Returns a document's terms count.
-unsigned int DBusXapianIndex::getDocumentTermsCount(unsigned int docId) const
-{
-	return XapianIndex::getDocumentTermsCount(docId);
 }
 
 /// Determines whether a document has a label.
@@ -702,6 +691,13 @@ bool DBusXapianIndex::unindexDocument(unsigned int docId)
 
 /// Unindexes documents with the given label or under the given directory.
 bool DBusXapianIndex::unindexDocuments(const string &name, bool isDirectory)
+{
+	cerr << "DBusXapianIndex::unindexDocuments: not allowed" << endl;
+	return false;
+}
+
+/// Unindexes all documents.
+bool DBusXapianIndex::unindexAllDocuments(void)
 {
 	cerr << "DBusXapianIndex::unindexDocuments: not allowed" << endl;
 	return false;

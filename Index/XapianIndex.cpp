@@ -41,6 +41,9 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::ios;
+using std::ifstream;
+using std::ofstream;
 using std::string;
 using std::vector;
 using std::set;
@@ -562,6 +565,50 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	doc.set_data(XapianDatabase::propsToRecord(&docCopy));
 }
 
+bool XapianIndex::deleteDocuments(const string &term)
+{
+	bool unindexed = false;
+
+	if (term.empty() == true)
+	{
+		return false;
+	}
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+#ifdef DEBUG
+			cout << "XapianIndex::deleteDocuments: term is " << term << endl;
+#endif
+
+			// Delete documents from the index
+			pIndex->delete_document(term);
+
+			unindexed = true;
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't unindex documents: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't unindex documents, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+
+	return unindexed;
+}
+
 //
 // Implementation of IndexInterface
 //
@@ -570,6 +617,43 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 bool XapianIndex::isGood(void) const
 {
 	return m_goodIndex;
+}
+
+/// Gets the version number.
+double XapianIndex::getVersion(void) const
+{
+	ifstream verFile;
+	string verFileName(m_databaseName);
+	double version = 0;
+
+	verFileName += "/version";
+	verFile.open(verFileName.c_str());
+	if (verFile.good() == true)
+	{
+		verFile >> version;
+	}
+	verFile.close();
+
+	return version;
+}
+
+/// Sets the version number.
+bool XapianIndex::setVersion(double version) const
+{
+	ofstream verFile;
+	string verFileName(m_databaseName);
+	bool setVer = false;
+
+	verFileName += "/version";
+	verFile.open(verFileName.c_str(), ios::trunc);
+	if (verFile.good() == true)
+	{
+		verFile << version;
+		setVer = true;
+	}
+	verFile.close();
+
+	return setVer;
 }
 
 /// Gets the index location.
@@ -994,7 +1078,7 @@ unsigned int XapianIndex::getDocumentsCount(const string &labelName) const
 unsigned int XapianIndex::listDocuments(set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
-	// Get documents that have the magic term
+	// All documents have the magic term
 	return listDocumentsWithTerm(MAGIC_TERM, docIds, maxDocsCount, startDoc);
 }
 
@@ -1348,98 +1432,33 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 /// Unindexes the given document.
 bool XapianIndex::unindexDocument(const string &location)
 {
-	bool unindexed = false;
+	string term(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(Url::canonicalizeUrl(location)), true));
 
-	if (location.empty() == true)
-	{
-		return false;
-	}
-
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return false;
-	}
-
-	try
-	{
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-		if (pIndex != NULL)
-		{
-			string term = string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(Url::canonicalizeUrl(location)), true);
-
-			// Only one document should have this term
-			pIndex->delete_document(term);
-			unindexed = true;
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't unindex documents: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't unindex documents, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
-
-	return unindexed;
+	return deleteDocuments(term);
 }
 
 /// Unindexes documents with the given label or under the given directory.
 bool XapianIndex::unindexDocuments(const string &name, bool isDirectory)
 {
-	bool unindexed = false;
+	string term("XLABEL:");
 
-	if (name.empty() == true)
+	if (isDirectory == true)
 	{
-		return false;
+		term = string("XDIR:") + XapianDatabase::limitTermLength(Url::escapeUrl(name), true);
+	}
+	else
+	{
+		term += XapianDatabase::limitTermLength(Url::escapeUrl(name));
 	}
 
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return false;
-	}
+	return deleteDocuments(term);
+}
 
-	try
-	{
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-		if (pIndex != NULL)
-		{
-			string term("XLABEL:");
-
-			if (isDirectory == true)
-			{
-				term = string("XDIR:") + XapianDatabase::limitTermLength(Url::escapeUrl(name), true);
-			}
-			else
-			{
-				term += XapianDatabase::limitTermLength(Url::escapeUrl(name));
-			}
-#ifdef DEBUG
-			cout << "XapianIndex::unindexDocuments: term is " << term << endl;
-#endif
-
-			// Delete documents from the index
-			pIndex->delete_document(term);
-
-			unindexed = true;
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't unindex documents: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't unindex documents, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
-
-	return unindexed;
+/// Unindexes all documents.
+bool XapianIndex::unindexAllDocuments(void)
+{
+	// All documents have the magic term
+	return deleteDocuments(MAGIC_TERM);
 }
 
 /// Renames a label.
