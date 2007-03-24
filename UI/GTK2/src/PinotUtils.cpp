@@ -53,6 +53,7 @@ bool select_file_name(Window &parentWindow, const ustring &title,
 	fileChooser.add_button(okButtonStockId, RESPONSE_OK);
 	// FIXME: add FileFilter's
 	fileChooser.set_title(title);
+	fileChooser.set_show_hidden(true);
 	fileChooser.show();
 
 	int result = fileChooser.run();
