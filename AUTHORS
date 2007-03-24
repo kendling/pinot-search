@@ -13,6 +13,7 @@ Patches, bug reports and helpful comments :
 	Neal Becker <ndbecker2 at gmail dot com>
 	Gabriel C <nix dot or dot die at googlemail dot com> 
 	Roger Mason <rmason at esd dot mun dot ca>
+	Reuben Thomas <rrt at sc3d dot org> 
 
 The file Monitor/linux-inotify-syscalls.h is originally from libinotify
 (Copyright © 2005 Ryan Lortie <desrt at desrt dot ca>).
@@ -27,9 +28,12 @@ Translations provided by :
 
 	Dutch - Tikkel <???>
 	French - Nicolas Velin <nsv at fr dot st>
+	German - Christian Dywan <christian at twotoasts dot de>
+	Italian - Michele Angrisano <darksun1988 at gmail dot com>
+	Portuguese - _PN_boy <pedro_nuno_pn at iol dot pt>
+	Portuguese (Brazil) - Leonardo Melo <leonardovazmelo at gmail dot com>
+	Russian - Sergey Vostrikov <memphis at jabber dot snc dot ru>
 	Spanish - Jesús Tramullas <jesus at tramullas dot com>
 		- Garbage <garbage at openfutura.com>
 	Swedish - Daniel Nylander <po at danielnylander dot se>
-	Portuguese (Brazil) - Leonardo Melo <leonardovazmelo at gmail dot com>
-	Russian - Sergey Vostrikov <memphis at jabber dot snc dot ru>
 

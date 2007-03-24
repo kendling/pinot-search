@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 0.70,[fabricecolin@users.berlios.de])
+AC_INIT(pinot, 0.71,[fabricecolin@users.berlios.de])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -25,7 +25,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
 		[the gettext domain])
 
 dnl Add the languages which your application supports here.
-ALL_LINGUAS="fr es nl pt_BR ru sv"
+ALL_LINGUAS="de es fr it nl pt pt_BR ru sv"
 #AM_GNU_GETTEXT([external]) 
 AM_GLIB_GNU_GETTEXT
 

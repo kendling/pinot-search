@@ -124,9 +124,12 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/pinot/engines/YahooAPI.src
 %{_datadir}/pinot/engines/Wikipedia.src
 %{_datadir}/pinot/engines/KodersDescription.xml
-%{_datadir}/locale/fr/LC_MESSAGES/pinot.mo
+%{_datadir}/locale/de/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/es/LC_MESSAGES/pinot.mo
+%{_datadir}/locale/fr/LC_MESSAGES/pinot.mo
+%{_datadir}/locale/it/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/nl/LC_MESSAGES/pinot.mo
+%{_datadir}/locale/pt/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/pt_BR/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/ru/LC_MESSAGES/pinot.mo
 %{_datadir}/locale/sv/LC_MESSAGES/pinot.mo
