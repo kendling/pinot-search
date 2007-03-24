@@ -54,7 +54,10 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	}
 	// Query text
 	RefPtr<TextBuffer> refBuffer = queryTextview->get_buffer();
-	refBuffer->set_text(to_utf8(m_properties.getFreeQuery()));
+	if (refBuffer)
+	{
+		refBuffer->set_text(to_utf8(m_properties.getFreeQuery()));
+	}
 	// Maximum number of results
 	resultsCountSpinbutton->set_value((double)m_properties.getMaximumResultsCount());
 	// Date range
@@ -154,7 +157,10 @@ void queryDialog::on_queryOkbutton_clicked()
 
 	// Query text
 	RefPtr<TextBuffer> refBuffer = queryTextview->get_buffer();
-	m_properties.setFreeQuery(from_utf8(refBuffer->get_text()));
+	if (refBuffer)
+	{
+		m_properties.setFreeQuery(from_utf8(refBuffer->get_text()));
+	}
 	// Maximum number of results
 	m_properties.setMaximumResultsCount((unsigned int)resultsCountSpinbutton->get_value());
 	// Date range
@@ -225,11 +231,14 @@ void queryDialog::on_addFilterButton_clicked()
 	}
 
 	RefPtr<TextBuffer> refBuffer = queryTextview->get_buffer();
-	ustring queryText = refBuffer->get_text();
-	queryText += " ";
-	queryText += filter;
-	queryText += ":xxx";
-	refBuffer->set_text(queryText);
+	if (refBuffer)
+	{
+		ustring queryText = refBuffer->get_text();
+		queryText += " ";
+		queryText += filter;
+		queryText += ":xxx";
+		refBuffer->set_text(queryText);
+	}
 }
 
 void queryDialog::on_fromButton_clicked()

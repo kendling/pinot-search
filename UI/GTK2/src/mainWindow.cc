@@ -1563,7 +1563,10 @@ void mainWindow::on_copy_activate()
 	}
 	
 	RefPtr<Clipboard> refClipboard = Clipboard::get();
-	refClipboard->set_text(text);
+	if (refClipboard)
+	{
+		refClipboard->set_text(text);
+	}
 }
 
 //
@@ -1572,6 +1575,12 @@ void mainWindow::on_copy_activate()
 void mainWindow::on_paste_activate()
 {
 	RefPtr<Clipboard> refClipboard = Clipboard::get();
+
+	if (!refClipboard)
+	{
+		return;
+	}
+
 	if (refClipboard->wait_is_text_available() == false)
 	{
 		return;

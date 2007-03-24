@@ -134,6 +134,11 @@ int get_column_height(TreeView *pTree)
 	}
 
 	RefPtr<Style> refRCStyle = RC::get_style(*pTree);
+	if (!refRCStyle)
+	{
+		return 0;
+	}
+
 	int fontSize = refRCStyle->get_font().get_size();
 	int height = fontSize / Pango::SCALE;
 #ifdef DEBUG

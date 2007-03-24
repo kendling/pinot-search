@@ -69,6 +69,8 @@ static ustring g_xmlDescription;
 
 static bool loadXMLDescription(void)
 {
+	bool readFile = false;
+
 	if (g_xmlDescription.empty() == false)
 	{
 		return true;
@@ -91,12 +93,13 @@ static bool loadXMLDescription(void)
 		{
 			pXmlBuffer[length] = '\0';
 			g_xmlDescription = pXmlBuffer;
+			readFile = true;
 		}
 		delete[] pXmlBuffer;
 	}
 	xmlFile.close();
 
-	return true;	
+	return readFile;
 }
 
 MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler) :
@@ -1209,6 +1212,10 @@ void DBusServletThread::doWork(void)
 					DBUS_TYPE_STRING, &pXmlData,
 					DBUS_TYPE_INVALID);
 			}
+		}
+		else
+		{
+			cerr << "File pinot-dbus-daemon.xml couldn't be found" << endl;
 		}
 	}
 	else

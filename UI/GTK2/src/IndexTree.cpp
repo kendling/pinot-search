@@ -131,7 +131,7 @@ void IndexTree::onSelectionChanged(void)
 }
 
 bool IndexTree::onSelectionSelect(const RefPtr<TreeModel>& model,
-		const TreeModel::Path& path, bool path_currently_selected)
+	const TreeModel::Path& path, bool path_currently_selected)
 {
 	const TreeModel::iterator iter = model->get_iter(path);
 	const TreeModel::Row row = *iter;
