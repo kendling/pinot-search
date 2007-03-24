@@ -49,6 +49,7 @@ extern "C"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
+#include "XapianIndex.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -294,6 +295,20 @@ int main(int argc, char **argv)
 	}
 
 	atexit(closeAll);
+
+	// What version of the UI is this ?
+	double uiVersion = atof(VERSION);
+	// What version is the index at ?
+	XapianIndex docsIndex(settings.m_docsIndexLocation);
+	double indexVersion = docsIndex.getVersion();
+	// Is an upgrade necessary ?
+	if (indexVersion <= 0.70)
+	{
+		// Yes, it is
+		// FIXME: use a popup ! 
+		errorMsg = _("Updating all documents in My Web Pages is recommended");
+	}
+	docsIndex.setVersion(uiVersion);
 
 	try
 	{

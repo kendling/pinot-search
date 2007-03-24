@@ -360,6 +360,35 @@ int main(int argc, char **argv)
 		cerr << "Couldn't set scheduling priority to " << priority << endl;
 	}
 
+	// What version of the daemon is this ?
+	double daemonVersion = atof(VERSION);
+	// What version is the index at ?
+	XapianIndex daemonIndex(settings.m_daemonIndexLocation);
+	double indexVersion = daemonIndex.getVersion();
+	// Is an upgrade necessary ?
+	if (indexVersion <= 0.70)
+	{
+		cout << "Upgrading index from version " << indexVersion << " to " << daemonVersion << endl;
+
+		// Yes, it is
+		// Reset the index
+		if (daemonIndex.unindexAllDocuments() == true)
+		{
+			CrawlHistory history(settings.m_historyDatabase);
+			map<unsigned int, string> sources;
+
+			// ...and the history
+			history.getSources(sources);
+			for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
+				sourceIter != sources.end(); ++sourceIter)
+			{
+				history.deleteItems(sourceIter->first);
+				history.deleteSource(sourceIter->first);
+			}
+		}
+	}
+	daemonIndex.setVersion(daemonVersion);
+
 	GError *pError = NULL;
 	DBusGConnection *pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
 	if (pBus == NULL)
@@ -430,19 +459,11 @@ int main(int argc, char **argv)
 	{
 		cerr << "Couldn't register object path: " << pError->message << endl;
 	}
+	dbus_error_free(&error);
 
-	// Stop everything before closing the connection
+	// Stop everything
 	server.disconnect();
 	server.stop_threads();
-
-	dbus_error_free(&error);
-#ifdef DEBUG
-	cout << "Closing connection..." << endl;
-#endif
-#if DBUS_VERSION < 33000
-	dbus_connection_disconnect(pConnection);
-#endif
-	dbus_g_connection_unref(pBus);
 
 	return EXIT_SUCCESS;
 }
