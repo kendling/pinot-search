@@ -74,7 +74,6 @@ class WorkerThread
 		static Glib::Dispatcher m_dispatcher;
 		static pthread_mutex_t m_dispatcherMutex;
 		static bool m_immediateFlush;
-		bool m_joinable;
 		unsigned int m_id;
 		bool m_background;
 		bool m_done;

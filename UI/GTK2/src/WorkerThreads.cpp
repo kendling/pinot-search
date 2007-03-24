@@ -68,22 +68,6 @@ public:
 	}
 };
 
-// A function object to delete threads with for_each()
-struct DeleteThreadFunc
-{
-public:
-	void operator()(map<WorkerThread *, Thread *>::value_type &p)
-	{
-#ifdef DEBUG
-		cout << "DeleteThreadFunc: waiting for thread " << p.first->getId() << endl;
-#endif
-		// FIXME: the documentation says resources of the thread, including the Thread object
-		// are released by join()
-		p.second->join();
-		delete p.first;
-	}
-};
-
 Dispatcher WorkerThread::m_dispatcher;
 pthread_mutex_t WorkerThread::m_dispatcherMutex = PTHREAD_MUTEX_INITIALIZER;
 bool WorkerThread::m_immediateFlush = true;
@@ -99,7 +83,6 @@ void WorkerThread::immediateFlush(bool doFlush)
 }
 
 WorkerThread::WorkerThread() :
-	m_joinable(true),
 	m_id(0),
 	m_background(false),
 	m_done(false)
@@ -140,7 +123,8 @@ Glib::Thread *WorkerThread::start(void)
 #ifdef DEBUG
 	cout << "WorkerThread::start: " << getType() << " " << m_id << endl;
 #endif
-	return Thread::create(slot_class(*this, &WorkerThread::threadHandler), m_joinable);
+	// Create non-joinable threads
+	return Thread::create(slot_class(*this, &WorkerThread::threadHandler), false);
 }
 
 bool WorkerThread::isDone(void) const
@@ -184,9 +168,6 @@ void WorkerThread::emitSignal(void)
 		cout << "WorkerThread::emitSignal: signaling end of thread " << m_id << endl;
 #endif
 		m_dispatcher();
-#ifdef DEBUG
-		cout << "WorkerThread::emitSignal: signaled end of thread " << m_id << endl;
-#endif
 
 		pthread_mutex_unlock(&m_dispatcherMutex);
 	}
@@ -278,7 +259,6 @@ WorkerThread *ThreadsManager::get_thread(void)
 			{
 				// This one will do...
 				pWorkerThread = threadIter->first;
-				threadIter->second->join();
 				// Remove it
 				m_threads.erase(threadIter);
 				break;
@@ -431,8 +411,6 @@ void ThreadsManager::stop_threads(void)
 		{
 			// Stop threads
 			for_each(m_threads.begin(), m_threads.end(), StopThreadFunc());
-			// Join them
-			for_each(m_threads.begin(), m_threads.end(), DeleteThreadFunc());
 			m_threads.clear();
 
 			unlock_threads();
@@ -778,6 +756,8 @@ bool QueryingThread::stop(void)
 
 void QueryingThread::doWork(void)
 {
+	PinotSettings &settings = PinotSettings::getInstance();
+
 	// Get the SearchEngine
 	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(m_engineName, m_engineOption);
 	if (pEngine == NULL)
@@ -791,6 +771,20 @@ void QueryingThread::doWork(void)
 	// Set the maximum number of results
 	pEngine->setMaxResultsCount(m_queryProps.getMaximumResultsCount());
 
+	// Set up the proxy
+	DownloaderInterface *pDownloader = pEngine->getDownloader();
+	if ((pDownloader != NULL) &&
+		(settings.m_proxyEnabled == true) &&
+		(settings.m_proxyAddress.empty() == false))
+	{
+		char portStr[64];
+
+		pDownloader->setSetting("proxyaddress", settings.m_proxyAddress);
+		snprintf(portStr, 64, "%u", settings.m_proxyPort);
+		pDownloader->setSetting("proxyport", portStr);
+		pDownloader->setSetting("proxytype", settings.m_proxyType);
+	}
+
 	// Run the query
 	if (pEngine->runQuery(m_queryProps) == false)
 	{
@@ -802,7 +796,6 @@ void QueryingThread::doWork(void)
 	{
 		IndexInterface *pDocsIndex = NULL;
 		IndexInterface *pDaemonIndex = NULL;
-		PinotSettings &settings = PinotSettings::getInstance();
 		const vector<Result> &resultsList = pEngine->getResults();
 		unsigned int indexId = 0;
 		bool isIndexQuery = false;
@@ -1153,6 +1146,20 @@ void DownloadingThread::doWork(void)
 	}
 	else if (m_done == false)
 	{
+		PinotSettings &settings = PinotSettings::getInstance();
+
+		// Set up the proxy
+		if ((settings.m_proxyEnabled == true) &&
+			(settings.m_proxyAddress.empty() == false))
+		{
+			char portStr[64];
+
+			m_pDownloader->setSetting("proxyaddress", settings.m_proxyAddress);
+			snprintf(portStr, 64, "%u", settings.m_proxyPort);
+			m_pDownloader->setSetting("proxyport", portStr);
+			m_pDownloader->setSetting("proxytype", settings.m_proxyType);
+		}
+
 		m_pDoc = m_pDownloader->retrieveUrl(m_docInfo);
 	}
 
@@ -1287,9 +1294,6 @@ void IndexingThread::doWork(void)
 	if (doDownload == true)
 	{
 		DownloadingThread::doWork();
-#ifdef DEBUG
-		cout << "IndexingThread::doWork: downloaded " << m_docInfo.getLocation() << endl;
-#endif
 	}
 	else
 	{
@@ -1444,6 +1448,9 @@ void IndexingThread::doWork(void)
 			}
 		}
 	}
+#ifdef DEBUG
+	else cout << "IndexingThread::doWork: couldn't download " << m_docInfo.getLocation() << endl;
+#endif
 
 	delete pIndex;
 }

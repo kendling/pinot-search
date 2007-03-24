@@ -58,14 +58,8 @@ DaemonState::~DaemonState()
 	{
 		delete m_pMailMonitor;
 	}
-	if (m_pDiskHandler != NULL)
-	{
-		delete m_pDiskHandler;
-	}
-	if (m_pMailHandler != NULL)
-	{
-		delete m_pMailHandler;
-	}
+	// Don't delete m_pDiskHandler and m_pMailHandler, threads may need them
+	// Since DaemonState is destroyed when the program exits, it's okay
 }
 
 bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bool doMonitoring)
