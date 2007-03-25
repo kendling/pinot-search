@@ -79,7 +79,7 @@ static bool loadXMLDescription(void)
 	ifstream xmlFile;
 	string xmlFileName(PREFIX);
 
-	xmlFileName += "/share/doc/pinot-dbus-daemon.xml";
+	xmlFileName += "/share/pinot/pinot-dbus-daemon.xml";
 	xmlFile.open(xmlFileName.c_str());
 	if (xmlFile.good() == true)
 	{
@@ -99,6 +99,10 @@ static bool loadXMLDescription(void)
 	}
 	xmlFile.close();
 
+	if (readFile == false)
+	{
+		cerr << "File " << xmlFileName << " couldn't be read" << endl;
+	}
 	return readFile;
 }
 
@@ -1212,10 +1216,6 @@ void DBusServletThread::doWork(void)
 					DBUS_TYPE_STRING, &pXmlData,
 					DBUS_TYPE_INVALID);
 			}
-		}
-		else
-		{
-			cerr << "File pinot-dbus-daemon.xml couldn't be found" << endl;
 		}
 	}
 	else
