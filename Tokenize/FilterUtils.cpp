@@ -67,7 +67,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 		(pFilter->is_data_input_ok(Filter::DOCUMENT_DATA) == true))
 	{
 #ifdef DEBUG
-		cout << "FilterUtils::feedFilter: feeding data" << endl;
+		cout << "FilterUtils::feedFilter: feeding " << dataLength << " bytes of data from " << location << endl;
 #endif
 		fedInput = pFilter->set_document_data(pData, dataLength);
 	}
