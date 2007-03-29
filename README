@@ -50,6 +50,13 @@ http://pinot.berlios.de/
   My Documents index.
 
 
+  * to 0.71 or newer
+  V0.71 and newer will detect what version the My Documents index was built
+  with and automatically upgrade it by reindexing all documents, if necessary.
+  As for My Web Pages, the UI will indicate when upgrading is necessary.
+  Updating documents with the Index, Update menu is recommended.
+
+
 3. Available engines 
 
 
@@ -429,8 +436,7 @@ Notes :
     (or more) index is still locked. Quit Pinot and look for a "db_lock" file
     in "~/.pinot/index". If it's there, delete it and restart Pinot.
     Starting with 0.60, indexes are created with the newer Flint back-end
-    which is immune to this issue. The easiest way to "upgrade" is to delete
-    the index, let Pinot recreate it, then reindex your data.
+    which is immune to this issue.
 
   * When compiling from source, you may run into linking problems related to
     libstdc++.la. Try patching xapian-config as explained in the post at
@@ -464,6 +470,11 @@ Notes :
 
   * On FreeBSD, threading issues may cause the daemon to crash unexpectedly.
     A fix is to add the following lines to /etc/libmap.conf (which may not exist) :
+     [/usr/local/bin/pinot-dbus-daemon]
+     libpthread.so.2         libc_r.so.6
+     libpthread.so           libc_r.so
+
+     [/usr/local/bin/pinot]
      libpthread.so.2         libc_r.so.6
      libpthread.so           libc_r.so
     Refer to the libmap.conf(5) man page for details.
