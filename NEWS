@@ -22,6 +22,8 @@ Daemon :
 Deskbar :
  - use deskbar.Utils.url_show() if available
 UI :
+ - Status window is now live
+ - View on a plain text message shows the mail headers
  - added proxy support for Web engines queries and collection of documents on HTTP
  - better work-around for desktop files that attempt setting env variables in Exec
  - use Gtk::ComboboxText where appropriate
