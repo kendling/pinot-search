@@ -1,3 +1,34 @@
+2007/03/31 version_0_7_1
+Tokenize :
+ - HTML filter wasn't always properly initialized, which could cause a crash
+Monitor :
+ - file creation wasn't acted upon
+ - moves to unmonitored locations are treated as deletions
+Collect :
+ - fixed building with a version of curl that doesn't depend on OpenSSL
+ - dropped pinot-collect tool
+Index :
+ - added versioning
+ - label names, file names, directory names and URLs are escaped
+ - directories are indexed as separate documents
+Search :
+ - filters with spaces or control characters should be double-quoted, eg :
+  file:"Cats & Dogs.txt"
+Daemon :
+ - extended D-Bus methods Set and GetDocumentInfo
+ - fixed off-by-one error in numbering of mail messages parts
+ - blacklist wasn't applied to files for which the monitor reports events
+ - an index created with Pinot < 0.71 is automatically upgraded
+Deskbar :
+ - use deskbar.Utils.url_show() if available
+UI :
+ - added proxy support for Web engines queries and collection of documents on HTTP
+ - better work-around for desktop files that attempt setting env variables in Exec
+ - use Gtk::ComboboxText where appropriate
+ - German translation by Christian Dywan
+ - Italian translation by Michele Angrisano
+ - Portuguese translation by _PN_boy
+
 2007/03/06 version_0_7_0
 Tokenize :
  - now use Dijon's filters (http://dijon.berlios.de/)
