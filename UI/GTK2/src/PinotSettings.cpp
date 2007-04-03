@@ -253,7 +253,6 @@ bool PinotSettings::load(void)
 		m_filePatternsBlackList.insert("*.Z");
 		m_filePatternsBlackList.insert("*.avi");
 		m_filePatternsBlackList.insert("*.asf");
-		m_filePatternsBlackList.insert("*.deb");
 		m_filePatternsBlackList.insert("*.gif");
 		m_filePatternsBlackList.insert("*.jpeg");
 		m_filePatternsBlackList.insert("*.jpg");
