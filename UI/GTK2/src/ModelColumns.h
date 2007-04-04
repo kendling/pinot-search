@@ -90,8 +90,8 @@ public:
 	Gtk::TreeModelColumn<unsigned int> m_engines;
 	Gtk::TreeModelColumn<unsigned int> m_indexes;
 	Gtk::TreeModelColumn<unsigned int> m_docId;
-	typedef enum { RESULT_ROOT = 0, RESULT_TITLE, RESULT_HOST, RESULT_OTHER } ResultType;
-	Gtk::TreeModelColumn<ResultType> m_resultType;
+	typedef enum { ROW_ENGINE = 0, ROW_HOST, ROW_RESULT, ROW_OTHER } RowType;
+	Gtk::TreeModelColumn<RowType> m_resultType;
 	Gtk::TreeModelColumn<Glib::ustring> m_timestamp;
 	Gtk::TreeModelColumn<time_t> m_timestampTime;
 

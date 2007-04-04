@@ -35,7 +35,6 @@
 #include <gtkmm/treeview.h>
 #include <gtkmm/treeselection.h>
 
-#include "QueryProperties.h"
 #include "Result.h"
 #include "ModelColumns.h"
 #include "PinotSettings.h"
@@ -43,8 +42,10 @@
 class ResultsTree : public Gtk::TreeView
 {
 	public:
+		typedef enum { BY_ENGINE = 0, BY_HOST, FLAT } GroupByMode;
+
 		ResultsTree(const Glib::ustring &queryName, Gtk::Menu *pPopupMenu,
-			PinotSettings &settings);
+			GroupByMode groupMode, PinotSettings &settings);
 		virtual ~ResultsTree();
 
 		/// Returns the results scrolled window.
@@ -63,12 +64,11 @@ class ResultsTree : public Gtk::TreeView
 		  * Adds a set of results.
 		  * Returns true if something was added to the tree.
 		  */
-		bool addResults(QueryProperties &queryProps, const std::string &engineName,
-			const std::vector<Result> &resultsList, const std::string &charset,
-			bool groupBySearchEngine);
+		bool addResults(const std::string &engineName, const std::vector<Result> &resultsList,
+			const std::string &charset);
 
 		/// Sets how results are grouped.
-		void setGroupMode(bool groupBySearchEngine);
+		void setGroupMode(GroupByMode groupMode);
 
 		/// Gets a list of selected items.
 		bool getSelection(std::vector<DocumentInfo> &resultsList, bool skipIndexed = false);
@@ -79,6 +79,9 @@ class ResultsTree : public Gtk::TreeView
 		/// Sets the selected items' state.
 		void setSelectionState(bool viewed);
 
+		/// Updates a result's properties.
+		void updateResult(const Result &result);
+
 		/**
 		  * Deletes the current selection.
 		  * Returns true if the tree is then empty.
@@ -86,7 +89,7 @@ class ResultsTree : public Gtk::TreeView
 		bool deleteSelection(void);
 
 		/// Deletes results.
-		bool deleteResults(QueryProperties &queryProps, const std::string &engineName);
+		bool deleteResults(const std::string &engineName);
 
 		/// Refreshes the tree.
 		void refresh(void);
@@ -123,7 +126,7 @@ class ResultsTree : public Gtk::TreeView
 		ComboModelColumns m_extractColumns;
 		std::set<std::string> m_indexNames;
 		bool m_showExtract;
-		bool m_groupBySearchEngine;
+		GroupByMode m_groupMode;
 
 		void renderViewStatus(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
 
@@ -146,7 +149,7 @@ class ResultsTree : public Gtk::TreeView
 		void onStyleChanged(const Glib::RefPtr<Gtk::Style> &previous_style);
 
 		/// Adds a results group.
-		bool appendGroup(const std::string &groupName, ResultsModelColumns::ResultType groupType,
+		bool appendGroup(const std::string &groupName, ResultsModelColumns::RowType groupType,
 			Gtk::TreeModel::iterator &groupIter);
 
 		/// Adds a new row in the results tree.
@@ -154,7 +157,8 @@ class ResultsTree : public Gtk::TreeView
 			const Glib::ustring &type, int score, int rankDiff,
 			bool isIndexed, unsigned int docId, const Glib::ustring &timestamp,
 			unsigned int engineId, unsigned int indexId,
-			Gtk::TreeModel::iterator &newRowIter, const Gtk::TreeModel::Row *parentRow = NULL,
+			Gtk::TreeModel::iterator &newRowIter,
+			const Gtk::TreeModel::iterator &parentIter,
 			bool noDuplicates = false);
 
 		/// Updates a results group.
@@ -165,7 +169,7 @@ class ResultsTree : public Gtk::TreeView
 			const Glib::ustring &url, const Glib::ustring &type,
 			int score, unsigned int engineId, unsigned int indexId,
 			unsigned int docId, const Glib::ustring &timestamp,
-			ResultsModelColumns::ResultType type, bool indexed, bool viewed, int rankDiff);
+			ResultsModelColumns::RowType type, bool indexed, bool viewed, int rankDiff);
 
 		/// Retrieves the extract to show for the given row.
 		Glib::ustring findResultsExtract(const Gtk::TreeModel::Row &row);

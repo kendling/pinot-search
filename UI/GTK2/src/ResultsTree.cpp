@@ -45,7 +45,7 @@ using namespace Gdk;
 using namespace Gtk;
 
 ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
-	PinotSettings &settings) :
+	GroupByMode groupMode, PinotSettings &settings) :
 	TreeView(),
 	m_queryName(queryName),
 	m_pPopupMenu(pPopupMenu),
@@ -54,7 +54,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_pExtractScrolledwindow(NULL),
 	m_extractTreeView(NULL),
 	m_showExtract(true),
-	m_groupBySearchEngine(true)
+	m_groupMode(groupMode)
 {
 	m_pResultsScrolledwindow = manage(new ScrolledWindow());
 	m_pExtractScrolledwindow = manage(new ScrolledWindow());
@@ -300,9 +300,9 @@ void ResultsTree::renderTitleColumn(CellRenderer *pRenderer, const TreeModel::it
 			pTextRenderer->property_background_gdk().reset_value();
 		}
 
-		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_resultType];
-		if ((type == ResultsModelColumns::RESULT_ROOT) ||
-			(type == ResultsModelColumns::RESULT_HOST))
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
+		if ((type == ResultsModelColumns::ROW_ENGINE) ||
+			(type == ResultsModelColumns::ROW_HOST))
 		{
 			ustring markup("<b>");
 			markup += row[m_resultsColumns.m_text];
@@ -376,8 +376,8 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 		m_refExtractStore->clear();
 
 		// Is this an actual result ?
-		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_resultType];
-		if (type == ResultsModelColumns::RESULT_TITLE)
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
+		if (type == ResultsModelColumns::ROW_RESULT)
 		{
 #ifdef DEBUG
 			cout << "ResultsTree::onSelectionSelect: extract for " << row[m_resultsColumns.m_text] << endl;
@@ -451,24 +451,23 @@ ustring ResultsTree::getExtract(void) const
 // Adds a set of results.
 // Returns true if something was added to the tree.
 //
-bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineName,
-	const vector<Result> &resultsList, const string &charset,
-	bool groupBySearchEngine)
+bool ResultsTree::addResults(const string &engineName, const vector<Result> &resultsList,
+	const string &charset)
 {
 	std::map<string, TreeModel::iterator> updatedGroups;
-	ResultsModelColumns::ResultType rootType;
+	ResultsModelColumns::RowType rootType;
 	unsigned int count = 0;
 
 	// What's the grouping criteria ?
-	if (groupBySearchEngine == true)
+	if (m_groupMode == BY_ENGINE)
 	{
 		// By search engine
-		rootType = ResultsModelColumns::RESULT_ROOT;
+		rootType = ResultsModelColumns::ROW_ENGINE;
 	}
-	else
+	else if (m_groupMode == BY_HOST)
 	{
 		// By host
-		rootType = ResultsModelColumns::RESULT_HOST;
+		rootType = ResultsModelColumns::ROW_HOST;
 	}
 
 	// Find out what the search engine ID is
@@ -512,71 +511,76 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 		ustring title(to_utf8(resultIter->getTitle(), charset));
 		ustring location(to_utf8(resultIter->getLocation(), charset));
 		ustring extract(to_utf8(resultIter->getExtract(), charset));
+		string groupName;
+		TreeModel::iterator groupIter;
 		float currentScore = resultIter->getScore();
 		int rankDiff = 0;
 
 		// What group should the result go to ?
-		string groupName;
-		if (rootType == ResultsModelColumns::RESULT_HOST)
+		if (m_groupMode != FLAT)
 		{
-			Url urlObj(location);
-			groupName = urlObj.getHost();
-		}
-		else
-		{
-			groupName = engineName;
-		}
-
-		// Add the group or get its position if it's already in
-		TreeModel::iterator groupIter;
-		if (appendGroup(groupName, rootType, groupIter) == true)
-		{
-			// OK, add a row for this result within the group
-			TreeModel::iterator titleIter;
-
-			// Has the result's ranking changed ?
-			float oldestScore = 0;
-			float previousScore = history.hasItem(m_queryName, engineName,
-				location, oldestScore);
-			if (previousScore > 0)
+			if (rootType == ResultsModelColumns::ROW_HOST)
 			{
-				// Update this result whatever the current and previous rankings were
-				history.updateItem(m_queryName, engineName, location,
-					title, extract, charset, currentScore);
-				rankDiff = (int)(currentScore - previousScore);
+				Url urlObj(location);
+				groupName = urlObj.getHost();
 			}
 			else
 			{
-				// No, this is a new result
-				history.insertItem(m_queryName, engineName, location,
-					resultIter->getTitle(), extract, charset, currentScore);
-				// New results are displayed as such only if the query has already been run on the engine
-				if (isNewQuery == false)
-				{
-					// This is a magic value :-)
-					rankDiff = 666;
-				}
+				groupName = engineName;
 			}
 
-			++count;
+			// Add the group or get its position if it's already in
+			appendGroup(groupName, rootType, groupIter);
+		}
 
-			unsigned int docId = resultIter->getIsIndexed(indexId);
-			bool isIndexed = false;
+		// OK, add a row for this result within the group
+		TreeModel::iterator titleIter;
 
-			if (docId > 0)
+		// Has the result's ranking changed ?
+		float oldestScore = 0;
+		float previousScore = history.hasItem(m_queryName, engineName,
+			location, oldestScore);
+		if (previousScore > 0)
+		{
+			// Update this result whatever the current and previous rankings were
+			history.updateItem(m_queryName, engineName, location,
+				title, extract, charset, currentScore);
+			rankDiff = (int)(currentScore - previousScore);
+		}
+		else
+		{
+			// No, this is a new result
+			history.insertItem(m_queryName, engineName, location,
+				resultIter->getTitle(), extract, charset, currentScore);
+			// New results are displayed as such only if the query has already been run on the engine
+			if (isNewQuery == false)
 			{
-				isIndexed = true;
+				// This is a magic value :-)
+				rankDiff = 666;
 			}
+		}
 
-			if (appendResult(title, location, resultIter->getType(), (int)currentScore, rankDiff, isIndexed,
-				docId, resultIter->getTimestamp(), engineId, indexId, titleIter, &(*groupIter), true) == true)
-			{
+		++count;
+
+		unsigned int docId = resultIter->getIsIndexed(indexId);
+		bool isIndexed = false;
+
+		if (docId > 0)
+		{
+			isIndexed = true;
+		}
+
+		if (appendResult(title, location, resultIter->getType(), (int)currentScore, rankDiff, isIndexed,
+			docId, resultIter->getTimestamp(), engineId, indexId, titleIter, groupIter, true) == true)
+		{
 #ifdef DEBUG
-				cout << "ResultsTree::addResults: added row for result " << count
-					<< ", " << currentScore << ", " << isIndexed << " " << indexId
-					<< " " << resultIter->getTimestamp() << endl;
+			cout << "ResultsTree::addResults: added row for result " << count
+				<< ", " << currentScore << ", " << isIndexed << " " << indexId
+				<< " " << resultIter->getTimestamp() << endl;
 #endif
 
+			if (groupIter)
+			{
 				// Update this map, so that we know which groups need updating
 				updatedGroups[groupName] = groupIter;
 			}
@@ -598,17 +602,14 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 
 		return true;
 	}
-	else
+	else if (m_groupMode == BY_ENGINE)
 	{
-		if (rootType == ResultsModelColumns::RESULT_ROOT)
-		{
-			// If this didn't return any result, add an empty group
-			TreeModel::iterator groupIter;
-			appendGroup(engineName, rootType, groupIter);
-			updateGroup(groupIter);
+		// If this didn't return any result, add an empty group
+		TreeModel::iterator groupIter;
+		appendGroup(engineName, rootType, groupIter);
+		updateGroup(groupIter);
 
-			return true;
-		}
+		return true;
 	}
 
 	return false;
@@ -617,16 +618,19 @@ bool ResultsTree::addResults(QueryProperties &queryProps, const string &engineNa
 //
 // Sets how results are grouped.
 //
-void ResultsTree::setGroupMode(bool groupBySearchEngine)
+void ResultsTree::setGroupMode(GroupByMode groupMode)
 {
-	ResultsModelColumns::ResultType currentType, newType;
+	ResultsModelColumns::RowType currentType, newType;
 
-	if (m_groupBySearchEngine == groupBySearchEngine)
+	if (m_groupMode == groupMode)
 	{
 		// No change
 		return;
 	}
-	m_groupBySearchEngine = groupBySearchEngine;
+#ifdef DEBUG
+	cout << "ResultsTree::setGroupMode: set to " << groupMode << endl;
+#endif
+	m_groupMode = groupMode;
 
 	// Do we need to update the tree ?
 	TreeModel::Children children = m_refStore->children();
@@ -636,17 +640,17 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 	}
 
 	// What's the new grouping criteria ?
-	if (groupBySearchEngine == true)
+	if (m_groupMode == BY_ENGINE)
 	{
 		// By search engine
-		currentType = ResultsModelColumns::RESULT_HOST;
-		newType = ResultsModelColumns::RESULT_ROOT;
+		currentType = ResultsModelColumns::ROW_HOST;
+		newType = ResultsModelColumns::ROW_ENGINE;
 	}
 	else
 	{
 		// By host
-		currentType = ResultsModelColumns::RESULT_ROOT;
-		newType = ResultsModelColumns::RESULT_HOST;
+		currentType = ResultsModelColumns::ROW_ENGINE;
+		newType = ResultsModelColumns::ROW_HOST;
 	}
 
 	// Clear the map
@@ -662,7 +666,7 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 #ifdef DEBUG
 		cout << "ResultsTree::setGroupMode: looking at " << row[m_resultsColumns.m_text] << endl;
 #endif
-		ResultsModelColumns::ResultType type = row[m_resultsColumns.m_resultType];
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
 		// Skip new type rows
 		if (type == newType)
 		{
@@ -670,138 +674,136 @@ void ResultsTree::setGroupMode(bool groupBySearchEngine)
 			continue;
 		}
 
-		TreeModel::Children child = iter->children();
-		if (child.empty() == false)
+		TreeModel::Children groupChildren = iter->children();
+		TreeModel::Children::iterator childIter = groupChildren.begin();
+		// Type ROW_RESULT
+		while (childIter != groupChildren.end())
 		{
-			TreeModel::Children::iterator childIter = child.begin();
-			// Type RESULT_TITLE
-			while (childIter != child.end())
+			TreeModel::Row childRow = *childIter;
+			TreeModel::iterator groupIter, newIter;
+			bool success = false;
+
+			// We will need the URL and engines columns in all cases
+			string url(from_utf8(childRow[m_resultsColumns.m_url]));
+			unsigned int engineIds = childRow[m_resultsColumns.m_engines];
+			unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
+
+			// Get the name of the group this should go into
+			if (m_groupMode == BY_HOST)
 			{
-				TreeModel::Row childRow = *childIter;
-				TreeModel::iterator groupIter, newIter;
-				bool success = false;
-
-				// We will need the URL and engines columns in all cases
-				string url = from_utf8(childRow[m_resultsColumns.m_url]);
-				unsigned int engineIds = childRow[m_resultsColumns.m_engines];
-				unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
-
-				// Get the name of the group this should go into
-				if (newType == ResultsModelColumns::RESULT_HOST)
-				{
-					Url urlObj(url);
+				Url urlObj(url);
 #ifdef DEBUG
-					cout << "ResultsTree::setGroupMode: row " << url << endl;
+				cout << "ResultsTree::setGroupMode: row " << url << endl;
 #endif
-					string groupName = urlObj.getHost();
-					// Add group
-					if (appendGroup(groupName, newType, groupIter) == true)
+				// Add group
+				if (appendGroup(urlObj.getHost(), newType, groupIter) == true)
+				{
+					// Add result
+					success = appendResult(childRow[m_resultsColumns.m_text],
+						childRow[m_resultsColumns.m_url],
+						childRow[m_resultsColumns.m_type],
+						childRow[m_resultsColumns.m_score],
+						childRow[m_resultsColumns.m_rankDiff],
+						childRow[m_resultsColumns.m_indexed],
+						childRow[m_resultsColumns.m_docId],
+						childRow[m_resultsColumns.m_timestamp],
+						engineIds, indexIds,
+						newIter, groupIter, true);
+				}
+			}
+			else
+			{
+				// Look at the engines column and see which engines this result is for
+				set<string> engineNames;
+				m_settings.getEngineNames(engineIds, engineNames);
+				if (engineNames.empty() == false)
+				{
+#ifdef DEBUG
+					cout << "ResultsTree::setGroupMode: row is for " << engineNames.size() << " engine(s)" << endl;
+#endif
+					// Are there indexes in the list ?
+					set<string>::iterator xapianIter = engineNames.find("Xapian");
+					if ((xapianIter != engineNames.end()) &&
+						(indexIds > 0))
 					{
-						// Add result
-						success = appendResult(childRow[m_resultsColumns.m_text],
-							childRow[m_resultsColumns.m_url],
-							childRow[m_resultsColumns.m_type],
-							childRow[m_resultsColumns.m_score],
-							childRow[m_resultsColumns.m_rankDiff],
-							childRow[m_resultsColumns.m_indexed],
-							childRow[m_resultsColumns.m_docId],
-							childRow[m_resultsColumns.m_timestamp],
-							engineIds, indexIds,
-							newIter, &(*groupIter), true);
+						// Erase this
+						engineNames.erase(xapianIter);
+#ifdef DEBUG
+						cout << "ResultsTree::setGroupMode: row is for index(es)" << indexIds << endl;
+#endif
+
+						// Add entries for each index name so that we can loop once on engine names
+						set<string> indexNames;
+						m_settings.getIndexNames(indexIds, indexNames);
+						for (set<string>::iterator iter = indexNames.begin();
+							iter != indexNames.end(); ++iter)
+						{
+							string indexName(*iter);
+							engineNames.insert(indexName);
+#ifdef DEBUG
+							cout << "ResultsTree::setGroupMode: row is for index " << indexName << endl;
+#endif
+						}
 					}
-				}
-				else
-				{
-					// Look at the engines column and see which engines this result is for
-					set<string> engineNames;
-					m_settings.getEngineNames(engineIds, engineNames);
-					if (engineNames.empty() == false)
+
+					for (set<string>::iterator iter = engineNames.begin();
+						iter != engineNames.end(); ++iter)
 					{
-#ifdef DEBUG
-						cout << "ResultsTree::setGroupMode: row is for " << engineNames.size() << " engine(s)" << endl;
-#endif
-						// Are there indexes in the list ?
-						set<string>::iterator xapianIter = engineNames.find("Xapian");
-						if ((xapianIter != engineNames.end()) &&
-							(indexIds > 0))
+						string engineName(*iter);
+						unsigned int indexId = 0;
+						unsigned int engineId = m_settings.getEngineId(engineName);
+
+						if (engineId == 0)
 						{
-							// Erase this
-							engineNames.erase(xapianIter);
-#ifdef DEBUG
-							cout << "ResultsTree::setGroupMode: row is for index(es)" << indexIds << endl;
-#endif
-
-							// Add entries for each index name so that we can loop once on engine names
-							set<string> indexNames;
-							m_settings.getIndexNames(indexIds, indexNames);
-							for (set<string>::iterator iter = indexNames.begin(); iter != indexNames.end(); ++iter)
+							// This is actually an index, not an engine...
+							indexId = m_settings.getIndexId(engineName);
+							if (indexId > 0)
 							{
-								string indexName = (*iter);
-								engineNames.insert(indexName);
-#ifdef DEBUG
-								cout << "ResultsTree::setGroupMode: row is for index " << indexName << endl;
-#endif
+								engineId = m_settings.getEngineId("Xapian");
 							}
+#ifdef DEBUG
+							cout << "ResultsTree::setGroupMode: index " << indexId << endl;
+#endif
 						}
+#ifdef DEBUG
+						else cout << "ResultsTree::setGroupMode: no index" << endl;
+#endif
 
-						for (set<string>::iterator iter = engineNames.begin(); iter != engineNames.end(); ++iter)
+						// Add group
+						if (appendGroup(engineName, newType, groupIter) == true)
 						{
-							string engineName = (*iter);
-							unsigned int indexId = 0;
-							unsigned int engineId = m_settings.getEngineId(engineName);
-
-							if (engineId == 0)
-							{
-								// This is actually an index, not an engine...
-								indexId = m_settings.getIndexId(engineName);
-								if (indexId > 0)
-								{
-									engineId = m_settings.getEngineId("Xapian");
-								}
+							// Add result
+							appendResult(childRow[m_resultsColumns.m_text],
+								childRow[m_resultsColumns.m_url],
+								childRow[m_resultsColumns.m_type],
+								childRow[m_resultsColumns.m_score],
+								childRow[m_resultsColumns.m_rankDiff],
+								childRow[m_resultsColumns.m_indexed],
+								childRow[m_resultsColumns.m_docId],
+								childRow[m_resultsColumns.m_timestamp],
+								engineId, indexId,
+								newIter, groupIter, true);
 #ifdef DEBUG
-								cout << "ResultsTree::setGroupMode: index " << indexId << endl;
+							cout << "ResultsTree::setGroupMode: row for " << *iter << endl;
 #endif
-							}
-#ifdef DEBUG
-							else cout << "ResultsTree::setGroupMode: no index" << endl;
-#endif
-
-							// Add group
-							if (appendGroup(engineName, newType, groupIter) == true)
-							{
-								// Add result
-								appendResult(childRow[m_resultsColumns.m_text],
-									childRow[m_resultsColumns.m_url],
-									childRow[m_resultsColumns.m_type],
-									childRow[m_resultsColumns.m_score],
-									childRow[m_resultsColumns.m_rankDiff],
-									childRow[m_resultsColumns.m_indexed],
-									childRow[m_resultsColumns.m_docId],
-									childRow[m_resultsColumns.m_timestamp],
-									engineId, indexId,
-									newIter, &(*groupIter), true);
-#ifdef DEBUG
-								cout << "ResultsTree::setGroupMode: row for " << *iter << endl;
-#endif
-							}
 						}
-
-						// FIXME: make sure at least one row was added
-						success = true;
 					}
-				}
 
-				if (success == true)
-				{
-					// Delete it
-					m_refStore->erase(*childIter);
-					childIter = child.begin();
+					// FIXME: make sure at least one row was added
+					success = true;
 				}
-				else
-				{
-					// Don't delete anything then, just go to the next child
-					childIter++;
-				}
+			}
+
+			if (success == true)
+			{
+				// Delete it
+				m_refStore->erase(*childIter);
+				childIter = groupChildren.begin();
+			}
+			else
+			{
+				// Don't delete anything then, just go to the next child
+				childIter++;
 			}
 		}
 
@@ -840,7 +842,7 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_TITLE)
+		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_RESULT)
 		{
 			continue;
 		}
@@ -878,7 +880,7 @@ bool ResultsTree::getSelection(vector<Result> &resultsList)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if (row[m_resultsColumns.m_resultType] == ResultsModelColumns::RESULT_TITLE)
+		if (row[m_resultsColumns.m_resultType] == ResultsModelColumns::ROW_RESULT)
 		{
 			bool isIndexed = row[m_resultsColumns.m_indexed];
 
@@ -934,7 +936,7 @@ void ResultsTree::setSelectionState(bool viewed)
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_TITLE)
+		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_RESULT)
 		{
 			continue;
 		}
@@ -944,6 +946,37 @@ void ResultsTree::setSelectionState(bool viewed)
 			row[m_resultsColumns.m_viewed] = true;
 		}
 	}
+}
+
+//
+// Updates a result's properties.
+//
+void ResultsTree::updateResult(const Result &result)
+{
+#if 0
+	if (docId == 0)
+	{
+		return;
+	}
+
+	// Go through the list of indexed documents
+	TreeModel::Children children = m_refStore->children();
+	for (TreeModel::Children::iterator iter = children.begin(); iter != children.end(); ++iter)
+	{
+		TreeModel::Row row = *iter;
+
+		if (docId == row[m_indexColumns.m_id])
+		{
+			row[m_indexColumns.m_text] = to_utf8(docInfo.getTitle());
+			row[m_indexColumns.m_type] = to_utf8(docInfo.getType());
+			row[m_indexColumns.m_language] = to_utf8(docInfo.getLanguage());
+			string timestamp(docInfo.getTimestamp());
+			row[m_indexColumns.m_timestamp] = to_utf8(timestamp);
+			row[m_indexColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
+			break;
+		}
+	}
+#endif
 }
 
 //
@@ -964,9 +997,9 @@ bool ResultsTree::deleteSelection(void)
 		bool updateParent = false;
 
 		// This could be a group that's in the map and should be removed first
-		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_TITLE)
+		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_RESULT)
 		{
-			string groupName = from_utf8(row[m_resultsColumns.m_text]);
+			string groupName(from_utf8(row[m_resultsColumns.m_text]));
 			std::map<string, TreeModel::iterator>::iterator mapIter = m_resultsGroups.find(groupName);
 			if (mapIter != m_resultsGroups.end())
 			{
@@ -1009,9 +1042,8 @@ bool ResultsTree::deleteSelection(void)
 //
 // Deletes results.
 //
-bool ResultsTree::deleteResults(QueryProperties &queryProps, const string &engineName)
+bool ResultsTree::deleteResults(const string &engineName)
 {
-	ustring queryName(queryProps.getName());
 	unsigned int indexId = 0;
 	unsigned int engineId = m_settings.getEngineId(engineName);
 	unsigned int count = 0;
@@ -1034,8 +1066,8 @@ bool ResultsTree::deleteResults(QueryProperties &queryProps, const string &engin
 	{
 		TreeModel::Row row = *parentIter;
 
-		if ((row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_ROOT) &&
-			(row[m_resultsColumns.m_resultType] != ResultsModelColumns::RESULT_HOST))
+		if ((row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_ENGINE) &&
+			(row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_HOST))
 		{
 			continue;
 		}
@@ -1046,7 +1078,7 @@ bool ResultsTree::deleteResults(QueryProperties &queryProps, const string &engin
 		{
 			row = *iter;
 
-			if ((row[m_resultsColumns.m_resultType] == ResultsModelColumns::RESULT_TITLE) &&
+			if ((row[m_resultsColumns.m_resultType] == ResultsModelColumns::ROW_RESULT) &&
 				(row[m_resultsColumns.m_engines] == engineId) &&
 				(row[m_resultsColumns.m_indexes] == indexId))
 			{
@@ -1162,21 +1194,26 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 	const ustring &type, int score, int rankDiff, bool isIndexed,
 	unsigned int docId, const ustring &timestamp, unsigned int engineId,
 	unsigned int indexId, TreeModel::iterator &newRowIter,
-	const TreeModel::Row *parentRow, bool noDuplicates)
+	const TreeModel::iterator &parentIter, bool noDuplicates)
 {
-	if (parentRow == NULL)
+	if (!parentIter)
 	{
+#ifdef DEBUG
+		cout << "ResultsTree::appendResult: no parent" << endl;
+#endif
 		newRowIter = m_refStore->append();
 	}
 	else
 	{
+		const TreeModel::Row parentRow = *parentIter;
+
 		// Merge duplicates within groups ?
 		if (noDuplicates == true)
 		{
 			// Look for a row with the same URL and query. For instance, in group
 			// by host mode, if a page is returned by several search engines, it
 			// should appear only once
-			TreeModel::Children children = parentRow->children();
+			TreeModel::Children children = parentRow.children();
 			if (children.empty() == false)
 			{
 				for (TreeModel::Children::iterator childIter = children.begin();
@@ -1197,7 +1234,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 			}
 		}
 
-		newRowIter = m_refStore->append(parentRow->children());
+		newRowIter = m_refStore->append(parentRow.children());
 	}
 
 	// Has it been already viewed ?
@@ -1206,7 +1243,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 
 	TreeModel::Row childRow = *newRowIter;
 	updateRow(childRow, text, url, type, score, engineId, indexId,
-		docId, timestamp, ResultsModelColumns::RESULT_TITLE, isIndexed,
+		docId, timestamp, ResultsModelColumns::ROW_RESULT, isIndexed,
 		wasViewed, rankDiff);
 
 	return true;
@@ -1215,7 +1252,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 //
 // Adds a results group
 //
-bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::ResultType groupType,
+bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::RowType groupType,
 	TreeModel::iterator &groupIter)
 {
 	bool success = false;
@@ -1260,7 +1297,7 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 	int averageScore = 0;
 
 	// Check the iterator doesn't point to a result
-	if (groupRow[m_resultsColumns.m_resultType] == ResultsModelColumns::RESULT_TITLE)
+	if (groupRow[m_resultsColumns.m_resultType] == ResultsModelColumns::ROW_RESULT)
 	{
 		return;
 	}
@@ -1298,7 +1335,7 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 	const ustring &url, const ustring &type, int score,
 	unsigned int engineId, unsigned int indexId,
 	unsigned int docId, const ustring &timestamp,
-	ResultsModelColumns::ResultType resultType, bool indexed, bool viewed, int rankDiff)
+	ResultsModelColumns::RowType resultType, bool indexed, bool viewed, int rankDiff)
 {
 	try
 	{
@@ -1347,7 +1384,7 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 	if (engineNames.empty() == false)
 	{
 		// Get the first engine this result was obtained from
-		string engineName = (*engineNames.begin());
+		string engineName(*engineNames.begin());
 		if (engineName == "Xapian")
 		{
 			m_settings.getIndexNames(indexIds, indexNames);

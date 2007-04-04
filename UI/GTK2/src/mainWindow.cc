@@ -759,7 +759,14 @@ void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 				{
 					// Sync the results tree with the menuitems
 					pResultsTree->showExtract(showextract1->get_active());
-					pResultsTree->setGroupMode(searchenginegroup1->get_active());
+					if (searchenginegroup1->get_active() == true)
+					{
+						pResultsTree->setGroupMode(ResultsTree::BY_ENGINE);
+					}
+					else
+					{
+						pResultsTree->setGroupMode(ResultsTree::BY_HOST);
+					}
 				}
 			}
 
@@ -945,12 +952,16 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			pTab->getCloseSignal().connect(
 				SigC::slot(*this, &mainWindow::on_close_page));
 
+			ResultsTree::GroupByMode groupMode = ResultsTree::BY_ENGINE;
+			if (searchenginegroup1->get_active() == false)
+			{
+				groupMode = ResultsTree::BY_HOST;
+			}
 			// Position the results tree
-			pResultsTree = manage(new ResultsTree(queryName, resultsMenuitem->get_submenu(), m_settings));
+			pResultsTree = manage(new ResultsTree(queryName, resultsMenuitem->get_submenu(), groupMode, m_settings));
 			pResultsPage = manage(new ResultsPage(queryName, pResultsTree, m_pNotebook->get_height(), m_settings));
 			// Sync the results tree with the menuitems
 			pResultsTree->showExtract(showextract1->get_active());
-			pResultsTree->setGroupMode(searchenginegroup1->get_active());
 			// Connect to the "changed" signal
 			pResultsTree->getSelectionChangedSignal().connect(
 				SigC::slot(*this, &mainWindow::on_resultsTreeviewSelection_changed));
@@ -973,11 +984,10 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		if ((pageNum >= 0) &&
 			(pResultsTree != NULL))
 		{
-			// Add the results to the tree
-			pResultsTree->deleteResults(queryProps, engineName);
-			pResultsTree->addResults(queryProps, engineName,
-				resultsList, resultsCharset,
-				searchenginegroup1->get_active());
+			// Add the results to the tree, using the current group by mode
+			pResultsTree->deleteResults(engineName);
+			pResultsTree->addResults(engineName, resultsList,
+				resultsCharset);
 		}
 
 		// Index results ?
@@ -1700,7 +1710,14 @@ void mainWindow::on_groupresults_activate()
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				pResultsTree->setGroupMode(searchenginegroup1->get_active());
+				if (searchenginegroup1->get_active() == true)
+				{
+					pResultsTree->setGroupMode(ResultsTree::BY_ENGINE);
+				}
+				else
+				{
+					pResultsTree->setGroupMode(ResultsTree::BY_HOST);
+				}
 			}
 		}
 	}
