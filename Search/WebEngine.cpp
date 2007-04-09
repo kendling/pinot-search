@@ -126,7 +126,7 @@ void WebEngine::setQuery(const QueryProperties &queryProps)
 	queryProps.getTerms(m_queryTerms);
 }
 
-bool WebEngine::processResult(const string &queryUrl, Result &result)
+bool WebEngine::processResult(const string &queryUrl, DocumentInfo &result)
 {
 	Url queryUrlObj(queryUrl);
 	string resultUrl(result.getLocation());

@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <string>
+#include <map>
 #include <set>
 
 /// This represents all the properties of a document.
@@ -73,20 +74,47 @@ class DocumentInfo
 		/// Returns the document's size in bytes.
 		virtual off_t getSize(void) const;
 
+		/// Sets the document's extract.
+		virtual void setExtract(const std::string &extract);
+
+		/// Returns the document's extract.
+		virtual std::string getExtract(void) const;
+
+		/// Sets the document's score.
+		void setScore(float score);
+
+		/// Returns the document's score.
+		float getScore(void) const;
+
 		/// Sets the document's labels.
 		virtual void setLabels(const std::set<std::string> &labels);
 
 		/// Returns the document's labels.
 		virtual const std::set<std::string> &getLabels(void) const;
 
+		/// Sets that the document is indexed.
+		void setIsIndexed(unsigned int indexId, unsigned int docId);
+
+		/// Sets that the document is not indexed.
+		void setIsNotIndexed(void);
+
+		/// Gets whether the document is indexed.
+		bool getIsIndexed(void) const;
+
+		/// Gets whether the document is indexed.
+		unsigned int getIsIndexed(unsigned int &indexId) const;
+
 	protected:
-		std::string m_title;
-		std::string m_location;
-		std::string m_type;
-		std::string m_language;
-		std::string m_timestamp;
-		off_t m_size;
+		std::map<std::string, std::string> m_fields;
+		std::string m_extract;
+		float m_score;
 		std::set<std::string> m_labels;
+		unsigned int m_indexId;
+		unsigned int m_docId;
+
+		void setField(const std::string &name, const std::string &value);
+
+		std::string getField(const std::string &name) const;
 
 };
 

@@ -4,11 +4,9 @@ noinst_HEADERS = \
 	CommandLine.h \
 	Document.h \
 	DocumentInfo.h \
-	IndexedDocument.h \
 	Languages.h \
 	MIMEScanner.h \
 	NLS.h \
-	Result.h \
 	StringManip.h \
 	TimeConverter.h \
 	Timer.h \
@@ -32,10 +30,8 @@ libBasicUtils_la_SOURCES = \
 	Url.cpp
 
 libUtils_la_SOURCES = \
-	IndexedDocument.cpp \
 	Languages.cpp \
 	MIMEScanner.cpp \
-	Result.cpp \
 	Timer.cpp \
 	xdgmime/xdgmimealias.c \
 	xdgmime/xdgmime.c \

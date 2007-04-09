@@ -177,14 +177,14 @@ int main(int argc, char **argv)
 		string resultsPage;
 
 		// Try getting a list of links
-		const vector<Result> resultsList = pEngine->getResults();
+		const vector<DocumentInfo> resultsList = pEngine->getResults();
 		if (resultsList.empty() == false)
 		{
 			unsigned int count = 0;
 
 			cout << "Matching documents are :" << endl;
 
-			vector<Result>::const_iterator resultIter = resultsList.begin();
+			vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 			while (resultIter != resultsList.end())
 			{
 				string rawUrl(resultIter->getLocation());

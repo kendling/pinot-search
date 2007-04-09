@@ -21,35 +21,40 @@
 #include "DocumentInfo.h"
 
 using std::string;
+using std::map;
 using std::set;
 using std::copy;
 using std::inserter;
 
 DocumentInfo::DocumentInfo() :
-	m_size(0)
+	m_score(0.0),
+	m_indexId(0),
+	m_docId(0)
 {
-	m_timestamp = TimeConverter::toTimestamp(time(NULL));
+	setField("modtime", TimeConverter::toTimestamp(time(NULL)));
 }
 
 DocumentInfo::DocumentInfo(const string &title, const string &location,
 	const string &type, const string &language) :
-	m_title(title),
-	m_location(location),
-	m_type(type),
-	m_language(language),
-	m_size(0)
+	m_score(0.0),
+	m_indexId(0),
+	m_docId(0)
 {
-	m_timestamp = TimeConverter::toTimestamp(time(NULL));
+	setField("caption", title);
+	setField("url", location);
+	setField("type", type);
+	setField("language", language);
+	setField("modtime", TimeConverter::toTimestamp(time(NULL)));
 }
 
 DocumentInfo::DocumentInfo(const DocumentInfo &other) :
-	m_title(other.m_title),
-	m_location(other.m_location),
-	m_type(other.m_type),
-	m_language(other.m_language),
-	m_timestamp(other.m_timestamp),
-	m_size(other.m_size)
+	m_extract(other.m_extract),
+	m_score(other.m_score),
+	m_indexId(other.m_indexId),
+	m_docId(other.m_docId)
 {
+	copy(other.m_fields.begin(), other.m_fields.end(),
+		inserter(m_fields, m_fields.begin()));
 	copy(other.m_labels.begin(), other.m_labels.end(),
 		inserter(m_labels, m_labels.begin()));
 }
@@ -62,15 +67,16 @@ DocumentInfo& DocumentInfo::operator=(const DocumentInfo& other)
 {
 	if (this != &other)
 	{
-		m_title = other.m_title;
-		m_location = other.m_location;
-		m_type = other.m_type;
-		m_language = other.m_language;
-		m_timestamp = other.m_timestamp;
-		m_size = other.m_size;
+		m_fields.clear();
+		copy(other.m_fields.begin(), other.m_fields.end(),
+			inserter(m_fields, m_fields.begin()));
+		m_extract = other.m_extract;
+		m_score = other.m_score;
 		m_labels.clear();
 		copy(other.m_labels.begin(), other.m_labels.end(),
 			inserter(m_labels, m_labels.begin()));
+		m_indexId = other.m_indexId;
+		m_docId = other.m_docId;
 	}
 
 	return *this;
@@ -78,7 +84,7 @@ DocumentInfo& DocumentInfo::operator=(const DocumentInfo& other)
 
 bool DocumentInfo::operator<(const DocumentInfo& other) const
 {
-	if (m_location < other.m_location)
+	if (getField("url") < other.getField("url"))
 	{
 		return true;
 	}
@@ -89,73 +95,107 @@ bool DocumentInfo::operator<(const DocumentInfo& other) const
 /// Sets the title of the document.
 void DocumentInfo::setTitle(const string &title)
 {
-	m_title = title;
+	setField("caption", title);
 }
 
 /// Returns the title of the document.
 string DocumentInfo::getTitle(void) const
 {
-	return m_title;
+	return getField("caption");
 }
 
 /// Sets the original location of the document.
 void DocumentInfo::setLocation(const string &location)
 {
-	m_location = location;
+	setField("url", location);
 }
 
 /// Returns the original location of the document.
 string DocumentInfo::getLocation(void) const
 {
-	return m_location;
+	return getField("url");
 }
 
 /// Sets the type of the document.
 void DocumentInfo::setType(const string &type)
 {
-	m_type = type;
+	setField("type", type);
 }
 
 /// Returns the type of the document.
 string DocumentInfo::getType(void) const
 {
-	return m_type;
+	return getField("type");
 }
 
 /// Sets the language of the document.
 void DocumentInfo::setLanguage(const string &language)
 {
-	m_language = language;
+	setField("language", language);
 }
 
 /// Returns the document's language.
 string DocumentInfo::getLanguage(void) const
 {
-	return m_language;
+	return getField("language");
 }
 
 /// Sets the document's timestamp.
 void DocumentInfo::setTimestamp(const string &timestamp)
 {
-	m_timestamp = timestamp;
+	setField("modtime", timestamp);
 }
 
 /// Returns the document's timestamp.
 string DocumentInfo::getTimestamp(void) const
 {
-	return m_timestamp;
+	return getField("modtime");
 }
 
 /// Sets the document's size in bytes.
 void DocumentInfo::setSize(off_t size)
 {
-	m_size = size;
+	char sizeStr[64];
+
+	snprintf(sizeStr, 64, "%u", size);
+	setField("size", sizeStr);
 }
 
 /// Returns the document's size in bytes.
 off_t DocumentInfo::getSize(void) const
 {
-	return m_size;
+	string sizeStr(getField("size"));
+
+	if (sizeStr.empty() == true)
+	{
+		return 0;
+	}
+
+	return (off_t)atoi(sizeStr.c_str());
+}
+
+/// Sets the document's extract.
+void DocumentInfo::setExtract(const string &extract)
+{
+	m_extract = extract;
+}
+
+/// Returns the document's extract.
+string DocumentInfo::getExtract(void) const
+{
+	return m_extract;
+}
+
+/// Sets the document's score.
+void DocumentInfo::setScore(float score)
+{
+	m_score = score;
+}
+
+/// Returns the document's score.
+float DocumentInfo::getScore(void) const
+{
+	return m_score;
 }
 
 /// Sets the document's labels.
@@ -169,5 +209,54 @@ void DocumentInfo::setLabels(const set<string> &labels)
 const set<string> &DocumentInfo::getLabels(void) const
 {
 	return m_labels;
+}
+
+/// Sets that the document is indexed.
+void DocumentInfo::setIsIndexed(unsigned int indexId, unsigned int docId)
+{
+	m_indexId = indexId;
+	m_docId = docId;
+}
+
+/// Sets that the document is not indexed.
+void DocumentInfo::setIsNotIndexed(void)
+{
+	m_indexId = 0;
+	m_docId = 0;
+}
+
+/// Gets whether the document is indexed.
+bool DocumentInfo::getIsIndexed(void) const
+{
+	if (m_docId > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+/// Gets whether the documentt is indexed.
+unsigned int DocumentInfo::getIsIndexed(unsigned int &indexId) const
+{
+	indexId = m_indexId;
+
+	return m_docId;
+}
+
+void DocumentInfo::setField(const string &name, const string &value)
+{
+	m_fields[name] = value;
+}
+
+string DocumentInfo::getField(const string &name) const
+{
+	map<string, string>::const_iterator fieldIter = m_fields.find(name);
+	if (fieldIter != m_fields.end())
+	{
+		return fieldIter->second;
+	}
+
+	return "";
 }
 

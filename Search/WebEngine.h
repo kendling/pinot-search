@@ -50,7 +50,7 @@ class WebEngine : public SearchEngineInterface
 
 		void setQuery(const QueryProperties &queryProps);
 
-		virtual bool processResult(const string &queryUrl, Result &result);
+		virtual bool processResult(const string &queryUrl, DocumentInfo &result);
 
 	private:
 		WebEngine(const WebEngine &other);

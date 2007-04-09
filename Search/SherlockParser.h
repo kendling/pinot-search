@@ -33,7 +33,7 @@ class SherlockResponseParser : public ResponseParserInterface
 		virtual ~SherlockResponseParser();
 
 		/// Parses the response; false if not all could be parsed.
-		virtual bool parse(const Document *pResponseDoc, std::vector<Result> &resultsList,
+		virtual bool parse(const Document *pResponseDoc, std::vector<DocumentInfo> &resultsList,
 			unsigned int &totalResults, unsigned int &firstResultIndex) const;
 
 		std::string m_resultListStart;

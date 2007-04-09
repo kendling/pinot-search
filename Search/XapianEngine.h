@@ -45,9 +45,6 @@ class XapianEngine : public SearchEngineInterface
 		/// Runs a query; true if success.
 		virtual bool runQuery(QueryProperties& queryProps);
 
-		/// Returns the results for the previous query.
-		virtual const std::vector<Result> &getResults(void) const;
-
 	protected:
 		std::string m_databaseName;
 		std::set<unsigned int> m_relevantDocuments;

@@ -392,6 +392,9 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 
 	try
 	{
+		AbstractGenerator abstractGen(pIndex, 50);
+		vector<string> seedTerms;
+
 		// Give the query object to the enquire session
 		enquire.set_query(query);
 
@@ -399,33 +402,6 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 		Xapian::MSet matches = enquire.get_mset(0, m_maxResultsCount);
 		if (matches.empty() == false)
 		{
-			multimap<Xapian::weight, string> queryTerms;
-			vector<string> seedTerms;
-			Xapian::weight maxWeight = matches.get_max_attained();
-
-			// Sort query terms by weight
-			for (Xapian::TermIterator termIter = query.get_terms_begin();
-				termIter != query.get_terms_end(); ++termIter)
-			{
-				string termName(*termIter);
-				Xapian::weight termWeight = matches.get_termweight(termName);
-
-				if (termWeight > 0)
-				{
-					queryTerms.insert(pair<Xapian::weight, string>(maxWeight - termWeight, termName));
-#ifdef DEBUG
-					cout << "XapianEngine::queryDatabase: term " << termName
-						<< " has weight " << termWeight << "/" << maxWeight << endl;
-#endif
-				}
-			}
-
-			for (multimap<Xapian::weight, string>::iterator weightIter = queryTerms.begin();
-				weightIter != queryTerms.end(); ++weightIter)
-			{
-				seedTerms.push_back(weightIter->second);
-			}
-
 			// Get the results
 #ifdef DEBUG
 			cout << "XapianEngine::queryDatabase: " << matches.get_matches_estimated()
@@ -435,10 +411,18 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 			{
 				Xapian::docid docId = *mIter;
 				Xapian::Document doc(mIter.get_document());
-				AbstractGenerator abstractGen(pIndex, 50);
-				// FIXME: we could use enquire.get_matching_terms_begin(docId) to populate seedTerms
-				Result thisResult("", "", abstractGen.generateAbstract(docId, seedTerms),
-					"", (float)mIter.get_percent());
+
+				// What terms did this document match ?
+				seedTerms.clear();
+				for (Xapian::TermIterator termIter = enquire.get_matching_terms_begin(docId);
+					termIter != enquire.get_matching_terms_end(docId); ++termIter)
+				{
+					seedTerms.push_back(*termIter);
+				}
+
+				DocumentInfo thisResult;
+				thisResult.setExtract(abstractGen.generateAbstract(docId, seedTerms));
+				thisResult.setScore((float)mIter.get_percent());
 
 #ifdef DEBUG
 				cout << "XapianEngine::queryDatabase: found document ID " << docId << endl;
@@ -615,10 +599,3 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 
 	return false;
 }
-
-/// Returns the results for the previous query.
-const vector<Result> &XapianEngine::getResults(void) const
-{
-	return m_resultsList;
-}
-

@@ -84,7 +84,7 @@ OpenSearchResponseParser::~OpenSearchResponseParser()
 {
 }
 
-bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Result> &resultsList,
+bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<DocumentInfo> &resultsList,
 	unsigned int &totalResults, unsigned int &firstResultIndex) const
 {
 	float pseudoScore = 100;
@@ -259,7 +259,11 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Resu
 				}
 			}
 
-			resultsList.push_back(Result(url, title, extract, "", pseudoScore));
+			DocumentInfo result(title, url, "", "");
+			result.setExtract(extract);
+			result.setScore(pseudoScore);
+
+			resultsList.push_back(result);
 			--pseudoScore;
 			foundResult = true;
 			if (resultsList.size() >= totalResults)

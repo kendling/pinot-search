@@ -26,7 +26,7 @@
 
 #include "DownloaderInterface.h"
 #include "QueryProperties.h"
-#include "Result.h"
+#include "DocumentInfo.h"
 
 using namespace std;
 
@@ -55,7 +55,7 @@ class SearchEngineInterface
 		virtual bool runQuery(QueryProperties& queryProps) = 0;
 
 		/// Returns the results for the previous query.
-		virtual const vector<Result> &getResults(void) const;
+		virtual const vector<DocumentInfo> &getResults(void) const;
 
 		/// Returns the charset for the previous query's results.
 		virtual string getResultsCharset(void) const;
@@ -69,7 +69,7 @@ class SearchEngineInterface
 		time_t m_startTime;
 		unsigned int m_maxResultsCount;
 		bool m_expandQueries;
-		vector<Result> m_resultsList;
+		vector<DocumentInfo> m_resultsList;
 		string m_charset;
 		set<string> m_expandTerms;
 

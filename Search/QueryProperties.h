@@ -22,8 +22,6 @@
 #include <string>
 #include <set>
 
-#include "Result.h"
-
 using namespace std;
 
 /// This represents a query.

@@ -130,7 +130,10 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 		for (int i = 0; i < searchResult->resultElements->__size; ++i)
 		{
 			struct gapi1__ResultElement *resultElement = searchResult->resultElements->__ptr[i];
-			Result result(resultElement->URL, resultElement->title, resultElement->snippet, "", pseudoScore);
+
+			DocumentInfo result(resultElement->title, resultElement->URL, "", "");
+			result.setExtract(resultElement->snippet);
+			result.setScore(pseudoScore);
 
 			if (processResult("http://www.google.com/", result) == true)
 			{

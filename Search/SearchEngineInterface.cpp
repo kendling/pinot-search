@@ -70,7 +70,7 @@ DownloaderInterface *SearchEngineInterface::getDownloader(void)
 }
 
 /// Returns the results for the previous query.
-const vector<Result> &SearchEngineInterface::getResults(void) const
+const vector<DocumentInfo> &SearchEngineInterface::getResults(void) const
 {
 	return m_resultsList;
 }

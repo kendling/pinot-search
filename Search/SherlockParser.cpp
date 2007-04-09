@@ -269,7 +269,7 @@ SherlockResponseParser::~SherlockResponseParser()
 {
 }
 
-bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> &resultsList,
+bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<DocumentInfo> &resultsList,
 	unsigned int &totalResults, unsigned int &firstResultIndex) const
 {
 	float pseudoScore = 100;
@@ -457,7 +457,11 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Result> 
 				url = tmpUrl;
 			}
 
-			resultsList.push_back(Result(url, name, extract, "", pseudoScore));
+			DocumentInfo result(name, url, "", "");
+			result.setExtract(extract);
+			result.setScore(pseudoScore);
+
+			resultsList.push_back(result);
 			--pseudoScore;
 			foundResult = true;
 			if (resultsList.size() == totalResults)

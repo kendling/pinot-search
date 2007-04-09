@@ -102,7 +102,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 
 	bool success = m_pResponseParser->parse(pResponseDoc, m_resultsList,
 		m_maxResultsCount, m_properties.m_nextBase);
-	vector<Result>::iterator resultIter = m_resultsList.begin();
+	vector<DocumentInfo>::iterator resultIter = m_resultsList.begin();
 	while (resultIter != m_resultsList.end())
 	{
 		if (processResult(formattedQuery, *resultIter) == false)
@@ -115,7 +115,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 			}
 			else
 			{
-				vector<Result>::iterator badResultIter = resultIter;
+				vector<DocumentInfo>::iterator badResultIter = resultIter;
 				--resultIter;
 				m_resultsList.erase(badResultIter);
 			}
