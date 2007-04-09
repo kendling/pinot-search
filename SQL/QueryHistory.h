@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "Result.h"
+#include "DocumentInfo.h"
 #include "SQLiteBase.h"
 
 using namespace std;
@@ -54,7 +54,7 @@ class QueryHistory : public SQLiteBase
 
 		/// Gets the first max items for the given query, engine pair.
 		bool getItems(const string &queryName, const string &engineName,
-			unsigned int max, vector<Result> &resultsList) const;
+			unsigned int max, vector<DocumentInfo> &resultsList) const;
 
 		/// Gets an item's extract.
 		string getItemExtract(const string &queryName, const string &engineName,

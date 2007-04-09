@@ -137,11 +137,11 @@ bool QueryHistory::updateItem(const string &queryName, const string &engineName,
 
 /// Gets the first max items for the given query, engine pair.
 bool QueryHistory::getItems(const string &queryName, const string &engineName,
-	unsigned int max, vector<Result> &resultsList) const
+	unsigned int max, vector<DocumentInfo> &resultsList) const
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("SELECT Url, Title, Extract, Language, Score \
+	SQLiteResults *results = executeStatement("SELECT Title, Url, Language, Extract, Score \
 		FROM QueryHistory WHERE QueryName='%q' AND EngineName='%q' ORDER BY Score DESC \
 		LIMIT %u;", queryName.c_str(), engineName.c_str(), max);
 	if (results != NULL)
@@ -154,11 +154,12 @@ bool QueryHistory::getItems(const string &queryName, const string &engineName,
 				break;
 			}
 
-			Result result(Url::unescapeUrl(row->getColumn(0)).c_str(),
-				row->getColumn(1),
-				row->getColumn(2),
-				row->getColumn(3),
-				(float)atof(row->getColumn(4).c_str()));
+			DocumentInfo result(row->getColumn(0),
+				Url::unescapeUrl(row->getColumn(1)).c_str(),
+				"", row->getColumn(2));
+			result.setExtract(row->getColumn(3));
+			result.setScore((float)atof(row->getColumn(4).c_str()));
+
 			resultsList.push_back(result);
 			success = true;
 
