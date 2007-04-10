@@ -106,7 +106,6 @@ public:
 
 	Gtk::TreeModelColumn<Glib::ustring> m_text;
 	Gtk::TreeModelColumn<Glib::ustring> m_url;
-	Gtk::TreeModelColumn<Glib::ustring> m_liveUrl;
 	Gtk::TreeModelColumn<Glib::ustring> m_type;
 	Gtk::TreeModelColumn<Glib::ustring> m_language;
 	Gtk::TreeModelColumn<unsigned int> m_id;

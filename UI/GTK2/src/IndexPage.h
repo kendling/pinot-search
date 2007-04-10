@@ -34,7 +34,6 @@
 #include <gtkmm/treeselection.h>
 
 #include "QueryProperties.h"
-#include "IndexedDocument.h"
 #include "IndexTree.h"
 #include "Notebook.h"
 #include "PinotSettings.h"

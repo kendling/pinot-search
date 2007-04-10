@@ -36,7 +36,6 @@
 #include <gtkmm/main.h>
 
 #include "CommandLine.h"
-#include "IndexedDocument.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "MIMEScanner.h"
@@ -437,7 +436,7 @@ void mainWindow::on_enginesTreeviewSelection_changed()
 //
 void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 {
-	vector<Result> resultsList;
+	vector<DocumentInfo> resultsList;
 	string url;
 	bool hasSelection = false;
 
@@ -460,7 +459,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 	{
 		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = true;
 
-		for (vector<Result>::iterator resultIter = resultsList.begin();
+		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
 		{
 			string url(resultIter->getLocation());
@@ -873,7 +872,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			pIndexTree = pIndexPage->getTree();
 			if (pIndexTree != NULL)
 			{
-				const vector<IndexedDocument> &docsList = pBrowseThread->getDocuments();
+				const vector<DocumentInfo> &docsList = pBrowseThread->getDocuments();
 
 				// Add the documents to the tree
 				pIndexTree->addDocuments(docsList);
@@ -922,7 +921,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		ustring queryName = to_utf8(queryProps.getName());
 		ustring engineName = to_utf8(pQueryThread->getEngineName());
 		string resultsCharset;
-		const vector<Result> &resultsList = pQueryThread->getResults(resultsCharset);
+		const vector<DocumentInfo> &resultsList = pQueryThread->getResults(resultsCharset);
 
 		status = _("Query");
 		status += " ";
@@ -1007,7 +1006,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 #ifdef DEBUG
 			cout << "mainWindow::on_thread_end: indexing results, with label " << labelName << endl;
 #endif
-			for (vector<Result>::const_iterator resultIter = resultsList.begin();
+			for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 				resultIter != resultsList.end(); ++resultIter)
 			{
 				unsigned int indexId;
@@ -1231,8 +1230,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 					(rowsCount < m_maxDocsCount))
 				{
 					// Add a row to the index tree
-					IndexedDocument indexedDoc(docInfo.getTitle(),
-						XapianDatabase::buildUrl(m_settings.m_docsIndexLocation, docId),
+					DocumentInfo indexedDoc(docInfo.getTitle(),
 						docInfo.getLocation(), docInfo.getType(),
 						docInfo.getLanguage());
 					indexedDoc.setTimestamp(docInfo.getTimestamp());
@@ -1757,7 +1755,7 @@ void mainWindow::on_viewresults_activate()
 void mainWindow::on_morelikethis_activate()
 {
 	QueryProperties queryProps;
-	vector<Result> resultsList;
+	vector<DocumentInfo> resultsList;
 	string queryName;
 
 	NotebookPageBox *pNotebookPage = get_current_page();
@@ -1812,7 +1810,7 @@ void mainWindow::on_morelikethis_activate()
 	}
 
 	set<string> locations;
-	for (vector<Result>::const_iterator docIter = resultsList.begin();
+	for (vector<DocumentInfo>::const_iterator docIter = resultsList.begin();
 		docIter != resultsList.end(); ++docIter)
 	{
 		if (docIter->getIsIndexed() == true)
@@ -1919,7 +1917,7 @@ void mainWindow::on_viewfromindex_activate()
 //
 void mainWindow::on_refreshindex_activate()
 {
-	vector<IndexedDocument> documentsList;
+	vector<DocumentInfo> documentsList;
 
 	// Get the current documents selection
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
@@ -1938,23 +1936,22 @@ void mainWindow::on_refreshindex_activate()
 		}
 	}
 
-	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
+	for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
 	{
-		string url(docIter->getOriginalLocation());
-		unsigned int docId = docIter->getID();
+		unsigned int indexId = 0;
+		unsigned int docId = docIter->getIsIndexed(indexId);
 
-		if ((docId == 0) ||
-			(url.empty() == true))
+		if (docId == 0)
 		{
 			continue;
 		}
 #ifdef DEBUG
-		cout << "mainWindow::on_refreshindex_activate: URL is " << url << endl;
+		cout << "mainWindow::on_refreshindex_activate: URL is " << docIter->getLocation() << endl;
 #endif
 
 		// Add this action to the queue
-		DocumentInfo docInfo(docIter->getTitle(), url,
+		DocumentInfo docInfo(docIter->getTitle(), docIter->getLocation(), 
 			docIter->getType(), docIter->getLanguage());
 		docInfo.setTimestamp(docIter->getTimestamp());
 		docInfo.setSize(docIter->getSize());
@@ -1972,7 +1969,7 @@ void mainWindow::on_refreshindex_activate()
 //
 void mainWindow::on_showfromindex_activate()
 {
-	vector<IndexedDocument> documentsList;
+	vector<DocumentInfo> documentsList;
 	set<string> docLabels;
 	string indexName, labelName;
 	DocumentInfo docInfo;
@@ -2028,10 +2025,11 @@ void mainWindow::on_showfromindex_activate()
 	// If there's only one document selected, get its labels
 	if (documentsList.size() == 1)
 	{
-		vector<IndexedDocument>::iterator docIter = documentsList.begin();
+		vector<DocumentInfo>::iterator docIter = documentsList.begin();
+		unsigned int indexId = 0;
 
 		// Get the document ID
-		docId = docIter->getID();
+		docId = docIter->getIsIndexed(indexId);
 
 		// Get the properties from the index because they have been altered
 		// by the tree for display purposes
@@ -2051,7 +2049,7 @@ void mainWindow::on_showfromindex_activate()
 	else
 	{
 		// If all documents are of the same language, show it
-		for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
+		for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
 			docIter != documentsList.end(); ++docIter)
 		{
 			if (docInfo.getLanguage().empty() == true)
@@ -2095,10 +2093,12 @@ void mainWindow::on_showfromindex_activate()
 	{
 		set<unsigned int> docIds;
 
-		for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
+		for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
 			docIter != documentsList.end(); ++docIter)
 		{
-			docIds.insert(docIter->getID());
+			unsigned int indexId = 0;
+
+			docIds.insert(docIter->getIsIndexed(indexId));
 		}
 
 		// Set the document's labels list
@@ -2125,12 +2125,12 @@ void mainWindow::on_showfromindex_activate()
 		if (newLanguage.empty() == false)
 		{
 			// Update all documents
-			for (vector<IndexedDocument>::iterator docIter = documentsList.begin();
+			for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
 				docIter != documentsList.end(); ++docIter)
 			{
-				unsigned int docId = docIter->getID();
+				unsigned int indexId = 0;
+				unsigned int docId = docIter->getIsIndexed(indexId);
 
-				docIter->setLocation(docIter->getOriginalLocation());
 				docIter->setLanguage(newLanguage);
 
 				start_thread(new UpdateDocumentThread(indexName, docId, *docIter));
@@ -2153,7 +2153,7 @@ void mainWindow::on_showfromindex_activate()
 //
 void mainWindow::on_unindex_activate()
 {
-	vector<IndexedDocument> documentsList;
+	vector<DocumentInfo> documentsList;
 	ustring boxTitle = _("Remove this document from the index ?");
 
 	IndexTree *pIndexTree = NULL;
@@ -2190,10 +2190,12 @@ void mainWindow::on_unindex_activate()
 	pIndexTree->deleteSelection();
 
 	set<unsigned int> docIdList;
-	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
+	for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
 	{
-		unsigned int docId = docIter->getID();
+		unsigned int indexId = 0;
+		unsigned int docId = docIter->getIsIndexed(indexId);
+
 		if (docId > 0)
 		{
 			docIdList.insert(docId);
@@ -3174,7 +3176,7 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 //
 // Append a document to the index tree.
 //
-bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName, const IndexedDocument &docInfo)
+bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName, const DocumentInfo &docInfo)
 {
 	bool appendToList = true;
 
@@ -3201,7 +3203,9 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 	
 			if (pIndex != NULL)
 			{
-				appendToList = pIndex->hasLabel(docInfo.getID(), from_utf8(labelName));
+				unsigned int indexId = 0;
+
+				appendToList = pIndex->hasLabel(docInfo.getIsIndexed(indexId), from_utf8(labelName));
 			}
 
 			delete pIndex;

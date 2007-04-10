@@ -70,7 +70,7 @@ IndexTree::IndexTree(const ustring &indexName, Menu *pPopupMenu, PinotSettings &
 	{
 		append_column(*manage(pColumn));
 	}
-	pColumn = create_column(_("URL"), m_indexColumns.m_liveUrl, true, true, m_indexColumns.m_liveUrl);
+	pColumn = create_column(_("URL"), m_indexColumns.m_url, true, true, m_indexColumns.m_url);
 	if (pColumn != NULL)
 	{
 		append_column(*manage(pColumn));
@@ -163,20 +163,20 @@ ScrolledWindow *IndexTree::getScrolledWindow(void) const
 //
 // Appends a new row in the index tree.
 //
-bool IndexTree::appendDocument(const IndexedDocument &docInfo)
+bool IndexTree::appendDocument(const DocumentInfo &docInfo)
 {
 	TreeModel::iterator newRowIter = m_refStore->append();
 	TreeModel::Row childRow = *newRowIter;
+	unsigned int indexId = 0;
 
 	childRow[m_indexColumns.m_text] = to_utf8(docInfo.getTitle());
 	childRow[m_indexColumns.m_url] = to_utf8(docInfo.getLocation());
-	childRow[m_indexColumns.m_liveUrl] = to_utf8(docInfo.getOriginalLocation());
 	childRow[m_indexColumns.m_type] = to_utf8(docInfo.getType());
 	childRow[m_indexColumns.m_language] = to_utf8(docInfo.getLanguage());
 	string timestamp(docInfo.getTimestamp());
 	childRow[m_indexColumns.m_timestamp] = to_utf8(timestamp);
 	childRow[m_indexColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
-	childRow[m_indexColumns.m_id] = docInfo.getID();
+	childRow[m_indexColumns.m_id] = docInfo.getIsIndexed(indexId);
 
 	// If the tree was empty, it is no longer
 	m_listingIndex = true;
@@ -187,7 +187,7 @@ bool IndexTree::appendDocument(const IndexedDocument &docInfo)
 //
 // Adds a set of documents.
 //
-bool IndexTree::addDocuments(const vector<IndexedDocument> &documentsList)
+bool IndexTree::addDocuments(const vector<DocumentInfo> &documentsList)
 {
 	unsigned int count = 0;
 
@@ -197,7 +197,7 @@ bool IndexTree::addDocuments(const vector<IndexedDocument> &documentsList)
 	// FIXME: clear the tree ?
 
 	// Get the list of indexed documents
-	for (vector<IndexedDocument>::const_iterator docIter = documentsList.begin();
+	for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
 	{
 		// Add a row
@@ -236,25 +236,25 @@ ustring IndexTree::getFirstSelectionURL(void)
 //
 // Gets the first selected item.
 //
-IndexedDocument IndexTree::getFirstSelection(void)
+DocumentInfo IndexTree::getFirstSelection(void)
 {
 	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
 	if (selectedItems.empty() == true)
 	{
-		return IndexedDocument("", "", "", "", "");
+		return DocumentInfo();
 	}
 
 	list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
 	TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 	TreeModel::Row row = *iter;
 
-	IndexedDocument indexedDoc(from_utf8(row[m_indexColumns.m_text]),
+	DocumentInfo indexedDoc(from_utf8(row[m_indexColumns.m_text]),
 		from_utf8(row[m_indexColumns.m_url]),
-		from_utf8(row[m_indexColumns.m_liveUrl]),
 		from_utf8(row[m_indexColumns.m_type]),
 		from_utf8(row[m_indexColumns.m_language]));
 	indexedDoc.setTimestamp(from_utf8(row[m_indexColumns.m_timestamp]));
 	indexedDoc.setSize(row[m_indexColumns.m_size]);
+	indexedDoc.setIsIndexed(m_settings.getIndexId(m_indexName), row[m_indexColumns.m_id]);
 
 	return indexedDoc;
 }
@@ -278,48 +278,14 @@ bool IndexTree::getSelection(std::vector<DocumentInfo> &documentsList)
 		TreeModel::Row row = *iter;
 
 		DocumentInfo docInfo(from_utf8(row[m_indexColumns.m_text]),
-			from_utf8(row[m_indexColumns.m_liveUrl]),
+			from_utf8(row[m_indexColumns.m_url]),
 			from_utf8(row[m_indexColumns.m_type]),
 			from_utf8(row[m_indexColumns.m_language]));
 		docInfo.setTimestamp(from_utf8(row[m_indexColumns.m_timestamp]));
 		docInfo.setSize(row[m_indexColumns.m_size]);
+		docInfo.setIsIndexed(m_settings.getIndexId(m_indexName), row[m_indexColumns.m_id]);
 
 		documentsList.push_back(docInfo);
-	}
-#ifdef DEBUG
-	cout << "IndexTree::getSelection: " << documentsList.size() << " documents selected" << endl;
-#endif
-
-	return true;
-}
-
-//
-// Gets a list of selected items.
-//
-bool IndexTree::getSelection(std::vector<IndexedDocument> &documentsList)
-{
-	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
-	if (selectedItems.empty() == true)
-	{
-		return false;
-	}
-
-	// Go through selected items
-	for (list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
-		itemPath != selectedItems.end(); ++itemPath)
-	{
-		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
-		TreeModel::Row row = *iter;
-
-		IndexedDocument indexedDoc(from_utf8(row[m_indexColumns.m_text]),
-			from_utf8(row[m_indexColumns.m_url]),
-			from_utf8(row[m_indexColumns.m_liveUrl]),
-			from_utf8(row[m_indexColumns.m_type]),
-			from_utf8(row[m_indexColumns.m_language]));
-		indexedDoc.setTimestamp(from_utf8(row[m_indexColumns.m_timestamp]));
-		indexedDoc.setSize(row[m_indexColumns.m_size]);
-
-		documentsList.push_back(indexedDoc);
 	}
 #ifdef DEBUG
 	cout << "IndexTree::getSelection: " << documentsList.size() << " documents selected" << endl;

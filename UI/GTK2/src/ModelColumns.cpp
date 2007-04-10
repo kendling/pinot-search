@@ -80,7 +80,6 @@ IndexModelColumns::IndexModelColumns()
 {
 	add(m_text);
 	add(m_url);
-	add(m_liveUrl);
 	add(m_type);
 	add(m_language);
 	add(m_id);

@@ -451,7 +451,7 @@ ustring ResultsTree::getExtract(void) const
 // Adds a set of results.
 // Returns true if something was added to the tree.
 //
-bool ResultsTree::addResults(const string &engineName, const vector<Result> &resultsList,
+bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo> &resultsList,
 	const string &charset)
 {
 	std::map<string, TreeModel::iterator> updatedGroups;
@@ -505,7 +505,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<Result> &res
 #ifdef DEBUG
 	cout << "ResultsTree::addResults: " << resultsList.size() << " results" << endl;
 #endif
-	for (vector<Result>::const_iterator resultIter = resultsList.begin();
+	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
 	{
 		ustring title(to_utf8(resultIter->getTitle(), charset));
@@ -850,42 +850,10 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 		if ((skipIndexed == false) ||
 			(row[m_resultsColumns.m_indexed] == false))
 		{
-			resultsList.push_back(DocumentInfo(from_utf8(row[m_resultsColumns.m_text]),
-				from_utf8(row[m_resultsColumns.m_url]),
-				from_utf8(row[m_resultsColumns.m_type]), ""));
-		}
-	}
-#ifdef DEBUG
-	cout << "ResultsTree::getSelection: " << resultsList.size() << " results selected" << endl;
-#endif
-
-	return true;
-}
-
-//
-// Gets a list of selected items.
-//
-bool ResultsTree::getSelection(vector<Result> &resultsList)
-{
-	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
-	if (selectedItems.empty() == true)
-	{
-		return false;
-	}
-
-	// Go through selected items
-	for (list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
-		itemPath != selectedItems.end(); ++itemPath)
-	{
-		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
-		TreeModel::Row row = *iter;
-
-		if (row[m_resultsColumns.m_resultType] == ResultsModelColumns::ROW_RESULT)
-		{
 			bool isIndexed = row[m_resultsColumns.m_indexed];
 
-			Result current(from_utf8(row[m_resultsColumns.m_url]),
-				from_utf8(row[m_resultsColumns.m_text]), "", "");
+			DocumentInfo current(from_utf8(row[m_resultsColumns.m_text]),
+				from_utf8(row[m_resultsColumns.m_url]), "", "");
 
 			if (isIndexed == true)
 			{
@@ -951,32 +919,33 @@ void ResultsTree::setSelectionState(bool viewed)
 //
 // Updates a result's properties.
 //
-void ResultsTree::updateResult(const Result &result)
+void ResultsTree::updateResult(const DocumentInfo &result)
 {
-#if 0
+	unsigned int indexId = 0;
+	unsigned int docId = result.getIsIndexed(indexId);
+
 	if (docId == 0)
 	{
 		return;
 	}
 
-	// Go through the list of indexed documents
+	// Go through the list
 	TreeModel::Children children = m_refStore->children();
 	for (TreeModel::Children::iterator iter = children.begin(); iter != children.end(); ++iter)
 	{
 		TreeModel::Row row = *iter;
 
-		if (docId == row[m_indexColumns.m_id])
+		if (docId == row[m_resultsColumns.m_docId])
 		{
-			row[m_indexColumns.m_text] = to_utf8(docInfo.getTitle());
-			row[m_indexColumns.m_type] = to_utf8(docInfo.getType());
-			row[m_indexColumns.m_language] = to_utf8(docInfo.getLanguage());
-			string timestamp(docInfo.getTimestamp());
-			row[m_indexColumns.m_timestamp] = to_utf8(timestamp);
-			row[m_indexColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
+			updateRow(row, result.getTitle(), result.getLocation(), result.getType(),
+				row[m_resultsColumns.m_score], row[m_resultsColumns.m_engines],
+				row[m_resultsColumns.m_indexes], docId,
+				result.getTimestamp(), ResultsModelColumns::ROW_RESULT,
+				row[m_resultsColumns.m_indexed], row[m_resultsColumns.m_viewed],
+				row[m_resultsColumns.m_rankDiff]);
 			break;
 		}
 	}
-#endif
 }
 
 //

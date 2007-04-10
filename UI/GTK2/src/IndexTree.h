@@ -33,7 +33,6 @@
 #include <gtkmm/treeselection.h>
 
 #include "QueryProperties.h"
-#include "IndexedDocument.h"
 #include "ModelColumns.h"
 #include "PinotSettings.h"
 
@@ -48,22 +47,19 @@ class IndexTree : public Gtk::TreeView
 		Gtk::ScrolledWindow *getScrolledWindow(void) const;
 
 		/// Adds a set of documents.
-		bool addDocuments(const std::vector<IndexedDocument> &documentsList);
+		bool addDocuments(const std::vector<DocumentInfo> &documentsList);
 
 		/// Appends a new row in the index tree.
-		bool appendDocument(const IndexedDocument &docInfo);
+		bool appendDocument(const DocumentInfo &docInfo);
 
 		/// Gets the first selected item's URL.
 		Glib::ustring getFirstSelectionURL(void);
 
 		/// Gets the first selected item.
-		IndexedDocument getFirstSelection(void);
+		DocumentInfo getFirstSelection(void);
 
 		/// Gets a list of selected items.
 		bool getSelection(std::vector<DocumentInfo> &documentsList);
-
-		/// Gets a list of selected items.
-		bool getSelection(std::vector<IndexedDocument> &documentsList);
 
 		/// Updates a document's properties.
 		void updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);

@@ -35,7 +35,6 @@
 #include <gtkmm/treeview.h>
 #include <gtkmm/treeselection.h>
 
-#include "Result.h"
 #include "ModelColumns.h"
 #include "PinotSettings.h"
 
@@ -64,7 +63,7 @@ class ResultsTree : public Gtk::TreeView
 		  * Adds a set of results.
 		  * Returns true if something was added to the tree.
 		  */
-		bool addResults(const std::string &engineName, const std::vector<Result> &resultsList,
+		bool addResults(const std::string &engineName, const std::vector<DocumentInfo> &resultsList,
 			const std::string &charset);
 
 		/// Sets how results are grouped.
@@ -73,14 +72,11 @@ class ResultsTree : public Gtk::TreeView
 		/// Gets a list of selected items.
 		bool getSelection(std::vector<DocumentInfo> &resultsList, bool skipIndexed = false);
 
-		/// Gets a list of selected items.
-		bool getSelection(std::vector<Result> &resultsList);
-
 		/// Sets the selected items' state.
 		void setSelectionState(bool viewed);
 
 		/// Updates a result's properties.
-		void updateResult(const Result &result);
+		void updateResult(const DocumentInfo &result);
 
 		/**
 		  * Deletes the current selection.

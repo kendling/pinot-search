@@ -34,10 +34,8 @@
 #include <glibmm/ustring.h>
 
 #include "Document.h"
-#include "IndexedDocument.h"
 #include "DownloaderInterface.h"
 #include "QueryProperties.h"
-#include "Result.h"
 
 class WorkerThread
 {
@@ -164,7 +162,7 @@ class IndexBrowserThread : public WorkerThread
 
 		unsigned int getDocumentsCount(void) const;
 
-		const std::vector<IndexedDocument> &getDocuments(void) const;
+		const std::vector<DocumentInfo> &getDocuments(void) const;
 
 		virtual bool stop(void);
 
@@ -174,7 +172,7 @@ class IndexBrowserThread : public WorkerThread
 		unsigned int m_indexDocsCount;
 		unsigned int m_maxDocsCount;
 		unsigned int m_startDoc;
-		std::vector<IndexedDocument> m_documentsList;
+		std::vector<DocumentInfo> m_documentsList;
 
 		virtual void doWork(void);
 
@@ -197,7 +195,7 @@ class QueryingThread : public WorkerThread
 
 		QueryProperties getQuery(void) const;
 
-		const std::vector<Result> &getResults(std::string &charset) const;
+		const std::vector<DocumentInfo> &getResults(std::string &charset) const;
 
 		virtual bool stop(void);
 
@@ -206,7 +204,7 @@ class QueryingThread : public WorkerThread
 		std::string m_engineDisplayableName;
 		std::string m_engineOption;
 		QueryProperties m_queryProps;
-		std::vector<Result> m_resultsList;
+		std::vector<DocumentInfo> m_resultsList;
 		std::string m_resultsCharset;
 		std::set<std::string> m_expandTerms;
 

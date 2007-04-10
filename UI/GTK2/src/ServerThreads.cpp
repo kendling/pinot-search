@@ -1101,11 +1101,11 @@ void DBusServletThread::doWork(void)
 				engine.setMaxResultsCount(maxHits);
 				if (engine.runQuery(queryProps) == true)
 				{
-					const vector<Result> &resultsList = engine.getResults();
+					const vector<DocumentInfo> &resultsList = engine.getResults();
 					vector<string> docIds;
 					m_pArray = g_ptr_array_new();
 
-					for (vector<Result>::const_iterator resultIter = resultsList.begin();
+					for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 						resultIter != resultsList.end(); ++resultIter)
 					{
 						// We only need the document ID

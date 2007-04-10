@@ -24,7 +24,6 @@
 #include <set>
 #include <sigc++/slot.h>
 
-#include "IndexedDocument.h"
 #include "Filter.h"
 #include "CrawlHistory.h"
 #include "MonitorHandler.h"

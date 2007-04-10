@@ -36,7 +36,6 @@
 #include <gtkmm/tooltips.h>
 
 #include "DocumentInfo.h"
-#include "IndexedDocument.h"
 #include "QueryProperties.h"
 #include "EnginesTree.h"
 #include "IndexPage.h"
@@ -133,7 +132,7 @@ protected:
 		unsigned int startDoc, bool changePage = true);
 	void view_documents(std::vector<DocumentInfo> &documentsList);
 	bool append_document(IndexPage *pIndexPage, const Glib::ustring &indexName,
-		const IndexedDocument &docInfo);
+		const DocumentInfo &docInfo);
 	bool start_thread(WorkerThread *pNewThread, bool inBackground = false);
 
 	// Status methods

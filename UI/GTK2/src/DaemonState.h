@@ -23,7 +23,6 @@
 #include <queue>
 #include <set>
 
-#include "IndexedDocument.h"
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
 #include "WorkerThreads.h"

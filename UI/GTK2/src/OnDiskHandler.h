@@ -26,7 +26,6 @@
 #include <sigc++/slot.h>
 
 #include "CrawlHistory.h"
-#include "IndexedDocument.h"
 #include "MonitorHandler.h"
 #include "XapianIndex.h"
 #include "PinotSettings.h"

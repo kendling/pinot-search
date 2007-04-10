@@ -42,7 +42,6 @@
 #include "XapianDatabase.h"
 #include "ActionQueue.h"
 #include "QueryHistory.h"
-#include "IndexedDocument.h"
 #include "DownloaderFactory.h"
 #include "SearchEngineFactory.h"
 #include "config.h"
@@ -605,7 +604,7 @@ unsigned int IndexBrowserThread::getDocumentsCount(void) const
 	return m_indexDocsCount;
 }
 
-const vector<IndexedDocument> &IndexBrowserThread::getDocuments(void) const
+const vector<DocumentInfo> &IndexBrowserThread::getDocuments(void) const
 {
 	return m_documentsList;
 }
@@ -681,8 +680,6 @@ void IndexBrowserThread::doWork(void)
 
 		// Get the document ID
 		unsigned int docId = (*iter);
-		// ...and the document URL
-		string url = XapianDatabase::buildUrl(mapIter->second, docId);
 
 		DocumentInfo docInfo;
 		if (pIndex->getDocumentInfo(docId, docInfo) == true)
@@ -693,10 +690,11 @@ void IndexBrowserThread::doWork(void)
 				type = "text/html";
 			}
 
-			IndexedDocument indexedDoc(docInfo.getTitle(), url, docInfo.getLocation(),
+			DocumentInfo indexedDoc(docInfo.getTitle(), docInfo.getLocation(),
 				type, docInfo.getLanguage());
 			indexedDoc.setTimestamp(docInfo.getTimestamp());
 			indexedDoc.setSize(docInfo.getSize());
+			indexedDoc.setIsIndexed(PinotSettings::getInstance().getIndexId(m_indexName), docId);
 
 			// Insert that document
 			m_documentsList.push_back(indexedDoc);
@@ -738,7 +736,7 @@ QueryProperties QueryingThread::getQuery(void) const
 	return m_queryProps;
 }
 
-const vector<Result> &QueryingThread::getResults(string &charset) const
+const vector<DocumentInfo> &QueryingThread::getResults(string &charset) const
 {
 	charset = m_resultsCharset;
 #ifdef DEBUG
@@ -796,7 +794,7 @@ void QueryingThread::doWork(void)
 	{
 		IndexInterface *pDocsIndex = NULL;
 		IndexInterface *pDaemonIndex = NULL;
-		const vector<Result> &resultsList = pEngine->getResults();
+		const vector<DocumentInfo> &resultsList = pEngine->getResults();
 		unsigned int indexId = 0;
 		bool isIndexQuery = false;
 
@@ -828,10 +826,10 @@ void QueryingThread::doWork(void)
 		}
 
 		// Copy the results list
-		for (vector<Result>::const_iterator resultIter = resultsList.begin();
+		for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
 		{
-			Result current(*resultIter);
+			DocumentInfo current(*resultIter);
 			string title(_("No title"));
 			string location(current.getLocation());
 			string language(current.getLanguage());
