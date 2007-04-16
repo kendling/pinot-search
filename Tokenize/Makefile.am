@@ -4,13 +4,12 @@ noinst_HEADERS = \
 	FilterUtils.h \
 	Tokenizer.h \
 	filters/ExternalFilter.h \
-	filters/HtmlFilter.h \
-	filters/GMimeMboxFilter.h \
-	filters/TagLibMusicFilter.h \
-	filters/TextFilter.h \
 	filters/Filter.h \
 	filters/FilterFactory.h \
 	filters/GMimeMboxFilter.h \
+	filters/HtmlFilter.h \
+	filters/TagLibMusicFilter.h \
+	filters/TextFilter.h \
 	filters/XmlFilter.h
 
 lib_LTLIBRARIES = libexternalfilter.la libmboxfilter.la libtaglibfilter.la
@@ -41,6 +40,7 @@ libtaglibfilter_la_LIBADD = -L../Utils -lBasicUtils
 libTokenize_la_SOURCES = \
 	FilterUtils.cpp \
 	Tokenizer.cpp \
+	filters/Filter.cc \
 	filters/FilterFactory.cc \
 	filters/HtmlFilter.cc \
 	filters/TextFilter.cc \
