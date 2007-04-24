@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005,2006,2007 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "XapianDatabaseFactory.h"
 #include "FilterUtils.h"
 #include "SearchEngineFactory.h"
+#include "ResultsExporter.h"
 #include "DownloaderFactory.h"
 #include "config.h"
 
@@ -39,6 +40,8 @@ static struct option g_longOptions[] = {
 	{"proxyaddress", 1, 0, 'a'},
 	{"proxyport", 1, 0, 'p'},
 	{"proxytype", 1, 0, 't'},
+	{"tocsv", 1, 0, 'c'},
+	{"toxml", 1, 0, 'x'},
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
@@ -57,6 +60,8 @@ static void printHelp(void)
 		<< "  -a, --proxyaddress        proxy address\n"
 		<< "  -p, --proxyport           proxy port\n"
 		<< "  -t, --proxytype           proxy type (default HTTP, SOCKS4, SOCKS5)\n"
+		<< "  -c, --tocsv               file to export results in CSV format to\n"
+		<< "  -x, --toxml               file to export results in XML format to\n"
 		<< "  -v, --version             output version information and exit\n\n"
 		<< "Supported search engine types are";
 	for (set<string>::iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
@@ -76,12 +81,13 @@ static void printHelp(void)
 
 int main(int argc, char **argv)
 {
-	string type, option, proxyAddress, proxyPort, proxyType;
-	unsigned int count = 10; 
+	string type, option, csvExport, xmlExport, proxyAddress, proxyPort, proxyType;
+	unsigned int maxResultsCount = 10; 
 	int longOptionIndex = 0;
+	bool printResults = true;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "hm:a:p:t:v", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "c:hm:a:p:t:vx:", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -92,13 +98,20 @@ int main(int argc, char **argv)
 					proxyAddress = optarg;
 				}
 				break;
+			case 'c':
+				if (optarg != NULL)
+				{
+					csvExport = optarg;
+					printResults = false;
+				}
+				break;
 			case 'h':
 				printHelp();
 				return EXIT_SUCCESS;
 			case 'm':
 				if (optarg != NULL)
 				{
-					count = (unsigned int )atoi(optarg);
+					maxResultsCount = (unsigned int )atoi(optarg);
 				}
 				break;
 			case 'p':
@@ -119,12 +132,19 @@ int main(int argc, char **argv)
 					<< "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
 					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
 				return EXIT_SUCCESS;
+			case 'x':
+				if (optarg != NULL)
+				{
+					xmlExport = optarg;
+					printResults = false;
+				}
+				break;
 			default:
 				return EXIT_FAILURE;
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "hm:a:p:t:v", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "c:hm:a:p:t:vx:", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -143,9 +163,11 @@ int main(int argc, char **argv)
 	MIMEScanner::initialize();
 	DownloaderInterface::initialize();
 
-	// Which SearchEngine ?
 	type = argv[optind];
 	option = argv[optind + 1];
+	char *pQuery = argv[optind + 2];
+
+	// Which SearchEngine ?
 	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(type, option);
 	if (pEngine == NULL)
 	{
@@ -158,7 +180,7 @@ int main(int argc, char **argv)
 	}
 
 	// How many results ?
-	pEngine->setMaxResultsCount(count);
+	pEngine->setMaxResultsCount(maxResultsCount);
 
 	// Set up the proxy
 	DownloaderInterface *pDownloader = pEngine->getDownloader();
@@ -171,7 +193,7 @@ int main(int argc, char **argv)
 		pDownloader->setSetting("proxytype", proxyType);
 	}
 
-	QueryProperties queryProps("senginetest", argv[optind + 2]);
+	QueryProperties queryProps("senginetest", pQuery);
 	if (pEngine->runQuery(queryProps) == true)
 	{
 		string resultsPage;
@@ -180,27 +202,48 @@ int main(int argc, char **argv)
 		const vector<DocumentInfo> resultsList = pEngine->getResults();
 		if (resultsList.empty() == false)
 		{
-			unsigned int count = 0;
-
-			cout << "Matching documents are :" << endl;
-
-			vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
-			while (resultIter != resultsList.end())
+			if (printResults == true)
 			{
-				string rawUrl(resultIter->getLocation());
-				Url thisUrl(rawUrl);
+				unsigned int count = 0;
 
-				cout << count << " Raw URL  : '" << rawUrl << "'"<< endl;
-				cout << count << " Protocol : " << thisUrl.getProtocol() << endl;
-				cout << count << " Host     : " << thisUrl.getHost() << endl;
-				cout << count << " Location : " << thisUrl.getLocation() << "/" << thisUrl.getFile() << endl;
-				cout << count << " Title    : " << resultIter->getTitle() << endl;
-				cout << count << " Extract  : " << FilterUtils::stripMarkup(resultIter->getExtract()) << endl;
-				cout << count << " Score    : " << resultIter->getScore() << endl;
-				count++;
+				cout << "Matching documents are :" << endl;
 
-				// Next
-				resultIter++;
+				vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
+				while (resultIter != resultsList.end())
+				{
+					string rawUrl(resultIter->getLocation());
+					Url thisUrl(rawUrl);
+
+					cout << count << " Raw URL  : '" << rawUrl << "'"<< endl;
+					cout << count << " Protocol : " << thisUrl.getProtocol() << endl;
+					cout << count << " Host     : " << thisUrl.getHost() << endl;
+					cout << count << " Location : " << thisUrl.getLocation() << "/" << thisUrl.getFile() << endl;
+					cout << count << " Title    : " << resultIter->getTitle() << endl;
+					cout << count << " Extract  : " << FilterUtils::stripMarkup(resultIter->getExtract()) << endl;
+					cout << count << " Score    : " << resultIter->getScore() << endl;
+					count++;
+
+					// Next
+					resultIter++;
+				}
+			}
+			else
+			{
+				string engineName(SearchEngineFactory::getSearchEngineName(type, option));
+
+				if (csvExport.empty() == false)
+				{
+					CSVExporter exporter(csvExport, queryProps);
+
+					exporter.exportResults(engineName, maxResultsCount, resultsList);
+				}
+
+				if (xmlExport.empty() == false)
+				{
+					OpenSearchExporter exporter(xmlExport, queryProps);
+
+					exporter.exportResults(engineName, maxResultsCount, resultsList);
+				}
 			}
 		}
 		else

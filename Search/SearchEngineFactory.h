@@ -38,6 +38,9 @@ class SearchEngineFactory
 		/// Returns a SearchEngine of the specified type; NULL if unavailable.
 		static SearchEngineInterface *getSearchEngine(const string &type, const string &option);
 
+		/// Returns the name of the given engine.
+		static string getSearchEngineName(const string &type, const string &option);
+
 		/// Returns all supported engines.
 		static void getSupportedEngines(set<string> &engines);
 

@@ -3,18 +3,19 @@
 noinst_HEADERS = \
 	AbstractGenerator.h \
 	OpenSearchParser.h \
-	QueryProperties.h \
-	SearchPluginProperties.h \
-	WebEngine.h \
-	SearchEngineFactory.h \
-	XapianEngine.h \
 	PluginParsers.h \
 	PluginWebEngine.h \
+	QueryProperties.h \
+	ResultsExporter.h \
+	SearchEngineFactory.h \
 	SearchEngineInterface.h \
+	SearchPluginProperties.h \
 	SherlockParser.h \
 	SOAPEnv.h \
 	SOAPEnvH.h \
-	SOAPEnvStub.h
+	SOAPEnvStub.h \
+	WebEngine.h \
+	XapianEngine.h
 
 EXTRA_LTLIBRARIES = libSearch.la libSearchSOAP.la
 
@@ -25,13 +26,14 @@ bin_PROGRAMS = pinot-search
 libSearch_la_SOURCES = \
 	AbstractGenerator.cpp \
 	OpenSearchParser.cpp \
+	PluginWebEngine.cpp \
 	QueryProperties.cpp \
+	ResultsExporter.cpp \
+	SearchEngineFactory.cpp \
+	SearchEngineInterface.cpp \
 	SearchPluginProperties.cpp \
 	WebEngine.cpp \
-	SearchEngineFactory.cpp \
-	XapianEngine.cpp \
-	PluginWebEngine.cpp \
-	SearchEngineInterface.cpp
+	XapianEngine.cpp
 if HAVE_BOOST_SPIRIT
 libSearch_la_SOURCES += SherlockParser.cpp
 endif

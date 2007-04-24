@@ -31,7 +31,6 @@ SearchEngineFactory::~SearchEngineFactory()
 {
 }
 
-/// Returns a SearchEngine of the specified type; NULL if unavailable.
 SearchEngineInterface *SearchEngineFactory::getSearchEngine(const string &type, const string &option)
 {
 	SearchEngineInterface *myEngine = NULL;
@@ -57,6 +56,28 @@ SearchEngineInterface *SearchEngineFactory::getSearchEngine(const string &type, 
 	return myEngine;
 }
 
+string SearchEngineFactory::getSearchEngineName(const string &type, const string &option)
+{
+	if ((type == "sherlock") ||
+		(type == "opensearch"))
+	{
+		string name, channel;
+
+		if (PluginWebEngine::getDetails(option, name, channel) == true)
+		{
+			return name;
+		}
+
+		return "";
+	}
+	else if (type == "xapian")
+	{
+		return option;
+	}
+
+	return type;
+}
+
 void SearchEngineFactory::getSupportedEngines(set<string> &engines)
 {
 	engines.clear();
@@ -70,7 +91,6 @@ void SearchEngineFactory::getSupportedEngines(set<string> &engines)
 #endif
 }
 
-/// Indicates whether a search engine is supported or not.
 bool SearchEngineFactory::isSupported(const string &type)
 {
 	if (
