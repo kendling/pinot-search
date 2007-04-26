@@ -28,14 +28,15 @@
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/treemodel.h>
+#include <gtkmm/filechooserdialog.h>
 
 /// Open a FileChooserDialog.
-bool select_file_name(Gtk::Window &parentWindow, const Glib::ustring &title,
-	Glib::ustring &location, bool openOrCreate = true, bool directoriesOnly = false);
+bool select_file_name(const Glib::ustring &title, Glib::ustring &location,
+	bool openOrCreate, bool directoriesOnly = false);
 
-/// Prepare a FileChooser.
-bool prepare_chooser(Gtk::FileChooser *pChooser, Glib::ustring &location,
-	bool openOrCreate = true, bool directoriesOnly = false);
+/// Prepare a FileChooserDialog.
+bool prepare_file_chooser(Gtk::FileChooserDialog &fileChooser, Glib::ustring &location,
+	bool openOrCreate, bool directoriesOnly = false);
 
 /// Get a column height.
 int get_column_height(Gtk::TreeView *pTree);

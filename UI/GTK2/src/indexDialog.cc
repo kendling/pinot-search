@@ -283,7 +283,7 @@ void indexDialog::on_locationEntry_changed()
 void indexDialog::on_locationButton_clicked()
 {
 	ustring dirName = locationEntry->get_text();
-	if (select_file_name(*this, _("Index location"), dirName, true, true) == true)
+	if (select_file_name(_("Index location"), dirName, true, true) == true)
 	{
 		locationEntry->set_text(dirName);
 	}

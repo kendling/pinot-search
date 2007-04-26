@@ -20,7 +20,6 @@
 #include <pangomm/font.h>
 #include <gtkmm/rc.h>
 #include <gtkmm/stock.h>
-#include <gtkmm/filechooserdialog.h>
 
 #include "config.h"
 #include "NLS.h"
@@ -32,28 +31,17 @@ using namespace Glib;
 using namespace Gtk;
 
 /// Open a FileChooserDialog.
-bool select_file_name(Window &parentWindow, const ustring &title,
-	ustring &location, bool openOrCreate, bool directoriesOnly)
+bool select_file_name(const ustring &title, ustring &location,
+	bool openOrCreate, bool directoriesOnly)
 {
 	FileChooserDialog fileChooser(title);
-	StockID okButtonStockId = Stock::OPEN;
 
 	if (title.empty() == true)
 	{
 		return false;
 	}
 
-	if (openOrCreate == false)
-	{
-		okButtonStockId = Stock::SAVE;
-	}
-
-	prepare_chooser(&fileChooser, location, openOrCreate, directoriesOnly);
-	fileChooser.add_button(Stock::CANCEL, RESPONSE_CANCEL);
-	fileChooser.add_button(okButtonStockId, RESPONSE_OK);
-	// FIXME: add FileFilter's
-	fileChooser.set_title(title);
-	fileChooser.set_show_hidden(true);
+	prepare_file_chooser(fileChooser, location, openOrCreate, directoriesOnly);
 	fileChooser.show();
 
 	int result = fileChooser.run();
@@ -75,11 +63,17 @@ bool select_file_name(Window &parentWindow, const ustring &title,
 	return false;
 }
 
-/// Prepare a FileChooser.
-bool prepare_chooser(FileChooser *pChooser, ustring &location,
+bool prepare_file_chooser(FileChooserDialog &fileChooser, ustring &location,
 	bool openOrCreate, bool directoriesOnly)
 {
 	FileChooserAction chooserAction = FILE_CHOOSER_ACTION_OPEN;
+	StockID okButtonStockId = Stock::OPEN;
+	bool isDirectory = false;
+
+	if (openOrCreate == false)
+	{
+		okButtonStockId = Stock::SAVE;
+	}
 
 	// Have we been provided with an initial location ?
 	if (location.empty() == true)
@@ -90,6 +84,7 @@ bool prepare_chooser(FileChooser *pChooser, ustring &location,
 		{
 			location = homeDir;
 			location += "/";
+			isDirectory = true;
 		}
 	}
 
@@ -114,15 +109,25 @@ bool prepare_chooser(FileChooser *pChooser, ustring &location,
 		{
 			chooserAction = FILE_CHOOSER_ACTION_CREATE_FOLDER;
 		}
+		isDirectory = true;
 	}
 
-	pChooser->set_action(chooserAction);
-	pChooser->set_filename(filename_from_utf8(location));
-	pChooser->set_local_only();
-	pChooser->set_select_multiple(false);
-	// FIXME: add FileFilter's
+	fileChooser.set_action(chooserAction);
+	if (isDirectory == true)
+	{
+		fileChooser.set_current_folder(filename_from_utf8(location));
+	}
+	else
+	{
+		fileChooser.set_filename(filename_from_utf8(location));
+	}
+	fileChooser.set_local_only();
+	fileChooser.set_select_multiple(false);
+	fileChooser.add_button(Stock::CANCEL, RESPONSE_CANCEL);
+	fileChooser.add_button(okButtonStockId, RESPONSE_OK);
+	fileChooser.set_show_hidden(true);
 
-	return false;
+	return true;
 }
 
 /// Get a column height.

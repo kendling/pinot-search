@@ -509,7 +509,7 @@ void prefsDialog::on_addDirectoryButton_clicked()
 	TreeModel::Children children = m_refDirectoriesTree->children();
 	bool wasEmpty = children.empty();
 
-	if (select_file_name(*this, _("Directory to index"), dirName, true, true) == true)
+	if (select_file_name(_("Directory to index"), dirName, true, true) == true)
 	{
 #ifdef DEBUG
 		cout << "prefsDialog::on_addDirectoryButton_clicked: "
@@ -567,7 +567,7 @@ void prefsDialog::on_addAccountButton_clicked()
 	TreeModel::Children children = m_refMailTree->children();
 	bool wasEmpty = children.empty();
 
-	if (select_file_name(*this, _("Mbox File Location"), fileName, true) == true)
+	if (select_file_name(_("Mbox File Location"), fileName, true) == true)
 	{
 #ifdef DEBUG
 		cout << "prefsDialog::on_addAccountButton_clicked: " << fileName << endl;
