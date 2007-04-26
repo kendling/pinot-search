@@ -57,7 +57,7 @@ StringManip::StringManip()
 /// Converts to lowercase.
 string StringManip::toLowerCase(const string &str)
 {
-	string tmp = str;
+	string tmp(str);
 
 	for_each(tmp.begin(), tmp.end(), ToLower());
 
@@ -135,7 +135,7 @@ string StringManip::replaceEntities(const string &str)
 		if ((pos != string::npos) &&
 			(pos < startPos + 10))
 		{
-			string escapedChar = str.substr(startPos, pos - startPos);
+			string escapedChar(str.substr(startPos, pos - startPos));
 			bool replacedChar = false;
 
 			// See if we can replace this with an actual character
@@ -174,14 +174,19 @@ string StringManip::replaceEntities(const string &str)
 /// Replaces a sub-string.
 string StringManip::replaceSubString(const string &str, const std::string &substr, const std::string &rep)
 {
-	string cleanStr = str;
+	if (str.empty() == true)
+	{
+		return "";
+	}
+
+	string cleanStr(str);
 
 	string::size_type startPos = cleanStr.find(substr);
 	while (startPos != string::npos)
 	{
 		string::size_type endPos = startPos + substr.length();
 
-		string tmp = cleanStr.substr(0, startPos);
+		string tmp(cleanStr.substr(0, startPos));
 		tmp += rep;
 		tmp += cleanStr.substr(endPos);
 		cleanStr = tmp;
