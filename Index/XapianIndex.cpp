@@ -340,6 +340,10 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	if (tree.empty() == false)
 	{
 		doc.add_term(string("XDIR:") + XapianDatabase::limitTermLength(Url::escapeUrl(tree), true));
+		if (tree[0] == '/')
+		{
+			doc.add_term("XDIR:/");
+		}
 		string::size_type slashPos = tree.find('/', 1);
 		while (slashPos != string::npos)
 		{
@@ -455,6 +459,10 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	if (tree.empty() == false)
 	{
 		commonTerms.insert(string("XDIR:") + XapianDatabase::limitTermLength(Url::escapeUrl(tree), true));
+		if (tree[0] == '/')
+		{
+			commonTerms.insert("XDIR:/");
+		}
 		string::size_type slashPos = tree.find('/', 1);
 		while (slashPos != string::npos)
 		{
