@@ -13,11 +13,12 @@ http://pinot.berlios.de/
 8. File formats
 9. File patterns
 10. More Like This
-11. D-Bus service
-12. Deskbar Applet plugin
-13. How to reset indexes
-14. Dependencies
-15. FAQ
+11. Saving results
+12. D-Bus service
+13. Deskbar Applet plugin
+14. How to reset indexes
+15. Dependencies
+16. FAQ
 
 
 1. What is Pinot
@@ -272,7 +273,20 @@ http://pinot.berlios.de/
    "More Like Me".
 
 
-11. D-Bus service
+11. Saving results
+
+
+   Starting with version 0.72, lists of results can be saved to disk by
+   selecting the Save As menuitem under Results. Two output formats are
+   available to choose from in the file selector opened by Save As :
+     * CSV, a text format
+       The semi-colon character (';') is used to delimit fields.
+     * OpenSearch response, a XML/RSS format
+       See http://www.opensearch.org/Specifications/OpenSearch/1.1#OpenSearch_response_elements
+       for details.
+
+
+12. D-Bus service
 
 
    D-Bus activation makes sure the service is running whenever one of its
@@ -314,7 +328,7 @@ http://pinot.berlios.de/
   For a list of available D-Bus methods, see the file pinot-dbus-daemon.xml.
 
 
-12. Deskbar Applet plugin
+13. Deskbar Applet plugin
 
 
   Deskbar Applet provides an omnipresent versatile search interface for Gnome.
@@ -330,7 +344,7 @@ http://pinot.berlios.de/
   results in the same order as the Pinot UI.
 
 
-13. How to reset indexes
+14. How to reset indexes
 
 
   You may wish to reset one of the index and start from scratch. There
@@ -350,7 +364,7 @@ http://pinot.berlios.de/
     delete from CrawlSources;"
 
 
-14. Dependencies
+15. Dependencies
 
 
   The version numbers indicate the minimum version Pinot has been tested
@@ -427,7 +441,7 @@ Notes :
 ---------------------------------------------------------------
 
 
-15. FAQ
+16. FAQ
 
 
   * At startup, when listing an index or indexing documents, Pinot complains
