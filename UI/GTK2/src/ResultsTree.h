@@ -43,7 +43,7 @@ class ResultsTree : public Gtk::TreeView
 	public:
 		typedef enum { BY_ENGINE = 0, BY_HOST, FLAT } GroupByMode;
 
-		ResultsTree(const Glib::ustring &queryName, Gtk::Menu *pPopupMenu,
+		ResultsTree(const Glib::ustring &name, Gtk::Menu *pPopupMenu,
 			GroupByMode groupMode, PinotSettings &settings);
 		virtual ~ResultsTree();
 
@@ -69,6 +69,9 @@ class ResultsTree : public Gtk::TreeView
 		/// Sets how results are grouped.
 		void setGroupMode(GroupByMode groupMode);
 
+		/// Gets the first selected item's URL.
+		Glib::ustring getFirstSelectionURL(void);
+
 		/// Gets a list of selected items.
 		bool getSelection(std::vector<DocumentInfo> &resultsList, bool skipIndexed = false);
 
@@ -87,6 +90,9 @@ class ResultsTree : public Gtk::TreeView
 		/// Deletes results.
 		bool deleteResults(const std::string &engineName);
 
+		/// Returns the number of rows.
+		unsigned int getRowsCount(void);
+
 		/// Refreshes the tree.
 		void refresh(void);
 
@@ -96,19 +102,22 @@ class ResultsTree : public Gtk::TreeView
 		/// Shows or hides the extract field.
 		void showExtract(bool show = true);
 
+		/// Exports results to a file.
+		void exportResults(const std::string &fileName, bool csvFormat);
+
 		/// Returns the changed selection signal.
 		SigC::Signal1<void, Glib::ustring>& getSelectionChangedSignal(void);
 
-		/// Returns the view results signal.
-		SigC::Signal0<void>& getViewResultsSignal(void);
+		/// Returns the double-click signal.
+		SigC::Signal0<void>& getDoubleClickSignal(void);
 
 	protected:
-		Glib::ustring m_queryName;
+		Glib::ustring m_treeName;
 		Gtk::Menu *m_pPopupMenu;
 		Gtk::ScrolledWindow *m_pResultsScrolledwindow;
 		Glib::RefPtr<Gtk::TreeStore> m_refStore;
 		SigC::Signal1<void, Glib::ustring> m_signalSelectionChanged;
-		SigC::Signal0<void> m_signalViewResults;
+		SigC::Signal0<void> m_signalDoubleClick;
 		PinotSettings &m_settings;
 		Glib::RefPtr<Gdk::Pixbuf> m_indexedIconPixbuf;
 		Glib::RefPtr<Gdk::Pixbuf> m_viewededIconPixbuf;

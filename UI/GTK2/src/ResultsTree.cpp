@@ -31,6 +31,7 @@
 #include "TimeConverter.h"
 #include "Url.h"
 #include "QueryHistory.h"
+#include "ResultsExporter.h"
 #include "ViewHistory.h"
 #include "config.h"
 #include "NLS.h"
@@ -47,7 +48,7 @@ using namespace Gtk;
 ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	GroupByMode groupMode, PinotSettings &settings) :
 	TreeView(),
-	m_queryName(queryName),
+	m_treeName(queryName),
 	m_pPopupMenu(pPopupMenu),
 	m_pResultsScrolledwindow(NULL),
 	m_settings(settings),
@@ -56,6 +57,8 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_showExtract(true),
 	m_groupMode(groupMode)
 {
+	TreeViewColumn *pColumn = NULL;
+
 	m_pResultsScrolledwindow = manage(new ScrolledWindow());
 	m_pExtractScrolledwindow = manage(new ScrolledWindow());
 	m_extractTreeView = manage(new TreeView());
@@ -96,32 +99,35 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_refStore = TreeStore::create(m_resultsColumns);
 	set_model(m_refStore);
 
-	// The first column is for the status icons
-	TreeViewColumn *pColumn = new TreeViewColumn("");
-	// Pack an icon renderer for the viewed status
-	CellRendererPixbuf *pIconRenderer = new CellRendererPixbuf();
-	pColumn->pack_start(*manage(pIconRenderer), false);
-	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderViewStatus));
-	// Pack a second icon renderer for the indexed status
-	pIconRenderer = new CellRendererPixbuf();
-	pColumn->pack_start(*manage(pIconRenderer), false);
-	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderIndexStatus));
-	// And a third one for the ranking
-	pIconRenderer = new CellRendererPixbuf();
-	pColumn->pack_start(*manage(pIconRenderer), false);
-	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
-	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
-	append_column(*manage(pColumn));
+	if (m_groupMode != FLAT)
+	{
+		// The first column is for the status icons
+		pColumn = new TreeViewColumn("");
+		// Pack an icon renderer for the viewed status
+		CellRendererPixbuf *pIconRenderer = new CellRendererPixbuf();
+		pColumn->pack_start(*manage(pIconRenderer), false);
+		pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderViewStatus));
+		// Pack a second icon renderer for the indexed status
+		pIconRenderer = new CellRendererPixbuf();
+		pColumn->pack_start(*manage(pIconRenderer), false);
+		pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderIndexStatus));
+		// And a third one for the ranking
+		pIconRenderer = new CellRendererPixbuf();
+		pColumn->pack_start(*manage(pIconRenderer), false);
+		pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
+		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
+		append_column(*manage(pColumn));
 
-	// This is the score column
-	pColumn = new TreeViewColumn(_("Score"));
-	CellRendererProgress *pProgressRenderer = new CellRendererProgress();
-	pColumn->pack_start(*manage(pProgressRenderer));
-	pColumn->add_attribute(pProgressRenderer->property_text(), m_resultsColumns.m_scoreText);
-	pColumn->add_attribute(pProgressRenderer->property_value(), m_resultsColumns.m_score);
-	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
-	pColumn->set_sort_column(m_resultsColumns.m_score);
-	append_column(*manage(pColumn));
+		// This is the score column
+		pColumn = new TreeViewColumn(_("Score"));
+		CellRendererProgress *pProgressRenderer = new CellRendererProgress();
+		pColumn->pack_start(*manage(pProgressRenderer));
+		pColumn->add_attribute(pProgressRenderer->property_text(), m_resultsColumns.m_scoreText);
+		pColumn->add_attribute(pProgressRenderer->property_value(), m_resultsColumns.m_score);
+		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
+		pColumn->set_sort_column(m_resultsColumns.m_score);
+		append_column(*manage(pColumn));
+	}
 
 	// This is the title column
 	pColumn = new TreeViewColumn(_("Title"));
@@ -352,13 +358,13 @@ void ResultsTree::onButtonPressEvent(GdkEventButton *ev)
 #ifdef DEBUG
 		cout << "ResultsTree::onButtonPressEvent: double click on button " << ev->button << endl;
 #endif
-		m_signalViewResults();
+		m_signalDoubleClick();
 	}
 }
 
 void ResultsTree::onSelectionChanged(void)
 {
-	m_signalSelectionChanged(m_queryName);
+	m_signalSelectionChanged(m_treeName);
 }
 
 bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
@@ -496,7 +502,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 
 	QueryHistory history(m_settings.m_historyDatabase);
 	bool isNewQuery = false;
-	if (history.getLastRun(m_queryName, engineName).empty() == true)
+	if (history.getLastRun(m_treeName, engineName).empty() == true)
 	{
 		isNewQuery = true;
 	}
@@ -516,9 +522,9 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		float currentScore = resultIter->getScore();
 		int rankDiff = 0;
 
-		// What group should the result go to ?
 		if (m_groupMode != FLAT)
 		{
+			// What group should the result go to ?
 			if (rootType == ResultsModelColumns::ROW_HOST)
 			{
 				Url urlObj(location);
@@ -528,35 +534,31 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 			{
 				groupName = engineName;
 			}
-
 			// Add the group or get its position if it's already in
 			appendGroup(groupName, rootType, groupIter);
-		}
 
-		// OK, add a row for this result within the group
-		TreeModel::iterator titleIter;
-
-		// Has the result's ranking changed ?
-		float oldestScore = 0;
-		float previousScore = history.hasItem(m_queryName, engineName,
-			location, oldestScore);
-		if (previousScore > 0)
-		{
-			// Update this result whatever the current and previous rankings were
-			history.updateItem(m_queryName, engineName, location,
-				title, extract, charset, currentScore);
-			rankDiff = (int)(currentScore - previousScore);
-		}
-		else
-		{
-			// No, this is a new result
-			history.insertItem(m_queryName, engineName, location,
-				resultIter->getTitle(), extract, charset, currentScore);
-			// New results are displayed as such only if the query has already been run on the engine
-			if (isNewQuery == false)
+			// Has the result's ranking changed ?
+			float oldestScore = 0;
+			float previousScore = history.hasItem(m_treeName, engineName,
+				location, oldestScore);
+			if (previousScore > 0)
 			{
-				// This is a magic value :-)
-				rankDiff = 666;
+				// Update this result whatever the current and previous rankings were
+				history.updateItem(m_treeName, engineName, location,
+					title, extract, charset, currentScore);
+				rankDiff = (int)(currentScore - previousScore);
+			}
+			else
+			{
+				// No, this is a new result
+				history.insertItem(m_treeName, engineName, location,
+					resultIter->getTitle(), extract, charset, currentScore);
+				// New results are displayed as such only if the query has already been run on the engine
+				if (isNewQuery == false)
+				{
+					// This is a magic value :-)
+					rankDiff = 666;
+				}
 			}
 		}
 
@@ -570,6 +572,8 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 			isIndexed = true;
 		}
 
+		// OK, add a row for this result within the group
+		TreeModel::iterator titleIter;
 		if (appendResult(title, location, resultIter->getType(), (int)currentScore, rankDiff, isIndexed,
 			docId, resultIter->getTimestamp(), engineId, indexId, titleIter, groupIter, true) == true)
 		{
@@ -621,6 +625,12 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 void ResultsTree::setGroupMode(GroupByMode groupMode)
 {
 	ResultsModelColumns::RowType currentType, newType;
+
+	if (m_groupMode == FLAT)
+	{
+		// No change possible
+		return;
+	}
 
 	if (m_groupMode == groupMode)
 	{
@@ -825,6 +835,23 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 }
 
 //
+// Gets the first selected item's URL.
+//
+ustring ResultsTree::getFirstSelectionURL(void)
+{
+	list<TreeModel::Path> selectedItems = get_selection()->get_selected_rows();
+	if (selectedItems.empty() == true)
+	{
+		return "";
+	}
+
+	list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
+	TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
+	TreeModel::Row row = *iter;
+	return row[m_resultsColumns.m_url];
+}
+
+//
 // Gets a list of selected items.
 //
 bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndexed)
@@ -847,13 +874,13 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 			continue;
 		}
 
+		bool isIndexed = row[m_resultsColumns.m_indexed];
 		if ((skipIndexed == false) ||
-			(row[m_resultsColumns.m_indexed] == false))
+			(isIndexed == false))
 		{
-			bool isIndexed = row[m_resultsColumns.m_indexed];
-
 			DocumentInfo current(from_utf8(row[m_resultsColumns.m_text]),
-				from_utf8(row[m_resultsColumns.m_url]), "", "");
+				from_utf8(row[m_resultsColumns.m_url]),
+				from_utf8(row[m_resultsColumns.m_type]), "");
 
 			if (isIndexed == true)
 			{
@@ -874,7 +901,6 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 					}
 				}
 			}
-			current.setType(from_utf8(row[m_resultsColumns.m_type]));
 
 			resultsList.push_back(current);
 		}
@@ -1079,6 +1105,14 @@ bool ResultsTree::deleteResults(const string &engineName)
 }
 
 //
+// Returns the number of rows.
+//
+unsigned int ResultsTree::getRowsCount(void)
+{
+	return m_refStore->children().size();
+}
+
+//
 // Refreshes the tree.
 //
 void ResultsTree::refresh(void)
@@ -1141,6 +1175,113 @@ void ResultsTree::showExtract(bool show)
 }
 
 //
+// Exports results to a file.
+//
+void ResultsTree::exportResults(const string &fileName, bool csvFormat)
+{
+	QueryHistory history(m_settings.m_historyDatabase);
+	QueryProperties queryProps(m_treeName, "");
+	ResultsExporter *pExporter = NULL;
+	unsigned int maxResultsCount = 0;
+
+	if (fileName.empty() == true)
+	{
+		return;
+	}
+
+	if (csvFormat == true)
+	{
+		pExporter = new CSVExporter(fileName,
+			queryProps);
+	}
+	else
+	{
+		pExporter = new OpenSearchExporter(fileName,
+			queryProps);
+	}
+
+	// How many results are there altogether ?
+	TreeModel::Children children = m_refStore->children();
+	for (TreeModel::Children::iterator iter = children.begin();
+		iter != children.end(); ++iter)
+	{
+		TreeModel::Row row = *iter;
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
+
+		if ((type != ResultsModelColumns::ROW_ENGINE) &&
+			(type != ResultsModelColumns::ROW_HOST))
+		{
+			continue;
+		}
+
+		TreeModel::Children groupChildren = iter->children();
+		maxResultsCount += groupChildren.size();
+	}
+
+	// Start
+	pExporter->exportStart("", maxResultsCount);
+
+	for (TreeModel::Children::iterator iter = children.begin();
+		iter != children.end(); ++iter)
+	{
+		TreeModel::Row row = *iter;
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
+
+		if ((type != ResultsModelColumns::ROW_ENGINE) &&
+			(type != ResultsModelColumns::ROW_HOST))
+		{
+			continue;
+		}
+
+		TreeModel::Children groupChildren = iter->children();
+		for (TreeModel::Children::iterator childIter = groupChildren.begin();
+			childIter != groupChildren.end(); ++childIter)
+		{
+			set<string> engineNames, indexNames;
+			TreeModel::Row row = *childIter;
+			DocumentInfo result(from_utf8(row[m_resultsColumns.m_text]),
+				from_utf8(row[m_resultsColumns.m_url]),
+				from_utf8(row[m_resultsColumns.m_type]), "");
+			string engineName, charset;
+			unsigned int engineIds = row[m_resultsColumns.m_engines];
+			unsigned int indexIds = row[m_resultsColumns.m_indexes];
+
+#ifdef DEBUG
+			cout << "ResultsTree::exportResults: engines " << engineIds << ", indexes " << indexIds << endl;
+#endif
+			m_settings.getEngineNames(engineIds, engineNames);
+			if (engineNames.empty() == false)
+			{
+				// Get the first engine this result was obtained from
+				engineName = *engineNames.begin();
+				if (engineName == "Xapian")
+				{
+					m_settings.getIndexNames(indexIds, indexNames);
+					if (indexNames.empty() == false)
+					{
+						// Use the name of the first index as engine name
+						engineName = (*indexNames.begin());
+					}
+				}
+			}
+			if (m_groupMode != FLAT)
+			{
+				result.setExtract(history.getItemExtract(from_utf8(m_treeName),
+					engineName, result.getLocation(), charset));
+			}
+
+			// Export this
+			pExporter->exportResult(engineName, result);
+		}
+	}
+
+	// End
+	pExporter->exportEnd();
+
+	delete pExporter;
+}
+
+//
 // Returns the changed selection signal.
 //
 Signal1<void, ustring>& ResultsTree::getSelectionChangedSignal(void)
@@ -1149,11 +1290,11 @@ Signal1<void, ustring>& ResultsTree::getSelectionChangedSignal(void)
 }
 
 //
-// Returns the view results signal.
+// Returns the double-click signal.
 //
-Signal0<void>& ResultsTree::getViewResultsSignal(void)
+Signal0<void>& ResultsTree::getDoubleClickSignal(void)
 {
-	return m_signalViewResults;
+	return m_signalDoubleClick;
 }
 
 //
@@ -1376,7 +1517,7 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 #ifdef DEBUG
 		cout << "ResultsTree::findResultsExtract: first engine for " << url << " was " << engineName << endl;
 #endif
-		extract = history.getItemExtract(from_utf8(m_queryName), engineName, url, charset);
+		extract = history.getItemExtract(from_utf8(m_treeName), engineName, url, charset);
 	}
 
 	return to_utf8(extract, charset);
