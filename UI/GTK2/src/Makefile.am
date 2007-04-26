@@ -22,7 +22,6 @@ noinst_HEADERS = \
 	DaemonState.h \
 	EnginesTree.h \
 	IndexPage.h \
-	IndexTree.h \
 	MboxHandler.h \
 	ModelColumns.h \
 	Notebook.h \
@@ -55,7 +54,6 @@ pinot_SOURCES = \
 	statisticsDialog.cc \
 	EnginesTree.cpp \
 	IndexPage.cpp \
-	IndexTree.cpp \
 	MboxHandler.cpp \
 	ModelColumns.cpp \
 	Notebook.cpp \

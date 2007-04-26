@@ -97,24 +97,6 @@ public:
 
 };
 
-/// Main window, model column for the index tree.
-class IndexModelColumns : public Gtk::TreeModel::ColumnRecord
-{
-public:
-	IndexModelColumns();
-	virtual ~IndexModelColumns();
-
-	Gtk::TreeModelColumn<Glib::ustring> m_text;
-	Gtk::TreeModelColumn<Glib::ustring> m_url;
-	Gtk::TreeModelColumn<Glib::ustring> m_type;
-	Gtk::TreeModelColumn<Glib::ustring> m_language;
-	Gtk::TreeModelColumn<unsigned int> m_id;
-	Gtk::TreeModelColumn<Glib::ustring> m_timestamp;
-	Gtk::TreeModelColumn<time_t> m_timestampTime;
-	Gtk::TreeModelColumn<off_t> m_size;
-
-};
-
 /// Preferences window, model column for the Xapian indexes tree.
 class OtherIndexModelColumns : public Gtk::TreeModel::ColumnRecord
 {
@@ -153,7 +135,7 @@ public:
 
 };
 
-/// references window, model column for the directories tree.
+/// Preferences window, model column for the directories tree.
 class IndexableModelColumns : public Gtk::TreeModel::ColumnRecord
 {
 public:

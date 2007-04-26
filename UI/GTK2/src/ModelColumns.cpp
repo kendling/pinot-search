@@ -76,22 +76,6 @@ ResultsModelColumns::~ResultsModelColumns()
 {
 }
 
-IndexModelColumns::IndexModelColumns()
-{
-	add(m_text);
-	add(m_url);
-	add(m_type);
-	add(m_language);
-	add(m_id);
-	add(m_timestamp);
-	add(m_timestampTime);
-	add(m_size);
-}
-
-IndexModelColumns::~IndexModelColumns()
-{
-}
-
 OtherIndexModelColumns::OtherIndexModelColumns()
 {
 	add(m_name);
