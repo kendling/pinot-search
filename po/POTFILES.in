@@ -9,7 +9,6 @@ UI/GTK2/src/importDialog.cc
 UI/GTK2/src/importDialog_glade.cc
 UI/GTK2/src/indexDialog.cc
 UI/GTK2/src/indexDialog_glade.cc
-UI/GTK2/src/IndexTree.cpp
 UI/GTK2/src/IndexPage.cpp
 UI/GTK2/src/launcherDialog.cc
 UI/GTK2/src/launcherDialog_glade.cc
