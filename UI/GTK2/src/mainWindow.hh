@@ -87,6 +87,7 @@ protected:
 	virtual void on_clearresults_activate();
 	virtual void on_showextract_activate();
 	virtual void on_groupresults_activate();
+	virtual void on_exportresults_activate();
 	virtual void on_viewresults_activate();
 	virtual void on_morelikethis_activate();
 	virtual void on_indexresults_activate();

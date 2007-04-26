@@ -120,7 +120,7 @@ mainWindow::mainWindow() :
 	m_pEnginesTree->get_selection()->signal_changed().connect(
 		SigC::slot(*this, &mainWindow::on_enginesTreeviewSelection_changed));
 	// Connect to the edit index signal
-	m_pEnginesTree->getEditIndexSignal().connect(
+	m_pEnginesTree->getDoubleClickSignal().connect(
 		SigC::slot(*this, &mainWindow::on_editindex));
 
 	// Enable completion on the live query field
@@ -527,10 +527,10 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 		return;
 	}
 
-	IndexTree *pIndexTree = pIndexPage->getTree();
-	if (pIndexTree != NULL)
+	ResultsTree *pResultsTree = pIndexPage->getTree();
+	if (pResultsTree != NULL)
 	{
-		string url(pIndexTree->getFirstSelectionURL());
+		string url(pResultsTree->getFirstSelectionURL());
 
 		if (url.empty() == false)
 		{
@@ -549,7 +549,7 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 			// Show the URL in the status bar
 			ustring statusText = _("Document location is");
 			statusText += " ";
-			statusText += pIndexTree->getFirstSelectionURL();
+			statusText += pResultsTree->getFirstSelectionURL();
 			set_status(statusText, true);
 		}
 	}
@@ -568,7 +568,7 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 //
 void mainWindow::on_index_changed(ustring indexName)
 {
-	IndexTree *pIndexTree = NULL;
+	ResultsTree *pResultsTree = NULL;
 	IndexPage *pIndexPage = NULL;
 	ustring labelName;
 	bool foundPage = false;
@@ -582,10 +582,10 @@ void mainWindow::on_index_changed(ustring indexName)
 	if (pIndexPage != NULL)
 	{
 		// Force a refresh
-		pIndexTree = pIndexPage->getTree();
-		if (pIndexTree != NULL)
+		pResultsTree = pIndexPage->getTree();
+		if (pResultsTree != NULL)
 		{
-			pIndexTree->clear();
+			pResultsTree->clear();
 		}
 		labelName = pIndexPage->getLabelName();
 		foundPage = true;
@@ -599,13 +599,14 @@ void mainWindow::on_index_changed(ustring indexName)
 			SigC::slot(*this, &mainWindow::on_close_page));
 
 		// Position the index tree
-		pIndexTree = manage(new IndexTree(indexName, indexMenuitem->get_submenu(), m_settings));
-		pIndexPage = manage(new IndexPage(indexName, pIndexTree, m_settings));
+		pResultsTree = manage(new ResultsTree(indexName, indexMenuitem->get_submenu(),
+			ResultsTree::FLAT, m_settings));
+		pIndexPage = manage(new IndexPage(indexName, pResultsTree, m_settings));
 		// Connect to the "changed" signal
-		pIndexTree->getSelectionChangedSignal().connect(
+		pResultsTree->getSelectionChangedSignal().connect(
 			SigC::slot(*this, &mainWindow::on_indexTreeviewSelection_changed));
 		// Connect to the edit document signal
-		pIndexTree->getEditDocumentSignal().connect(
+		pResultsTree->getDoubleClickSignal().connect(
 			SigC::slot(*this, &mainWindow::on_showfromindex_activate));
 		// Connect to the label changed signal
 		pIndexPage->getLabelChangedSignal().connect(
@@ -724,8 +725,8 @@ void mainWindow::on_label_changed(ustring indexName, ustring labelName)
 	{
 		return;
 	}
-	IndexTree *pIndexTree = pIndexPage->getTree();
-	if (pIndexTree == NULL)
+	ResultsTree *pResultsTree = pIndexPage->getTree();
+	if (pResultsTree == NULL)
 	{
 		return;
 	}
@@ -860,7 +861,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		}
 
 		IndexPage *pIndexPage = NULL;
-		IndexTree *pIndexTree = NULL;
+		ResultsTree *pResultsTree = NULL;
 		ustring indexName = to_utf8(pBrowseThread->getIndexName());
 		ustring labelName = to_utf8(pBrowseThread->getLabelName());
 
@@ -869,20 +870,20 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
-			pIndexTree = pIndexPage->getTree();
-			if (pIndexTree != NULL)
+			pResultsTree = pIndexPage->getTree();
+			if (pResultsTree != NULL)
 			{
 				const vector<DocumentInfo> &docsList = pBrowseThread->getDocuments();
 
 				// Add the documents to the tree
-				pIndexTree->addDocuments(docsList);
+				pResultsTree->addResults("", docsList, "");
 
 				pIndexPage->setDocumentsCount(pBrowseThread->getDocumentsCount());
 				pIndexPage->updateButtonsState(m_maxDocsCount);
 
 				status = _("Showing");
 				status += " ";
-				snprintf(docsCountStr, 64, "%u", pIndexTree->getRowsCount());
+				snprintf(docsCountStr, 64, "%u", pResultsTree->getRowsCount());
 				status += docsCountStr;
 				status += " ";
 				status += _("of");
@@ -899,7 +900,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				if (pIndexPage->getDocumentsCount() > 0)
 				{
 					// Refresh the tree
-					pIndexTree->refresh();
+					pResultsTree->refresh();
 				}
 				m_state.m_browsingIndex = false;
 			}
@@ -965,7 +966,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			pResultsTree->getSelectionChangedSignal().connect(
 				SigC::slot(*this, &mainWindow::on_resultsTreeviewSelection_changed));
 			// Connect to the view results signal
-			pResultsTree->getViewResultsSignal().connect(
+			pResultsTree->getDoubleClickSignal().connect(
 				SigC::slot(*this, &mainWindow::on_viewresults_activate));
 
 			// Append the page
@@ -1193,11 +1194,11 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		DocumentInfo docInfo = pIndexThread->getDocumentInfo();
 
 		// Is the index still being shown ?
-		IndexTree *pIndexTree = NULL;
+		ResultsTree *pResultsTree = NULL;
 		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Web Pages"), NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
-			pIndexTree = pIndexPage->getTree();
+			pResultsTree = pIndexPage->getTree();
 		}
 
 		// Did the thread perform an update ?
@@ -1209,10 +1210,10 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			snprintf(docIdStr, 64, "%u", docId);
 			status += docIdStr;
 
-			if (pIndexTree != NULL)
+			if (pResultsTree != NULL)
 			{
 				// Update the index tree
-				pIndexTree->updateDocumentInfo(docId, docInfo);
+				pResultsTree->updateResult(docInfo);
 			}
 		}
 		else
@@ -1221,9 +1222,9 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			status += " ";
 			status += to_utf8(indexedUrl);
 
-			if (pIndexTree != NULL)
+			if (pResultsTree != NULL)
 			{
-				unsigned int rowsCount = pIndexTree->getRowsCount();
+				unsigned int rowsCount = pResultsTree->getRowsCount();
 
 				// Ensure the last page is being displayed and is not full
 				if ((pIndexPage->getFirstDocument() + rowsCount == pIndexPage->getDocumentsCount()) &&
@@ -1292,11 +1293,10 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Web Pages"), NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
-			IndexTree *pIndexTree = pIndexPage->getTree();
-			if (pIndexTree != NULL)
+			ResultsTree *pResultsTree = pIndexPage->getTree();
+			if (pResultsTree != NULL)
 			{
-				pIndexTree->updateDocumentInfo(pUpdateThread->getDocumentID(),
-					pUpdateThread->getDocumentInfo());
+				pResultsTree->updateResult(pUpdateThread->getDocumentInfo());
 			}
 		}
 
@@ -1533,11 +1533,11 @@ void mainWindow::on_copy_activate()
 #ifdef DEBUG
 				cout << "mainWindow::on_copy_activate: index tree" << endl;
 #endif
-				IndexTree *pIndexTree = pIndexPage->getTree();
-				if (pIndexTree != NULL)
+				ResultsTree *pResultsTree = pIndexPage->getTree();
+				if (pResultsTree != NULL)
 				{
 					// Get the current documents selection
-					pIndexTree->getSelection(documentsList);
+					pResultsTree->getSelection(documentsList);
 				}
 			}
 
@@ -1722,6 +1722,55 @@ void mainWindow::on_groupresults_activate()
 }
 
 //
+// Results > Export menu selected
+//
+void mainWindow::on_exportresults_activate()
+{
+	NotebookPageBox *pNotebookPage = get_current_page();
+	if (pNotebookPage != NULL)
+	{
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			ResultsTree *pResultsTree = pResultsPage->getTree();
+			if (pResultsTree != NULL)
+			{
+				FileChooserDialog fileChooser(_("Export Results"));
+				FileFilter csvFilter, xmlFilter;
+				ustring location;
+				bool exportToCSV = true;
+
+				prepare_file_chooser(fileChooser, location, false);
+
+				// Add filters
+				csvFilter.add_mime_type("application/csv");
+				csvFilter.set_name("CSV");
+				fileChooser.add_filter(csvFilter);
+				xmlFilter.add_mime_type("application/xml");
+				xmlFilter.set_name("OpenSearch response");
+				fileChooser.add_filter(xmlFilter);
+
+				fileChooser.show();
+				if (fileChooser.run() == RESPONSE_OK)
+				{
+					// Retrieve the chosen location
+					location = filename_to_utf8(fileChooser.get_filename());
+					// What file format was selected ?
+					const FileFilter *pFilter = fileChooser.get_filter();
+					if ((pFilter != NULL) &&
+						(pFilter->get_name() != "CSV"))
+					{
+						exportToCSV = false;
+					}
+
+					pResultsTree->exportResults(location, exportToCSV);
+				}
+			}
+		}
+	}
+}
+
+//
 // Results > View menu selected
 //
 void mainWindow::on_viewresults_activate()
@@ -1898,13 +1947,13 @@ void mainWindow::on_viewfromindex_activate()
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
-		IndexTree *pIndexTree = pIndexPage->getTree();
+		ResultsTree *pResultsTree = pIndexPage->getTree();
 
-		if (pIndexTree != NULL)
+		if (pResultsTree != NULL)
 		{
 			vector<DocumentInfo> documentsList;
 
-			if (pIndexTree->getSelection(documentsList) == true)
+			if (pResultsTree->getSelection(documentsList) == true)
 			{
 				view_documents(documentsList);
 			}
@@ -1923,11 +1972,11 @@ void mainWindow::on_refreshindex_activate()
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
-		IndexTree *pIndexTree = pIndexPage->getTree();
+		ResultsTree *pResultsTree = pIndexPage->getTree();
 
-		if (pIndexTree != NULL)
+		if (pResultsTree != NULL)
 		{
-			if ((pIndexTree->getSelection(documentsList) == false) ||
+			if ((pResultsTree->getSelection(documentsList) == false) ||
 				(documentsList.empty() == true))
 			{
 				// No selection
@@ -1980,13 +2029,13 @@ void mainWindow::on_showfromindex_activate()
 #ifdef DEBUG
 	cout << "mainWindow::on_showfromindex_activate: called" << endl;
 #endif
-	IndexTree *pIndexTree = NULL;
+	ResultsTree *pResultsTree = NULL;
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
 		indexName = from_utf8(pIndexPage->getTitle());
 		labelName = from_utf8(pIndexPage->getLabelName());
-		pIndexTree = pIndexPage->getTree();
+		pResultsTree = pIndexPage->getTree();
 	}
 
 	const std::map<string, string> &indexesMap = m_settings.getIndexes();
@@ -2003,8 +2052,8 @@ void mainWindow::on_showfromindex_activate()
 	}
 
 	// Get the current documents selection
-	if ((pIndexTree == NULL) ||
-		(pIndexTree->getSelection(documentsList) == false) ||
+	if ((pResultsTree == NULL) ||
+		(pResultsTree->getSelection(documentsList) == false) ||
 		(documentsList.empty() == true))
 	{
 		// No selection
@@ -2156,16 +2205,16 @@ void mainWindow::on_unindex_activate()
 	vector<DocumentInfo> documentsList;
 	ustring boxTitle = _("Remove this document from the index ?");
 
-	IndexTree *pIndexTree = NULL;
+	ResultsTree *pResultsTree = NULL;
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
-		pIndexTree = pIndexPage->getTree();
+		pResultsTree = pIndexPage->getTree();
 	}
 
 	// Get the current documents selection
-	if ((pIndexTree == NULL) ||
-		(pIndexTree->getSelection(documentsList) == false) ||
+	if ((pResultsTree == NULL) ||
+		(pResultsTree->getSelection(documentsList) == false) ||
 		(documentsList.empty() == true))
 	{
 		return;
@@ -2187,7 +2236,7 @@ void mainWindow::on_unindex_activate()
 	}
 
 	// Remove these documents from the tree
-	pIndexTree->deleteSelection();
+	pResultsTree->deleteSelection();
 
 	set<unsigned int> docIdList;
 	for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
@@ -2635,6 +2684,7 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 void mainWindow::show_global_menuitems(bool showItems)
 {
 	// Results menuitems that depend on the page
+	exportresults1->set_sensitive(showItems);
 	clearresults1->set_sensitive(showItems);
 }
 
@@ -2977,11 +3027,11 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &labelName
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage != NULL)
 	{
-		IndexTree *pIndexTree = pIndexPage->getTree();
-		if (pIndexTree != NULL)
+		ResultsTree *pResultsTree = pIndexPage->getTree();
+		if (pResultsTree != NULL)
 		{
 			// Remove existing rows in the index tree
-			pIndexTree->clear();
+			pResultsTree->clear();
 		}
 		pIndexPage->setFirstDocument(startDoc);
 
@@ -3072,6 +3122,8 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 
 		if (type != currentType)
 		{
+			Url urlObj(url);
+
 			if ((action.m_exec.empty() == false) &&
 				(arguments.empty() == false))
 			{
@@ -3089,22 +3141,20 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 			}
 
 			// Get the action for this MIME type
+			if ((urlObj.getProtocol() == "http") ||
+				(urlObj.getProtocol() == "https"))
+			{
+				// Chances are the web browser will be able to open this
+				type = "text/html";
+#ifdef DEBUG
+				cout << "mainWindow::view_documents: defaulting to text/html" << endl;
+#endif
+			}
 			if (MIMEScanner::getDefaultAction(type, action) == false)
 			{
-				Url urlObj(url);
 				bool foundAction = false;
 
-				if ((urlObj.getProtocol() == "http") ||
-					(urlObj.getProtocol() == "https"))
-				{
-					// Chances are the web browser will be able to open this
-					type = "text/html";
-					foundAction = MIMEScanner::getDefaultAction(type, action);
-#ifdef DEBUG
-					cout << "mainWindow::view_documents: defaulting to text/html" << endl;
-#endif
-				}
-				else if ((type.length() > 5) &&
+				if ((type.length() > 5) &&
 					(type.substr(0, 5) == "text/"))
 				{
 					// It's a subtype of text
@@ -3185,8 +3235,8 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 		return false;
 	}
 
-	IndexTree *pIndexTree = pIndexPage->getTree();
-	if (pIndexTree == NULL)
+	ResultsTree *pResultsTree = pIndexPage->getTree();
+	if (pResultsTree == NULL)
 	{
 		return false;
 	}
@@ -3214,8 +3264,11 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 
 	if (appendToList == true)
 	{
+		vector<DocumentInfo> docsList;
+
 		// Add a row
-		pIndexTree->appendDocument(docInfo);
+		docsList.push_back(docInfo);
+		pResultsTree->addResults("", docsList, "");
 
 		return true;
 	}
