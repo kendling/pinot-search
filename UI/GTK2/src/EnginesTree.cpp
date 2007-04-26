@@ -182,7 +182,7 @@ void EnginesTree::onButtonPressEvent(GdkEventButton *ev)
 			ustring name = engineRow[m_enginesColumns.m_name];
 			ustring location = engineRow[m_enginesColumns.m_option];
 
-			m_signalEdit(name, location);
+			m_signalDoubleClick(name, location);
 		}
 		else
 		{
@@ -383,9 +383,9 @@ void EnginesTree::clear(void)
 }
 
 //
-// Returns the edit index signal.
+// Returns the double-click signal.
 //
-Signal2<void, string, string>& EnginesTree::getEditIndexSignal(void)
+Signal2<void, string, string>& EnginesTree::getDoubleClickSignal(void)
 {
-	return m_signalEdit;
+	return m_signalDoubleClick;
 }

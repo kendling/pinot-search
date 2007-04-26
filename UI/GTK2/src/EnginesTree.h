@@ -64,15 +64,15 @@ class EnginesTree : public Gtk::TreeView
 		/// Save the tree's state.
 		void save(void);
 
-		/// Returns the index edit signal.
-		SigC::Signal2<void, std::string, std::string>& getEditIndexSignal(void);
+		/// Returns the double-click signal.
+		SigC::Signal2<void, std::string, std::string>& getDoubleClickSignal(void);
 
 	protected:
 		Glib::RefPtr<Gtk::TreeStore> m_refStore;
 		PinotSettings &m_settings;
 		Glib::RefPtr<Gdk::Pixbuf> m_engineFolderIconPixbuf;
 		EnginesModelColumns m_enginesColumns;
-		SigC::Signal2<void, std::string, std::string> m_signalEdit;
+		SigC::Signal2<void, std::string, std::string> m_signalDoubleClick;
 
 		void renderEngineIcon(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
 
