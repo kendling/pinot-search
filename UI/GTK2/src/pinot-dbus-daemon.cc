@@ -366,7 +366,7 @@ int main(int argc, char **argv)
 	XapianIndex daemonIndex(settings.m_daemonIndexLocation);
 	double indexVersion = daemonIndex.getVersion();
 	// Is an upgrade necessary ?
-	if (indexVersion <= 0.70)
+	if (indexVersion < 0.72)
 	{
 		cout << "Upgrading index from version " << indexVersion << " to " << daemonVersion << endl;
 
