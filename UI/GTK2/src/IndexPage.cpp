@@ -35,7 +35,7 @@ using namespace SigC;
 using namespace Glib;
 using namespace Gtk;
 
-IndexPage::IndexPage(const ustring &indexName, IndexTree *pTree,
+IndexPage::IndexPage(const ustring &indexName, ResultsTree *pTree,
 	PinotSettings &settings) :
 	NotebookPageBox(indexName, NotebookPageBox::INDEX_PAGE, settings),
 	m_pTree(pTree),
@@ -102,7 +102,7 @@ IndexPage::IndexPage(const ustring &indexName, IndexTree *pTree,
 	pack_start(*indexButtonsHbox, Gtk::PACK_SHRINK, 4);
 	if (pTree != NULL)
 	{
-		pack_start(*pTree->getScrolledWindow());
+		pack_start(*pTree->getResultsScrolledWindow());
 	}
 
 	// Populate
@@ -167,7 +167,7 @@ void IndexPage::onForwardClicked(void)
 //
 // Returns the page's tree.
 //
-IndexTree *IndexPage::getTree(void) const
+ResultsTree *IndexPage::getTree(void) const
 {
 	return m_pTree;
 }

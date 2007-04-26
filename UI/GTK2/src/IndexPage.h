@@ -34,19 +34,19 @@
 #include <gtkmm/treeselection.h>
 
 #include "QueryProperties.h"
-#include "IndexTree.h"
+#include "ResultsTree.h"
 #include "Notebook.h"
 #include "PinotSettings.h"
 
 class IndexPage : public NotebookPageBox
 {
 	public:
-		IndexPage(const Glib::ustring &indexName, IndexTree *pTree,
+		IndexPage(const Glib::ustring &indexName, ResultsTree *pTree,
 			PinotSettings &settings);
 		virtual ~IndexPage();
 
 		/// Returns the page's tree.
-		virtual IndexTree *getTree(void) const;
+		virtual ResultsTree *getTree(void) const;
 
 		/// Returns the name of the current label.
 		Glib::ustring getLabelName(void) const;
@@ -81,7 +81,7 @@ class IndexPage : public NotebookPageBox
 	protected:
 		Glib::ustring m_indexName;
 		Glib::ustring m_labelName;
-		IndexTree *m_pTree;
+		ResultsTree *m_pTree;
 		Gtk::ComboBoxText *m_pLabelCombobox;
 		Gtk::Button *m_pBackButton;
 		Gtk::Button *m_pForwardButton;
