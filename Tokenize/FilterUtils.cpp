@@ -167,7 +167,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		{
 			doc.setData(metaIter->second.c_str(), metaIter->second.length());
 #ifdef DEBUG
-			cout << "FilterUtils:populateDocument: set " << metaIter->second.length()
+			cout << "FilterUtils::populateDocument: set " << metaIter->second.length()
 				<< " characters of data" << endl;
 #endif
 		}
