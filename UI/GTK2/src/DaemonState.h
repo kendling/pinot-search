@@ -33,7 +33,7 @@ class DaemonState : public ThreadsManager
 		DaemonState();
 		virtual ~DaemonState();
 
-		void start(void);
+		void start(bool doUpgrade);
 
 		void signal_scanner(void);
 

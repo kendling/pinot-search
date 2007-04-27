@@ -95,10 +95,31 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bo
 	return false;
 }
 
-void DaemonState::start(void)
+void DaemonState::start(bool doUpgrade)
 {
 	// Disable implicit flushing after a change
 	WorkerThread::immediateFlush(false);
+
+	// Reset the index ?
+	if (doUpgrade == true)
+	{
+		XapianIndex daemonIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+
+		if (daemonIndex.unindexAllDocuments() == true)
+		{
+			CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+			map<unsigned int, string> sources;
+
+			// ...and the history
+			history.getSources(sources);
+			for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
+				sourceIter != sources.end(); ++sourceIter)
+			{
+				history.deleteItems(sourceIter->first);
+				history.deleteSource(sourceIter->first);
+			}
+		}
+	}
 
 	// Fire up the mail monitor thread now
 	m_pMailHandler = new MboxHandler();

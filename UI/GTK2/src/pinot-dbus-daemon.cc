@@ -171,6 +171,7 @@ int main(int argc, char **argv)
 	string prefixDir(PREFIX);
 	struct sigaction newAction;
 	int longOptionIndex = 0, priority = 15;
+	bool doUpgrade = false;
 
 	// Look at the options
 	int optionChar = getopt_long(argc, argv, "hpv", g_longOptions, &longOptionIndex);
@@ -317,6 +318,7 @@ int main(int argc, char **argv)
 	newAction.sa_flags = 0;
 	newAction.sa_handler = quitAll;
 	sigaction(SIGINT, &newAction, NULL);
+	sigaction(SIGKILL, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
 
 	// Open the daemon index in read-write mode 
@@ -362,32 +364,22 @@ int main(int argc, char **argv)
 
 	// What version of the daemon is this ?
 	double daemonVersion = atof(VERSION);
-	// What version is the index at ?
-	XapianIndex daemonIndex(settings.m_daemonIndexLocation);
-	double indexVersion = daemonIndex.getVersion();
-	// Is an upgrade necessary ?
-	if (indexVersion < 0.72)
+	if (daemonVersion > 0.0)
 	{
-		cout << "Upgrading index from version " << indexVersion << " to " << daemonVersion << endl;
+		// What version is the index at ?
+		XapianIndex daemonIndex(settings.m_daemonIndexLocation);
+		double indexVersion = daemonIndex.getVersion();
 
-		// Yes, it is
-		// Reset the index
-		if (daemonIndex.unindexAllDocuments() == true)
+		// Is an upgrade necessary ?
+		if (indexVersion < 0.72)
 		{
-			CrawlHistory history(settings.m_historyDatabase);
-			map<unsigned int, string> sources;
+			cout << "Upgrading index from version " << indexVersion << " to " << daemonVersion << endl;
 
-			// ...and the history
-			history.getSources(sources);
-			for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
-				sourceIter != sources.end(); ++sourceIter)
-			{
-				history.deleteItems(sourceIter->first);
-				history.deleteSource(sourceIter->first);
-			}
+			// Yes, it is
+			doUpgrade = true;
 		}
+		daemonIndex.setVersion(daemonVersion);
 	}
-	daemonIndex.setVersion(daemonVersion);
 
 	GError *pError = NULL;
 	DBusGConnection *pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
@@ -433,7 +425,7 @@ int main(int argc, char **argv)
 			// Connect to threads' finished signal
 			server.connect();
 
-			server.start();
+			server.start(doUpgrade);
 
 			// Run the main loop
 			g_refMainLoop->run();
