@@ -28,6 +28,7 @@ Tokenize
 - XmLFilter is slow
 - Filters should have a version number so that new versions force reindexing documents of the
  given type
+- Distribute filters' ChangeLog
 
 Monitor
 - Implement support for Solaris FEM
@@ -52,7 +53,6 @@ Search
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers
  and remove stopwords from queries as first step of search
 - Make multi-step index search optional
-- AbstractGenerator seed terms should only be the query terms matched by the document
 
 Index
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
@@ -132,8 +132,6 @@ UI
  when the daemon is busy indexing : is it because we are trying to get hold of
  a revision of the index ?
 - Delete all temporary files when exiting
-- Size is lost by both Index and ResultsTree
-- Add less than, equal to. greater than filters on size for stored queries
+- Add less than, equal to, greater than filters on size for stored queries
 - Allow filtering index lists with a stored query instead of just labels
 - Show with icons which stored queries are fully, partially or not at all Web friendly
-
