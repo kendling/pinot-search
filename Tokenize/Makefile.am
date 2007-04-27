@@ -17,6 +17,7 @@ lib_LTLIBRARIES = libexternalfilter.la libmboxfilter.la libtaglibfilter.la
 noinst_LTLIBRARIES = libTokenize.la
 
 libexternalfilter_la_SOURCES = \
+	filters/Filter.cc \
 	filters/ExternalFilter.cc
 
 libexternalfilter_la_LDFLAGS = -module @XML_CFLAGS@
@@ -24,6 +25,7 @@ libexternalfilter_la_LDFLAGS = -module @XML_CFLAGS@
 libexternalfilter_la_LIBADD = -L../Utils -lBasicUtils
 
 libmboxfilter_la_SOURCES = \
+	filters/Filter.cc \
 	filters/GMimeMboxFilter.cc
 
 libmboxfilter_la_LDFLAGS = -module @GMIME_CFLAGS@
@@ -31,6 +33,7 @@ libmboxfilter_la_LDFLAGS = -module @GMIME_CFLAGS@
 libmboxfilter_la_LIBADD = -L../Utils -lBasicUtils
 
 libtaglibfilter_la_SOURCES = \
+	filters/Filter.cc \
 	filters/TagLibMusicFilter.cc
 
 libtaglibfilter_la_LDFLAGS = -module @TAGLIB_LIBS@
