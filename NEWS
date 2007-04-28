@@ -1,3 +1,19 @@
+2007/04/28 version_0_7_2
+General :
+ - synced with gtk+'s xdgmime
+Index :
+ - add extra term to documents so that filter "dir:/" can be applied
+Search :
+ - results lists can be saved as CSV or OpenSearch response XML/RSS
+Daemon :
+ - indexes created with version < 0.72 will be automatically upgraded
+ - fixed problem where too much time spent upgrading would cause the daemon
+  to be killed
+UI :
+ - open documents on HTTP/HTTPS with the default Web browser
+ - updated German translation by Christian Dywan
+ - updated Italian translation by Vincenzo Consales
+
 2007/03/31 version_0_7_1
 Tokenize :
  - HTML filter wasn't always properly initialized, which could cause a crash
