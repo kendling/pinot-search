@@ -5,9 +5,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot\n"
+"Project-Id-Version: pinot 0.72\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-04-26 19:51+0800\n"
+"POT-Creation-Date: 2007-04-27 23:44+0800\n"
 "PO-Revision-Date: 2007-04-25 10:40+0000\n"
 "Last-Translator: Vincenzo Consales <aquarius987@gmail.com>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -447,56 +447,56 @@ msgstr "_Aiuto"
 msgid "Pinot"
 msgstr "Pinot"
 
-#: UI/GTK2/src/pinot.cc:226 UI/GTK2/src/pinot-dbus-daemon.cc:293
+#: UI/GTK2/src/pinot.cc:226 UI/GTK2/src/pinot-dbus-daemon.cc:294
 #: UI/GTK2/src/propertiesDialog.cc:60 UI/GTK2/src/propertiesDialog.cc:69
 msgid "Unknown"
 msgstr "Sconosciuto"
 
-#: UI/GTK2/src/pinot.cc:227 UI/GTK2/src/pinot-dbus-daemon.cc:294
+#: UI/GTK2/src/pinot.cc:227 UI/GTK2/src/pinot-dbus-daemon.cc:295
 msgid "Danish"
 msgstr "Danese"
 
-#: UI/GTK2/src/pinot.cc:228 UI/GTK2/src/pinot-dbus-daemon.cc:295
+#: UI/GTK2/src/pinot.cc:228 UI/GTK2/src/pinot-dbus-daemon.cc:296
 msgid "Dutch"
 msgstr "Olandese"
 
-#: UI/GTK2/src/pinot.cc:229 UI/GTK2/src/pinot-dbus-daemon.cc:296
+#: UI/GTK2/src/pinot.cc:229 UI/GTK2/src/pinot-dbus-daemon.cc:297
 msgid "English"
 msgstr "Inglese"
 
-#: UI/GTK2/src/pinot.cc:230 UI/GTK2/src/pinot-dbus-daemon.cc:297
+#: UI/GTK2/src/pinot.cc:230 UI/GTK2/src/pinot-dbus-daemon.cc:298
 msgid "Finnish"
 msgstr "Finlandese"
 
-#: UI/GTK2/src/pinot.cc:231 UI/GTK2/src/pinot-dbus-daemon.cc:298
+#: UI/GTK2/src/pinot.cc:231 UI/GTK2/src/pinot-dbus-daemon.cc:299
 msgid "French"
 msgstr "Francese"
 
-#: UI/GTK2/src/pinot.cc:232 UI/GTK2/src/pinot-dbus-daemon.cc:299
+#: UI/GTK2/src/pinot.cc:232 UI/GTK2/src/pinot-dbus-daemon.cc:300
 msgid "German"
 msgstr "Tedesco"
 
-#: UI/GTK2/src/pinot.cc:233 UI/GTK2/src/pinot-dbus-daemon.cc:300
+#: UI/GTK2/src/pinot.cc:233 UI/GTK2/src/pinot-dbus-daemon.cc:301
 msgid "Italian"
 msgstr "Italiano"
 
-#: UI/GTK2/src/pinot.cc:234 UI/GTK2/src/pinot-dbus-daemon.cc:301
+#: UI/GTK2/src/pinot.cc:234 UI/GTK2/src/pinot-dbus-daemon.cc:302
 msgid "Norwegian"
 msgstr "Norvegese"
 
-#: UI/GTK2/src/pinot.cc:235 UI/GTK2/src/pinot-dbus-daemon.cc:302
+#: UI/GTK2/src/pinot.cc:235 UI/GTK2/src/pinot-dbus-daemon.cc:303
 msgid "Portuguese"
 msgstr "Portoghese"
 
-#: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:303
+#: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:304
 msgid "Russian"
 msgstr "Russo"
 
-#: UI/GTK2/src/pinot.cc:237 UI/GTK2/src/pinot-dbus-daemon.cc:304
+#: UI/GTK2/src/pinot.cc:237 UI/GTK2/src/pinot-dbus-daemon.cc:305
 msgid "Spanish"
 msgstr "Spagnolo"
 
-#: UI/GTK2/src/pinot.cc:238 UI/GTK2/src/pinot-dbus-daemon.cc:305
+#: UI/GTK2/src/pinot.cc:238 UI/GTK2/src/pinot-dbus-daemon.cc:306
 msgid "Swedish"
 msgstr "Svedese"
 
