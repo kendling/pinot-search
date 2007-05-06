@@ -298,17 +298,22 @@ int main(int argc, char **argv)
 
 	// What version of the UI is this ?
 	double uiVersion = atof(VERSION);
-	// What version is the index at ?
-	XapianIndex docsIndex(settings.m_docsIndexLocation);
-	double indexVersion = docsIndex.getVersion();
-	// Is an upgrade necessary ?
-	if (indexVersion <= 0.70)
+	if (uiVersion > 0)
 	{
-		// Yes, it is
-		// FIXME: use a popup ! 
-		errorMsg = _("Updating all documents in My Web Pages is recommended");
+		// What version is the index at ?
+		XapianIndex docsIndex(settings.m_docsIndexLocation);
+		double indexVersion = docsIndex.getVersion();
+
+		// Is an upgrade necessary ?
+		if ((indexVersion <= 0.70) &&
+			(docsIndex.getDocumentsCount() > 0))
+		{
+			// Yes, it is
+			// FIXME: use a popup ! 
+			errorMsg = _("Updating all documents in My Web Pages is recommended");
+		}
+		docsIndex.setVersion(uiVersion);
 	}
-	docsIndex.setVersion(uiVersion);
 
 	try
 	{
