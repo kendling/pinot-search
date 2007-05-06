@@ -848,6 +848,7 @@ ustring ResultsTree::getFirstSelectionURL(void)
 	list<TreeModel::Path>::iterator itemPath = selectedItems.begin();
 	TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 	TreeModel::Row row = *iter;
+
 	return row[m_resultsColumns.m_url];
 }
 
@@ -869,7 +870,8 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
 
-		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_RESULT)
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
+		if (type != ResultsModelColumns::ROW_RESULT)
 		{
 			continue;
 		}
@@ -929,8 +931,9 @@ void ResultsTree::setSelectionState(bool viewed)
 	{
 		TreeModel::iterator iter = m_refStore->get_iter(*itemPath);
 		TreeModel::Row row = *iter;
-
-		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_RESULT)
+  
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
+		if (type != ResultsModelColumns::ROW_RESULT)
 		{
 			continue;
 		}
@@ -992,7 +995,8 @@ bool ResultsTree::deleteSelection(void)
 		bool updateParent = false;
 
 		// This could be a group that's in the map and should be removed first
-		if (row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_RESULT)
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
+		if (type != ResultsModelColumns::ROW_RESULT)
 		{
 			string groupName(from_utf8(row[m_resultsColumns.m_text]));
 			std::map<string, TreeModel::iterator>::iterator mapIter = m_resultsGroups.find(groupName);
@@ -1004,7 +1008,7 @@ bool ResultsTree::deleteSelection(void)
 #endif
 			}
 		}
-		else
+		else if (m_groupMode != FLAT)
 		{
 			// This item is a result
 			parentIter = row.parent();
@@ -1061,8 +1065,9 @@ bool ResultsTree::deleteResults(const string &engineName)
 	{
 		TreeModel::Row row = *parentIter;
 
-		if ((row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_ENGINE) &&
-			(row[m_resultsColumns.m_resultType] != ResultsModelColumns::ROW_HOST))
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
+		if ((type != ResultsModelColumns::ROW_ENGINE) &&
+			(type != ResultsModelColumns::ROW_HOST))
 		{
 			continue;
 		}
@@ -1073,7 +1078,8 @@ bool ResultsTree::deleteResults(const string &engineName)
 		{
 			row = *iter;
 
-			if ((row[m_resultsColumns.m_resultType] == ResultsModelColumns::ROW_RESULT) &&
+			type = row[m_resultsColumns.m_resultType];
+			if ((type == ResultsModelColumns::ROW_RESULT) &&
 				(row[m_resultsColumns.m_engines] == engineId) &&
 				(row[m_resultsColumns.m_indexes] == indexId))
 			{
@@ -1407,7 +1413,8 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 	int averageScore = 0;
 
 	// Check the iterator doesn't point to a result
-	if (groupRow[m_resultsColumns.m_resultType] == ResultsModelColumns::ROW_RESULT)
+	ResultsModelColumns::RowType type = groupRow[m_resultsColumns.m_resultType];
+	if (type == ResultsModelColumns::ROW_RESULT)
 	{
 		return;
 	}
