@@ -15,10 +15,11 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AM_PROG_LIBTOOL
 
-dnl *************************************************
-dnl gettext support
-dnl *************************************************
+dnl An index with a version older than this should be upgraded
+AC_DEFINE_UNQUOTED(PINOT_INDEX_MIN_VERSION,0.72,
+    [Minimum index version])
 
+dnl gettext support
 GETTEXT_PACKAGE=pinot
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
