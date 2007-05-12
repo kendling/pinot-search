@@ -36,7 +36,8 @@ class XapianDatabaseFactory
 			XapianDatabase *pFirst, XapianDatabase *pSecond);
 
 		/// Returns a XapianDatabase pointer; NULL if unavailable.
-		static XapianDatabase *getDatabase(const std::string &location, bool readOnly = true);
+		static XapianDatabase *getDatabase(const std::string &location,
+			bool readOnly = true, bool overwrite = false);
 
 		/// Closes all databases.
 		static void closeAll(void);

@@ -65,7 +65,8 @@ bool XapianDatabaseFactory::mergeDatabases(const string &name,
 }
 
 /// Returns a XapianDatabase pointer; NULL if unavailable.
-XapianDatabase *XapianDatabaseFactory::getDatabase(const string &location, bool readOnly)
+XapianDatabase *XapianDatabaseFactory::getDatabase(const string &location,
+	bool readOnly, bool overwrite)
 {
 	XapianDatabase *pDb = NULL;
 
@@ -88,7 +89,7 @@ XapianDatabase *XapianDatabaseFactory::getDatabase(const string &location, bool 
 	else
 	{
 		// Create a new instance
-		pDb = new XapianDatabase(location, readOnly);
+		pDb = new XapianDatabase(location, readOnly, overwrite);
 		// Insert it into the map
 		pair<map<string, XapianDatabase *>::iterator, bool> insertPair = m_databases.insert(pair<string, XapianDatabase *>(location, pDb));
 		// Was it inserted ?

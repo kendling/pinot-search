@@ -38,9 +38,12 @@ using std::string;
 // This puts a limit to terms length.
 const unsigned int XapianDatabase::m_maxTermLength = 230;
 
-XapianDatabase::XapianDatabase(const string &databaseName, bool readOnly) :
+XapianDatabase::XapianDatabase(const string &databaseName,
+	bool readOnly, bool overwrite) :
 	m_databaseName(databaseName),
 	m_readOnly(readOnly),
+	m_overwrite(overwrite),
+	m_obsoleteFormat(false),
 	m_pDatabase(NULL),
 	m_isOpen(false),
 	m_merge(false),
@@ -55,6 +58,8 @@ XapianDatabase::XapianDatabase(const string &databaseName,
 	XapianDatabase *pFirst, XapianDatabase *pSecond) :
 	m_databaseName(databaseName),
 	m_readOnly(true),
+	m_overwrite(false),
+	m_obsoleteFormat(false),
 	m_pDatabase(NULL),
 	m_isOpen(pFirst->m_isOpen),
 	m_merge(true),
@@ -67,6 +72,8 @@ XapianDatabase::XapianDatabase(const string &databaseName,
 XapianDatabase::XapianDatabase(const XapianDatabase &other) :
 	m_databaseName(other.m_databaseName),
 	m_readOnly(other.m_readOnly),
+	m_overwrite(other.m_overwrite),
+	m_obsoleteFormat(other.m_obsoleteFormat),
 	m_pDatabase(NULL),
 	m_isOpen(other.m_isOpen),
 	m_merge(other.m_merge),
@@ -95,6 +102,8 @@ XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
 	{
 		m_databaseName = other.m_databaseName;
 		m_readOnly = other.m_readOnly;
+		m_overwrite = other.m_overwrite;
+		m_obsoleteFormat = other.m_obsoleteFormat;
 		if (m_pDatabase != NULL)
 		{
 			delete m_pDatabase;
@@ -199,8 +208,8 @@ void XapianDatabase::openDatabase(void)
 			}
 			catch (const Xapian::Error &error)
 			{
-				cerr << "XapianDatabase::openDatabase: couldn't open remote database: "
-					<< error.get_msg() << endl;
+				cerr << "XapianDatabase::openDatabase: " << error.get_type()
+					<< ": " << error.get_msg() << endl;
 			}
 		}
 #ifdef DEBUG
@@ -252,7 +261,15 @@ void XapianDatabase::openDatabase(void)
 		}
 		else
 		{
-			m_pDatabase = new Xapian::WritableDatabase(m_databaseName, Xapian::DB_CREATE_OR_OPEN);
+			int openAction = Xapian::DB_CREATE_OR_OPEN;
+
+			if (m_overwrite == true)
+			{
+				// An existing database will be overwritten
+				openAction = Xapian::DB_CREATE_OR_OVERWRITE;
+			}
+
+			m_pDatabase = new Xapian::WritableDatabase(m_databaseName, openAction);
 		}
 #ifdef DEBUG
 		cout << "XapianDatabase::openDatabase: opened " << m_databaseName << endl;
@@ -261,10 +278,26 @@ void XapianDatabase::openDatabase(void)
 
 		return;
 	}
+#if XAPIAN_MAJOR_VERSION>0
+	catch (const Xapian::DatabaseVersionError &error)
+	{
+		// The format of the index is not understood
+		if (m_obsoleteFormat == false)
+		{
+			cerr << "XapianDatabase::openDatabase: " << error.get_type()
+				<< ": " << error.get_msg() << "; trying again" << endl;
+
+			// Try once more
+			m_overwrite = true;
+			m_obsoleteFormat = true;
+			openDatabase();
+		}
+	}
+#endif
 	catch (const Xapian::Error &error)
 	{
-		cerr << "XapianDatabase::openDatabase: couldn't open database: "
-			<< error.get_msg() << endl;
+		cerr << "XapianDatabase::openDatabase: " << error.get_type()
+			<< ": " << error.get_msg() << endl;
 	}
 }
 
@@ -272,6 +305,12 @@ void XapianDatabase::openDatabase(void)
 bool XapianDatabase::isOpen(void) const
 {
 	return m_isOpen;
+}
+
+/// Returns false if the database was of an obsolete format.
+bool XapianDatabase::wasObsoleteFormat(void) const
+{
+	return m_obsoleteFormat;
 }
 
 /// Reopens the database.

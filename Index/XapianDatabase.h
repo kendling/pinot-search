@@ -30,7 +30,8 @@
 class XapianDatabase
 {
 	public:
-		XapianDatabase(const std::string &databaseName, bool readOnly = true);
+		XapianDatabase(const std::string &databaseName,
+			bool readOnly = true, bool overwrite = false);
 		XapianDatabase(const std::string &databaseName,
 			XapianDatabase *pFirst, XapianDatabase *pSecond);
 		XapianDatabase(const XapianDatabase &other);
@@ -40,6 +41,9 @@ class XapianDatabase
 
 		/// Returns false if the database couldn't be opened.
 		bool isOpen(void) const;
+
+		/// Returns false if the database was of an obsolete format.
+		bool wasObsoleteFormat(void) const;
 
 		/// Reopens the database.
 		void reopen(void);
@@ -69,6 +73,8 @@ class XapianDatabase
 		static const unsigned int m_maxTermLength;
 		std::string m_databaseName;
 		bool m_readOnly;
+		bool m_overwrite;
+		bool m_obsoleteFormat;
 		pthread_mutex_t m_rwLock;
 		Xapian::Database *m_pDatabase;
 		bool m_isOpen;
