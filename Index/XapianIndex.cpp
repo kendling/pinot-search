@@ -68,7 +68,7 @@ static void removeFirstPosting(Xapian::Document &doc,
 		{
 			// This posting may have been removed already
 #ifdef DEBUG
-			cout << "XapianIndex::removeFirstPosting: " << error.get_errno() << " " << error.get_msg() << endl;
+			cout << "XapianIndex::removeFirstPosting: " << error.get_msg() << endl;
 #endif
 		}
 	}
@@ -153,7 +153,7 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document list: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't get document list: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -206,13 +206,21 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 		}
 		else if (mode == STORE_STEM)
 		{
-			string stemmedTerm = pStemmer->stem_word(term);
+#if XAPIAN_MAJOR_VERSION==0
+			string stemmedTerm(pStemmer->stem_word(term));
+#else
+			string stemmedTerm((*pStemmer)(term));
+#endif
 
 			doc.add_posting(prefix + XapianDatabase::limitTermLength(stemmedTerm), termPos);
 		}
 		else if (mode == STORE_BOTH)
 		{
-			string stemmedTerm = pStemmer->stem_word(term);
+#if XAPIAN_MAJOR_VERSION==0
+			string stemmedTerm(pStemmer->stem_word(term));
+#else
+			string stemmedTerm((*pStemmer)(term));
+#endif
 
 			// Add both at the same position
 			doc.add_posting(prefix + XapianDatabase::limitTermLength(term), termPos);
@@ -278,11 +286,21 @@ void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Doc
 		}
 		else if (mode == STORE_STEM)
 		{
-			removeFirstPosting(doc, termListIter, prefix + XapianDatabase::limitTermLength(pStemmer->stem_word(term)));
+#if XAPIAN_MAJOR_VERSION==0
+			string stemmedTerm(pStemmer->stem_word(term));
+#else
+			string stemmedTerm((*pStemmer)(term));
+#endif
+
+			removeFirstPosting(doc, termListIter, prefix + XapianDatabase::limitTermLength(stemmedTerm));
 		}
 		else if (mode == STORE_BOTH)
 		{
-			string stemmedTerm = pStemmer->stem_word(term);
+#if XAPIAN_MAJOR_VERSION==0
+			string stemmedTerm(pStemmer->stem_word(term));
+#else
+			string stemmedTerm((*pStemmer)(term));
+#endif
 
 			removeFirstPosting(doc, termListIter, prefix + XapianDatabase::limitTermLength(term));
 			if (stemmedTerm != term)
@@ -513,7 +531,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 		catch (const Xapian::Error &error)
 		{
 #ifdef DEBUG
-			cout << "XapianIndex::removeCommonTerms: " << error.get_errno() << " " << error.get_msg() << endl;
+			cout << "XapianIndex::removeCommonTerms: " << error.get_msg() << endl;
 #endif
 		}
 	}
@@ -543,7 +561,7 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 		}
 		catch (const Xapian::Error &error)
 		{
-			cerr << "XapianIndex::scanDocument: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+			cerr << "XapianIndex::scanDocument: " << error.get_type() << ": " << error.get_msg() << endl;
 			continue;
 		}
 
@@ -606,7 +624,7 @@ bool XapianIndex::deleteDocuments(const string &term)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't unindex documents: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't unindex documents: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -728,7 +746,7 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document properties: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't get document properties: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -766,7 +784,7 @@ unsigned int XapianIndex::getDocumentTermsCount(unsigned int docId) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document terms count: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't get document terms count: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -814,7 +832,7 @@ bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't check document labels: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't check document labels: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -866,7 +884,7 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document's labels: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't get document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -912,7 +930,7 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't look for document: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't look for document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -993,7 +1011,7 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get terms: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't get terms: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1026,7 +1044,7 @@ unsigned int XapianIndex::getLastDocumentID(void) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get last document ID: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't get last document ID: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1071,7 +1089,7 @@ unsigned int XapianIndex::getDocumentsCount(const string &labelName) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't count documents: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't count documents: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1174,7 +1192,7 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't index document: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't index document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1255,7 +1273,7 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't update document: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't update document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1303,7 +1321,7 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't update document properties: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't update document properties: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1384,7 +1402,7 @@ bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 		}
 		catch (const Xapian::Error &error)
 		{
-			cerr << "Couldn't update document's labels: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+			cerr << "Couldn't update document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
 		}
 		catch (...)
 		{
@@ -1426,7 +1444,7 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't unindex document: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't unindex document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1510,7 +1528,7 @@ bool XapianIndex::renameLabel(const string &name, const string &newName)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1559,7 +1577,7 @@ bool XapianIndex::deleteLabel(const string &name)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
@@ -1593,7 +1611,7 @@ bool XapianIndex::flush(void)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't flush database: " << error.get_type() << ": " << error.get_errno() << " " << error.get_msg() << endl;
+		cerr << "Couldn't flush database: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
