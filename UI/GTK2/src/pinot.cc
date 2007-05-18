@@ -112,6 +112,7 @@ int main(int argc, char **argv)
 	Glib::ustring errorMsg;
 	struct sigaction newAction;
 	int longOptionIndex = 0;
+	bool upgradeIndex = false;
 
 	// Look at the options
 	int optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
@@ -264,6 +265,10 @@ int main(int argc, char **argv)
 		errorMsg += " ";
 		errorMsg += settings.m_docsIndexLocation;
 	}
+	else
+	{
+		upgradeIndex = pFirstDb->wasObsoleteFormat();
+	}
 	// ...and the daemon index in read-only mode
 	// If it can't be open, it just means the daemon has not yet created it
 	XapianDatabase *pSecondDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation);
@@ -305,14 +310,19 @@ int main(int argc, char **argv)
 		double indexVersion = docsIndex.getVersion();
 
 		// Is an upgrade necessary ?
-		if ((indexVersion <= 0.70) &&
+		if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
 			(docsIndex.getDocumentsCount() > 0))
 		{
 			// Yes, it is
-			// FIXME: use a popup ! 
-			errorMsg = _("Updating all documents in My Web Pages is recommended");
+			upgradeIndex = true;
 		}
 		docsIndex.setVersion(uiVersion);
+	}
+
+	if ((upgradeIndex == true) &&
+		(errorMsg.empty() == true))
+	{
+		errorMsg = _("Updating all documents in My Web Pages is recommended");
 	}
 
 	try
@@ -324,6 +334,7 @@ int main(int argc, char **argv)
 		mainWindow mainBox;
 		if (errorMsg.empty() == false)
 		{
+			// FIXME: use a popup ! 
 			mainBox.set_status(errorMsg);
 		}
 		m.run(mainBox);
