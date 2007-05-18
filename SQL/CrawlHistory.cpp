@@ -25,7 +25,7 @@
 #include "CrawlHistory.h"
 
 CrawlHistory::CrawlHistory(const string &database) :
-	SQLiteBase(database)
+	SQLiteBase(database, false)
 {
 }
 
@@ -168,7 +168,7 @@ bool CrawlHistory::hasSource(const string &url, unsigned int &sourceId)
 }
 
 /// Returns sources.
-unsigned int CrawlHistory::getSources(map<unsigned int, string> &sources) const
+unsigned int CrawlHistory::getSources(map<unsigned int, string> &sources)
 {
 	unsigned int count = 0;
 
@@ -230,7 +230,7 @@ bool CrawlHistory::insertItem(const string &url, CrawlStatus status, unsigned in
 }
 
 /// Checks if an URL is in the history.
-bool CrawlHistory::hasItem(const string &url, CrawlStatus &status, time_t &date) const
+bool CrawlHistory::hasItem(const string &url, CrawlStatus &status, time_t &date)
 {
 	bool success = false;
 
@@ -272,6 +272,25 @@ bool CrawlHistory::updateItem(const string &url, CrawlStatus status, time_t date
 	return success;
 }
 
+/// Updates URLs.
+bool CrawlHistory::updateItems(const map<string, time_t> urls, CrawlStatus status)
+{
+	string statusText(statusToText(status));
+
+	for (map<string, time_t>::const_iterator updateIter = urls.begin();
+		updateIter != urls.end(); ++updateIter)
+	{
+		SQLiteResults *results = executeStatement("UPDATE CrawlHistory \
+			SET Status='%q', Date='%d' WHERE Url='%q';",
+			statusText.c_str(), (updateIter->second == 0 ? time(NULL) : updateIter->second),
+			Url::escapeUrl(updateIter->first).c_str());
+		if (results != NULL)
+		{
+			delete results;
+		}
+	}
+}
+
 /// Updates the status of items en masse.
 bool CrawlHistory::updateItemsStatus(unsigned int sourceId, CrawlStatus currentStatus, CrawlStatus newStatus)
 {
@@ -292,7 +311,7 @@ bool CrawlHistory::updateItemsStatus(unsigned int sourceId, CrawlStatus currentS
 
 /// Returns items that belong to a source.
 unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus status,
-	set<string> &urls, time_t minDate) const
+	set<string> &urls, time_t minDate)
 {
 	SQLiteResults *results = NULL;
 	unsigned int count = 0;
@@ -334,7 +353,7 @@ unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus sta
 }
 
 /// Returns the number of URLs.
-unsigned int CrawlHistory::getItemsCount(CrawlStatus status) const
+unsigned int CrawlHistory::getItemsCount(CrawlStatus status)
 {
 	unsigned int count = 0;
 

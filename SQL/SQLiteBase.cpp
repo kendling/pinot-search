@@ -160,14 +160,23 @@ bool SQLiteResults::reset(void)
 	return true;
 }
 
-SQLiteBase::SQLiteBase(const string &database) :
-	m_databaseName("")
+SQLiteBase::SQLiteBase(const string &database, bool onDemand) :
+	m_databaseName(database),
+	m_onDemand(onDemand),
+	m_pDatabase(NULL)
 {
-	m_databaseName = database;
+	if (m_onDemand == false)
+	{
+		open(m_databaseName);
+	}
 }
 
 SQLiteBase::~SQLiteBase()
 {
+	if (m_onDemand == false)
+	{
+		close();
+	}
 }
 
 bool SQLiteBase::check(const string &database)
@@ -186,43 +195,39 @@ bool SQLiteBase::check(const string &database)
 	return true;
 }
 
-sqlite3 *SQLiteBase::open(const string &database) const
+void SQLiteBase::open(const string &database)
 {
-	sqlite3 *pDatabase = NULL;
-
 	// Open the new database
-	if (sqlite3_open(database.c_str(), &pDatabase) != SQLITE_OK)
+	if (sqlite3_open(database.c_str(), &m_pDatabase) != SQLITE_OK)
 	{
 		// An handle is returned even when an error occurs !
-		if (pDatabase != NULL)
+		if (m_pDatabase != NULL)
 		{
-			cerr << "SQLiteBase::open: " << sqlite3_errmsg(pDatabase) << endl;
-			close(pDatabase);
-			pDatabase = NULL;
+			cerr << "SQLiteBase::open: " << sqlite3_errmsg(m_pDatabase) << endl;
+			close();
+			m_pDatabase = NULL;
 		}
 	}
-	else if (pDatabase == NULL)
+	else if (m_pDatabase == NULL)
 	{
 		cerr << "SQLiteBase::open: couldn't open " << database << endl;
 	}
 	else
 	{
 		// Set up a busy handler
-		sqlite3_busy_handler(pDatabase, busyHandler, NULL);
+		sqlite3_busy_handler(m_pDatabase, busyHandler, NULL);
 	}
-
-	return pDatabase;
 }
 
-void SQLiteBase::close(sqlite3 *pDatabase) const
+void SQLiteBase::close(void)
 {
-	if (pDatabase != NULL)
+	if (m_pDatabase != NULL)
 	{
-		sqlite3_close(pDatabase);
+		sqlite3_close(m_pDatabase);
 	}
 }
 
-bool SQLiteBase::executeSimpleStatement(const string &sql) const
+bool SQLiteBase::executeSimpleStatement(const string &sql)
 {
 	char *errMsg = NULL;
 	bool success = true;
@@ -232,13 +237,16 @@ bool SQLiteBase::executeSimpleStatement(const string &sql) const
 		return false;
 	}
 
-	sqlite3 *pDatabase = open(m_databaseName);
-	if (pDatabase == NULL)
+	if (m_onDemand == true)
+	{
+		open(m_databaseName);
+	}
+	if (m_pDatabase == NULL)
 	{
 		return false;
 	}
 
-	if (sqlite3_exec(pDatabase,
+	if (sqlite3_exec(m_pDatabase,
 		sql.c_str(), 
 		NULL, NULL, // No callback
 		&errMsg) != SQLITE_OK)
@@ -252,12 +260,15 @@ bool SQLiteBase::executeSimpleStatement(const string &sql) const
 
 		success = false;
 	}
-	close(pDatabase);
+	if (m_onDemand == true)
+	{
+		close();
+	}
 
 	return success;
 }
 
-SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...) const
+SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 {
 	SQLiteResults *pResults = NULL;
 #ifdef _USE_VSNPRINTF
@@ -270,8 +281,11 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...) const
 		return NULL;
 	}
 
-	sqlite3 *pDatabase = open(m_databaseName);
-	if (pDatabase == NULL)
+	if (m_onDemand == true)
+	{
+		open(m_databaseName);
+	}
+	if (m_pDatabase == NULL)
 	{
 		return NULL;
 	}
@@ -284,7 +298,10 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...) const
 #ifdef DEBUG
 		cout << "SQLiteBase::executeStatement: couldn't format statement" << endl;
 #endif
-		close(pDatabase);
+		if (m_onDemand == true)
+		{
+			close();
+		}
 		return NULL;
 	}
 	if (numChars >= 2048)
@@ -293,7 +310,10 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...) const
 #ifdef DEBUG
 		cout << "SQLiteBase::executeStatement: not enough space (" << numChars << ")" << endl;
 #endif
-		close(pDatabase);
+		if (m_onDemand == true)
+		{
+			close();
+		}
 		return NULL;
 	}
 	stringBuff[numChars] = '\0';
@@ -304,7 +324,10 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...) const
 #ifdef DEBUG
 		cout << "SQLiteBase::executeStatement: couldn't format statement" << endl;
 #endif
-		close(pDatabase);
+		if (m_onDemand == true)
+		{
+			close();
+		}
 		return NULL;
 	}
 #endif
@@ -312,7 +335,7 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...) const
 	char **results;
 	char *errMsg;
 	int nRows, nColumns;
-	if (sqlite3_get_table(pDatabase,
+	if (sqlite3_get_table(m_pDatabase,
 			stringBuff,
 			&results,
 			&nRows,
@@ -334,7 +357,10 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...) const
 #ifndef _USE_VSNPRINTF
 	sqlite3_free(stringBuff);
 #endif
-	close(pDatabase);
+	if (m_onDemand == true)
+	{
+		close();
+	}
 
 	return pResults;
 }

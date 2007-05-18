@@ -100,7 +100,7 @@ bool ViewHistory::insertItem(const string &url)
 }
 
 /// Checks if an URL is in the history.
-bool ViewHistory::hasItem(const string &url) const
+bool ViewHistory::hasItem(const string &url)
 {
 	bool success = false;
 
@@ -127,7 +127,7 @@ bool ViewHistory::hasItem(const string &url) const
 }
 
 /// Returns the number of items.
-unsigned int ViewHistory::getItemsCount(void) const
+unsigned int ViewHistory::getItemsCount(void)
 {
 	unsigned int count = 0;
 

@@ -46,7 +46,7 @@ class QueryHistory : public SQLiteBase
 		  * If it is, it returns the current and previous scores; returns 0 if not found.
 		  */
 		float hasItem(const string &queryName, const string &engineName, const string &url,
-			float &previousScore) const;
+			float &previousScore);
 
 		/// Updates an URL's details.
 		bool updateItem(const string &queryName, const string &engineName, const string &url,
@@ -54,14 +54,14 @@ class QueryHistory : public SQLiteBase
 
 		/// Gets the first max items for the given query, engine pair.
 		bool getItems(const string &queryName, const string &engineName,
-			unsigned int max, vector<DocumentInfo> &resultsList) const;
+			unsigned int max, vector<DocumentInfo> &resultsList);
 
 		/// Gets an item's extract.
 		string getItemExtract(const string &queryName, const string &engineName,
-			const string &url, string &charset) const;
+			const string &url, string &charset);
 
 		/// Gets a query's last run time.
-		string getLastRun(const string &queryName, const string &engineName = "") const;
+		string getLastRun(const string &queryName, const string &engineName = "");
 
 		/// Deletes items.
 		bool deleteItems(const string &name, bool isQueryName);

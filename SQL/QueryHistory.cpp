@@ -91,7 +91,7 @@ bool QueryHistory::insertItem(const string &queryName, const string &engineName,
 
 /// Checks if an URL is in the history; returns its current score or 0 if not found.
 float QueryHistory::hasItem(const string &queryName, const string &engineName, const string &url,
-	float &previousScore) const
+	float &previousScore)
 {
 	float score = 0;
 
@@ -137,7 +137,7 @@ bool QueryHistory::updateItem(const string &queryName, const string &engineName,
 
 /// Gets the first max items for the given query, engine pair.
 bool QueryHistory::getItems(const string &queryName, const string &engineName,
-	unsigned int max, vector<DocumentInfo> &resultsList) const
+	unsigned int max, vector<DocumentInfo> &resultsList)
 {
 	bool success = false;
 
@@ -174,7 +174,7 @@ bool QueryHistory::getItems(const string &queryName, const string &engineName,
 
 /// Gets an item's extract.
 string QueryHistory::getItemExtract(const string &queryName, const string &engineName,
-	const string &url, string &charset) const
+	const string &url, string &charset)
 {
 	string extract;
 
@@ -199,7 +199,7 @@ string QueryHistory::getItemExtract(const string &queryName, const string &engin
 }
 
 /// Gets a query's last run time.
-string QueryHistory::getLastRun(const string &queryName, const string &engineName) const
+string QueryHistory::getLastRun(const string &queryName, const string &engineName)
 {
 	SQLiteResults *results = NULL;
 	string lastRun;

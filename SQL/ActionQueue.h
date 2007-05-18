@@ -49,7 +49,7 @@ class ActionQueue : public SQLiteBase
         protected:
 		std::string m_queueId;
 
-		bool getOldestItem(ActionType &type, DocumentInfo &docInfo) const;
+		bool getOldestItem(ActionType &type, DocumentInfo &docInfo);
 
 		static std::string typeToText(ActionType type);
 

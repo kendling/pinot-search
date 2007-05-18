@@ -74,19 +74,21 @@ class SQLiteResults
 class SQLiteBase
 {
 	public:
-		SQLiteBase(const string &database);
+		SQLiteBase(const string &database, bool onDemand = true);
 		virtual ~SQLiteBase();
 
 		static bool check(const string &database);
 
-		bool executeSimpleStatement(const string &sql) const;
-		SQLiteResults *executeStatement(const char *sqlFormat, ...) const;
+		bool executeSimpleStatement(const string &sql);
+		SQLiteResults *executeStatement(const char *sqlFormat, ...);
 
 	protected:
 		string m_databaseName;
+		bool m_onDemand;
+		sqlite3 *m_pDatabase;
 
-		sqlite3 *open(const string &database) const;
-		void close(sqlite3 *pDatabase) const;
+		void open(const string &database);
+		void close(void);
 
 	private:
 		SQLiteBase(const SQLiteBase &other);

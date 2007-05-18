@@ -211,7 +211,7 @@ bool ActionQueue::popItem(ActionType &type, DocumentInfo &docInfo)
 	return success;
 }
 
-bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo) const
+bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo)
 {
 	bool success = false;
 
