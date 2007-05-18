@@ -126,6 +126,7 @@ void XapianDatabase::openDatabase(void)
 {
 	struct stat dbStat;
 	bool createDatabase = false;
+	bool tryAgain = false;
 
 	if (m_databaseName.empty() == true)
 	{
@@ -281,16 +282,13 @@ void XapianDatabase::openDatabase(void)
 #if XAPIAN_MAJOR_VERSION>0
 	catch (const Xapian::DatabaseVersionError &error)
 	{
-		// The format of the index is not understood
+		cerr << "XapianDatabase::openDatabase: " << error.get_type()
+			<< ": " << error.get_msg() << endl;
+
+		// This format is no longer supported
 		if (m_obsoleteFormat == false)
 		{
-			cerr << "XapianDatabase::openDatabase: " << error.get_type()
-				<< ": " << error.get_msg() << "; trying again" << endl;
-
-			// Try once more
-			m_overwrite = true;
-			m_obsoleteFormat = true;
-			openDatabase();
+			tryAgain = true;
 		}
 	}
 #endif
@@ -298,6 +296,16 @@ void XapianDatabase::openDatabase(void)
 	{
 		cerr << "XapianDatabase::openDatabase: " << error.get_type()
 			<< ": " << error.get_msg() << endl;
+	}
+
+	// Give it another try ?
+	if (tryAgain == true)
+	{
+		cout << "XapianDatabase::openDatabase: trying again" << endl;
+
+		m_overwrite = true;
+		m_obsoleteFormat = true;
+		openDatabase();
 	}
 }
 
