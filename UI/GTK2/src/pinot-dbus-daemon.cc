@@ -171,7 +171,8 @@ int main(int argc, char **argv)
 	string prefixDir(PREFIX);
 	struct sigaction newAction;
 	int longOptionIndex = 0, priority = 15;
-	bool doUpgrade = false;
+	bool overwriteIndex = false;
+	bool upgradeIndex = false;
 
 	// Look at the options
 	int optionChar = getopt_long(argc, argv, "hpv", g_longOptions, &longOptionIndex);
@@ -329,6 +330,7 @@ int main(int argc, char **argv)
 		cerr << "Couldn't open index " << settings.m_daemonIndexLocation << endl;
 		return EXIT_FAILURE;
 	}
+	upgradeIndex = pDb->wasObsoleteFormat();
 
 	// Do the same for the history database
 	if ((settings.m_historyDatabase.empty() == true) ||
@@ -371,12 +373,13 @@ int main(int argc, char **argv)
 		double indexVersion = daemonIndex.getVersion();
 
 		// Is an upgrade necessary ?
-		if (indexVersion < 0.72)
+		if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
+			(daemonIndex.getDocumentsCount() > 0))
 		{
 			cout << "Upgrading index from version " << indexVersion << " to " << daemonVersion << endl;
 
 			// Yes, it is
-			doUpgrade = true;
+			overwriteIndex = upgradeIndex = true;
 		}
 		daemonIndex.setVersion(daemonVersion);
 	}
@@ -425,7 +428,29 @@ int main(int argc, char **argv)
 			// Connect to threads' finished signal
 			server.connect();
 
-			server.start(doUpgrade);
+			if (overwriteIndex == true)
+			{
+				// Close and overwrite the index
+				XapianDatabaseFactory::closeAll();
+				XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation, false, true);
+			}
+
+			if (upgradeIndex == true)
+			{
+				CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+				map<unsigned int, string> sources;
+
+				// Reset the history
+				history.getSources(sources);
+				for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
+					sourceIter != sources.end(); ++sourceIter)
+				{
+					history.deleteItems(sourceIter->first);
+					history.deleteSource(sourceIter->first);
+				}
+			}
+
+			server.start();
 
 			// Run the main loop
 			g_refMainLoop->run();

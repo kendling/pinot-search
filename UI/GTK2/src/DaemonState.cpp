@@ -76,12 +76,12 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bo
 		// Monitoring is not necessary, but we still have to pass the handler
 		// so that we can act on documents that have been deleted
 		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
-			0, true, NULL, m_pDiskHandler);
+			NULL, m_pDiskHandler);
 	}
 	else
 	{
 		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
-			0, true, m_pDiskMonitor, m_pDiskHandler);
+			m_pDiskMonitor, m_pDiskHandler);
 	}
 	pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 
@@ -95,31 +95,10 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bo
 	return false;
 }
 
-void DaemonState::start(bool doUpgrade)
+void DaemonState::start(void)
 {
 	// Disable implicit flushing after a change
 	WorkerThread::immediateFlush(false);
-
-	// Reset the index ?
-	if (doUpgrade == true)
-	{
-		XapianIndex daemonIndex(PinotSettings::getInstance().m_daemonIndexLocation);
-
-		if (daemonIndex.unindexAllDocuments() == true)
-		{
-			CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
-			map<unsigned int, string> sources;
-
-			// ...and the history
-			history.getSources(sources);
-			for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
-				sourceIter != sources.end(); ++sourceIter)
-			{
-				history.deleteItems(sourceIter->first);
-				history.deleteSource(sourceIter->first);
-			}
-		}
-	}
 
 	// Fire up the mail monitor thread now
 	m_pMailHandler = new MboxHandler();
