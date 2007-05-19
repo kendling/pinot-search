@@ -45,6 +45,7 @@ class DaemonState : public ThreadsManager
 		SigC::Signal1<void, int>& getQuitSignal(void);
 
 	protected:
+		bool m_fullScan;
 		MonitorInterface *m_pMailMonitor;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pMailHandler;

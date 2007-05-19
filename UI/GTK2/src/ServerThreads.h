@@ -20,6 +20,7 @@
 #define _SERVERTHREADS_HH
 
 #include <string>
+#include <vector>
 extern "C"
 {
 #define DBUS_API_SUBJECT_TO_CHANGE
@@ -36,6 +37,8 @@ extern "C"
 #include "CrawlHistory.h"
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
+#include "QueryProperties.h"
+#include "DaemonState.h"
 #include "WorkerThreads.h"
 
 class MonitorThread : public WorkerThread
@@ -70,8 +73,8 @@ class DirectoryScannerThread : public WorkerThread
 {
 	public:
 		DirectoryScannerThread(const std::string &dirName, bool isSource,
-			unsigned int maxLevel, bool followSymLinks,
-			MonitorInterface *pMonitor, MonitorHandler *pHandler);
+			bool fullScan, MonitorInterface *pMonitor, MonitorHandler *pHandler,
+			unsigned int maxLevel = 0, bool followSymLinks = true);
 		virtual ~DirectoryScannerThread();
 
 		virtual std::string getType(void) const;
@@ -84,14 +87,18 @@ class DirectoryScannerThread : public WorkerThread
 
 	protected:
 		std::string m_dirName;
-		unsigned int m_maxLevel;
-		bool m_followSymLinks;
+		bool m_fullScan;
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
-		unsigned int m_currentLevel;
 		unsigned int m_sourceId;
+		unsigned int m_currentLevel;
+		unsigned int m_maxLevel;
+		bool m_followSymLinks;
 		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalFileFound;
+		std::map<std::string, time_t> m_updateCache;
 
+		void cacheUpdate(const std::string &location, time_t mTime, CrawlHistory &history);
+		void flushUpdates(CrawlHistory &history);
 		void foundFile(const DocumentInfo &docInfo);
 		bool scanEntry(const std::string &entryName, CrawlHistory &history);
 		virtual void doWork(void);
@@ -125,6 +132,9 @@ class DBusServletThread : public WorkerThread
 		DBusMessage *m_pReply;
 		GPtrArray *m_pArray;
 		bool m_mustQuit;
+
+		bool runQuery(QueryProperties &queryProps, unsigned int maxHits,
+			std::vector<std::string> &docIds);
 
 		virtual void doWork(void);
 

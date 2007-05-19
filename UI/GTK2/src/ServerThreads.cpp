@@ -35,6 +35,7 @@
 
 #include "Languages.h"
 #include "TimeConverter.h"
+#include "Timer.h"
 #include "Url.h"
 #include "DBusXapianIndex.h"
 #include "XapianIndex.h"
@@ -351,16 +352,17 @@ void MonitorThread::doWork(void)
 }
 
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSource,
-	unsigned int maxLevel, bool followSymLinks,
-	MonitorInterface *pMonitor, MonitorHandler *pHandler) :
+	bool fullScan, MonitorInterface *pMonitor, MonitorHandler *pHandler,
+	unsigned int maxLevel, bool followSymLinks) :
 	WorkerThread(),
 	m_dirName(dirName),
-	m_maxLevel(maxLevel),
-	m_followSymLinks(followSymLinks),
+	m_fullScan(fullScan),
 	m_pMonitor(pMonitor),
 	m_pHandler(pHandler),
+	m_sourceId(0),
 	m_currentLevel(0),
-	m_sourceId(0)
+	m_maxLevel(maxLevel),
+	m_followSymLinks(followSymLinks)
 {
 	if (m_dirName.empty() == false)
 	{
@@ -437,6 +439,28 @@ Signal3<void, const DocumentInfo&, const std::string&, bool>& DirectoryScannerTh
 	return m_signalFileFound;
 }
 
+void DirectoryScannerThread::cacheUpdate(const string &location, time_t mTime,
+	CrawlHistory &history)
+{
+	m_updateCache[location] = mTime;
+
+	if (m_updateCache.size() > 500)
+	{
+		flushUpdates(history);
+	}
+}
+
+void DirectoryScannerThread::flushUpdates(CrawlHistory &history)
+{
+	// Update these records
+	history.updateItems(m_updateCache, CrawlHistory::CRAWLED);
+	m_updateCache.clear();
+
+#ifdef DEBUG
+	cout << "DirectoryScannerThread::flushUpdates: flushed updates" << endl;
+#endif
+}
+
 void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 {
 	char labelStr[64];
@@ -460,7 +484,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 	time_t itemDate;
 	struct stat fileStat;
 	int statSuccess = 0;
-	bool scanSuccess = true, reportFile = false;
+	bool scanSuccess = true, reportFile = false, itemExists = false;
 
 	if (entryName.empty() == true)
 	{
@@ -491,7 +515,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 	}
 
 	// Is this item in the database already ?
-	bool itemExists = history.hasItem(location, status, itemDate);
+	itemExists = history.hasItem(location, status, itemDate);
 
 	if (statSuccess == -1)
 	{
@@ -626,18 +650,25 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 		}
 		else
 		{
-			// Update the record
-			history.updateItem(location, CrawlHistory::CRAWLED, fileStat.st_mtime);
-
-			// Was it last crawled after it was modified ?
+			// Was it modified after the last crawl ?
 			if (itemDate >= fileStat.st_mtime)
 			{
-				// Yes, it was
+				// No, it wasn't
 				reportFile = false;
 			}
+
+			// History of modified files, especially the timestamp, is always updated
+			// Others' are updated only if we are doing a full scan because
+			// the status has to be reset to CRAWLED, so that they are not unindexed
+			if ((reportFile == true) ||
+				(m_fullScan == true))
+			{
 #ifdef DEBUG
-			else cout << "DirectoryScannerThread::scanEntry: reporting modified file " << entryName << endl;
+				cout << "DirectoryScannerThread::scanEntry: updating " << entryName << endl;
 #endif
+				cacheUpdate(location, fileStat.st_mtime, history);
+			}
+
 		}
 
 		if (reportFile == true)
@@ -664,14 +695,21 @@ void DirectoryScannerThread::doWork(void)
 {
 	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
 	set<string> deletedFiles;
+	Timer scanTimer;
 
 	if (m_dirName.empty() == true)
 	{
 		return;
 	}
+	scanTimer.start();
 
-	// Update this source's items status
-	history.updateItemsStatus(m_sourceId, CrawlHistory::CRAWLED, CrawlHistory::CRAWLING);
+	if (m_fullScan == true)
+	{
+		cout << "Doing a full scan on " << m_dirName << endl;
+
+		// Update this source's items status so that we can detect files that have been deleted
+		history.updateItemsStatus(m_sourceId, CrawlHistory::CRAWLED, CrawlHistory::CRAWLING);
+	}
 	// Remove errors
 	history.deleteItems(m_sourceId, CrawlHistory::ERROR);
 
@@ -681,6 +719,7 @@ void DirectoryScannerThread::doWork(void)
 		m_status += " ";
 		m_status += m_dirName;
 	}
+	flushUpdates(history);
 
 	if (m_done == true)
 	{
@@ -690,28 +729,29 @@ void DirectoryScannerThread::doWork(void)
 		return;
 	}
 
-	// All files with status set to CRAWLING were not found in this crawl
-	// Chances are they were removed after the previous crawl
-	if ((m_pHandler != NULL) &&
-		(history.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, deletedFiles) > 0))
+	if (m_fullScan == true)
 	{
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::doWork: " << deletedFiles.size() << " files were deleted" << endl;
-#endif
-		for(set<string>::const_iterator fileIter = deletedFiles.begin();
-			fileIter != deletedFiles.end(); ++fileIter)
+		// All files with status set to CRAWLING were not found in this crawl
+		// Chances are they were removed after the last full scan
+		if ((m_pHandler != NULL) &&
+			(history.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, deletedFiles) > 0))
 		{
-			// Inform the MonitorHandler
-			if (m_pHandler->fileDeleted(fileIter->substr(7)) == true)
+#ifdef DEBUG
+			cout << "DirectoryScannerThread::doWork: " << deletedFiles.size() << " files were deleted" << endl;
+#endif
+			for(set<string>::const_iterator fileIter = deletedFiles.begin();
+				fileIter != deletedFiles.end(); ++fileIter)
 			{
-				// Delete this item
-				history.deleteItem(*fileIter);
+				// Inform the MonitorHandler
+				if (m_pHandler->fileDeleted(fileIter->substr(7)) == true)
+				{
+					// Delete this item
+					history.deleteItem(*fileIter);
+				}
 			}
 		}
 	}
-#ifdef DEBUG
-	cout << "DirectoryScannerThread::doWork: done crawling " << m_dirName << endl;
-#endif
+	cout << "Scanned " << m_dirName << " in " << scanTimer.stop()/1000 << " ms" << endl;
 }
 
 DBusServletThread::DBusServletThread(DaemonState *pServer, DBusConnection *pConnection, DBusMessage *pRequest) :
@@ -768,11 +808,44 @@ bool DBusServletThread::mustQuit(void) const
 	return m_mustQuit;
 }
 
+bool DBusServletThread::runQuery(QueryProperties &queryProps, unsigned int maxHits,
+	vector<string> &docIds)
+{
+	XapianEngine engine(PinotSettings::getInstance().m_daemonIndexLocation);
+
+	// Run the query
+	engine.setMaxResultsCount(maxHits);
+	if (engine.runQuery(queryProps) == false)
+	{
+		return false;
+	}
+
+	docIds.clear();
+
+	const vector<DocumentInfo> &resultsList = engine.getResults();
+	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
+		resultIter != resultsList.end(); ++resultIter)
+	{
+		unsigned int indexId = 0;
+		unsigned int docId = resultIter->getIsIndexed(indexId);
+
+		// We only need the document ID
+		if (docId > 0)
+		{
+			char docIdStr[64];
+
+			snprintf(docIdStr, 64, "%u", docId);
+			docIds.push_back(docIdStr);
+		}
+	}
+
+	return true;
+}
+
 void DBusServletThread::doWork(void)
 {
 	XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 	DBusError error;
-	const char *pSender = dbus_message_get_sender(m_pRequest);
 	bool processedMessage = true, flushIndex = false;
 
 	if ((m_pServer == NULL) ||
@@ -785,6 +858,7 @@ void DBusServletThread::doWork(void)
 	dbus_error_init(&error);
 
 #ifdef DEBUG
+	const char *pSender = dbus_message_get_sender(m_pRequest);
 	if (pSender != NULL)
 	{
 		cout << "DBusServletThread::doWork: called by " << pSender << endl;
@@ -1087,7 +1161,6 @@ void DBusServletThread::doWork(void)
 			DBUS_TYPE_UINT32, &maxHits,
 			DBUS_TYPE_INVALID) == TRUE)
 		{
-			XapianEngine engine(PinotSettings::getInstance().m_daemonIndexLocation);
 			bool replyWithError = true;
 
 #ifdef DEBUG
@@ -1096,33 +1169,19 @@ void DBusServletThread::doWork(void)
 			if (pSearchText != NULL)
 			{
 				QueryProperties queryProps("DBUS", pSearchText);
+				vector<string> docIds;
 
 				// Run the query
-				engine.setMaxResultsCount(maxHits);
-				if (engine.runQuery(queryProps) == true)
+				if (runQuery(queryProps, maxHits, docIds) == true)
 				{
-					const vector<DocumentInfo> &resultsList = engine.getResults();
-					vector<string> docIds;
 					m_pArray = g_ptr_array_new();
-
-					for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
-						resultIter != resultsList.end(); ++resultIter)
-					{
-						// We only need the document ID
-						unsigned int docId = index.hasDocument(resultIter->getLocation());
-						if (docId > 0)
-						{
-							char docIdStr[64];
-							snprintf(docIdStr, 64, "%u", docId);
-							docIds.push_back(docIdStr);
-						}
-					}
 
 					for (vector<string>::const_iterator docIter = docIds.begin();
 						docIter != docIds.end(); ++docIter)
 					{
 #ifdef DEBUG
-						cout << "DBusServletThread::doWork: adding result " << m_pArray->len << " " << *docIter << endl;
+						cout << "DBusServletThread::doWork: adding result "
+							<< m_pArray->len << " " << *docIter << endl;
 #endif
 						g_ptr_array_add(m_pArray, const_cast<char*>(docIter->c_str()));
 					}

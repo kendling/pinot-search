@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdlib.h>
 #include <iostream>
 #include <sigc++/class_slot.h>
 #include <sigc++/compatibility.h>
@@ -24,6 +25,7 @@
 #include <glibmm/stringutils.h>
 #include <glibmm/convert.h>
 #include <glibmm/thread.h>
+#include <glibmm/random.h>
 
 #include "Url.h"
 #include "MonitorFactory.h"
@@ -40,6 +42,7 @@ using namespace Glib;
 
 DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 20),
+	m_fullScan(false),
 	m_pMailMonitor(MonitorFactory::getMonitor()),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
 	m_pMailHandler(NULL),
@@ -75,12 +78,12 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bo
 	{
 		// Monitoring is not necessary, but we still have to pass the handler
 		// so that we can act on documents that have been deleted
-		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
+		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource, m_fullScan,
 			NULL, m_pDiskHandler);
 	}
 	else
 	{
-		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
+		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource, m_fullScan,
 			m_pDiskMonitor, m_pDiskHandler);
 	}
 	pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
@@ -97,8 +100,20 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bo
 
 void DaemonState::start(void)
 {
+	Rand randomStuff;
+
 	// Disable implicit flushing after a change
 	WorkerThread::immediateFlush(false);
+
+	// Do full scans ?
+	int randomNum = randomStuff.get_int_range(0, 10);
+	if (randomNum >= 7)
+	{
+		m_fullScan = true;
+	}
+#ifdef DEBUG
+	cout << "DaemonState::start: picked " << randomNum << endl;
+#endif
 
 	// Fire up the mail monitor thread now
 	m_pMailHandler = new MboxHandler();
