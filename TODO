@@ -48,8 +48,6 @@ Search
 - Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
 - Make sure Description files' SyndicationRight is not private or closed
 - Support for Google Buttons
-- Export search results as OpenSearch Response or CSV
-- Nested queries
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers
  and remove stopwords from queries as first step of search
 - Make multi-step index search optional
@@ -69,7 +67,7 @@ Index
 - XapianIndex could do with some common code refactoring
 - With Xapian 1.0, all indexes can be browsed with the new global posting list, ie
   Xapian::Database::postlist_begin("")
-- Use Xapian new TextSplitter class
+- Use Xapian's new TermGenerator class
 - Index Nautilus metadata (http://linuxboxadmin.com/articles/nautilus.php)
 - Automatically categorize documents based on MIME type and source into picture, video, etc...
 - Does updateDocumentInfo sometimes fail to remove terms from the old title ?
@@ -100,6 +98,7 @@ Daemon
 - Allow notifications when configuration should be reloaded
 - Implement Xesam draft(s)
 - SimpleQuery to switch multi-step search on
+- Enable to deactivate D-Bus interface
 
 UI
 - When sorting results by host name, give better score to results that appear
@@ -117,7 +116,6 @@ UI
  Viewed icon
 - Set results' indexed status after IndexingThread returns
 - Show date ranges in queries summary
-- Add Group By None to show all results at the same level
 - Make use of GTKmm 2.10 StatusIcon
 - Query expansion should be interactive
 - UI doesn't show documents indexed by the daemon the very first time it's run,
@@ -135,3 +133,6 @@ UI
 - Add less than, equal to, greater than filters on size for stored queries
 - Allow filtering index lists with a stored query instead of just labels
 - Show with icons which stored queries are fully, partially or not at all Web friendly
+- Show document IDs in properties window
+- List viewed URLs
+
