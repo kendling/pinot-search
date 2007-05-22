@@ -1,3 +1,19 @@
+??? version_0_7_3
+Tokenize :
+ - mbox filter was broken in previous release
+ - TagLib filter returns the file's name as title if no tag is found
+SQL :
+ - don't force opening and closing the database on every request
+Index :
+ - support for Xapian 1.0 API
+ - overwrite index on upgrades, it's faster than deleting all its documents
+Search :
+ - stemming wasn't activated when a language is set
+UI :
+ - fixed crash when unindexing documents
+ - updated Dutch translation by JW 
+ - updated Italian translation by Marco Bazzani
+
 2007/04/28 version_0_7_2
 General :
  - synced with gtk+'s xdgmime
