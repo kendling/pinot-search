@@ -536,20 +536,36 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 			ActionQueue queue(PinotSettings::getInstance().m_historyDatabase, get_application_name());
 			ActionQueue::ActionType type;
 			DocumentInfo docInfo;
+			string previousLocation;
 
 			while (queue.popItem(type, docInfo) == true)
 			{
+				ustring status;
+
 				if (type != ActionQueue::INDEX)
 				{
 					continue;
 				}
 
-				ustring status = index_document(docInfo);
+				if (docInfo.getLocation() == previousLocation)
+				{
+					// Something dodgy is going on, we got the same item twice !
+					status = previousLocation;
+					status += " ";
+					status += _("is already being indexed");
+				}
+				else
+				{
+					status = index_document(docInfo);
+				}
+
 				if (status.empty() == true)
 				{
 					foundItem = true;
 					break;
 				}
+
+				previousLocation = docInfo.getLocation();
 			}
 		}
 	}
