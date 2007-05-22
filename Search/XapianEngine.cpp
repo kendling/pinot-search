@@ -205,13 +205,13 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	if (stemLanguage.empty() == false)
 	{
 		stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
-		parser.set_stemming_strategy(Xapian::QueryParser::STEM_NONE);
+		parser.set_stemming_strategy(Xapian::QueryParser::STEM_ALL);
+		parser.set_stemmer(stemmer);
 	}
 	else
 	{
-		parser.set_stemming_strategy(Xapian::QueryParser::STEM_ALL);
+		parser.set_stemming_strategy(Xapian::QueryParser::STEM_NONE);
 	}
-	parser.set_stemmer(stemmer);
 	if (followOperators == true)
 	{
 		parser.set_default_op(Xapian::Query::OP_AND);
@@ -293,7 +293,14 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 
 	// Activate all options and parse
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery,
-		Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|Xapian::QueryParser::FLAG_WILDCARD);
+		Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|
+		Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|
+#if XAPIAN_MAJOR_VERSION==0
+		Xapian::QueryParser::FLAG_WILDCARD
+#else
+		Xapian::QueryParser::FLAG_WILDCARD|Xapian::QueryParser::FLAG_PURE_NOT
+#endif
+		);
 	// Apply a date range ?
 	bool enableMin = queryProps.getMinimumDate(minDay, minMonth, minYear);
 	bool enableMax = queryProps.getMaximumDate(maxDay, maxMonth, maxYear);
