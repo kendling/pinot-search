@@ -5,10 +5,13 @@ Tokenize :
 SQL :
  - don't force opening and closing the database on every request
 Index :
- - support for Xapian 1.0 API
  - overwrite index on upgrades, it's faster than deleting all its documents
+ - support for Xapian 1.0 API
 Search :
  - stemming wasn't activated when a language is set
+ - support for Xapian 1.0 API
+Daemon :
+ - don't scan for deleted files on every run
 UI :
  - fixed crash when unindexing documents
  - updated Dutch translation by JW 
