@@ -29,6 +29,7 @@ Tokenize
 - Filters should have a version number so that new versions force reindexing documents of the
  given type
 - Distribute filters' ChangeLog
+- Redo XML filter with the TextReader interface
 
 Monitor
 - Implement support for Solaris FEM

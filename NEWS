@@ -1,4 +1,4 @@
-??? version_0_7_3
+2007/05/23 version_0_7_3
 Tokenize :
  - mbox filter was broken in previous release
  - TagLib filter returns the file's name as title if no tag is found
