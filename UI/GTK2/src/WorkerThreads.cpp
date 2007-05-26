@@ -585,44 +585,52 @@ void ThreadsManager::get_statistics(unsigned int &queueSize)
 	}
 }
 
-IndexBrowserThread::IndexBrowserThread(const string &indexName,
-	const string &labelName, unsigned int maxDocsCount, unsigned int startDoc) :
+ListerThread::ListerThread(const string &indexName, unsigned int startDoc) :
 	WorkerThread(),
 	m_indexName(indexName),
-	m_labelName(labelName),
-	m_indexDocsCount(0),
-	m_maxDocsCount(maxDocsCount),
-	m_startDoc(startDoc)
+	m_startDoc(startDoc),
+	m_documentsCount(0)
+{
+}
+
+ListerThread::~ListerThread()
+{
+}
+
+string ListerThread::getType(void) const
+{
+	return "ListerThread";
+}
+
+string ListerThread::getIndexName(void) const
+{
+	return m_indexName;
+}
+
+unsigned int ListerThread::getStartDoc(void) const
+{
+	return m_startDoc;
+}
+
+const vector<DocumentInfo> &ListerThread::getDocuments(void) const
+{
+	return m_documentsList;
+}
+
+unsigned int ListerThread::getDocumentsCount(void) const
+{
+	return m_documentsCount;
+}
+
+IndexBrowserThread::IndexBrowserThread(const string &indexName,
+	unsigned int maxDocsCount, unsigned int startDoc) :
+	ListerThread(indexName, startDoc),
+	m_maxDocsCount(maxDocsCount)
 {
 }
 
 IndexBrowserThread::~IndexBrowserThread()
 {
-}
-
-string IndexBrowserThread::getType(void) const
-{
-	return "IndexBrowserThread";
-}
-
-string IndexBrowserThread::getIndexName(void) const
-{
-	return m_indexName;
-}
-
-string IndexBrowserThread::getLabelName(void) const
-{
-	return m_labelName;
-}
-
-unsigned int IndexBrowserThread::getDocumentsCount(void) const
-{
-	return m_indexDocsCount;
-}
-
-const vector<DocumentInfo> &IndexBrowserThread::getDocuments(void) const
-{
-	return m_documentsList;
 }
 
 bool IndexBrowserThread::stop(void)
@@ -664,8 +672,8 @@ void IndexBrowserThread::doWork(void)
 		return;
 	}
 
-	m_indexDocsCount = pIndex->getDocumentsCount(m_labelName);
-	if (m_indexDocsCount == 0)
+	m_documentsCount = pIndex->getDocumentsCount();
+	if (m_documentsCount == 0)
 	{
 #ifdef DEBUG
 		cout << "IndexBrowserThread::doWork: no documents" << endl;
@@ -674,19 +682,14 @@ void IndexBrowserThread::doWork(void)
 	}
 
 #ifdef DEBUG
-	cout << "IndexBrowserThread::doWork: " << m_maxDocsCount << " off " << m_indexDocsCount
-		<< " documents to browse, starting at " << m_startDoc << endl;
+	cout << "IndexBrowserThread::doWork: " << m_maxDocsCount << " off " << m_documentsCount
+		<< " documents to browse, starting at position " << m_startDoc << endl;
 #endif
-	if (m_labelName.empty() == true)
-	{
-		pIndex->listDocuments(docIDList, m_maxDocsCount, m_startDoc);
-	}
-	else
-	{
-		pIndex->listDocumentsWithLabel(m_labelName, docIDList, m_maxDocsCount, m_startDoc);
-	}
+	pIndex->listDocuments(docIDList, m_maxDocsCount, m_startDoc);
 
+	m_documentsList.clear();
 	m_documentsList.reserve(m_maxDocsCount);
+
 	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
 	{
 		if (m_done == true)
@@ -724,13 +727,19 @@ void IndexBrowserThread::doWork(void)
 }
 
 QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
-	const string &engineOption, const QueryProperties &queryProps) :
-	WorkerThread(),
+	const string &engineOption, const QueryProperties &queryProps,
+	unsigned int startDoc, bool listingIndex) :
+	ListerThread(engineDisplayableName, startDoc),
 	m_engineName(engineName),
 	m_engineDisplayableName(engineDisplayableName),
 	m_engineOption(engineOption),
-	m_queryProps(queryProps)
+	m_queryProps(queryProps),
+	m_listingIndex(listingIndex)
 {
+#ifdef DEBUG
+	cout << "QueryingThread::QueryingThread: engine " << m_engineName << ", " << engineOption
+		<< ", mode " << m_listingIndex << endl;
+#endif
 }
 
 QueryingThread::~QueryingThread()
@@ -739,6 +748,11 @@ QueryingThread::~QueryingThread()
 
 string QueryingThread::getType(void) const
 {
+	if (m_listingIndex == true)
+	{
+		return ListerThread::getType();
+	}
+
 	return "QueryingThread";
 }
 
@@ -752,20 +766,126 @@ QueryProperties QueryingThread::getQuery(void) const
 	return m_queryProps;
 }
 
-const vector<DocumentInfo> &QueryingThread::getResults(string &charset) const
+string QueryingThread::getCharset(void) const
 {
-	charset = m_resultsCharset;
-#ifdef DEBUG
-	cout << "QueryingThread::getResults: charset for " << m_engineDisplayableName << " is " << charset << endl;
-#endif
-
-	return m_resultsList;
+	return m_resultsCharset;
 }
 
 bool QueryingThread::stop(void)
 {
 	m_done = true;
 	return true;
+}
+
+void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
+{
+	PinotSettings &settings = PinotSettings::getInstance();
+	IndexInterface *pDocsIndex = NULL;
+	IndexInterface *pDaemonIndex = NULL;
+	unsigned int indexId = 0;
+	bool isIndexQuery = false;
+
+	// Are we querying an index ?
+	if (m_engineName == "xapian")
+	{
+		// Internal index ?
+		if (m_engineOption == settings.m_docsIndexLocation)
+		{
+			indexId = settings.getIndexId(_("My Web Pages"));
+			isIndexQuery = true;
+		}
+		else if (m_engineOption == settings.m_daemonIndexLocation)
+		{
+			indexId = settings.getIndexId(_("My Documents"));
+			isIndexQuery = true;
+		}
+	}
+
+	// Will we have to query internal indices ?
+	if (isIndexQuery == false)
+	{
+		pDocsIndex = settings.getIndex(settings.m_docsIndexLocation);
+		pDaemonIndex = settings.getIndex(settings.m_daemonIndexLocation);
+	}
+
+	// Copy the results list
+	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
+		resultIter != resultsList.end(); ++resultIter)
+	{
+		DocumentInfo current(*resultIter);
+		string title(_("No title"));
+		string location(current.getLocation());
+		string language(current.getLanguage());
+		unsigned int docId = 0;
+
+		// The title may contain formatting
+		if (current.getTitle().empty() == false)
+		{
+			title = FilterUtils::stripMarkup(current.getTitle());
+		}
+		current.setTitle(title);
+#ifdef DEBUG
+		cout << "QueryingThread::doWork: title is " << title << endl;
+#endif
+
+		// Use the query's language if the result's is unknown
+		if (language.empty() == true)
+		{
+			language = m_queryProps.getLanguage();
+		}
+		current.setLanguage(language);
+
+		if (isIndexQuery == true)
+		{
+			unsigned int tmpId = 0;
+
+			// The index engine should have set this
+			docId = current.getIsIndexed(tmpId);
+		}
+
+		// Is this in one of the indexes ?
+		if ((pDocsIndex != NULL) &&
+			(pDocsIndex->isGood() == true))
+		{
+			docId = pDocsIndex->hasDocument(location);
+			if (docId > 0)
+			{
+				indexId = settings.getIndexId(_("My Web Pages"));
+			}
+		}
+		if ((pDaemonIndex != NULL) &&
+			(pDaemonIndex->isGood() == true) &&
+			(docId == 0))
+		{
+			docId = pDaemonIndex->hasDocument(location);
+			if (docId > 0)
+			{
+				indexId = settings.getIndexId(_("My Documents"));
+			}
+		}
+
+		if (docId > 0)
+		{
+			current.setIsIndexed(indexId, docId);
+#ifdef DEBUG
+			cout << "QueryingThread::doWork: found in index " << indexId << endl;
+#endif
+		}
+#ifdef DEBUG
+		else cout << "QueryingThread::doWork: not found in any index" << endl;
+#endif
+
+		m_documentsList.push_back(current);
+	}
+
+	if (pDocsIndex != NULL)
+	{
+		delete pDocsIndex;
+	}
+	if (pDaemonIndex != NULL)
+	{
+		delete pDaemonIndex;
+	}
 }
 
 void QueryingThread::doWork(void)
@@ -782,9 +902,6 @@ void QueryingThread::doWork(void)
 		return;
 	}
 
-	// Set the maximum number of results
-	pEngine->setMaxResultsCount(m_queryProps.getMaximumResultsCount());
-
 	// Set up the proxy
 	DownloaderInterface *pDownloader = pEngine->getDownloader();
 	if ((pDownloader != NULL) &&
@@ -800,7 +917,7 @@ void QueryingThread::doWork(void)
 	}
 
 	// Run the query
-	if (pEngine->runQuery(m_queryProps) == false)
+	if (pEngine->runQuery(m_queryProps, m_startDoc) == false)
 	{
 		m_status = _("Couldn't run query on search engine");
 		m_status += " ";
@@ -808,116 +925,25 @@ void QueryingThread::doWork(void)
 	}
 	else
 	{
-		IndexInterface *pDocsIndex = NULL;
-		IndexInterface *pDaemonIndex = NULL;
 		const vector<DocumentInfo> &resultsList = pEngine->getResults();
-		unsigned int indexId = 0;
-		bool isIndexQuery = false;
 
-		m_resultsList.clear();
-		m_resultsList.reserve(resultsList.size());
+		m_documentsList.clear();
+		m_documentsList.reserve(resultsList.size());
+		m_documentsCount = pEngine->getResultsCountEstimate();
+#ifdef DEBUG
+		cout << "QueryingThread::doWork: " << resultsList.size() << " off " << m_documentsCount
+			<< " results to process, starting at position " << m_startDoc << endl;
+#endif
+
 		m_resultsCharset = pEngine->getResultsCharset();
-
-		// Are we querying an index ?
-		if (m_engineName == "xapian")
+		if (m_listingIndex == true)
 		{
-			// Internal index ?
-			if (m_engineOption == settings.m_docsIndexLocation)
-			{
-				indexId = settings.getIndexId(_("My Web Pages"));
-				isIndexQuery = true;
-			}
-			else if (m_engineOption == settings.m_daemonIndexLocation)
-			{
-				indexId = settings.getIndexId(_("My Documents"));
-				isIndexQuery = true;
-			}
+			copy(resultsList.begin(), resultsList.end(),
+				back_inserter(m_documentsList));
 		}
-
-		// Will we have to query internal indices ?
-		if (isIndexQuery == false)
+		else
 		{
-			pDocsIndex = settings.getIndex(settings.m_docsIndexLocation);
-			pDaemonIndex = settings.getIndex(settings.m_daemonIndexLocation);
-		}
-
-		// Copy the results list
-		for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
-			resultIter != resultsList.end(); ++resultIter)
-		{
-			DocumentInfo current(*resultIter);
-			string title(_("No title"));
-			string location(current.getLocation());
-			string language(current.getLanguage());
-			unsigned int docId = 0;
-
-			// The title may contain formatting
-			if (current.getTitle().empty() == false)
-			{
-				title = FilterUtils::stripMarkup(current.getTitle());
-			}
-			current.setTitle(title);
-#ifdef DEBUG
-			cout << "QueryingThread::doWork: title is " << title << endl;
-#endif
-
-			// Use the query's language if the result's is unknown
-			if (language.empty() == true)
-			{
-				language = m_queryProps.getLanguage();
-			}
-			current.setLanguage(language);
-
-			if (isIndexQuery == true)
-			{
-				unsigned int tmpId = 0;
-
-				// The index engine should have set this
-				docId = current.getIsIndexed(tmpId);
-			}
-
-			// Is this in one of the indexes ?
-			if ((pDocsIndex != NULL) &&
-				(pDocsIndex->isGood() == true))
-			{
-				docId = pDocsIndex->hasDocument(location);
-				if (docId > 0)
-				{
-					indexId = settings.getIndexId(_("My Web Pages"));
-				}
-			}
-			if ((pDaemonIndex != NULL) &&
-				(pDaemonIndex->isGood() == true) &&
-				(docId == 0))
-			{
-				docId = pDaemonIndex->hasDocument(location);
-				if (docId > 0)
-				{
-					indexId = settings.getIndexId(_("My Documents"));
-				}
-			}
-
-			if (docId > 0)
-			{
-				current.setIsIndexed(indexId, docId);
-#ifdef DEBUG
-				cout << "QueryingThread::doWork: found in index " << indexId << endl;
-#endif
-			}
-#ifdef DEBUG
-			else cout << "QueryingThread::doWork: not found in any index" << endl;
-#endif
-
-			m_resultsList.push_back(current);
-		}
-
-		if (pDocsIndex != NULL)
-		{
-			delete pDocsIndex;
-		}
-		if (pDaemonIndex != NULL)
-		{
-			delete pDaemonIndex;
+			processResults(resultsList);
 		}
 	}
 
@@ -993,8 +1019,6 @@ void ExpandQueryThread::doWork(void)
 		return;
 	}
 
-	// Set the maximum number of results
-	pEngine->setMaxResultsCount(m_queryProps.getMaximumResultsCount());
 	// Set whether to expand the query
 	pEngine->setQueryExpansion(relevantDocIds);
 

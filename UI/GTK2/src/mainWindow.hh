@@ -68,7 +68,7 @@ protected:
 	void on_indexTreeviewSelection_changed(Glib::ustring indexName);
 	void on_index_changed(Glib::ustring indexName);
 	void on_cache_changed(PinotSettings::CacheProvider cacheProvider);
-	void on_label_changed(Glib::ustring indexName, Glib::ustring labelName);
+	void on_query_changed(Glib::ustring indexName, Glib::ustring queryName);
 	void on_switch_page(GtkNotebookPage *p0, guint p1);
 	void on_close_page(Glib::ustring title, NotebookPageBox::PageType type);
 	void on_thread_end(WorkerThread *pThread);

@@ -808,13 +808,11 @@ bool DBusServletThread::mustQuit(void) const
 	return m_mustQuit;
 }
 
-bool DBusServletThread::runQuery(QueryProperties &queryProps, unsigned int maxHits,
-	vector<string> &docIds)
+bool DBusServletThread::runQuery(QueryProperties &queryProps, vector<string> &docIds)
 {
 	XapianEngine engine(PinotSettings::getInstance().m_daemonIndexLocation);
 
 	// Run the query
-	engine.setMaxResultsCount(maxHits);
 	if (engine.runQuery(queryProps) == false)
 	{
 		return false;
@@ -1172,7 +1170,8 @@ void DBusServletThread::doWork(void)
 				vector<string> docIds;
 
 				// Run the query
-				if (runQuery(queryProps, maxHits, docIds) == true)
+				queryProps.setMaximumResultsCount(maxHits);
+				if (runQuery(queryProps, docIds) == true)
 				{
 					m_pArray = g_ptr_array_new();
 

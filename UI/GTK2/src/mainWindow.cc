@@ -570,7 +570,7 @@ void mainWindow::on_index_changed(ustring indexName)
 {
 	ResultsTree *pResultsTree = NULL;
 	IndexPage *pIndexPage = NULL;
-	ustring labelName;
+	ustring queryName;
 	bool foundPage = false;
 
 #ifdef DEBUG
@@ -587,7 +587,7 @@ void mainWindow::on_index_changed(ustring indexName)
 		{
 			pResultsTree->clear();
 		}
-		labelName = pIndexPage->getLabelName();
+		queryName = pIndexPage->getQueryName();
 		foundPage = true;
 	}
 
@@ -609,8 +609,8 @@ void mainWindow::on_index_changed(ustring indexName)
 		pResultsTree->getDoubleClickSignal().connect(
 			SigC::slot(*this, &mainWindow::on_showfromindex_activate));
 		// Connect to the label changed signal
-		pIndexPage->getLabelChangedSignal().connect(
-			SigC::slot(*this, &mainWindow::on_label_changed));
+		pIndexPage->getQueryChangedSignal().connect(
+			SigC::slot(*this, &mainWindow::on_query_changed));
 		// ...and to the buttons clicked signals
 		pIndexPage->getBackClickedSignal().connect(
 			SigC::slot(*this, &mainWindow::on_indexBackButton_clicked));
@@ -633,7 +633,7 @@ void mainWindow::on_index_changed(ustring indexName)
 
 	if (foundPage == true)
 	{
-		browse_index(indexName, labelName, 0);
+		browse_index(indexName, queryName, 0);
 	}
 }
 
@@ -716,9 +716,9 @@ void mainWindow::on_cache_changed(PinotSettings::CacheProvider cacheProvider)
 
 
 //
-// Index labels combo selection changed
+// Index queries combo selection changed
 //
-void mainWindow::on_label_changed(ustring indexName, ustring labelName)
+void mainWindow::on_query_changed(ustring indexName, ustring queryName)
 {
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage == NULL)
@@ -732,9 +732,9 @@ void mainWindow::on_label_changed(ustring indexName, ustring labelName)
 	}
 
 #ifdef DEBUG
-	cout << "mainWindow::on_label_changed: called on " << labelName << endl;
+	cout << "mainWindow::on_query_changed: called on " << queryName << endl;
 #endif
-	browse_index(indexName, labelName, 0);
+	browse_index(indexName, queryName, 0);
 }
 
 //
@@ -849,12 +849,12 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		}
 	}
 	// Based on type, take the appropriate action...
-	else if (type == "IndexBrowserThread")
+	else if (type == "ListerThread")
 	{
 		char docsCountStr[64];
 
-		IndexBrowserThread *pBrowseThread = dynamic_cast<IndexBrowserThread *>(pThread);
-		if (pBrowseThread == NULL)
+		ListerThread *pListThread = dynamic_cast<ListerThread *>(pThread);
+		if (pListThread == NULL)
 		{
 			delete pThread;
 			return;
@@ -862,8 +862,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 		IndexPage *pIndexPage = NULL;
 		ResultsTree *pResultsTree = NULL;
-		ustring indexName = to_utf8(pBrowseThread->getIndexName());
-		ustring labelName = to_utf8(pBrowseThread->getLabelName());
+		ustring indexName = to_utf8(pListThread->getIndexName());
 
 		// Find the page for this index
 		// It may have been closed by the user
@@ -873,12 +872,12 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			pResultsTree = pIndexPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				const vector<DocumentInfo> &docsList = pBrowseThread->getDocuments();
+				const vector<DocumentInfo> &docsList = pListThread->getDocuments();
 
 				// Add the documents to the tree
 				pResultsTree->addResults("", docsList, "");
 
-				pIndexPage->setDocumentsCount(pBrowseThread->getDocumentsCount());
+				pIndexPage->setDocumentsCount(pListThread->getDocumentsCount());
 				pIndexPage->updateButtonsState(m_maxDocsCount);
 
 				status = _("Showing");
@@ -918,11 +917,11 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		QueryProperties queryProps = pQueryThread->getQuery();
+		QueryProperties queryProps(pQueryThread->getQuery());
 		ustring queryName = to_utf8(queryProps.getName());
 		ustring engineName = to_utf8(pQueryThread->getEngineName());
-		string resultsCharset;
-		const vector<DocumentInfo> &resultsList = pQueryThread->getResults(resultsCharset);
+		string resultsCharset(pQueryThread->getCharset());
+		const vector<DocumentInfo> &resultsList = pQueryThread->getDocuments();
 
 		status = _("Query");
 		status += " ";
@@ -1275,7 +1274,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				if ((docsCount >= pIndexPage->getFirstDocument() + m_maxDocsCount))
 				{
 					// Refresh this page
-					browse_index(indexName, pIndexPage->getLabelName(), pIndexPage->getFirstDocument());
+					browse_index(indexName, pIndexPage->getQueryName(), pIndexPage->getFirstDocument());
 				}
 			}
 		}
@@ -1410,32 +1409,6 @@ void mainWindow::on_configure_activate()
 #ifdef DEBUG
 	cout << "mainWindow::on_configure_activate: settings changed" << endl;
 #endif
-
-	if (m_state.read_lock_lists() == true)
-	{
-		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
-		{
-			Widget *pPage = m_pNotebook->get_nth_page(pageNum);
-			if (pPage != NULL)
-			{
-				IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pPage);
-				if (pIndexPage != NULL)
-				{
-					// Synchronize the labels list with the new settings
-					pIndexPage->populateLabelCombobox();
-
-					NotebookPageBox *pNotebookPage = dynamic_cast<NotebookPageBox*>(pPage);
-					if (pNotebookPage != NULL)
-					{
-						// The current label may have changed, refresh the list
-						browse_index(pNotebookPage->getTitle(), pIndexPage->getLabelName(), 0, false);
-					}
-				}
-			}
-		}
-
-		m_state.unlock_lists();
-	}
 
 	// Is starting the daemon necessary ?
 	if (prefsBox.startDaemon() == true)
@@ -1934,7 +1907,7 @@ void mainWindow::on_import_activate()
 		if (pIndexPage != NULL)
 		{
 			// Refresh
-			browse_index(indexName, pIndexPage->getLabelName(), 0);
+			browse_index(indexName, pIndexPage->getQueryName(), 0);
 		}
 	}
 }
@@ -2020,11 +1993,11 @@ void mainWindow::on_showfromindex_activate()
 {
 	vector<DocumentInfo> documentsList;
 	set<string> docLabels;
-	string indexName, labelName;
+	string indexName, queryName;
 	DocumentInfo docInfo;
 	unsigned int docId = 0, termsCount = 0;
 	int width, height;
-	bool matchedLabel = false, editDocument = false;
+	bool editDocument = false;
 
 #ifdef DEBUG
 	cout << "mainWindow::on_showfromindex_activate: called" << endl;
@@ -2034,12 +2007,12 @@ void mainWindow::on_showfromindex_activate()
 	if (pIndexPage != NULL)
 	{
 		indexName = from_utf8(pIndexPage->getTitle());
-		labelName = from_utf8(pIndexPage->getLabelName());
+		queryName = from_utf8(pIndexPage->getQueryName());
 		pResultsTree = pIndexPage->getTree();
 	}
 
 	const std::map<string, string> &indexesMap = m_settings.getIndexes();
-	std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);	
+	std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
 	if (mapIter == indexesMap.end())
 	{
 		ustring statusText = _("Index");
@@ -2085,13 +2058,6 @@ void mainWindow::on_showfromindex_activate()
 		pIndex->getDocumentInfo(docId, docInfo);
 		pIndex->getDocumentLabels(docId, docLabels);
 		termsCount = pIndex->getDocumentTermsCount(docId);
-
-		// Does it match the current label ?
-		if ((labelName.empty() == false) &&
-			(find(docLabels.begin(), docLabels.end(), labelName) != docLabels.end()))
-		{
-			matchedLabel = true;
-		}
 
 		editDocument = true;
 	}
@@ -2186,11 +2152,11 @@ void mainWindow::on_showfromindex_activate()
 			}
 		}
 
-		if (labelName.empty() == false)
+		if (queryName.empty() == false)
 		{
 			// The current label may have been applied to or removed from
 			// one or more of the selected documents, so refresh the list
-			browse_index(indexName, labelName, 0, 0);
+			browse_index(indexName, queryName, 0, 0);
 		}
 	}
 
@@ -2553,6 +2519,31 @@ void mainWindow::on_removeQueryButton_clicked()
 
 			queryTreeview->columns_autosize();
 		}
+
+		if (m_state.read_lock_lists() == true)
+		{
+			for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
+			{
+				Widget *pPage = m_pNotebook->get_nth_page(pageNum);
+				if (pPage != NULL)
+				{
+					IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pPage);
+					if (pIndexPage != NULL)
+					{
+						// Synchronize the queries list with the new list 
+						pIndexPage->populateQueryCombobox("");
+					}
+
+					// The current query was removed, refresh the list
+					if (queryName == pIndexPage->getQueryName())
+					{
+						browse_index(pIndexPage->getTitle(), "", 0, false);
+					}
+				}
+			}
+
+			m_state.unlock_lists();
+		}
 	}
 }
 
@@ -2587,7 +2578,7 @@ void mainWindow::on_indexBackButton_clicked(ustring indexName)
 	{
 		if (pIndexPage->getFirstDocument() >= m_maxDocsCount)
 		{
-			browse_index(indexName, pIndexPage->getLabelName(), pIndexPage->getFirstDocument() - m_maxDocsCount);
+			browse_index(indexName, pIndexPage->getQueryName(), pIndexPage->getFirstDocument() - m_maxDocsCount);
 		}
 	}
 }
@@ -2605,14 +2596,14 @@ void mainWindow::on_indexForwardButton_clicked(ustring indexName)
 #ifdef DEBUG
 			cout << "mainWindow::on_indexForwardButton_clicked: first" << endl;
 #endif
-			browse_index(indexName, pIndexPage->getLabelName(), 0);
+			browse_index(indexName, pIndexPage->getQueryName(), 0);
 		}
 		else if (pIndexPage->getDocumentsCount() >= pIndexPage->getFirstDocument() + m_maxDocsCount)
 		{
 #ifdef DEBUG
 			cout << "mainWindow::on_indexForwardButton_clicked: next" << endl;
 #endif
-			browse_index(indexName, pIndexPage->getLabelName(), pIndexPage->getFirstDocument() + m_maxDocsCount);
+			browse_index(indexName, pIndexPage->getQueryName(), pIndexPage->getFirstDocument() + m_maxDocsCount);
 		}
 #ifdef DEBUG
 		cout << "mainWindow::on_indexForwardButton_clicked: counts "
@@ -2880,6 +2871,31 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 	}
 
 	populate_queryTreeview(queryProps.getName());
+
+	if (m_state.read_lock_lists() == true)
+	{
+		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
+		{
+			Widget *pPage = m_pNotebook->get_nth_page(pageNum);
+			if (pPage != NULL)
+			{
+				IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pPage);
+				if (pIndexPage != NULL)
+				{
+					// Synchronize the queries list with the new list
+					pIndexPage->populateQueryCombobox(pIndexPage->getQueryName());
+
+					// The current query may have changed, refresh the list
+					if (queryName == pIndexPage->getQueryName())
+					{
+						browse_index(pIndexPage->getTitle(), queryName, 0, false);
+					}
+				}
+			}
+		}
+
+		m_state.unlock_lists();
+	}
 }
 
 //
@@ -3014,7 +3030,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 //
 // Browse an index
 //
-void mainWindow::browse_index(const ustring &indexName, const ustring &labelName,
+void mainWindow::browse_index(const ustring &indexName, const ustring &queryName,
 	unsigned int startDoc, bool changePage)
 {
 	// Rudimentary lock
@@ -3043,9 +3059,38 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &labelName
 	}
 
 	// Spawn a new thread to browse the index
-	IndexBrowserThread *pBrowseThread = new IndexBrowserThread(
-		from_utf8(indexName), labelName, m_maxDocsCount, startDoc);
-	start_thread(pBrowseThread);
+	if (queryName.empty() == true)
+	{
+		start_thread(new IndexBrowserThread(from_utf8(indexName), m_maxDocsCount, startDoc));
+	}
+	else
+	{
+		// Find the query
+		const std::map<string, QueryProperties> &queriesMap = m_settings.getQueries();
+		std::map<string, QueryProperties>::const_iterator queryIter = queriesMap.find(queryName);
+		if (queryIter != queriesMap.end())
+		{
+			QueryProperties queryProps(queryIter->second);
+
+			// Override the query's default number of results
+			queryProps.setMaximumResultsCount(m_maxDocsCount);
+
+			// ... and the index
+			const std::map<string, string> &indexesMap = m_settings.getIndexes();
+			std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
+			if (mapIter != indexesMap.end())
+			{
+				start_thread(new QueryingThread("xapian", from_utf8(indexName),
+					mapIter->second, queryProps, startDoc, true));
+			}
+#ifdef DEBUG
+			else cout << "mainWindow::browse_index: couldn't find index " << indexName << endl;
+#endif
+		}
+#ifdef DEBUG
+		else cout << "mainWindow::browse_index: couldn't find query " << queryName << endl;
+#endif
+	}
 }
 
 //
@@ -3241,25 +3286,12 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 		return false;
 	}
 
-	// Does that document have the current label ?
-	ustring labelName = pIndexPage->getLabelName();
-	if (labelName.empty() == false)
+	// Is a query defined ?
+	ustring queryName = pIndexPage->getQueryName();
+	if (queryName.empty() == false)
 	{
-		const std::map<string, string> &indexesMap = m_settings.getIndexes();
-		std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
-		if (mapIter != indexesMap.end())
-		{
-			IndexInterface *pIndex = m_settings.getIndex(mapIter->second);
-	
-			if (pIndex != NULL)
-			{
-				unsigned int indexId = 0;
-
-				appendToList = pIndex->hasLabel(docInfo.getIsIndexed(indexId), from_utf8(labelName));
-			}
-
-			delete pIndex;
-		}
+		// FIXME: run th document through the query
+		appendToList = false;
 	}
 
 	if (appendToList == true)

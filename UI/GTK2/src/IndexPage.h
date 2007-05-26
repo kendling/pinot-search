@@ -48,11 +48,11 @@ class IndexPage : public NotebookPageBox
 		/// Returns the page's tree.
 		virtual ResultsTree *getTree(void) const;
 
-		/// Returns the name of the current label.
-		Glib::ustring getLabelName(void) const;
+		/// Returns the name of the current query.
+		Glib::ustring getQueryName(void) const;
 
-		/// Populates the labels list.
-		void populateLabelCombobox(void);
+		/// Populates the queries list.
+		void populateQueryCombobox(const std::string &queryName);
 
 		/// Updates the state of the index buttons.
 		void updateButtonsState(unsigned int maxDocsCount);
@@ -69,8 +69,8 @@ class IndexPage : public NotebookPageBox
 		/// Sets the first document.
 		void setFirstDocument(unsigned int startDoc);
 
-		/// Returns the changed label signal.
-		SigC::Signal2<void, Glib::ustring, Glib::ustring>& getLabelChangedSignal(void);
+		/// Returns the changed query signal.
+		SigC::Signal2<void, Glib::ustring, Glib::ustring>& getQueryChangedSignal(void);
 
 		/// Returns the back button clicked signal.
 		SigC::Signal1<void, Glib::ustring>& getBackClickedSignal(void);
@@ -80,18 +80,18 @@ class IndexPage : public NotebookPageBox
 
 	protected:
 		Glib::ustring m_indexName;
-		Glib::ustring m_labelName;
+		Glib::ustring m_queryName;
 		ResultsTree *m_pTree;
-		Gtk::ComboBoxText *m_pLabelCombobox;
+		Gtk::ComboBoxText *m_pQueryCombobox;
 		Gtk::Button *m_pBackButton;
 		Gtk::Button *m_pForwardButton;
 		unsigned int m_docsCount;
 		unsigned int m_firstDoc;
-		SigC::Signal2<void, Glib::ustring, Glib::ustring> m_signalLabelChanged;
+		SigC::Signal2<void, Glib::ustring, Glib::ustring> m_signalQueryChanged;
 		SigC::Signal1<void, Glib::ustring> m_signalBackClicked;
 		SigC::Signal1<void, Glib::ustring> m_signalForwardClicked;
 
-		void onLabelChanged(void);
+		void onQueryChanged(void);
 
 		void onBackClicked(void);
 

@@ -133,8 +133,7 @@ class DBusServletThread : public WorkerThread
 		GPtrArray *m_pArray;
 		bool m_mustQuit;
 
-		bool runQuery(QueryProperties &queryProps, unsigned int maxHits,
-			std::vector<std::string> &docIds);
+		bool runQuery(QueryProperties &queryProps, std::vector<std::string> &docIds);
 
 		virtual void doWork(void);
 

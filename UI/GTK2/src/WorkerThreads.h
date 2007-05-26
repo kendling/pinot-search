@@ -147,32 +147,47 @@ class ThreadsManager : virtual public SigC::Object
 
 };
 
-class IndexBrowserThread : public WorkerThread
+class ListerThread : public WorkerThread
 {
 	public:
-		IndexBrowserThread(const std::string &indexName, const std::string &labelName,
-			unsigned int maxDocsCount, unsigned int startDoc);
-		~IndexBrowserThread();
+		ListerThread(const std::string &indexName, unsigned int startDoc);
+		~ListerThread();
 
 		std::string getType(void) const;
 
 		std::string getIndexName(void) const;
 
-		std::string getLabelName(void) const;
+		unsigned int getStartDoc(void) const;
+
+		const std::vector<DocumentInfo> &getDocuments(void) const;
 
 		unsigned int getDocumentsCount(void) const;
 
-		const std::vector<DocumentInfo> &getDocuments(void) const;
+	protected:
+		std::string m_indexName;
+		unsigned int m_startDoc;
+		std::vector<DocumentInfo> m_documentsList;
+		unsigned int m_documentsCount;
+
+	private:
+		ListerThread(const ListerThread &other);
+		ListerThread &operator=(const ListerThread &other);
+
+};
+
+class IndexBrowserThread : public ListerThread
+{
+	public:
+		IndexBrowserThread(const std::string &indexName, unsigned int maxDocsCount,
+			unsigned int startDoc = 0);
+		~IndexBrowserThread();
+
+		std::string getLabelName(void) const;
 
 		virtual bool stop(void);
 
 	protected:
-		std::string m_indexName;
-		std::string m_labelName;
-		unsigned int m_indexDocsCount;
 		unsigned int m_maxDocsCount;
-		unsigned int m_startDoc;
-		std::vector<DocumentInfo> m_documentsList;
 
 		virtual void doWork(void);
 
@@ -182,20 +197,23 @@ class IndexBrowserThread : public WorkerThread
 
 };
 
-class QueryingThread : public WorkerThread
+class QueryingThread : public ListerThread
 {
 	public:
 		QueryingThread(const std::string &engineName, const std::string &engineDisplayableName,
-			const std::string &engineOption, const QueryProperties &queryProps);
+			const std::string &engineOption, const QueryProperties &queryProps,
+			unsigned int startDoc = 0, bool listingIndex = false);
 		virtual ~QueryingThread();
 
 		virtual std::string getType(void) const;
 
 		std::string getEngineName(void) const;
 
+		bool isListingIndex(void) const;
+
 		QueryProperties getQuery(void) const;
 
-		const std::vector<DocumentInfo> &getResults(std::string &charset) const;
+		std::string getCharset(void) const;
 
 		virtual bool stop(void);
 
@@ -203,10 +221,11 @@ class QueryingThread : public WorkerThread
 		std::string m_engineName;
 		std::string m_engineDisplayableName;
 		std::string m_engineOption;
+		bool m_listingIndex;
 		QueryProperties m_queryProps;
-		std::vector<DocumentInfo> m_resultsList;
 		std::string m_resultsCharset;
-		std::set<std::string> m_expandTerms;
+
+		virtual void processResults(const std::vector<DocumentInfo> &resultsList);
 
 		virtual void doWork(void);
 

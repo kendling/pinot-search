@@ -39,13 +39,13 @@ IndexPage::IndexPage(const ustring &indexName, ResultsTree *pTree,
 	PinotSettings &settings) :
 	NotebookPageBox(indexName, NotebookPageBox::INDEX_PAGE, settings),
 	m_pTree(pTree),
-	m_pLabelCombobox(NULL),
+	m_pQueryCombobox(NULL),
 	m_pBackButton(NULL),
 	m_pForwardButton(NULL),
 	m_docsCount(0),
 	m_firstDoc(0)
 {
-	m_pLabelCombobox = manage(new ComboBoxText());
+	m_pQueryCombobox = manage(new ComboBoxText());
 
 	Image *image521 = manage(new Image(StockID("gtk-media-rewind"), IconSize(4)));
 	Label *label52 = manage(new Label(_("Show Previous")));
@@ -97,7 +97,7 @@ IndexPage::IndexPage(const ustring &indexName, ResultsTree *pTree,
 	// Position everything
 	indexHbuttonbox->pack_start(*m_pBackButton);
 	indexHbuttonbox->pack_start(*m_pForwardButton);
-	indexButtonsHbox->pack_start(*m_pLabelCombobox, Gtk::PACK_SHRINK, 4);
+	indexButtonsHbox->pack_start(*m_pQueryCombobox, Gtk::PACK_SHRINK, 4);
 	indexButtonsHbox->pack_start(*indexHbuttonbox, Gtk::PACK_EXPAND_WIDGET, 4);
 	pack_start(*indexButtonsHbox, Gtk::PACK_SHRINK, 4);
 	if (pTree != NULL)
@@ -106,11 +106,11 @@ IndexPage::IndexPage(const ustring &indexName, ResultsTree *pTree,
 	}
 
 	// Populate
-	populateLabelCombobox();
+	populateQueryCombobox("");
 
 	// Connect the signals
-	m_pLabelCombobox->signal_changed().connect(
-		SigC::slot(*this, &IndexPage::onLabelChanged));
+	m_pQueryCombobox->signal_changed().connect(
+		SigC::slot(*this, &IndexPage::onQueryChanged));
 	m_pBackButton->signal_clicked().connect(
 		SigC::slot(*this, &IndexPage::onBackClicked));
 	m_pForwardButton->signal_clicked().connect(
@@ -121,7 +121,7 @@ IndexPage::IndexPage(const ustring &indexName, ResultsTree *pTree,
 	m_pForwardButton->set_sensitive(false);
 
 	// Show all
-	m_pLabelCombobox->show();
+	m_pQueryCombobox->show();
 	image521->show();
 	label52->show();
 	hbox45->show();
@@ -141,17 +141,17 @@ IndexPage::~IndexPage()
 {
 }
 
-void IndexPage::onLabelChanged(void)
+void IndexPage::onQueryChanged(void)
 {
-	m_labelName = m_pLabelCombobox->get_active_text();
+	m_queryName = m_pQueryCombobox->get_active_text();
 #ifdef DEBUG
-	cout << "IndexPage::onLabelChanged: current label now " << m_labelName << endl;
+	cout << "IndexPage::onQueryChanged: current query now " << m_queryName << endl;
 #endif
-	if (m_labelName == _("All labels"))
+	if (m_queryName == _("None"))
 	{
-		m_labelName.clear();
+		m_queryName.clear();
 	}
-	m_signalLabelChanged(m_title, m_labelName);
+	m_signalQueryChanged(m_title, m_queryName);
 }
 
 void IndexPage::onBackClicked(void)
@@ -173,29 +173,44 @@ ResultsTree *IndexPage::getTree(void) const
 }
 
 //
-// Returns the name of the current label.
+// Returns the name of the current query.
 //
-ustring IndexPage::getLabelName(void) const
+ustring IndexPage::getQueryName(void) const
 {
-	return m_labelName;
+	return m_queryName;
 }
 
 //
-// Populates the labels list.
+// Populates the queries list.
 //
-void IndexPage::populateLabelCombobox(void)
+void IndexPage::populateQueryCombobox(const string &queryName)
 {
-	m_pLabelCombobox->append_text(_("All labels"));
+	bool setActive = false;
 
-	const set<string> &labels = m_settings.getLabels();
-	for (set<string>::const_iterator labelIter = labels.begin();
-		labelIter != labels.end(); ++labelIter)
+	m_pQueryCombobox->clear_items();
+
+	m_pQueryCombobox->append_text(_("None"));
+
+	const std::map<string, QueryProperties> &queries = m_settings.getQueries();
+	for (std::map<string, QueryProperties>::const_iterator queryIter = queries.begin();
+		queryIter != queries.end(); ++queryIter)
 	{
-		m_pLabelCombobox->append_text(to_utf8(*labelIter));
+		m_pQueryCombobox->append_text(to_utf8(queryIter->first));
+
+		if ((setActive == false) &&
+			(queryIter->first == queryName))
+		{
+			m_pQueryCombobox->set_active_text(queryName);
+			m_queryName = queryName;
+			setActive = true;
+		}
 	}
 
-	m_pLabelCombobox->set_active(0);
-	m_labelName.clear();
+	if (setActive == false)
+	{
+		m_pQueryCombobox->set_active(0);
+		m_queryName.clear();
+	}
 }
 
 //
@@ -258,11 +273,11 @@ void IndexPage::setFirstDocument(unsigned int startDoc)
 }
 
 //
-// Returns the changed label signal.
+// Returns the changed query signal.
 //
-Signal2<void, ustring, ustring>& IndexPage::getLabelChangedSignal(void)
+Signal2<void, ustring, ustring>& IndexPage::getQueryChangedSignal(void)
 {
-	return m_signalLabelChanged;
+	return m_signalQueryChanged;
 }
 
 //
