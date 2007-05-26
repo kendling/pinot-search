@@ -17,6 +17,8 @@
  */
 
 #include <stdlib.h>
+#include <map>
+#include <set>
 #include <iostream>
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
@@ -34,7 +36,12 @@
 using std::cout;
 using std::endl;
 using std::string;
+using std::vector;
 using std::map;
+using std::set;
+using std::exception;
+
+using namespace boost::spirit;
 
 // A function object to lower case map keys with for_each()
 struct LowerAndCopy
@@ -53,9 +60,6 @@ struct LowerAndCopy
 		map<string, string> &m_other;
 
 };
-
-using namespace std;
-using namespace boost::spirit;
 
 struct skip_grammar : public grammar<skip_grammar>
 {
@@ -369,7 +373,6 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 				(chunkFilter.next_document() == true))
 			{
 				unsigned int endOfFirstLink = 0, startOfSecondLink = 0, endOfSecondLink = 0, startOfThirdLink = 0;
-
 
 				// The result's URL and title should be given by the first link
 				for (set<Dijon::Link>::iterator linkIter = chunkLinks.begin(); linkIter != chunkLinks.end(); ++linkIter)

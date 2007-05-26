@@ -21,6 +21,7 @@
 
 #include <pthread.h>
 #include <string>
+#include <vector>
 
 #include "Document.h"
 #include "PluginParsers.h"
