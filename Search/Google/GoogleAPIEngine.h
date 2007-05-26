@@ -34,7 +34,8 @@ class GoogleAPIEngine : public WebEngine
 		virtual ~GoogleAPIEngine();
 
 		/// Runs a query; true if success.
-		virtual bool runQuery(QueryProperties& queryProps);
+		virtual bool runQuery(QueryProperties& queryProps,
+			unsigned int startDoc = 0);
 
 		/// Retrieves the specified URL from the cache; NULL if error. Caller deletes.
 		Document *retrieveCachedUrl(const string &url);

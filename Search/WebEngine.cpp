@@ -61,7 +61,6 @@ WebEngine::WebEngine() :
 
 WebEngine::~WebEngine()
 {
-	m_resultsList.clear();
 	if (m_pDownloader != NULL)
 	{
 		delete m_pDownloader;

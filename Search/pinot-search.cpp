@@ -179,9 +179,6 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	// How many results ?
-	pEngine->setMaxResultsCount(maxResultsCount);
-
 	// Set up the proxy
 	DownloaderInterface *pDownloader = pEngine->getDownloader();
 	if ((pDownloader != NULL) &&
@@ -193,7 +190,9 @@ int main(int argc, char **argv)
 		pDownloader->setSetting("proxytype", proxyType);
 	}
 
-	QueryProperties queryProps("senginetest", pQuery);
+	QueryProperties queryProps("pinot-search", pQuery);
+
+	queryProps.setMaximumResultsCount(maxResultsCount);
 	if (pEngine->runQuery(queryProps) == true)
 	{
 		string resultsPage;

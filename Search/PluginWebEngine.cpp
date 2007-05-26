@@ -65,7 +65,7 @@ void PluginWebEngine::load(const string &fileName)
 	delete pParser;
 }
 
-bool PluginWebEngine::getPage(const string &formattedQuery)
+bool PluginWebEngine::getPage(const string &formattedQuery, unsigned int maxResultsCount)
 {
 	if ((m_pResponseParser == NULL) ||
 		(formattedQuery.empty() == true))
@@ -101,7 +101,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery)
 #endif
 
 	bool success = m_pResponseParser->parse(pResponseDoc, m_resultsList,
-		m_maxResultsCount, m_properties.m_nextBase);
+		maxResultsCount, m_properties.m_nextBase);
 	vector<DocumentInfo>::iterator resultIter = m_resultsList.begin();
 	while (resultIter != m_resultsList.end())
 	{
@@ -210,13 +210,16 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 //
 
 /// Runs a query; true if success.
-bool PluginWebEngine::runQuery(QueryProperties& queryProps)
+bool PluginWebEngine::runQuery(QueryProperties& queryProps,
+	unsigned int startDoc)
 {
 	string queryString(queryProps.getFreeQuery(true));
 	char countStr[64];
+	unsigned int maxResultsCount(queryProps.getMaximumResultsCount());
 	unsigned int currentIncrement = 0, count = 0;
 
 	m_resultsList.clear();
+	m_resultsCountEstimate = 0;
 
 	if (queryString.empty() == true)
 	{
@@ -255,7 +258,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 	cout << "PluginWebEngine::runQuery: querying "
 		<< m_properties.m_name << endl;
 #endif
-	while (count < m_maxResultsCount)
+	while (count < maxResultsCount)
 	{
 		string pageQuery(formattedQuery);
 
@@ -269,7 +272,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 				pageQuery += "&";
 				pageQuery += paramIter->second;
 				pageQuery += "=";
-				snprintf(countStr, 64, "%u", m_maxResultsCount);
+				snprintf(countStr, 64, "%u", maxResultsCount);
 				pageQuery += countStr;
 			}
 
@@ -298,7 +301,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps)
 			}
 		}
 
-		if (getPage(pageQuery) == false)
+		if (getPage(pageQuery, queryProps.getMaximumResultsCount()) == false)
 		{
 			break;
 		}

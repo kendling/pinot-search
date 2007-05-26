@@ -36,7 +36,6 @@ GoogleAPIEngine::GoogleAPIEngine() :
 
 GoogleAPIEngine::~GoogleAPIEngine()
 {
-	m_resultsList.clear();
 }
 
 /// Retrieves the specified URL from the cache; NULL if error. Caller deletes.
@@ -83,9 +82,14 @@ string GoogleAPIEngine::checkSpelling(const string &text)
 //
 
 /// Runs a query; true if success.
-bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
+bool GoogleAPIEngine::runQuery(QueryProperties& queryProps,
+	unsigned int startDoc)
 {
 	string queryString(queryProps.getFreeQuery(true));
+	unsigned int maxResultsCount = queryProps.getMaximumResultsCount();
+
+	m_resultsList.clear();
+	m_resultsCountEstimate = 0;
 
 	setHostNameFilter(queryProps.getHostFilter());
 	setFileNameFilter(queryProps.getFileFilter());
@@ -112,7 +116,7 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 	struct gapi1__doGoogleSearchResponse queryOut;
 
 	// No filter, no safe search
-	int soapStatus = soapProxy.gapi1__doGoogleSearch(m_key, queryString, 0, (int)(m_maxResultsCount > 10 ? 10 : m_maxResultsCount),
+	int soapStatus = soapProxy.gapi1__doGoogleSearch(m_key, queryString, 0, (int)(maxResultsCount > 10 ? 10 : maxResultsCount),
 		false, "", false, "", "utf-8", "utf-8", queryOut);
 	if (soapStatus != SOAP_OK)
 	{
@@ -126,6 +130,8 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps)
 		(searchResult->resultElements != NULL))
 	{
 		float pseudoScore = 100;
+
+		m_resultsCountEstimate = searchResult->estimatedTotalResultsCount;
 
 		for (int i = 0; i < searchResult->resultElements->__size; ++i)
 		{

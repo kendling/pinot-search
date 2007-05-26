@@ -36,7 +36,8 @@ class PluginWebEngine : public WebEngine
 		static bool getDetails(const std::string &fileName, std::string &name, std::string &channel);
 
 		/// Runs a query; true if success.
-		virtual bool runQuery(QueryProperties& queryProps);
+		virtual bool runQuery(QueryProperties& queryProps,
+			unsigned int startDoc = 0);
 
 	protected:
 		SearchPluginProperties m_properties;
@@ -44,7 +45,7 @@ class PluginWebEngine : public WebEngine
 
 		void load(const std::string &fileName);
 
-		bool getPage(const std::string &formattedQuery);
+		bool getPage(const std::string &formattedQuery, unsigned int maxResultsCount);
 
 		static PluginParserInterface *getPluginParser(const std::string &fileName);
 

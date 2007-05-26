@@ -29,7 +29,7 @@ using std::endl;
 SearchEngineInterface::SearchEngineInterface() :
 	m_callsCount(0),
 	m_startTime(time(NULL)),
-	m_maxResultsCount(10)
+	m_resultsCountEstimate(0)
 {
 }
 
@@ -50,12 +50,6 @@ void SearchEngineInterface::setCallsCount(unsigned int count, time_t startTime)
 	m_startTime = startTime;
 }
 
-/// Sets the maximum number of results to return.
-void SearchEngineInterface::setMaxResultsCount(unsigned int count)
-{
-	m_maxResultsCount = count;
-}
-
 /// Sets whether the query should be expanded.
 bool SearchEngineInterface::setQueryExpansion(set<unsigned int> &relevantDocuments)
 {
@@ -73,6 +67,12 @@ DownloaderInterface *SearchEngineInterface::getDownloader(void)
 const vector<DocumentInfo> &SearchEngineInterface::getResults(void) const
 {
 	return m_resultsList;
+}
+
+/// Returns an estimate of the total number of results for the previous query.
+unsigned int SearchEngineInterface::getResultsCountEstimate(void) const
+{
+	return m_resultsCountEstimate;
 }
 
 /// Returns the charset for the previous query's results.

@@ -43,13 +43,15 @@ class XapianEngine : public SearchEngineInterface
 		bool setQueryExpansion(std::set<unsigned int> &relevantDocuments);
 
 		/// Runs a query; true if success.
-		virtual bool runQuery(QueryProperties& queryProps);
+		virtual bool runQuery(QueryProperties& queryProps,
+			unsigned int startDoc = 0);
 
 	protected:
 		std::string m_databaseName;
 		std::set<unsigned int> m_relevantDocuments;
 
-		bool queryDatabase(Xapian::Database *pIndex, Xapian::Query &query);
+		bool queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
+			unsigned int startDoc, unsigned int maxResultsCount);
 
 		static Xapian::Query dateFilter(unsigned int minDay, unsigned int minMonth, unsigned int minYear,
 		        unsigned int maxDay, unsigned int maxMonth, unsigned int maxYear);

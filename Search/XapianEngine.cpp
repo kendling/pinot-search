@@ -102,15 +102,10 @@ XapianEngine::XapianEngine(const string &database) :
 	{
 		m_databaseName = database;
 	}
-
-	// SearchEngineInterface members
-	m_maxResultsCount = 10;
-	m_resultsList.clear();
 }
 
 XapianEngine::~XapianEngine()
 {
-	m_resultsList.clear();
 }
 
 Xapian::Query XapianEngine::dateFilter(unsigned int minDay, unsigned int minMonth, unsigned int minYear,
@@ -385,7 +380,8 @@ bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefix
 	return goodQuery;
 }
 
-bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
+bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
+	unsigned int startDoc, unsigned int maxResultsCount)
 {
 	bool completedQuery = false;
 
@@ -406,14 +402,16 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query)
 		enquire.set_query(query);
 
 		// Get the top results of the query
-		Xapian::MSet matches = enquire.get_mset(0, m_maxResultsCount);
+		Xapian::MSet matches = enquire.get_mset(startDoc, maxResultsCount);
 		if (matches.empty() == false)
 		{
-			// Get the results
+			m_resultsCountEstimate = matches.get_matches_estimated();
 #ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: " << matches.get_matches_estimated()
-				<< "/" << m_maxResultsCount << " results found" << endl;
+			cout << "XapianEngine::queryDatabase: " << m_resultsCountEstimate << "/"
+				<< maxResultsCount << " results found from position " << startDoc << endl;
 #endif
+
+			// Get the results
 			for (Xapian::MSetIterator mIter = matches.begin(); mIter != matches.end(); ++mIter)
 			{
 				Xapian::docid docId = *mIter;
@@ -517,10 +515,12 @@ bool XapianEngine::setQueryExpansion(set<unsigned int> &relevantDocuments)
 }
 
 /// Runs a query; true if success.
-bool XapianEngine::runQuery(QueryProperties& queryProps)
+bool XapianEngine::runQuery(QueryProperties& queryProps,
+	unsigned int startDoc)
 {
 	// Clear the results list
 	m_resultsList.clear();
+	m_resultsCountEstimate = 0;
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, true);
 	if (pDatabase == NULL)
@@ -550,7 +550,8 @@ bool XapianEngine::runQuery(QueryProperties& queryProps)
 			cout << "XapianEngine::runQuery: " << fullQuery.get_description() << endl;
 #endif
 			// Query the database
-			if (queryDatabase(pIndex, fullQuery) == false)
+			if (queryDatabase(pIndex, fullQuery, startDoc,
+				queryProps.getMaximumResultsCount()) == false)
 			{
 				break;
 			}

@@ -42,9 +42,6 @@ class SearchEngineInterface
 		/// Sets the number of calls issued since start time.
 		virtual void setCallsCount(unsigned int count, time_t startTime);
 
-		/// Sets the maximum number of results to return.
-		virtual void setMaxResultsCount(unsigned int count);
-
 		/// Sets whether the query should be expanded.
 		virtual bool setQueryExpansion(set<unsigned int> &relevantDocuments);
 
@@ -52,10 +49,14 @@ class SearchEngineInterface
 		virtual DownloaderInterface *getDownloader(void);
 
 		/// Runs a query; true if success.
-		virtual bool runQuery(QueryProperties& queryProps) = 0;
+		virtual bool runQuery(QueryProperties& queryProps,
+			unsigned int startDoc = 0) = 0;
 
 		/// Returns the results for the previous query.
 		virtual const vector<DocumentInfo> &getResults(void) const;
+
+		/// Returns an estimate of the total number of results for the previous query.
+		virtual unsigned int getResultsCountEstimate(void) const;
 
 		/// Returns the charset for the previous query's results.
 		virtual string getResultsCharset(void) const;
@@ -67,9 +68,9 @@ class SearchEngineInterface
 		string m_key;
 		unsigned int m_callsCount;
 		time_t m_startTime;
-		unsigned int m_maxResultsCount;
 		bool m_expandQueries;
 		vector<DocumentInfo> m_resultsList;
+		unsigned int m_resultsCountEstimate;
 		string m_charset;
 		set<string> m_expandTerms;
 
