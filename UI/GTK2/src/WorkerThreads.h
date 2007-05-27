@@ -227,6 +227,9 @@ class QueryingThread : public ListerThread
 
 		virtual void processResults(const std::vector<DocumentInfo> &resultsList);
 
+		virtual void processResults(const std::vector<DocumentInfo> &resultsList,
+			unsigned int indexId);
+
 		virtual void doWork(void);
 
 	private:

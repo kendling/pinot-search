@@ -888,6 +888,25 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 	}
 }
 
+void QueryingThread::processResults(const vector<DocumentInfo> &resultsList,
+	unsigned int indexId)
+{
+	unsigned int zeroId = 0;
+
+	// Copy the results list
+	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
+		resultIter != resultsList.end(); ++resultIter)
+	{
+		DocumentInfo current(*resultIter);
+
+		// The engine has no notion of index IDs
+		unsigned int docId = current.getIsIndexed(zeroId);
+		current.setIsIndexed(indexId, docId);
+
+		m_documentsList.push_back(current);
+	}
+}
+
 void QueryingThread::doWork(void)
 {
 	PinotSettings &settings = PinotSettings::getInstance();
@@ -936,14 +955,14 @@ void QueryingThread::doWork(void)
 #endif
 
 		m_resultsCharset = pEngine->getResultsCharset();
-		if (m_listingIndex == true)
+		if (m_listingIndex == false)
 		{
-			copy(resultsList.begin(), resultsList.end(),
-				back_inserter(m_documentsList));
+			processResults(resultsList);
 		}
 		else
 		{
-			processResults(resultsList);
+			processResults(resultsList,
+				PinotSettings::getInstance().getIndexId(m_engineDisplayableName));
 		}
 	}
 

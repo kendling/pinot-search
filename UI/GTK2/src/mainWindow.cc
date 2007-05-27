@@ -2052,14 +2052,18 @@ void mainWindow::on_showfromindex_activate()
 
 		// Get the document ID
 		docId = docIter->getIsIndexed(indexId);
-
-		// Get the properties from the index because they have been altered
-		// by the tree for display purposes
-		pIndex->getDocumentInfo(docId, docInfo);
-		pIndex->getDocumentLabels(docId, docLabels);
-		termsCount = pIndex->getDocumentTermsCount(docId);
-
-		editDocument = true;
+#ifdef DEBUG
+		cout << "mainWindow::on_showfromindex_activate: document " << docId << " in index " << indexId << endl;
+#endif
+		if (docId > 0)
+		{
+			// Get the properties from the index because they have been altered
+			// by the tree for display purposes
+			pIndex->getDocumentInfo(docId, docInfo);
+			pIndex->getDocumentLabels(docId, docLabels);
+			termsCount = pIndex->getDocumentTermsCount(docId);
+			editDocument = true;
+		}
 	}
 	else
 	{
