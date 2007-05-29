@@ -387,7 +387,7 @@ http://www.webdav.org/neon/
 
 Google SOAP API (2)	Search/Google/googleapi		beta2
 
- gSOAP							2.7.8c
+ gSOAP (2)						2.7.8c
  http://www.cs.fsu.edu/~engelen/soap.html
 
 gtkmm							2.6.2
@@ -430,7 +430,7 @@ http://www.gnu.org/software/unrtf/unrtf.html
 TagLib							1.4
 http://ktown.kde.org/~wheeler/taglib/
 
-openssh-askpass						4.3
+openssh-askpass (4)					4.3
 http://www.openssh.com/portable.html
 
 ---------------------------------------------------------------
@@ -438,6 +438,7 @@ Notes :
 (1) enabled with "./configure --with-http=neon|curl"
 (2) enabled with "./configure --with-soap=yes"
 (3) for building only
+(4) experimental - required only if _SSH_TUNNEL is set
 ---------------------------------------------------------------
 
 
