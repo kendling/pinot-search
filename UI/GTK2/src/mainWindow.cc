@@ -2536,12 +2536,12 @@ void mainWindow::on_removeQueryButton_clicked()
 					{
 						// Synchronize the queries list with the new list 
 						pIndexPage->populateQueryCombobox("");
-					}
 
-					// The current query was removed, refresh the list
-					if (queryName == pIndexPage->getQueryName())
-					{
-						browse_index(pIndexPage->getTitle(), "", 0, false);
+						// The current query was removed, refresh the list
+						if (queryName == pIndexPage->getQueryName())
+						{
+							browse_index(pIndexPage->getTitle(), "", 0, false);
+						}
 					}
 				}
 			}
