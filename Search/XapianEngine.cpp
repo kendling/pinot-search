@@ -199,7 +199,14 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	// Set things up
 	if (stemLanguage.empty() == false)
 	{
-		stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
+		try
+		{
+			stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
+		}
+		catch (const Xapian::Error &error)
+		{
+			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
+		}
 		parser.set_stemming_strategy(Xapian::QueryParser::STEM_ALL);
 		parser.set_stemmer(stemmer);
 	}

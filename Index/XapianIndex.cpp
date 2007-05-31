@@ -174,7 +174,14 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 	// Do we know what language to use for stemming ?
 	if (m_stemLanguage.empty() == false)
 	{
-		pStemmer = new Xapian::Stem(StringManip::toLowerCase(m_stemLanguage));
+		try
+		{
+			pStemmer = new Xapian::Stem(StringManip::toLowerCase(m_stemLanguage));
+		}
+		catch (const Xapian::Error &error)
+		{
+			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
+		}
 	}
 
 	// Terms starting with a capital letter are R-prefixed, unless a prefix is already defined
@@ -254,7 +261,14 @@ void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Doc
 	// Do we know what language to use for stemming ?
 	if (language.empty() == false)
 	{
-		pStemmer = new Xapian::Stem(StringManip::toLowerCase(language));
+		try
+		{
+			pStemmer = new Xapian::Stem(StringManip::toLowerCase(m_stemLanguage));
+		}
+		catch (const Xapian::Error &error)
+		{
+			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
+		}
 	}
 
 	// Terms starting with a capital letter are R-prefixed, unless a prefix is already defined
@@ -561,7 +575,7 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 		}
 		catch (const Xapian::Error &error)
 		{
-			cerr << "XapianIndex::scanDocument: " << error.get_type() << ": " << error.get_msg() << endl;
+			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
 			continue;
 		}
 

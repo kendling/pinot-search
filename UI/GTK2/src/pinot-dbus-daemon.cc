@@ -299,12 +299,15 @@ int main(int argc, char **argv)
 	Languages::setIntlName(4, _("Finnish"));
 	Languages::setIntlName(5, _("French"));
 	Languages::setIntlName(6, _("German"));
-	Languages::setIntlName(7, _("Italian"));
-	Languages::setIntlName(8, _("Norwegian"));
-	Languages::setIntlName(9, _("Portuguese"));
-	Languages::setIntlName(10, _("Russian"));
-	Languages::setIntlName(11, _("Spanish"));
-	Languages::setIntlName(12, _("Swedish"));
+	Languages::setIntlName(7, _("Hungarian"));
+	Languages::setIntlName(8, _("Italian"));
+	Languages::setIntlName(9, _("Norwegian"));
+	Languages::setIntlName(10, _("Portuguese"));
+	Languages::setIntlName(11, _("Romanian"));
+	Languages::setIntlName(12, _("Russian"));
+	Languages::setIntlName(13, _("Spanish"));
+	Languages::setIntlName(14, _("Swedish"));
+	Languages::setIntlName(15, _("Turkish"));
 
 	// Load tokenizer libraries, if any
 	Dijon::HtmlFilter::initialize();
