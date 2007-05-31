@@ -2061,6 +2061,7 @@ void mainWindow::on_showfromindex_activate()
 			// by the tree for display purposes
 			pIndex->getDocumentInfo(docId, docInfo);
 			pIndex->getDocumentLabels(docId, docLabels);
+			docInfo.setIsIndexed(indexId, docId);
 			termsCount = pIndex->getDocumentTermsCount(docId);
 			editDocument = true;
 		}

@@ -38,7 +38,20 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 	m_docInfo(docInfo)
 {
 	string language(docInfo.getLanguage());
+	char numStr[128];
+	unsigned int indexId = 0;
 	bool notALanguageName = false;
+
+	// Get the document ID
+	unsigned int docId = docInfo.getIsIndexed(indexId);
+#ifdef DEBUG
+	cout << "propertiesDialog: document " << docId << endl;
+#endif
+	if (docId > 0)
+	{
+		snprintf(numStr, 128, "%u", docId);
+		set_title(get_title() + " (ID " + numStr + ")");
+	}
 
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
@@ -51,7 +64,6 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 	if (m_editDocument == true)
 	{
 		unsigned int size = docInfo.getSize();
-		char numStr[128];
 
 		titleEntry->set_text(to_utf8(docInfo.getTitle()));
 		typeEntry->set_text(to_utf8(docInfo.getType()));
