@@ -55,5 +55,19 @@ install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 	$(INSTALL_DATA) scripts/python/pinot-live.py $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 
+uninstall-local:
+	@rm -rf $(DESTDIR)$(sysconfdir)/pinot
+	@rm -rf $(DESTDIR)$(datadir)/pinot
+	@rm -rf $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
+	@rm -rf $(DESTDIR)$(libdir)/pinot
+	@rm -rf $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
+	@rm -rf $(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/pinot.png
+	@rm -rf $(DESTDIR)$(datadir)/icons/hicolor/24x24/apps/pinot.png
+	@rm -rf $(DESTDIR)$(datadir)/icons/hicolor/22x22/apps/pinot.png
+	@rm -rf $(DESTDIR)$(datadir)/icons/hicolor/16x16/apps/pinot.png
+	@rm -rf $(DESTDIR)$(datadir)/applications/pinot.desktop
+	@rm -rf $(DESTDIR)${sysconfdir}/xdg/autostart/pinot-dbus-daemon.desktop
+	@rm -rf $(DESTDIR)$(libdir)/deskbar-applet/handlers/pinot-live.py*
+
 ACLOCAL_AMFLAGS = -I m4
 
