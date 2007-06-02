@@ -168,7 +168,7 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 	const string &prefix, Xapian::termcount &termPos, StemmingMode mode) const
 {
 	Xapian::Stem *pStemmer = NULL;
-	string upperCasePrefix("R");
+	string stemPrefix("Z");
 	string term;
 
 	// Do we know what language to use for stemming ?
@@ -184,23 +184,20 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 		}
 	}
 
-	// Terms starting with a capital letter are R-prefixed, unless a prefix is already defined
+	// Stems are Z-prefixed, unless a prefix is already defined
 	if (prefix.empty() == false)
 	{
-		upperCasePrefix = prefix;
+		stemPrefix = prefix;
 	}
 
 	// Get the terms
 	while (tokens.nextToken(term) == true)
 	{
+		bool addStem = false;
+
 		if (term.empty() == true)
 		{
 			continue;
-		}
-		// Does it start with a capital letter ?
-		if (isupper((int)term[0]) != 0)
-		{
-			doc.add_posting(upperCasePrefix + XapianDatabase::limitTermLength(term), termPos);
 		}
 		// Lower case the term
 		term = StringManip::toLowerCase(term);
@@ -213,15 +210,18 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 		}
 		else if (mode == STORE_STEM)
 		{
-#if XAPIAN_MAJOR_VERSION==0
-			string stemmedTerm(pStemmer->stem_word(term));
-#else
-			string stemmedTerm((*pStemmer)(term));
-#endif
-
-			doc.add_posting(prefix + XapianDatabase::limitTermLength(stemmedTerm), termPos);
+			addStem = true;
 		}
 		else if (mode == STORE_BOTH)
+		{
+			// Add both
+			doc.add_posting(prefix + XapianDatabase::limitTermLength(term), termPos);
+			addStem = true;
+		}
+
+		// Don't stem if the term starts with a digit
+		if ((addStem == true) &&
+			(isdigit((int)term[0]) == 0))
 		{
 #if XAPIAN_MAJOR_VERSION==0
 			string stemmedTerm(pStemmer->stem_word(term));
@@ -229,13 +229,7 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 			string stemmedTerm((*pStemmer)(term));
 #endif
 
-			// Add both at the same position
-			doc.add_posting(prefix + XapianDatabase::limitTermLength(term), termPos);
-			if (stemmedTerm != term)
-			{
-				// No point adding the same term twice
-				doc.add_posting(prefix + XapianDatabase::limitTermLength(stemmedTerm), termPos);
-			}
+			doc.add_term(stemPrefix + XapianDatabase::limitTermLength(stemmedTerm));
 		}
 
 		++termPos;
@@ -255,7 +249,7 @@ void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Doc
 {
 	Xapian::TermIterator termListIter = doc.termlist_begin();
 	Xapian::Stem *pStemmer = NULL;
-	string upperCasePrefix("R");
+	string stemPrefix("Z");
 	string term;
 
 	// Do we know what language to use for stemming ?
@@ -271,23 +265,20 @@ void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Doc
 		}
 	}
 
-	// Terms starting with a capital letter are R-prefixed, unless a prefix is already defined
+	// Stems are Z-prefixed, unless a prefix is already defined
 	if (prefix.empty() == false)
 	{
-		upperCasePrefix = prefix;
+		stemPrefix = prefix;
 	}
 
 	// Get the terms and remove the first posting for each
 	while (tokens.nextToken(term) == true)
 	{
+		bool removeStem = false;
+
 		if (term.empty() == true)
 		{
 			continue;
-		}
-		// Does it start with a capital letter ?
-		if (isupper((int)term[0]) != 0)
-		{
-			removeFirstPosting(doc, termListIter, upperCasePrefix + term);
 		}
 		// Lower case the term
 		term = StringManip::toLowerCase(term);
@@ -300,15 +291,22 @@ void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Doc
 		}
 		else if (mode == STORE_STEM)
 		{
-#if XAPIAN_MAJOR_VERSION==0
-			string stemmedTerm(pStemmer->stem_word(term));
-#else
-			string stemmedTerm((*pStemmer)(term));
-#endif
-
-			removeFirstPosting(doc, termListIter, prefix + XapianDatabase::limitTermLength(stemmedTerm));
+			removeStem = true;
 		}
 		else if (mode == STORE_BOTH)
+		{
+			// Remove both
+			removeFirstPosting(doc, termListIter, prefix + XapianDatabase::limitTermLength(term));
+			removeStem = true;
+		}
+
+		// Since stems don't have positional information, we can't simply remove them 
+		// since any may appear more than once in the original document
+		// We can only remove those that have some prefix set
+		// Don't stem if the term starts with a digit
+		if ((removeStem == true) &&
+			(prefix.empty() == false) &&
+			(isdigit((int)term[0]) == 0))
 		{
 #if XAPIAN_MAJOR_VERSION==0
 			string stemmedTerm(pStemmer->stem_word(term));
@@ -316,11 +314,7 @@ void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Doc
 			string stemmedTerm((*pStemmer)(term));
 #endif
 
-			removeFirstPosting(doc, termListIter, prefix + XapianDatabase::limitTermLength(term));
-			if (stemmedTerm != term)
-			{
-				removeFirstPosting(doc, termListIter, prefix + XapianDatabase::limitTermLength(stemmedTerm));
-			}
+			doc.remove_term(stemPrefix + XapianDatabase::limitTermLength(stemmedTerm));
 		}
 	}
 
@@ -977,14 +971,6 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 			{
 				string baseTerm(StringManip::toLowerCase(term));
 				unsigned int count = 0;
-				bool isUpper = false;
-
-				if (isupper((int)term[0]) != 0)
-				{
-					// R-prefix the term
-					baseTerm = string("R") + term;
-					isUpper = true;
-				}
 
 				// Get the next 10 terms
 				for (termIter.skip_to(baseTerm);
@@ -995,26 +981,7 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 					if (suggestedTerm.find(baseTerm) != 0)
 					{
 						// This term doesn't have the same root
-						if (isUpper == true)
-						{
-							// Try again without capital letters
-							baseTerm = StringManip::toLowerCase(term);
-							termIter = pIndex->allterms_begin();
-							if (termIter != pIndex->allterms_end())
-							{
-								termIter.skip_to(baseTerm);
-								isUpper = false;
-								continue;
-							}
-						}
-
 						break;
-					}
-
-					if (isUpper == true)
-					{
-						// Remove the R prefix
-						suggestedTerm.erase(0, 1);
 					}
 
 					suggestions.insert(suggestedTerm);
