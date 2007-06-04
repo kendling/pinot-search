@@ -26,8 +26,6 @@
 #include <gtkmm/textbuffer.h>
 
 #include "Url.h"
-#include "QueryHistory.h"
-#include "ViewHistory.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"

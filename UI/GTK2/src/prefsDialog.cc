@@ -25,7 +25,6 @@
 #include <gtkmm/messagedialog.h>
 
 #include "SearchEngineFactory.h"
-#include "QueryHistory.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotUtils.h"
