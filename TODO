@@ -25,11 +25,10 @@ Tokenize
 - Check whether pdftotext flattens text in PDF documents that have columns
 - HtmlFilter should skip htdig_noindex blocks (http://www.htdig.org/attrs.html#noindex_start)
 - HtmlFilter to look for META tags Author, Creator, Publisher and CreationDate
-- XmLFilter is slow
 - Filters should have a version number so that new versions force reindexing documents of the
  given type
 - Distribute filters' ChangeLog
-- Redo XML filter with the TextReader interface
+- XmLFilter is slow, rewrite file parsing with the TextReader interface
 
 Monitor
 - Implement support for Solaris FEM
@@ -45,10 +44,7 @@ Search
 - With engines that provide a redirection URL for results (eg Acoona), it looks like
   the query hitory is not saved/checked correctly
 - Add http://www.patentcommons.org/commons/patentsearch.php
-- Replace Accona with Baidu ?
-- Implement AutoDiscovery of OpenSearch Description files (http://opensearch.a9.com/spec/1.1/description/)
 - Make sure Description files' SyndicationRight is not private or closed
-- Support for Google Buttons
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers
  and remove stopwords from queries as first step of search
 - Make multi-step index search optional
@@ -58,18 +54,19 @@ Index
 - Hash document data to determine on updates whether documents have changed
 - Xapian Query objects will become serializable at some point, this will be useful
   for stored queries
-- Think about indexing archives (parent documents) and their contents (child documents)
 - Reopen connection to remote indexes when necessary; does Xapian throw a RemoteError ?
 - Allow to access remote Xapian indexes tunneled through ssh with xapian-progsrv,
   and make sure ssh will ask passwords with /usr/libexec/openssh/ssh-askpass
 - Index xattrs if any
-- Reverse terms so that left wildcards can be applied ?
-- Index directories with type "x-directory/normal"
-- XapianIndex could do with some common code refactoring
-- With Xapian 1.0, all indexes can be browsed with the new global posting list, ie
-  Xapian::Database::postlist_begin("")
-- Use Xapian's new TermGenerator class
 - Index Nautilus metadata (http://linuxboxadmin.com/articles/nautilus.php)
+- Reverse terms so that left wildcards can be applied ?
+- XapianIndex could do with some common code refactoring
+- With Xapian >= 1.0, all indexes can be browsed with the new global posting list, ie
+  Xapian::Database::postlist_begin("")
+- Use Xapian >= 1.0 TermGenerator class
+- Xapian >= 1.0's QueryParser makes different assumptions about terms (http://www.xapian.org/docs/termgenerator.html)
+- Xapian > 1.0 has a version of Xapian::Database::allterms_begin() that takes a prefix
+- With Xapian > 1.0.1, use QueryParser::add_valuerangeprocessor for date ranges
 - Automatically categorize documents based on MIME type and source into picture, video, etc...
 - Does updateDocumentInfo sometimes fail to remove terms from the old title ?
 - DBusXapianIndex to use D-Bus method Index
@@ -132,8 +129,6 @@ UI
  a revision of the index ?
 - Delete all temporary files when exiting
 - Add less than, equal to, greater than filters on size for stored queries
-- Allow filtering index lists with a stored query instead of just labels
 - Show with icons which stored queries are fully, partially or not at all Web friendly
-- Show document IDs in properties window
 - List viewed URLs
 

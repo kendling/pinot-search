@@ -144,7 +144,7 @@ struct plugin_min_grammar : public grammar<plugin_min_grammar>
   */
 struct plugin_grammar : public grammar<plugin_grammar>
 {
-	 plugin_grammar(map<string, string> &searchParams,
+	plugin_grammar(map<string, string> &searchParams,
 		map<string, string> &interpretParams,
 		map<string, string> &inputItems,
 		string &userInput, string &nextInput,
