@@ -20,12 +20,14 @@
 #include <set>
 #include <iostream>
 #include <algorithm>
+#include <utility>
 
 #include "Tokenizer.h"
 #include "XapianEngine.h"
 #include "QueryProperties.h"
 
 QueryProperties::QueryProperties() :
+	m_type(XAPIAN_QP),
 	m_resultsCount(10),
 	m_enableMinDate(false),
 	m_minDay(0),
@@ -39,8 +41,10 @@ QueryProperties::QueryProperties() :
 {
 }
 
-QueryProperties::QueryProperties(const string &name, const string &freeQuery) :
+QueryProperties::QueryProperties(const string &name, const string &freeQuery,
+	QueryType type) :
 	m_name(name),
+	m_type(type),
 	m_freeQuery(freeQuery),
 	m_resultsCount(10),
 	m_enableMinDate(false),
@@ -58,6 +62,7 @@ QueryProperties::QueryProperties(const string &name, const string &freeQuery) :
 
 QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_name(other.m_name),
+	m_type(other.m_type),
 	m_freeQuery(other.m_freeQuery),
 	m_freeQueryWithoutFilters(other.m_freeQueryWithoutFilters),
 	m_language(other.m_language),
@@ -86,6 +91,7 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 	if (this != &other)
 	{
 		m_name = other.m_name;
+		m_type = other.m_type;
 		m_freeQuery = other.m_freeQuery;
 		m_freeQueryWithoutFilters = other.m_freeQueryWithoutFilters;
 		m_language = other.m_language;
@@ -137,6 +143,11 @@ void QueryProperties::removeFilters(void)
 	if (m_freeQuery.empty() == true)
 	{
 		return;
+	}
+
+	if (m_type != XAPIAN_QP)
+	{
+		m_freeQueryWithoutFilters = m_freeQuery.substr(0, min(20, (int)m_freeQuery.length()));
 	}
 
 	vector<string> terms;
@@ -194,6 +205,18 @@ void QueryProperties::setName(const string &name)
 string QueryProperties::getName(void) const
 {
 	return m_name;
+}
+
+/// Sets the type.
+void QueryProperties::setType(QueryType type)
+{
+	m_type = type;
+}
+
+/// Gets the type.
+QueryProperties::QueryType QueryProperties::getType(void) const
+{
+	return m_type;
 }
 
 /// Sets the query string.

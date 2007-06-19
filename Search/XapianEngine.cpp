@@ -32,6 +32,9 @@
 #include "XapianDatabaseFactory.h"
 #include "AbstractGenerator.h"
 #include "XapianEngine.h"
+#include "XapianQueryBuilder.h"
+#include "XesamQLParser.h"
+#include "XesamULParser.h"
 
 using std::string;
 using std::multimap;
@@ -40,6 +43,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::inserter;
+using namespace Dijon;
 
 // The following function was lifted from Xapian's xapian-applications/omega/date.cc
 // where it's called last_day(), and prettified slightly
@@ -190,7 +194,6 @@ Xapian::Query XapianEngine::dateFilter(unsigned int minDay, unsigned int minMont
 Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 	const string &stemLanguage, bool followOperators)
 {
-	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
 	Xapian::QueryParser parser;
 	Xapian::Stem stemmer;
 	unsigned int minDay, minMonth, minYear = 0;
@@ -239,7 +242,40 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_boolean_prefix("type", "T");
 	parser.add_boolean_prefix("label", "XLABEL:");
 
+	// What type of query is this ?
+	QueryProperties::QueryType type = queryProps.getType();
+	if (type != QueryProperties::XAPIAN_QP)
+	{
+		XapianQueryBuilder builder(parser);
+		XesamParser *pParser = NULL;
+
+		// Get a Xesam parser
+		if (type == QueryProperties::XESAM_QL)
+		{
+			pParser = new XesamQLParser();
+		}
+		else if (type == QueryProperties::XESAM_UL)
+		{
+			pParser = new XesamULParser();
+		}
+
+		if (pParser != NULL)
+		{
+			bool parsedQuery = pParser->parse(queryProps.getFreeQuery(), builder);
+
+			delete pParser;
+
+			if (parsedQuery == true)
+			{
+				return builder.get_query();
+			}
+		}
+
+		return Xapian::Query();
+	}
+
 	// Do some pre-processing : look for filters with quoted values
+	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
 	string::size_type escapedFilterEnd = 0;
 	string::size_type escapedFilterStart = freeQuery.find(":\"");
 	while ((escapedFilterStart != string::npos) &&

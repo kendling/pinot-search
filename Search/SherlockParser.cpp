@@ -61,12 +61,12 @@ struct LowerAndCopy
 
 };
 
-struct skip_grammar : public grammar<skip_grammar>
+struct plugin_skip_grammar : public grammar<plugin_skip_grammar>
 {
 	template <typename ScannerT>
 	struct definition
 	{
-		definition(skip_grammar const &self)
+		definition(plugin_skip_grammar const &self)
 		{
 			// Skip all spaces and comments, starting with a #
 			// FIXME: make sure comments start at the beginning of the line !
@@ -530,7 +530,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 		{
 			if (extractSearchParams == false)
 			{
-				skip_grammar skip;
+				plugin_skip_grammar skip;
 				plugin_grammar plugin(searchParams, interpretParams, inputItems,
 					userInput, nextInput, nextFactor, nextValue);
 
@@ -539,7 +539,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 			}
 			else
 			{
-				skip_grammar skip;
+				plugin_skip_grammar skip;
 				plugin_min_grammar plugin(searchParams);
 
 				parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);

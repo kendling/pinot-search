@@ -76,6 +76,10 @@ class SearchEngineInterface
 
 		SearchEngineInterface();
 
+	private:
+		SearchEngineInterface(const SearchEngineInterface &other);
+		SearchEngineInterface &operator=(const SearchEngineInterface &other);
+
 };
 
 #endif // _SEARCH_ENGINE_INTERFACE_H

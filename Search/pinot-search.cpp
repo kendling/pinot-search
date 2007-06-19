@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <iostream>
-#include <string>
 #include <fstream>
+#include <string>
 
 #include "MIMEScanner.h"
 #include "Url.h"
@@ -33,6 +33,7 @@
 #include "config.h"
 
 using namespace std;
+using namespace Dijon;
 
 static struct option g_longOptions[] = {
 	{"help", 0, 0, 'h'},
@@ -43,8 +44,38 @@ static struct option g_longOptions[] = {
 	{"tocsv", 1, 0, 'c'},
 	{"toxml", 1, 0, 'x'},
 	{"version", 0, 0, 'v'},
+	{"xesamql", 0, 0, 'q'},
+	{"xesamul", 0, 0, 'u'},
 	{0, 0, 0, 0}
 };
+
+static bool loadFile(const string &xesamFile, string &fileContents)
+{
+	ifstream inputFile;
+	bool readFile = false;
+
+	inputFile.open(xesamFile.c_str());
+	if (inputFile.good() == true)
+	{
+		inputFile.seekg(0, ios::end);
+		int length = inputFile.tellg();
+		inputFile.seekg(0, ios::beg);
+
+		char *pFileBuffer = new char[length + 1];
+		inputFile.read(pFileBuffer, length);
+		if (inputFile.fail() == false)
+		{
+			pFileBuffer[length] = '\0';
+
+			fileContents = string(pFileBuffer, length);
+			readFile = true;
+		}
+		delete[] pFileBuffer;
+	}
+	inputFile.close();
+
+	return readFile;
+}
 
 static void printHelp(void)
 {
@@ -53,7 +84,7 @@ static void printHelp(void)
 	// Help
 	SearchEngineFactory::getSupportedEngines(engines);
 	cout << "pinot-search - Query search engines from the command-line\n\n"
-		<< "Usage: pinot-search [OPTIONS] SEARCHENGINETYPE SEARCHENGINENAME|SEARCHENGINEOPTION QUERYSTRING\n\n"
+		<< "Usage: pinot-search [OPTIONS] SEARCHENGINETYPE SEARCHENGINENAME|SEARCHENGINEOPTION QUERYINPUT\n\n"
 		<< "Options:\n"
 		<< "  -h, --help                display this help and exit\n"
 		<< "  -m, --max                 maximum number of results (default 10)\n"
@@ -62,7 +93,9 @@ static void printHelp(void)
 		<< "  -t, --proxytype           proxy type (default HTTP, SOCKS4, SOCKS5)\n"
 		<< "  -c, --tocsv               file to export results in CSV format to\n"
 		<< "  -x, --toxml               file to export results in XML format to\n"
-		<< "  -v, --version             output version information and exit\n\n"
+		<< "  -v, --version             output version information and exit\n"
+		<< "  -q, --xesamql             query input is a file containing Xesam QL\n"
+		<< "  -u, --xesamul             query input is a file containing Xesam UL\n\n"
 		<< "Supported search engine types are";
 	for (set<string>::iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
 	{
@@ -81,13 +114,14 @@ static void printHelp(void)
 
 int main(int argc, char **argv)
 {
-	string type, option, csvExport, xmlExport, proxyAddress, proxyPort, proxyType;
+	QueryProperties::QueryType queryType = QueryProperties::XAPIAN_QP;
+	string engineType, option, csvExport, xmlExport, proxyAddress, proxyPort, proxyType;
 	unsigned int maxResultsCount = 10; 
 	int longOptionIndex = 0;
 	bool printResults = true;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "c:hm:a:p:t:vx:", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "c:hm:a:p:qt:uvx:", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -120,11 +154,17 @@ int main(int argc, char **argv)
 					proxyPort = optarg;
 				}
 				break;
+			case 'q':
+				queryType = QueryProperties::XESAM_QL;
+				break;
 			case 't':
 				if (optarg != NULL)
 				{
 					proxyType = optarg;
 				}
+				break;
+			case 'u':
+				queryType = QueryProperties::XESAM_UL;
 				break;
 			case 'v':
 				cout << "pinot-search - " << PACKAGE_STRING << "\n\n"
@@ -144,7 +184,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "c:hm:a:p:t:vx:", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "c:hm:a:p:qt:uvx:", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -163,12 +203,12 @@ int main(int argc, char **argv)
 	MIMEScanner::initialize();
 	DownloaderInterface::initialize();
 
-	type = argv[optind];
+	engineType = argv[optind];
 	option = argv[optind + 1];
-	char *pQuery = argv[optind + 2];
+	char *pQueryInput = argv[optind + 2];
 
 	// Which SearchEngine ?
-	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(type, option);
+	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(engineType, option);
 	if (pEngine == NULL)
 	{
 		cerr << "Couldn't obtain search engine instance" << endl;
@@ -190,7 +230,29 @@ int main(int argc, char **argv)
 		pDownloader->setSetting("proxytype", proxyType);
 	}
 
-	QueryProperties queryProps("pinot-search", pQuery);
+	// Set the query
+	QueryProperties queryProps("pinot-search", "", queryType);
+	if (queryType == QueryProperties::XAPIAN_QP)
+	{
+		queryProps.setFreeQuery(pQueryInput);
+	}
+	else
+	{
+		string fileContents;
+
+		// Load the query from file
+		if (loadFile(pQueryInput, fileContents) == false)
+		{
+			cerr << "Couldn't load query from file " << pQueryInput << endl;
+
+			DownloaderInterface::shutdown();
+			MIMEScanner::shutdown();
+
+			return EXIT_FAILURE;
+		}
+
+		queryProps.setFreeQuery(fileContents);
+	}
 
 	queryProps.setMaximumResultsCount(maxResultsCount);
 	if (pEngine->runQuery(queryProps) == true)
@@ -228,7 +290,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				string engineName(SearchEngineFactory::getSearchEngineName(type, option));
+				string engineName(SearchEngineFactory::getSearchEngineName(engineType, option));
 
 				if (csvExport.empty() == false)
 				{
@@ -252,7 +314,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		cerr << "Couldn't run query on search engine " << type << endl;
+		cerr << "Couldn't run query on search engine " << engineType << endl;
 	}
 
 	delete pEngine;

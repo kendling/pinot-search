@@ -221,6 +221,12 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 	m_resultsList.clear();
 	m_resultsCountEstimate = 0;
 
+	if (queryProps.getType() != QueryProperties::XAPIAN_QP)
+	{
+		cerr << "PluginWebEngine::runQuery: query type not supported" << endl;
+		return false;
+	}
+
 	if (queryString.empty() == true)
 	{
 #ifdef DEBUG

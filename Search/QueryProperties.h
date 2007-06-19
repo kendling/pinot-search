@@ -28,9 +28,11 @@ using namespace std;
 class QueryProperties
 {
 	public:
+		typedef enum { XAPIAN_QP = 0, XESAM_QL, XESAM_UL } QueryType;
+
 		QueryProperties();
-		QueryProperties(const string &name, const string &freeQuery);
-		QueryProperties(const string &name, const string &andWords, const string &phrase, const string &anyWords, const string &notWords);
+		QueryProperties(const string &name, const string &freeQuery,
+			QueryType type = XAPIAN_QP);
 		QueryProperties(const QueryProperties &other);
 		~QueryProperties();
 
@@ -42,6 +44,11 @@ class QueryProperties
 		void setName(const string &name);
 		/// Gets the name.
 		string getName(void) const;
+
+		/// Sets the type.
+		void setType(QueryType type);
+		/// Gets the type.
+		QueryType getType(void) const;
 
 		/// Sets the query string.
 		void setFreeQuery(const string &freeQuery);
@@ -87,6 +94,7 @@ class QueryProperties
 
 	protected:
 		string m_name;
+		QueryType m_type;
 		string m_freeQuery;
 		string m_freeQueryWithoutFilters;
 		string m_language;
