@@ -500,7 +500,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 	cout << "ResultsTree::addResults: ID for engine " << engineName << " is " << engineId <<  endl;
 #endif
 
-	QueryHistory history(m_settings.m_historyDatabase);
+	QueryHistory history(m_settings.getHistoryDatabaseName());
 	bool isNewQuery = false;
 	if (history.getLastRun(m_treeName, engineName).empty() == true)
 	{
@@ -1185,7 +1185,7 @@ void ResultsTree::showExtract(bool show)
 //
 void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 {
-	QueryHistory history(m_settings.m_historyDatabase);
+	QueryHistory history(m_settings.getHistoryDatabaseName());
 	QueryProperties queryProps(m_treeName, "");
 	ResultsExporter *pExporter = NULL;
 	unsigned int maxResultsCount = 0;
@@ -1354,7 +1354,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 	}
 
 	// Has it been already viewed ?
-	ViewHistory viewHistory(m_settings.m_historyDatabase);
+	ViewHistory viewHistory(m_settings.getHistoryDatabaseName());
 	bool wasViewed = viewHistory.hasItem(url);
 
 	TreeModel::Row childRow = *newRowIter;
@@ -1487,7 +1487,7 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 //
 ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 {
-	QueryHistory history(m_settings.m_historyDatabase);
+	QueryHistory history(m_settings.getHistoryDatabaseName());
 	set<string> engineNames, indexNames;
 	string url(from_utf8(row[m_resultsColumns.m_url]));
 	string extract, charset;

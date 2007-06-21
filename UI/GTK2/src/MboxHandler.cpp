@@ -40,7 +40,7 @@ using namespace SigC;
 
 MboxHandler::MboxHandler() :
 	MonitorHandler(),
-	m_history(PinotSettings::getInstance().m_historyDatabase),
+	m_history(PinotSettings::getInstance().getHistoryDatabaseName()),
 	m_index(PinotSettings::getInstance().m_daemonIndexLocation),
 	m_sourceId(0)
 {

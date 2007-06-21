@@ -111,8 +111,8 @@ void statisticsDialog::populate(void)
 
 bool statisticsDialog::on_activity_timeout(void)
 {
-	CrawlHistory crawlerHistory(PinotSettings::getInstance().m_historyDatabase);
-	ViewHistory viewHistory(PinotSettings::getInstance().m_historyDatabase);
+	CrawlHistory crawlerHistory(PinotSettings::getInstance().getHistoryDatabaseName(true));
+	ViewHistory viewHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 	TreeModel::Row row;
 	std::map<unsigned int, string> sources;
 	char countStr[64];

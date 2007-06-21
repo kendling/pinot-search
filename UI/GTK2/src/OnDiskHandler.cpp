@@ -39,7 +39,7 @@ using namespace SigC;
 
 OnDiskHandler::OnDiskHandler() :
 	MonitorHandler(),
-	m_history(PinotSettings::getInstance().m_historyDatabase),
+	m_history(PinotSettings::getInstance().getHistoryDatabaseName()),
 	m_index(PinotSettings::getInstance().m_daemonIndexLocation)
 {
 	pthread_mutex_init(&m_mutex, NULL);

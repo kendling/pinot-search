@@ -219,7 +219,7 @@ mainWindow::~mainWindow()
 //
 void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 {
-	QueryHistory history(m_settings.m_historyDatabase);
+	QueryHistory history(m_settings.getHistoryDatabaseName());
 	const std::map<string, QueryProperties> &queries = m_settings.getQueries();
 
 	// Reset the whole tree
@@ -2511,7 +2511,7 @@ void mainWindow::on_removeQueryButton_clicked()
 		if (m_settings.removeQuery(queryName) == true)
 		{
 			// Remove records from QueryHistory
-			QueryHistory history(m_settings.m_historyDatabase);
+			QueryHistory history(m_settings.getHistoryDatabaseName());
 			history.deleteItems(queryName, true);
 
 			// Select another row
@@ -2839,7 +2839,7 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 		string newQueryName = queryProps.getName();
 		if (newQueryName != queryName)
 		{
-			QueryHistory history(m_settings.m_historyDatabase);
+			QueryHistory history(m_settings.getHistoryDatabaseName());
 
 			// Remove records from QueryHistory
 			history.deleteItems(queryName, true);
@@ -3103,7 +3103,7 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 //
 void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 {
-	ViewHistory viewHistory(m_settings.m_historyDatabase);
+	ViewHistory viewHistory(m_settings.getHistoryDatabaseName());
 	multimap<string, string> locationsByType;
 	vector<DocumentInfo>::iterator docIter = documentsList.begin();
 

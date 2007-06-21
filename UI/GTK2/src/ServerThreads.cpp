@@ -161,7 +161,7 @@ Signal3<void, const DocumentInfo&, const std::string&, bool>& MonitorThread::get
 
 void MonitorThread::processEvents(void)
 {
-	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+	CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
 	queue<MonitorEvent> events;
 
 #ifdef DEBUG
@@ -366,7 +366,7 @@ DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSou
 {
 	if (m_dirName.empty() == false)
 	{
-		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+		CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
 
 		if (isSource == true)
 		{
@@ -693,7 +693,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 
 void DirectoryScannerThread::doWork(void)
 {
-	CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+	CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
 	set<string> deletedFiles;
 	Timer scanTimer;
 
@@ -869,7 +869,7 @@ void DBusServletThread::doWork(void)
 
 	if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetStatistics") == TRUE)
 	{
-		CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+		CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
 		unsigned int crawledFilesCount = history.getItemsCount(CrawlHistory::CRAWLED);
 		unsigned int docsCount = index.getDocumentsCount();
 

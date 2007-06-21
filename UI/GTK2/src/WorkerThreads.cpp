@@ -490,7 +490,7 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 
 	if (addToQueue == true)
 	{
-		ActionQueue queue(PinotSettings::getInstance().m_historyDatabase, get_application_name());
+		ActionQueue queue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
 
 		queue.pushItem(ActionQueue::INDEX, docInfo);
 
@@ -533,7 +533,7 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 		// Get an item ?
 		if (getItem == true)
 		{
-			ActionQueue queue(PinotSettings::getInstance().m_historyDatabase, get_application_name());
+			ActionQueue queue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
 			ActionQueue::ActionType type;
 			DocumentInfo docInfo;
 			string previousLocation;
