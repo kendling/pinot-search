@@ -98,22 +98,31 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bo
 	return false;
 }
 
-void DaemonState::start(void)
+void DaemonState::start(bool forceFullScan)
 {
-	Rand randomStuff;
-
 	// Disable implicit flushing after a change
 	WorkerThread::immediateFlush(false);
 
 	// Do full scans ?
-	int randomNum = randomStuff.get_int_range(0, 10);
-	if (randomNum >= 7)
+	if (forceFullScan == true)
 	{
 		m_fullScan = true;
 	}
+	else
+	{
+		Rand randomStuff;
+		guint32 randomArray[5];
+
+		randomStuff.set_seed(randomArray[2]);
+		int randomNum = randomStuff.get_int_range(0, 10);
+		if (randomNum >= 7)
+		{
+			m_fullScan = true;
+		}
 #ifdef DEBUG
-	cout << "DaemonState::start: picked " << randomNum << endl;
+		cout << "DaemonState::start: picked " << randomNum << endl;
 #endif
+	}
 
 	// Fire up the mail monitor thread now
 	m_pMailHandler = new MboxHandler();
