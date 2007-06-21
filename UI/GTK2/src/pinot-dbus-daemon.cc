@@ -59,6 +59,7 @@ static string g_pidFileName;
 static streambuf *g_coutBuf = NULL;
 static streambuf *g_cerrBuf = NULL;
 static struct option g_longOptions[] = {
+	{"fullscan", 1, 0, 'f'},
 	{"help", 0, 0, 'h'},
 	{"priority", 1, 0, 'p'},
 	{"version", 0, 0, 'v'},
@@ -173,18 +174,23 @@ int main(int argc, char **argv)
 	int longOptionIndex = 0, priority = 15;
 	bool overwriteIndex = false;
 	bool upgradeIndex = false;
+	bool fullScan = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "hpv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "fhp:v", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
 		{
+			case 'f':
+				fullScan = true;
+				break;
 			case 'h':
 				// Help
 				cout << "pinot-dbus-daemon - D-Bus search and index daemon\n\n"
 					<< "Usage: pinot-dbus-daemon [OPTIONS]\n\n"
 					<< "Options:\n"
+					<< "  -f, --fullscan		force a full scan\n"
 					<< "  -h, --help		display this help and exit\n"
 					<< "  -p, --priority	set the daemon's priority (default 15)\n"
 					<< "  -v, --version		output version information and exit\n"
@@ -212,7 +218,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "hpv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "fhp:v", g_longOptions, &longOptionIndex);
 	}
 
 #if defined(ENABLE_NLS)
@@ -267,8 +273,8 @@ int main(int argc, char **argv)
 
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();
-	// This is the daemon so disable DBus client
-	settings.enableDBus(false);
+	// This is the daemon so disable client-side code 
+	settings.enableClientMode(false);
 
 	string confDirectory = PinotSettings::getConfigurationDirectory();
 	if (chdir(confDirectory.c_str()) == 0)
@@ -336,27 +342,28 @@ int main(int argc, char **argv)
 	upgradeIndex = pDb->wasObsoleteFormat();
 
 	// Do the same for the history database
-	if ((settings.m_historyDatabase.empty() == true) ||
-		(ActionQueue::create(settings.m_historyDatabase) == false) ||
-		(CrawlHistory::create(settings.m_historyDatabase) == false) ||
-		(QueryHistory::create(settings.m_historyDatabase) == false) ||
-		(ViewHistory::create(settings.m_historyDatabase) == false))
+	PinotSettings::checkHistoryDatabase();
+	string historyDatabase(settings.getHistoryDatabaseName());
+	if ((historyDatabase.empty() == true) ||
+		(ActionQueue::create(historyDatabase) == false) ||
+		(CrawlHistory::create(historyDatabase) == false) ||
+		(QueryHistory::create(historyDatabase) == false) ||
+		(ViewHistory::create(historyDatabase) == false))
 	{
-		cerr << "Couldn't create history database " << settings.m_historyDatabase << endl;
+		cerr << "Couldn't create history database " << historyDatabase << endl;
 		return EXIT_FAILURE;
 	}
 	else
 	{
-		ActionQueue actionQueue(settings.m_historyDatabase, Glib::get_application_name());
-		QueryHistory queryHistory(settings.m_historyDatabase);
-		ViewHistory viewHistory(settings.m_historyDatabase);
+		ActionQueue actionQueue(historyDatabase, Glib::get_application_name());
+		QueryHistory queryHistory(historyDatabase);
+		ViewHistory viewHistory(historyDatabase);
 		time_t timeNow = time(NULL);
 
 		// Expire all actions left from last time
 		actionQueue.expireItems(timeNow);
-		// Expire items older than a month
-		queryHistory.expireItems(timeNow - 2592000);
-		viewHistory.expireItems(timeNow - 2592000);
+		queryHistory.expireItems(timeNow);
+		viewHistory.expireItems(timeNow);
 	}
 
 	atexit(closeAll);
@@ -366,6 +373,9 @@ int main(int argc, char **argv)
 	{
 		cerr << "Couldn't set scheduling priority to " << priority << endl;
 	}
+#ifdef DEBUG
+	else cout << "Set priority to " << priority << endl;
+#endif
 
 	// What version of the daemon is this ?
 	double daemonVersion = atof(VERSION);
@@ -440,7 +450,7 @@ int main(int argc, char **argv)
 
 			if (upgradeIndex == true)
 			{
-				CrawlHistory history(PinotSettings::getInstance().m_historyDatabase);
+				CrawlHistory history(historyDatabase);
 				map<unsigned int, string> sources;
 
 				// Reset the history
@@ -453,7 +463,7 @@ int main(int argc, char **argv)
 				}
 			}
 
-			server.start();
+			server.start(fullScan);
 
 			// Run the main loop
 			g_refMainLoop->run();

@@ -34,6 +34,7 @@
 #include <libxml++/nodes/textnode.h>
 
 #include "config.h"
+#include "CommandLine.h"
 #include "Languages.h"
 #include "NLS.h"
 #include "StringManip.h"
@@ -86,7 +87,7 @@ static Element *addChildElement(Element *pElem, const string &nodeName, const st
 }
 
 PinotSettings PinotSettings::m_instance;
-bool PinotSettings::m_enableDBus = false;
+bool PinotSettings::m_clientMode = false;
 
 PinotSettings::PinotSettings() :
 	m_xPos(0),
@@ -105,9 +106,10 @@ PinotSettings::PinotSettings() :
 	m_proxyEnabled(false),
 	m_firstRun(false)
 {
-	// Find out if there is a .pinot directory
+	string directoryName(getConfigurationDirectory());
 	struct stat fileStat;
-	string directoryName = getConfigurationDirectory();
+
+	// Find out if there is a .pinot directory
 	if (stat(directoryName.c_str(), &fileStat) != 0)
 	{
 		// No, create it then
@@ -127,10 +129,6 @@ PinotSettings::PinotSettings() :
 	m_docsIndexLocation += "/index";
 	m_daemonIndexLocation = directoryName;
 	m_daemonIndexLocation += "/daemon";
-
-	// The location of the history database is not configurable
-	m_historyDatabase = directoryName;
-	m_historyDatabase += "/history";
 }
 
 PinotSettings::~PinotSettings()
@@ -142,11 +140,11 @@ PinotSettings &PinotSettings::getInstance(void)
 	return m_instance;
 }
 
-bool PinotSettings::enableDBus(bool enable)
+bool PinotSettings::enableClientMode(bool enable)
 {
-	bool isEnabled = m_enableDBus;
+	bool isEnabled = m_clientMode;
 
-	m_enableDBus = enable;
+	m_clientMode = enable;
 
 	return isEnabled;
 }
@@ -197,6 +195,47 @@ string PinotSettings::getCurrentUserName(void)
 	}
 
 	return "";
+}
+
+void PinotSettings::checkHistoryDatabase(void)
+{
+	string uiHistoryDatabase(getConfigurationDirectory());
+	string daemonHistoryDatabase(getConfigurationDirectory());
+	struct stat fileStat;
+
+	// We only need to copy the UI's over to the daemon's history if it doesn't exist
+	uiHistoryDatabase += "/history";
+	daemonHistoryDatabase += "/history-daemon";
+	if ((stat(daemonHistoryDatabase.c_str(), &fileStat) != 0) ||
+		(!S_ISREG(fileStat.st_mode)))
+	{
+		string output;
+
+		CommandLine::runSync(string("\\cp -f ") + uiHistoryDatabase + " " + daemonHistoryDatabase, output);
+#ifdef DEBUG
+		cout << "PinotSettings::checkHistoryDatabase: " << output << endl;
+#endif
+	}
+}
+
+string PinotSettings::getHistoryDatabaseName(bool needToQueryDaemonHistory)
+{
+	string historyDatabase(getConfigurationDirectory());
+
+	if ((m_clientMode == false) ||
+		(needToQueryDaemonHistory == true))
+	{
+		historyDatabase += "/history-daemon";
+	}
+	else
+	{
+		historyDatabase += "/history";
+	}
+#ifdef DEBUG
+	cout << "PinotSettings::getHistoryDatabaseName: " << historyDatabase << endl;
+#endif
+
+	return historyDatabase;
 }
 
 bool PinotSettings::isFirstRun(void) const
@@ -254,16 +293,21 @@ bool PinotSettings::load(void)
 		m_filePatternsBlackList.insert("*.avi");
 		m_filePatternsBlackList.insert("*.asf");
 		m_filePatternsBlackList.insert("*.gif");
+		m_filePatternsBlackList.insert("*.iso");
 		m_filePatternsBlackList.insert("*.jpeg");
 		m_filePatternsBlackList.insert("*.jpg");
-		m_filePatternsBlackList.insert("*.png");
 		m_filePatternsBlackList.insert("*.lha");
 		m_filePatternsBlackList.insert("*.mov");
 		m_filePatternsBlackList.insert("*.msf");
 		m_filePatternsBlackList.insert("*.mpeg");
 		m_filePatternsBlackList.insert("*.mpg");
+		m_filePatternsBlackList.insert("*.png");
+		m_filePatternsBlackList.insert("*.rar");
 		m_filePatternsBlackList.insert("*.sh");
+		m_filePatternsBlackList.insert("*.tiff");
 		m_filePatternsBlackList.insert("*.wmv");
+		m_filePatternsBlackList.insert("*.xbm");
+		m_filePatternsBlackList.insert("*.xpm");
 	}
 
 	// Some search engines are hardcoded
@@ -1453,7 +1497,7 @@ IndexInterface *PinotSettings::getIndex(const string &location)
 	{
 		return IndexFactory::getIndex("xapian", m_docsIndexLocation);
 	}
-	else if ((m_enableDBus == true) &&
+	else if ((m_clientMode == true) &&
 		(location == m_daemonIndexLocation))
 	{
 		return IndexFactory::getIndex("dbus", m_daemonIndexLocation);

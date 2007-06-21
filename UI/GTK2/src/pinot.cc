@@ -208,7 +208,7 @@ int main(int argc, char **argv)
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();
 	// Talk to the daemon through DBus
-	settings.enableDBus(true);
+	settings.enableClientMode(true);
 
 	string confDirectory = PinotSettings::getConfigurationDirectory();
 	if (chdir(confDirectory.c_str()) == 0)
@@ -279,20 +279,21 @@ int main(int argc, char **argv)
 	XapianDatabaseFactory::mergeDatabases("MERGED", pFirstDb, pSecondDb);
 
 	// Do the same for the history database
-	if ((settings.m_historyDatabase.empty() == true) ||
-		(ActionQueue::create(settings.m_historyDatabase) == false) ||
-		(QueryHistory::create(settings.m_historyDatabase) == false) ||
-		(ViewHistory::create(settings.m_historyDatabase) == false))
+	string historyDatabase(settings.getHistoryDatabaseName());
+	if ((historyDatabase.empty() == true) ||
+		(ActionQueue::create(historyDatabase) == false) ||
+		(QueryHistory::create(historyDatabase) == false) ||
+		(ViewHistory::create(historyDatabase) == false))
 	{
 		errorMsg = _("Couldn't create history database");
 		errorMsg += " ";
-		errorMsg += settings.m_historyDatabase;
+		errorMsg += historyDatabase;
 	}
 	else
 	{
-		ActionQueue actionQueue(settings.m_historyDatabase, Glib::get_prgname());
-		QueryHistory queryHistory(settings.m_historyDatabase);
-		ViewHistory viewHistory(settings.m_historyDatabase);
+		ActionQueue actionQueue(historyDatabase, Glib::get_prgname());
+		QueryHistory queryHistory(historyDatabase);
+		ViewHistory viewHistory(historyDatabase);
 		time_t timeNow = time(NULL);
 
 		// Expire all actions left from last time

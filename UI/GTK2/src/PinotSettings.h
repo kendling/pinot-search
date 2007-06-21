@@ -38,13 +38,17 @@ class PinotSettings
 
 		static PinotSettings &getInstance(void);
 
-		static bool enableDBus(bool enable);
+		static bool enableClientMode(bool enable);
 
 		static std::string getConfigurationDirectory(void);
 
 		static std::string getConfigurationFileName(void);
 
 		static std::string getCurrentUserName(void);
+
+		static void checkHistoryDatabase(void);
+
+		static std::string getHistoryDatabaseName(bool needToQueryDaemonHistory = false);
 
 		bool isFirstRun(void) const;
 
@@ -190,7 +194,6 @@ class PinotSettings
 		Glib::ustring m_googleAPIKey;
 		Glib::ustring m_docsIndexLocation;
 		Glib::ustring m_daemonIndexLocation;
-		Glib::ustring m_historyDatabase;
 		int m_xPos;
 		int m_yPos;
 		int m_width;
@@ -215,7 +218,7 @@ class PinotSettings
 
 	protected:
 		static PinotSettings m_instance;
-		static bool m_enableDBus;
+		static bool m_clientMode;
 		bool m_firstRun;
 		std::map<std::string, std::string> m_indexNames;
 		std::map<unsigned int, std::string> m_indexIds;
