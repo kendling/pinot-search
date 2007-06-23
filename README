@@ -494,3 +494,6 @@ Notes :
      libpthread.so           libc_r.so
     Refer to the libmap.conf(5) man page for details.
 
+  * Upgrading from Xapian 0.9 or older to 1.0 is handled automatically, but
+    downgrading back to 0.9 requires resetting the indexes manually. 
+
