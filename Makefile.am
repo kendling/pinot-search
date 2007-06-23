@@ -1,6 +1,5 @@
 
-SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ Search Monitor \
-	UI/GTK2/src
+SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ Search Monitor UI/GTK2/src
 
 EXTRA_DIST = AUTHORS ChangeLog NEWS README TODO mkinstalldirs \
 	Tokenize/filters/external-filters.xml globalconfig.xml \

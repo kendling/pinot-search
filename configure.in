@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 0.73,[fabricecolin@users.berlios.de])
+AC_INIT(pinot, 0.74,[fabricecolin@users.berlios.de])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -16,7 +16,7 @@ AC_PROG_CXXCPP
 AM_PROG_LIBTOOL
 
 dnl An index with a version older than this should be upgraded
-AC_DEFINE_UNQUOTED(PINOT_INDEX_MIN_VERSION,0.72,
+AC_DEFINE_UNQUOTED(PINOT_INDEX_MIN_VERSION,0.74,
     [Minimum index version])
 
 dnl gettext support
@@ -90,23 +90,22 @@ if test "x$enable_soap" != "xyes"; then
    SOAP_CFLAGS=""
    SOAP_LIBS=""
    SOAP_SUBDIRS=""
-   SEARCH_LTLIBRARIES="libSearch.la"
    SEARCH_LIBS="-lSearch"
    enable_soap=no
 fi
 AC_MSG_RESULT($enable_soap)
+AM_CONDITIONAL(HAVE_SOAP, false)
 if test "x$enable_soap" = "xyes"; then
    PKG_CHECK_MODULES(SOAP, gsoap)
    SOAP_CFLAGS="-DHAVE_GOOGLEAPI $SOAP_CFLAGS"
+   AM_CONDITIONAL(HAVE_SOAP, true)
    SOAP_LIBS="$SOAP_LIBS -lSearchSOAP"
    SOAP_SUBDIRS="Search/Google"
-   SEARCH_LTLIBRARIES="libSearch.la libSearchSOAP.la"
    SEARCH_LIBS="-lSearch -lSearchGoogle"
 fi
 AC_SUBST(SOAP_CFLAGS)
 AC_SUBST(SOAP_LIBS)
 AC_SUBST(SOAP_SUBDIRS)
-AC_SUBST(SEARCH_LTLIBRARIES)
 AC_SUBST(SEARCH_LIBS)
 
 dnl Neon or Curl ?
