@@ -1,3 +1,20 @@
+2007/06/24 version_0_7_4
+General :
+ - make uninstall actually uninstalls all files
+Index :
+ - can detect Hungarian, Romanian and Turkish with libtextcat 2.2 and stem
+  with Xapian 1.0
+ - adopted Xapian 1.0's new indexing strategy
+Search :
+ - basic support for the Xesam Query and User Language in pinot-search
+Daemon :
+ - history database is separate from the UI's
+UI :
+ - in index list tabs, replaced labels filtering with stored queries filtering,
+  so that one can find out which and how many documents in the index being
+  shown match a query (the query's maximum number of results is ignored)
+ - Hungarian, Romanian and Turkish are valid document languages
+
 2007/05/23 version_0_7_3
 Tokenize :
  - mbox filter was broken in previous release
