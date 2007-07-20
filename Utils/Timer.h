@@ -35,8 +35,8 @@ class Timer
 		/// Starts the timer.
 		void start(void);
 
-		/// Stops the timer and returns the number of microseconds elapsed.
-		long stop(void);
+		/// Stops the timer and returns the number of milliseconds elapsed.
+		suseconds_t stop(void);
 
 	protected:
 		struct timeval m_start;

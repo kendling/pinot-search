@@ -52,12 +52,12 @@ void Timer::start(void)
 	gettimeofday(&m_start, NULL);
 }
 
-/// Stops the timer and returns the number of microseconds elapsed.
-long Timer::stop(void)
+/// Stops the timer and returns the number of milliseconds elapsed.
+suseconds_t Timer::stop(void)
 {
 	gettimeofday(&m_stop, NULL);
 
-	long timeDiff = (((m_stop.tv_sec - m_start.tv_sec) * 1000000) + m_stop.tv_usec) - m_start.tv_usec;
+	suseconds_t timeDiff = (((m_stop.tv_sec - m_start.tv_sec) * 1000) + ((m_stop.tv_usec - m_start.tv_usec) / 1000));
 
 	return timeDiff;
 }
