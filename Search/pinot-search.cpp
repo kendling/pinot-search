@@ -26,14 +26,12 @@
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "XapianDatabaseFactory.h"
-#include "FilterUtils.h"
 #include "SearchEngineFactory.h"
 #include "ResultsExporter.h"
 #include "DownloaderFactory.h"
 #include "config.h"
 
 using namespace std;
-using namespace Dijon;
 
 static struct option g_longOptions[] = {
 	{"help", 0, 0, 'h'},
@@ -280,7 +278,9 @@ int main(int argc, char **argv)
 					cout << count << " Host     : " << thisUrl.getHost() << endl;
 					cout << count << " Location : " << thisUrl.getLocation() << "/" << thisUrl.getFile() << endl;
 					cout << count << " Title    : " << resultIter->getTitle() << endl;
-					cout << count << " Extract  : " << FilterUtils::stripMarkup(resultIter->getExtract()) << endl;
+					cout << count << " Type     : " << resultIter->getType() << endl;
+					cout << count << " Language : " << resultIter->getLanguage() << endl;
+					cout << count << " Extract  : " << resultIter->getExtract() << endl;
 					cout << count << " Score    : " << resultIter->getScore() << endl;
 					count++;
 

@@ -249,7 +249,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	}
 #ifdef DEBUG
 	cout << "AbstractGenerator::generateAbstract: summarized document "
-		<< docId << " in " << timer.stop()/1000 << " ms" << endl;
+		<< docId << " in " << timer.stop() << " ms" << endl;
 #endif
 
 	return summary;
