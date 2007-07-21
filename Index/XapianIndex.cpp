@@ -347,6 +347,13 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 
 	// Index the full URL with prefix U
 	doc.add_term(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(location), true));
+	// ...the base file with XFILE:
+	string::size_type qmPos = location.find("?");
+	if ((urlObj.isLocal() == true) &&
+		(qmPos != string::npos))
+	{
+		doc.add_term(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(location.substr(0, qmPos)), true));
+	}
 	// ...the host name and included domains with prefix H
 	string hostName(StringManip::toLowerCase(urlObj.getHost()));
 	if (hostName.empty() == false)
@@ -465,7 +472,15 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	}
 
 	// Location 
-	commonTerms.insert(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(docInfo.getLocation()), true));
+	string location(docInfo.getLocation());
+	commonTerms.insert(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(location), true));
+	// Base file
+	string::size_type qmPos = location.find("?");
+	if ((urlObj.isLocal() == true) &&
+		(qmPos != string::npos))
+	{
+		commonTerms.insert(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(location.substr(0, qmPos)), true));
+	}
 	// Host name
 	string hostName(StringManip::toLowerCase(urlObj.getHost()));
 	if (hostName.empty() == false)
@@ -1444,18 +1459,22 @@ bool XapianIndex::unindexDocument(const string &location)
 	return deleteDocuments(term);
 }
 
-/// Unindexes documents with the given label or under the given directory.
-bool XapianIndex::unindexDocuments(const string &name, bool isDirectory)
+/// Unindexes documents.
+bool XapianIndex::unindexDocuments(const string &name, NameType type)
 {
-	string term("XLABEL:");
+	string term;
 
-	if (isDirectory == true)
+	if (type == BY_LABEL)
+	{
+		term = string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(name));
+	}
+	else if (type == BY_DIRECTORY)
 	{
 		term = string("XDIR:") + XapianDatabase::limitTermLength(Url::escapeUrl(name), true);
 	}
-	else
+	else if (type == BY_FILE)
 	{
-		term += XapianDatabase::limitTermLength(Url::escapeUrl(name));
+		term = string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(name), true);
 	}
 
 	return deleteDocuments(term);

@@ -30,22 +30,28 @@
 class FilterWrapper
 {
 	public:
+		/// Builds a FilterWrapper object.
+		FilterWrapper(IndexInterface *pIndex);
 		virtual ~FilterWrapper();
 
 		/// Indexes the given data.
-		static bool indexDocument(IndexInterface &index, const Document &doc,
-			const std::set<std::string> &labels, unsigned int &docId);
+		bool indexDocument(const Document &doc, const std::set<std::string> &labels,
+			unsigned int &docId);
 
 		/// Updates the given document.
-		static bool updateDocument(unsigned int docId, IndexInterface &index,
-			const Document &doc);
+		bool updateDocument(const Document &doc, unsigned int docId);
+
+		/// Unindexes document(s) at the given location.
+		bool unindexDocument(const std::string &location);
 
 	protected:
-		FilterWrapper();
+		IndexInterface *m_pIndex;
 
-		static bool filterDocument(IndexInterface &index, const Document &doc,
-			const std::string &originalType, const std::set<std::string> &labels,
-			unsigned int &docId, bool doUpdate);
+		bool filterDocument(const Document &doc, const std::string &originalType,
+			const std::set<std::string> &labels, unsigned int &docId,
+			bool doUpdate);
+
+		bool unindexNestedDocuments(const std::string &url);
 
 	private:
 		FilterWrapper(const FilterWrapper &other);

@@ -165,7 +165,7 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 #endif
 #ifdef DEBUG
 	cout << "LanguageDetector::guessLanguage: language guessing took "
-		<< timer.stop()/1000 << " ms" << endl;
+		<< timer.stop() << " ms" << endl;
 #endif
 
 	// Close the descriptor

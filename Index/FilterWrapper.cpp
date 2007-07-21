@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <time.h>
 #include <iostream>
 
 #include "Url.h"
@@ -30,7 +31,8 @@ using std::string;
 using std::set;
 using namespace Dijon;
 
-FilterWrapper::FilterWrapper()
+FilterWrapper::FilterWrapper(IndexInterface *pIndex) :
+	m_pIndex(pIndex)
 {
 }
 
@@ -38,25 +40,49 @@ FilterWrapper::~FilterWrapper()
 {
 }
 
-bool FilterWrapper::indexDocument(IndexInterface &index, const Document &doc,
-	const set<string> &labels, unsigned int &docId)
+bool FilterWrapper::indexDocument(const Document &doc, const set<string> &labels, unsigned int &docId)
 {
 	string originalType(doc.getType());
 
-	return filterDocument(index, doc, originalType, labels, docId, false);
+	if (m_pIndex == NULL)
+	{
+		return false;
+	}
+
+	unindexNestedDocuments(doc.getLocation());
+
+	return filterDocument(doc, originalType, labels, docId, false);
 }
 
-bool FilterWrapper::updateDocument(unsigned int docId, IndexInterface &index, const Document &doc)
+bool FilterWrapper::updateDocument(const Document &doc, unsigned int docId)
 {
 	set<string> labels;
 	string originalType(doc.getType());
 
-	return filterDocument(index, doc, originalType, labels, docId, true);
+	if (m_pIndex == NULL)
+	{
+		return false;
+	}
+
+	unindexNestedDocuments(doc.getLocation());
+
+	return filterDocument(doc, originalType, labels, docId, true);
 }
 
-bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
-	const string &originalType, const set<string> &labels,
-	unsigned int &docId, bool doUpdate)
+bool FilterWrapper::unindexDocument(const string &location)
+{
+	if (m_pIndex == NULL)
+	{
+		return false;
+	}
+
+	unindexNestedDocuments(location);
+
+	return m_pIndex->unindexDocument(location);
+}
+
+bool FilterWrapper::filterDocument(const Document &doc, const string &originalType,
+	const set<string> &labels, unsigned int &docId, bool doUpdate)
 {
 	Filter *pFilter = FilterFactory::getFilter(doc.getType());
 	bool fedFilter = false, success = false;
@@ -92,6 +118,7 @@ bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
 	while (pFilter->has_documents() == true)
 	{
 		string actualType(originalType);
+		bool isNested = false;
 
 		if (pFilter->next_document() == false)
 		{
@@ -115,6 +142,7 @@ bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
 #ifdef DEBUG
 			cout << "FilterWrapper::filterDocument: nested document of type " << actualType << endl;
 #endif
+			isNested = true;
 		}
 
 		// Pass it down to another filter ?
@@ -125,18 +153,29 @@ bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
 			filteredDoc.setType(actualType);
 
 			Tokenizer tokens(&filteredDoc);
-			if (doUpdate == false)
+
+			// Nested documents can't be updated because they are unindexed
+			// and the ID is that of the base document anyway
+			if ((doUpdate == true) &&
+				(isNested == false))
 			{
-				success = index.indexDocument(tokens, labels, docId);
+				success = m_pIndex->updateDocument(docId, tokens);
 			}
 			else
 			{
-				success = index.updateDocument(docId, tokens);
+				unsigned int newDocId = docId;
+
+				success = m_pIndex->indexDocument(tokens, labels, newDocId);
+				// Make sure we return the base document's ID, not the last nested document's ID
+				if (isNested == false)
+				{
+					docId = newDocId;
+				}
 			}
 		}
 		else
 		{
-			success = filterDocument(index, filteredDoc, originalType, labels, docId, doUpdate);
+			success = filterDocument(filteredDoc, originalType, labels, docId, doUpdate);
 			delete pFilter;
 
 			return success;
@@ -153,4 +192,10 @@ bool FilterWrapper::filterDocument(IndexInterface &index, const Document &doc,
 #endif
 
 	return success;
+}
+
+bool FilterWrapper::unindexNestedDocuments(const string &url)
+{
+	// Unindex all documents that stem from this file
+	return m_pIndex->unindexDocuments(url, IndexInterface::BY_FILE);
 }

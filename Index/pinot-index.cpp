@@ -241,6 +241,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
+			FilterWrapper wrapFilter(pIndex);
 			set<string> labels;
 
 			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
@@ -250,7 +251,7 @@ int main(int argc, char **argv)
 			if (docId > 0)
 			{
 				// Update the document
-				if (FilterWrapper::updateDocument(docId, *pIndex, *pDoc) == true)
+				if (wrapFilter.updateDocument(*pDoc, docId) == true)
 				{
 					success = true;
 				}
@@ -258,7 +259,7 @@ int main(int argc, char **argv)
 			else
 			{
 				// Index the document
-				success = FilterWrapper::indexDocument(*pIndex, *pDoc, labels, docId);
+				success = wrapFilter.indexDocument(*pDoc, labels, docId);
 			}
 
 			if (success == true)

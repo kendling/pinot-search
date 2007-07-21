@@ -109,8 +109,8 @@ class DBusXapianIndex : public XapianIndex
 		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId);
 
-		/// Unindexes documents with the given label or under the given directory.
-		virtual bool unindexDocuments(const std::string &name, bool isDirectory);
+		/// Unindexes documents.
+		virtual bool unindexDocuments(const std::string &name, NameType type);
 
 		/// Unindexes all documents.
 		virtual bool unindexAllDocuments(void);

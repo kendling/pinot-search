@@ -116,8 +116,10 @@ class IndexInterface
 		/// Unindexes the given document.
 		virtual bool unindexDocument(const std::string &location) = 0;
 
-		/// Unindexes documents with the given label or under the given directory.
-		virtual bool unindexDocuments(const std::string &name, bool isDirectory) = 0;
+		typedef enum { BY_LABEL = 0, BY_DIRECTORY, BY_FILE } NameType;
+
+		/// Unindexes documents.
+		virtual bool unindexDocuments(const std::string &name, NameType type) = 0;
 
 		/// Unindexes all documents.
 		virtual bool unindexAllDocuments(void) = 0;
