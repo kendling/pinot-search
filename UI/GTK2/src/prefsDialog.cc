@@ -92,14 +92,6 @@ prefsDialog::prefsDialog() :
 	directoriesTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	populate_directoriesTreeview();
 
-	// Associate the columns model to the mail accounts tree
-	m_refMailTree = ListStore::create(m_mailColumns);
-	mailTreeview->set_model(m_refMailTree);
-	mailTreeview->append_column(_("Location"), m_mailColumns.m_location);
-	// Allow only single selection
-	mailTreeview->get_selection()->set_mode(SELECTION_SINGLE);
-	populate_mailTreeview();
-
 	// Associate the columns model to the file patterns tree
 	m_refPatternsTree = ListStore::create(m_patternsColumns);
 	patternsTreeview->set_model(m_refPatternsTree);
@@ -107,6 +99,14 @@ prefsDialog::prefsDialog() :
 	// Allow only single selection
 	patternsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	populate_patternsTreeview();
+	if (m_settings.m_isBlackList == true)
+	{
+		patternsCombobox->set_active(0);
+	}
+	else
+	{
+		patternsCombobox->set_active(1);
+	}
 
 	// Hide the Google API entry field ?
 	if (SearchEngineFactory::isSupported("googleapi") == false)
@@ -289,84 +289,12 @@ bool prefsDialog::save_directoriesTreeview()
 	return startService;
 }
 
-void prefsDialog::populate_mailTreeview()
-{
-	TreeModel::iterator iter;
-	TreeModel::Row row;
-
-	if (m_settings.m_mailAccounts.empty() == true)
-	{
-		// This button will stay disabled until mail is added to the list
-		removeAccountButton->set_sensitive(false);
-		return;
-	}
-
-	// Populate the tree
-	for (set<PinotSettings::TimestampedItem>::iterator mailIter = m_settings.m_mailAccounts.begin();
-		mailIter != m_settings.m_mailAccounts.end();
-		++mailIter)
-	{
-		// Create a new row
-		iter = m_refMailTree->append();
-		row = *iter;
-		// Set its name, type and minium date
-		row[m_mailColumns.m_location] = mailIter->m_name;
-		row[m_mailColumns.m_mTime] = mailIter->m_modTime;
-	}
-
-	removeAccountButton->set_sensitive(true);
-}
-
-bool prefsDialog::save_mailTreeview()
-{
-	bool startService = false;
-
-	// Clear the current settings
-	m_settings.m_mailAccounts.clear();
-
-	// Go through the mail accounts tree
-	TreeModel::Children children = m_refMailTree->children();
-	if (children.empty() == false)
-	{
-		TreeModel::Children::iterator iter = children.begin();
-		for (; iter != children.end(); ++iter)
-		{
-			TreeModel::Row row = *iter;
-			PinotSettings::TimestampedItem mailAccount;
-
-			// FIXME: unlike libmagic, shared-mime-info fails to identify most mbox files
-			// as being of type text/x-mail
-			// Add this new mail account to the settings
-			mailAccount.m_name = row[m_mailColumns.m_location];
-			mailAccount.m_modTime = row[m_mailColumns.m_mTime];
-
-			string mailLabel("mailbox://");
-			mailLabel += from_utf8(mailAccount.m_name);
-
-			// Check user didn't recreate this mail account after having deleted it
-			set<string>::iterator mailIter = m_deletedMail.find(mailLabel);
-			if (mailIter != m_deletedMail.end())
-			{
-				m_deletedMail.erase(mailIter);
-			}
-
-#ifdef DEBUG
-			cout << "prefsDialog::save_mailTreeview: " << mailAccount.m_name << endl;
-#endif
-			m_settings.m_mailAccounts.insert(mailAccount);
-			startService = true;
-		}
-	}
-
-	return startService;
-}
-
 void prefsDialog::populate_patternsTreeview()
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
 
-	if (m_settings.m_filePatternsBlackList.empty() == true)
+	if (m_settings.m_filePatternsList.empty() == true)
 	{
 		// This button will stay disabled until a ppatern is added to the list
 		removePatternButton->set_sensitive(false);
@@ -374,8 +302,8 @@ void prefsDialog::populate_patternsTreeview()
 	}
 
 	// Populate the tree
-	for (set<ustring>::iterator patternIter = m_settings.m_filePatternsBlackList.begin();
-		patternIter != m_settings.m_filePatternsBlackList.end();
+	for (set<ustring>::iterator patternIter = m_settings.m_filePatternsList.begin();
+		patternIter != m_settings.m_filePatternsList.end();
 		++patternIter)
 	{
 		// Create a new row
@@ -384,6 +312,8 @@ void prefsDialog::populate_patternsTreeview()
 		// Set its name
 		row[m_patternsColumns.m_location] = *patternIter;
 	}
+	patternsCombobox->append_text(_("Exclude these patterns from indexing"));
+	patternsCombobox->append_text(_("Only index these patterns"));
 
 	removePatternButton->set_sensitive(true);
 }
@@ -391,7 +321,7 @@ void prefsDialog::populate_patternsTreeview()
 void prefsDialog::save_patternsTreeview()
 {
 	// Clear the current settings
-	m_settings.m_filePatternsBlackList.clear();
+	m_settings.m_filePatternsList.clear();
 
 	// Go through the file patterns tree
 	TreeModel::Children children = m_refPatternsTree->children();
@@ -405,9 +335,17 @@ void prefsDialog::save_patternsTreeview()
 
 			if (pattern.empty() == false)
 			{
-				m_settings.m_filePatternsBlackList.insert(pattern);
+				m_settings.m_filePatternsList.insert(pattern);
 			}
 		}
+	}
+	if (patternsCombobox->get_active_row_number() == 0)
+	{
+		m_settings.m_isBlackList = true;
+	}
+	else
+	{
+		m_settings.m_isBlackList = false;
 	}
 }
 
@@ -442,10 +380,8 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	// Validate the current lists
 	save_labelsTreeview();
 	bool startForDirectories = save_directoriesTreeview();
-	bool startForMail = save_mailTreeview();
 	save_patternsTreeview();
-	if ((startForDirectories == true) ||
-		(startForMail == true))
+	if (startForDirectories == true)
 	{
 		// Save the settings
 		m_settings.save();
@@ -559,63 +495,21 @@ void prefsDialog::on_removeDirectoryButton_clicked()
 	}
 }
 
-void prefsDialog::on_addAccountButton_clicked()
+void prefsDialog::on_patternsCombobox_changed ()
 {
-	ustring fileName;
+	int activeRow = patternsCombobox->get_active_row_number();
 
-	TreeModel::Children children = m_refMailTree->children();
-	bool wasEmpty = children.empty();
-
-	if (select_file_name(_("Mbox File Location"), fileName, true) == true)
+	if (((activeRow == 0) && (m_settings.m_isBlackList == true)) ||
+		((activeRow > 0) && (m_settings.m_isBlackList == false)))
 	{
-#ifdef DEBUG
-		cout << "prefsDialog::on_addAccountButton_clicked: " << fileName << endl;
-#endif
-		// FIXME: unlike libmagic, shared-mime-info fails to identify most mbox files
-		// as being of type text/x-mail
-		// Create a new entry in the mail accounts list
-		TreeModel::iterator iter = m_refMailTree->append();
-		TreeModel::Row row = *iter;
-	
-		row[m_mailColumns.m_location] = to_utf8(fileName);
-		row[m_mailColumns.m_mTime] = time(NULL);
-
-		if (wasEmpty == true)
-		{
-			// Enable this button
-			removeAccountButton->set_sensitive(true);
-		}
+		// No change
+		return;
 	}
-}
 
-void prefsDialog::on_removeAccountButton_clicked()
-{
-	// Get the selected mail account in the list
-	TreeModel::iterator iter = mailTreeview->get_selection()->get_selected();
-	if (iter)
-	{
-		string mailLabel("mailbox://");
-
-		// Unselect
-		mailTreeview->get_selection()->unselect(iter);
-		// Select another row
-		TreeModel::Path path = m_refMailTree->get_path(iter);
-		path.next();
-		mailTreeview->get_selection()->select(path);
-
-		// Erase
-		TreeModel::Row row = *iter;
-		mailLabel += from_utf8(row[m_mailColumns.m_location]);
-		m_deletedMail.insert(mailLabel);
-		m_refMailTree->erase(row);
-
-		TreeModel::Children children = m_refMailTree->children();
-		if (children.empty() == true)
-		{
-			// Disable this button
-			removeAccountButton->set_sensitive(false);
-		}
-	}
+	// Unselect results
+	patternsTreeview->get_selection()->unselect_all();
+	// Remove all patterns in order to make sure the user enters a new bunch
+	m_refPatternsTree->clear();
 }
 
 void prefsDialog::on_addPatternButton_clicked()

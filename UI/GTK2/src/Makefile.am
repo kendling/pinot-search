@@ -22,7 +22,6 @@ noinst_HEADERS = \
 	DaemonState.h \
 	EnginesTree.h \
 	IndexPage.h \
-	MboxHandler.h \
 	ModelColumns.h \
 	Notebook.h \
 	OnDiskHandler.h \
@@ -54,7 +53,6 @@ pinot_SOURCES = \
 	statisticsDialog.cc \
 	EnginesTree.cpp \
 	IndexPage.cpp \
-	MboxHandler.cpp \
 	ModelColumns.cpp \
 	Notebook.cpp \
 	PinotSettings.cpp \
@@ -65,7 +63,6 @@ pinot_SOURCES = \
 pinot_dbus_daemon_SOURCES = \
 	pinot-dbus-daemon.cc \
 	DaemonState.cpp \
-	MboxHandler.cpp \
 	OnDiskHandler.cpp \
 	PinotSettings.cpp \
 	ServerThreads.cpp \

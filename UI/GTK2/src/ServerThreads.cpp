@@ -34,6 +34,7 @@
 #include <glibmm/miscutils.h>
 
 #include "Languages.h"
+#include "MIMEScanner.h"
 #include "TimeConverter.h"
 #include "Timer.h"
 #include "Url.h"
@@ -681,6 +682,11 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 			{
 				docInfo.setType("x-directory/normal");
 			}
+			else
+			{
+				// We might as well scan the file for its type now
+				docInfo.setType(MIMEScanner::scanFile(entryName));
+			}
 			docInfo.setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
 			docInfo.setSize(fileStat.st_size);
 
@@ -751,7 +757,7 @@ void DirectoryScannerThread::doWork(void)
 			}
 		}
 	}
-	cout << "Scanned " << m_dirName << " in " << scanTimer.stop()/1000 << " ms" << endl;
+	cout << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
 }
 
 DBusServletThread::DBusServletThread(DaemonState *pServer, DBusConnection *pConnection, DBusMessage *pRequest) :

@@ -104,6 +104,7 @@ PinotSettings::PinotSettings() :
 	m_newResultsColourBlue(0),
 	m_proxyPort(8080),
 	m_proxyEnabled(false),
+	m_isBlackList(true),
 	m_firstRun(false)
 {
 	string directoryName(getConfigurationDirectory());
@@ -252,9 +253,8 @@ void PinotSettings::clear(void)
 	m_engineIds.clear();
 	m_queries.clear();
 	m_labels.clear();
-	m_mailAccounts.clear();
 	m_indexableLocations.clear();
-	m_filePatternsBlackList.clear();
+	m_filePatternsList.clear();
 	m_cacheProviders.clear();
 }
 
@@ -289,25 +289,25 @@ bool PinotSettings::load(void)
 		m_labels.insert(_("New"));
 		m_labels.insert(_("Personal"));
 		// Skip common image, video and archive types
-		m_filePatternsBlackList.insert("*.Z");
-		m_filePatternsBlackList.insert("*.avi");
-		m_filePatternsBlackList.insert("*.asf");
-		m_filePatternsBlackList.insert("*.gif");
-		m_filePatternsBlackList.insert("*.iso");
-		m_filePatternsBlackList.insert("*.jpeg");
-		m_filePatternsBlackList.insert("*.jpg");
-		m_filePatternsBlackList.insert("*.lha");
-		m_filePatternsBlackList.insert("*.mov");
-		m_filePatternsBlackList.insert("*.msf");
-		m_filePatternsBlackList.insert("*.mpeg");
-		m_filePatternsBlackList.insert("*.mpg");
-		m_filePatternsBlackList.insert("*.png");
-		m_filePatternsBlackList.insert("*.rar");
-		m_filePatternsBlackList.insert("*.sh");
-		m_filePatternsBlackList.insert("*.tiff");
-		m_filePatternsBlackList.insert("*.wmv");
-		m_filePatternsBlackList.insert("*.xbm");
-		m_filePatternsBlackList.insert("*.xpm");
+		m_filePatternsList.insert("*.Z");
+		m_filePatternsList.insert("*.avi");
+		m_filePatternsList.insert("*.asf");
+		m_filePatternsList.insert("*.gif");
+		m_filePatternsList.insert("*.iso");
+		m_filePatternsList.insert("*.jpeg");
+		m_filePatternsList.insert("*.jpg");
+		m_filePatternsList.insert("*.lha");
+		m_filePatternsList.insert("*.mov");
+		m_filePatternsList.insert("*.msf");
+		m_filePatternsList.insert("*.mpeg");
+		m_filePatternsList.insert("*.mpg");
+		m_filePatternsList.insert("*.png");
+		m_filePatternsList.insert("*.rar");
+		m_filePatternsList.insert("*.sh");
+		m_filePatternsList.insert("*.tiff");
+		m_filePatternsList.insert("*.wmv");
+		m_filePatternsList.insert("*.xbm");
+		m_filePatternsList.insert("*.xpm");
 	}
 
 	// Some search engines are hardcoded
@@ -446,15 +446,12 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 				{
 					loadProxy(pElem);
 				}
-				else if (nodeName == "mailaccount")
-				{
-					loadMailAccounts(pElem);
-				}
 				else if (nodeName == "indexable")
 				{
 					loadIndexableLocations(pElem);
 				}
-				else if (nodeName == "blacklist")
+				else if ((nodeName == "blacklist") ||
+					(nodeName == "patterns"))
 				{
 					loadFilePatterns(pElem);
 				}
@@ -941,52 +938,6 @@ bool PinotSettings::loadProxy(const Element *pElem)
 	return true;
 }
 
-bool PinotSettings::loadMailAccounts(const Element *pElem)
-{
-	if (pElem == NULL)
-	{
-		return false;
-	}
-
-	Node::NodeList childNodes = pElem->get_children();
-	if (childNodes.empty() == true)
-	{
-		return false;
-	}
-
-	TimestampedItem mailAccount;
-
-	// Load the mail account's properties
-	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
-	{
-		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
-		{
-			continue;
-		}
-
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
-
-		if (nodeName == "name")
-		{
-			mailAccount.m_name = nodeContent;
-		}
-		else if (nodeName == "mtime")
-		{
-			mailAccount.m_modTime = (time_t)atoi(nodeContent.c_str());
-		}
-	}
-
-	if (mailAccount.m_name.empty() == false)
-	{
-		m_mailAccounts.insert(mailAccount);
-	}
-
-	return true;
-}
-
 bool PinotSettings::loadIndexableLocations(const Element *pElem)
 {
 	if (pElem == NULL)
@@ -1068,7 +1019,18 @@ bool PinotSettings::loadFilePatterns(const Element *pElem)
 
 		if (nodeName == "pattern")
 		{
-			m_filePatternsBlackList.insert(nodeContent);
+			m_filePatternsList.insert(nodeContent);
+		}
+		else if (nodeName == "forbid")
+		{
+			if (nodeContent == "YES")
+			{
+				m_isBlackList = true;
+			}
+			else
+			{
+				m_isBlackList = false;
+			}
 		}
 	}
 
@@ -1336,18 +1298,6 @@ bool PinotSettings::save(void)
 	addChildElement(pElem, "port", numStr);
 	addChildElement(pElem, "type", m_proxyType);
 	addChildElement(pElem, "enable", (m_proxyEnabled ? "YES" : "NO"));
-	// Mail accounts
-	for (set<TimestampedItem>::iterator mailIter = m_mailAccounts.begin(); mailIter != m_mailAccounts.end(); ++mailIter)
-	{
-		pElem = pRootElem->add_child("mailaccount");
-		if (pElem == NULL)
-		{
-			return false;
-		}
-		addChildElement(pElem, "name", mailIter->m_name);
-		sprintf(numStr, "%ld", mailIter->m_modTime);
-		addChildElement(pElem, "mtime", numStr);
-	}
 	// Locations to index 
 	for (set<IndexableLocation>::iterator locationIter = m_indexableLocations.begin(); locationIter != m_indexableLocations.end(); ++locationIter)
 	{
@@ -1359,16 +1309,17 @@ bool PinotSettings::save(void)
 		addChildElement(pElem, "name", locationIter->m_name);
 		addChildElement(pElem, "monitor", (locationIter->m_monitor ? "YES" : "NO"));
 	}
-	// File patterns that are blacklisted
-	pElem = pRootElem->add_child("blacklist");
+	// File patterns
+	pElem = pRootElem->add_child("patterns");
 	if (pElem == NULL)
 	{
 		return false;
 	}
-	for (set<ustring>::iterator patternIter = m_filePatternsBlackList.begin(); patternIter != m_filePatternsBlackList.end() ; ++patternIter)
+	for (set<ustring>::iterator patternIter = m_filePatternsList.begin(); patternIter != m_filePatternsList.end() ; ++patternIter)
 	{
 		addChildElement(pElem, "pattern", *patternIter);
 	}
+	addChildElement(pElem, "forbid", (m_isBlackList ? "YES" : "NO"));
 
 	// Save to file
 	doc.write_to_file_formatted(getConfigurationFileName());
@@ -1661,24 +1612,32 @@ void PinotSettings::clearLabels(void)
 /// Determines if a file matches the blacklist.
 bool PinotSettings::isBlackListed(const string &fileName)
 {
-	if (m_filePatternsBlackList.empty() == true)
+	if (m_filePatternsList.empty() == true)
 	{
-		return false;
+		if (m_isBlackList == true)
+		{
+			// There is no black-list
+			return false;
+		}
+
+		// The file is not in the (empty) whitelist
+		return true;
 	}
 
 	// Any pattern matches this file name ?
-	for (set<ustring>::iterator patternIter = m_filePatternsBlackList.begin(); patternIter != m_filePatternsBlackList.end() ; ++patternIter)
+	for (set<ustring>::iterator patternIter = m_filePatternsList.begin(); patternIter != m_filePatternsList.end() ; ++patternIter)
 	{
 		if (fnmatch(patternIter->c_str(), fileName.c_str(), FNM_NOESCAPE) == 0)
 		{
 #ifdef DEBUG
 			cout << "PinotSettings::isBlackListed: " << fileName << " matches " << *patternIter << endl;
 #endif
-			return true;
+			// Fail if it's in the blacklist, let the file through otherwise
+			return m_isBlackList;
 		}
 	}
 
-	return false;
+	return !m_isBlackList;
 }
 
 PinotSettings::Engine::Engine()

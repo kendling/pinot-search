@@ -116,15 +116,17 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 		pDoc = new Document(docInfo);
 	}
 
+	FilterWrapper wrapFilter(&m_index);
+
 	// Get an ad hoc tokenizer for the message
 	// Index or update ?
 	if (docId == 0)
 	{
-		indexedFile = FilterWrapper::indexDocument(m_index, *pDoc, labels, docId);
+		indexedFile = wrapFilter.indexDocument(*pDoc, labels, docId);
 	}
 	else
 	{
-		indexedFile = FilterWrapper::updateDocument(docId, m_index, *pDoc);
+		indexedFile = wrapFilter.updateDocument(*pDoc, docId);
 	}
 
 #ifdef DEBUG
@@ -141,8 +143,10 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 
 bool OnDiskHandler::replaceFile(unsigned int docId, DocumentInfo &docInfo)
 {
+	FilterWrapper wrapFilter(&m_index);
+
 	// Unindex the destination file
-	m_index.unindexDocument(docInfo.getLocation());
+	wrapFilter.unindexDocument(docInfo.getLocation());
 
 	// Update the document info
 	return m_index.updateDocumentInfo(docId, docInfo);
@@ -186,7 +190,7 @@ void OnDiskHandler::initialize(void)
 					<< ", source " << sourceId << " was removed" << endl;
 #endif
 				// All documents with this label will be unindexed
-				if (m_index.unindexDocuments(sourceStr, false) == true)
+				if (m_index.unindexDocuments(sourceStr, IndexInterface::BY_LABEL) == true)
 				{
 					// Delete the source itself and all its items
 					m_history.deleteSource(sourceId);
@@ -326,20 +330,23 @@ bool OnDiskHandler::directoryMoved(const string &dirName,
 
 bool OnDiskHandler::fileDeleted(const string &fileName)
 {
+	FilterWrapper wrapFilter(&m_index);
+	string location("file://");
 	bool handledEvent = true;
 
 #ifdef DEBUG
 	cout << "OnDiskHandler::fileDeleted: " << fileName << endl;
 #endif
+	location += fileName;
 	pthread_mutex_lock(&m_mutex);
-	unsigned int docId = m_index.hasDocument(string("file://") + fileName);
+	unsigned int docId = m_index.hasDocument(location);
 	if (docId > 0)
 	{
 		// Unindex the file
-		handledEvent = m_index.unindexDocument(docId);
+		handledEvent = wrapFilter.unindexDocument(location);
 		if (handledEvent == true)
 		{
-			m_history.deleteItem(string("file://") + fileName);
+			m_history.deleteItem(location);
 		}
 	}
 	pthread_mutex_unlock(&m_mutex);
@@ -356,7 +363,7 @@ bool OnDiskHandler::directoryDeleted(const string &dirName)
 	cout << "OnDiskHandler::directoryDeleted: " << dirName << endl;
 #endif
 	pthread_mutex_lock(&m_mutex);
-	if (m_index.unindexDocuments(dirName, true) == true)
+	if (m_index.unindexDocuments(dirName, IndexInterface::BY_DIRECTORY) == true)
 	{
 		m_history.deleteItems(string("file://") + dirName);
 		handledEvent = true;

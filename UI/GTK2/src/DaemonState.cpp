@@ -31,7 +31,6 @@
 #include "MonitorFactory.h"
 #include "XapianIndex.h"
 #include "DaemonState.h"
-#include "MboxHandler.h"
 #include "OnDiskHandler.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
@@ -43,9 +42,7 @@ using namespace Glib;
 DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 20),
 	m_fullScan(false),
-	m_pMailMonitor(MonitorFactory::getMonitor()),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
-	m_pMailHandler(NULL),
 	m_pDiskHandler(NULL)
 {
 	m_onThreadEndSignal.connect(SigC::slot(*this, &DaemonState::on_thread_end));
@@ -57,11 +54,7 @@ DaemonState::~DaemonState()
 	{
 		delete m_pDiskMonitor;
 	}
-	if (m_pMailMonitor != NULL)
-	{
-		delete m_pMailMonitor;
-	}
-	// Don't delete m_pDiskHandler and m_pMailHandler, threads may need them
+	// Don't delete m_pDiskHandler, threads may need it
 	// Since DaemonState is destroyed when the program exits, it's okay
 }
 
@@ -124,13 +117,7 @@ void DaemonState::start(bool forceFullScan)
 #endif
 	}
 
-	// Fire up the mail monitor thread now
-	m_pMailHandler = new MboxHandler();
-	MonitorThread *pMailMonitorThread = new MonitorThread(m_pMailMonitor, m_pMailHandler);
-	pMailMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
-	start_thread(pMailMonitorThread, true);
-
-	// Same for the disk monitor thread
+	// Fire up the disk monitor thread
 	m_pDiskHandler = new OnDiskHandler();
 	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, m_pDiskHandler);
 	pDiskMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));

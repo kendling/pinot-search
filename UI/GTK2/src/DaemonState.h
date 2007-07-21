@@ -46,9 +46,7 @@ class DaemonState : public ThreadsManager
 
 	protected:
 		bool m_fullScan;
-		MonitorInterface *m_pMailMonitor;
 		MonitorInterface *m_pDiskMonitor;
-		MonitorHandler *m_pMailHandler;
 		MonitorHandler *m_pDiskHandler;
 		std::string m_locationBeingCrawled;
 		SigC::Signal1<void, int> m_signalQuit;

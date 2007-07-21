@@ -18,6 +18,7 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
@@ -41,6 +42,7 @@
 #include "DBusXapianIndex.h"
 #include "XapianDatabase.h"
 #include "ActionQueue.h"
+#include "CrawlHistory.h"
 #include "QueryHistory.h"
 #include "DownloaderFactory.h"
 #include "SearchEngineFactory.h"
@@ -1448,13 +1450,16 @@ void IndexingThread::doWork(void)
 
 		if (m_done == false)
 		{
+			FilterWrapper wrapFilter(pIndex);
+			const set<string> &labels = m_docInfo.getLabels();
+
 			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
 
 			// Update an existing document or add to the index ?
 			if (m_update == true)
 			{
 				// Update the document
-				if (FilterWrapper::updateDocument(m_docId, *pIndex, *m_pDoc) == true)
+				if (wrapFilter.updateDocument(*m_pDoc, m_docId) == true)
 				{
 #ifdef DEBUG
 					cout << "IndexingThread::doWork: updated " << m_pDoc->getLocation()
@@ -1468,11 +1473,10 @@ void IndexingThread::doWork(void)
 			}
 			else
 			{
-				const set<string> &labels = m_docInfo.getLabels();
 				unsigned int docId = 0;
 
 				// Index the document
-				success = FilterWrapper::indexDocument(*pIndex, *m_pDoc, labels, docId);
+				success = wrapFilter.indexDocument(*m_pDoc, labels, docId);
 				if (success == true)
 				{
 					m_docId = docId;
@@ -1583,7 +1587,7 @@ void UnindexingThread::doWork(void)
 
 			// By unindexing all documents that match the label,
 			// we effectively delete the label from the index
-			if (pIndex->unindexDocuments(labelName, false) == true)
+			if (pIndex->unindexDocuments(labelName, IndexInterface::BY_LABEL) == true)
 			{
 #ifdef DEBUG
 				cout << "UnindexingThread::doWork: removed label " << labelName << endl;

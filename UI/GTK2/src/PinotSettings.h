@@ -210,9 +210,9 @@ class PinotSettings
 		unsigned int m_proxyPort;
 		Glib::ustring  m_proxyType;
 		bool m_proxyEnabled;
-		std::set<TimestampedItem> m_mailAccounts;
 		std::set<IndexableLocation> m_indexableLocations;
-		std::set<Glib::ustring> m_filePatternsBlackList;
+		std::set<Glib::ustring> m_filePatternsList;
+		bool m_isBlackList;
 		std::vector<CacheProvider> m_cacheProviders;
 		std::set<Glib::ustring> m_cacheProtocols;
 
@@ -237,7 +237,6 @@ class PinotSettings
 		bool loadLabels(const xmlpp::Element *pElem);
 		bool loadColour(const xmlpp::Element *pElem);
 		bool loadProxy(const xmlpp::Element *pElem);
-		bool loadMailAccounts(const xmlpp::Element *pElem);
 		bool loadIndexableLocations(const xmlpp::Element *pElem);
 		bool loadFilePatterns(const xmlpp::Element *pElem);
 		bool loadCacheProviders(const xmlpp::Element *pElem);
