@@ -138,26 +138,28 @@ http://pinot.berlios.de/
 5. Indexing and monitoring
 
 
-  Pinot can automatically index :
-    * mbox mail accounts. Monitoring for changes is always enabled.
-    * directories. Their contents are crawled. Monitoring is optional.
-  Both are configured under the Indexing tab of the Preferences box and are
-  handled by the D-Bus service.
-
-  All files and directories with a name that starts with a dot, eg ".gaim",
-  are skipped and their content is not indexed. If you want to exclude any
-  other specific files or directories from indexing, use patterns as described
-  in section "9. File patterns".
-
-  Mbox files held in a dot-directory should be added to the mail boxes list
-  in Preferences. Others found during a directory crawl will be fully indexed
-  but not monitored for changes.
+  Pinot can index any directory configured under the Indexing tab of the
+  Preferences box. Monitoring is optional and should be disabled for the
+  directories whose contents seldom change, eg /usr/share/doc.
+  Indexing and monitoring of directories is handled by the D-Bus service.
 
   While Pinot is not currently able to get to and index application-specific
   data held in dot-directories, it can index common file formats as listed
   in section "8. File formats".
-  If you would like to index your GAIM chat logs, which are plain HTML files,
-  symlink ~/.gaim/logs to one of the directories configured in Preferences.
+
+  All files and directories with a name that starts with a dot, eg ".gaim",
+  are skipped and their content is not indexed. If you wish to include the
+  contents of some dot-directories, create a symlink to a directory that is
+  configured in Preferences. For instance, if your home directory is
+  configured for indexing, create a symlink from "~/.gaim/logs" to
+  "~/Documents/Logs" to index your GAIM log files.
+  Do the same for mbox files held in dot-directories, eg ".thunderbird". Pinot
+  0.74 and older required mbox files to be configured separately. Newer
+  versions are able to fully index (and monitor, if necessary) all mbox files
+  found during a directory crawl, just like any other file type.
+
+  If you want to exclude any specific files or directories from indexing, use
+  patterns as described in section "9. File patterns".
 
 
 6. Search strategy
@@ -209,7 +211,7 @@ http://pinot.berlios.de/
   result's MIME type and/or protocol scheme.
   In addition, Pinot allows to view the page as cached by Google and the Wayback
   Machine. Cache providers are actually configured in globalconfig.xml, located
-  in $PREFIX/share/pinot/. For instance :
+  in /etc/pinot/. For instance :
   <cache>
     <name>Google</name>
     <location>http://www.google.com/search?q=cache:%url0</location>
@@ -228,20 +230,25 @@ http://pinot.berlios.de/
 8. File formats
 
 
-  The following document types are supported and will be fully indexed
-  * plain text
-  * HTML
-  * PDF (pdftotext is required)
-  * RTF (unrtf is required)
-  * MS Word (antiword is required)
-  * XML
-  * OpenDocument/StarOffice files
-  * mbox
-  * MP3 and Ogg Vorbis (TagLib required)
-  More formats will be supported as the project matures.
+  The following document types are supported and will be fully indexed :
+    * plain text
+    * HTML
+    * PDF (pdftotext is required)
+    * RTF (unrtf is required)
+    * MS Word (antiword is required)
+    * XML
+    * OpenDocument/StarOffice files
+    * mbox
+    * MP3 and Ogg Vorbis (TagLib required)
+    * RPM (rpm required)
+    * DEB (dpkg required)
 
   For other document types, Pinot will only index metadata such as name,
   location etc...
+
+  If you wish to add support for another document type, and know of a
+  command-line program that can convert that type to plain text, XML or HTML,
+  you should be able to add it to external-filters.xml, located in /etc/pinot/.
 
 
 9. File patterns
@@ -249,14 +256,12 @@ http://pinot.berlios.de/
 
   Starting with version 0.62, it is possible to skip indexing of files with
   glob(3) patterns. These patterns are configured in the Indexing tab of the
-  Preferences box.
+  Preferences box, and can be used as a blacklist or a whitelist (as of 0.75).
 
-  For example, "*.mp3" will skip all files with the extension "mp3", even
-  though that particular document type is supported by Pinot.
-  Patterns also apply to directory; for instance "*/Desktop*" will skip
+  Patterns also to files and directories. For instance "*/Desktop*" will skip
   "~/Desktop" and not crawl nor monitor this directory's contents.
-  If you have never run Pinot before, it will initialize the patterns list
-  to common picture and video types such as JPG, GIF, ZIP and MPG.
+  If you have never run Pinot before, the list will be pre-configured to skip
+  common picture and video types such as JPG, GIF, ZIP and MPG.
 
 
 10. More Like This
