@@ -24,10 +24,10 @@ Group: Applications/Internet
 Source: %{name}-%{version}.tar.gz
 URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-Requires: xapian-core-libs >= 0.9.7, libtextcat >= 2.2, sqlite >= 3.1.2, curl >= 7.13, gmime >= 2.1
+Requires: xapian-core-libs >= 1.0.2, libtextcat >= 2.2, sqlite >= 3.3.1, curl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.6, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
 Requires: unzip, antiword, unrtf, %{pftotext_pkg}
-BuildRequires: xapian-core-devel >= 0.9.7, libtextcat-devel >= 2.2, sqlite-devel >= 3.1.2, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
+BuildRequires: xapian-core-devel >= 1.0.2, libtextcat-devel >= 2.2, sqlite-devel >= 3.3.1, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4
 BuildRequires: gcc-c++

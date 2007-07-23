@@ -378,10 +378,10 @@ http://pinot.berlios.de/
 ---------------------------------------------------------------
 Name							Version
 ---------------------------------------------------------------
-SQLite							3.1.2
+SQLite							3.3.1
 http://www.sqlite.org/
 
-xapian-core						0.9.9
+xapian-core						1.0.2
 http://www.xapian.org/
 
 curl (1)						7.13.1
