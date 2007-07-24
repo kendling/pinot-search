@@ -246,7 +246,12 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	QueryProperties::QueryType type = queryProps.getType();
 	if (type != QueryProperties::XAPIAN_QP)
 	{
-		XapianQueryBuilder builder(parser);
+		map<string, string> fieldMapping;
+
+		// Bare minimum mapping between Xesam fields and our prefixes 
+		fieldMapping["dc:title"] = "S";
+
+		XapianQueryBuilder builder(parser, fieldMapping);
 		XesamParser *pParser = NULL;
 
 		// Get a Xesam parser
