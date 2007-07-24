@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.74\n"
+"Project-Id-Version: pinot 0.75\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-05-19 19:02+0800\n"
+"POT-Creation-Date: 2007-07-24 20:39+0800\n"
 "PO-Revision-Date: 2007-06-21 19:51+0800\n"
 "Last-Translator: Fabrice Colin <fabricecolin@users.berlios.de>\n"
 "Language-Team: fr <fabricecolin@users.berlios.de>\n"
@@ -33,9 +33,9 @@ msgstr "Utilisateur"
 #: UI/GTK2/src/mainWindow.cc:1026 UI/GTK2/src/mainWindow.cc:1197
 #: UI/GTK2/src/mainWindow.cc:1239 UI/GTK2/src/mainWindow.cc:1261
 #: UI/GTK2/src/mainWindow.cc:1292 UI/GTK2/src/mainWindow.cc:1903
-#: UI/GTK2/src/PinotSettings.cpp:282 UI/GTK2/src/PinotSettings.cpp:1388
-#: UI/GTK2/src/PinotSettings.cpp:1444 UI/GTK2/src/statisticsDialog.cc:77
-#: UI/GTK2/src/WorkerThreads.cpp:794 UI/GTK2/src/WorkerThreads.cpp:853
+#: UI/GTK2/src/PinotSettings.cpp:282 UI/GTK2/src/PinotSettings.cpp:1339
+#: UI/GTK2/src/PinotSettings.cpp:1395 UI/GTK2/src/statisticsDialog.cc:77
+#: UI/GTK2/src/WorkerThreads.cpp:796 UI/GTK2/src/WorkerThreads.cpp:855
 msgid "My Web Pages"
 msgstr "Mes Pages Web"
 
@@ -43,9 +43,9 @@ msgstr "Mes Pages Web"
 #. Bind the callback's parameter to the index name
 #: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:318
 #: UI/GTK2/src/mainWindow.cc:321 UI/GTK2/src/mainWindow.cc:1033
-#: UI/GTK2/src/PinotSettings.cpp:283 UI/GTK2/src/PinotSettings.cpp:1389
-#: UI/GTK2/src/PinotSettings.cpp:1445 UI/GTK2/src/statisticsDialog.cc:82
-#: UI/GTK2/src/WorkerThreads.cpp:799 UI/GTK2/src/WorkerThreads.cpp:863
+#: UI/GTK2/src/PinotSettings.cpp:283 UI/GTK2/src/PinotSettings.cpp:1340
+#: UI/GTK2/src/PinotSettings.cpp:1396 UI/GTK2/src/statisticsDialog.cc:82
+#: UI/GTK2/src/WorkerThreads.cpp:801 UI/GTK2/src/WorkerThreads.cpp:865
 msgid "My Documents"
 msgstr "Mes Documents"
 
@@ -190,9 +190,8 @@ msgid "Document location is"
 msgstr "Le chemin du document is"
 
 #: UI/GTK2/src/mainWindow.cc:883
-#, fuzzy
 msgid "Showing"
-msgstr "Montrant"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:888
 msgid "of"
@@ -269,13 +268,13 @@ msgstr "Recherche"
 msgid "Couldn't find query"
 msgstr "N'a pas pu trouver"
 
-#: UI/GTK2/src/mainWindow.cc:2018 UI/GTK2/src/WorkerThreads.cpp:652
-#: UI/GTK2/src/WorkerThreads.cpp:1682
+#: UI/GTK2/src/mainWindow.cc:2018 UI/GTK2/src/WorkerThreads.cpp:654
+#: UI/GTK2/src/WorkerThreads.cpp:1686
 msgid "Index"
 msgstr "L'index"
 
-#: UI/GTK2/src/mainWindow.cc:2022 UI/GTK2/src/WorkerThreads.cpp:656
-#: UI/GTK2/src/WorkerThreads.cpp:1686
+#: UI/GTK2/src/mainWindow.cc:2022 UI/GTK2/src/WorkerThreads.cpp:658
+#: UI/GTK2/src/WorkerThreads.cpp:1690
 msgid "doesn't exist"
 msgstr "n'existe pas"
 
@@ -294,10 +293,6 @@ msgstr "Un outil de recherche pour le Bureau Libre"
 #: UI/GTK2/src/mainWindow.cc:2243
 msgid "Search the Web and your documents !"
 msgstr "Cherche le Web et vos documents"
-
-#: UI/GTK2/src/mainWindow.cc:2244
-msgid "(C) 2005 Fabrice Colin"
-msgstr "(C) 2005 Fabrice Colin"
 
 #: UI/GTK2/src/mainWindow.cc:2288
 msgid "Index name"
@@ -548,7 +543,7 @@ msgstr "Nouveau"
 msgid "Personal"
 msgstr "Personnel"
 
-#: UI/GTK2/src/PinotSettings.cpp:1184
+#: UI/GTK2/src/PinotSettings.cpp:1146
 msgid "Unclassified"
 msgstr "Sans classification"
 
@@ -560,25 +555,29 @@ msgstr "Nom"
 msgid "Monitor"
 msgstr "Surveiller"
 
-#: UI/GTK2/src/prefsDialog.cc:90 UI/GTK2/src/prefsDialog.cc:98
+#: UI/GTK2/src/prefsDialog.cc:90
 msgid "Location"
 msgstr "Chemin"
 
-#: UI/GTK2/src/prefsDialog.cc:106
+#: UI/GTK2/src/prefsDialog.cc:98
 msgid "Pattern"
 msgstr "Motif"
 
-#: UI/GTK2/src/prefsDialog.cc:470
+#: UI/GTK2/src/prefsDialog.cc:315
+msgid "Exclude these patterns from indexing"
+msgstr "Ne pas indexer ces motifs"
+
+#: UI/GTK2/src/prefsDialog.cc:316
+msgid "Only index these patterns"
+msgstr "Indexer uniquement ces motifs"
+
+#: UI/GTK2/src/prefsDialog.cc:406
 msgid "New Label"
 msgstr "Nouvelle Etiquette"
 
-#: UI/GTK2/src/prefsDialog.cc:511
+#: UI/GTK2/src/prefsDialog.cc:447
 msgid "Directory to index"
 msgstr "Repertoire a indexer"
-
-#: UI/GTK2/src/prefsDialog.cc:569
-msgid "Mbox File Location"
-msgstr "Chemin du Fichier mbox"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:66
 msgid "Google API key:"
@@ -625,7 +624,7 @@ msgid "Labels are used to classify indexed documents:"
 msgstr "Les etiquettes servent a classer les documents:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:99 UI/GTK2/src/prefsDialog_glade.cc:119
-#: UI/GTK2/src/prefsDialog_glade.cc:132 UI/GTK2/src/prefsDialog_glade.cc:145
+#: UI/GTK2/src/prefsDialog_glade.cc:135
 msgid "Add"
 msgstr "Ajouter"
 
@@ -642,18 +641,14 @@ msgid "These directories will be indexed and optionally monitored for changes:"
 msgstr "Ces repertoires seront indexes automatiquement:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:127
-msgid "Mail boxes of type mbox can be monitored and indexed:"
-msgstr "Les boites de type mbox peuvent etre indexees"
+msgid "File patterns:"
+msgstr "Motifs de fichier:"
 
-#: UI/GTK2/src/prefsDialog_glade.cc:140
-msgid "Specify any file pattern you wish to exclude from indexing:"
-msgstr "Specifiez tous les motifs de fichiers a ne pas indexer:"
-
-#: UI/GTK2/src/prefsDialog_glade.cc:154
+#: UI/GTK2/src/prefsDialog_glade.cc:144
 msgid "Indexing"
 msgstr "Indexes"
 
-#: UI/GTK2/src/prefsDialog_glade.cc:566
+#: UI/GTK2/src/prefsDialog_glade.cc:507
 msgid "Preferences"
 msgstr "Preferences"
 
@@ -778,9 +773,8 @@ msgid "documents"
 msgstr "documents"
 
 #: UI/GTK2/src/statisticsDialog.cc:132 UI/GTK2/src/statisticsDialog.cc:147
-#, fuzzy
 msgid "Unknown error"
-msgstr "Inconnu"
+msgstr "Erreur inconnue"
 
 #: UI/GTK2/src/statisticsDialog.cc:154
 msgid "Viewed"
@@ -811,67 +805,67 @@ msgstr "fichiers"
 msgid "Errors"
 msgstr "Erreurs"
 
-#: UI/GTK2/src/WorkerThreads.cpp:301
+#: UI/GTK2/src/WorkerThreads.cpp:303
 msgid "Can't index mail here"
 msgstr "Ne peut pas indexer le courrier ici"
 
-#: UI/GTK2/src/WorkerThreads.cpp:322 UI/GTK2/src/WorkerThreads.cpp:555
+#: UI/GTK2/src/WorkerThreads.cpp:324 UI/GTK2/src/WorkerThreads.cpp:557
 msgid "is already being indexed"
 msgstr "est deja indexe"
 
-#: UI/GTK2/src/WorkerThreads.cpp:332
+#: UI/GTK2/src/WorkerThreads.cpp:334
 msgid "is blacklisted"
 msgstr "est exclus"
 
-#: UI/GTK2/src/WorkerThreads.cpp:665 UI/GTK2/src/WorkerThreads.cpp:1014
-#: UI/GTK2/src/WorkerThreads.cpp:1097 UI/GTK2/src/WorkerThreads.cpp:1106
-#: UI/GTK2/src/WorkerThreads.cpp:1292 UI/GTK2/src/WorkerThreads.cpp:1562
-#: UI/GTK2/src/WorkerThreads.cpp:1695
+#: UI/GTK2/src/WorkerThreads.cpp:667 UI/GTK2/src/WorkerThreads.cpp:1016
+#: UI/GTK2/src/WorkerThreads.cpp:1099 UI/GTK2/src/WorkerThreads.cpp:1108
+#: UI/GTK2/src/WorkerThreads.cpp:1294 UI/GTK2/src/WorkerThreads.cpp:1566
+#: UI/GTK2/src/WorkerThreads.cpp:1699
 msgid "Index error on"
 msgstr "Erreur sur l'index"
 
-#: UI/GTK2/src/WorkerThreads.cpp:816
+#: UI/GTK2/src/WorkerThreads.cpp:818
 msgid "No title"
 msgstr "Pas de titre"
 
-#: UI/GTK2/src/WorkerThreads.cpp:918 UI/GTK2/src/WorkerThreads.cpp:1035
+#: UI/GTK2/src/WorkerThreads.cpp:920 UI/GTK2/src/WorkerThreads.cpp:1037
 msgid "Couldn't create search engine"
 msgstr "N'a pas pu creer le moteur"
 
-#: UI/GTK2/src/WorkerThreads.cpp:941 UI/GTK2/src/WorkerThreads.cpp:1047
+#: UI/GTK2/src/WorkerThreads.cpp:943 UI/GTK2/src/WorkerThreads.cpp:1049
 msgid "Couldn't run query on search engine"
 msgstr "N'a pas pu lancer la recherche sur le moteur"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1200
+#: UI/GTK2/src/WorkerThreads.cpp:1202
 msgid "Couldn't obtain downloader for protocol"
 msgstr "N'a pas pu obtenir un brouteur pour"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1225
+#: UI/GTK2/src/WorkerThreads.cpp:1227
 msgid "Couldn't retrieve"
 msgstr "N'a pas pu telecharger"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1322 UI/GTK2/src/WorkerThreads.cpp:1401
+#: UI/GTK2/src/WorkerThreads.cpp:1324 UI/GTK2/src/WorkerThreads.cpp:1403
 msgid "Cannot index document type"
 msgstr "Impossible d'indexer ce type de documents"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1326 UI/GTK2/src/WorkerThreads.cpp:1405
+#: UI/GTK2/src/WorkerThreads.cpp:1328 UI/GTK2/src/WorkerThreads.cpp:1407
 msgid "at"
 msgstr "a"
 
 #. No, it isn't
-#: UI/GTK2/src/WorkerThreads.cpp:1437
+#: UI/GTK2/src/WorkerThreads.cpp:1439
 msgid "Robots META tag forbids indexing"
 msgstr "Le META tag Robots interdit d'indexer"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1491
+#: UI/GTK2/src/WorkerThreads.cpp:1495
 msgid "Couldn't index"
 msgstr "N'a pas pu indexer"
 
 #. Be pessimistic and assume something will go wrong ;-)
-#: UI/GTK2/src/WorkerThreads.cpp:1573
+#: UI/GTK2/src/WorkerThreads.cpp:1577
 msgid "Couldn't unindex document(s)"
 msgstr "N'a pas pu desindexer le(s) document(s)"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1707
+#: UI/GTK2/src/WorkerThreads.cpp:1711
 msgid "Couldn't update document"
 msgstr "N'a pas pu mettre a jour le document"
