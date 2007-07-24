@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 			case 'v':
 				cout << "pinot-dbus-daemon - " << PACKAGE_STRING << "\n\n" 
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
-					<< "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+					<< "the GNU General Public License <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n"
 					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
 				return EXIT_SUCCESS;
 			default:
