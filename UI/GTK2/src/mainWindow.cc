@@ -843,7 +843,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		// Yep, it did
 		set_status(to_utf8(threadStatus));
 		// Better reset that flag if an error occured while browsing an index
-		if (type == "IndexBrowserThread")
+		if (type == "ListerThread")
 		{
 			m_state.m_browsingIndex = false;
 		}

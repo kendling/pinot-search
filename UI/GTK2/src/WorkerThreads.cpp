@@ -827,7 +827,7 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 		}
 		current.setTitle(title);
 #ifdef DEBUG
-		cout << "QueryingThread::doWork: title is " << title << endl;
+		cout << "QueryingThread::processResults: title is " << title << endl;
 #endif
 
 		// Use the query's language if the result's is unknown
@@ -870,11 +870,11 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 		{
 			current.setIsIndexed(indexId, docId);
 #ifdef DEBUG
-			cout << "QueryingThread::doWork: found in index " << indexId << endl;
+			cout << "QueryingThread::processResults: found in index " << indexId << endl;
 #endif
 		}
 #ifdef DEBUG
-		else cout << "QueryingThread::doWork: not found in any index" << endl;
+		else cout << "QueryingThread::processResults: not found in any index" << endl;
 #endif
 
 		m_documentsList.push_back(current);
