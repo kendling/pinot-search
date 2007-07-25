@@ -349,3 +349,15 @@ void QueryProperties::getTerms(set<string> &terms) const
 	}
 }
 
+/// Returns whether the query is empty.
+bool QueryProperties::isEmpty() const
+{
+	if ((m_freeQuery.empty() == true) &&
+		(m_enableMinDate == false) &&
+		(m_enableMaxDate == false))
+	{
+		return true;
+	}
+
+	return false;
+}

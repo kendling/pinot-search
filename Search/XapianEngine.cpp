@@ -570,6 +570,14 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	m_resultsList.clear();
 	m_resultsCountEstimate = 0;
 
+	if (queryProps.isEmpty() == true)
+	{
+#ifdef DEBUG
+		cout << "XapianEngine::runQuery: query is empty" << endl;
+#endif
+		return false;
+	}
+
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, true);
 	if (pDatabase == NULL)
 	{

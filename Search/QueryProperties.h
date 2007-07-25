@@ -92,6 +92,9 @@ class QueryProperties
 		/// Returns the query's terms.
 		void getTerms(set<string> &terms) const;
 
+		/// Returns whether the query is empty.
+		bool isEmpty() const;
+
 	protected:
 		string m_name;
 		QueryType m_type;
