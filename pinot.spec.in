@@ -87,7 +87,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 
 %files
 %defattr(-, root, root, -)
-%doc AUTHORS ChangeLog COPYING NEWS README TODO
+%doc AUTHORS ChangeLog ChangeLog-dijon COPYING NEWS README TODO
 %config(noreplace) %{_sysconfdir}/pinot/external-filters.xml
 %config(noreplace) %{_sysconfdir}/pinot/globalconfig.xml
 %config(noreplace) %{_sysconfdir}/pinot/textcat_conf.txt
@@ -107,7 +107,6 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %dir %{_datadir}/pinot/engines/
 %{_datadir}/pinot/engines/A9.src
 %{_datadir}/pinot/engines/Accoona.src
-%{_datadir}/pinot/engines/Ask.src
 %{_datadir}/pinot/engines/BitTorrent.src
 %{_datadir}/pinot/engines/Clusty.src
 %{_datadir}/pinot/engines/CreativeCommons.src
