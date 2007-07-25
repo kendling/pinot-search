@@ -144,10 +144,7 @@ IndexPage::~IndexPage()
 void IndexPage::onQueryChanged(void)
 {
 	m_queryName = m_pQueryCombobox->get_active_text();
-#ifdef DEBUG
-	cout << "IndexPage::onQueryChanged: current query now " << m_queryName << endl;
-#endif
-	if (m_queryName == _("None"))
+	if (m_pQueryCombobox->get_active_row_number() == 0)
 	{
 		m_queryName.clear();
 	}
@@ -189,7 +186,7 @@ void IndexPage::populateQueryCombobox(const string &queryName)
 
 	m_pQueryCombobox->clear_items();
 
-	m_pQueryCombobox->append_text(_("None"));
+	m_pQueryCombobox->append_text(_("All"));
 
 	const std::map<string, QueryProperties> &queries = m_settings.getQueries();
 	for (std::map<string, QueryProperties>::const_iterator queryIter = queries.begin();
