@@ -1474,11 +1474,15 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 	}
 	catch (Error &error)
 	{
-		cerr << "ResultsTree::updateRow: " << error.what() << endl;
+#ifdef DEBUG
+		cout << "ResultsTree::updateRow: " << error.what() << endl;
+#endif
 	}
 	catch (...)
 	{
-		cerr << "ResultsTree::updateRow: caught unknown exception" << endl;
+#ifdef DEBUG
+		cout << "ResultsTree::updateRow: caught unknown exception" << endl;
+#endif
 	}
 }
 
