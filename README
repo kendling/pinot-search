@@ -295,8 +295,7 @@ http://pinot.berlios.de/
 
 
    D-Bus activation makes sure the service is running whenever one of its
-   methods is invoked by any consumer application. For instance, when
-   directories or mbox files are configured for indexing in the UI, clicking
+   methods is invoked by any consumer application. For instance, clicking
    OK on the Preferences box will call the service's GetStatistics method,
    thus ensuring the service is running.
 
@@ -308,8 +307,8 @@ http://pinot.berlios.de/
 
    A few things to keep in mind :
      * the service doesn't reload its configuration while running, so any
-       change (adding or removing a directory or mbox file) will take effect
-       when the service is restarted.
+       change (for instance, adding or removing an indexable directory) will
+       take effect when the service is restarted.
      * when starting, the service will first crawl all configured locations
        and (re)index new and modified files. Starting with 0.64, the daemon's
        scheduling priority is set very low (15, can be adjusted with --priority)
