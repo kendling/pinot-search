@@ -221,9 +221,9 @@ class QueryingThread : public ListerThread
 		std::string m_engineName;
 		std::string m_engineDisplayableName;
 		std::string m_engineOption;
-		bool m_listingIndex;
 		QueryProperties m_queryProps;
 		std::string m_resultsCharset;
+		bool m_listingIndex;
 
 		virtual void processResults(const std::vector<DocumentInfo> &resultsList);
 
