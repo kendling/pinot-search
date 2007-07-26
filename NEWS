@@ -1,3 +1,19 @@
+2007/07/26 version_0_7_5
+General :
+ - install Dijon's ChangeLog
+Search :
+ - updated Xesam Query Language parser to reflect current spec
+ - updated Sherlock plugin for Exalead, removed Ask
+Daemon :
+ - mbox files are no longer configured separately : those found during
+  a crawl are indexed and monitored automatically
+ - patterns list can be used as a blacklist (default) or whitelist
+UI :
+ - fixed a bug where filtering a documents list with an empty query would
+  prevent from viewing the list without or without a filter query
+ - updated Dutch translation by Balaam's Miracle
+ - updated Portuguese translation by _PN_boy
+
 2007/06/24 version_0_7_4
 General :
  - make uninstall actually uninstalls all files

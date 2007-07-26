@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.75\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-07-24 20:39+0800\n"
+"POT-Creation-Date: 2007-07-26 22:33+0800\n"
 "PO-Revision-Date: 2007-07-21 22:12+0000\n"
 "Last-Translator: _PN_boy <pedro_nuno_pn@iol.pt>\n"
 "Language-Team: Portuguese <pt@li.org>\n"
@@ -95,8 +95,7 @@ msgstr "Endereço:"
 msgid "External index"
 msgstr "Index externo"
 
-#: UI/GTK2/src/importDialog.cc:76 UI/GTK2/src/IndexPage.cpp:150
-#: UI/GTK2/src/IndexPage.cpp:192 UI/GTK2/src/queryDialog.cc:101
+#: UI/GTK2/src/importDialog.cc:76 UI/GTK2/src/queryDialog.cc:101
 msgid "None"
 msgstr "Nenhum"
 
@@ -124,6 +123,10 @@ msgstr "Mostrar anterior"
 #: UI/GTK2/src/IndexPage.cpp:57
 msgid "Show Next"
 msgstr "Mostrar próximo"
+
+#: UI/GTK2/src/IndexPage.cpp:189
+msgid "All"
+msgstr ""
 
 #: UI/GTK2/src/launcherDialog_glade.cc:64
 msgid ""

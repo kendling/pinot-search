@@ -27,7 +27,6 @@ Tokenize
 - HtmlFilter to look for META tags Author, Creator, Publisher and CreationDate
 - Filters should have a version number so that new versions force reindexing documents of the
  given type
-- Distribute filters' ChangeLog
 - XmLFilter is slow, rewrite file parsing with the TextReader interface
 
 Monitor
@@ -66,7 +65,8 @@ Index
 - Use Xapian >= 1.0 TermGenerator class
 - Xapian >= 1.0's QueryParser makes different assumptions about terms (http://www.xapian.org/docs/termgenerator.html)
 - Xapian > 1.0 has a version of Xapian::Database::allterms_begin() that takes a prefix
-- With Xapian > 1.0.1, use QueryParser::add_valuerangeprocessor for date ranges
+- With Xapian > 1.0.2, for date ranges, use QueryParser::add_valuerangeprocessor()
+ NumberValueRangeProcessor and sortable_serialise()
 - Automatically categorize documents based on MIME type and source into picture, video, etc...
 - Does updateDocumentInfo sometimes fail to remove terms from the old title ?
 - DBusXapianIndex to use D-Bus method Index
