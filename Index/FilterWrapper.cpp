@@ -85,7 +85,7 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 	const set<string> &labels, unsigned int &docId, bool doUpdate)
 {
 	Filter *pFilter = FilterFactory::getFilter(doc.getType());
-	bool fedFilter = false, success = false;
+	bool fedFilter = false, docSuccess = false, finalSuccess = false;
 
 	if (pFilter != NULL)
 	{
@@ -122,6 +122,9 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 
 		if (pFilter->next_document() == false)
 		{
+#ifdef DEBUG
+			cout << "FilterWrapper::filterDocument: no more documents in " << doc.getLocation() << endl;
+#endif
 			break;
 		}
 
@@ -129,6 +132,7 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 
 		filteredDoc.setTimestamp(doc.getTimestamp());
 		filteredDoc.setSize(doc.getSize());
+		docSuccess = false;
 
 		if (FilterUtils::populateDocument(filteredDoc, pFilter) == false)
 		{
@@ -159,13 +163,13 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 			if ((doUpdate == true) &&
 				(isNested == false))
 			{
-				success = m_pIndex->updateDocument(docId, tokens);
+				docSuccess = m_pIndex->updateDocument(docId, tokens);
 			}
 			else
 			{
 				unsigned int newDocId = docId;
 
-				success = m_pIndex->indexDocument(tokens, labels, newDocId);
+				docSuccess = m_pIndex->indexDocument(tokens, labels, newDocId);
 				// Make sure we return the base document's ID, not the last nested document's ID
 				if (isNested == false)
 				{
@@ -175,23 +179,23 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 		}
 		else
 		{
-			success = filterDocument(filteredDoc, originalType, labels, docId, doUpdate);
-			delete pFilter;
+			docSuccess = filterDocument(filteredDoc, actualType, labels, docId, doUpdate);
+		}
 
-			return success;
+		// Consider indexing anything a success
+		if (docSuccess == true)
+		{
+			finalSuccess = true;
 		}
 	}
 
 	delete pFilter;
 
 #ifdef DEBUG
-	if (success == false)
-	{
-		cout << "FilterWrapper::filterDocument: didn't index " << doc.getLocation() << endl;
-	}
+	cout << "FilterWrapper::filterDocument: done with " << doc.getLocation() << " status " << finalSuccess << endl;
 #endif
 
-	return success;
+	return finalSuccess;
 }
 
 bool FilterWrapper::unindexNestedDocuments(const string &url)
