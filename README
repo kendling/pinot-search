@@ -364,7 +364,7 @@ http://pinot.berlios.de/
   daemon is stopped, then delete the index with
   $ rm ~/.pinot/daemon/*
   and remove historical data as follows
-  $ sqlite3 ~/.pinot/history "delete from CrawlHistory; \
+  $ sqlite3 ~/.pinot/history-daemon "delete from CrawlHistory; \
     delete from CrawlSources;"
 
 
