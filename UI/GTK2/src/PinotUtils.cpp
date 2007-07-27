@@ -17,8 +17,6 @@
  */
 
 #include <iostream>
-#include <pangomm/font.h>
-#include <gtkmm/rc.h>
 #include <gtkmm/stock.h>
 
 #include "config.h"
@@ -133,22 +131,12 @@ bool prepare_file_chooser(FileChooserDialog &fileChooser, ustring &location,
 /// Get a column height.
 int get_column_height(TreeView *pTree)
 {
+	int height = 0;
+
 	if (pTree == NULL)
 	{
 		return 0;
 	}
-
-	RefPtr<Style> refRCStyle = RC::get_style(*pTree);
-	if (!refRCStyle)
-	{
-		return 0;
-	}
-
-	int fontSize = refRCStyle->get_font().get_size();
-	int height = fontSize / Pango::SCALE;
-#ifdef DEBUG
-	cout << "get_column_height: font " << height << ", " << fontSize << endl;
-#endif
 
 	TreeViewColumn *pColumn = pTree->get_column(1);
 	if (pColumn != NULL)

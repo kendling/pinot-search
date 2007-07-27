@@ -190,7 +190,7 @@ void propertiesDialog::setHeight(int maxHeight)
 		// What's the current size ?
 		get_size(width, height);
 		// Add enough room for the rows we need to show
-		height += get_column_height(labelsTreeview) * (rowsCount - 2);
+		height += get_column_height(labelsTreeview) * (rowsCount - 1);
 		// Resize
 		resize(width, min(maxHeight, height));
 	}
