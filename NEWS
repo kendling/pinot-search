@@ -1,6 +1,9 @@
-2007/07/26 version_0_7_5
+2007/07/28 version_0_7_5
 General :
  - install Dijon's ChangeLog
+Index :
+ - files with nested documents (eg mbox) could sometimes not be fully indexed
+  and/or and the wrong MIME type was reported
 Search :
  - updated Xesam Query Language parser to reflect current spec
  - updated Sherlock plugin for Exalead, removed Ask
@@ -11,6 +14,8 @@ Daemon :
 UI :
  - fixed a bug where filtering a documents list with an empty query would
   prevent from viewing the list without or without a filter query
+ - avoid a crash when viewing the properties of several documents one after
+  the other
  - updated Dutch translation by Balaam's Miracle
  - updated Portuguese translation by _PN_boy
 
