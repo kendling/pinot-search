@@ -1120,7 +1120,7 @@ bool XapianIndex::listDocumentsInDirectory(const string &dirName, set<unsigned i
 {
 	string term(Url::escapeUrl(dirName));
 
-	return listDocumentsWithTerm(string("XDIR") + XapianDatabase::limitTermLength(term, true),
+	return listDocumentsWithTerm(string("XDIR:") + XapianDatabase::limitTermLength(term, true),
 		docIds, maxDocsCount, startDoc);
 }
 
