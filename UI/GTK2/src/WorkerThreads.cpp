@@ -280,6 +280,10 @@ WorkerThread *ThreadsManager::get_thread(void)
 
 	if (pWorkerThread->isBackground() == true)
 	{
+#ifdef DEBUG
+		cout << "ThreadsManager::get_thread: thread " << pWorkerThread->getId()
+			<< " was running in the background" << endl;
+#endif
 		--m_backgroundThreadsCount;
 	}
 
@@ -340,6 +344,22 @@ ustring ThreadsManager::index_document(const DocumentInfo &docInfo)
 	return "";
 }
 
+void ThreadsManager::clear_queues(void)
+{
+	if (write_lock_lists() == true)
+	{
+		m_beingIndexed.clear();
+
+		unlock_lists();
+
+		ActionQueue actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
+
+		actionQueue.expireItems(time(NULL));
+
+		m_backgroundThreadsCount = 0;
+	}
+}
+
 bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground)
 {
 	if (pWorkerThread == NULL)
@@ -350,6 +370,10 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 	pWorkerThread->setId(m_nextThreadId);
 	if (inBackground == true)
 	{
+#ifdef DEBUG
+		cout << "ThreadsManager::start_thread: thread " << pWorkerThread->getId()
+			<< " will run in the background" << endl;
+#endif
 		pWorkerThread->inBackground();
 		++m_backgroundThreadsCount;
 	}
@@ -492,9 +516,9 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 
 	if (addToQueue == true)
 	{
-		ActionQueue queue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
+		ActionQueue actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
 
-		queue.pushItem(ActionQueue::INDEX, docInfo);
+		actionQueue.pushItem(ActionQueue::INDEX, docInfo);
 
 		return "";
 	}
@@ -535,12 +559,12 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 		// Get an item ?
 		if (getItem == true)
 		{
-			ActionQueue queue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
+			ActionQueue actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
 			ActionQueue::ActionType type;
 			DocumentInfo docInfo;
 			string previousLocation;
 
-			while (queue.popItem(type, docInfo) == true)
+			while (actionQueue.popItem(type, docInfo) == true)
 			{
 				ustring status;
 
@@ -1748,18 +1772,11 @@ bool StartDaemonThread::stop(void)
 
 void StartDaemonThread::doWork(void)
 {
-	unsigned int crawledCount = 0, docsCount = 0;
-
 	if (m_done == false)
         {
-		// ... and let D-Bus activate the service if necessary
-		// If it was already running, changes will take effect when it's restarted
-		DBusXapianIndex::getStatistics(crawledCount, docsCount);
-
-#ifdef DEBUG
-		cout << "StartDaemonThread::doWork: crawled " << crawledCount
-			<< ", indexed " << docsCount << endl;
-#endif
+		// Ask the daemon to reload its configuration
+		// Let D-Bus activate the service if necessary
+		DBusXapianIndex::reload();
 	}
 }
 

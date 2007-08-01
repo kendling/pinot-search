@@ -35,7 +35,7 @@ class DaemonState : public ThreadsManager
 
 		void start(bool forceFullScan);
 
-		void signal_scanner(void);
+		void reload(void);
 
 		void on_thread_end(WorkerThread *pThread);
 
@@ -46,6 +46,7 @@ class DaemonState : public ThreadsManager
 
 	protected:
 		bool m_fullScan;
+		bool m_reload;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pDiskHandler;
 		std::string m_locationBeingCrawled;

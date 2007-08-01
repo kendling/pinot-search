@@ -246,16 +246,38 @@ bool PinotSettings::isFirstRun(void) const
 
 void PinotSettings::clear(void)
 {
-	// Clear lists
+	m_version.clear();
+	m_googleAPIKey.clear();
+	m_xPos = 0;
+	m_yPos = 0;
+	m_width = 0;
+	m_height = 0;
+	m_panePos = -1;
+	m_showEngines = false;
+	m_expandQueries = false;
+	m_ignoreRobotsDirectives = false;
+	m_suggestQueryTerms = true;
+	m_newResultsColourRed = 65535;
+	m_newResultsColourGreen = 0;
+	m_newResultsColourBlue = 0;
+	m_proxyAddress.clear();
+	m_proxyPort = 8080;
+	m_proxyType.clear();
+	m_proxyEnabled = false;
+	m_indexableLocations.clear();
+	m_filePatternsList.clear();
+	m_isBlackList = false;
+	m_cacheProviders.clear();
+	m_cacheProtocols.clear();
+
+	m_firstRun = false;
 	m_indexNames.clear();
 	m_indexIds.clear();
 	m_engines.clear();
 	m_engineIds.clear();
+	m_engineChannels.clear();
 	m_queries.clear();
 	m_labels.clear();
-	m_indexableLocations.clear();
-	m_filePatternsList.clear();
-	m_cacheProviders.clear();
 }
 
 bool PinotSettings::loadGlobal(const string &fileName)

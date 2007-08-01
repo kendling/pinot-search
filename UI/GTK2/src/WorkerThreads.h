@@ -136,10 +136,16 @@ class ThreadsManager : virtual public SigC::Object
 		std::set<std::string> m_beingIndexed;
 
 		bool read_lock_threads(void);
+
 		bool write_lock_threads(void);
+
 		void unlock_threads(void);
+
 		WorkerThread *get_thread(void);
+
 		Glib::ustring index_document(const DocumentInfo &docInfo);
+
+		void clear_queues(void);
 
 	private:
 		ThreadsManager(const ThreadsManager &other);

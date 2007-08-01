@@ -45,6 +45,14 @@
       <arg type="as" name="labels" direction="out"/>
     </method>
     <!--
+	Instructs the daemon program to reload the configuration file.
+	 loadStatus: TRUE if the configuration is being reloaded
+	-->
+    <method name="Reload">
+      <annotation name="de.berlios.Pinot.Reload" value="pinotDBus"/>
+      <arg type="b" name="reloaded" direction="out" />
+    </method>
+    <!--
 	Sets a document's labels.
 	 docId: the document's ID
 	 labels: array of labels to apply to the document

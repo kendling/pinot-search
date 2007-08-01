@@ -27,6 +27,7 @@
 #include <glibmm/thread.h>
 #include <glibmm/random.h>
 
+#include "config.h"
 #include "Url.h"
 #include "MonitorFactory.h"
 #include "XapianIndex.h"
@@ -42,6 +43,7 @@ using namespace Glib;
 DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 20),
 	m_fullScan(false),
+	m_reload(false),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
 	m_pDiskHandler(NULL)
 {
@@ -118,7 +120,10 @@ void DaemonState::start(bool forceFullScan)
 	}
 
 	// Fire up the disk monitor thread
-	m_pDiskHandler = new OnDiskHandler();
+	if (m_pDiskHandler == NULL)
+	{
+		m_pDiskHandler = new OnDiskHandler();
+	}
 	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, m_pDiskHandler);
 	pDiskMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 	start_thread(pDiskMonitorThread, true);
@@ -129,6 +134,12 @@ void DaemonState::start(bool forceFullScan)
 		// Crawl this now
 		crawlLocation(locationIter->m_name, true, locationIter->m_monitor);
 	}
+}
+
+void DaemonState::reload(void)
+{
+	// Reload whenever possible
+	m_reload = true;
 }
 
 void DaemonState::on_thread_end(WorkerThread *pThread)
@@ -224,6 +235,34 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 
 	// Delete the thread
 	delete pThread;
+
+	// Are we supposed to reload the configuration ?
+	// Wait until there are no threads running (except background ones)
+	if ((m_reload == true) &&
+		(get_threads_count() == 0))
+	{
+#ifdef DEBUG
+		cout << "DaemonState::on_thread_end: stopping all threads" << endl;
+#endif
+		// Stop background threads
+		stop_threads();
+		// ...clear the queues
+		clear_queues();
+
+		// Reload
+		PinotSettings &settings = PinotSettings::getInstance();
+		settings.clear();
+		settings.loadGlobal(string(SYSCONFDIR) + "/pinot/globalconfig.xml");
+		settings.load();
+
+		// ...and restart everything 
+		start(false);
+#ifdef DEBUG
+		cout << "DaemonState::on_thread_end: reloaded" << endl;
+#endif
+
+		m_reload = false;
+	}
 
 	// We might be able to run a queued action
 	pop_queue(indexedUrl);

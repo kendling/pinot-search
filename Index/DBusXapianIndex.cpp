@@ -299,10 +299,10 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 	return true;
 }
 
-/// Asks the D-Bus service for statistics.
-bool DBusXapianIndex::getStatistics(unsigned int &crawledCount, unsigned int &docsCount)
+/// Asks the D-Bus service to reload its configuration.
+bool DBusXapianIndex::reload(void)
 {
-	bool gotStats = false;
+	bool reloading = false;
 
 	DBusGConnection *pBus = getBusConnection();
 	if (pBus == NULL)
@@ -313,24 +313,19 @@ bool DBusXapianIndex::getStatistics(unsigned int &crawledCount, unsigned int &do
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::getStatistics: couldn't get bus proxy" << endl;
+		cerr << "DBusXapianIndex::reload: couldn't get bus proxy" << endl;
 		return false;
 	}
 
 	GError *pError = NULL;
-	if (dbus_g_proxy_call(pBusProxy, "GetStatistics", &pError,
+	if (dbus_g_proxy_call(pBusProxy, "Reload", &pError,
 		G_TYPE_INVALID,
-		G_TYPE_UINT, &crawledCount,
-		G_TYPE_UINT, &docsCount,
-		G_TYPE_INVALID) == TRUE)
-	{
-		gotStats = true;
-	}
-	else
+		G_TYPE_BOOLEAN, &reloading,
+		G_TYPE_INVALID) == FALSE)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::getStatistics: " << pError->message << endl;
+			cerr << "DBusXapianIndex::reload: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -338,7 +333,7 @@ bool DBusXapianIndex::getStatistics(unsigned int &crawledCount, unsigned int &do
 	g_object_unref(pBusProxy);
 	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
 
-	return gotStats;
+	return reloading;
 }
 
 

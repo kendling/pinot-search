@@ -1212,6 +1212,28 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "Reload") == TRUE)
+	{
+		if (dbus_message_get_args(m_pRequest, &error,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			gboolean reloaded = TRUE;
+
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received Reload" << endl;
+#endif
+			m_pServer->reload();
+
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_INT32, &reloaded,
+					DBUS_TYPE_INVALID);
+			}
+		}
+	}
 	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "Stop") == TRUE)
 	{
 		if (dbus_message_get_args(m_pRequest, &error,

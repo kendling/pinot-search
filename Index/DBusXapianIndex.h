@@ -49,8 +49,8 @@ class DBusXapianIndex : public XapianIndex
 		static bool documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 			const DocumentInfo &docInfo);
 
-		/// Asks the D-Bus service for statistics.
-		static bool getStatistics(unsigned int &crawledCount, unsigned int &docsCount);
+		/// Asks the D-Bus service to reload its configuration.
+		static bool reload(void);
 
 		/// Sets the version number.
 		virtual bool setVersion(double version) const;

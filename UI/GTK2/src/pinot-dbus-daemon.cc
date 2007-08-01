@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 				cout << "pinot-dbus-daemon - D-Bus search and index daemon\n\n"
 					<< "Usage: pinot-dbus-daemon [OPTIONS]\n\n"
 					<< "Options:\n"
-					<< "  -f, --fullscan		force a full scan\n"
+					<< "  -f, --fullscan	force a full scan\n"
 					<< "  -h, --help		display this help and exit\n"
 					<< "  -p, --priority	set the daemon's priority (default 15)\n"
 					<< "  -v, --version		output version information and exit\n"
