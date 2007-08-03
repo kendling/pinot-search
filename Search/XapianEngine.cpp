@@ -380,12 +380,18 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	double diffTime = difftime(endTime, startTime);
 	if (diffTime > 0)
 	{
+		Xapian::Query dateQuery = dateFilter(minDay, minMonth, minYear, maxDay, maxMonth, maxYear);
+
 #ifdef DEBUG
 		cout << "XapianEngine::parseQuery: applied date range ("
 			<< yyyymmddMax << " <= " << yyyymmddMin << ")" << endl;
 #endif
-		return Xapian::Query(Xapian::Query::OP_FILTER, parsedQuery,
-			dateFilter(minDay, minMonth, minYear, maxDay, maxMonth, maxYear));
+		if (parsedQuery.empty() == false)
+		{
+			return Xapian::Query(Xapian::Query::OP_FILTER, parsedQuery, dateQuery);
+		}
+
+		return dateQuery;
 	}
 #ifdef DEBUG
 	else cout << "XapianEngine::parseQuery: date range is zero or bogus ("
