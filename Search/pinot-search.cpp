@@ -101,7 +101,7 @@ static void printHelp(void)
 	}
 	cout << "\n\nExamples:\n"
 #ifdef HAVE_GOOGLEAPI
-		<< "pinot-search googleapi mygoogleapikey \"clowns\" 10\n\n"
+		<< "pinot-search googleapi mygoogleapikey \"clowns\"\n\n"
 #endif
 		<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\"\n\n"
 		<< "pinot-search --max 20 sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
