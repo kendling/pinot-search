@@ -26,8 +26,9 @@
 #include <neon/ne_session.h>
 #include <neon/ne_request.h>
 
-#include "HtmlTokenizer.h"
 #include "Url.h"
+#include "HtmlFilter.h"
+#include "FilterUtils.h"
 #include "NeonDownloader.h"
 
 using namespace std;
@@ -69,25 +70,31 @@ string NeonDownloader::handleRedirection(const char *pBody, unsigned int length)
 	}
 
 	Document doc;
+	Dijon::HtmlFilter htmlFilter("text/html");
+	set<Dijon::Link> linksSet;
+
 	doc.setData(pBody, length);
-	HtmlTokenizer tokens(&doc, false);
 
 	// Extract the link from the 3xx message
-	set<Link> linksSet = tokens.getLinks();
-	// There should be one and only one
-	if (linksSet.size() != 1)
+	if ((FilterUtils::feedFilter(doc, &htmlFilter) == true) &&
+		(htmlFilter.get_links(linksSet) == true))
 	{
+		// There should be one and only one
+		if (linksSet.size() > 1)
+		{
 #ifdef DEBUG
-		cout << "NeonDownloader::handleRedirection: " << linksSet.size() << " links found in " << length << " bytes" << endl;
-		cout << "NeonDownloader::handleRedirection: redirection message was " << pBody << endl;
+			cout << "NeonDownloader::handleRedirection: " << linksSet.size() << " links found in " << length << " bytes" << endl;
+			cout << "NeonDownloader::handleRedirection: redirection message was " << pBody << endl;
 #endif
-		return "";
-	}
-	set<Link>::const_iterator iter = linksSet.begin();
-	if (iter != linksSet.end())
-	{
-		// Update the URL
-		return iter->m_url;
+			return "";
+		}
+
+		set<Dijon::Link>::const_iterator iter = linksSet.begin();
+		if (iter != linksSet.end())
+		{
+			// Update the URL
+			return iter->m_url;
+		}
 	}
 
 	return "";
