@@ -1477,8 +1477,6 @@ void IndexingThread::doWork(void)
 			FilterWrapper wrapFilter(pIndex);
 			const set<string> &labels = m_docInfo.getLabels();
 
-			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
-
 			// Update an existing document or add to the index ?
 			if (m_update == true)
 			{

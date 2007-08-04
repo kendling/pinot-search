@@ -84,11 +84,11 @@ class XapianIndex : public IndexInterface
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
 		/// Indexes the given data.
-		virtual bool indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+		virtual bool indexDocument(const Document &doc, const std::set<std::string> &labels,
 			unsigned int &docId);
 
 		/// Updates the given document.
-		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens);
+		virtual bool updateDocument(unsigned int docId, const Document &doc);
 
 		/// Updates a document's properties.
 		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);
@@ -131,11 +131,11 @@ class XapianIndex : public IndexInterface
 		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
-		void addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc,
-			const std::string &prefix, Xapian::termcount &termPos, StemmingMode mode) const;
+		void addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
+			const std::string &prefix, Xapian::termcount &termPos, bool noStemming) const;
 
-		void removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Document &doc,
-			const std::string &prefix, const std::string &language, StemmingMode mode) const;
+		void removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
+			const std::string &prefix, const std::string &language, bool noStemming) const;
 
 		void addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
 			Xapian::termcount &termPos) const;

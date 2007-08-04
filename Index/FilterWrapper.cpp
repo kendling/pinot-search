@@ -156,20 +156,18 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 			// No, it's been reduced to plain text
 			filteredDoc.setType(actualType);
 
-			Tokenizer tokens(&filteredDoc);
-
 			// Nested documents can't be updated because they are unindexed
 			// and the ID is that of the base document anyway
 			if ((doUpdate == true) &&
 				(isNested == false))
 			{
-				docSuccess = m_pIndex->updateDocument(docId, tokens);
+				docSuccess = m_pIndex->updateDocument(docId, filteredDoc);
 			}
 			else
 			{
 				unsigned int newDocId = docId;
 
-				docSuccess = m_pIndex->indexDocument(tokens, labels, newDocId);
+				docSuccess = m_pIndex->indexDocument(filteredDoc, labels, newDocId);
 				// Make sure we return the base document's ID, not the last nested document's ID
 				if (isNested == false)
 				{

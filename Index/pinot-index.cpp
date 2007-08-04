@@ -244,8 +244,6 @@ int main(int argc, char **argv)
 			FilterWrapper wrapFilter(pIndex);
 			set<string> labels;
 
-			pIndex->setStemmingMode(IndexInterface::STORE_BOTH);
-
 			// Update an existing document or add to the index ?
 			docId = pIndex->hasDocument(urlParam);
 			if (docId > 0)

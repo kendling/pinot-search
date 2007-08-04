@@ -432,7 +432,7 @@ bool DBusXapianIndex::listDocumentsInDirectory(const string &dirName, set<unsign
 }
 
 /// Indexes the given data.
-bool DBusXapianIndex::indexDocument(Tokenizer &tokens, const set<string> &labels,
+bool DBusXapianIndex::indexDocument(const Document &doc, const set<string> &labels,
 	unsigned int &docId)
 {
 	cerr << "DBusXapianIndex::indexDocument: not allowed" << endl;
@@ -440,7 +440,7 @@ bool DBusXapianIndex::indexDocument(Tokenizer &tokens, const set<string> &labels
 }
 
 /// Updates the given document; true if success.
-bool DBusXapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
+bool DBusXapianIndex::updateDocument(unsigned int docId, const Document &doc)
 {
 	bool updated = false;
 

@@ -89,11 +89,11 @@ class DBusXapianIndex : public XapianIndex
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
 		/// Indexes the given data.
-		virtual bool indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+		virtual bool indexDocument(const Document &doc, const std::set<std::string> &labels,
 			unsigned int &docId);
 
 		/// Updates the given document.
-		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens);
+		virtual bool updateDocument(unsigned int docId, const Document &doc);
 
 		/// Updates a document's properties.
 		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);

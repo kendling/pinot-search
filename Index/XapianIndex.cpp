@@ -52,28 +52,6 @@ using std::max;
 
 const string XapianIndex::MAGIC_TERM = "X-MetaSE-Doc";
 
-static void removeFirstPosting(Xapian::Document &doc,
-	Xapian::TermIterator &termListIter, const string &term)
-{
-	termListIter.skip_to(term);
-
-	Xapian::PositionIterator firstPosIter = termListIter.positionlist_begin();
-	if (firstPosIter != termListIter.positionlist_end())
-	{
-		try
-		{
-			doc.remove_posting(term, *firstPosIter);
-		}
-		catch (const Xapian::Error &error)
-		{
-			// This posting may have been removed already
-#ifdef DEBUG
-			cout << "XapianIndex::removeFirstPosting: " << error.get_msg() << endl;
-#endif
-		}
-	}
-}
-
 XapianIndex::XapianIndex(const string &indexName) :
 	IndexInterface(),
 	m_databaseName(indexName),
@@ -164,15 +142,15 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 	return docIds.size();
 }
 
-void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc,
-	const string &prefix, Xapian::termcount &termPos, StemmingMode mode) const
+void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
+	const string &prefix, Xapian::termcount &termPos, bool noStemming) const
 {
 	Xapian::Stem *pStemmer = NULL;
-	string stemPrefix("Z");
-	string term;
+	Xapian::TermGenerator generator;
 
 	// Do we know what language to use for stemming ?
-	if (m_stemLanguage.empty() == false)
+	if ((noStemming == false) &&
+		(m_stemLanguage.empty() == false))
 	{
 		try
 		{
@@ -182,61 +160,16 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 		{
 			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
 		}
+
+		if (pStemmer != NULL)
+		{
+			generator.set_stemmer(*pStemmer);
+		}
 	}
 
-	// Stems are Z-prefixed, unless a prefix is already defined
-	if (prefix.empty() == false)
-	{
-		stemPrefix = prefix;
-	}
-
-	// Get the terms
-	while (tokens.nextToken(term) == true)
-	{
-		bool addStem = false;
-
-		if (term.empty() == true)
-		{
-			continue;
-		}
-		// Lower case the term
-		term = StringManip::toLowerCase(term);
-
-		// Stem the term ?
-		if ((mode == STORE_UNSTEM) ||
-			(pStemmer == NULL))
-		{
-			doc.add_posting(prefix + XapianDatabase::limitTermLength(term), termPos);
-		}
-		else if (mode == STORE_STEM)
-		{
-			addStem = true;
-		}
-		else if (mode == STORE_BOTH)
-		{
-			// Add both
-			doc.add_posting(prefix + XapianDatabase::limitTermLength(term), termPos);
-			addStem = true;
-		}
-
-		// Don't stem if the term starts with a digit
-		if ((addStem == true) &&
-			(isdigit((int)term[0]) == 0))
-		{
-#if XAPIAN_MAJOR_VERSION==0
-			string stemmedTerm(pStemmer->stem_word(term));
-#else
-			string stemmedTerm((*pStemmer)(term));
-#endif
-
-			doc.add_term(stemPrefix + XapianDatabase::limitTermLength(stemmedTerm));
-		}
-
-		++termPos;
-	}
-#ifdef DEBUG
-	cout << "XapianIndex::addPostingsToDocument: added " << termPos << " terms" << endl;
-#endif
+	generator.set_document(doc);
+	generator.index_text(itor, 1, prefix);
+	termPos = generator.get_termpos();
 
 	if (pStemmer != NULL)
 	{
@@ -244,16 +177,18 @@ void XapianIndex::addPostingsToDocument(Tokenizer &tokens, Xapian::Document &doc
 	}
 }
 
-void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Document &doc,
-	const string &prefix, const string &language, StemmingMode mode) const
+void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
+	const string &prefix, const string &language, bool noStemming) const
 {
-	Xapian::TermIterator termListIter = doc.termlist_begin();
+	Xapian::Document termsDoc;
+	Xapian::TermGenerator generator;
 	Xapian::Stem *pStemmer = NULL;
 	string stemPrefix("Z");
 	string term;
 
 	// Do we know what language to use for stemming ?
-	if (language.empty() == false)
+	if ((noStemming == false) &&
+		(language.empty() == false))
 	{
 		try
 		{
@@ -263,58 +198,102 @@ void XapianIndex::removeFirstPostingsFromDocument(Tokenizer &tokens, Xapian::Doc
 		{
 			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
 		}
+
+		if (pStemmer != NULL)
+		{
+			generator.set_stemmer(*pStemmer);
+		}
 	}
 
-	// Stems are Z-prefixed, unless a prefix is already defined
-	if (prefix.empty() == false)
-	{
-		stemPrefix = prefix;
-	}
+	generator.set_document(termsDoc);
+	generator.index_text(itor, 1, prefix);
 
 	// Get the terms and remove the first posting for each
-	while (tokens.nextToken(term) == true)
+	for (Xapian::TermIterator termListIter = termsDoc.termlist_begin();
+		termListIter != termsDoc.termlist_end(); ++termListIter)
 	{
-		bool removeStem = false;
+		Xapian::termcount postingsCount = termListIter.positionlist_count();
+		Xapian::termcount postingNum = 0;
+		bool removeTerm = false;
 
-		if (term.empty() == true)
+#ifdef DEBUG
+		cout << "XapianIndex::removePostingsFromDocument: term " << *termListIter
+			<< " has " << postingsCount << " postings" << endl;
+#endif
+		// If a prefix is defined, or there are no postings, we can afford removing the term
+		if ((prefix.empty() == false) ||
+			(postingsCount == 0))
 		{
+			removeTerm = true;
+		}
+		else
+		{
+			// Check whether this term is in the original document and how many postings it has
+			Xapian::TermIterator termIter = doc.termlist_begin();
+			if (termIter != doc.termlist_end())
+			{
+				termIter.skip_to(*termListIter);
+				if (termIter != doc.termlist_end())
+				{
+					if (*termIter != *termListIter)
+					{
+						// This term doesn't exist in the document !
+#ifdef DEBUG
+						cout << "XapianIndex::removePostingsFromDocument: no such term" << endl;
+#endif
+						continue;
+					}
+
+					if (termIter.positionlist_count() <= postingsCount)
+					{
+						// All postings are to be removed, so we can remove the term
+#ifdef DEBUG
+						cout << "XapianIndex::removePostingsFromDocument: no extra posting" << endl;
+#endif
+						removeTerm = true;
+					}
+				}
+			}
+		}
+
+		if (removeTerm == true)
+		{
+			try
+			{
+				doc.remove_term(*termListIter);
+			}
+			catch (const Xapian::Error &error)
+			{
+#ifdef DEBUG
+				cout << "XapianIndex::removePostingsFromDocument: " << error.get_msg() << endl;
+#endif
+			}
 			continue;
 		}
-		// Lower case the term
-		term = StringManip::toLowerCase(term);
 
-		// Stem the term ?
-		if ((mode == STORE_UNSTEM) ||
-			(pStemmer == NULL))
+		// Otherwise, remove the first N postings
+		// FIXME: if all the postings are in the range associated with the metadata
+		// as opposed to the actual data, the term can be removed altogether
+		for (Xapian::PositionIterator firstPosIter = termListIter.positionlist_begin();
+			firstPosIter != termListIter.positionlist_end(); ++firstPosIter)
 		{
-			removeFirstPosting(doc, termListIter, prefix + XapianDatabase::limitTermLength(term));
-		}
-		else if (mode == STORE_STEM)
-		{
-			removeStem = true;
-		}
-		else if (mode == STORE_BOTH)
-		{
-			// Remove both
-			removeFirstPosting(doc, termListIter, prefix + XapianDatabase::limitTermLength(term));
-			removeStem = true;
-		}
+			if (postingNum >= postingsCount)
+			{
+				break;
+			}
+			++postingNum;
 
-		// Since stems don't have positional information, we can't simply remove them 
-		// since any may appear more than once in the original document
-		// We can only remove those that have some prefix set
-		// Don't stem if the term starts with a digit
-		if ((removeStem == true) &&
-			(prefix.empty() == false) &&
-			(isdigit((int)term[0]) == 0))
-		{
-#if XAPIAN_MAJOR_VERSION==0
-			string stemmedTerm(pStemmer->stem_word(term));
-#else
-			string stemmedTerm((*pStemmer)(term));
+			try
+			{
+				doc.remove_posting(*termListIter, *firstPosIter);
+			}
+			catch (const Xapian::Error &error)
+			{
+				// This posting may have been removed already
+#ifdef DEBUG
+				cout << "XapianIndex::removePostingsFromDocument: " << error.get_msg() << endl;
 #endif
-
-			doc.remove_term(stemPrefix + XapianDatabase::limitTermLength(stemmedTerm));
+			}
 		}
 	}
 
@@ -337,12 +316,11 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	// Index the title with and without prefix S
 	if (title.empty() == false)
 	{
-		Document titleDoc;
-		titleDoc.setData(title.c_str(), title.length());
-		Tokenizer titleTokens(&titleDoc);
-		addPostingsToDocument(titleTokens, doc, "S", termPos, STORE_UNSTEM);
-		titleTokens.rewind();
-		addPostingsToDocument(titleTokens, doc, "", termPos, m_stemMode);
+#ifdef DEBUG
+		cout << "XapianIndex::addCommonTerms: adding " << title << endl;
+#endif
+		addPostingsToDocument(Xapian::Utf8Iterator(title), doc, "S", termPos, true);
+		addPostingsToDocument(Xapian::Utf8Iterator(title), doc, "", termPos, false);
 	}
 
 	// Index the full URL with prefix U
@@ -463,12 +441,11 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	string title(docInfo.getTitle());
 	if (title.empty() == false)
 	{
-		Document titleDoc;
-		titleDoc.setData(title.c_str(), title.length());
-		Tokenizer titleTokens(&titleDoc);
-		removeFirstPostingsFromDocument(titleTokens, doc, "S", language, STORE_UNSTEM);
-		titleTokens.rewind();
-		removeFirstPostingsFromDocument(titleTokens, doc, "", language, m_stemMode);
+#ifdef DEBUG
+		cout << "XapianIndex::removeCommonTerms: removing " << title << endl;
+#endif
+		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, "S", language, true);
+		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, "", language, false);
 	}
 
 	// Location 
@@ -996,6 +973,9 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 					if (suggestedTerm.find(baseTerm) != 0)
 					{
 						// This term doesn't have the same root
+#ifdef DEBUG
+						cout << "XapianIndex::getCloseTerms: not the same root" << endl;
+#endif
 						break;
 					}
 
@@ -1125,10 +1105,9 @@ bool XapianIndex::listDocumentsInDirectory(const string &dirName, set<unsigned i
 }
 
 /// Indexes the given data.
-bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+bool XapianIndex::indexDocument(const Document &document, const std::set<std::string> &labels,
 	unsigned int &docId)
 {
-	unsigned int dataLength = 0;
 	bool indexed = false;
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
@@ -1138,44 +1117,46 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 		return false;
 	}
 
+	// Cache the document's properties
+	DocumentInfo docInfo(document.getTitle(), document.getLocation(),
+		document.getType(), document.getLanguage());
+	docInfo.setTimestamp(document.getTimestamp());
+	docInfo.setSize(document.getSize());
+	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
+
+	unsigned int dataLength = 0;
+	const char *pData = document.getData(dataLength);
+
+	if ((pData != NULL) &&
+		(dataLength > 0))
+	{
+		m_stemLanguage = scanDocument(pData, dataLength, docInfo);
+	}
+
 	try
 	{
-		// Get the document
-		const Document *pDocument = tokens.getDocument();
-		if (pDocument == NULL)
-		{
-#ifdef DEBUG
-			cout << "XapianIndex::indexDocument: no document" << endl;
-#endif
-			return false;
-		}
-
-		// Cache the document's properties
-		DocumentInfo docInfo(pDocument->getTitle(), pDocument->getLocation(),
-			pDocument->getType(), pDocument->getLanguage());
-		docInfo.setTimestamp(pDocument->getTimestamp());
-		docInfo.setSize(pDocument->getSize());
-		docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
-
-		const char *pData = pDocument->getData(dataLength);
-		if ((pData != NULL) &&
-			(dataLength > 0))
-		{
-			m_stemLanguage = scanDocument(pData, dataLength, docInfo);
-		}
-
 		Xapian::Document doc;
 		Xapian::termcount termPos = 0;
 
-		// Add the tokenizer's terms to the Xapian document
-		addPostingsToDocument(tokens, doc, "", termPos, m_stemMode);
+		// Populate the Xapian document
+		addCommonTerms(docInfo, doc, termPos);
+		termPos += 100;
+		if ((pData != NULL) &&
+			(dataLength > 0))
+		{
+			Xapian::Utf8Iterator itor(pData, dataLength);
+			addPostingsToDocument(itor, doc, "", termPos, false);
+			termPos += 100;
+		}
+
 		// Add labels
 		for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 			++labelIter)
 		{
 			doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
 		}
-		addCommonTerms(docInfo, doc, termPos);
+
+		// Set data
 		setDocumentData(docInfo, doc, m_stemLanguage);
 
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
@@ -1200,15 +1181,9 @@ bool XapianIndex::indexDocument(Tokenizer &tokens, const std::set<std::string> &
 }
 
 /// Updates the given document; true if success.
-bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
+bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 {
 	bool updated = false;
-
-	const Document *pDocument = tokens.getDocument();
-	if (pDocument == NULL)
-	{
-		return false;
-	}
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
@@ -1218,19 +1193,19 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 	}
 
 	// Cache the document's properties
-	DocumentInfo docInfo(pDocument->getTitle(), pDocument->getLocation(),
-		pDocument->getType(), pDocument->getLanguage());
-	docInfo.setTimestamp(pDocument->getTimestamp());
-	docInfo.setSize(pDocument->getSize());
+	DocumentInfo docInfo(document.getTitle(), document.getLocation(),
+		document.getType(), document.getLanguage());
+	docInfo.setTimestamp(document.getTimestamp());
+	docInfo.setSize(document.getSize());
 	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
 
+	unsigned int dataLength = 0;
+	const char *pData = document.getData(dataLength);
+
 	// Don't scan the document if a language is specified
-	m_stemLanguage = Languages::toEnglish(pDocument->getLanguage());
+	m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
 	if (m_stemLanguage.empty() == true)
 	{
-		unsigned int dataLength = 0;
-		const char *pData = pDocument->getData(dataLength);
-
 		if ((pData != NULL) &&
 			(dataLength > 0))
 		{
@@ -1244,19 +1219,27 @@ bool XapianIndex::updateDocument(unsigned int docId, Tokenizer &tokens)
 		Xapian::Document doc;
 		Xapian::termcount termPos = 0;
 
-		// Add the tokenizer's terms to the document
-		addPostingsToDocument(tokens, doc, "", termPos, m_stemMode);
-		// Get the document's labels
+		// Populate the Xapian document
+		addCommonTerms(docInfo, doc, termPos);
+		termPos += 100;
+		if ((pData != NULL) &&
+			(dataLength > 0))
+		{
+			Xapian::Utf8Iterator itor(pData, dataLength);
+			addPostingsToDocument(itor, doc, "", termPos, false);
+		}
+
+		// Add labels
 		if (getDocumentLabels(docId, labels) == true)
 		{
-			// Add labels
 			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 				++labelIter)
 			{
 				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
 			}
 		}
-		addCommonTerms(docInfo, doc, termPos);
+
+		// Set data
 		setDocumentData(docInfo, doc, m_stemLanguage);
 
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
@@ -1306,8 +1289,8 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 			Xapian::termcount termPos = 0;
 
 			// Update the document data with the current language
-			removeCommonTerms(doc);
 			m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
+			removeCommonTerms(doc);
 			addCommonTerms(docInfo, doc, termPos);
 			setDocumentData(docInfo, doc, m_stemLanguage);
 

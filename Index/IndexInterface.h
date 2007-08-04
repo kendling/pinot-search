@@ -22,24 +22,14 @@
 #include <string>
 #include <set>
 
-#include "Tokenizer.h"
-#include "DocumentInfo.h"
+#include "Document.h"
 
 /// Interface implemented by indexes.
 class IndexInterface
 {
 	public:
-		IndexInterface(const IndexInterface &other) :
-			m_stemMode(other.m_stemMode) {};
+		IndexInterface(const IndexInterface &other) {};
 		virtual ~IndexInterface() {};
-
-		IndexInterface &operator=(const IndexInterface &other)
-		{
-			m_stemMode = other.m_stemMode;
-			return *this;
-		};
-
-		typedef enum { STORE_UNSTEM = 0, STORE_STEM, STORE_BOTH } StemmingMode;
 
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const = 0;
@@ -89,15 +79,12 @@ class IndexInterface
 		virtual bool listDocumentsInDirectory(const std::string &dirName, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
 
-		/// Sets the stemming mode.
-		virtual void setStemmingMode(StemmingMode mode) { m_stemMode = mode; }
-
 		/// Indexes the given data.
-		virtual bool indexDocument(Tokenizer &tokens, const std::set<std::string> &labels,
+		virtual bool indexDocument(const Document &doc, const std::set<std::string> &labels,
 			unsigned int &docId) = 0;
 
 		/// Updates the given document.
-		virtual bool updateDocument(unsigned int docId, Tokenizer &tokens) = 0;
+		virtual bool updateDocument(unsigned int docId, const Document &doc) = 0;
 
 		/// Updates a document's properties.
 		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo) = 0;
@@ -134,8 +121,6 @@ class IndexInterface
 		virtual bool flush(void) = 0;
 
 	protected:
-		StemmingMode m_stemMode;
-
 		IndexInterface() { };
 
 };

@@ -43,7 +43,6 @@ OnDiskHandler::OnDiskHandler() :
 	m_index(PinotSettings::getInstance().m_daemonIndexLocation)
 {
 	pthread_mutex_init(&m_mutex, NULL);
-	m_index.setStemmingMode(IndexInterface::STORE_BOTH);
 }
 
 OnDiskHandler::~OnDiskHandler()
