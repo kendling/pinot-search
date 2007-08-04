@@ -227,7 +227,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	}
 	if (pIndex != NULL)
 	{
-		// The database is required for wildcards
+		// The database is required for wildcards and spelling
 		parser.set_database(*pIndex);
 	}
 	// ...including prefixes
@@ -334,11 +334,18 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		escapedFilterStart = freeQuery.find(":\"", escapedFilterEnd);
 	}
 
-	// Activate all options and parse
-	Xapian::Query parsedQuery = parser.parse_query(freeQuery,
-		Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|
+	// Activate all necessary options
+	unsigned int flags = Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|
 		Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|
-		Xapian::QueryParser::FLAG_WILDCARD|Xapian::QueryParser::FLAG_PURE_NOT);
+		Xapian::QueryParser::FLAG_WILDCARD|Xapian::QueryParser::FLAG_PURE_NOT|
+		Xapian::QueryParser::FLAG_SPELLING_CORRECTION;
+
+	// Parse the query string
+	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
+#ifdef DEBUG
+	cout << "XapianEngine::parseQuery: corrected spelling to: " << parser.get_corrected_query_string() << endl;
+#endif
+
 	// Apply a date range ?
 	bool enableMin = queryProps.getMinimumDate(minDay, minMonth, minYear);
 	bool enableMax = queryProps.getMaximumDate(maxDay, maxMonth, maxYear);

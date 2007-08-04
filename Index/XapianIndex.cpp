@@ -143,7 +143,7 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 }
 
 void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
-	const string &prefix, Xapian::termcount &termPos, bool noStemming) const
+	const Xapian::WritableDatabase &db, const string &prefix, bool noStemming) const
 {
 	Xapian::Stem *pStemmer = NULL;
 	Xapian::TermGenerator generator;
@@ -167,9 +167,11 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 		}
 	}
 
+	// The database is required for the spelling dictionary
+	generator.set_flags(Xapian::TermGenerator::FLAG_SPELLING);
+	generator.set_database(db);
 	generator.set_document(doc);
 	generator.index_text(itor, 1, prefix);
-	termPos = generator.get_termpos();
 
 	if (pStemmer != NULL)
 	{
@@ -205,6 +207,8 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 		}
 	}
 
+	// This temporary document enables to get to the same terms
+	// that were added at indexing time
 	generator.set_document(termsDoc);
 	generator.index_text(itor, 1, prefix);
 
@@ -304,7 +308,7 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 }
 
 void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
-	Xapian::termcount &termPos) const
+	const Xapian::WritableDatabase &db) const
 {
 	string title(info.getTitle());
 	string location(info.getLocation());
@@ -319,8 +323,8 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 #ifdef DEBUG
 		cout << "XapianIndex::addCommonTerms: adding " << title << endl;
 #endif
-		addPostingsToDocument(Xapian::Utf8Iterator(title), doc, "S", termPos, true);
-		addPostingsToDocument(Xapian::Utf8Iterator(title), doc, "", termPos, false);
+		addPostingsToDocument(Xapian::Utf8Iterator(title), doc, db, "S", true);
+		addPostingsToDocument(Xapian::Utf8Iterator(title), doc, db, "", false);
 	}
 
 	// Index the full URL with prefix U
@@ -1136,32 +1140,29 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	try
 	{
 		Xapian::Document doc;
-		Xapian::termcount termPos = 0;
-
-		// Populate the Xapian document
-		addCommonTerms(docInfo, doc, termPos);
-		termPos += 100;
-		if ((pData != NULL) &&
-			(dataLength > 0))
-		{
-			Xapian::Utf8Iterator itor(pData, dataLength);
-			addPostingsToDocument(itor, doc, "", termPos, false);
-			termPos += 100;
-		}
-
-		// Add labels
-		for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
-			++labelIter)
-		{
-			doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
-		}
-
-		// Set data
-		setDocumentData(docInfo, doc, m_stemLanguage);
 
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
+			// Populate the Xapian document
+			addCommonTerms(docInfo, doc, *pIndex);
+			if ((pData != NULL) &&
+				(dataLength > 0))
+			{
+				Xapian::Utf8Iterator itor(pData, dataLength);
+				addPostingsToDocument(itor, doc, *pIndex, "", false);
+			}
+
+			// Add labels
+			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
+				++labelIter)
+			{
+				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
+			}
+
+			// Set data
+			setDocumentData(docInfo, doc, m_stemLanguage);
+
 			// Add this document to the Xapian index
 			docId = pIndex->add_document(doc);
 			indexed = true;
@@ -1217,34 +1218,32 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 	{
 		set<string> labels;
 		Xapian::Document doc;
-		Xapian::termcount termPos = 0;
-
-		// Populate the Xapian document
-		addCommonTerms(docInfo, doc, termPos);
-		termPos += 100;
-		if ((pData != NULL) &&
-			(dataLength > 0))
-		{
-			Xapian::Utf8Iterator itor(pData, dataLength);
-			addPostingsToDocument(itor, doc, "", termPos, false);
-		}
-
-		// Add labels
-		if (getDocumentLabels(docId, labels) == true)
-		{
-			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
-				++labelIter)
-			{
-				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
-			}
-		}
-
-		// Set data
-		setDocumentData(docInfo, doc, m_stemLanguage);
 
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
+			// Populate the Xapian document
+			addCommonTerms(docInfo, doc, *pIndex);
+			if ((pData != NULL) &&
+				(dataLength > 0))
+			{
+				Xapian::Utf8Iterator itor(pData, dataLength);
+				addPostingsToDocument(itor, doc, *pIndex, "", false);
+			}
+
+			// Add labels
+			if (getDocumentLabels(docId, labels) == true)
+			{
+				for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
+					++labelIter)
+				{
+					doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
+				}
+			}
+
+			// Set data
+			setDocumentData(docInfo, doc, m_stemLanguage);
+
 			// Update the document in the database
 			pIndex->replace_document(docId, doc);
 			updated = true;
@@ -1286,12 +1285,11 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 		if (pIndex != NULL)
 		{
 			Xapian::Document doc = pIndex->get_document(docId);
-			Xapian::termcount termPos = 0;
 
 			// Update the document data with the current language
 			m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
 			removeCommonTerms(doc);
-			addCommonTerms(docInfo, doc, termPos);
+			addCommonTerms(docInfo, doc, *pIndex);
 			setDocumentData(docInfo, doc, m_stemLanguage);
 
 			pIndex->replace_document(docId, doc);

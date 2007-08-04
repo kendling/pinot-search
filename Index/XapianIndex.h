@@ -132,13 +132,13 @@ class XapianIndex : public IndexInterface
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
 		void addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
-			const std::string &prefix, Xapian::termcount &termPos, bool noStemming) const;
+			const Xapian::WritableDatabase &db, const std::string &prefix, bool noStemming) const;
 
 		void removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
 			const std::string &prefix, const std::string &language, bool noStemming) const;
 
 		void addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
-			Xapian::termcount &termPos) const;
+			const Xapian::WritableDatabase &db) const;
 
 		void removeCommonTerms(Xapian::Document &doc);
 
