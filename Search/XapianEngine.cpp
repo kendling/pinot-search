@@ -338,12 +338,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery,
 		Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|
 		Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|
-#if XAPIAN_MAJOR_VERSION==0
-		Xapian::QueryParser::FLAG_WILDCARD
-#else
-		Xapian::QueryParser::FLAG_WILDCARD|Xapian::QueryParser::FLAG_PURE_NOT
-#endif
-		);
+		Xapian::QueryParser::FLAG_WILDCARD|Xapian::QueryParser::FLAG_PURE_NOT);
 	// Apply a date range ?
 	bool enableMin = queryProps.getMinimumDate(minDay, minMonth, minYear);
 	bool enableMax = queryProps.getMaximumDate(maxDay, maxMonth, maxYear);

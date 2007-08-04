@@ -49,7 +49,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 	string fileName;
 	unsigned int dataLength = 0;
 	const char *pData = doc.getData(dataLength);
-	bool fedInput = false, success = false;
+	bool fedInput = false;
 
 	if (pFilter == NULL)
 	{

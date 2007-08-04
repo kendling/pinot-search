@@ -276,6 +276,7 @@ bool CrawlHistory::updateItem(const string &url, CrawlStatus status, time_t date
 bool CrawlHistory::updateItems(const map<string, time_t> urls, CrawlStatus status)
 {
 	string statusText(statusToText(status));
+	bool success = false;
 
 	for (map<string, time_t>::const_iterator updateIter = urls.begin();
 		updateIter != urls.end(); ++updateIter)
@@ -286,9 +287,12 @@ bool CrawlHistory::updateItems(const map<string, time_t> urls, CrawlStatus statu
 			Url::escapeUrl(updateIter->first).c_str());
 		if (results != NULL)
 		{
+			success = true;
 			delete results;
 		}
 	}
+
+	return success;
 }
 
 /// Updates the status of items en masse.
