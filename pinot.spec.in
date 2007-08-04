@@ -15,7 +15,7 @@
 %define dbus_dev_pkg dbus-devel
 %endif
 
-Summary: Metasearch tool
+Summary: Personal search and metasearch tool
 Name: @PACKAGE@
 Version: @VERSION@
 Release: 1%{?dist}
@@ -32,7 +32,7 @@ BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 
 BuildRequires: taglib-devel >= 1.4
 BuildRequires: gcc-c++
 %if 0%{?_with_soap:1}
-BuildRequires: gsoap >= 2.7.8c
+BuildRequires: gsoap >= 2.7.9e
 %endif
 
 %description
@@ -42,7 +42,7 @@ the index built by the service and your favourite Web engines, and display and
 analyze the results.
 
 %package audio-docs 
-Summary: Tokenizers for Pinot that handle various audio document formats
+Summary: Help Pinot handle various audio document formats
 Group: Applications/Internet
 Requires: %{name} = %{version}
 Requires: taglib >= 1.4
