@@ -219,6 +219,7 @@ void importDialog::on_importButton_clicked()
 	}
 	m_state.m_importing = true;
 
+	importProgressbar->set_text("");
 	importProgressbar->set_fraction(0.0);
 	// Disable the import button
 	importButton->set_sensitive(false);
