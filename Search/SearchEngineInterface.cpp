@@ -27,8 +27,7 @@ using std::cout;
 using std::endl;
 
 SearchEngineInterface::SearchEngineInterface() :
-	m_callsCount(0),
-	m_startTime(time(NULL)),
+	m_defaultOperator(DEFAULT_OP_AND),
 	m_resultsCountEstimate(0)
 {
 }
@@ -43,18 +42,17 @@ void SearchEngineInterface::setKey(const string &key)
 	m_key = key;
 }
 
-/// Sets the number of calls issued since start time.
-void SearchEngineInterface::setCallsCount(unsigned int count, time_t startTime)
-{
-	m_callsCount = count;
-	m_startTime = startTime;
-}
-
 /// Sets whether the query should be expanded.
 bool SearchEngineInterface::setQueryExpansion(set<unsigned int> &relevantDocuments)
 {
 	// Not all engines support this
 	return false;
+}
+
+/// Sets whether AND is the default operator.
+void SearchEngineInterface::setDefaultOperator(DefaultOperator op)
+{
+	m_defaultOperator = op;
 }
 
 /// Returns the downloader used if any.
@@ -79,6 +77,12 @@ unsigned int SearchEngineInterface::getResultsCountEstimate(void) const
 string SearchEngineInterface::getResultsCharset(void) const
 {
 	return m_charset;
+}
+
+/// Suggests a spelling correction.
+string SearchEngineInterface::getSpellingCorrection(void) const
+{
+	return m_correctedFreeQuery;
 }
 
 /// Returns expand terms from the previous query.

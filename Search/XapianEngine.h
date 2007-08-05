@@ -57,7 +57,8 @@ class XapianEngine : public SearchEngineInterface
 		        unsigned int maxDay, unsigned int maxMonth, unsigned int maxYear);
 
 		static Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
-			const string &stemLanguage, bool followOperators);
+			const string &stemLanguage, DefaultOperator defaultOperator,
+			string &correctedFreeQuery);
 
 	private:
 		XapianEngine(const XapianEngine &other);

@@ -818,15 +818,29 @@ bool DBusServletThread::runQuery(QueryProperties &queryProps, vector<string> &do
 {
 	XapianEngine engine(PinotSettings::getInstance().m_daemonIndexLocation);
 
+	docIds.clear();
+
 	// Run the query
+	engine.setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
 	if (engine.runQuery(queryProps) == false)
 	{
 		return false;
 	}
 
-	docIds.clear();
-
 	const vector<DocumentInfo> &resultsList = engine.getResults();
+	if (resultsList.empty() == true)
+	{
+#ifdef DEBUG
+		cout << "DBusServletThread::runQuery: trying again" << endl;
+#endif
+		// Try again, this time with OR as default operator
+		engine.setDefaultOperator(SearchEngineInterface::DEFAULT_OP_OR);
+		if (engine.runQuery(queryProps) == false)
+		{
+			return false;
+		}
+	}
+
 	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
 	{

@@ -39,11 +39,13 @@ class SearchEngineInterface
 		/// Sets the search engine's key, if applicable.
 		virtual void setKey(const string &key);
 
-		/// Sets the number of calls issued since start time.
-		virtual void setCallsCount(unsigned int count, time_t startTime);
-
 		/// Sets whether the query should be expanded.
 		virtual bool setQueryExpansion(set<unsigned int> &relevantDocuments);
+
+		typedef enum { DEFAULT_OP_AND = 0, DEFAULT_OP_OR } DefaultOperator;
+
+		/// Sets whether AND is the default operator.
+		virtual void setDefaultOperator(DefaultOperator op);
 
 		/// Returns the downloader used if any.
 		virtual DownloaderInterface *getDownloader(void);
@@ -61,17 +63,19 @@ class SearchEngineInterface
 		/// Returns the charset for the previous query's results.
 		virtual string getResultsCharset(void) const;
 
+		/// Suggests a spelling correction.
+		virtual string getSpellingCorrection(void) const;
+
 		/// Returns expand terms from the previous query.
 		virtual const set<string> &getExpandTerms(void) const;
 
 	protected:
 		string m_key;
-		unsigned int m_callsCount;
-		time_t m_startTime;
-		bool m_expandQueries;
+		DefaultOperator m_defaultOperator;
 		vector<DocumentInfo> m_resultsList;
 		unsigned int m_resultsCountEstimate;
 		string m_charset;
+		string m_correctedFreeQuery;
 		set<string> m_expandTerms;
 
 		SearchEngineInterface();

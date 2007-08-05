@@ -192,7 +192,7 @@ Xapian::Query XapianEngine::dateFilter(unsigned int minDay, unsigned int minMont
 }
 
 Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
-	const string &stemLanguage, bool followOperators)
+	const string &stemLanguage, DefaultOperator defaultOperator, string &correctedFreeQuery)
 {
 	Xapian::QueryParser parser;
 	Xapian::Stem stemmer;
@@ -217,7 +217,8 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	{
 		parser.set_stemming_strategy(Xapian::QueryParser::STEM_NONE);
 	}
-	if (followOperators == true)
+	// What's the default operator ?
+	if (defaultOperator == DEFAULT_OP_AND)
 	{
 		parser.set_default_op(Xapian::Query::OP_AND);
 	}
@@ -230,7 +231,6 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		// The database is required for wildcards and spelling
 		parser.set_database(*pIndex);
 	}
-	// ...including prefixes
 	// X prefixes should always include a colon
 	parser.add_boolean_prefix("site", "H");
 	parser.add_boolean_prefix("file", "P");
@@ -342,8 +342,9 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 
 	// Parse the query string
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
+	correctedFreeQuery = parser.get_corrected_query_string();
 #ifdef DEBUG
-	cout << "XapianEngine::parseQuery: corrected spelling to: " << parser.get_corrected_query_string() << endl;
+	cout << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
 #endif
 
 	// Apply a date range ?
@@ -411,7 +412,10 @@ bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefix
 
 	try
 	{
-		Xapian::Query fullQuery = parseQuery(NULL, queryProps, "", true);
+		string correctedSpelling;
+		Xapian::Query fullQuery = parseQuery(NULL, queryProps, "",
+			DEFAULT_OP_AND, correctedSpelling);
+
 		if (fullQuery.empty() == false)
 		{
 			for (Xapian::TermIterator termIter = fullQuery.get_terms_begin();
@@ -577,6 +581,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	// Clear the results list
 	m_resultsList.clear();
 	m_resultsCountEstimate = 0;
+	m_correctedFreeQuery.clear();
 
 	if (queryProps.isEmpty() == true)
 	{
@@ -597,17 +602,14 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	Xapian::Database *pIndex = pDatabase->readLock();
 	try
 	{
-		string stemLanguage;
+		string stemLanguage(queryProps.getLanguage());
 		unsigned int searchStep = 1;
-		bool followOperators = true;
 
 		// Searches are run in this order :
-		// 1. follow operators and don't stem terms
-		// 2. if no results, follow operators and stem terms
-		// 3. if no results, don't follow operators and don't stem terms
-		// 4. if no results, don't follow operators and stem terms
-		// Steps 2 and 4 depend on a language being defined for the query
-		Xapian::Query fullQuery = parseQuery(pIndex, queryProps, "", followOperators);
+		// 1. don't stem terms
+		// 2. if no results, stem terms if a language is defined for the query
+		Xapian::Query fullQuery = parseQuery(pIndex, queryProps, "",
+			m_defaultOperator, m_correctedFreeQuery);
 		while (fullQuery.empty() == false)
 		{
 #ifdef DEBUG
@@ -620,42 +622,17 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 				break;
 			}
 
-			if (m_resultsList.empty() == true)
+			// The search did succeed but didn't return anything
+			if ((m_resultsList.empty() == true) &&
+				(searchStep == 1) &&
+				(stemLanguage.empty() == false))
 			{
-				// The search did succeed but didn't return anything
-				// Try the next step
-				switch (++searchStep)
-				{
-					case 2:
-						followOperators = true;
-						stemLanguage = queryProps.getLanguage();
-						if (stemLanguage.empty() == false)
-						{
-							break;
-						}
-						++searchStep;
-					case 3:
-						followOperators = false;
-						stemLanguage.clear();
-						break;
-					case 4:
-						followOperators = false;
-						stemLanguage = queryProps.getLanguage();
-						if (stemLanguage.empty() == false)
-						{
-							break;
-						}
-						++searchStep;
-					default:
-						pDatabase->unlock();
-						return true;
-				}
-
 #ifdef DEBUG
-				cout << "XapianEngine::runQuery: trying step " << searchStep << endl;
+				cout << "XapianEngine::runQuery: trying again with stemming" << endl;
 #endif
-				fullQuery = parseQuery(pIndex, queryProps,
-					Languages::toEnglish(stemLanguage), followOperators);
+				fullQuery = parseQuery(pIndex, queryProps, Languages::toEnglish(stemLanguage),
+					m_defaultOperator, m_correctedFreeQuery);
+				++searchStep;
 				continue;
 			}
 
