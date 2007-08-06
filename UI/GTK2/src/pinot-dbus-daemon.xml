@@ -50,7 +50,7 @@
 	-->
     <method name="Reload">
       <annotation name="de.berlios.Pinot.Reload" value="pinotDBus"/>
-      <arg type="b" name="reloaded" direction="out" />
+      <arg type="b" name="reloading" direction="out" />
     </method>
     <!--
 	Sets a document's labels.

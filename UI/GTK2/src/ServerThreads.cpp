@@ -1231,7 +1231,7 @@ void DBusServletThread::doWork(void)
 		if (dbus_message_get_args(m_pRequest, &error,
 			DBUS_TYPE_INVALID) == TRUE)
 		{
-			gboolean reloaded = TRUE;
+			gboolean reloading = TRUE;
 
 #ifdef DEBUG
 			cout << "DBusServletThread::doWork: received Reload" << endl;
@@ -1243,7 +1243,7 @@ void DBusServletThread::doWork(void)
 			if (m_pReply != NULL)
 			{
 				dbus_message_append_args(m_pReply,
-					DBUS_TYPE_INT32, &reloaded,
+					DBUS_TYPE_BOOLEAN, &reloading,
 					DBUS_TYPE_INVALID);
 			}
 		}
