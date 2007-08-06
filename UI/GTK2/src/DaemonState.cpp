@@ -83,14 +83,7 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bo
 	}
 	pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
 
-	if (start_thread(pScannerThread) == true)
-	{
-		m_locationBeingCrawled = locationToCrawl;
-
-		return true;
-	}
-
-	return false;
+	return start_thread(pScannerThread);
 }
 
 void DaemonState::start(bool forceFullScan)
@@ -150,12 +143,12 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	{
 		return;
 	}
-#ifdef DEBUG
-	cout << "DaemonState::on_thread_end: end of thread " << pThread->getId() << endl;
-#endif
 
 	// What type of thread was it ?
 	string type(pThread->getType());
+#ifdef DEBUG
+	cout << "DaemonState::on_thread_end: end of thread " << type << " " << pThread->getId() << endl;
+#endif
 	if (type == "DirectoryScannerThread")
 	{
 		DirectoryScannerThread *pScannerThread = dynamic_cast<DirectoryScannerThread *>(pThread);
@@ -165,18 +158,20 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
+		string crawledLocation(pScannerThread->getDirectory());
+
 		// Explicitely flush the index once a directory has been crawled
 		XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 		index.flush();
 
+#ifdef DEBUG
+		cout << "DaemonState::on_thread_end: done crawling " << crawledLocation << endl;
+#endif
 		// Another location to crawl ?
-		if ((m_locationBeingCrawled.empty() == false) &&
-			(write_lock_lists() == true))
+		if (write_lock_lists() == true)
 		{
 			PinotSettings::IndexableLocation currentLocation;
-
-			currentLocation.m_name = m_locationBeingCrawled;
-			m_locationBeingCrawled.clear();
+			currentLocation.m_name = crawledLocation;
 
 			set<PinotSettings::IndexableLocation>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.find(currentLocation);
 			if (locationIter != PinotSettings::getInstance().m_indexableLocations.end())
@@ -195,7 +190,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			unlock_lists();
 		}
 #ifdef DEBUG
-		else cout << "DaemonState::on_thread_end: done crawling" << endl;
+		else cout << "DaemonState::on_thread_end: nothing else to crawl" << endl;
 #endif
 	}
 	else if (type == "IndexingThread")
@@ -263,6 +258,9 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 
 		m_reload = false;
 	}
+#ifdef DEBUG
+	cout << "DaemonState::on_thread_end: reload status " << m_reload << endl;
+#endif
 
 	// We might be able to run a queued action
 	pop_queue(indexedUrl);

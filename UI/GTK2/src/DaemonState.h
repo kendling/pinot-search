@@ -49,7 +49,6 @@ class DaemonState : public ThreadsManager
 		bool m_reload;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pDiskHandler;
-		std::string m_locationBeingCrawled;
 		SigC::Signal1<void, int> m_signalQuit;
 
 		bool crawlLocation(const std::string &locationToCrawl, bool isSource, bool doMonitoring);
