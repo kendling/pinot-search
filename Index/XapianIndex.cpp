@@ -1139,11 +1139,11 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 
 	try
 	{
-		Xapian::Document doc;
-
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
+			Xapian::Document doc;
+
 			// Populate the Xapian document
 			addCommonTerms(docInfo, doc, *pIndex);
 			if ((pData != NULL) &&
@@ -1214,14 +1214,20 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 		}
 	}
 
+	Xapian::WritableDatabase *pIndex = NULL;
+
 	try
 	{
 		set<string> labels;
-		Xapian::Document doc;
 
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		// Get the document's labels
+		getDocumentLabels(docId, labels);
+
+		pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
+			Xapian::Document doc;
+
 			// Populate the Xapian document
 			addCommonTerms(docInfo, doc, *pIndex);
 			if ((pData != NULL) &&
@@ -1232,13 +1238,10 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 			}
 
 			// Add labels
-			if (getDocumentLabels(docId, labels) == true)
+			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
+				++labelIter)
 			{
-				for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
-					++labelIter)
-				{
-					doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
-				}
+				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
 			}
 
 			// Set data
@@ -1257,7 +1260,10 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 	{
 		cerr << "Couldn't update document, unknown exception occured" << endl;
 	}
-	pDatabase->unlock();
+	if (pIndex != NULL)
+	{
+		pDatabase->unlock();
+	}
 
 	return updated;
 }

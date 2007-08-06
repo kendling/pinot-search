@@ -50,7 +50,7 @@ XapianDatabase::XapianDatabase(const string &databaseName,
 	m_pFirst(NULL),
 	m_pSecond(NULL)
 {
-	pthread_mutex_init(&m_rwLock, NULL);
+	initializeLock();
 	openDatabase();
 }
 
@@ -66,7 +66,7 @@ XapianDatabase::XapianDatabase(const string &databaseName,
 	m_pFirst(pFirst),
 	m_pSecond(pSecond)
 {
-	pthread_mutex_init(&m_rwLock, NULL);
+	initializeLock();
 }
 
 XapianDatabase::XapianDatabase(const XapianDatabase &other) :
@@ -80,7 +80,7 @@ XapianDatabase::XapianDatabase(const XapianDatabase &other) :
 	m_pFirst(other.m_pFirst),
 	m_pSecond(other.m_pSecond)
 {
-	pthread_mutex_init(&m_rwLock, NULL);
+	initializeLock();
 	if (other.m_pDatabase != NULL)
 	{
 		m_pDatabase = new Xapian::Database(*other.m_pDatabase);
@@ -94,6 +94,9 @@ XapianDatabase::~XapianDatabase()
 		delete m_pDatabase;
 	}
 	pthread_mutex_destroy(&m_rwLock);
+#ifdef DEBUG
+	pthread_mutexattr_destroy(&m_rwLockAttr);
+#endif
 }
 
 XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
@@ -120,6 +123,17 @@ XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
 	}
 
 	return *this;
+}
+
+void XapianDatabase::initializeLock(void)
+{
+#ifdef DEBUG
+	pthread_mutexattr_init(&m_rwLockAttr);
+	pthread_mutexattr_settype(&m_rwLockAttr, PTHREAD_MUTEX_ERRORCHECK);
+	pthread_mutex_init(&m_rwLock, &m_rwLockAttr);
+#else
+	pthread_mutex_init(&m_rwLock, NULL);
+#endif
 }
 
 void XapianDatabase::openDatabase(void)
@@ -351,6 +365,9 @@ Xapian::Database *XapianDatabase::readLock(void)
 			}
 			return m_pDatabase;
 		}
+#ifdef DEBUG
+		else cout << "XapianDatabase::readLock: failed" << endl;
+#endif
 	}
 	else
 	{
@@ -381,6 +398,9 @@ Xapian::Database *XapianDatabase::readLock(void)
 
 			return m_pDatabase;
 		}
+#ifdef DEBUG
+		else cout << "XapianDatabase::readLock: failed" << endl;
+#endif
 	}
 
 	return NULL;
@@ -407,6 +427,9 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 
 		return dynamic_cast<Xapian::WritableDatabase *>(m_pDatabase);
 	}
+#ifdef DEBUG
+	else cout << "XapianDatabase::writeLock: failed" << endl;
+#endif
 
 	return NULL;
 }
@@ -414,7 +437,12 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 /// Unlocks the database.
 void XapianDatabase::unlock(void)
 {
-	pthread_mutex_unlock(&m_rwLock);
+	if (pthread_mutex_unlock(&m_rwLock) != 0)
+	{
+#ifdef DEBUG
+		cout << "XapianDatabase::unlock: failed" << endl;
+#endif
+	}
 
 	if (m_merge == true)
 	{
