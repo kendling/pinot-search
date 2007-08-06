@@ -192,7 +192,8 @@ Xapian::Query XapianEngine::dateFilter(unsigned int minDay, unsigned int minMont
 }
 
 Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
-	const string &stemLanguage, DefaultOperator defaultOperator, string &correctedFreeQuery)
+	const string &stemLanguage, DefaultOperator defaultOperator,
+	string &correctedFreeQuery, bool minimal)
 {
 	Xapian::QueryParser parser;
 	Xapian::Stem stemmer;
@@ -200,7 +201,8 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	unsigned int maxDay, maxMonth, maxYear = 0;
 
 	// Set things up
-	if (stemLanguage.empty() == false)
+	if ((minimal == false) &&
+		(stemLanguage.empty() == false))
 	{
 		try
 		{
@@ -337,11 +339,20 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	// Activate all necessary options
 	unsigned int flags = Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|
 		Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|
-		Xapian::QueryParser::FLAG_WILDCARD|Xapian::QueryParser::FLAG_PURE_NOT|
-		Xapian::QueryParser::FLAG_SPELLING_CORRECTION;
+		Xapian::QueryParser::FLAG_PURE_NOT;
+	if (minimal == false)
+	{
+		flags |= Xapian::QueryParser::FLAG_WILDCARD|Xapian::QueryParser::FLAG_SPELLING_CORRECTION;
+	}
 
 	// Parse the query string
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
+	if (minimal == true)
+	{
+		return parsedQuery;
+	}
+
+	// Any correction ?
 	correctedFreeQuery = parser.get_corrected_query_string();
 #ifdef DEBUG
 	cout << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
@@ -413,8 +424,9 @@ bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefix
 	try
 	{
 		string correctedSpelling;
+		// Do minimal parsing
 		Xapian::Query fullQuery = parseQuery(NULL, queryProps, "",
-			DEFAULT_OP_AND, correctedSpelling);
+			DEFAULT_OP_AND, correctedSpelling, true);
 
 		if (fullQuery.empty() == false)
 		{

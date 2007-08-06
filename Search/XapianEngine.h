@@ -58,7 +58,7 @@ class XapianEngine : public SearchEngineInterface
 
 		static Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 			const string &stemLanguage, DefaultOperator defaultOperator,
-			string &correctedFreeQuery);
+			string &correctedFreeQuery, bool minimal = false);
 
 	private:
 		XapianEngine(const XapianEngine &other);
