@@ -404,6 +404,10 @@ int main(int argc, char **argv)
 		if (pError != NULL)
 		{
 			cerr << "Couldn't open bus connection: " << pError->message << endl;
+			if (pError->message != NULL)
+			{
+				cerr << "Error is " << pError->message << endl;
+			}
 			g_error_free(pError);
 		}
 
@@ -424,15 +428,25 @@ int main(int argc, char **argv)
 	dbus_connection_set_exit_on_disconnect(pConnection, FALSE);
 	dbus_connection_setup_with_g_main(pConnection, NULL);
 
-	if ((dbus_error_is_set(&error) == FALSE) &&
-		(dbus_connection_register_object_path(pConnection, g_pinotDBusObjectPath,
-			&g_callVTable, &server) == TRUE))
+	if (dbus_connection_register_object_path(pConnection, g_pinotDBusObjectPath,
+			&g_callVTable, &server) == TRUE)
 	{
 		// Request to be identified by this name
 		// FIXME: flags are currently broken ?
 		dbus_bus_request_name(pConnection, g_pinotDBusService, 0, &error);
-
-		dbus_connection_add_filter(pConnection, (DBusHandleMessageFunction)filterHandler, &server, NULL);
+		if (dbus_error_is_set(&error) == FALSE)
+		{
+			dbus_connection_add_filter(pConnection,
+				(DBusHandleMessageFunction)filterHandler, &server, NULL);
+		}
+		else
+		{
+			cerr << "Couldn't obtain name " << g_pinotDBusService << endl;
+			if (error.message != NULL)
+			{
+				cerr << "Error is " << error.message << endl;
+			}
+		}
 
 		try
 		{
@@ -487,7 +501,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		cerr << "Couldn't register object path: " << pError->message << endl;
+		cerr << "Couldn't register object path" << endl;
 	}
 	dbus_error_free(&error);
 
