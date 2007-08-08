@@ -128,7 +128,8 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 			break;
 		}
 
-		Document filteredDoc(doc.getTitle(), doc.getLocation(), "text/plain", doc.getLanguage());
+		string originalTitle(doc.getTitle());
+		Document filteredDoc(originalTitle, doc.getLocation(), "text/plain", doc.getLanguage());
 
 		filteredDoc.setTimestamp(doc.getTimestamp());
 		filteredDoc.setSize(doc.getSize());
@@ -147,6 +148,11 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 			cout << "FilterWrapper::filterDocument: nested document of type " << actualType << endl;
 #endif
 			isNested = true;
+		}
+		else if (originalTitle.empty() == false)
+		{
+			// Preserve the top-level document's title
+			filteredDoc.setTitle(originalTitle);
 		}
 
 		// Pass it down to another filter ?

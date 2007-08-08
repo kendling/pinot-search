@@ -320,9 +320,6 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	// Index the title with and without prefix S
 	if (title.empty() == false)
 	{
-#ifdef DEBUG
-		cout << "XapianIndex::addCommonTerms: adding " << title << endl;
-#endif
 		addPostingsToDocument(Xapian::Utf8Iterator(title), doc, db, "S", true);
 		addPostingsToDocument(Xapian::Utf8Iterator(title), doc, db, "", false);
 	}
@@ -445,9 +442,6 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	string title(docInfo.getTitle());
 	if (title.empty() == false)
 	{
-#ifdef DEBUG
-		cout << "XapianIndex::removeCommonTerms: removing " << title << endl;
-#endif
 		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, "S", language, true);
 		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, "", language, false);
 	}
