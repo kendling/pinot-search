@@ -48,6 +48,8 @@ class INotifyMonitor : public MonitorInterface
 		std::map<std::string, int> m_locations;
 		std::map<uint32_t, MonitorEvent> m_movedFrom;
 
+		bool removeWatch(const std::string &location);
+
 	private:
 		INotifyMonitor(const INotifyMonitor &other);
 		INotifyMonitor &operator=(const INotifyMonitor &other);

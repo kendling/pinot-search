@@ -30,11 +30,13 @@
 #include <string.h>
 #include <errno.h>
 #include <iostream>
+#include <set>
 
 #include "INotifyMonitor.h"
 
 using std::string;
 using std::map;
+using std::set;
 using std::queue;
 using std::pair;
 using std::cout;
@@ -51,7 +53,7 @@ INotifyMonitor::INotifyMonitor() :
 		char errBuffer[1024];
 
 		strerror_r(errno, errBuffer, 1024);
-		cerr << "INotifyMonitor: initialization failed: " << errBuffer << endl;
+		cerr << "Couldn't initialize inotify: " << errBuffer << endl;
 	}
 }
 
@@ -62,6 +64,29 @@ INotifyMonitor::~INotifyMonitor()
 		close(m_monitorFd);
 	}
 	pthread_mutex_destroy(&m_mutex);
+}
+
+bool INotifyMonitor::removeWatch(const string &location)
+{
+	map<string, int>::iterator locationIter = m_locations.find(location);
+	if (locationIter != m_locations.end())
+	{
+		inotify_rm_watch(m_monitorFd, locationIter->second);
+		map<int, string>::iterator watchIter = m_watches.find(locationIter->second);
+		if (watchIter != m_watches.end())
+		{
+			m_watches.erase(watchIter);
+		}
+		m_locations.erase(locationIter);
+
+		return true;
+	}
+	else
+	{
+		cerr << location << " is not being monitored" << endl;
+	}
+
+	return false;
 }
 
 /// Starts monitoring a location.
@@ -77,7 +102,11 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 		return false;
 	}
 
-	pthread_mutex_lock(&m_mutex);
+	if (pthread_mutex_lock(&m_mutex) != 0)
+	{
+		return false;
+	}
+
 	map<string, int>::iterator locationIter = m_locations.find(location);
 	if (locationIter != m_locations.end())
 	{
@@ -111,7 +140,7 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 		}
 		else
 		{
-			cerr << "INotifyMonitor::addLocation: couldn't monitor " << location << endl;
+			cerr << "Couldn't monitor " << location << endl;
 		}
 	}
 	pthread_mutex_unlock(&m_mutex);
@@ -130,24 +159,12 @@ bool INotifyMonitor::removeLocation(const string &location)
 		return false;
 	}
 
-	pthread_mutex_lock(&m_mutex);
-	map<string, int>::iterator locationIter = m_locations.find(location);
-	if (locationIter != m_locations.end())
+	if (pthread_mutex_lock(&m_mutex) != 0)
 	{
-		inotify_rm_watch(m_monitorFd, locationIter->second);
-		map<int, string>::iterator watchIter = m_watches.find(locationIter->second);
-		if (watchIter != m_watches.end())
-		{
-			m_watches.erase(watchIter);
-		}
-		m_locations.erase(locationIter);
+		return false;
+	}
 
-		removedLocation = true;
-	}
-	else
-	{
-		cerr << "INotifyMonitor::removeLocation: " << location << " is not being monitored" << endl;
-	}
+	removedLocation = removeWatch(location);
 	pthread_mutex_unlock(&m_mutex);
 
 	return removedLocation;
@@ -156,6 +173,7 @@ bool INotifyMonitor::removeLocation(const string &location)
 /// Retrieves pending events.
 bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 {
+	set<string> removedLocations;
 	char buffer[1024];
 	unsigned int queueLen = 0;
 	size_t offset = 0;
@@ -165,7 +183,11 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		return false;
 	}
 
-	pthread_mutex_lock(&m_mutex);
+	if (pthread_mutex_lock(&m_mutex) != 0)
+	{
+		return false;
+	}
+
 	// Copy internal events
 	while (m_internalEvents.empty() == false)
 	{
@@ -350,7 +372,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 #endif
 			if (monEvent.m_isWatch == true)
 			{
-				removeLocation(monEvent.m_location);
+				removedLocations.insert(monEvent.m_location);
 			}
 		}
 		else if (pEvent->mask & IN_UNMOUNT)
@@ -362,7 +384,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 			if (monEvent.m_isWatch == true)
 			{
 				// Watches are removed silently if the backing filesystem is unmounted
-				removeLocation(monEvent.m_location);
+				removedLocations.insert(monEvent.m_location);
 			}
 		}
 		else
@@ -407,6 +429,12 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		}
 
 		offset += eventSize;
+	}
+	// Any location to remove ?
+	for (set<string>::const_iterator removalIter = removedLocations.begin();
+		removalIter != removedLocations.end(); ++removalIter)
+	{
+		removeWatch(*removalIter);
 	}
 	pthread_mutex_unlock(&m_mutex);
 
