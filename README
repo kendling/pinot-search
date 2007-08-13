@@ -165,20 +165,10 @@ http://pinot.berlios.de/
 6. Search strategy
 
 
-  When querying an index, Pinot adopts a multi-stepped search strategy that
-  first attempts to find the documents that best match the query. If a given
-  step doesn't return results, the next step alters the query slightly before
-  it is run again. These steps are :
-    * step 1
-      obey the query's operators, don't stem terms
-    * step 2
-      obey operators, stem terms
-    * step 3
-      don't follow operators (all terms are OR'ed) and don't stem terms
-    * step 4
-      don't follow operators and stem terms
-  Stemming is available only to Stored Queries for which a language is defined
-  (Query parameters box, Indexes only tab).
+  When querying an index, Pinot attempts to find the documents that best match
+  the query. The query is run first as is. If no results are found, the terms
+  are stemmed and the query is run again.
+  Stemming is available only to Stored Queries for which a language is defined.
 
   Queries can be expressed in a very natural way, using a combination of operators
   and filters. For instance "type:text/html and lang:en and (tcp near ip)" looks
@@ -189,6 +179,7 @@ http://pinot.berlios.de/
       "site" for host name, eg "site:pinot.berlios.de"
       "file" for file name, eg "file:index.html"
     * filters that only apply to Current User engines
+      "ext" for file extension, eg "ext:html"
       "title" for title, eg "title:Session"
       "url" for URL, eg "url:http://pinot.berlios.de/"
       "dir" for directory, eg "dir:/home/fabrice/test.txt"
@@ -296,8 +287,9 @@ http://pinot.berlios.de/
 
    D-Bus activation makes sure the service is running whenever one of its
    methods is invoked by any consumer application. For instance, clicking
-   OK on the Preferences box will call the service's GetStatistics method,
-   thus ensuring the service is running.
+   OK on the Preferences box will call the service's Reload method, thus
+   ensuring the service is running. This also causes the service to reload
+   the configuration file.
 
    Starting with 0.63, the service is auto-started. The file that enables
    this is located at /etc/xdg/autostart/pinot-dbus-daemon.desktop.
@@ -306,9 +298,9 @@ http://pinot.berlios.de/
    programs list.
 
    A few things to keep in mind :
-     * the service doesn't reload its configuration while running, so any
-       change (for instance, adding or removing an indexable directory) will
-       take effect when the service is restarted.
+     * in version 0.75 and older, the service didn't reload its configuration
+       while running, so any change (for instance, adding or removing an
+       indexable directory) only took effect when the service was restarted.
      * when starting, the service will first crawl all configured locations
        and (re)index new and modified files. Starting with 0.64, the daemon's
        scheduling priority is set very low (15, can be adjusted with --priority)
