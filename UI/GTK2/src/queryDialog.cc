@@ -94,6 +94,25 @@ queryDialog::~queryDialog()
 {
 }
 
+bool queryDialog::is_separator(const RefPtr<TreeModel>& model, const TreeModel::iterator& iter)
+{
+	if (iter)
+	{
+		const TreeModel::Path path = model->get_path(iter);
+		string rowPath(from_utf8(path.to_string()));
+		unsigned int rowPos = 0;
+
+		// FIXME: this is extremely hacky !
+		if ((sscanf(rowPath.c_str(), "%u", &rowPos) == 1) &&
+			(rowPos == 2))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void queryDialog::populate_comboboxes()
 {
 	unsigned int labelNum = 1;
@@ -116,8 +135,11 @@ void queryDialog::populate_comboboxes()
 	}
 
 	// All supported filters
+	filterCombobox->set_row_separator_func(SigC::slot(*this, &queryDialog::is_separator));
 	filterCombobox->append_text(_("Host name"));
 	filterCombobox->append_text(_("File name"));
+	// Separate filters that apply to all engines from the rest
+	filterCombobox->append_text("===");
 	filterCombobox->append_text(_("File extension"));
 	filterCombobox->append_text(_("Title"));
 	filterCombobox->append_text(_("URL"));
@@ -206,24 +228,27 @@ void queryDialog::on_addFilterButton_clicked()
 			filter = "file";
 			break;
 		case 2:
-			filter = "ext";
+			// Separator
 			break;
 		case 3:
-			filter = "title";
+			filter = "ext";
 			break;
 		case 4:
-			filter = "url";
+			filter = "title";
 			break;
 		case 5:
-			filter = "dir";
+			filter = "url";
 			break;
 		case 6:
-			filter = "lang";
+			filter = "dir";
 			break;
 		case 7:
-			filter = "type";
+			filter = "lang";
 			break;
 		case 8:
+			filter = "type";
+			break;
+		case 9:
 			filter = "label";
 			break;
 		default:

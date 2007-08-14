@@ -43,6 +43,9 @@ protected:
 	Glib::Date m_toDate;
 	bool m_badName;
 
+	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
+		const Gtk::TreeModel::iterator& iter);
+
 	void populate_comboboxes();
 
 	virtual void on_queryOkbutton_clicked();
