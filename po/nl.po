@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.75\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-07-27 23:00+0800\n"
-"PO-Revision-Date: 2007-07-18 16:03+0000\n"
-"Last-Translator: Balaam's Miracle <balaam@balaamsmiracle.com>\n"
+"POT-Creation-Date: 2007-08-14 23:27+0800\n"
+"PO-Revision-Date: 2007-08-03 19:02+0000\n"
+"Last-Translator: JW <jw00000@gmail.com>\n"
 "Language-Team: Dutch <nl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Rosetta-Export-Date: 2007-07-21 04:18:16+0000\n"
+"X-Rosetta-Export-Date: 2007-08-14 15:18:19+0000\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:68
 msgid "Search Engines"
@@ -27,42 +27,40 @@ msgstr "Huidige gebruiker"
 #. Bind the callback's parameter to the index name
 #. Enable these menu items unless it is not the documents index
 #. Internal indices
-#: UI/GTK2/src/EnginesTree.cpp:337 UI/GTK2/src/mainWindow.cc:324
-#: UI/GTK2/src/mainWindow.cc:327 UI/GTK2/src/mainWindow.cc:540
-#: UI/GTK2/src/mainWindow.cc:1026 UI/GTK2/src/mainWindow.cc:1197
-#: UI/GTK2/src/mainWindow.cc:1239 UI/GTK2/src/mainWindow.cc:1261
-#: UI/GTK2/src/mainWindow.cc:1292 UI/GTK2/src/mainWindow.cc:1903
-#: UI/GTK2/src/PinotSettings.cpp:282 UI/GTK2/src/PinotSettings.cpp:1339
-#: UI/GTK2/src/PinotSettings.cpp:1395 UI/GTK2/src/statisticsDialog.cc:77
-#: UI/GTK2/src/WorkerThreads.cpp:796 UI/GTK2/src/WorkerThreads.cpp:855
+#: UI/GTK2/src/EnginesTree.cpp:337 UI/GTK2/src/mainWindow.cc:325
+#: UI/GTK2/src/mainWindow.cc:328 UI/GTK2/src/mainWindow.cc:541
+#: UI/GTK2/src/mainWindow.cc:1030 UI/GTK2/src/mainWindow.cc:1201
+#: UI/GTK2/src/mainWindow.cc:1243 UI/GTK2/src/mainWindow.cc:1265
+#: UI/GTK2/src/mainWindow.cc:1296 UI/GTK2/src/mainWindow.cc:1907
+#: UI/GTK2/src/PinotSettings.cpp:304 UI/GTK2/src/PinotSettings.cpp:1361
+#: UI/GTK2/src/PinotSettings.cpp:1417 UI/GTK2/src/statisticsDialog.cc:77
+#: UI/GTK2/src/WorkerThreads.cpp:821 UI/GTK2/src/WorkerThreads.cpp:880
 msgid "My Web Pages"
 msgstr "Mijn webpagina's"
 
 #. Populate the submenu
 #. Bind the callback's parameter to the index name
-#: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:318
-#: UI/GTK2/src/mainWindow.cc:321 UI/GTK2/src/mainWindow.cc:1033
-#: UI/GTK2/src/PinotSettings.cpp:283 UI/GTK2/src/PinotSettings.cpp:1340
-#: UI/GTK2/src/PinotSettings.cpp:1396 UI/GTK2/src/statisticsDialog.cc:82
-#: UI/GTK2/src/WorkerThreads.cpp:801 UI/GTK2/src/WorkerThreads.cpp:865
+#: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:319
+#: UI/GTK2/src/mainWindow.cc:322 UI/GTK2/src/mainWindow.cc:1037
+#: UI/GTK2/src/PinotSettings.cpp:305 UI/GTK2/src/PinotSettings.cpp:1362
+#: UI/GTK2/src/PinotSettings.cpp:1418 UI/GTK2/src/statisticsDialog.cc:82
+#: UI/GTK2/src/WorkerThreads.cpp:826 UI/GTK2/src/WorkerThreads.cpp:890
 msgid "My Documents"
 msgstr "Mijn documenten"
 
 #. The last column is for the timestamp
 #: UI/GTK2/src/dateDialog_glade.cc:76 UI/GTK2/src/queryDialog_glade.cc:91
 #: UI/GTK2/src/queryDialog_glade.cc:92 UI/GTK2/src/ResultsTree.cpp:151
-#, fuzzy
 msgid "Date"
 msgstr "Datum"
 
 #: UI/GTK2/src/indexDialog.cc:122
 msgid "Served by"
-msgstr ""
+msgstr "Geserveerd door"
 
 #: UI/GTK2/src/indexDialog.cc:124
-#, fuzzy
 msgid "Local"
-msgstr "Locatie"
+msgstr "Lokaal"
 
 #: UI/GTK2/src/indexDialog.cc:286
 msgid "Index location"
@@ -96,7 +94,7 @@ msgstr "Adres:"
 msgid "External index"
 msgstr "Externe index"
 
-#: UI/GTK2/src/importDialog.cc:76 UI/GTK2/src/queryDialog.cc:101
+#: UI/GTK2/src/importDialog.cc:76 UI/GTK2/src/queryDialog.cc:120
 msgid "None"
 msgstr "Geen"
 
@@ -134,6 +132,8 @@ msgid ""
 "There is no helper application defined for this document's type.\n"
 "Please enter the command to open this document."
 msgstr ""
+"Er is geen hulptoepassing gedefinieerd voor dit documenttype.\n"
+"Geef het commando op om dit document te openen."
 
 #: UI/GTK2/src/launcherDialog_glade.cc:67
 msgid "Use this command for other documents of the same type."
@@ -141,12 +141,11 @@ msgstr "Gebruik dit commando voor andere documenten van hetzelfde type."
 
 #: UI/GTK2/src/launcherDialog_glade.cc:99
 msgid "Helper application"
-msgstr ""
+msgstr "Hulptoepassing"
 
 #: UI/GTK2/src/mainWindow.cc:140
-#, fuzzy
 msgid "Query Name"
-msgstr "Query naam"
+msgstr "Querynaam"
 
 #: UI/GTK2/src/mainWindow.cc:145
 msgid "Last Run"
@@ -179,184 +178,182 @@ msgid "N/A"
 msgstr "NVT"
 
 #: UI/GTK2/src/mainWindow.cc:257
-#, fuzzy
 msgid "Undefined"
-msgstr "<niet gedefinieerd>"
+msgstr "Niet gedefinieerd"
 
 #. Show the URL of the first result in the status bar
-#: UI/GTK2/src/mainWindow.cc:475
+#: UI/GTK2/src/mainWindow.cc:476
 msgid "Result location is"
 msgstr "Uitvoerlocatie is"
 
 #. Show the URL in the status bar
-#: UI/GTK2/src/mainWindow.cc:550
+#: UI/GTK2/src/mainWindow.cc:551
 msgid "Document location is"
 msgstr "Documentlocatie is"
 
-#: UI/GTK2/src/mainWindow.cc:883
+#: UI/GTK2/src/mainWindow.cc:884
 msgid "Showing"
 msgstr "Aan het tonen"
 
-#: UI/GTK2/src/mainWindow.cc:888
+#: UI/GTK2/src/mainWindow.cc:889
 msgid "of"
 msgstr "van"
 
-#: UI/GTK2/src/mainWindow.cc:893
+#: UI/GTK2/src/mainWindow.cc:894
 msgid "documents, starting at"
 msgstr "documenten, beginnend bij"
 
-#: UI/GTK2/src/mainWindow.cc:926
+#: UI/GTK2/src/mainWindow.cc:928
 msgid "Query"
 msgstr "Query"
 
-#: UI/GTK2/src/mainWindow.cc:930 UI/GTK2/src/mainWindow.cc:3024
+#: UI/GTK2/src/mainWindow.cc:932 UI/GTK2/src/mainWindow.cc:3028
 msgid "on"
 msgstr "op"
 
-#: UI/GTK2/src/mainWindow.cc:934
+#: UI/GTK2/src/mainWindow.cc:936
 msgid "ended"
 msgstr "Beeindigd"
 
-#: UI/GTK2/src/mainWindow.cc:1062
+#: UI/GTK2/src/mainWindow.cc:1066
 msgid "More Like"
 msgstr "Meer zoals"
 
-#: UI/GTK2/src/mainWindow.cc:1123
+#: UI/GTK2/src/mainWindow.cc:1127
 msgid "Updated label(s)"
 msgstr "Vernieuwde na(a)m(en)"
 
 #. Yes, it did
-#: UI/GTK2/src/mainWindow.cc:1207
+#: UI/GTK2/src/mainWindow.cc:1211
 msgid "Updated document"
 msgstr "Vernieuwd document"
 
-#: UI/GTK2/src/mainWindow.cc:1220
+#: UI/GTK2/src/mainWindow.cc:1224
 msgid "Indexed"
 msgstr "Geindexeerd"
 
-#: UI/GTK2/src/mainWindow.cc:1262
+#: UI/GTK2/src/mainWindow.cc:1266
 msgid "Unindexed document(s)"
 msgstr "Niet geindexeerd(e) document(en)"
 
-#: UI/GTK2/src/mainWindow.cc:1302
+#: UI/GTK2/src/mainWindow.cc:1306
 msgid "Updated document properties"
 msgstr "Vernieuwde documenteigenschappen"
 
-#: UI/GTK2/src/mainWindow.cc:1355
+#: UI/GTK2/src/mainWindow.cc:1359
 msgid "Couldn't rename index, name"
 msgstr "Kon index niet hernoemen, naam"
 
-#: UI/GTK2/src/mainWindow.cc:1359 UI/GTK2/src/mainWindow.cc:2292
-#: UI/GTK2/src/mainWindow.cc:2829
+#: UI/GTK2/src/mainWindow.cc:1363 UI/GTK2/src/mainWindow.cc:2296
+#: UI/GTK2/src/mainWindow.cc:2833
 msgid "is already in use"
 msgstr "is reeds in gebruik"
 
-#: UI/GTK2/src/mainWindow.cc:1372
+#: UI/GTK2/src/mainWindow.cc:1376
 msgid "Couldn't rename index"
 msgstr "Kon index niet hernoemen"
 
-#: UI/GTK2/src/mainWindow.cc:1385
+#: UI/GTK2/src/mainWindow.cc:1389
 msgid "Edited index"
 msgstr "Bewerkte index"
 
-#: UI/GTK2/src/mainWindow.cc:1711
+#: UI/GTK2/src/mainWindow.cc:1715
 #, fuzzy
 msgid "Export Results"
-msgstr "_Resultaten"
+msgstr "resultaten"
 
 #. Find this query
-#: UI/GTK2/src/mainWindow.cc:1800 UI/GTK2/src/mainWindow.cc:2462
+#: UI/GTK2/src/mainWindow.cc:1804 UI/GTK2/src/mainWindow.cc:2466
 msgid "Live query"
 msgstr "Rechtstreekse query"
 
-#: UI/GTK2/src/mainWindow.cc:1826
+#: UI/GTK2/src/mainWindow.cc:1830
 msgid "Couldn't find query"
 msgstr "Kon query niet vinden"
 
-#: UI/GTK2/src/mainWindow.cc:2018 UI/GTK2/src/WorkerThreads.cpp:654
-#: UI/GTK2/src/WorkerThreads.cpp:1686
+#: UI/GTK2/src/mainWindow.cc:2022 UI/GTK2/src/WorkerThreads.cpp:677
+#: UI/GTK2/src/WorkerThreads.cpp:1719
 msgid "Index"
 msgstr "Inhoudsopgave"
 
-#: UI/GTK2/src/mainWindow.cc:2022 UI/GTK2/src/WorkerThreads.cpp:658
-#: UI/GTK2/src/WorkerThreads.cpp:1690
+#: UI/GTK2/src/mainWindow.cc:2026 UI/GTK2/src/WorkerThreads.cpp:681
+#: UI/GTK2/src/WorkerThreads.cpp:1723
 msgid "doesn't exist"
 msgstr "bestaat niet"
 
-#: UI/GTK2/src/mainWindow.cc:2177
+#: UI/GTK2/src/mainWindow.cc:2181
 msgid "Remove this document from the index ?"
 msgstr "Verwijder dit document uit de inhoudsopgave"
 
-#: UI/GTK2/src/mainWindow.cc:2196
+#: UI/GTK2/src/mainWindow.cc:2200
 msgid "Remove these documents from the index ?"
 msgstr "Verwijder deze documenten uit de inhoudsopgave"
 
-#: UI/GTK2/src/mainWindow.cc:2242
+#: UI/GTK2/src/mainWindow.cc:2246
 msgid "A metasearch tool for the Free Desktop"
 msgstr "Een metazoek tool voor de Free Desktop"
 
-#: UI/GTK2/src/mainWindow.cc:2243
+#: UI/GTK2/src/mainWindow.cc:2247
 msgid "Search the Web and your documents !"
 msgstr "Zoek het web en uw documenten!"
 
-#: UI/GTK2/src/mainWindow.cc:2288
+#: UI/GTK2/src/mainWindow.cc:2292
 msgid "Index name"
 msgstr "Naam inhoudsopgave"
 
-#: UI/GTK2/src/mainWindow.cc:2303
+#: UI/GTK2/src/mainWindow.cc:2307
 msgid "Couldn't add index"
 msgstr "Kon inhoudsopgave niet toevoegen"
 
-#: UI/GTK2/src/mainWindow.cc:2317
+#: UI/GTK2/src/mainWindow.cc:2321
 msgid "Added new index"
 msgstr "Nieuwe inhoudsopgave toegevoegd"
 
-#: UI/GTK2/src/mainWindow.cc:2352
+#: UI/GTK2/src/mainWindow.cc:2356
 msgid "Couldn't remove index"
 msgstr "Kon inhoudsopgave niet verwijderen"
 
-#: UI/GTK2/src/mainWindow.cc:2642
+#: UI/GTK2/src/mainWindow.cc:2646
 msgid "At least one task hasn't completed yet. Quit now ?"
 msgstr "Tenminste een taak is nog niet gereed. Nu stoppen?"
 
-#: UI/GTK2/src/mainWindow.cc:2825
+#: UI/GTK2/src/mainWindow.cc:2829
 msgid "Query name"
 msgstr "Naam query"
 
-#: UI/GTK2/src/mainWindow.cc:2852
+#: UI/GTK2/src/mainWindow.cc:2856
 msgid "Couldn't update query"
 msgstr "Kon query niet actualiseren"
 
-#: UI/GTK2/src/mainWindow.cc:2860
+#: UI/GTK2/src/mainWindow.cc:2864
 msgid "Edited query"
 msgstr "Bewerkte query"
 
-#: UI/GTK2/src/mainWindow.cc:2867
+#: UI/GTK2/src/mainWindow.cc:2871
 msgid "Couldn't add query"
 msgstr "Kon query niet toevoegen"
 
-#: UI/GTK2/src/mainWindow.cc:2875
+#: UI/GTK2/src/mainWindow.cc:2879
 msgid "Added new query"
 msgstr "Nieuwe query toegevoegd"
 
-#: UI/GTK2/src/mainWindow.cc:2913
-#, fuzzy
+#: UI/GTK2/src/mainWindow.cc:2917
 msgid "Query is not set"
 msgstr "Query niet vastgelegd"
 
-#: UI/GTK2/src/mainWindow.cc:2924
+#: UI/GTK2/src/mainWindow.cc:2928
 msgid "No search engine selected"
 msgstr "Geen zoekmachine geselecteerd"
 
-#: UI/GTK2/src/mainWindow.cc:3011
+#: UI/GTK2/src/mainWindow.cc:3015
 msgid "Please set the Google API key first"
 msgstr "Geef eerst de Google API sleutel in"
 
-#: UI/GTK2/src/mainWindow.cc:3020
+#: UI/GTK2/src/mainWindow.cc:3024
 msgid "Running query"
 msgstr "Lopende query"
 
-#: UI/GTK2/src/mainWindow.cc:3233
+#: UI/GTK2/src/mainWindow.cc:3237
 msgid "No default application defined for type"
 msgstr "Geen standaard toepassing gedefinieerd voor het type"
 
@@ -538,19 +535,19 @@ msgstr ""
 "Het is aangeraden alle documenten in \"Mijn webpagina's\" te vernieuwen"
 
 #. Add default labels
-#: UI/GTK2/src/PinotSettings.cpp:288
+#: UI/GTK2/src/PinotSettings.cpp:310
 msgid "Important"
 msgstr "Belangrijk"
 
-#: UI/GTK2/src/PinotSettings.cpp:289
+#: UI/GTK2/src/PinotSettings.cpp:311
 msgid "New"
 msgstr "Nieuw"
 
-#: UI/GTK2/src/PinotSettings.cpp:290
+#: UI/GTK2/src/PinotSettings.cpp:312
 msgid "Personal"
 msgstr "Persoonlijk"
 
-#: UI/GTK2/src/PinotSettings.cpp:1146
+#: UI/GTK2/src/PinotSettings.cpp:1168
 msgid "Unclassified"
 msgstr "Niet geclassificeerd"
 
@@ -559,9 +556,8 @@ msgid "Name"
 msgstr "Naam"
 
 #: UI/GTK2/src/prefsDialog.cc:89
-#, fuzzy
 msgid "Monitor"
-msgstr "Abonneren"
+msgstr "Observeren"
 
 #: UI/GTK2/src/prefsDialog.cc:90
 msgid "Location"
@@ -654,7 +650,7 @@ msgstr ""
 #: UI/GTK2/src/prefsDialog_glade.cc:127
 #, fuzzy
 msgid "File patterns:"
-msgstr "Bestandssuffix"
+msgstr "Bestandsextensie"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:144
 msgid "Indexing"
@@ -664,7 +660,7 @@ msgstr "Aan het indexeren"
 msgid "Preferences"
 msgstr "Voorkeuren"
 
-#: UI/GTK2/src/propertiesDialog.cc:60 UI/GTK2/src/queryDialog.cc:127
+#: UI/GTK2/src/propertiesDialog.cc:60 UI/GTK2/src/queryDialog.cc:149
 msgid "Label"
 msgstr "Bijschrift"
 
@@ -688,47 +684,45 @@ msgstr "Grootte:"
 msgid "Terms:"
 msgstr "Termen:"
 
-#. All supported filters
-#: UI/GTK2/src/queryDialog.cc:119
+#: UI/GTK2/src/queryDialog.cc:139
 msgid "Host name"
 msgstr "Hostnaam"
 
-#: UI/GTK2/src/queryDialog.cc:120
+#: UI/GTK2/src/queryDialog.cc:140
 msgid "File name"
 msgstr "Bestandsnaam"
 
-#: UI/GTK2/src/queryDialog.cc:121
-#, fuzzy
+#: UI/GTK2/src/queryDialog.cc:143
 msgid "File extension"
-msgstr "Bestandssuffix"
+msgstr "Bestandsextensie"
 
 #. This is the title column
-#: UI/GTK2/src/queryDialog.cc:122 UI/GTK2/src/ResultsTree.cpp:133
+#: UI/GTK2/src/queryDialog.cc:144 UI/GTK2/src/ResultsTree.cpp:133
 msgid "Title"
 msgstr "Titel"
 
 #. URL
-#: UI/GTK2/src/queryDialog.cc:123 UI/GTK2/src/ResultsTree.cpp:143
+#: UI/GTK2/src/queryDialog.cc:145 UI/GTK2/src/ResultsTree.cpp:143
 msgid "URL"
 msgstr "URL"
 
-#: UI/GTK2/src/queryDialog.cc:124
+#: UI/GTK2/src/queryDialog.cc:146
 msgid "Directory"
 msgstr "Map"
 
-#: UI/GTK2/src/queryDialog.cc:125
+#: UI/GTK2/src/queryDialog.cc:147
 msgid "Language code"
 msgstr "Taal code"
 
-#: UI/GTK2/src/queryDialog.cc:126
+#: UI/GTK2/src/queryDialog.cc:148
 msgid "MIME type"
 msgstr "MIME type"
 
-#: UI/GTK2/src/queryDialog.cc:246
+#: UI/GTK2/src/queryDialog.cc:271
 msgid "Start date"
 msgstr "Begindatum"
 
-#: UI/GTK2/src/queryDialog.cc:261
+#: UI/GTK2/src/queryDialog.cc:286
 msgid "End date"
 msgstr "Einddatum"
 
@@ -741,7 +735,6 @@ msgid "Query Text"
 msgstr "Query tekst"
 
 #: UI/GTK2/src/queryDialog_glade.cc:83
-#, fuzzy
 msgid "Index results with label"
 msgstr "Indexeer alle resultaten met label"
 
@@ -771,43 +764,37 @@ msgid "Extract"
 msgstr "Uitpakken"
 
 #: UI/GTK2/src/statisticsDialog.cc:72
-#, fuzzy
 msgid "Indexes"
-msgstr "Geindexeerd"
+msgstr "Indexen"
 
 #: UI/GTK2/src/statisticsDialog.cc:87
-#, fuzzy
 msgid "History"
-msgstr "Map"
+msgstr "Geschiedenis"
 
 #: UI/GTK2/src/statisticsDialog.cc:92
 msgid "Daemon"
 msgstr "Daemon"
 
 #: UI/GTK2/src/statisticsDialog.cc:128 UI/GTK2/src/statisticsDialog.cc:143
-#, fuzzy
 msgid "documents"
-msgstr "Mijn documenten"
+msgstr "documenten"
 
 #: UI/GTK2/src/statisticsDialog.cc:132 UI/GTK2/src/statisticsDialog.cc:147
 msgid "Unknown error"
 msgstr "Onbekende fout."
 
 #: UI/GTK2/src/statisticsDialog.cc:154
-#, fuzzy
 msgid "Viewed"
-msgstr "Toon"
+msgstr "Weergegeven"
 
 #: UI/GTK2/src/statisticsDialog.cc:154
-#, fuzzy
 msgid "results"
-msgstr "_Resultaten"
+msgstr "resultaten"
 
 #. FIXME: check whether it's actually running !
 #: UI/GTK2/src/statisticsDialog.cc:171
-#, fuzzy
 msgid "Running under PID"
-msgstr "Lopende query"
+msgstr "Wordt uitgevoerd on het PID"
 
 #: UI/GTK2/src/statisticsDialog.cc:175
 msgid "Currently not running"
@@ -815,7 +802,7 @@ msgstr "Wordt momenteel niet uitgevoerd"
 
 #: UI/GTK2/src/statisticsDialog.cc:182
 msgid "Crawled"
-msgstr ""
+msgstr "Gecrawld"
 
 #: UI/GTK2/src/statisticsDialog.cc:182
 msgid "files"
@@ -825,67 +812,67 @@ msgstr "bestanden"
 msgid "Errors"
 msgstr "Fouten"
 
-#: UI/GTK2/src/WorkerThreads.cpp:303
+#: UI/GTK2/src/WorkerThreads.cpp:306
 msgid "Can't index mail here"
 msgstr "Kan mail hier niet indexeren"
 
-#: UI/GTK2/src/WorkerThreads.cpp:324 UI/GTK2/src/WorkerThreads.cpp:557
+#: UI/GTK2/src/WorkerThreads.cpp:327 UI/GTK2/src/WorkerThreads.cpp:580
 msgid "is already being indexed"
 msgstr "wordt al geindexeerd"
 
-#: UI/GTK2/src/WorkerThreads.cpp:334
+#: UI/GTK2/src/WorkerThreads.cpp:337
 msgid "is blacklisted"
 msgstr "staat op blacklist"
 
-#: UI/GTK2/src/WorkerThreads.cpp:667 UI/GTK2/src/WorkerThreads.cpp:1016
-#: UI/GTK2/src/WorkerThreads.cpp:1099 UI/GTK2/src/WorkerThreads.cpp:1108
-#: UI/GTK2/src/WorkerThreads.cpp:1294 UI/GTK2/src/WorkerThreads.cpp:1566
-#: UI/GTK2/src/WorkerThreads.cpp:1699
+#: UI/GTK2/src/WorkerThreads.cpp:690 UI/GTK2/src/WorkerThreads.cpp:1050
+#: UI/GTK2/src/WorkerThreads.cpp:1134 UI/GTK2/src/WorkerThreads.cpp:1143
+#: UI/GTK2/src/WorkerThreads.cpp:1329 UI/GTK2/src/WorkerThreads.cpp:1599
+#: UI/GTK2/src/WorkerThreads.cpp:1732
 msgid "Index error on"
 msgstr "Indexeringsfout op"
 
-#: UI/GTK2/src/WorkerThreads.cpp:818
+#: UI/GTK2/src/WorkerThreads.cpp:843
 msgid "No title"
 msgstr "Geen titel"
 
-#: UI/GTK2/src/WorkerThreads.cpp:920 UI/GTK2/src/WorkerThreads.cpp:1037
+#: UI/GTK2/src/WorkerThreads.cpp:945 UI/GTK2/src/WorkerThreads.cpp:1071
 msgid "Couldn't create search engine"
 msgstr "Kon zoekmachine niet maken"
 
-#: UI/GTK2/src/WorkerThreads.cpp:943 UI/GTK2/src/WorkerThreads.cpp:1049
+#: UI/GTK2/src/WorkerThreads.cpp:969 UI/GTK2/src/WorkerThreads.cpp:1084
 msgid "Couldn't run query on search engine"
 msgstr "Kon query niet uitvoeren op zoekmachine"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1202
+#: UI/GTK2/src/WorkerThreads.cpp:1237
 msgid "Couldn't obtain downloader for protocol"
 msgstr "Kon geen downloader verkrijgen voor protocol"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1227
+#: UI/GTK2/src/WorkerThreads.cpp:1262
 msgid "Couldn't retrieve"
 msgstr "Kon niet opzoeken"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1324 UI/GTK2/src/WorkerThreads.cpp:1403
+#: UI/GTK2/src/WorkerThreads.cpp:1359 UI/GTK2/src/WorkerThreads.cpp:1438
 msgid "Cannot index document type"
 msgstr "Kan documenttype niet indexeren"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1328 UI/GTK2/src/WorkerThreads.cpp:1407
+#: UI/GTK2/src/WorkerThreads.cpp:1363 UI/GTK2/src/WorkerThreads.cpp:1442
 msgid "at"
 msgstr "bij"
 
 #. No, it isn't
-#: UI/GTK2/src/WorkerThreads.cpp:1439
+#: UI/GTK2/src/WorkerThreads.cpp:1474
 msgid "Robots META tag forbids indexing"
 msgstr "Robots META taf verbiedt indexeren"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1495
+#: UI/GTK2/src/WorkerThreads.cpp:1528
 msgid "Couldn't index"
 msgstr "Kon niet indexeren"
 
 #. Be pessimistic and assume something will go wrong ;-)
-#: UI/GTK2/src/WorkerThreads.cpp:1577
+#: UI/GTK2/src/WorkerThreads.cpp:1610
 msgid "Couldn't unindex document(s)"
 msgstr "Kan indexering van bestand(en) niet ongedaan maken"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1711
+#: UI/GTK2/src/WorkerThreads.cpp:1744
 msgid "Couldn't update document"
 msgstr "Kan document niet actualiseren"

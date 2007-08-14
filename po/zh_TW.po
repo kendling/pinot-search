@@ -1,29 +1,29 @@
-# es PO file for pinot.
-# Copyright (C) 2006 Fabrice Colin, Jesús Tramullas
+# Traditional Chinese translation for pinot
+# Copyright (c) 2007 Rosetta Contributors and Canonical Ltd 2007
 # This file is distributed under the same license as the pinot package.
-# Jesús Tramullas <jesus@tramullas.com>, 2006.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2007.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.75\n"
+"Project-Id-Version: pinot\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2007-08-14 23:27+0800\n"
-"PO-Revision-Date: 2007-07-21 12:37+0800\n"
-"Last-Translator: Gar Bage <garbage@openfutura.com>\n"
-"Language-Team: es <fabricecolin@users.berlios.de>\n"
+"PO-Revision-Date: 2007-07-29 02:41+0000\n"
+"Last-Translator: Yung-chung Lin <henearkrxern@gmail.com>\n"
+"Language-Team: Traditional Chinese <zh_TW@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Rosetta-Export-Date: 2007-08-14 15:18:11+0000\n"
+"X-Rosetta-Export-Date: 2007-08-14 15:18:30+0000\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:68
 msgid "Search Engines"
-msgstr "Motores de búsqueda"
+msgstr "搜尋引擎"
 
 #: UI/GTK2/src/EnginesTree.cpp:326
 msgid "Current User"
-msgstr "Usuario"
+msgstr "目前的使用者"
 
 #. Bind the callback's parameter to the index name
 #. Enable these menu items unless it is not the documents index
@@ -37,7 +37,7 @@ msgstr "Usuario"
 #: UI/GTK2/src/PinotSettings.cpp:1417 UI/GTK2/src/statisticsDialog.cc:77
 #: UI/GTK2/src/WorkerThreads.cpp:821 UI/GTK2/src/WorkerThreads.cpp:880
 msgid "My Web Pages"
-msgstr "Mis Paginas Web"
+msgstr "我的網頁"
 
 #. Populate the submenu
 #. Bind the callback's parameter to the index name
@@ -47,83 +47,82 @@ msgstr "Mis Paginas Web"
 #: UI/GTK2/src/PinotSettings.cpp:1418 UI/GTK2/src/statisticsDialog.cc:82
 #: UI/GTK2/src/WorkerThreads.cpp:826 UI/GTK2/src/WorkerThreads.cpp:890
 msgid "My Documents"
-msgstr "Mis documentos"
+msgstr "我的文件"
 
 #. The last column is for the timestamp
 #: UI/GTK2/src/dateDialog_glade.cc:76 UI/GTK2/src/queryDialog_glade.cc:91
 #: UI/GTK2/src/queryDialog_glade.cc:92 UI/GTK2/src/ResultsTree.cpp:151
 msgid "Date"
-msgstr "Date"
+msgstr "日期"
 
 #: UI/GTK2/src/indexDialog.cc:122
 msgid "Served by"
-msgstr "Servido por"
+msgstr ""
 
 #: UI/GTK2/src/indexDialog.cc:124
-#, fuzzy
 msgid "Local"
-msgstr "Localización"
+msgstr "本地端"
 
 #: UI/GTK2/src/indexDialog.cc:286
 msgid "Index location"
-msgstr "Localización del índice"
+msgstr "索引位置"
 
 #: UI/GTK2/src/indexDialog_glade.cc:65 UI/GTK2/src/queryDialog_glade.cc:68
 msgid "Name:"
-msgstr "Nombre:"
+msgstr "名稱"
 
 #: UI/GTK2/src/indexDialog_glade.cc:67
 msgid "..."
-msgstr "..."
+msgstr ""
 
 #: UI/GTK2/src/indexDialog_glade.cc:70 UI/GTK2/src/prefsDialog_glade.cc:85
 msgid "Type:"
-msgstr "Tipo:"
+msgstr ""
 
 #: UI/GTK2/src/indexDialog_glade.cc:71 UI/GTK2/src/importDialog_glade.cc:67
 msgid "Location:"
-msgstr "Localización:"
+msgstr ""
 
 #: UI/GTK2/src/indexDialog_glade.cc:72 UI/GTK2/src/prefsDialog_glade.cc:86
 msgid "Port:"
-msgstr "Puerto:"
+msgstr "通訊埠："
 
 #: UI/GTK2/src/indexDialog_glade.cc:79 UI/GTK2/src/prefsDialog_glade.cc:82
 msgid "Address:"
-msgstr ""
+msgstr "位址："
 
 #: UI/GTK2/src/indexDialog_glade.cc:183
 msgid "External index"
-msgstr "Índice externo"
+msgstr "外部索引"
 
 #: UI/GTK2/src/importDialog.cc:76 UI/GTK2/src/queryDialog.cc:120
 msgid "None"
-msgstr "Ninguno"
+msgstr ""
 
 #: UI/GTK2/src/importDialog_glade.cc:68
 #: UI/GTK2/src/propertiesDialog_glade.cc:67
 msgid "Title:"
-msgstr "Título:"
+msgstr "標題 :"
 
 #: UI/GTK2/src/importDialog_glade.cc:71
 msgid "Apply label:"
-msgstr "Etiqueta aplicada:"
+msgstr "套用標記"
 
 #: UI/GTK2/src/importDialog_glade.cc:77
 msgid "Import"
-msgstr "Importar"
+msgstr "匯入"
 
 #: UI/GTK2/src/importDialog_glade.cc:148 UI/GTK2/src/mainWindow_glade.cc:221
 msgid "Import URL"
-msgstr "Importar una URL"
+msgstr "匯入URL"
 
 #: UI/GTK2/src/IndexPage.cpp:51
 msgid "Show Previous"
-msgstr "Mostrar previos"
+msgstr "顯示前面的項目"
 
 #: UI/GTK2/src/IndexPage.cpp:57
 msgid "Show Next"
-msgstr "Mostrar siguientes"
+msgstr "顯示後面的項目"
 
 #: UI/GTK2/src/IndexPage.cpp:189
 msgid "All"
@@ -137,353 +136,353 @@ msgstr ""
 
 #: UI/GTK2/src/launcherDialog_glade.cc:67
 msgid "Use this command for other documents of the same type."
-msgstr "Usar el mismo comando para otros documentos del mismo tipo"
+msgstr "請把這個命令用在其他同類型的文件"
 
 #: UI/GTK2/src/launcherDialog_glade.cc:99
 msgid "Helper application"
-msgstr "Aplicación de ayuda"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:140
 msgid "Query Name"
-msgstr "Nombre de la búsqueda"
+msgstr "查詢名稱"
 
 #: UI/GTK2/src/mainWindow.cc:145
 msgid "Last Run"
-msgstr "Última ejecución"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:150
 msgid "Summary"
-msgstr "Sumario"
+msgstr "概覽"
 
 #. Set tooltips
 #: UI/GTK2/src/mainWindow.cc:183
 msgid "Show all search engines"
-msgstr "Mostrar todos los motores de búsqueda"
+msgstr "顯示所有的搜尋引擎"
 
 #: UI/GTK2/src/mainWindow.cc:184
 msgid "Add index"
-msgstr "Añadir índice"
+msgstr "新增索引"
 
 #: UI/GTK2/src/mainWindow.cc:185
 msgid "Remove index"
-msgstr "Borrar índice"
+msgstr "移除索引"
 
 #. Now we are ready
 #: UI/GTK2/src/mainWindow.cc:191
 msgid "Ready"
-msgstr "Listo"
+msgstr "就緒。"
 
 #: UI/GTK2/src/mainWindow.cc:242
 msgid "N/A"
-msgstr "Desconocido"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:257
 msgid "Undefined"
-msgstr "Indefinido"
+msgstr "未定義"
 
 #. Show the URL of the first result in the status bar
 #: UI/GTK2/src/mainWindow.cc:476
 msgid "Result location is"
-msgstr "La localización del resultado es"
+msgstr ""
 
 #. Show the URL in the status bar
 #: UI/GTK2/src/mainWindow.cc:551
 msgid "Document location is"
-msgstr "La localización del documento es"
+msgstr "文件位置在"
 
 #: UI/GTK2/src/mainWindow.cc:884
 msgid "Showing"
-msgstr "Mostrando"
+msgstr "顯示"
 
 #: UI/GTK2/src/mainWindow.cc:889
 msgid "of"
-msgstr "documentos"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:894
 msgid "documents, starting at"
-msgstr "documentos comenzando en"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:928
 msgid "Query"
-msgstr "Búsqueda"
+msgstr "查詢"
 
 #: UI/GTK2/src/mainWindow.cc:932 UI/GTK2/src/mainWindow.cc:3028
 msgid "on"
-msgstr "en"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:936
 msgid "ended"
-msgstr "finalizado"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:1066
 msgid "More Like"
-msgstr "Más como"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:1127
 msgid "Updated label(s)"
-msgstr "Etiqueta(s) actualizada(s)"
+msgstr "更新的標記"
 
 #. Yes, it did
 #: UI/GTK2/src/mainWindow.cc:1211
 msgid "Updated document"
-msgstr "Documento actualizado"
+msgstr "更新的文件"
 
 #: UI/GTK2/src/mainWindow.cc:1224
 msgid "Indexed"
-msgstr "Indizado"
+msgstr "已索引"
 
 #: UI/GTK2/src/mainWindow.cc:1266
 msgid "Unindexed document(s)"
-msgstr "Documento(s) no indizado(s)"
+msgstr "未索引的文件"
 
 #: UI/GTK2/src/mainWindow.cc:1306
 msgid "Updated document properties"
-msgstr "Propiedades del documento actualizadas"
+msgstr "更新的文件屬性"
 
 #: UI/GTK2/src/mainWindow.cc:1359
 msgid "Couldn't rename index, name"
-msgstr "No se pudo renombrar índice, nombre"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:1363 UI/GTK2/src/mainWindow.cc:2296
 #: UI/GTK2/src/mainWindow.cc:2833
 msgid "is already in use"
-msgstr "ya está en uso"
+msgstr "已經在使用中"
 
 #: UI/GTK2/src/mainWindow.cc:1376
 msgid "Couldn't rename index"
-msgstr "No se pudo renombrar el índice"
+msgstr "無法改變索引的名稱"
 
 #: UI/GTK2/src/mainWindow.cc:1389
 msgid "Edited index"
-msgstr "Índice editado"
+msgstr "編輯過的索引"
 
 #: UI/GTK2/src/mainWindow.cc:1715
 #, fuzzy
 msgid "Export Results"
-msgstr "resultados"
+msgstr "結果"
 
 #. Find this query
 #: UI/GTK2/src/mainWindow.cc:1804 UI/GTK2/src/mainWindow.cc:2466
 msgid "Live query"
-msgstr "Búsqueda activa"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:1830
 msgid "Couldn't find query"
-msgstr "No se pudo añadir la búsqueda"
+msgstr "無法找到查詢詞"
 
 #: UI/GTK2/src/mainWindow.cc:2022 UI/GTK2/src/WorkerThreads.cpp:677
 #: UI/GTK2/src/WorkerThreads.cpp:1719
 msgid "Index"
-msgstr "Índice"
+msgstr "索引"
 
 #: UI/GTK2/src/mainWindow.cc:2026 UI/GTK2/src/WorkerThreads.cpp:681
 #: UI/GTK2/src/WorkerThreads.cpp:1723
 msgid "doesn't exist"
-msgstr "no existe"
+msgstr "不存在"
 
 #: UI/GTK2/src/mainWindow.cc:2181
 msgid "Remove this document from the index ?"
-msgstr "¿Borrar este documento del índice?"
+msgstr "要從索引刪除這個文件嗎？"
 
 #: UI/GTK2/src/mainWindow.cc:2200
 msgid "Remove these documents from the index ?"
-msgstr "¿Borrar este documento del índice?"
+msgstr "要從索引刪除這些文件嗎？"
 
 #: UI/GTK2/src/mainWindow.cc:2246
 msgid "A metasearch tool for the Free Desktop"
-msgstr "Una herramienta metabuscador para el escritorio libre"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:2247
 msgid "Search the Web and your documents !"
-msgstr "Busca en el web y en sus documentos"
+msgstr "搜尋網際網路和你的文件！"
 
 #: UI/GTK2/src/mainWindow.cc:2292
 msgid "Index name"
-msgstr "Nombre del índice"
+msgstr "索引名稱"
 
 #: UI/GTK2/src/mainWindow.cc:2307
 msgid "Couldn't add index"
-msgstr "No se pudo añadir el índice"
+msgstr "無法新增索引"
 
 #: UI/GTK2/src/mainWindow.cc:2321
 msgid "Added new index"
-msgstr "Añadido un nuevo índice"
+msgstr "新加入的索引"
 
 #: UI/GTK2/src/mainWindow.cc:2356
 msgid "Couldn't remove index"
-msgstr "No se pudo borrar el índice"
+msgstr "無法移除索引"
 
 #: UI/GTK2/src/mainWindow.cc:2646
 msgid "At least one task hasn't completed yet. Quit now ?"
-msgstr "Al menos una tarea no ha finalizado. ¿Parar ahora?"
+msgstr "至少還有一項工作尚未完成。要離開嗎？"
 
 #: UI/GTK2/src/mainWindow.cc:2829
 msgid "Query name"
-msgstr "Nombre la búsqueda"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:2856
 msgid "Couldn't update query"
-msgstr "No se pudo actualizar la búsqueda"
+msgstr "無法更新查詢"
 
 #: UI/GTK2/src/mainWindow.cc:2864
 msgid "Edited query"
-msgstr "Búsqueda editada"
+msgstr "編輯過的查詢"
 
 #: UI/GTK2/src/mainWindow.cc:2871
 msgid "Couldn't add query"
-msgstr "No se pudo añadir la búsqueda"
+msgstr "無法新增查詢"
 
 #: UI/GTK2/src/mainWindow.cc:2879
 msgid "Added new query"
-msgstr "Añadida una nueva búsqueda"
+msgstr "新增的查詢"
 
 #: UI/GTK2/src/mainWindow.cc:2917
 msgid "Query is not set"
-msgstr "Búsqueda no definida"
+msgstr "查詢尚未設定好"
 
 #: UI/GTK2/src/mainWindow.cc:2928
 msgid "No search engine selected"
-msgstr "Motor de búsqueda no seleccionado"
+msgstr "沒有選擇搜尋引擎"
 
 #: UI/GTK2/src/mainWindow.cc:3015
 msgid "Please set the Google API key first"
-msgstr "Por favor, primero configure el API de Google"
+msgstr "請先設定Google API key"
 
 #: UI/GTK2/src/mainWindow.cc:3024
 msgid "Running query"
-msgstr "Ejecutando la búsqueda"
+msgstr "正在執行的查詢"
 
 #: UI/GTK2/src/mainWindow.cc:3237
 msgid "No default application defined for type"
-msgstr "No hay aplicación predefinida para el tipo"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:126
 msgid "Query:"
-msgstr "Búsqueda:"
+msgstr "查詢："
 
 #: UI/GTK2/src/mainWindow_glade.cc:138
 msgid "Edit"
-msgstr "Editar"
+msgstr "編輯"
 
 #: UI/GTK2/src/mainWindow_glade.cc:147
 msgid "Stored queries"
-msgstr "Búsquedas guardadas"
+msgstr "儲存的查詢"
 
 #: UI/GTK2/src/mainWindow_glade.cc:164 UI/GTK2/src/statisticsDialog.cc:50
 #: UI/GTK2/src/statisticsDialog_glade.cc:87
 msgid "Status"
-msgstr "Estatus"
+msgstr "狀態"
 
 #: UI/GTK2/src/mainWindow_glade.cc:185
 msgid "Search Engine"
-msgstr "Motor de búsqueda"
+msgstr "搜尋引擎"
 
 #: UI/GTK2/src/mainWindow_glade.cc:188
 msgid "Host Name"
-msgstr "Nombre del servidor"
+msgstr "主機名稱"
 
 #: UI/GTK2/src/mainWindow_glade.cc:191
 msgid "Show Extract"
-msgstr "Mostrar extraídos"
+msgstr "顯示摘要"
 
 #: UI/GTK2/src/mainWindow_glade.cc:194
 msgid "Group By"
-msgstr "Agrupar por"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:200
 msgid "Clear List"
-msgstr "Limpiar la lista"
+msgstr "清除列表"
 
 #: UI/GTK2/src/mainWindow_glade.cc:206
 msgid "Vie_w"
-msgstr "Ver"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:209
 msgid "View Cache"
-msgstr "Ver la cache"
+msgstr "檢視快取"
 
 #: UI/GTK2/src/mainWindow_glade.cc:212
 msgid "More Like This"
-msgstr "Documentos similares"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:215 UI/GTK2/src/mainWindow_glade.cc:251
 msgid "_Index"
-msgstr "Índice"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:218
 msgid "List Contents Of"
-msgstr "Listar el contenido de"
+msgstr "列出內容"
 
 #: UI/GTK2/src/mainWindow_glade.cc:227
 msgid "View"
-msgstr "Ver"
+msgstr "檢視"
 
 #: UI/GTK2/src/mainWindow_glade.cc:230
 msgid "Update"
-msgstr "Actualizar"
+msgstr "更新"
 
 #: UI/GTK2/src/mainWindow_glade.cc:233
 msgid "Unindex"
-msgstr "Des-indizar"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:236
 #: UI/GTK2/src/propertiesDialog_glade.cc:177
 msgid "Properties"
-msgstr "Propiedades"
+msgstr "屬性"
 
 #: UI/GTK2/src/mainWindow_glade.cc:239
 msgid "_About"
-msgstr "Sobre"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:242
 msgid "_Session"
-msgstr "Sesión"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:245
 msgid "_Edit"
-msgstr "Editar"
+msgstr "編輯(_E)"
 
 #: UI/GTK2/src/mainWindow_glade.cc:248
 msgid "_Results"
-msgstr "Resultados"
+msgstr "結果(_R)"
 
 #: UI/GTK2/src/mainWindow_glade.cc:254
 msgid "_Help"
-msgstr "Ayuda"
+msgstr "說明(_H)"
 
 #: UI/GTK2/src/mainWindow_glade.cc:403
 msgid "Pinot"
-msgstr "Pinot"
+msgstr ""
 
 #. Localize language names
 #: UI/GTK2/src/pinot.cc:227 UI/GTK2/src/pinot-dbus-daemon.cc:301
 #: UI/GTK2/src/propertiesDialog.cc:72 UI/GTK2/src/propertiesDialog.cc:81
 msgid "Unknown"
-msgstr "Desconocido"
+msgstr ""
 
 #: UI/GTK2/src/pinot.cc:228 UI/GTK2/src/pinot-dbus-daemon.cc:302
 msgid "Danish"
-msgstr "Danés"
+msgstr "丹麥語"
 
 #: UI/GTK2/src/pinot.cc:229 UI/GTK2/src/pinot-dbus-daemon.cc:303
 msgid "Dutch"
-msgstr "Holandés"
+msgstr "荷蘭語"
 
 #: UI/GTK2/src/pinot.cc:230 UI/GTK2/src/pinot-dbus-daemon.cc:304
 msgid "English"
-msgstr "Inglés"
+msgstr "英語"
 
 #: UI/GTK2/src/pinot.cc:231 UI/GTK2/src/pinot-dbus-daemon.cc:305
 msgid "Finnish"
-msgstr "Finlandés"
+msgstr "芬蘭語"
 
 #: UI/GTK2/src/pinot.cc:232 UI/GTK2/src/pinot-dbus-daemon.cc:306
 msgid "French"
-msgstr "Francés"
+msgstr "法語"
 
 #: UI/GTK2/src/pinot.cc:233 UI/GTK2/src/pinot-dbus-daemon.cc:307
 msgid "German"
-msgstr "Alemán"
+msgstr "德語"
 
 #: UI/GTK2/src/pinot.cc:234 UI/GTK2/src/pinot-dbus-daemon.cc:308
 msgid "Hungarian"
@@ -491,15 +490,15 @@ msgstr ""
 
 #: UI/GTK2/src/pinot.cc:235 UI/GTK2/src/pinot-dbus-daemon.cc:309
 msgid "Italian"
-msgstr "Italiano"
+msgstr "意大利語"
 
 #: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:310
 msgid "Norwegian"
-msgstr "Noruego"
+msgstr "挪威語"
 
 #: UI/GTK2/src/pinot.cc:237 UI/GTK2/src/pinot-dbus-daemon.cc:311
 msgid "Portuguese"
-msgstr "Portugués"
+msgstr "葡萄牙語"
 
 #: UI/GTK2/src/pinot.cc:238 UI/GTK2/src/pinot-dbus-daemon.cc:312
 msgid "Romanian"
@@ -507,15 +506,15 @@ msgstr ""
 
 #: UI/GTK2/src/pinot.cc:239 UI/GTK2/src/pinot-dbus-daemon.cc:313
 msgid "Russian"
-msgstr "Ruso"
+msgstr "俄語"
 
 #: UI/GTK2/src/pinot.cc:240 UI/GTK2/src/pinot-dbus-daemon.cc:314
 msgid "Spanish"
-msgstr "Español"
+msgstr "西班牙語"
 
 #: UI/GTK2/src/pinot.cc:241 UI/GTK2/src/pinot-dbus-daemon.cc:315
 msgid "Swedish"
-msgstr "Sueco"
+msgstr "瑞典語"
 
 #: UI/GTK2/src/pinot.cc:242 UI/GTK2/src/pinot-dbus-daemon.cc:316
 msgid "Turkish"
@@ -523,11 +522,11 @@ msgstr ""
 
 #: UI/GTK2/src/pinot.cc:267
 msgid "Couldn't open index"
-msgstr "No se pudo abrir el índice"
+msgstr "無法開啟索引"
 
 #: UI/GTK2/src/pinot.cc:288
 msgid "Couldn't create history database"
-msgstr "No se pudo crear la base de datos del histórico"
+msgstr "無法開啟歷史資料庫"
 
 #: UI/GTK2/src/pinot.cc:329
 msgid "Updating all documents in My Web Pages is recommended"
@@ -536,35 +535,35 @@ msgstr ""
 #. Add default labels
 #: UI/GTK2/src/PinotSettings.cpp:310
 msgid "Important"
-msgstr "Importante"
+msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:311
 msgid "New"
-msgstr "Nuevo"
+msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:312
 msgid "Personal"
-msgstr "Personal"
+msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:1168
 msgid "Unclassified"
-msgstr "No clasificado"
+msgstr "未分類"
 
 #: UI/GTK2/src/prefsDialog.cc:81
 msgid "Name"
-msgstr "Nombre"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog.cc:89
 msgid "Monitor"
-msgstr "Supervisar"
+msgstr "監視器"
 
 #: UI/GTK2/src/prefsDialog.cc:90
 msgid "Location"
-msgstr "Localización"
+msgstr "位置"
 
 #: UI/GTK2/src/prefsDialog.cc:98
 msgid "Pattern"
-msgstr "Patron"
+msgstr "樣式"
 
 #: UI/GTK2/src/prefsDialog.cc:315
 msgid "Exclude these patterns from indexing"
@@ -576,302 +575,299 @@ msgstr ""
 
 #: UI/GTK2/src/prefsDialog.cc:406
 msgid "New Label"
-msgstr "Nueva etiqueta"
+msgstr "新的標記"
 
 #: UI/GTK2/src/prefsDialog.cc:447
 msgid "Directory to index"
-msgstr "Carpeta a indexar"
+msgstr "索引的目錄"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:66
 msgid "Google API key:"
-msgstr "Clave del API de Google"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:69
 msgid "New results:"
-msgstr "Nuevos resultados:"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:70
 msgid "Queries:"
-msgstr "Búsquedas:"
+msgstr "查詢"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:71
 msgid "Enable search terms suggestion"
-msgstr "Activar sugerencia de términos de búsqueda"
+msgstr "啟動查詢詞建議"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:73
 msgid "Ignore robots.txt and Robots META tag"
-msgstr "Ignorar robots.txt y la etiqueta META Robots"
+msgstr "忽略robot.txt和meta標籤"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:74
 msgid "HTTP crawling:"
-msgstr "Agente HTTP:"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:77
 msgid "General"
-msgstr "General"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:79
 msgid "Direct connection to the Internet"
-msgstr ""
+msgstr "直接連線到網路"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:80
 msgid "Manual proxy configuration:"
-msgstr ""
+msgstr "手動設定proxy"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:93
 msgid "Network"
-msgstr ""
+msgstr "網路"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:94
 msgid "Labels are used to classify indexed documents:"
-msgstr "Las etiquetas se usan para clasificar los documentos indizados:"
+msgstr "索引文件的分類標記："
 
 #: UI/GTK2/src/prefsDialog_glade.cc:99 UI/GTK2/src/prefsDialog_glade.cc:119
 #: UI/GTK2/src/prefsDialog_glade.cc:135
 msgid "Add"
-msgstr "Añadir"
+msgstr "新增"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:105
 msgid "Remove"
-msgstr "Borrar"
+msgstr "移除"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:113
 msgid "Labels"
-msgstr "Etiquetas"
+msgstr "標記"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:114
 msgid "These directories will be indexed and optionally monitored for changes:"
-msgstr "Estas carpetas van a estar indexar automáticamente"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:127
 #, fuzzy
 msgid "File patterns:"
-msgstr "Extensión del archivo"
+msgstr "副檔名"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:144
 msgid "Indexing"
-msgstr "Índices"
+msgstr "索引"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:507
 msgid "Preferences"
-msgstr "Preferencias"
+msgstr "個人化設定"
 
 #: UI/GTK2/src/propertiesDialog.cc:60 UI/GTK2/src/queryDialog.cc:149
 msgid "Label"
-msgstr "Etiqueta"
+msgstr "標記"
 
 #: UI/GTK2/src/propertiesDialog.cc:93
 msgid "Per document"
-msgstr "Documento"
+msgstr "每個文件"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:68
 msgid "Language:"
-msgstr "Idioma:"
+msgstr "語言 :"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:69
 msgid "MIME type:"
-msgstr "Tipo MIME:"
+msgstr "MIME 類型："
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:70
 msgid "Size:"
-msgstr "Tamaño:"
+msgstr ""
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:73
 msgid "Terms:"
-msgstr "Términos:"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog.cc:139
 msgid "Host name"
-msgstr "Nombre de servidor"
+msgstr "主機名稱"
 
 #: UI/GTK2/src/queryDialog.cc:140
 msgid "File name"
-msgstr "Nombre de archivo"
+msgstr "檔案名稱"
 
 #: UI/GTK2/src/queryDialog.cc:143
 msgid "File extension"
-msgstr "Extensión del archivo"
+msgstr "副檔名"
 
 #. This is the title column
 #: UI/GTK2/src/queryDialog.cc:144 UI/GTK2/src/ResultsTree.cpp:133
 msgid "Title"
-msgstr "Título"
+msgstr "標題"
 
 #. URL
 #: UI/GTK2/src/queryDialog.cc:145 UI/GTK2/src/ResultsTree.cpp:143
 msgid "URL"
-msgstr "URL"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog.cc:146
 msgid "Directory"
-msgstr "Carpeta"
+msgstr "目錄"
 
 #: UI/GTK2/src/queryDialog.cc:147
 msgid "Language code"
-msgstr "Codigo de idioma"
+msgstr "語言代碼"
 
 #: UI/GTK2/src/queryDialog.cc:148
 msgid "MIME type"
-msgstr "Tipo MIME"
+msgstr "MIME 類型"
 
 #: UI/GTK2/src/queryDialog.cc:271
 msgid "Start date"
-msgstr "Fecha inicial"
+msgstr "開始日期"
 
 #: UI/GTK2/src/queryDialog.cc:286
 msgid "End date"
-msgstr "Fecha final"
+msgstr "結束日期"
 
 #: UI/GTK2/src/queryDialog_glade.cc:72
 msgid "New filter:"
-msgstr "Nuevo filtro:"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog_glade.cc:81
 msgid "Query Text"
-msgstr "Búsqueda"
+msgstr "查詢文字"
 
 #: UI/GTK2/src/queryDialog_glade.cc:83
 msgid "Index results with label"
-msgstr "Indizar todos los resultados con la etiqueta"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog_glade.cc:86
 msgid "Number of results:"
-msgstr "Número de resultados:"
+msgstr "結果數目"
 
 #: UI/GTK2/src/queryDialog_glade.cc:89
 msgid "Start date:"
-msgstr "Fecha de comienzo:"
+msgstr "開始日期:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:90
 msgid "End date:"
-msgstr "Fecha de fin:"
+msgstr "結束日期："
 
 #: UI/GTK2/src/queryDialog_glade.cc:201
 msgid "Query parameters"
-msgstr "Parámetros de búsqueda"
+msgstr "查詢的參數"
 
 #. This is the score column
 #: UI/GTK2/src/ResultsTree.cpp:122
 msgid "Score"
-msgstr "Cuenta"
+msgstr "評分"
 
 #: UI/GTK2/src/ResultsTree.cpp:180
 msgid "Extract"
-msgstr "Extraídos"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:72
-#, fuzzy
 msgid "Indexes"
-msgstr "Indizado"
+msgstr "索引"
 
 #: UI/GTK2/src/statisticsDialog.cc:87
-#, fuzzy
 msgid "History"
-msgstr "Carpeta"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:92
 msgid "Daemon"
-msgstr "Daemon"
+msgstr "伺服程式"
 
 #: UI/GTK2/src/statisticsDialog.cc:128 UI/GTK2/src/statisticsDialog.cc:143
 msgid "documents"
-msgstr "documentos"
+msgstr "文件"
 
 #: UI/GTK2/src/statisticsDialog.cc:132 UI/GTK2/src/statisticsDialog.cc:147
 msgid "Unknown error"
-msgstr ""
+msgstr "原因不明的錯誤"
 
 #: UI/GTK2/src/statisticsDialog.cc:154
 msgid "Viewed"
-msgstr "Ver"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:154
 msgid "results"
-msgstr "resultados"
+msgstr "結果"
 
 #. FIXME: check whether it's actually running !
 #: UI/GTK2/src/statisticsDialog.cc:171
-#, fuzzy
 msgid "Running under PID"
-msgstr "PID"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:175
 msgid "Currently not running"
-msgstr ""
+msgstr "目前沒有執行的"
 
 #: UI/GTK2/src/statisticsDialog.cc:182
 msgid "Crawled"
-msgstr ""
+msgstr "已抓回的"
 
 #: UI/GTK2/src/statisticsDialog.cc:182
 msgid "files"
-msgstr "archivos"
+msgstr "檔案"
 
 #: UI/GTK2/src/statisticsDialog.cc:205
 msgid "Errors"
-msgstr "Errores"
+msgstr "錯誤"
 
 #: UI/GTK2/src/WorkerThreads.cpp:306
 msgid "Can't index mail here"
-msgstr "No se pudo indizar el buzon de correo"
+msgstr "無法索引郵件"
 
 #: UI/GTK2/src/WorkerThreads.cpp:327 UI/GTK2/src/WorkerThreads.cpp:580
 msgid "is already being indexed"
-msgstr "ya está indizado"
+msgstr "已經被索引了"
 
 #: UI/GTK2/src/WorkerThreads.cpp:337
 msgid "is blacklisted"
-msgstr "ya excluido"
+msgstr "列入黑名單"
 
 #: UI/GTK2/src/WorkerThreads.cpp:690 UI/GTK2/src/WorkerThreads.cpp:1050
 #: UI/GTK2/src/WorkerThreads.cpp:1134 UI/GTK2/src/WorkerThreads.cpp:1143
 #: UI/GTK2/src/WorkerThreads.cpp:1329 UI/GTK2/src/WorkerThreads.cpp:1599
 #: UI/GTK2/src/WorkerThreads.cpp:1732
 msgid "Index error on"
-msgstr "Error en el índice"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:843
 msgid "No title"
-msgstr "Sin título"
+msgstr "無標題"
 
 #: UI/GTK2/src/WorkerThreads.cpp:945 UI/GTK2/src/WorkerThreads.cpp:1071
 msgid "Couldn't create search engine"
-msgstr "No se pudo crear el motor de búsqueda"
+msgstr "無法建立搜尋引擎"
 
 #: UI/GTK2/src/WorkerThreads.cpp:969 UI/GTK2/src/WorkerThreads.cpp:1084
 msgid "Couldn't run query on search engine"
-msgstr "No se pudo ejecutar la búsqueda contra el motor"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:1237
 msgid "Couldn't obtain downloader for protocol"
-msgstr "No se pudo usar un recuperador para el protocolo"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:1262
 msgid "Couldn't retrieve"
-msgstr "No se pudo descargar"
+msgstr "無法取回"
 
 #: UI/GTK2/src/WorkerThreads.cpp:1359 UI/GTK2/src/WorkerThreads.cpp:1438
 msgid "Cannot index document type"
-msgstr "No se pudo indizar el tipo de documento"
+msgstr "無法索引檔案類別"
 
 #: UI/GTK2/src/WorkerThreads.cpp:1363 UI/GTK2/src/WorkerThreads.cpp:1442
 msgid "at"
-msgstr "a"
+msgstr ""
 
 #. No, it isn't
 #: UI/GTK2/src/WorkerThreads.cpp:1474
 msgid "Robots META tag forbids indexing"
-msgstr "La etiqueta META Robots prohíbe la indización"
+msgstr "Robots的meta標記不允許索引"
 
 #: UI/GTK2/src/WorkerThreads.cpp:1528
 msgid "Couldn't index"
-msgstr "No se pudo indizar"
+msgstr "無法索引"
 
 #. Be pessimistic and assume something will go wrong ;-)
 #: UI/GTK2/src/WorkerThreads.cpp:1610
 msgid "Couldn't unindex document(s)"
-msgstr "No se pudo des-indizar lo(s) documento(s)"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:1744
 msgid "Couldn't update document"
-msgstr "No se pudo actualizar el documento"
+msgstr "無法更新文件"
