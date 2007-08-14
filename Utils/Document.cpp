@@ -24,6 +24,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <iostream>
 
 #include "Document.h"
@@ -131,6 +132,11 @@ bool Document::setData(const char *data, unsigned int length)
 bool Document::setDataFromFile(const string &fileName)
 {
 	struct stat fileStat;
+#ifndef O_NOATIME
+	int openFlags = O_RDONLY;
+#else
+	int openFlags = O_RDONLY|O_NOATIME;
+#endif
 
 	if (fileName.empty() == true)
 	{
@@ -158,8 +164,16 @@ bool Document::setDataFromFile(const string &fileName)
 	}
 
 	// Open the file in read-only mode
-	int fd = open(fileName.c_str(), O_RDONLY);
-	if (fd == -1)
+	int fd = open(fileName.c_str(), openFlags);
+#ifdef O_NOATIME
+	if ((fd < 0) &&
+		(errno == EPERM))
+	{
+		// Try again
+		fd = open(fileName.c_str(), O_RDONLY);
+	}
+#endif
+	if (fd < 0)
 	{
 		cerr << "Document::setDataFromFile: " << fileName << " couldn't be opened" << endl;
 		return false;
