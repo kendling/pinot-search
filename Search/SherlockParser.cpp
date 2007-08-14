@@ -522,7 +522,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 
 	map<string, string> searchParams, interpretParams, inputItems;
 	string userInput, nextInput, nextFactor, nextValue;
-	bool fullParsing = false;
+	bool parsedPlugin = false;
 
 	if (pthread_mutex_lock(&m_mutex) == 0)
 	{
@@ -535,7 +535,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 					userInput, nextInput, nextFactor, nextValue);
 
 				parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
-				fullParsing = parseInfo.full;
+				parsedPlugin = parseInfo.hit;
 			}
 			else
 			{
@@ -543,7 +543,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 				plugin_min_grammar plugin(searchParams);
 
 				parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
-				fullParsing = parseInfo.full;
+				parsedPlugin = parseInfo.hit;
 			}
 		}
 		catch (const exception &e)
@@ -551,14 +551,14 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 #ifdef DEBUG
 			cout << "SherlockParser::parse: caught exception ! " << e.what() << endl;
 #endif
-			fullParsing = false;
+			parsedPlugin = false;
 		}
 		catch (...)
 		{
 #ifdef DEBUG
 			cout << "SherlockParser::parse: caught unknown exception !" << endl;
 #endif
-			fullParsing = false;
+			parsedPlugin = false;
 		}
 
 		pthread_mutex_unlock(&m_mutex);
@@ -569,7 +569,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 
 	SherlockResponseParser *pResponseParser = NULL;
 
-	if (fullParsing == true)
+	if (parsedPlugin == true)
 	{
 		map<string, string> lowSearchParams, lowInterpretParams, lowInputItems;
 
