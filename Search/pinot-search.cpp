@@ -253,6 +253,7 @@ int main(int argc, char **argv)
 	}
 
 	queryProps.setMaximumResultsCount(maxResultsCount);
+	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
 	if (pEngine->runQuery(queryProps) == true)
 	{
 		string resultsPage;
