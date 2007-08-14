@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Copyright 2005-2007 Fabrice Colin
 #
