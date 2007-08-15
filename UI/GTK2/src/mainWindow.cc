@@ -261,9 +261,10 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 		if ((selectedQueryName.empty() == false) &&
 			(queryName == selectedQueryName))
 		{
-			// Select this query
+			// Select and scroll to this query
 			TreeModel::Path path = m_refQueryTree->get_path(iter);
 			queryTreeview->get_selection()->select(path);
+			queryTreeview->scroll_to_row(path);
 		}
 	}
 }
@@ -917,7 +918,8 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		QueryProperties queryProps(pQueryThread->getQuery());
+		bool wasCorrected;
+		QueryProperties queryProps(pQueryThread->getQuery(wasCorrected));
 		ustring queryName = to_utf8(queryProps.getName());
 		ustring engineName = to_utf8(pQueryThread->getEngineName());
 		string resultsCharset(pQueryThread->getCharset());
@@ -987,6 +989,8 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			pResultsTree->deleteResults(engineName);
 			pResultsTree->addResults(engineName, resultsList,
 				resultsCharset);
+
+			// FIXME: if wasCorrected is true, suggest the correction to the user
 		}
 
 		// Index results ?
@@ -2908,7 +2912,7 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 //
 void mainWindow::run_search(const QueryProperties &queryProps)
 {
-	if (queryProps.getFreeQuery().empty() == true)
+	if (queryProps.isEmpty() == true)
 	{
 		set_status(_("Query is not set"));
 		return;
@@ -3158,8 +3162,9 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 		locationsByType.insert(pair<string, string>(mimeType, url));
 	}
 
-	MIMEAction action;
+	vector<MIMEAction> actionsList;
 	vector<string> arguments;
+	MIMEAction action;
 	string currentType;
 
 	arguments.reserve(documentsList.size());
@@ -3200,17 +3205,16 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 				cout << "mainWindow::view_documents: defaulting to text/html" << endl;
 #endif
 			}
-			if (MIMEScanner::getDefaultAction(type, action) == false)
+			bool foundAction = MIMEScanner::getDefaultActions(type, actionsList);
+			if (foundAction == false)
 			{
-				bool foundAction = false;
-
 				if ((type.length() > 5) &&
 					(type.substr(0, 5) == "text/"))
 				{
 					// It's a subtype of text
 					// FIXME: MIMEScanner should return parent types !
 					type = "text/plain";
-					foundAction = MIMEScanner::getDefaultAction(type, action);
+					foundAction = MIMEScanner::getDefaultActions(type, actionsList);
 #ifdef DEBUG
 					cout << "mainWindow::view_documents: defaulting to text/plain" << endl;
 #endif
@@ -3247,6 +3251,11 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 					}
 				}
 			}
+
+			if (foundAction == true)
+			{
+				action = actionsList.front();
+			}
 		}
 		currentType = type;
 
@@ -3259,17 +3268,15 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 		}
 	}
 
-	if ((action.m_exec.empty() == false) &&
-		(arguments.empty() == false))
+	// Run the default program for this type
+	if ((action.m_exec.empty() == true) ||
+		(arguments.empty() == true) ||
+		(CommandLine::runAsync(action, arguments) == false))
 	{
-		// Run the default program for this type
-		if (CommandLine::runAsync(action, arguments) == false)
-		{
 #ifdef DEBUG
-			cout << "mainWindow::view_documents: couldn't view type "
-				<< currentType << endl;
+		cout << "mainWindow::view_documents: couldn't view type "
+			<< currentType << endl;
 #endif
-		}
 	}
 }
 
