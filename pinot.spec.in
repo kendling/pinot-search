@@ -78,6 +78,7 @@ make
 %install
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
 %makeinstall
+%find_lang %{name}
 
 %post
 gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
@@ -85,13 +86,10 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %clean
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
 
-%files
+%files -f %{name}.lang
 %defattr(-, root, root, -)
 %doc AUTHORS ChangeLog ChangeLog-dijon COPYING NEWS README TODO
-%config(noreplace) %{_sysconfdir}/pinot/external-filters.xml
-%config(noreplace) %{_sysconfdir}/pinot/globalconfig.xml
-%config(noreplace) %{_sysconfdir}/pinot/textcat_conf.txt
-%config(noreplace) %{_sysconfdir}/pinot/textcat3_conf.txt
+%config(noreplace) %{_sysconfdir}/pinot/
 %{_bindir}/pinot
 %{_bindir}/pinot-dbus-daemon
 %{_bindir}/pinot-index
@@ -103,35 +101,7 @@ gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
 %{_datadir}/pinot/metase-gtk2.gladep
 %{_datadir}/pinot/pinot-dbus-daemon.xml
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
-%{_datadir}/pinot/*.src
-%dir %{_datadir}/pinot/engines/
-%{_datadir}/pinot/engines/A9.src
-%{_datadir}/pinot/engines/Accoona.src
-%{_datadir}/pinot/engines/BitTorrent.src
-%{_datadir}/pinot/engines/Clusty.src
-%{_datadir}/pinot/engines/CreativeCommons.src
-%{_datadir}/pinot/engines/Exalead.src
-%{_datadir}/pinot/engines/Freshmeat.src
-%{_datadir}/pinot/engines/Google.src
-%{_datadir}/pinot/engines/GoogleCodeSearch.src
-%{_datadir}/pinot/engines/MozDexDescription.xml
-%{_datadir}/pinot/engines/MSN.src
-%{_datadir}/pinot/engines/RollYOTopNews.src
-%{_datadir}/pinot/engines/Topix.src
-%{_datadir}/pinot/engines/WiseNut.src
-%{_datadir}/pinot/engines/Yahoo.src
-%{_datadir}/pinot/engines/YahooAPI.src
-%{_datadir}/pinot/engines/Wikipedia.src
-%{_datadir}/pinot/engines/KodersDescription.xml
-%{_datadir}/locale/de/LC_MESSAGES/pinot.mo
-%{_datadir}/locale/es/LC_MESSAGES/pinot.mo
-%{_datadir}/locale/fr/LC_MESSAGES/pinot.mo
-%{_datadir}/locale/it/LC_MESSAGES/pinot.mo
-%{_datadir}/locale/nl/LC_MESSAGES/pinot.mo
-%{_datadir}/locale/pt/LC_MESSAGES/pinot.mo
-%{_datadir}/locale/pt_BR/LC_MESSAGES/pinot.mo
-%{_datadir}/locale/ru/LC_MESSAGES/pinot.mo
-%{_datadir}/locale/sv/LC_MESSAGES/pinot.mo
+%{_datadir}/pinot/
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
 %{_datadir}/icons/hicolor/32x32/apps/pinot.png
 %{_datadir}/icons/hicolor/24x24/apps/pinot.png
