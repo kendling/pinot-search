@@ -72,6 +72,11 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 {
 	string commandLine(action.m_exec);
 
+	if (action.m_exec.empty() == true)
+	{
+		return false;
+	}
+
 	string::size_type equalPos = action.m_exec.find("=");
 	if (equalPos != string::npos)
 	{
