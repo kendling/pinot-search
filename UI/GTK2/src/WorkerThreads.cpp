@@ -22,7 +22,6 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
-#include <errno.h>
 #include <exception>
 #include <iostream>
 #include <fstream>
@@ -760,7 +759,8 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 	m_engineDisplayableName(engineDisplayableName),
 	m_engineOption(engineOption),
 	m_queryProps(queryProps),
-	m_listingIndex(listingIndex)
+	m_listingIndex(listingIndex),
+	m_correctedSpelling(false)
 {
 #ifdef DEBUG
 	cout << "QueryingThread::QueryingThread: engine " << m_engineName << ", " << engineOption
@@ -787,8 +787,9 @@ string QueryingThread::getEngineName(void) const
 	return m_engineDisplayableName;
 }
 
-QueryProperties QueryingThread::getQuery(void) const
+QueryProperties QueryingThread::getQuery(bool &wasCorrected) const
 {
+	wasCorrected = m_correctedSpelling;
 	return m_queryProps;
 }
 
@@ -962,6 +963,7 @@ void QueryingThread::doWork(void)
 	}
 
 	// Run the query
+	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
 	if (pEngine->runQuery(m_queryProps, m_startDoc) == false)
 	{
 		m_status = _("Couldn't run query on search engine");
@@ -989,6 +991,14 @@ void QueryingThread::doWork(void)
 		{
 			processResults(resultsList,
 				PinotSettings::getInstance().getIndexId(m_engineDisplayableName));
+		}
+
+		// Any spelling correction ?
+		string correctedFreeQuery(pEngine->getSpellingCorrection());
+		if (correctedFreeQuery.empty() == false)
+		{
+			m_correctedSpelling = true;
+			m_queryProps.setFreeQuery(correctedFreeQuery);
 		}
 	}
 
@@ -1068,6 +1078,7 @@ void ExpandQueryThread::doWork(void)
 	pEngine->setQueryExpansion(relevantDocIds);
 
 	// Run the query
+	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
 	if (pEngine->runQuery(m_queryProps) == false)
 	{
 		m_status = _("Couldn't run query on search engine");

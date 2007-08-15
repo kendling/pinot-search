@@ -215,9 +215,7 @@ class QueryingThread : public ListerThread
 
 		std::string getEngineName(void) const;
 
-		bool isListingIndex(void) const;
-
-		QueryProperties getQuery(void) const;
+		QueryProperties getQuery(bool &wasCorrected) const;
 
 		std::string getCharset(void) const;
 
@@ -230,6 +228,7 @@ class QueryingThread : public ListerThread
 		QueryProperties m_queryProps;
 		std::string m_resultsCharset;
 		bool m_listingIndex;
+		bool m_correctedSpelling;
 
 		virtual void processResults(const std::vector<DocumentInfo> &resultsList);
 
