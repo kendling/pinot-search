@@ -647,10 +647,9 @@ bool XapianIndex::isGood(void) const
 double XapianIndex::getVersion(void) const
 {
 	ifstream verFile;
-	string verFileName(m_databaseName);
+	string verFileName(m_databaseName + "/version");
 	double version = 0;
 
-	verFileName += "/version";
 	verFile.open(verFileName.c_str());
 	if (verFile.good() == true)
 	{
@@ -664,11 +663,11 @@ double XapianIndex::getVersion(void) const
 /// Sets the version number.
 bool XapianIndex::setVersion(double version) const
 {
-	ofstream verFile;
-	string verFileName(m_databaseName);
+	ofstream verFile, cacheDirFile;
+	string verFileName(m_databaseName + "/version");
+	string cacheDirFileName(m_databaseName + "/CACHEDIR.TAG");
 	bool setVer = false;
 
-	verFileName += "/version";
 	verFile.open(verFileName.c_str(), ios::trunc);
 	if (verFile.good() == true)
 	{
@@ -676,6 +675,18 @@ bool XapianIndex::setVersion(double version) const
 		setVer = true;
 	}
 	verFile.close();
+
+	// While we are at it, create a CACHEDIR.TAG file
+	// See the spec at http://www.brynosaurus.com/cachedir/
+	cacheDirFile.open(cacheDirFileName.c_str(), ios::trunc);
+	if (cacheDirFile.good() == true)
+	{
+		cacheDirFile << "Signature: 8a477f597d28d172789f06886806bc55" << endl;
+		cacheDirFile << "# This file is a cache directory tag created by Pinot." << endl;
+		cacheDirFile << "# For information about cache directory tags, see:" << endl;
+		cacheDirFile << "# http://www.brynosaurus.com/cachedir/" << endl;
+	}
+	cacheDirFile.close();
 
 	return setVer;
 }
