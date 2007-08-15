@@ -161,8 +161,6 @@ int main(int argc, char **argv)
 #endif
 	dbus_g_thread_init();
 
-	MIMEScanner::initialize();
-	DownloaderInterface::initialize();
 	Gtk::Main m(&argc, &argv);
 	Glib::set_application_name("Pinot GTK2 UI");
 
@@ -223,6 +221,21 @@ int main(int argc, char **argv)
 		cerr.rdbuf(g_outputFile.rdbuf());
 	}
 
+	// Initialize utility classes
+	string desktopFilesDirectory(SHARED_MIME_INFO_PREFIX);
+	desktopFilesDirectory += "/share/applications/";
+	string homeDirectory(PinotSettings::getHomeDirectory());
+	if (homeDirectory.empty() == true)
+	{
+		homeDirectory = "~/";
+	}
+	MIMEScanner::initialize(desktopFilesDirectory, homeDirectory + "/.local/share/applications/mimeinfo.cache", 10);
+	if (MIMEScanner::initialize(desktopFilesDirectory, desktopFilesDirectory + "mimeinfo.cache") == false)
+	{
+		cerr << "Couldn't load MIME settings" << endl;
+	}
+
+	DownloaderInterface::initialize();
 	// Localize language names
 	Languages::setIntlName(0, _("Unknown"));
 	Languages::setIntlName(1, _("Danish"));

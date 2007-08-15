@@ -198,7 +198,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	MIMEScanner::initialize();
+	string desktopFilesDirectory(SHARED_MIME_INFO_PREFIX);
+	desktopFilesDirectory += "/share/applications/";
+	MIMEScanner::initialize(desktopFilesDirectory, desktopFilesDirectory + "mimeinfo.cache");
 	DownloaderInterface::initialize();
 
 	engineType = argv[optind];

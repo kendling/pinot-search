@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <string>
 #include <map>
+#include <vector>
 
 #include "Url.h"
 
@@ -38,6 +39,8 @@ class MIMEAction
 		MIMEAction(const MIMEAction &other);
 		virtual ~MIMEAction();
 
+		bool operator<(const MIMEAction &other) const;
+
 		MIMEAction &operator=(const MIMEAction &other);
 
 		void parseExec(void);
@@ -49,6 +52,7 @@ class MIMEAction
 		std::string m_exec;
 		std::string m_icon;
 		std::string m_device;
+		unsigned int m_priority;
 
 };
 
@@ -61,7 +65,8 @@ class MIMEScanner
 		~MIMEScanner();
 
 		/// Initializes the MIME system.
-		static void initialize(void);
+		static bool initialize(const std::string &desktopFilesDirectory,
+			const std::string &mimeInfoCache, unsigned int priority = 0);
 
 		/// Shutdowns the MIME system.
 		static void shutdown(void);
@@ -75,12 +80,12 @@ class MIMEScanner
 		/// Adds a user-defined action for the given type.
 		static void addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction);
 
-		/// Determines the default action for the given type.
-		static bool getDefaultAction(const std::string &mimeType, MIMEAction &typeAction);
+		/// Determines the default action(s) for the given type.
+		static bool getDefaultActions(const std::string &mimeType, std::vector<MIMEAction> &typeActions);
 
 	protected:
 		static pthread_mutex_t m_mutex;
-		static std::map<std::string, MIMEAction> m_defaultActions;
+		static std::multimap<std::string, MIMEAction> m_defaultActions;
 
 		MIMEScanner();
 

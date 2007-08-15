@@ -20,22 +20,20 @@
 #include <glib.h>
 #include <iostream>
 
-#include "config.h"
 #include "xdgmime/xdgmime.h"
 
 #include "MIMEScanner.h"
 #include "StringManip.h"
 #include "Url.h"
 
-// FIXME: or should it be defaults.list ?
-#define MIME_DEFAULTS_FILE "mimeinfo.cache"
 // FIXME: "Default Applications" here ?
 #define MIME_DEFAULTS_SECTION "MIME Cache"
 
 using std::cout;
 using std::endl;
 using std::string;
-using std::map;
+using std::multimap;
+using std::vector;
 using std::pair;
 
 static string getKeyValue(GKeyFile *pDesktopFile, const string &key)
@@ -71,7 +69,8 @@ static string getKeyValue(GKeyFile *pDesktopFile, const string &key)
 
 MIMEAction::MIMEAction() :
 	m_multipleArgs(false),
-	m_localOnly(true)
+	m_localOnly(true),
+	m_priority(0)
 {
 }
 
@@ -79,7 +78,8 @@ MIMEAction::MIMEAction(const string &name, const string &cmdLine) :
 	m_multipleArgs(false),
 	m_localOnly(true),
 	m_name(name),
-	m_exec(cmdLine)
+	m_exec(cmdLine),
+	m_priority(0)
 {
 	parseExec();
 }
@@ -87,7 +87,8 @@ MIMEAction::MIMEAction(const string &name, const string &cmdLine) :
 MIMEAction::MIMEAction(const string &desktopFile) :
 	m_multipleArgs(false),
 	m_localOnly(true),
-	m_location(desktopFile)
+	m_location(desktopFile),
+	m_priority(0)
 {
 	GKeyFile *pDesktopFile = g_key_file_new();
 	GError *pError = NULL;
@@ -123,12 +124,30 @@ MIMEAction::MIMEAction(const MIMEAction &other) :
 	m_location(other.m_location),
 	m_exec(other.m_exec),
 	m_icon(other.m_icon),
-	m_device(other.m_device)
+	m_device(other.m_device),
+	m_priority(other.m_priority)
 {
 }
 
 MIMEAction::~MIMEAction()
 {
+}
+
+bool MIMEAction::operator<(const MIMEAction &other) const
+{
+	if (m_priority < other.m_priority)
+	{
+		return true;
+	}
+	else if (m_priority == other.m_priority)
+	{
+		if (m_name < other.m_name)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 MIMEAction &MIMEAction::operator=(const MIMEAction &other)
@@ -167,7 +186,7 @@ void MIMEAction::parseExec(void)
 	}
 }
 
-map<string, MIMEAction> MIMEScanner::m_defaultActions;
+multimap<string, MIMEAction> MIMEScanner::m_defaultActions;
 
 pthread_mutex_t MIMEScanner::m_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -179,23 +198,25 @@ MIMEScanner::~MIMEScanner()
 {
 }
 
-void MIMEScanner::initialize(void)
+bool MIMEScanner::initialize(const string &desktopFilesDirectory, const string &mimeInfoCache,
+	unsigned int priority)
 {
 	GError *pError = NULL;
+	bool foundActions = false;
+
+	if ((desktopFilesDirectory.empty() == true) ||
+		(mimeInfoCache.empty() == true))
+	{
+		return false;
+	}
 
 	GKeyFile *pDefaults = g_key_file_new();
 	if (pDefaults == NULL)
 	{
-		return;
+		return false;
 	}
 
-	string desktopFilesDirectory(SHARED_MIME_INFO_PREFIX);
-	desktopFilesDirectory += "/share/applications/";
-
-	string defaultsFile(desktopFilesDirectory);
-	defaultsFile += MIME_DEFAULTS_FILE;
-
-	g_key_file_load_from_file(pDefaults, (const gchar *)defaultsFile.c_str(),
+	g_key_file_load_from_file(pDefaults, (const gchar *)mimeInfoCache.c_str(),
 		G_KEY_FILE_NONE, &pError);
 	if (pError == NULL)
 	{
@@ -225,11 +246,12 @@ void MIMEScanner::initialize(void)
 					{
 						MIMEAction typeAction(desktopFilesDirectory + string(pDesktopFiles[j]));
 
-						// Register the first application
+						// Register all applications for that type
 						if (typeAction.m_exec.empty() == false)
 						{
+							typeAction.m_priority = priority;
 							m_defaultActions.insert(pair<string, MIMEAction>(pMimeTypes[i], typeAction));
-							break;
+							foundActions = true;
 						}
 					}
 
@@ -248,10 +270,9 @@ void MIMEScanner::initialize(void)
 	{
 		g_error_free(pError);
 	}
-
 	g_key_file_free(pDefaults);
 
-	// xdg_mime_init() is called automatically when needed
+	return foundActions;
 }
 
 void MIMEScanner::shutdown(void)
@@ -365,11 +386,14 @@ void MIMEScanner::addDefaultAction(const std::string &mimeType, const MIMEAction
 	m_defaultActions.insert(pair<string, MIMEAction>(mimeType, typeAction));
 }
 
-/// Determines the default action for the given type.
-bool MIMEScanner::getDefaultAction(const string &mimeType, MIMEAction &typeAction)
+/// Determines the default action(s) for the given type.
+bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &typeActions)
 {
-	map<string, MIMEAction>::const_iterator actionIter = m_defaultActions.find(mimeType);
+	multimap<string, MIMEAction>::const_iterator actionIter = m_defaultActions.lower_bound(mimeType);
+	multimap<string, MIMEAction>::const_iterator endActionIter = m_defaultActions.upper_bound(mimeType);
+	bool foundAction = false;
 
+	typeActions.clear();
 	if (actionIter == m_defaultActions.end())
 	{
 		// Is there an action for any of this type's parents ?
@@ -379,12 +403,15 @@ bool MIMEScanner::getDefaultAction(const string &mimeType, MIMEAction &typeActio
 		{
 			for (unsigned int i = 0; pParentTypes[i] != NULL; ++i)
 			{
-				actionIter = m_defaultActions.find(pParentTypes[i]);
+				actionIter = m_defaultActions.lower_bound(pParentTypes[i]);
+				endActionIter = m_defaultActions.upper_bound(pParentTypes[i]);
 				if (actionIter != m_defaultActions.end())
 				{
 #ifdef DEBUG
 					cout << "MIMEScanner::getDefaultAction: " << mimeType << " has parent type " << pParentTypes[i] << endl;
 #endif
+					typeActions.reserve(m_defaultActions.count(pParentTypes[i]));
+					foundAction = true;
 					break;
 				}
 			}
@@ -395,14 +422,21 @@ bool MIMEScanner::getDefaultAction(const string &mimeType, MIMEAction &typeActio
 		else cout << "MIMEScanner::getDefaultAction: " << mimeType << " has no parent types" << endl;
 #endif
 	}
-
-	// Found anything ?
-	if (actionIter != m_defaultActions.end())
+	else
 	{
-		typeAction = actionIter->second;
-
-		return true;
+		typeActions.reserve(m_defaultActions.count(mimeType));
+		foundAction = true;
 	}
 
-	return false;
+	// Found anything ?
+	for (; actionIter != endActionIter; ++actionIter)
+	{
+#ifdef DEBUG
+		cout << "MIMEScanner::getDefaultAction: action " << actionIter->second.m_name
+			<< ", " << actionIter->second.m_priority << endl;
+#endif
+		typeActions.push_back(actionIter->second);
+	}
+
+	return foundAction;
 }

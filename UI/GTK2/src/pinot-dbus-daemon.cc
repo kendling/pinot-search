@@ -239,8 +239,6 @@ int main(int argc, char **argv)
 #endif
 	dbus_g_thread_init();
 
-	MIMEScanner::initialize();
-	DownloaderInterface::initialize();
 	g_refMainLoop = Glib::MainLoop::create();
 	Glib::set_application_name("Pinot DBus Daemon");
 
@@ -296,6 +294,21 @@ int main(int argc, char **argv)
 		pidFile << getpid() << endl;
 		pidFile.close();
 	}
+
+	// Initialize utility classes
+	string desktopFilesDirectory(SHARED_MIME_INFO_PREFIX);
+	desktopFilesDirectory += "/share/applications/";
+	string homeDirectory(PinotSettings::getHomeDirectory());
+	if (homeDirectory.empty() == true)
+	{
+		homeDirectory = "~/";
+	}
+	MIMEScanner::initialize(desktopFilesDirectory, homeDirectory + "/.local/share/applications/mimeinfo.cache", 10);
+	if (MIMEScanner::initialize(desktopFilesDirectory, desktopFilesDirectory + "mimeinfo.cache") == false)
+	{
+		cerr << "Couldn't load MIME settings" << endl;
+	}
+	DownloaderInterface::initialize();
 
 	// Localize language names
 	Languages::setIntlName(0, _("Unknown"));

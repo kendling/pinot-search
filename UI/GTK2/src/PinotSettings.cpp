@@ -150,27 +150,34 @@ bool PinotSettings::enableClientMode(bool enable)
 	return isEnabled;
 }
 
-string PinotSettings::getConfigurationDirectory(void)
+string PinotSettings::getHomeDirectory(void)
 {
 	struct passwd *pPasswd = getpwuid(geteuid());
-	string directoryName;
 
 	if ((pPasswd != NULL) &&
 		(pPasswd->pw_dir != NULL))
 	{
-		directoryName = pPasswd->pw_dir;
+		return pPasswd->pw_dir;
 	}
 	else
 	{
 		char *homeDir = getenv("HOME");
 		if (homeDir != NULL)
 		{
-			directoryName = homeDir;
+			return homeDir;
 		}
-		else
-		{
-			return "~/.pinot";
-		}
+	}
+
+	return "";
+}
+
+string PinotSettings::getConfigurationDirectory(void)
+{
+	string directoryName(getHomeDirectory());
+
+	if (directoryName.empty() == true)
+	{
+		return "~/.pinot";
 	}
 	directoryName += "/.pinot";
 

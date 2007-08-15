@@ -40,6 +40,8 @@ class PinotSettings
 
 		static bool enableClientMode(bool enable);
 
+		static std::string getHomeDirectory(void);
+
 		static std::string getConfigurationDirectory(void);
 
 		static std::string getConfigurationFileName(void);
