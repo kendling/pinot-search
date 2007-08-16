@@ -71,6 +71,12 @@ class OnDiskHandler : public MonitorHandler
 		CrawlHistory m_history;
 		XapianIndex m_index;
 
+		bool fileMoved(const std::string &fileName,
+			const std::string &previousFileName,
+			IndexInterface::NameType type);
+
+		bool fileDeleted(const std::string &fileName, IndexInterface::NameType type);
+
 		bool indexFile(const std::string &fileName, bool alwaysUpdate, unsigned int &sourceId);
 
 		bool replaceFile(unsigned int docId, DocumentInfo &docInfo);
