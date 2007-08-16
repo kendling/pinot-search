@@ -404,7 +404,7 @@ unsigned int DBusXapianIndex::getDocumentsCount(const string &labelName) const
 	return XapianIndex::getDocumentsCount(labelName);
 }
 
-/// Lists document IDs.
+/// Lists documents.
 unsigned int DBusXapianIndex::listDocuments(set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
@@ -413,22 +413,13 @@ unsigned int DBusXapianIndex::listDocuments(set<unsigned int> &docIds,
 	return XapianIndex::listDocuments(docIds, maxDocsCount, startDoc);
 }
 
-/// Lists documents that have a specific label.
-bool DBusXapianIndex::listDocumentsWithLabel(const string &name, set<unsigned int> &docIds,
-	unsigned int maxDocsCount, unsigned int startDoc) const
+/// Lists documents.
+bool DBusXapianIndex::listDocuments(const string &name, set<unsigned int> &docIds,
+	NameType type, unsigned int maxDocsCount, unsigned int startDoc) const
 {
 	reopen();
 
-	return XapianIndex::listDocumentsWithLabel(name, docIds, maxDocsCount, startDoc);
-}
-
-/// Lists documents that have a specific directory.
-bool DBusXapianIndex::listDocumentsInDirectory(const string &dirName, set<unsigned int> &docIds,
-	unsigned int maxDocsCount, unsigned int startDoc) const
-{
-	reopen();
-
-	return XapianIndex::listDocumentsWithLabel(dirName, docIds, maxDocsCount, startDoc);
+	return XapianIndex::listDocuments(name, docIds, type, maxDocsCount, startDoc);
 }
 
 /// Indexes the given data.

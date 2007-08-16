@@ -76,17 +76,13 @@ class DBusXapianIndex : public XapianIndex
 		/// Returns the number of documents.
 		virtual unsigned int getDocumentsCount(const std::string &labelName = "") const;
 
-		/// Lists document IDs.
-		virtual unsigned int listDocuments(std::set<unsigned int> &docIds,
+		/// Lists documents.
+		virtual unsigned int listDocuments(std::set<unsigned int> &docIDList,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
-		/// Lists documents that have a specific label.
-		virtual bool listDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds,
-			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
-
-		/// Lists documents that are in a specific directory.
-		virtual bool listDocumentsInDirectory(const std::string &dirName, std::set<unsigned int> &docIds,
-			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
+		/// Lists documents.
+		virtual bool listDocuments(const std::string &name, std::set<unsigned int> &docIds,
+			NameType type, unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
 		/// Indexes the given data.
 		virtual bool indexDocument(const Document &doc, const std::set<std::string> &labels,

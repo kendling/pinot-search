@@ -31,6 +31,8 @@ class IndexInterface
 		IndexInterface(const IndexInterface &other) {};
 		virtual ~IndexInterface() {};
 
+		typedef enum { BY_LABEL = 0, BY_DIRECTORY, BY_FILE } NameType;
+
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const = 0;
 
@@ -67,17 +69,13 @@ class IndexInterface
 		/// Returns the number of documents.
 		virtual unsigned int getDocumentsCount(const std::string &labelName = "") const = 0;
 
-		/// Lists document IDs.
+		/// Lists documents.
 		virtual unsigned int listDocuments(std::set<unsigned int> &docIDList,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
 
-		/// Lists documents that have a specific label.
-		virtual bool listDocumentsWithLabel(const std::string &name, std::set<unsigned int> &docIds,
-			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
-
-		/// Lists documents that are in a specific directory.
-		virtual bool listDocumentsInDirectory(const std::string &dirName, std::set<unsigned int> &docIds,
-			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
+		/// Lists documents.
+		virtual bool listDocuments(const std::string &name, std::set<unsigned int> &docIds,
+			NameType type, unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const = 0;
 
 		/// Indexes the given data.
 		virtual bool indexDocument(const Document &doc, const std::set<std::string> &labels,
@@ -102,8 +100,6 @@ class IndexInterface
 
 		/// Unindexes the given document.
 		virtual bool unindexDocument(const std::string &location) = 0;
-
-		typedef enum { BY_LABEL = 0, BY_DIRECTORY, BY_FILE } NameType;
 
 		/// Unindexes documents.
 		virtual bool unindexDocuments(const std::string &name, NameType type) = 0;

@@ -331,7 +331,17 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	if ((urlObj.isLocal() == true) &&
 		(qmPos != string::npos))
 	{
-		doc.add_term(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(location.substr(0, qmPos)), true));
+		string fileUrl(location.substr(0, qmPos));
+		string protocol(urlObj.getProtocol());
+
+		doc.add_term(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(fileUrl), true));
+		if ((urlObj.isLocal() == true) &&
+			(protocol != "file"))
+		{
+			// Add another term with file as protocol
+			fileUrl.replace(0, protocol.length(), "file");
+			doc.add_term(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(fileUrl), true));
+		}
 	}
 	// ...the host name and included domains with prefix H
 	string hostName(StringManip::toLowerCase(urlObj.getHost()));
@@ -454,7 +464,18 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	if ((urlObj.isLocal() == true) &&
 		(qmPos != string::npos))
 	{
-		commonTerms.insert(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(location.substr(0, qmPos)), true));
+		string fileUrl(location.substr(0, qmPos));
+		string protocol(urlObj.getProtocol());
+
+		commonTerms.insert(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(fileUrl), true));
+
+		if ((urlObj.isLocal() == true) &&
+			(protocol != "file"))
+		{
+			// Add another term with file as protocol
+			fileUrl.replace(0, protocol.length(), "file");
+			doc.add_term(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(fileUrl), true));
+		}
 	}
 	// Host name
 	string hostName(StringManip::toLowerCase(urlObj.getHost()));
@@ -1093,24 +1114,26 @@ unsigned int XapianIndex::listDocuments(set<unsigned int> &docIds,
 	return listDocumentsWithTerm(MAGIC_TERM, docIds, maxDocsCount, startDoc);
 }
 
-/// Lists documents that have a specific label.
-bool XapianIndex::listDocumentsWithLabel(const string &name, set<unsigned int> &docIds,
-	unsigned int maxDocsCount, unsigned int startDoc) const
+/// Lists documents.
+bool XapianIndex::listDocuments(const string &name, set<unsigned int> &docIds,
+	NameType type, unsigned int maxDocsCount, unsigned int startDoc) const
 {
-	string term("XLABEL:");
+	string term;
 
-	term += XapianDatabase::limitTermLength(Url::escapeUrl(name));
+	if (type == BY_LABEL)
+	{
+		term = string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(name));
+	}
+	else if (type == BY_DIRECTORY)
+	{
+		term = string("XDIR:") + XapianDatabase::limitTermLength(Url::escapeUrl(name), true);
+	}
+	else if (type == BY_FILE)
+	{
+		term = string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(name), true);
+	}
+
 	return listDocumentsWithTerm(term, docIds, maxDocsCount, startDoc);
-}
-
-/// Lists documents that are in a specific directory.
-bool XapianIndex::listDocumentsInDirectory(const string &dirName, set<unsigned int> &docIds,
-	unsigned int maxDocsCount, unsigned int startDoc) const
-{
-	string term(Url::escapeUrl(dirName));
-
-	return listDocumentsWithTerm(string("XDIR:") + XapianDatabase::limitTermLength(term, true),
-		docIds, maxDocsCount, startDoc);
 }
 
 /// Indexes the given data.
@@ -1164,6 +1187,9 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 			{
 				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
 			}
+#ifdef DEBUG
+			cout << "XapianIndex::indexDocument: " << labels.size() << " labels" << endl;
+#endif
 
 			// Set data
 			setDocumentData(docInfo, doc, m_stemLanguage);
