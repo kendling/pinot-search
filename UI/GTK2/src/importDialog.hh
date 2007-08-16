@@ -23,12 +23,8 @@
 #include <set>
 #include <sigc++/slot.h>
 #include <sigc++/connection.h>
-#include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
-#include <gtkmm/button.h>
 
-#include "DocumentInfo.h"
-#include "MonitorInterface.h"
 #include "WorkerThreads.h"
 #include "importDialog_glade.hh"
 
@@ -46,12 +42,11 @@ protected:
 	void populate_comboboxes(void);
 
 	bool on_activity_timeout(void);
-	void import_url(const std::string &location);
+	void import_url(const std::string &title, const std::string &location,
+		const std::string &labelName);
 	void on_thread_end(WorkerThread *pThread);
 
 private:
-	Glib::ustring m_title;
-	std::string m_labelName;
 	unsigned int m_docsCount;
 	// Activity timeout
 	SigC::Connection m_timeoutConnection;

@@ -26,10 +26,10 @@
 #include <gtkmm/stock.h>
 
 #include "config.h"
+#include "DocumentInfo.h"
 #include "MIMEScanner.h"
 #include "NLS.h"
 #include "Url.h"
-#include "MonitorFactory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "importDialog.hh"
@@ -92,10 +92,20 @@ bool importDialog::on_activity_timeout(void)
 	return true;
 }
 
-void importDialog::import_url(const string &location)
+void importDialog::import_url(const string &title, const string &location,
+	const string &labelName)
 {
 	Url urlObj(location);
-	DocumentInfo docInfo(from_utf8(m_title), location, MIMEScanner::scanUrl(urlObj), "");
+	DocumentInfo docInfo(from_utf8(title), location, MIMEScanner::scanUrl(urlObj), "");
+
+	// Any label ?
+	if (labelName.empty() == false)
+	{
+		set<string> labels;
+
+		labels.insert(labelName);
+		docInfo.setLabels(labels);
+	}
 
 	// Was the document queued for indexing ?
 	ustring status = m_state.queue_index(docInfo);
@@ -210,7 +220,9 @@ void importDialog::on_locationEntry_changed()
 
 void importDialog::on_importButton_clicked()
 {
-	string location = from_utf8(locationEntry->get_text());
+	string title(from_utf8(titleEntry->get_text()));
+	string location(from_utf8(locationEntry->get_text()));
+	string labelName;
 
 	// Rudimentary lock
 	if (m_state.m_importing == true)
@@ -224,21 +236,14 @@ void importDialog::on_importButton_clicked()
 	// Disable the import button
 	importButton->set_sensitive(false);
 
-	// Title
-	m_title = titleEntry->get_text();
 	// Label
-	m_labelName.clear();
 	int chosenLabel = labelNameCombobox->get_active_row_number();
 	if (chosenLabel > 0)
 	{
-		m_labelName = from_utf8(labelNameCombobox->get_active_text());
+		labelName = from_utf8(labelNameCombobox->get_active_text());
 	}
 
-	import_url(location);
-
-#ifdef DEBUG
-	cout << "importDialog::on_importButton_clicked: done" << endl;
-#endif
+	import_url(title, location, labelName);
 }
 
 void importDialog::on_importDialog_response(int response_id)
