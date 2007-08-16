@@ -1486,7 +1486,6 @@ void IndexingThread::doWork(void)
 		if (m_done == false)
 		{
 			FilterWrapper wrapFilter(pIndex);
-			const set<string> &labels = m_docInfo.getLabels();
 
 			// Update an existing document or add to the index ?
 			if (m_update == true)
@@ -1506,6 +1505,7 @@ void IndexingThread::doWork(void)
 			}
 			else
 			{
+				const set<string> &labels = m_docInfo.getLabels();
 				unsigned int docId = 0;
 
 				// Index the document
