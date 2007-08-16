@@ -408,10 +408,9 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 				if (actionIter != m_defaultActions.end())
 				{
 #ifdef DEBUG
-					cout << "MIMEScanner::getDefaultAction: " << mimeType << " has parent type " << pParentTypes[i] << endl;
+					cout << "MIMEScanner::getDefaultActions: " << mimeType << " has parent type " << pParentTypes[i] << endl;
 #endif
 					typeActions.reserve(m_defaultActions.count(pParentTypes[i]));
-					foundAction = true;
 					break;
 				}
 			}
@@ -419,23 +418,23 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 			free(pParentTypes);
 		}
 #ifdef DEBUG
-		else cout << "MIMEScanner::getDefaultAction: " << mimeType << " has no parent types" << endl;
+		else cout << "MIMEScanner::getDefaultActions: " << mimeType << " has no parent types" << endl;
 #endif
 	}
 	else
 	{
 		typeActions.reserve(m_defaultActions.count(mimeType));
-		foundAction = true;
 	}
 
 	// Found anything ?
 	for (; actionIter != endActionIter; ++actionIter)
 	{
 #ifdef DEBUG
-		cout << "MIMEScanner::getDefaultAction: action " << actionIter->second.m_name
+		cout << "MIMEScanner::getDefaultActions: action " << actionIter->second.m_name
 			<< ", " << actionIter->second.m_priority << endl;
 #endif
 		typeActions.push_back(actionIter->second);
+		foundAction = true;
 	}
 
 	return foundAction;

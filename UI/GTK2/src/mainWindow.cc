@@ -3228,8 +3228,7 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 					launcher.show();
 					if (launcher.run() == RESPONSE_OK)
 					{
-
-						foundAction = launcher.getInput(action, remember);
+						launcher.getInput(action, remember);
 					}
 
 					if (foundAction == false)
@@ -3252,7 +3251,8 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 				}
 			}
 
-			if (foundAction == true)
+			if ((foundAction == true) &&
+				(actionsList.empty() == false))
 			{
 				action = actionsList.front();
 			}
