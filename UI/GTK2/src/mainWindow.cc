@@ -3228,7 +3228,7 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 					launcher.show();
 					if (launcher.run() == RESPONSE_OK)
 					{
-						launcher.getInput(action, remember);
+						foundAction = launcher.getInput(action, remember);
 					}
 
 					if (foundAction == false)
