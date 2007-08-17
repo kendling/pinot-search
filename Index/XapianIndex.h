@@ -122,19 +122,20 @@ class XapianIndex : public IndexInterface
 		static const std::string MAGIC_TERM;
 		std::string m_databaseName;
 		bool m_goodIndex;
+		bool m_supportSpellingCorrection;
 		std::string m_stemLanguage;
 
 		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
 		void addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
-			const Xapian::WritableDatabase &db, const std::string &prefix, bool noStemming) const;
+			const Xapian::WritableDatabase &db, const std::string &prefix, bool noStemming);
 
 		void removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
 			const std::string &prefix, const std::string &language, bool noStemming) const;
 
 		void addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
-			const Xapian::WritableDatabase &db) const;
+			const Xapian::WritableDatabase &db);
 
 		void removeCommonTerms(Xapian::Document &doc);
 

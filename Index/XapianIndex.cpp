@@ -55,7 +55,8 @@ const string XapianIndex::MAGIC_TERM = "X-MetaSE-Doc";
 XapianIndex::XapianIndex(const string &indexName) :
 	IndexInterface(),
 	m_databaseName(indexName),
-	m_goodIndex(false)
+	m_goodIndex(false),
+	m_supportSpellingCorrection(true)
 {
 	// Open in read-only mode
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
@@ -70,6 +71,7 @@ XapianIndex::XapianIndex(const XapianIndex &other) :
 	IndexInterface(other),
 	m_databaseName(other.m_databaseName),
 	m_goodIndex(other .m_goodIndex),
+	m_supportSpellingCorrection(other.m_supportSpellingCorrection),
 	m_stemLanguage(other.m_stemLanguage)
 {
 }
@@ -85,6 +87,7 @@ XapianIndex &XapianIndex::operator=(const XapianIndex &other)
 		IndexInterface::operator=(other);
 		m_databaseName = other.m_databaseName;
 		m_goodIndex = other .m_goodIndex;
+		m_supportSpellingCorrection = other.m_supportSpellingCorrection;
 		m_stemLanguage = other.m_stemLanguage;
 	}
 
@@ -143,7 +146,7 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 }
 
 void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
-	const Xapian::WritableDatabase &db, const string &prefix, bool noStemming) const
+	const Xapian::WritableDatabase &db, const string &prefix, bool noStemming)
 {
 	Xapian::Stem *pStemmer = NULL;
 	Xapian::TermGenerator generator;
@@ -167,11 +170,33 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 		}
 	}
 
-	// The database is required for the spelling dictionary
-	generator.set_flags(Xapian::TermGenerator::FLAG_SPELLING);
-	generator.set_database(db);
-	generator.set_document(doc);
-	generator.index_text(itor, 1, prefix);
+	try
+	{
+		// Older Xapian backends don't support spelling correction
+		if (m_supportSpellingCorrection == true)
+		{
+			// The database is required for the spelling dictionary
+			generator.set_flags(Xapian::TermGenerator::FLAG_SPELLING);
+			generator.set_database(db);
+		}
+		generator.set_document(doc);
+		generator.index_text(itor, 1, prefix);
+	}
+	catch (const Xapian::UnimplementedError &error)
+	{
+		cerr << "Couldn't index with spelling correction: " << error.get_type() << ": " << error.get_msg() << endl;
+
+		if (m_supportSpellingCorrection == true)
+		{
+			m_supportSpellingCorrection = false;
+
+			// Try again without spelling correction
+			// Let the caller catch the exception
+			generator.set_flags(Xapian::TermGenerator::FLAG_SPELLING, Xapian::TermGenerator::FLAG_SPELLING);
+			generator.set_document(doc);
+			generator.index_text(itor, 1, prefix);
+		}
+	}
 
 	if (pStemmer != NULL)
 	{
@@ -308,7 +333,7 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 }
 
 void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
-	const Xapian::WritableDatabase &db) const
+	const Xapian::WritableDatabase &db)
 {
 	string title(info.getTitle());
 	string location(info.getLocation());
