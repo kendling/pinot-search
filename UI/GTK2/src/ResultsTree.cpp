@@ -500,9 +500,10 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 	cout << "ResultsTree::addResults: ID for engine " << engineName << " is " << engineId <<  endl;
 #endif
 
-	QueryHistory history(m_settings.getHistoryDatabaseName());
+	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
+	ViewHistory viewHistory(m_settings.getHistoryDatabaseName());
 	bool isNewQuery = false;
-	if (history.getLastRun(m_treeName, engineName).empty() == true)
+	if (queryHistory.getLastRun(m_treeName, engineName).empty() == true)
 	{
 		isNewQuery = true;
 	}
@@ -539,19 +540,19 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 
 			// Has the result's ranking changed ?
 			float oldestScore = 0;
-			float previousScore = history.hasItem(m_treeName, engineName,
+			float previousScore = queryHistory.hasItem(m_treeName, engineName,
 				location, oldestScore);
 			if (previousScore > 0)
 			{
 				// Update this result whatever the current and previous rankings were
-				history.updateItem(m_treeName, engineName, location,
+				queryHistory.updateItem(m_treeName, engineName, location,
 					title, extract, charset, currentScore);
 				rankDiff = (int)(currentScore - previousScore);
 			}
 			else
 			{
 				// No, this is a new result
-				history.insertItem(m_treeName, engineName, location,
+				queryHistory.insertItem(m_treeName, engineName, location,
 					resultIter->getTitle(), extract, charset, currentScore);
 				// New results are displayed as such only if the query has already been run on the engine
 				if (isNewQuery == false)
@@ -572,9 +573,12 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 			isIndexed = true;
 		}
 
+		// Has it been already viewed ?
+		bool wasViewed = viewHistory.hasItem(location);
+
 		// OK, add a row for this result within the group
 		TreeModel::iterator titleIter;
-		if (appendResult(title, location, resultIter->getType(), (int)currentScore, rankDiff, isIndexed,
+		if (appendResult(title, location, resultIter->getType(), (int)currentScore, rankDiff, isIndexed, wasViewed,
 			docId, resultIter->getTimestamp(), engineId, indexId, titleIter, groupIter, true) == true)
 		{
 #ifdef DEBUG
@@ -715,6 +719,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 						childRow[m_resultsColumns.m_score],
 						childRow[m_resultsColumns.m_rankDiff],
 						childRow[m_resultsColumns.m_indexed],
+						childRow[m_resultsColumns.m_viewed],
 						childRow[m_resultsColumns.m_docId],
 						childRow[m_resultsColumns.m_timestamp],
 						engineIds, indexIds,
@@ -789,6 +794,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 								childRow[m_resultsColumns.m_score],
 								childRow[m_resultsColumns.m_rankDiff],
 								childRow[m_resultsColumns.m_indexed],
+								childRow[m_resultsColumns.m_viewed],
 								childRow[m_resultsColumns.m_docId],
 								childRow[m_resultsColumns.m_timestamp],
 								engineId, indexId,
@@ -1185,7 +1191,7 @@ void ResultsTree::showExtract(bool show)
 //
 void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 {
-	QueryHistory history(m_settings.getHistoryDatabaseName());
+	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
 	QueryProperties queryProps(m_treeName, "");
 	ResultsExporter *pExporter = NULL;
 	unsigned int maxResultsCount = 0;
@@ -1272,7 +1278,7 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 			}
 			if (m_groupMode != FLAT)
 			{
-				result.setExtract(history.getItemExtract(from_utf8(m_treeName),
+				result.setExtract(queryHistory.getItemExtract(from_utf8(m_treeName),
 					engineName, result.getLocation(), charset));
 			}
 
@@ -1307,7 +1313,7 @@ Signal0<void>& ResultsTree::getDoubleClickSignal(void)
 // Adds a new row in the results tree.
 //
 bool ResultsTree::appendResult(const ustring &text, const ustring &url,
-	const ustring &type, int score, int rankDiff, bool isIndexed,
+	const ustring &type, int score, int rankDiff, bool isIndexed, bool wasViewed,
 	unsigned int docId, const ustring &timestamp, unsigned int engineId,
 	unsigned int indexId, TreeModel::iterator &newRowIter,
 	const TreeModel::iterator &parentIter, bool noDuplicates)
@@ -1352,10 +1358,6 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 
 		newRowIter = m_refStore->append(parentRow.children());
 	}
-
-	// Has it been already viewed ?
-	ViewHistory viewHistory(m_settings.getHistoryDatabaseName());
-	bool wasViewed = viewHistory.hasItem(url);
 
 	TreeModel::Row childRow = *newRowIter;
 	updateRow(childRow, text, url, type, score, engineId, indexId,
@@ -1491,7 +1493,7 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 //
 ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 {
-	QueryHistory history(m_settings.getHistoryDatabaseName());
+	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
 	set<string> engineNames, indexNames;
 	string url(from_utf8(row[m_resultsColumns.m_url]));
 	string extract, charset;
@@ -1528,7 +1530,7 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 #ifdef DEBUG
 		cout << "ResultsTree::findResultsExtract: first engine for " << url << " was " << engineName << endl;
 #endif
-		extract = history.getItemExtract(from_utf8(m_treeName), engineName, url, charset);
+		extract = queryHistory.getItemExtract(from_utf8(m_treeName), engineName, url, charset);
 	}
 
 	return to_utf8(extract, charset);
