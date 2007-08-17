@@ -21,9 +21,14 @@
 #include <iostream>
 #include <utility>
 
+#include "config.h"
 extern "C"
 {
+#ifdef HAVE_LIBTEXTCAT_TEXTCAT_H
+#include <libtextcat/textcat.h>
+#else
 #include <textcat.h>
+#endif
 }
 
 #include "StringManip.h"

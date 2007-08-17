@@ -178,7 +178,9 @@ AC_CHECK_HEADERS([boost/spirit/core.hpp],
 
 dnl TextCat
 AC_CHECK_HEADERS([textcat.h],,
+   [AC_CHECK_HEADERS([libtextcat/textcat.h],,
    [AC_MSG_ERROR([Can't find textcat.h.])])
+   ])
 AC_CHECK_LIB(textcat, textcat_Cat,
    [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)],
    [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)]

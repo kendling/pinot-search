@@ -32,7 +32,4 @@ pinot_index_LDADD = -L../Utils -L../Tokenize -L../Collect \
 
 AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Tokenize/filters \
 	-I$(srcdir)/../Collect @HTTP_CFLAGS@ @GMIME_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ @INDEX_CFLAGS@
-if HAVE_TEXTCAT_CAT
-AM_CXXFLAGS += -DHAVE_TEXTCAT_CAT
-endif
 
