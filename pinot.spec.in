@@ -23,7 +23,7 @@ License: GPL
 Group: Applications/Internet 
 Source: %{name}-%{version}.tar.gz
 URL: http://pinot.berlios.de/
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: xapian-core-libs >= 1.0.2, libtextcat >= 2.2, sqlite >= 3.3.1, curl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.6, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
 Requires: unzip, antiword, unrtf, %{pftotext_pkg}
@@ -39,7 +39,7 @@ BuildRequires: gsoap >= 2.7.9e
 Pinot is a D-Bus service that crawls, indexes your documents and monitors them
 for changes, as well as a GTK-based user interface that enables to query
 the index built by the service and your favourite Web engines, and display and
-analyze the results.
+analyze the results
 
 %package audio-docs 
 Summary: Help Pinot handle various audio document formats
@@ -48,7 +48,7 @@ Requires: %{name} = %{version}
 Requires: taglib >= 1.4
 
 %description audio-docs 
-The included filter adds support for OGG, MP3 and FLAC files.
+The included filter adds support for OGG, MP3 and FLAC files
 
 %package omega 
 Summary: Xapian Omega plugin for Pinot
@@ -57,7 +57,7 @@ Requires: %{name} = %{version}
 Requires: xapian-omega
 
 %description omega
-The included plugin enables Pinot to use Xapian Omega as a search engine.
+The included plugin enables Pinot to use Xapian Omega as a search engine
 
 %package deskbar
 Summary: Pinot plugin for DeskbarApplet
@@ -66,7 +66,7 @@ Requires: %{name} = %{version}
 Requires: deskbar-applet
 
 %description deskbar
-The included plugin enables Deskbar to search documents indexed by Pinot.
+The included plugin enables Deskbar to search documents indexed by Pinot
 
 %prep
 %setup -q
@@ -77,11 +77,20 @@ make
 
 %install
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
-%makeinstall
+make install DESTDIR=$RPM_BUILD_ROOT
 %find_lang %{name}
 
 %post
-gtk-update-icon-cache -q -f %{_datadir}/icons/hicolor || :
+touch --no-create %{_datadir}/icons/hicolor
+if [ -x %{_bindir}/gtk-update-icon-cache ]; then
+%{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor || :
+fi
+ 
+%postun
+touch --no-create %{_datadir}/icons/hicolor
+if [ -x %{_bindir}/gtk-update-icon-cache ]; then
+%{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor || :
+fi
 
 %clean
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
