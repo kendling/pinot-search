@@ -16,7 +16,6 @@ General
 - Document which query parameters apply to Web engines
 - Extend metadata beyond title,location,language,type,timestamp,size
 - Sync with gtk+'s xdgmime
-- Look for user-specific mimeinfo.cache in .local as suggested by Lee on the mailing list
 - Build against Fedora's patched libtextcat
 
 Tokenize
@@ -30,6 +29,10 @@ Tokenize
 - Filters should have a version number so that new versions force reindexing documents of the
  given type
 - XmLFilter is slow-ish, rewrite file parsing with the TextReader interface
+
+SQL
+- Move history files into the index directories
+- Labels are lost when a document is queued for indexing !
 
 Monitor
 - Implement support for Solaris FEM
@@ -98,7 +101,6 @@ Daemon
 - Follow updates to Xesam specs
 - Enable to deactivate D-Bus interface
 - Force full scans on Reload ?
-- When a file or directory is moved, should the history be updated too ?
 
 UI
 - When sorting results by host name, give better score to results that appear
@@ -129,5 +131,5 @@ UI
 - Show which stored queries are fully, partially or not at all Web friendly
 - List viewed URLs
 - Unify ExpandQuery and Querying threads !
-- Are labels preserved on updates and set on imports correctly ?
+- Keep a list of recently used URLs, eg in the import dialog
 

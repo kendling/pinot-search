@@ -493,3 +493,11 @@ Notes :
   * Upgrading from Xapian 0.9 or older to 1.0 is handled automatically, but
     downgrading back to 0.9 requires resetting the indexes manually. 
 
+  * If you see the message "Failed to open fingerprint file
+    '/usr/share/libtextcat/LM/danish.lm'" or similar in the output of
+    pinot-index, or in one of the logs in ~/.pinot, this means the language
+    models required by libtextcat are not in the expected location. You
+    should edit the file /etc/pinot/textcat_conf.txt and modify the paths to
+    the language models. By default, they are looked for under the directory
+    /usr/share/libtextcat/
+
