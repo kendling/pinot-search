@@ -2,7 +2,7 @@ Pinot is written by :
 
 	Fabrice Colin <fabricecolin at users dot berlios dot de>
 
-Patches, bug reports and helpful comments :
+Small patches, bug reports and helpful comments :
 
 	Reini Urban <rurban at x-ray dot at>
 	Marcus Rueckert <darix at web dot de>
@@ -16,6 +16,8 @@ Patches, bug reports and helpful comments :
 	Reuben Thomas <rrt at sc3d dot org> 
 	Marco Bazzani <visik7 at tin dot it>
 	Christian Dywan <christian at twotoasts dot de>
+	Lee Marks <ana_cata_hylo at yahoo dot com>
+	Adel Gadllah <adel dot gadllah at gmail dot com>
 
 The file Monitor/linux-inotify-syscalls.h is originally from libinotify
 (Copyright © 2005 Ryan Lortie <desrt at desrt dot ca>).
