@@ -38,21 +38,6 @@ using std::string;
 using std::set;
 using std::vector;
 
-static string getCharset(const string &contentType)
-{
-	if (contentType.empty() == false)
-	{
-		// Is a charset specified ?
-		string::size_type pos = contentType.find("charset=");
-		if (pos != string::npos)
-		{
-			return StringManip::removeQuotes(contentType.substr(pos + 8));
-		}
-	}
-
-	return "";
-}
-
 WebEngine::WebEngine() :
 	SearchEngineInterface(),
 	m_pDownloader(DownloaderFactory::getDownloader("http"))
@@ -81,30 +66,30 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 	{
 		string contentType(pDoc->getType());
 
-		// Found a charset ?
-		m_charset = getCharset(contentType);
+		// Is a charset specified ?
+		string::size_type pos = contentType.find("charset=");
+		if (pos != string::npos)
+		{
+			m_charset = StringManip::removeQuotes(contentType.substr(pos + 8));
+		}
 		if (m_charset.empty() == true)
 		{
 			Dijon::HtmlFilter htmlFilter("text/html");
 
 			if (FilterUtils::feedFilter(*pDoc, &htmlFilter) == true)
 			{
-				// Content-Type might be specified as a META tag
 				const map<string, string> &metaData = htmlFilter.get_meta_data();
-				map<string, string>::const_iterator typeIter = metaData.find("Content-Type");
+				map<string, string>::const_iterator charsetIter = metaData.find("charset");
 
-				if (typeIter != metaData.end())
+				if (charsetIter != metaData.end())
 				{
-					contentType = typeIter->second;
-					m_charset = getCharset(contentType);
-					if (m_charset.empty() == false)
-					{
-						// Reset the document's type
-						pDoc->setType(contentType);
-					}
+					m_charset = charsetIter->second;
 				}
 			}
 		}
+#ifdef DEBUG
+		cout << "WebEngine::downloadPage: charset is " << m_charset << endl;
+#endif
 	}
 
 	return pDoc;
