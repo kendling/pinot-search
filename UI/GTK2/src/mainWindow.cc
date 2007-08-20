@@ -247,10 +247,10 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 		}
 		row[m_queryColumns.m_lastRun] = to_utf8(lastRun);
 		row[m_queryColumns.m_lastRunTime] = lastRunTime;
-		string summary(StringManip::replaceSubString(queryIter->second.getFreeQuery(), "\n", " "));
+		ustring summary(StringManip::replaceSubString(queryIter->second.getFreeQuery(), "\n", " "));
 		if (summary.empty() == false)
 		{
-			row[m_queryColumns.m_summary] = to_utf8(summary);
+			row[m_queryColumns.m_summary] = summary;
 		}
 		else
 		{
@@ -920,8 +920,8 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 		bool wasCorrected;
 		QueryProperties queryProps(pQueryThread->getQuery(wasCorrected));
-		ustring queryName = to_utf8(queryProps.getName());
-		ustring engineName = to_utf8(pQueryThread->getEngineName());
+		ustring queryName(queryProps.getName());
+		ustring engineName(to_utf8(pQueryThread->getEngineName()));
 		string resultsCharset(pQueryThread->getCharset());
 		const vector<DocumentInfo> &resultsList = pQueryThread->getDocuments();
 
@@ -1064,7 +1064,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		QueryProperties queryProps = pExpandThread->getQuery();
 		const set<string> &expandTerms = pExpandThread->getExpandTerms();
 		string queryName(_("More Like"));
-		string moreLike;
+		ustring moreLike;
 
 		if (queryProps.getName().empty() == true)
 		{
@@ -1782,7 +1782,7 @@ void mainWindow::on_morelikethis_activate()
 {
 	QueryProperties queryProps;
 	vector<DocumentInfo> resultsList;
-	string queryName;
+	ustring queryName;
 
 	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
@@ -1796,7 +1796,7 @@ void mainWindow::on_morelikethis_activate()
 				pResultsTree->getSelection(resultsList);
 			}
 
-			queryName = from_utf8(pResultsPage->getTitle());
+			queryName = pResultsPage->getTitle();
 		}
 	}
 
@@ -1804,7 +1804,7 @@ void mainWindow::on_morelikethis_activate()
 	if (queryName == _("Live query"))
 	{
 		queryProps.setName(queryName);
-		queryProps.setFreeQuery(from_utf8(liveQueryEntry->get_text()));
+		queryProps.setFreeQuery(liveQueryEntry->get_text());
 	}
 	else
 	{
@@ -2463,7 +2463,7 @@ void mainWindow::on_liveQueryEntry_activate()
 //
 void mainWindow::on_findButton_clicked()
 {
-	QueryProperties queryProps(_("Live query"), from_utf8(liveQueryEntry->get_text()));
+	QueryProperties queryProps(_("Live query"), liveQueryEntry->get_text());
 
 	run_search(queryProps);
 }
@@ -2475,7 +2475,7 @@ void mainWindow::on_addQueryButton_clicked()
 {
 	// Even though live queries terms are now ANDed together,
 	// use them as OR terms when creating a new stored query
-	QueryProperties queryProps = QueryProperties("", from_utf8(liveQueryEntry->get_text()));
+	QueryProperties queryProps = QueryProperties("", liveQueryEntry->get_text());
 
 	edit_query(queryProps, true);
 }
@@ -2806,7 +2806,7 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 //
 void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 {
-	string queryName;
+	ustring queryName;
 
 	if (newQuery == false)
 	{
@@ -2840,7 +2840,7 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 	if (newQuery == false)
 	{
 		// Did the name change ?
-		string newQueryName = queryProps.getName();
+		ustring newQueryName(queryProps.getName());
 		if (newQueryName != queryName)
 		{
 			QueryHistory history(m_settings.getHistoryDatabaseName());
@@ -3023,7 +3023,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 
 		ustring status = _("Running query");
 		status += " \"";
-		status += to_utf8(queryProps.getName());
+		status += queryProps.getName();
 		status += "\" ";
 		status += _("on");
 		status += " ";

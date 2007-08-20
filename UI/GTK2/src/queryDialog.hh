@@ -22,6 +22,7 @@
 #include <string>
 #include <set>
 #include <glibmm/date.h>
+#include <glibmm/ustring.h>
 
 #include "QueryProperties.h"
 #include "PinotSettings.h"
@@ -36,7 +37,7 @@ public:
 	bool badName(void) const;
 
 protected:
-	std::string m_name;
+	Glib::ustring m_name;
 	QueryProperties& m_properties;
 	const std::set<std::string> &m_labels;
 	Glib::Date m_fromDate;

@@ -43,20 +43,19 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	unsigned int day, month, year;
 
 	// Name
-	string name(m_properties.getName());
-	if (name.empty() == true)
+	if (m_name.empty() == true)
 	{
 		queryOkbutton->set_sensitive(false);
 	}
 	else
 	{
-		nameEntry->set_text(to_utf8(name));
+		nameEntry->set_text(m_name);
 	}
 	// Query text
 	RefPtr<TextBuffer> refBuffer = queryTextview->get_buffer();
 	if (refBuffer)
 	{
-		refBuffer->set_text(to_utf8(m_properties.getFreeQuery()));
+		refBuffer->set_text(m_properties.getFreeQuery());
 	}
 	// Maximum number of results
 	resultsCountSpinbutton->set_value((double)m_properties.getMaximumResultsCount());
@@ -157,16 +156,18 @@ bool queryDialog::badName(void) const
 
 void queryDialog::on_queryOkbutton_clicked()
 {
+	ustring newName(nameEntry->get_text());
+
 	// Name
-	m_properties.setName(from_utf8(nameEntry->get_text()));
+	m_properties.setName(newName);
 	m_badName = false;
 	// Did the name change ?
-	if (m_name != m_properties.getName())
+	if (m_name != newName)
 	{
 		const std::map<string, QueryProperties> &queries = PinotSettings::getInstance().getQueries();
 
 		// Is it already used ?
-		std::map<string, QueryProperties>::const_iterator queryIter = queries.find(m_properties.getName());
+		std::map<string, QueryProperties>::const_iterator queryIter = queries.find(newName);
 		if (queryIter != queries.end())
 		{
 			// Yes, it is
@@ -181,7 +182,7 @@ void queryDialog::on_queryOkbutton_clicked()
 	RefPtr<TextBuffer> refBuffer = queryTextview->get_buffer();
 	if (refBuffer)
 	{
-		m_properties.setFreeQuery(from_utf8(refBuffer->get_text()));
+		m_properties.setFreeQuery(refBuffer->get_text());
 	}
 	// Maximum number of results
 	m_properties.setMaximumResultsCount((unsigned int)resultsCountSpinbutton->get_value());
