@@ -320,7 +320,7 @@ int main(int argc, char **argv)
 
 	// What version of the UI is this ?
 	double uiVersion = atof(VERSION);
-	if (uiVersion > 0)
+	if (uiVersion > 0.0)
 	{
 		// What version is the index at ?
 		XapianIndex docsIndex(settings.m_docsIndexLocation);
