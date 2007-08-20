@@ -342,7 +342,10 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		Xapian::QueryParser::FLAG_PURE_NOT;
 	if (minimal == false)
 	{
-		flags |= Xapian::QueryParser::FLAG_WILDCARD|Xapian::QueryParser::FLAG_SPELLING_CORRECTION;
+		flags |= Xapian::QueryParser::FLAG_WILDCARD;
+#if 0
+		flags |= Xapian::QueryParser::FLAG_SPELLING_CORRECTION;
+#endif
 	}
 
 	// Parse the query string
@@ -352,10 +355,12 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		return parsedQuery;
 	}
 
+#if 0
 	// Any correction ?
 	correctedFreeQuery = parser.get_corrected_query_string();
 #ifdef DEBUG
 	cout << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
+#endif
 #endif
 
 	// Apply a date range ?
