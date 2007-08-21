@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.75\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-14 23:27+0800\n"
+"POT-Creation-Date: 2007-08-19 18:39+0800\n"
 "PO-Revision-Date: 2007-06-21 19:51+0800\n"
 "Last-Translator: Christian Dywan <christian@twotoasts.de>\n"
 "Language-Team: German <de@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Rosetta-Export-Date: 2007-08-14 15:18:21+0000\n"
+"X-Rosetta-Export-Date: 2007-08-19 07:58:32+0000\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:68
 msgid "Search Engines"
@@ -32,8 +32,8 @@ msgstr "Aktueller Benutzer"
 #: UI/GTK2/src/mainWindow.cc:1030 UI/GTK2/src/mainWindow.cc:1201
 #: UI/GTK2/src/mainWindow.cc:1243 UI/GTK2/src/mainWindow.cc:1265
 #: UI/GTK2/src/mainWindow.cc:1296 UI/GTK2/src/mainWindow.cc:1907
-#: UI/GTK2/src/PinotSettings.cpp:304 UI/GTK2/src/PinotSettings.cpp:1361
-#: UI/GTK2/src/PinotSettings.cpp:1417 UI/GTK2/src/statisticsDialog.cc:77
+#: UI/GTK2/src/PinotSettings.cpp:311 UI/GTK2/src/PinotSettings.cpp:1368
+#: UI/GTK2/src/PinotSettings.cpp:1424 UI/GTK2/src/statisticsDialog.cc:77
 #: UI/GTK2/src/WorkerThreads.cpp:821 UI/GTK2/src/WorkerThreads.cpp:880
 msgid "My Web Pages"
 msgstr "Meine Webseiten"
@@ -42,8 +42,8 @@ msgstr "Meine Webseiten"
 #. Bind the callback's parameter to the index name
 #: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:319
 #: UI/GTK2/src/mainWindow.cc:322 UI/GTK2/src/mainWindow.cc:1037
-#: UI/GTK2/src/PinotSettings.cpp:305 UI/GTK2/src/PinotSettings.cpp:1362
-#: UI/GTK2/src/PinotSettings.cpp:1418 UI/GTK2/src/statisticsDialog.cc:82
+#: UI/GTK2/src/PinotSettings.cpp:312 UI/GTK2/src/PinotSettings.cpp:1369
+#: UI/GTK2/src/PinotSettings.cpp:1425 UI/GTK2/src/statisticsDialog.cc:82
 #: UI/GTK2/src/WorkerThreads.cpp:826 UI/GTK2/src/WorkerThreads.cpp:890
 msgid "My Documents"
 msgstr "Meine Dokumente"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "External index"
 msgstr "Externer Index"
 
-#: UI/GTK2/src/importDialog.cc:76 UI/GTK2/src/queryDialog.cc:120
+#: UI/GTK2/src/importDialog.cc:76 UI/GTK2/src/queryDialog.cc:119
 msgid "None"
 msgstr ""
 
@@ -356,7 +356,7 @@ msgstr "Bitte geben Sie zuerst den Google API-Schlüssel ein"
 msgid "Running query"
 msgstr ""
 
-#: UI/GTK2/src/mainWindow.cc:3237
+#: UI/GTK2/src/mainWindow.cc:3236
 msgid "No default application defined for type"
 msgstr "Keine Standardanwendung für Typ angegeben"
 
@@ -459,97 +459,97 @@ msgid "Pinot"
 msgstr ""
 
 #. Localize language names
-#: UI/GTK2/src/pinot.cc:227 UI/GTK2/src/pinot-dbus-daemon.cc:301
+#: UI/GTK2/src/pinot.cc:240 UI/GTK2/src/pinot-dbus-daemon.cc:314
 #: UI/GTK2/src/propertiesDialog.cc:72 UI/GTK2/src/propertiesDialog.cc:81
 msgid "Unknown"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:228 UI/GTK2/src/pinot-dbus-daemon.cc:302
+#: UI/GTK2/src/pinot.cc:241 UI/GTK2/src/pinot-dbus-daemon.cc:315
 msgid "Danish"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:229 UI/GTK2/src/pinot-dbus-daemon.cc:303
+#: UI/GTK2/src/pinot.cc:242 UI/GTK2/src/pinot-dbus-daemon.cc:316
 msgid "Dutch"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:230 UI/GTK2/src/pinot-dbus-daemon.cc:304
+#: UI/GTK2/src/pinot.cc:243 UI/GTK2/src/pinot-dbus-daemon.cc:317
 msgid "English"
 msgstr "Englisch"
 
-#: UI/GTK2/src/pinot.cc:231 UI/GTK2/src/pinot-dbus-daemon.cc:305
+#: UI/GTK2/src/pinot.cc:244 UI/GTK2/src/pinot-dbus-daemon.cc:318
 msgid "Finnish"
 msgstr "Finnisch"
 
-#: UI/GTK2/src/pinot.cc:232 UI/GTK2/src/pinot-dbus-daemon.cc:306
+#: UI/GTK2/src/pinot.cc:245 UI/GTK2/src/pinot-dbus-daemon.cc:319
 msgid "French"
 msgstr "Französisch"
 
-#: UI/GTK2/src/pinot.cc:233 UI/GTK2/src/pinot-dbus-daemon.cc:307
+#: UI/GTK2/src/pinot.cc:246 UI/GTK2/src/pinot-dbus-daemon.cc:320
 msgid "German"
 msgstr "Deutsch"
 
-#: UI/GTK2/src/pinot.cc:234 UI/GTK2/src/pinot-dbus-daemon.cc:308
+#: UI/GTK2/src/pinot.cc:247 UI/GTK2/src/pinot-dbus-daemon.cc:321
 msgid "Hungarian"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:235 UI/GTK2/src/pinot-dbus-daemon.cc:309
+#: UI/GTK2/src/pinot.cc:248 UI/GTK2/src/pinot-dbus-daemon.cc:322
 msgid "Italian"
 msgstr "Italienisch"
 
-#: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:310
+#: UI/GTK2/src/pinot.cc:249 UI/GTK2/src/pinot-dbus-daemon.cc:323
 msgid "Norwegian"
 msgstr "Norwegisch"
 
-#: UI/GTK2/src/pinot.cc:237 UI/GTK2/src/pinot-dbus-daemon.cc:311
+#: UI/GTK2/src/pinot.cc:250 UI/GTK2/src/pinot-dbus-daemon.cc:324
 msgid "Portuguese"
 msgstr "Portugiesisch"
 
-#: UI/GTK2/src/pinot.cc:238 UI/GTK2/src/pinot-dbus-daemon.cc:312
+#: UI/GTK2/src/pinot.cc:251 UI/GTK2/src/pinot-dbus-daemon.cc:325
 msgid "Romanian"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:239 UI/GTK2/src/pinot-dbus-daemon.cc:313
+#: UI/GTK2/src/pinot.cc:252 UI/GTK2/src/pinot-dbus-daemon.cc:326
 msgid "Russian"
 msgstr "Russisch"
 
-#: UI/GTK2/src/pinot.cc:240 UI/GTK2/src/pinot-dbus-daemon.cc:314
+#: UI/GTK2/src/pinot.cc:253 UI/GTK2/src/pinot-dbus-daemon.cc:327
 msgid "Spanish"
 msgstr "Spanisch"
 
-#: UI/GTK2/src/pinot.cc:241 UI/GTK2/src/pinot-dbus-daemon.cc:315
+#: UI/GTK2/src/pinot.cc:254 UI/GTK2/src/pinot-dbus-daemon.cc:328
 msgid "Swedish"
 msgstr "Schwedisch"
 
-#: UI/GTK2/src/pinot.cc:242 UI/GTK2/src/pinot-dbus-daemon.cc:316
+#: UI/GTK2/src/pinot.cc:255 UI/GTK2/src/pinot-dbus-daemon.cc:329
 msgid "Turkish"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:267
+#: UI/GTK2/src/pinot.cc:280
 msgid "Couldn't open index"
 msgstr "Konnte Index nicht öffnen"
 
-#: UI/GTK2/src/pinot.cc:288
+#: UI/GTK2/src/pinot.cc:301
 msgid "Couldn't create history database"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:329
+#: UI/GTK2/src/pinot.cc:342
 msgid "Updating all documents in My Web Pages is recommended"
 msgstr ""
 
 #. Add default labels
-#: UI/GTK2/src/PinotSettings.cpp:310
+#: UI/GTK2/src/PinotSettings.cpp:317
 msgid "Important"
 msgstr "Wichtig"
 
-#: UI/GTK2/src/PinotSettings.cpp:311
+#: UI/GTK2/src/PinotSettings.cpp:318
 msgid "New"
 msgstr "Neu"
 
-#: UI/GTK2/src/PinotSettings.cpp:312
+#: UI/GTK2/src/PinotSettings.cpp:319
 msgid "Personal"
 msgstr "Persönlich"
 
-#: UI/GTK2/src/PinotSettings.cpp:1168
+#: UI/GTK2/src/PinotSettings.cpp:1175
 msgid "Unclassified"
 msgstr ""
 
@@ -660,7 +660,7 @@ msgstr "Indizieren"
 msgid "Preferences"
 msgstr "Einstellungen"
 
-#: UI/GTK2/src/propertiesDialog.cc:60 UI/GTK2/src/queryDialog.cc:149
+#: UI/GTK2/src/propertiesDialog.cc:60 UI/GTK2/src/queryDialog.cc:148
 msgid "Label"
 msgstr ""
 
@@ -684,45 +684,45 @@ msgstr "Größe"
 msgid "Terms:"
 msgstr ""
 
-#: UI/GTK2/src/queryDialog.cc:139
+#: UI/GTK2/src/queryDialog.cc:138
 msgid "Host name"
 msgstr "Rechnername"
 
-#: UI/GTK2/src/queryDialog.cc:140
+#: UI/GTK2/src/queryDialog.cc:139
 msgid "File name"
 msgstr "Dateiname"
 
-#: UI/GTK2/src/queryDialog.cc:143
+#: UI/GTK2/src/queryDialog.cc:142
 msgid "File extension"
 msgstr "Dateiendung"
 
 #. This is the title column
-#: UI/GTK2/src/queryDialog.cc:144 UI/GTK2/src/ResultsTree.cpp:133
+#: UI/GTK2/src/queryDialog.cc:143 UI/GTK2/src/ResultsTree.cpp:133
 msgid "Title"
 msgstr ""
 
 #. URL
-#: UI/GTK2/src/queryDialog.cc:145 UI/GTK2/src/ResultsTree.cpp:143
+#: UI/GTK2/src/queryDialog.cc:144 UI/GTK2/src/ResultsTree.cpp:143
 msgid "URL"
 msgstr "URL"
 
-#: UI/GTK2/src/queryDialog.cc:146
+#: UI/GTK2/src/queryDialog.cc:145
 msgid "Directory"
 msgstr "Verzeichnis"
 
-#: UI/GTK2/src/queryDialog.cc:147
+#: UI/GTK2/src/queryDialog.cc:146
 msgid "Language code"
 msgstr ""
 
-#: UI/GTK2/src/queryDialog.cc:148
+#: UI/GTK2/src/queryDialog.cc:147
 msgid "MIME type"
 msgstr ""
 
-#: UI/GTK2/src/queryDialog.cc:271
+#: UI/GTK2/src/queryDialog.cc:272
 msgid "Start date"
 msgstr ""
 
-#: UI/GTK2/src/queryDialog.cc:286
+#: UI/GTK2/src/queryDialog.cc:287
 msgid "End date"
 msgstr ""
 
