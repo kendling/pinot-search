@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.75\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-19 18:39+0800\n"
+"POT-Creation-Date: 2007-08-22 22:25+0800\n"
 "PO-Revision-Date: 2007-07-21 12:37+0800\n"
 "Last-Translator: Sergey Vostrikov <s.vostrikov@gmail.com>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -457,80 +457,80 @@ msgid "Pinot"
 msgstr "Pinot"
 
 #. Localize language names
-#: UI/GTK2/src/pinot.cc:240 UI/GTK2/src/pinot-dbus-daemon.cc:314
+#: UI/GTK2/src/pinot.cc:256 UI/GTK2/src/pinot-dbus-daemon.cc:332
 #: UI/GTK2/src/propertiesDialog.cc:72 UI/GTK2/src/propertiesDialog.cc:81
 msgid "Unknown"
 msgstr "Неизвестный"
 
-#: UI/GTK2/src/pinot.cc:241 UI/GTK2/src/pinot-dbus-daemon.cc:315
+#: UI/GTK2/src/pinot.cc:257 UI/GTK2/src/pinot-dbus-daemon.cc:333
 msgid "Danish"
 msgstr "Датский"
 
-#: UI/GTK2/src/pinot.cc:242 UI/GTK2/src/pinot-dbus-daemon.cc:316
+#: UI/GTK2/src/pinot.cc:258 UI/GTK2/src/pinot-dbus-daemon.cc:334
 msgid "Dutch"
 msgstr "Голландский"
 
-#: UI/GTK2/src/pinot.cc:243 UI/GTK2/src/pinot-dbus-daemon.cc:317
+#: UI/GTK2/src/pinot.cc:259 UI/GTK2/src/pinot-dbus-daemon.cc:335
 msgid "English"
 msgstr "Английский"
 
-#: UI/GTK2/src/pinot.cc:244 UI/GTK2/src/pinot-dbus-daemon.cc:318
+#: UI/GTK2/src/pinot.cc:260 UI/GTK2/src/pinot-dbus-daemon.cc:336
 msgid "Finnish"
 msgstr "Финский"
 
-#: UI/GTK2/src/pinot.cc:245 UI/GTK2/src/pinot-dbus-daemon.cc:319
+#: UI/GTK2/src/pinot.cc:261 UI/GTK2/src/pinot-dbus-daemon.cc:337
 msgid "French"
 msgstr "Французский"
 
-#: UI/GTK2/src/pinot.cc:246 UI/GTK2/src/pinot-dbus-daemon.cc:320
+#: UI/GTK2/src/pinot.cc:262 UI/GTK2/src/pinot-dbus-daemon.cc:338
 msgid "German"
 msgstr "Немецкий"
 
-#: UI/GTK2/src/pinot.cc:247 UI/GTK2/src/pinot-dbus-daemon.cc:321
+#: UI/GTK2/src/pinot.cc:263 UI/GTK2/src/pinot-dbus-daemon.cc:339
 msgid "Hungarian"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:248 UI/GTK2/src/pinot-dbus-daemon.cc:322
+#: UI/GTK2/src/pinot.cc:264 UI/GTK2/src/pinot-dbus-daemon.cc:340
 msgid "Italian"
 msgstr "Итальянский"
 
-#: UI/GTK2/src/pinot.cc:249 UI/GTK2/src/pinot-dbus-daemon.cc:323
+#: UI/GTK2/src/pinot.cc:265 UI/GTK2/src/pinot-dbus-daemon.cc:341
 msgid "Norwegian"
 msgstr "Норвежский"
 
-#: UI/GTK2/src/pinot.cc:250 UI/GTK2/src/pinot-dbus-daemon.cc:324
+#: UI/GTK2/src/pinot.cc:266 UI/GTK2/src/pinot-dbus-daemon.cc:342
 msgid "Portuguese"
 msgstr "Португальский"
 
-#: UI/GTK2/src/pinot.cc:251 UI/GTK2/src/pinot-dbus-daemon.cc:325
+#: UI/GTK2/src/pinot.cc:267 UI/GTK2/src/pinot-dbus-daemon.cc:343
 msgid "Romanian"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:252 UI/GTK2/src/pinot-dbus-daemon.cc:326
+#: UI/GTK2/src/pinot.cc:268 UI/GTK2/src/pinot-dbus-daemon.cc:344
 msgid "Russian"
 msgstr "Русский"
 
-#: UI/GTK2/src/pinot.cc:253 UI/GTK2/src/pinot-dbus-daemon.cc:327
+#: UI/GTK2/src/pinot.cc:269 UI/GTK2/src/pinot-dbus-daemon.cc:345
 msgid "Spanish"
 msgstr "Испанский"
 
-#: UI/GTK2/src/pinot.cc:254 UI/GTK2/src/pinot-dbus-daemon.cc:328
+#: UI/GTK2/src/pinot.cc:270 UI/GTK2/src/pinot-dbus-daemon.cc:346
 msgid "Swedish"
 msgstr "Шведский"
 
-#: UI/GTK2/src/pinot.cc:255 UI/GTK2/src/pinot-dbus-daemon.cc:329
+#: UI/GTK2/src/pinot.cc:271 UI/GTK2/src/pinot-dbus-daemon.cc:347
 msgid "Turkish"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:280
+#: UI/GTK2/src/pinot.cc:296
 msgid "Couldn't open index"
 msgstr "Невозможно открыть индекс"
 
-#: UI/GTK2/src/pinot.cc:301
+#: UI/GTK2/src/pinot.cc:317
 msgid "Couldn't create history database"
 msgstr "Не удается создать базу данных истории"
 
-#: UI/GTK2/src/pinot.cc:342
+#: UI/GTK2/src/pinot.cc:343
 msgid "Updating all documents in My Web Pages is recommended"
 msgstr ""
 

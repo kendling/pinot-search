@@ -1,3 +1,42 @@
+2007/08/23 version_0_7_6
+Build :
+ - also look for textcat.h in libtextcat
+Monitor :
+ - a deletion would deadlock the monitor and prevent from processing any
+  further event
+ - unindex directories' contents when deleted and update when moved
+Collect :
+ - try to open files with NO_ATIME if possible
+ - Neon-based downloader had not been brought up to date
+Index :
+ - replaced na(t)ive tokenizer with Xapian's TermGenerator. No effort is
+  made to convert text to UTF-8 yet, so this depends on document formats
+  and encodings
+ - preliminary support for spelling corrections, without user feedback
+ - index directories are tagged as cache directories that they are skipped
+  by "tar --exclude-caches"
+ - preserve documents' title if possible, use user-specified title on import
+Search :
+ - fixed Sherlock parser for boost 1.34
+ - support for gSOAP 2.7.9e
+ - when searching an index, don't resort to OR'ing all terms if the original
+  query doesn't match anything, this only confused users
+Deskbar :
+ - removed unnecessary shebang in script
+Daemon :
+ - new D-Bus method Reload, that enables to reload the configuration and act
+  upon it whenever modified by the UI
+ - SimpleQuery still resorts to OR'ing all terms if the original query doesn't
+  match anything
+UI :
+ - fixed some minor cosmetic bugs, tweaked a few things
+ - user-specific MIME settings in ~/.local have priority over system settings
+ - queries with at least a start date can be run, and filter a documents list
+ - the label specified on import was ignored
+ - new traditional Chinese translation by Yung-Chung Lin
+ - updated Portuguese translation by _PN_boy
+ - updated Swedish translation by Daniel Nylander
+
 2007/07/28 version_0_7_5
 General :
  - install Dijon's ChangeLog
