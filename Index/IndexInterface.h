@@ -37,10 +37,10 @@ class IndexInterface
 		virtual bool isGood(void) const = 0;
 
 		/// Gets the version number.
-		virtual double getVersion(void) const = 0;
+		virtual std::string getVersion(void) const = 0;
 
 		/// Sets the version number.
-		virtual bool setVersion(double version) const = 0;
+		virtual bool setVersion(const std::string &version) const = 0;
 
 		/// Gets the index location.
 		virtual std::string getLocation(void) const = 0;

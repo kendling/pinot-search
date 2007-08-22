@@ -342,7 +342,7 @@ bool DBusXapianIndex::reload(void)
 //
 
 /// Sets the version number.
-bool DBusXapianIndex::setVersion(double version) const
+bool DBusXapianIndex::setVersion(const string &version) const
 {
 	cerr << "DBusXapianIndex::setVersion: not allowed" << endl;
 	return false;

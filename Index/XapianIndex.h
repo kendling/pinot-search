@@ -39,10 +39,10 @@ class XapianIndex : public IndexInterface
 		virtual bool isGood(void) const;
 
 		/// Gets the version number.
-		virtual double getVersion(void) const;
+		virtual std::string getVersion(void) const;
 
 		/// Sets the version number.
-		virtual bool setVersion(double version) const;
+		virtual bool setVersion(const std::string &version) const;
 
 		/// Gets the index location.
 		virtual std::string getLocation(void) const;

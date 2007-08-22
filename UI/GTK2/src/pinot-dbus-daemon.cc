@@ -167,6 +167,24 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 	return DBUS_HANDLER_RESULT_HANDLED;
 }
 
+static void checkIndexVersion(const string &indexName, bool &overwriteIndex, bool &upgradeIndex)
+{
+	// What version is the index at ?
+	XapianIndex index(indexName);
+	string indexVersion(index.getVersion());
+
+	// Is an upgrade necessary ?
+	if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
+		(index.getDocumentsCount() > 0))
+	{
+		cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
+
+		// Yes, it is
+		overwriteIndex = upgradeIndex = true;
+	}
+	index.setVersion(VERSION);
+}
+
 int main(int argc, char **argv)
 {
 	string prefixDir(PREFIX);
@@ -391,24 +409,7 @@ int main(int argc, char **argv)
 #endif
 
 	// What version of the daemon is this ?
-	double daemonVersion = atof(VERSION);
-	if (daemonVersion > 0.0)
-	{
-		// What version is the index at ?
-		XapianIndex daemonIndex(settings.m_daemonIndexLocation);
-		double indexVersion = daemonIndex.getVersion();
-
-		// Is an upgrade necessary ?
-		if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
-			(daemonIndex.getDocumentsCount() > 0))
-		{
-			cout << "Upgrading index from version " << indexVersion << " to " << daemonVersion << endl;
-
-			// Yes, it is
-			overwriteIndex = upgradeIndex = true;
-		}
-		daemonIndex.setVersion(daemonVersion);
-	}
+	checkIndexVersion(settings.m_daemonIndexLocation, overwriteIndex, upgradeIndex);
 
 	GError *pError = NULL;
 	DBusGConnection *pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);

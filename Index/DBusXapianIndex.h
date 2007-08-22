@@ -53,7 +53,7 @@ class DBusXapianIndex : public XapianIndex
 		static bool reload(void);
 
 		/// Sets the version number.
-		virtual bool setVersion(double version) const;
+		virtual bool setVersion(const std::string &version) const;
 
 		/// Returns a document's properties.
 		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const;

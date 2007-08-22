@@ -690,11 +690,11 @@ bool XapianIndex::isGood(void) const
 }
 
 /// Gets the version number.
-double XapianIndex::getVersion(void) const
+string XapianIndex::getVersion(void) const
 {
 	ifstream verFile;
 	string verFileName(m_databaseName + "/version");
-	double version = 0;
+	string version;
 
 	verFile.open(verFileName.c_str());
 	if (verFile.good() == true)
@@ -707,7 +707,7 @@ double XapianIndex::getVersion(void) const
 }
 
 /// Sets the version number.
-bool XapianIndex::setVersion(double version) const
+bool XapianIndex::setVersion(const string &version) const
 {
 	ofstream verFile, cacheDirFile;
 	string verFileName(m_databaseName + "/version");

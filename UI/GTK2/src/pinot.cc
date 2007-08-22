@@ -106,6 +106,22 @@ static void quitAll(int sigNum)
 	Gtk::Main::quit();
 }
 
+static void checkIndexVersion(const string &indexName, bool &upgradeIndex)
+{
+	// What version is the index at ?
+	XapianIndex index(indexName);
+	string indexVersion(index.getVersion());
+
+	// Is an upgrade necessary ?
+	if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
+		(index.getDocumentsCount() > 0))
+	{
+		// Yes, it is
+		upgradeIndex = true;
+	}
+	index.setVersion(VERSION);
+}
+
 int main(int argc, char **argv)
 {
 	string prefixDir(PREFIX);
@@ -319,22 +335,7 @@ int main(int argc, char **argv)
 	atexit(closeAll);
 
 	// What version of the UI is this ?
-	double uiVersion = atof(VERSION);
-	if (uiVersion > 0.0)
-	{
-		// What version is the index at ?
-		XapianIndex docsIndex(settings.m_docsIndexLocation);
-		double indexVersion = docsIndex.getVersion();
-
-		// Is an upgrade necessary ?
-		if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
-			(docsIndex.getDocumentsCount() > 0))
-		{
-			// Yes, it is
-			upgradeIndex = true;
-		}
-		docsIndex.setVersion(uiVersion);
-	}
+	checkIndexVersion(settings.m_docsIndexLocation, upgradeIndex);
 
 	if ((upgradeIndex == true) &&
 		(errorMsg.empty() == true))
