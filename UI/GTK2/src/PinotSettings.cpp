@@ -1194,164 +1194,175 @@ bool PinotSettings::save(void)
 	Element *pElem = NULL;
 	char numStr[64];
 
-	xmlpp::Document doc("1.0");
+	try
+	{
+		xmlpp::Document doc("1.0");
 
-	// Create a new node
-	pRootElem = doc.create_root_node("pinot");
-	if (pRootElem == NULL)
-	{
-		return false;
-	}
-	// ...with text children nodes
-	addChildElement(pRootElem, "version", VERSION);
-	addChildElement(pRootElem, "googleapikey", m_googleAPIKey);
-	// User interface position and size
-	pElem = pRootElem->add_child("ui");
-	if (pElem == NULL)
-	{
-		return false;
-	}
-	sprintf(numStr, "%d", m_xPos);
-	addChildElement(pElem, "xpos", numStr);
-	sprintf(numStr, "%d", m_yPos);
-	addChildElement(pElem, "ypos", numStr);
-	sprintf(numStr, "%d", m_width);
-	addChildElement(pElem, "width", numStr);
-	sprintf(numStr, "%d", m_height);
-	addChildElement(pElem, "height", numStr);
-	sprintf(numStr, "%d", m_panePos);
-	addChildElement(pElem, "panepos", numStr);
-	addChildElement(pElem, "expandqueries", (m_expandQueries ? "YES" : "NO"));
-	addChildElement(pElem, "showengines", (m_showEngines ? "YES" : "NO"));
-	// User-defined indexes
-	for (map<string, string>::iterator indexIter = m_indexNames.begin(); indexIter != m_indexNames.end(); ++indexIter)
-	{
-		string indexName = indexIter->first;
-
-		if (isInternalIndex(indexName) == true)
+		// Create a new node
+		pRootElem = doc.create_root_node("pinot");
+		if (pRootElem == NULL)
 		{
-			continue;
+			return false;
 		}
-
-		pElem = pRootElem->add_child("extraindex");
+		// ...with text children nodes
+		addChildElement(pRootElem, "version", VERSION);
+		addChildElement(pRootElem, "googleapikey", m_googleAPIKey);
+		// User interface position and size
+		pElem = pRootElem->add_child("ui");
 		if (pElem == NULL)
 		{
 			return false;
 		}
-		addChildElement(pElem, "name", indexIter->first);
-		addChildElement(pElem, "location", indexIter->second);
-	}
-	// Engine channels
-	for (map<string, bool>::iterator channelIter = m_engineChannels.begin();
-		channelIter != m_engineChannels.end(); ++channelIter)
-	{
-		// Only save those whose group was collapsed
-		if (channelIter->second == false)
+		sprintf(numStr, "%d", m_xPos);
+		addChildElement(pElem, "xpos", numStr);
+		sprintf(numStr, "%d", m_yPos);
+		addChildElement(pElem, "ypos", numStr);
+		sprintf(numStr, "%d", m_width);
+		addChildElement(pElem, "width", numStr);
+		sprintf(numStr, "%d", m_height);
+		addChildElement(pElem, "height", numStr);
+		sprintf(numStr, "%d", m_panePos);
+		addChildElement(pElem, "panepos", numStr);
+		addChildElement(pElem, "expandqueries", (m_expandQueries ? "YES" : "NO"));
+		addChildElement(pElem, "showengines", (m_showEngines ? "YES" : "NO"));
+		// User-defined indexes
+		for (map<string, string>::iterator indexIter = m_indexNames.begin(); indexIter != m_indexNames.end(); ++indexIter)
 		{
-			pElem = pRootElem->add_child("channel");
+			string indexName = indexIter->first;
+
+			if (isInternalIndex(indexName) == true)
+			{
+				continue;
+			}
+
+			pElem = pRootElem->add_child("extraindex");
 			if (pElem == NULL)
 			{
 				return false;
 			}
-			addChildElement(pElem, "name", channelIter->first);
+			addChildElement(pElem, "name", indexIter->first);
+			addChildElement(pElem, "location", indexIter->second);
 		}
-	}
-	// User-defined queries
-	for (map<string, QueryProperties>::iterator queryIter = m_queries.begin();
-		queryIter != m_queries.end(); ++queryIter)
-	{
-		pElem = pRootElem->add_child("storedquery");
+		// Engine channels
+		for (map<string, bool>::iterator channelIter = m_engineChannels.begin();
+			channelIter != m_engineChannels.end(); ++channelIter)
+		{
+			// Only save those whose group was collapsed
+			if (channelIter->second == false)
+			{
+				pElem = pRootElem->add_child("channel");
+				if (pElem == NULL)
+				{
+					return false;
+				}
+				addChildElement(pElem, "name", channelIter->first);
+			}
+		}
+		// User-defined queries
+		for (map<string, QueryProperties>::iterator queryIter = m_queries.begin();
+			queryIter != m_queries.end(); ++queryIter)
+		{
+			pElem = pRootElem->add_child("storedquery");
+			if (pElem == NULL)
+			{
+				return false;
+			}
+
+			Date aDate;
+			unsigned int day, month, year;
+
+			addChildElement(pElem, "name", queryIter->first);
+			addChildElement(pElem, "text", queryIter->second.getFreeQuery());
+			sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
+			addChildElement(pElem, "maxresults", numStr);
+			bool enable = queryIter->second.getMinimumDate(day, month, year);
+			if (year > 0)
+			{
+				addChildElement(pElem, "enablemindate", (enable ? "YES" : "NO"));
+				aDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
+				addChildElement(pElem, "mindate", aDate.format_string("%F"));
+			}
+			enable = queryIter->second.getMaximumDate(day, month, year);
+			if (year > 0)
+			{
+				addChildElement(pElem, "enablemaxdate", (enable ? "YES" : "NO"));
+				aDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
+				addChildElement(pElem, "maxdate", aDate.format_string("%F"));
+			}
+			addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
+			addChildElement(pElem, "label", queryIter->second.getLabelName());
+		}
+		// Labels
+		for (set<string>::iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
+		{
+			pElem = pRootElem->add_child("label");
+			if (pElem == NULL)
+			{
+				return false;
+			}
+			addChildElement(pElem, "name", *labelIter);
+		}
+		// Ignore robots directives
+		addChildElement(pRootElem, "robots", (m_ignoreRobotsDirectives ? "IGNORE" : "OBEY"));
+		// Enable terms suggestion
+		addChildElement(pRootElem, "suggestterms", (m_suggestQueryTerms ? "YES" : "NO"));
+		// New results colour
+		pElem = pRootElem->add_child("newresults");
 		if (pElem == NULL)
 		{
 			return false;
 		}
-
-		Date aDate;
-		unsigned int day, month, year;
-
-		addChildElement(pElem, "name", queryIter->first);
-		addChildElement(pElem, "text", queryIter->second.getFreeQuery());
-		sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
-		addChildElement(pElem, "maxresults", numStr);
-		bool enable = queryIter->second.getMinimumDate(day, month, year);
-		if (year > 0)
-		{
-			addChildElement(pElem, "enablemindate", (enable ? "YES" : "NO"));
-			aDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
-			addChildElement(pElem, "mindate", aDate.format_string("%F"));
-		}
-		enable = queryIter->second.getMaximumDate(day, month, year);
-		if (year > 0)
-		{
-			addChildElement(pElem, "enablemaxdate", (enable ? "YES" : "NO"));
-			aDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
-			addChildElement(pElem, "maxdate", aDate.format_string("%F"));
-		}
-		addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
-		addChildElement(pElem, "label", queryIter->second.getLabelName());
-	}
-	// Labels
-	for (set<string>::iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
-	{
-		pElem = pRootElem->add_child("label");
+		sprintf(numStr, "%u", m_newResultsColourRed);
+		addChildElement(pElem, "red", numStr);
+		sprintf(numStr, "%u", m_newResultsColourGreen);
+		addChildElement(pElem, "green", numStr);
+		sprintf(numStr, "%u", m_newResultsColourBlue);
+		addChildElement(pElem, "blue", numStr);
+		// Proxy
+		pElem = pRootElem->add_child("proxy");
 		if (pElem == NULL)
 		{
 			return false;
 		}
-		addChildElement(pElem, "name", *labelIter);
-	}
-	// Ignore robots directives
-	addChildElement(pRootElem, "robots", (m_ignoreRobotsDirectives ? "IGNORE" : "OBEY"));
-	// Enable terms suggestion
-	addChildElement(pRootElem, "suggestterms", (m_suggestQueryTerms ? "YES" : "NO"));
-	// New results colour
-	pElem = pRootElem->add_child("newresults");
-	if (pElem == NULL)
-	{
-		return false;
-	}
-	sprintf(numStr, "%u", m_newResultsColourRed);
-	addChildElement(pElem, "red", numStr);
-	sprintf(numStr, "%u", m_newResultsColourGreen);
-	addChildElement(pElem, "green", numStr);
-	sprintf(numStr, "%u", m_newResultsColourBlue);
-	addChildElement(pElem, "blue", numStr);
-	// Proxy
-	pElem = pRootElem->add_child("proxy");
-	if (pElem == NULL)
-	{
-		return false;
-	}
-	addChildElement(pElem, "address", m_proxyAddress);
-	sprintf(numStr, "%u", m_proxyPort);
-	addChildElement(pElem, "port", numStr);
-	addChildElement(pElem, "type", m_proxyType);
-	addChildElement(pElem, "enable", (m_proxyEnabled ? "YES" : "NO"));
-	// Locations to index 
-	for (set<IndexableLocation>::iterator locationIter = m_indexableLocations.begin(); locationIter != m_indexableLocations.end(); ++locationIter)
-	{
-		pElem = pRootElem->add_child("indexable");
+		addChildElement(pElem, "address", m_proxyAddress);
+		sprintf(numStr, "%u", m_proxyPort);
+		addChildElement(pElem, "port", numStr);
+		addChildElement(pElem, "type", m_proxyType);
+		addChildElement(pElem, "enable", (m_proxyEnabled ? "YES" : "NO"));
+		// Locations to index 
+		for (set<IndexableLocation>::iterator locationIter = m_indexableLocations.begin();
+			locationIter != m_indexableLocations.end(); ++locationIter)
+		{
+			pElem = pRootElem->add_child("indexable");
+			if (pElem == NULL)
+			{
+				return false;
+			}
+			addChildElement(pElem, "name", locationIter->m_name);
+			addChildElement(pElem, "monitor", (locationIter->m_monitor ? "YES" : "NO"));
+		}
+		// File patterns
+		pElem = pRootElem->add_child("patterns");
 		if (pElem == NULL)
 		{
 			return false;
 		}
-		addChildElement(pElem, "name", locationIter->m_name);
-		addChildElement(pElem, "monitor", (locationIter->m_monitor ? "YES" : "NO"));
+		for (set<ustring>::iterator patternIter = m_filePatternsList.begin();
+			patternIter != m_filePatternsList.end() ; ++patternIter)
+		{
+			addChildElement(pElem, "pattern", *patternIter);
+		}
+		addChildElement(pElem, "forbid", (m_isBlackList ? "YES" : "NO"));
+
+		// Save to file
+		doc.write_to_file_formatted(getConfigurationFileName());
 	}
-	// File patterns
-	pElem = pRootElem->add_child("patterns");
-	if (pElem == NULL)
+	catch (const std::exception& ex)
 	{
+		cerr << "Couldn't save configuration file: "
+			<< ex.what() << endl;
 		return false;
 	}
-	for (set<ustring>::iterator patternIter = m_filePatternsList.begin(); patternIter != m_filePatternsList.end() ; ++patternIter)
-	{
-		addChildElement(pElem, "pattern", *patternIter);
-	}
-	addChildElement(pElem, "forbid", (m_isBlackList ? "YES" : "NO"));
-
-	// Save to file
-	doc.write_to_file_formatted(getConfigurationFileName());
 
 	return true;
 }
