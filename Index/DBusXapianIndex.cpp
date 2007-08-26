@@ -302,7 +302,7 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 /// Asks the D-Bus service to reload its configuration.
 bool DBusXapianIndex::reload(void)
 {
-	bool reloading = false;
+	gboolean reloading = FALSE;
 
 	DBusGConnection *pBus = getBusConnection();
 	if (pBus == NULL)
@@ -333,7 +333,12 @@ bool DBusXapianIndex::reload(void)
 	g_object_unref(pBusProxy);
 	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
 
-	return reloading;
+	if (reloading == TRUE)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 
