@@ -513,14 +513,14 @@ bool PinotSettings::loadUi(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 		if (nodeName == "xpos")
 		{
 			m_xPos = atoi(nodeContent.c_str());
@@ -586,14 +586,14 @@ bool PinotSettings::loadIndexes(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 		if (nodeName == "name")
 		{
 			indexName = nodeContent;
@@ -629,14 +629,14 @@ bool PinotSettings::loadEngineChannels(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 		if (nodeName == "name")
 		{
 			std::map<string, bool>::iterator channelIter = m_engineChannels.find(nodeContent);
@@ -676,14 +676,14 @@ bool PinotSettings::loadQueries(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 		if (nodeName == "name")
 		{
 			queryProps.setName(nodeContent);
@@ -851,14 +851,14 @@ bool PinotSettings::loadLabels(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 
 		if (nodeName == "name")
 		{
@@ -887,14 +887,14 @@ bool PinotSettings::loadColour(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 		gushort value = (gushort)atoi(nodeContent.c_str());
 
 		if (nodeName == "red")
@@ -930,14 +930,14 @@ bool PinotSettings::loadProxy(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 
 		if (nodeName == "address")
 		{
@@ -986,14 +986,14 @@ bool PinotSettings::loadIndexableLocations(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 
 		if (nodeName == "name")
 		{
@@ -1037,14 +1037,14 @@ bool PinotSettings::loadFilePatterns(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 
 		if (nodeName == "pattern")
 		{
@@ -1085,14 +1085,14 @@ bool PinotSettings::loadCacheProviders(const Element *pElem)
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 	{
 		Node *pNode = (*iter);
-		Element *pElem = dynamic_cast<Element*>(pNode);
-		if (pElem == NULL)
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
 		{
 			continue;
 		}
 
-		string nodeName = pElem->get_name();
-		string nodeContent = getElementContent(pElem);
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
 
 		if (nodeName == "name")
 		{

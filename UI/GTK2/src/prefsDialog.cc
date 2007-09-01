@@ -420,9 +420,9 @@ void prefsDialog::on_removeLabelButton_clicked()
 		// Unselect
 		labelsTreeview->get_selection()->unselect(iter);
 		// Select another row
-		TreeModel::Path path = m_refLabelsTree->get_path(iter);
-		path.next();
-		labelsTreeview->get_selection()->select(path);
+		TreeModel::Path labelPath = m_refLabelsTree->get_path(iter);
+		labelPath.next();
+		labelsTreeview->get_selection()->select(labelPath);
 		// Erase
 		TreeModel::Row row = *iter;
 		m_deletedLabels.insert(from_utf8(row[m_labelsColumns.m_name]));
@@ -476,9 +476,9 @@ void prefsDialog::on_removeDirectoryButton_clicked()
 		// Unselect
 		directoriesTreeview->get_selection()->unselect(iter);
 		// Select another row
-		TreeModel::Path path = m_refDirectoriesTree->get_path(iter);
-		path.next();
-		directoriesTreeview->get_selection()->select(path);
+		TreeModel::Path dirPath = m_refDirectoriesTree->get_path(iter);
+		dirPath.next();
+		directoriesTreeview->get_selection()->select(dirPath);
 
 		// Erase
 		TreeModel::Row row = *iter;
@@ -528,8 +528,8 @@ void prefsDialog::on_addPatternButton_clicked()
 	TreeViewColumn *pColumn = patternsTreeview->get_column(0);
 	if (pColumn != NULL)
 	{
-		TreeModel::Path path = m_refPatternsTree->get_path(iter);
-		patternsTreeview->set_cursor(path, *pColumn, true);
+		TreeModel::Path patternPath = m_refPatternsTree->get_path(iter);
+		patternsTreeview->set_cursor(patternPath, *pColumn, true);
 	}
 
 	if (wasEmpty == true)
@@ -548,9 +548,9 @@ void prefsDialog::on_removePatternButton_clicked()
 		// Unselect
 		patternsTreeview->get_selection()->unselect(iter);
 		// Select another row
-		TreeModel::Path path = m_refPatternsTree->get_path(iter);
-		path.next();
-		patternsTreeview->get_selection()->select(path);
+		TreeModel::Path patternPath = m_refPatternsTree->get_path(iter);
+		patternPath.next();
+		patternsTreeview->get_selection()->select(patternPath);
 
 		// Erase
 		TreeModel::Row row = *iter;

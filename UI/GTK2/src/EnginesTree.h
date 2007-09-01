@@ -81,7 +81,7 @@ class EnginesTree : public Gtk::TreeView
 
 		/// Handles attempts to select rows.
 		bool onSelectionSelect(const Glib::RefPtr<Gtk::TreeModel>& model,
-			const Gtk::TreeModel::Path& path, bool path_currently_selected);
+			const Gtk::TreeModel::Path& node_path, bool path_currently_selected);
 
 		/// Handles GTK style changes.
 		void onStyleChanged(const Glib::RefPtr<Gtk::Style> &previous_style);

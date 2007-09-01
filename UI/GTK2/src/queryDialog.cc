@@ -97,8 +97,8 @@ bool queryDialog::is_separator(const RefPtr<TreeModel>& model, const TreeModel::
 {
 	if (iter)
 	{
-		const TreeModel::Path path = model->get_path(iter);
-		string rowPath(from_utf8(path.to_string()));
+		const TreeModel::Path queryPath = model->get_path(iter);
+		string rowPath(from_utf8(queryPath.to_string()));
 		unsigned int rowPos = 0;
 
 		// FIXME: this is extremely hacky !

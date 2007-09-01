@@ -108,15 +108,15 @@ void EnginesTree::save(void)
 		if (row[m_enginesColumns.m_type] == EnginesModelColumns::ENGINE_FOLDER)
 		{
 			ustring channelName(row[m_enginesColumns.m_name]);
-			TreeModel::Path path = m_refStore->get_path(iter);
+			TreeModel::Path channelPath = m_refStore->get_path(iter);
 
 			std::map<string, bool>::iterator channelIter = channels.find(from_utf8(channelName));
 			if (channelIter != channels.end())
 			{
 #ifdef DEBUG
-				cout << "EnginesTree::save: " << channelName << " is " << row_expanded(path) << endl;
+				cout << "EnginesTree::save: " << channelName << " is " << row_expanded(channelPath) << endl;
 #endif
-				channelIter->second = row_expanded(path);
+				channelIter->second = row_expanded(channelPath);
 			}
 		}
 	}
@@ -203,7 +203,7 @@ void EnginesTree::onButtonPressEvent(GdkEventButton *ev)
 // Handles attempts to select rows.
 //
 bool EnginesTree::onSelectionSelect(const RefPtr<TreeModel>& model,
-		const TreeModel::Path& path, bool path_currently_selected)
+		const TreeModel::Path& node_path, bool path_currently_selected)
 {
 	// All nodes can be selected
 	return true;
@@ -341,11 +341,11 @@ void EnginesTree::populate(bool indexesOnly)
 		}
 
 		TreeModel::iterator iter = m_refStore->append(localIter->children());
-		TreeModel::Row row = *iter;
-		row[m_enginesColumns.m_name] = indexName;
-		row[m_enginesColumns.m_engineName] = "xapian";
-		row[m_enginesColumns.m_option] = to_utf8(indexIter->second);
-		row[m_enginesColumns.m_type] = indexType;
+		TreeModel::Row childRow = *iter;
+		childRow[m_enginesColumns.m_name] = indexName;
+		childRow[m_enginesColumns.m_engineName] = "xapian";
+		childRow[m_enginesColumns.m_option] = to_utf8(indexIter->second);
+		childRow[m_enginesColumns.m_type] = indexType;
 	}
 
 	// Expand this

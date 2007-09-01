@@ -100,7 +100,7 @@ class ResultsTree : public Gtk::TreeView
 		void clear(void);
 
 		/// Shows or hides the extract field.
-		void showExtract(bool show = true);
+		void showExtract(bool showExtract = true);
 
 		/// Exports results to a file.
 		void exportResults(const std::string &fileName, bool csvFormat);
@@ -148,7 +148,7 @@ class ResultsTree : public Gtk::TreeView
 		void onSelectionChanged(void);
 
 		bool onSelectionSelect(const Glib::RefPtr<Gtk::TreeModel>& model,
-			const Gtk::TreeModel::Path& path, bool path_currently_selected);
+			const Gtk::TreeModel::Path& node_path, bool path_currently_selected);
 
 		/// Handles GTK style changes.
 		void onStyleChanged(const Glib::RefPtr<Gtk::Style> &previous_style);

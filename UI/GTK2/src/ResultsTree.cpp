@@ -368,9 +368,9 @@ void ResultsTree::onSelectionChanged(void)
 }
 
 bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
-	const TreeModel::Path& path, bool path_currently_selected)
+	const TreeModel::Path& node_path, bool path_currently_selected)
 {
-	const TreeModel::iterator iter = model->get_iter(path);
+	const TreeModel::iterator iter = model->get_iter(node_path);
 	const TreeModel::Row row = *iter;
 
 	m_indexNames.clear();
@@ -389,8 +389,8 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			cout << "ResultsTree::onSelectionSelect: extract for " << row[m_resultsColumns.m_text] << endl;
 #endif
 
-			TreeModel::iterator iter = m_refExtractStore->append();
-			TreeModel::Row extractRow = *iter;
+			TreeModel::iterator extractIter = m_refExtractStore->append();
+			TreeModel::Row extractRow = *extractIter;
 			extractRow[m_extractColumns.m_name] = findResultsExtract(row);
 		}
 	}
@@ -750,10 +750,10 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 						// Add entries for each index name so that we can loop once on engine names
 						set<string> indexNames;
 						m_settings.getIndexNames(indexIds, indexNames);
-						for (set<string>::iterator iter = indexNames.begin();
-							iter != indexNames.end(); ++iter)
+						for (set<string>::iterator indexIter = indexNames.begin();
+							indexIter != indexNames.end(); ++indexIter)
 						{
-							string indexName(*iter);
+							string indexName(*indexIter);
 							engineNames.insert(indexName);
 #ifdef DEBUG
 							cout << "ResultsTree::setGroupMode: row is for index " << indexName << endl;
@@ -761,10 +761,10 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 						}
 					}
 
-					for (set<string>::iterator iter = engineNames.begin();
-						iter != engineNames.end(); ++iter)
+					for (set<string>::iterator engineIter = engineNames.begin();
+						engineIter != engineNames.end(); ++engineIter)
 					{
-						string engineName(*iter);
+						string engineName(*engineIter);
 						unsigned int indexId = 0;
 						unsigned int engineId = m_settings.getEngineId(engineName);
 
@@ -800,7 +800,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 								engineId, indexId,
 								newIter, groupIter, true);
 #ifdef DEBUG
-							cout << "ResultsTree::setGroupMode: row for " << *iter << endl;
+							cout << "ResultsTree::setGroupMode: row for " << engineName << endl;
 #endif
 						}
 					}
@@ -1171,9 +1171,9 @@ void ResultsTree::clear(void)
 //
 // Shows or hides the extract field.
 //
-void ResultsTree::showExtract(bool show)
+void ResultsTree::showExtract(bool showExtract)
 {
-	m_showExtract = show;
+	m_showExtract = showExtract;
 	if (m_showExtract == true)
 	{
 		// Show the extract
@@ -1250,13 +1250,13 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 			childIter != groupChildren.end(); ++childIter)
 		{
 			set<string> engineNames, indexNames;
-			TreeModel::Row row = *childIter;
-			DocumentInfo result(from_utf8(row[m_resultsColumns.m_text]),
-				from_utf8(row[m_resultsColumns.m_url]),
-				from_utf8(row[m_resultsColumns.m_type]), "");
+			TreeModel::Row childRow = *childIter;
+			DocumentInfo result(from_utf8(childRow[m_resultsColumns.m_text]),
+				from_utf8(childRow[m_resultsColumns.m_url]),
+				from_utf8(childRow[m_resultsColumns.m_type]), "");
 			string engineName, charset;
-			unsigned int engineIds = row[m_resultsColumns.m_engines];
-			unsigned int indexIds = row[m_resultsColumns.m_indexes];
+			unsigned int engineIds = childRow[m_resultsColumns.m_engines];
+			unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
 
 #ifdef DEBUG
 			cout << "ResultsTree::exportResults: engines " << engineIds << ", indexes " << indexIds << endl;

@@ -262,9 +262,9 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 			(queryName == selectedQueryName))
 		{
 			// Select and scroll to this query
-			TreeModel::Path path = m_refQueryTree->get_path(iter);
-			queryTreeview->get_selection()->select(path);
-			queryTreeview->scroll_to_row(path);
+			TreeModel::Path queryPath = m_refQueryTree->get_path(iter);
+			queryTreeview->get_selection()->select(queryPath);
+			queryTreeview->scroll_to_row(queryPath);
 		}
 	}
 }
@@ -353,11 +353,11 @@ void mainWindow::populate_menus()
 			cacheIter != m_settings.m_cacheProviders.end(); ++cacheIter)
 		{
 			m_pCacheMenu->items().push_back(Menu_Helpers::MenuElem(cacheIter->m_name));
-			MenuItem *pMenuItem = &m_pCacheMenu->items().back();
+			MenuItem *pCacheMenuItem = &m_pCacheMenu->items().back();
 
 			// Bind the callback's parameter to the cache provider
-			SigC::Slot0<void> documentsActivateSlot = sigc::bind(cacheSlot, (*cacheIter));
-			pMenuItem->signal_activate().connect(documentsActivateSlot);
+			SigC::Slot0<void> cachedDocumentsActivateSlot = sigc::bind(cacheSlot, (*cacheIter));
+			pCacheMenuItem->signal_activate().connect(cachedDocumentsActivateSlot);
 		}
 	}
 }
@@ -438,7 +438,6 @@ void mainWindow::on_enginesTreeviewSelection_changed()
 void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 {
 	vector<DocumentInfo> resultsList;
-	string url;
 	bool hasSelection = false;
 
 	NotebookPageBox *pNotebookPage = get_page(queryName, NotebookPageBox::RESULTS_PAGE);
@@ -2153,7 +2152,7 @@ void mainWindow::on_showfromindex_activate()
 				docIter != documentsList.end(); ++docIter)
 			{
 				unsigned int indexId = 0;
-				unsigned int docId = docIter->getIsIndexed(indexId);
+				docId = docIter->getIsIndexed(indexId);
 
 				docIter->setLanguage(newLanguage);
 
@@ -2520,9 +2519,9 @@ void mainWindow::on_removeQueryButton_clicked()
 
 			// Select another row
 			queryTreeview->get_selection()->unselect(iter);
-			TreeModel::Path path = m_refQueryTree->get_path(iter);
-			path.next();
-			queryTreeview->get_selection()->select(path);
+			TreeModel::Path queryPath = m_refQueryTree->get_path(iter);
+			queryPath.next();
+			queryTreeview->get_selection()->select(queryPath);
 			// Erase
 			m_refQueryTree->erase(row);
 
@@ -2954,8 +2953,8 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 			{
 				TreeModel::Row folderEngineRow = *folderEngineIter;
 
-				EnginesModelColumns::EngineType engineType = engineRow[engineColumns.m_type];
-				if (engineType < EnginesModelColumns::ENGINE_FOLDER)
+				EnginesModelColumns::EngineType folderEngineType = folderEngineRow[engineColumns.m_type];
+				if (folderEngineType < EnginesModelColumns::ENGINE_FOLDER)
 				{
 					// Skip
 					continue;
@@ -3109,7 +3108,6 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 {
 	ViewHistory viewHistory(m_settings.getHistoryDatabaseName());
 	multimap<string, string> locationsByType;
-	vector<DocumentInfo>::iterator docIter = documentsList.begin();
 
 	for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
@@ -3143,8 +3141,6 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 		// What's the MIME type ?
 		if (mimeType.empty() == true)
 		{
-			Url urlObj(url);
-
 			// Scan for the MIME type
 			mimeType = MIMEScanner::scanUrl(urlObj);
 		}

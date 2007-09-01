@@ -164,8 +164,8 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 
 		row[m_labelsColumns.m_name] = labelName;
 		// Is it in the document labels list ?
-		set<string>::const_iterator iter = find(docLabels.begin(), docLabels.end(), labelName);
-		if (iter != docLabels.end())
+		set<string>::const_iterator docLabelIter = find(docLabels.begin(), docLabels.end(), labelName);
+		if (docLabelIter != docLabels.end())
 		{
 			// Yup
 			row[m_labelsColumns.m_enabled] = true;
