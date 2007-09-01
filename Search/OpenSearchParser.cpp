@@ -185,10 +185,9 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 		for (Node::NodeList::const_iterator iter = childNodes.begin();
 			iter != childNodes.end(); ++iter)
 		{
-			Node *pNode = (*iter);
-
-			ustring nodeName = pNode->get_name();
-			ustring nodeContent = getNodeContent(pNode);
+			Node *pChildNode = (*iter);
+			ustring nodeName(pChildNode->get_name());
+			ustring nodeContent(getNodeContent(pChildNode));
 
 			// Is this an OpenSearch extension ?
 			// FIXME: make sure namespace is opensearch
@@ -222,7 +221,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 
 			// Go through the item's subnodes
 			ustring title, url, extract;
-			const Node::NodeList itemChildNodes = pNode->get_children();
+			const Node::NodeList itemChildNodes = pChildNode->get_children();
 			for (Node::NodeList::const_iterator itemIter = itemChildNodes.begin();
 				itemIter != itemChildNodes.end(); ++itemIter)
 			{
@@ -342,15 +341,16 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 		{
 			for (Node::NodeList::const_iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
 			{
-				Node *pNode = (*iter);
-				Element *pElem = dynamic_cast<Element*>(pNode);
+				Node *pChildNode = (*iter);
+				Element *pElem = dynamic_cast<Element*>(pChildNode);
 				if (pElem == NULL)
 				{
 					continue;
 				}
 
-				ustring nodeName = pNode->get_name();
-				ustring nodeContent = getNodeContent(pNode);
+				ustring nodeName(pChildNode->get_name());
+				ustring nodeContent(getNodeContent(pChildNode));
+
 				if (nodeName == "ShortName")
 				{
 					properties.m_name = nodeContent;

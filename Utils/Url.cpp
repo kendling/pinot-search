@@ -357,9 +357,9 @@ string Url::reduceHost(const string &hostName, unsigned int level)
 		}
 		else
 		{
-			string level(hostName.substr(pos + 1, endPos - pos));
-			level += reducedHost;
-			reducedHost = level;
+			string levelled(hostName.substr(pos + 1, endPos - pos));
+			levelled += reducedHost;
+			reducedHost = levelled;
 		}
 
 		// Next

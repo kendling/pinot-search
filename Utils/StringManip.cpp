@@ -223,7 +223,7 @@ unsigned int StringManip::removeCharacters(string &str, const string &characters
 /// Trims spaces at the start and end of a string.
 unsigned int StringManip::trimSpaces(string &str)
 {
-	unsigned int pos = 0;
+	string::size_type pos = 0;
 	unsigned int count = 0;
 
 	while ((str.empty() == false) && (pos < str.length()))
@@ -238,7 +238,7 @@ unsigned int StringManip::trimSpaces(string &str)
 		++count;
 	}
 
-	for (unsigned int pos = str.length() - 1;
+	for (pos = str.length() - 1;
 		(str.empty() == false) && (pos >= 0); --pos)
 	{
 		if (isspace(str[pos]) == 0)
