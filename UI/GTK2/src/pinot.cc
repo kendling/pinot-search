@@ -29,6 +29,7 @@
 #include <glibmm/ustring.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/convert.h>
+#include "config.h"
 extern "C"
 {
 #if DBUS_VERSION < 1000000
@@ -50,7 +51,6 @@ extern "C"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
 #include "XapianIndex.h"
-#include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
 #include "mainWindow.hh"
