@@ -105,10 +105,6 @@ fi
 %{_bindir}/pinot-search
 %{_libdir}/pinot/filters/libexternalfilter.so*
 %{_libdir}/pinot/filters/libmboxfilter.so*
-%{_datadir}/pinot/xapian-powered.png
-%{_datadir}/pinot/metase-gtk2.glade
-%{_datadir}/pinot/metase-gtk2.gladep
-%{_datadir}/pinot/pinot-dbus-daemon.xml
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
