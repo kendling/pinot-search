@@ -1,0 +1,47 @@
+  * At startup, when listing an index or indexing documents, Pinot complains
+    of an "index error"
+    This is likely because a previous instance didn't exit properly and one
+    (or more) index is still locked. Quit Pinot and look for a "db_lock" file
+    in "~/.pinot/index". If it's there, delete it and restart Pinot.
+    Starting with 0.60, indexes are created with the newer Flint back-end
+    which is immune to this issue.
+
+  * When compiling from source, you may run into linking problems related to
+    libstdc++.la. Try patching xapian-config as explained in the post at
+    http://lists.tartarus.org/pipermail/xapian-devel/2006-January/000293.html
+
+  * If you experience segfaults at startup and you are on Fedora, chances are
+    it's because of libxml++/libsigc++. See this Bugzilla entry :
+    https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=178592
+    The latest version seems to fix this issue.
+
+  * If the daemon crashes seemingly randomly while indexing, it may be because
+    SQLite wasn't built thread-safe. I have witnessed this mostly on dual CPU
+    machines, but others are not immune. Try rebuilding SQLite by passing
+    "--enable-threadsafe --enable-threads-override-locks" to configure.
+
+  * If you have built Pinot from source, make sure you have done a "make install".
+    Pinot will fail to start if it can't find stuff it needs, its icon for
+    instance.
+
+  * If "make install" fails with an error about Categories in pinot.desktop
+    and you have desktop-file-utils 0.11, either downgrade to 0.10 or upgrade
+    to 0.12 if possible, or edit the top-level Makefile and replace the line
+     @desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications pinot.desktop
+    with
+     $(INSTALL_DATA) pinot.desktop $(DESTDIR)$(datadir)/applications/pinot.desktop
+    and run "make install" again.
+
+  * In stored queries, the directory filter doesn't work as expected if the
+    directory name starts with a non alpha-numeric character. This has been
+    fixed in Xapian 0.9.8.
+
+  * On FreeBSD, threading issues may cause the daemon to crash unexpectedly.
+    A fix is to add the following lines to /etc/libmap.conf (which may not exist) :
+     [/usr/local/bin/pinot-dbus-daemon]
+     libpthread.so.2         libc_r.so.6
+     libpthread.so           libc_r.so
+
+     [/usr/local/bin/pinot]
+     libpthread.so.2         libc_r.so.6
+     libpthread.so           libc_r.so

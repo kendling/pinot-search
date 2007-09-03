@@ -1,7 +1,7 @@
 
 SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ Search Monitor UI/GTK2/src
 
-EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon NEWS README TODO mkinstalldirs \
+EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO mkinstalldirs \
 	Tokenize/filters/external-filters.xml globalconfig.xml \
 	textcat_conf.txt textcat3_conf.txt \
 	pinot.desktop pinot-dbus-daemon.desktop pinot.spec \
