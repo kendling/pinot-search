@@ -1136,7 +1136,7 @@ unsigned int XapianIndex::listDocuments(set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
 	// All documents have the magic term
-	return listDocumentsWithTerm(MAGIC_TERM, docIds, maxDocsCount, startDoc);
+	return listDocumentsWithTerm("", docIds, maxDocsCount, startDoc);
 }
 
 /// Lists documents.
