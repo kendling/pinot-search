@@ -157,7 +157,8 @@ mainWindow::mainWindow() :
 	populate_queryTreeview("");
 
 	// Populate the menus
-	populate_menus();
+	populate_cacheMenu();
+	populate_indexMenu();
 
 	// Create a notebook, without any page initially
 	m_pNotebook = manage(new Notebook());
@@ -298,36 +299,10 @@ void mainWindow::save_queryTreeview()
 }
 
 //
-// Populate menus
+// Populate the cache menu
 //
-void mainWindow::populate_menus()
+void mainWindow::populate_cacheMenu()
 {
-	if (m_pIndexMenu == NULL)
-	{
-		m_pIndexMenu = manage(new Menu());
-		list1->set_submenu(*m_pIndexMenu);
-	}
-	else
-	{
-		// Clear the submenu
-		m_pIndexMenu->items().clear();
-	}
-
-	SigC::Slot1<void, ustring> indexSlot = SigC::slot(*this, &mainWindow::on_index_changed);
-
-	// Populate the submenu
-	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Documents")));
-	MenuItem *pMenuItem = &m_pIndexMenu->items().back();
-	// Bind the callback's parameter to the index name
-	SigC::Slot0<void> daemonActivateSlot = sigc::bind(indexSlot, _("My Documents"));
-	pMenuItem->signal_activate().connect(daemonActivateSlot);
-
-	m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(_("My Web Pages")));
-	pMenuItem = &m_pIndexMenu->items().back();
-	// Bind the callback's parameter to the index name
-	SigC::Slot0<void> documentsActivateSlot = sigc::bind(indexSlot, _("My Web Pages"));
-	pMenuItem->signal_activate().connect(documentsActivateSlot);
-
 	if (m_pCacheMenu == NULL)
 	{
 		m_pCacheMenu = manage(new Menu());
@@ -359,6 +334,38 @@ void mainWindow::populate_menus()
 			SigC::Slot0<void> cachedDocumentsActivateSlot = sigc::bind(cacheSlot, (*cacheIter));
 			pCacheMenuItem->signal_activate().connect(cachedDocumentsActivateSlot);
 		}
+	}
+}
+
+//
+// Populate the index menu
+//
+void mainWindow::populate_indexMenu()
+{
+	if (m_pIndexMenu == NULL)
+	{
+		m_pIndexMenu = manage(new Menu());
+		list1->set_submenu(*m_pIndexMenu);
+	}
+	else
+	{
+		// Clear the submenu
+		m_pIndexMenu->items().clear();
+	}
+
+	SigC::Slot1<void, ustring> indexSlot = SigC::slot(*this, &mainWindow::on_index_changed);
+
+	std::map<std::string, std::string> indexes = m_settings.getIndexes();
+	for (std::map<std::string, std::string>::const_iterator indexIter = indexes.begin();
+		indexIter != indexes.end(); ++indexIter)
+	{
+		ustring indexName(to_utf8(indexIter->first));
+
+		m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(indexName));
+		MenuItem &menuItem = m_pIndexMenu->items().back();
+		// Bind the callback's parameter to the index name
+		SigC::Slot0<void> menuItemSlot = sigc::bind(indexSlot, indexName);
+		menuItem.signal_activate().connect(menuItemSlot);
 	}
 }
 
@@ -535,16 +542,21 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 		if (url.empty() == false)
 		{
 			bool isDocumentsIndex = true;
+			bool editDocument = true;
 
 			// Enable these menu items unless it is not the documents index
 			if (indexName != _("My Web Pages"))
 			{
 				isDocumentsIndex = false;
+				if (indexName != _("My Documents"))
+				{
+					editDocument = false;
+				}
 			}
 			viewfromindex1->set_sensitive(true);
 			refreshindex1->set_sensitive(isDocumentsIndex);
 			unindex1->set_sensitive(isDocumentsIndex);
-			showfromindex1->set_sensitive(true);
+			showfromindex1->set_sensitive(editDocument);
 
 			// Show the URL in the status bar
 			ustring statusText = _("Document location is");
@@ -1383,6 +1395,8 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 
 		// Refresh the engines list
 		m_pEnginesTree->populate();
+		// ...and the index menu
+		populate_indexMenu();
 	}
 
 	set_status(_("Edited index"));
@@ -2014,6 +2028,13 @@ void mainWindow::on_showfromindex_activate()
 		pResultsTree = pIndexPage->getTree();
 	}
 
+	// Allow this only for internal indexes
+	if ((indexName != _("My Web Pages")) &&
+		(indexName != _("My Documents")))
+	{
+		return;
+	}
+
 	const std::map<string, string> &indexesMap = m_settings.getIndexes();
 	std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
 	if (mapIter == indexesMap.end())
@@ -2315,6 +2336,8 @@ void mainWindow::on_addIndexButton_clicked()
 		// Refresh the indexes list
 		removeIndexButton->set_sensitive(false);
 		m_pEnginesTree->populate();
+		// ...and the index menu
+		populate_indexMenu();
 	}
 
 	set_status(_("Added new index"));
@@ -2364,6 +2387,8 @@ void mainWindow::on_removeIndexButton_clicked()
 			// Refresh the indexes list
 			removeIndexButton->set_sensitive(false);
 			m_pEnginesTree->populate();
+			// ...and the index menu
+			populate_indexMenu();
 		}
 	}
 }

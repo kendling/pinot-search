@@ -58,7 +58,8 @@ protected:
 	// Utility methods
 	void populate_queryTreeview(const std::string &selectedQueryName);
 	void save_queryTreeview();
-	void populate_menus();
+	void populate_cacheMenu();
+	void populate_indexMenu();
 
 	// Handlers
 	bool on_queryCompletion_match(const Glib::ustring &key, const Gtk::TreeModel::const_iterator &iter);
