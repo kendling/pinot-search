@@ -73,7 +73,7 @@ The included plugin enables Deskbar to search documents indexed by Pinot
 
 %build
 %configure %{?_with_soap:--enable-soap=yes} %{?_with_debug:--enable-debug=yes}
-make
+make %{?_smp_mflags}
 
 %install
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
@@ -97,7 +97,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(-, root, root, -)
-%doc AUTHORS ChangeLog ChangeLog-dijon COPYING NEWS README TODO
+%doc AUTHORS ChangeLog ChangeLog-dijon COPYING FAQ NEWS README TODO
 %config(noreplace) %{_sysconfdir}/pinot/
 %{_bindir}/pinot
 %{_bindir}/pinot-dbus-daemon
