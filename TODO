@@ -17,6 +17,9 @@ General
 - Extend metadata beyond title,location,language,type,timestamp,size
 - Sync with gtk+'s xdgmime
 - Build against Fedora's patched libtextcat
+- Remove Pinot dependencies from Dijon, move code to trunk
+- Don't package gmo files, they are platform dependent
+- Use po/LINGUAS
 
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
@@ -67,8 +70,6 @@ Index
 - Index Nautilus metadata (http://linuxboxadmin.com/articles/nautilus.php)
 - Reverse terms so that left wildcards can be applied ?
 - XapianIndex could do with some common code refactoring
-- With Xapian >= 1.0, all indexes can be browsed with the new global posting list, ie
-  Xapian::Database::postlist_begin("")
 - Xapian > 1.0 has a version of Xapian::Database::allterms_begin() that takes a prefix
 - With Xapian > 1.0.2, for date ranges, use QueryParser::add_valuerangeprocessor()
  NumberValueRangeProcessor and sortable_serialise()
@@ -131,5 +132,6 @@ UI
 - Show which stored queries are fully, partially or not at all Web friendly
 - List viewed URLs
 - Unify ExpandQuery and Querying threads !
-- Keep a list of recently used URLs, eg in the import dialog
+- Suggest links from previous results when importing, as done for terms
+- Let queries index only new results
 
