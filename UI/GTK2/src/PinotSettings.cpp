@@ -666,11 +666,8 @@ bool PinotSettings::loadQueries(const Element *pElem)
 
 	QueryProperties queryProps;
 	Date minDate, maxDate;
-	string backCompatString;
+	string freeQuery;
 	bool enableMinDate = false, enableMaxDate = false;
-
-	minDate.set_time(time(NULL));
-	maxDate.set_time(time(NULL));
 
 	// Load the query's properties
 	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
@@ -690,88 +687,88 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		}
 		else if (nodeName == "text")
 		{
-			queryProps.setFreeQuery(nodeContent);
+			freeQuery = nodeContent;
 		}
 		else if ((nodeName == "and") &&
 			(nodeContent.empty() == false))
 		{
-			if (backCompatString.empty() == false)
+			if (freeQuery.empty() == false)
 			{
-				backCompatString += " ";
+				freeQuery += " ";
 			}
-			backCompatString += nodeContent;
+			freeQuery += nodeContent;
 		}
 		else if ((nodeName == "phrase") &&
 			(nodeContent.empty() == false))
 		{
-			if (backCompatString.empty() == false)
+			if (freeQuery.empty() == false)
 			{
-				backCompatString += " ";
+				freeQuery += " ";
 			}
-			backCompatString += "\"";
-			backCompatString += nodeContent;
-			backCompatString += "\"";
+			freeQuery += "\"";
+			freeQuery += nodeContent;
+			freeQuery += "\"";
 		}
 		else if ((nodeName == "any") &&
 			(nodeContent.empty() == false))
 		{
 			// FIXME: don't be lazy and add those correctly
-			if (backCompatString.empty() == false)
+			if (freeQuery.empty() == false)
 			{
-				backCompatString += " ";
+				freeQuery += " ";
 			}
-			backCompatString += nodeContent;
+			freeQuery += nodeContent;
 		}
 		else if ((nodeName == "not") &&
 			(nodeContent.empty() == false))
 		{
-			if (backCompatString.empty() == false)
+			if (freeQuery.empty() == false)
 			{
-				backCompatString += " ";
+				freeQuery += " ";
 			}
-			backCompatString += "-(";
-			backCompatString += nodeContent;
-			backCompatString += ")";
+			freeQuery += "-(";
+			freeQuery += nodeContent;
+			freeQuery += ")";
 		}
 		else if ((nodeName == "language") &&
 			(nodeContent.empty() == false))
 		{
-			if (backCompatString.empty() == false)
+			if (freeQuery.empty() == false)
 			{
-				backCompatString += " ";
+				freeQuery += " ";
 			}
-			backCompatString += "language:";
-			backCompatString += nodeContent;
+			freeQuery += "language:";
+			freeQuery += nodeContent;
 		}
 		else if ((nodeName == "hostfilter") &&
 			(nodeContent.empty() == false))
 		{
-			if (backCompatString.empty() == false)
+			if (freeQuery.empty() == false)
 			{
-				backCompatString += " ";
+				freeQuery += " ";
 			}
-			backCompatString += "site:";
-			backCompatString += nodeContent;
+			freeQuery += "site:";
+			freeQuery += nodeContent;
 		}
 		else if ((nodeName == "filefilter") &&
 			(nodeContent.empty() == false))
 		{
-			if (backCompatString.empty() == false)
+			if (freeQuery.empty() == false)
 			{
-				backCompatString += " ";
+				freeQuery += " ";
 			}
-			backCompatString += "file:";
-			backCompatString += nodeContent;
+			freeQuery += "file:";
+			freeQuery += nodeContent;
 		}
 		else if ((nodeName == "labelfilter") &&
 			(nodeContent.empty() == false))
 		{
-			if (backCompatString.empty() == false)
+			if (freeQuery.empty() == false)
 			{
-				backCompatString += " ";
+				freeQuery += " ";
 			}
-			backCompatString += "label:";
-			backCompatString += nodeContent;
+			freeQuery += "label:";
+			freeQuery += nodeContent;
 		}
 		else if (nodeName == "maxresults")
 		{
@@ -784,12 +781,10 @@ bool PinotSettings::loadQueries(const Element *pElem)
 			{
 				enableMinDate = true;
 			}
-			queryProps.setMinimumDate(enableMinDate, minDate.get_day(), minDate.get_month(), minDate.get_year());
 		}
 		else if (nodeName == "mindate")
 		{
 			minDate.set_parse(nodeContent);
-			queryProps.setMinimumDate(enableMinDate, minDate.get_day(), minDate.get_month(), minDate.get_year());
 		}
 		else if (nodeName == "enablemaxdate")
 		{
@@ -797,12 +792,10 @@ bool PinotSettings::loadQueries(const Element *pElem)
 			{
 				enableMaxDate = true;
 			}
-			queryProps.setMaximumDate(enableMaxDate, maxDate.get_day(), maxDate.get_month(), maxDate.get_year());
 		}
 		else if (nodeName == "maxdate")
 		{
 			maxDate.set_parse(nodeContent);
-			queryProps.setMaximumDate(enableMaxDate, maxDate.get_day(), maxDate.get_month(), maxDate.get_year());
 		}
 		else if (nodeName == "index")
 		{
@@ -821,12 +814,42 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		}
 	}
 
+	// Are pre-0.80 dates specified ?
+	if ((enableMinDate == true) ||
+		(enableMaxDate == true))
+	{
+		// Provide reasonable defaults
+		if (enableMinDate == false)
+		{
+			minDate.set_day(1);
+			minDate.set_month(Date::JANUARY);
+			minDate.set_year(1970);
+		}
+		if (enableMaxDate == false)
+		{
+			maxDate.set_day(31);
+			maxDate.set_month(Date::DECEMBER);
+			maxDate.set_year(2099);
+		}
+
+		ustring minDateStr(minDate.format_string("%Y%m%d"));
+		ustring maxDateStr(maxDate.format_string("%Y%m%d"));
+
+#ifdef DEBUG
+		cout << "PinotSettings::loadQueries: date range " << minDateStr << " to " << maxDateStr << endl;
+#endif
+		freeQuery += " ";
+		freeQuery += minDateStr;
+		freeQuery += "..";
+		freeQuery += maxDateStr;
+	}
+
 	// We need at least a name
 	if (queryProps.getName().empty() == false)
 	{
-		if (backCompatString.empty() == false)
+		if (freeQuery.empty() == false)
 		{
-			queryProps.setFreeQuery(backCompatString);
+			queryProps.setFreeQuery(freeQuery);
 		}
 		m_queries[queryProps.getName()] = queryProps;
 	}
@@ -1268,27 +1291,12 @@ bool PinotSettings::save(void)
 				return false;
 			}
 
-			Date aDate;
 			unsigned int day, month, year;
 
 			addChildElement(pElem, "name", queryIter->first);
 			addChildElement(pElem, "text", queryIter->second.getFreeQuery());
 			sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
 			addChildElement(pElem, "maxresults", numStr);
-			bool enable = queryIter->second.getMinimumDate(day, month, year);
-			if (year > 0)
-			{
-				addChildElement(pElem, "enablemindate", (enable ? "YES" : "NO"));
-				aDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
-				addChildElement(pElem, "mindate", aDate.format_string("%F"));
-			}
-			enable = queryIter->second.getMaximumDate(day, month, year);
-			if (year > 0)
-			{
-				addChildElement(pElem, "enablemaxdate", (enable ? "YES" : "NO"));
-				aDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
-				addChildElement(pElem, "maxdate", aDate.format_string("%F"));
-			}
 			addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
 			addChildElement(pElem, "label", queryIter->second.getLabelName());
 		}

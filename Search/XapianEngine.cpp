@@ -112,85 +112,6 @@ XapianEngine::~XapianEngine()
 {
 }
 
-Xapian::Query XapianEngine::dateFilter(unsigned int minDay, unsigned int minMonth, unsigned int minYear,
-	unsigned int maxDay, unsigned int maxMonth, unsigned int maxYear)
-{
-	// The following was lifted from Xapian's date_range_filter() in
-	// xapian-applications/omega/date.cc and prettified slightly
-	vector<Xapian::Query> v;
-	char buf[10];
-
-	snprintf(buf, 10, "D%04d%02d", minYear, minMonth);
-	int d_last = lastDay(minYear, minMonth);
-	int d_end = d_last;
-	if (minYear == maxYear && minMonth == maxMonth && maxDay < d_last)
-	{
-		d_end = maxDay;
-	}
-	// Deal with any initial partial month
-	if (minDay > 1 || d_end < d_last)
-	{
-		for ( ; minDay <= d_end ; minDay++)
-		{
-			snprintf(buf + 7, 3, "%02d", minDay);
-			v.push_back(Xapian::Query(buf));
-		}
-	} else {
-		buf[0] = 'M';
-		v.push_back(Xapian::Query(buf));
-	}
-	
-	if (minYear == maxYear && minMonth == maxMonth)
-	{
-		return Xapian::Query(Xapian::Query::OP_OR, v.begin(), v.end());
-	}
-
-	int m_last = (minYear < maxYear) ? 12 : maxMonth - 1;
-	while (++minMonth <= m_last)
-	{
-		snprintf(buf + 5, 5, "%02d", minMonth);
-		buf[0] = 'M';
-		v.push_back(Xapian::Query(buf));
-	}
-	
-	if (minYear < maxYear)
-	{
-		while (++minYear < maxYear)
-		{
-			snprintf(buf + 1, 9, "%04d", minYear);
-			buf[0] = 'Y';
-			v.push_back(Xapian::Query(buf));
-		}
-		snprintf(buf + 1, 9, "%04d", maxYear);
-		buf[0] = 'M';
-		for (minMonth = 1; minMonth < maxMonth; minMonth++)
-		{
-			snprintf(buf + 5, 5, "%02d", minMonth);
-			v.push_back(Xapian::Query(buf));
-		}
-	}
-	
-	snprintf(buf + 5, 5, "%02d", maxMonth);
-
-	// Deal with any final partial month
-	if (maxDay < lastDay(maxYear, maxMonth))
-	{
-		buf[0] = 'D';
-		for (minDay = 1 ; minDay <= maxDay; minDay++)
-		{
-			snprintf(buf + 7, 3, "%02d", minDay);
-			v.push_back(Xapian::Query(buf));
-		}
-	}
-	else
-	{
-		buf[0] = 'M';
-		v.push_back(Xapian::Query(buf));
-	}
-
-	return Xapian::Query(Xapian::Query::OP_OR, v.begin(), v.end());
-}
-
 Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 	const string &stemLanguage, DefaultOperator defaultOperator,
 	string &correctedFreeQuery, bool minimal)
@@ -343,10 +264,14 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	if (minimal == false)
 	{
 		flags |= Xapian::QueryParser::FLAG_WILDCARD;
-#if 0
+#if ENABLE_XAPIAN_SPELLING_CORRECTION>0
 		flags |= Xapian::QueryParser::FLAG_SPELLING_CORRECTION;
 #endif
 	}
+
+	// Date range
+	Xapian::DateValueRangeProcessor dateProcessor(0);
+	parser.add_valuerangeprocessor(&dateProcessor);
 
 	// Parse the query string
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
@@ -355,66 +280,12 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		return parsedQuery;
 	}
 
-#if 0
+#if ENABLE_XAPIAN_SPELLING_CORRECTION>0
 	// Any correction ?
 	correctedFreeQuery = parser.get_corrected_query_string();
 #ifdef DEBUG
 	cout << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
 #endif
-#endif
-
-	// Apply a date range ?
-	bool enableMin = queryProps.getMinimumDate(minDay, minMonth, minYear);
-	bool enableMax = queryProps.getMaximumDate(maxDay, maxMonth, maxYear);
-	if ((enableMin == false) && 
-		(enableMax == false))
-	{
-		// No
-		return parsedQuery;
-	}
-
-	// Anyone going as far back as Year 0 is taking the piss :-)
-	if ((enableMin == false) ||
-		(minYear == 0))
-	{
-		minDay = minMonth = 1;
-		minYear = 1970;
-	}
-	// If the second date is older than the Epoch, the first date should be set too
-	if ((enableMax == false) ||
-		(maxYear == 0))
-	{
-		time_t nowTime = time(NULL);
-		struct tm *timeTm = localtime(&nowTime);
-		maxYear = timeTm->tm_year + 1900;
-		maxMonth = timeTm->tm_mon + 1;
-		maxDay = timeTm->tm_mday;
-	}
-
-	string yyyymmddMin(TimeConverter::toYYYYMMDDString(minYear, minMonth, minDay));
-	string yyyymmddMax(TimeConverter::toYYYYMMDDString(maxYear, maxMonth, maxDay));
-	time_t startTime = TimeConverter::fromYYYYMMDDString(yyyymmddMin);
-	time_t endTime = TimeConverter::fromYYYYMMDDString(yyyymmddMax);
- 
-	double diffTime = difftime(endTime, startTime);
-	if (diffTime > 0)
-	{
-		Xapian::Query dateQuery = dateFilter(minDay, minMonth, minYear, maxDay, maxMonth, maxYear);
-
-#ifdef DEBUG
-		cout << "XapianEngine::parseQuery: applied date range ("
-			<< yyyymmddMax << " <= " << yyyymmddMin << ")" << endl;
-#endif
-		if (parsedQuery.empty() == false)
-		{
-			return Xapian::Query(Xapian::Query::OP_FILTER, parsedQuery, dateQuery);
-		}
-
-		return dateQuery;
-	}
-#ifdef DEBUG
-	else cout << "XapianEngine::parseQuery: date range is zero or bogus ("
-		<< yyyymmddMax << " <= " << yyyymmddMin << ")" << endl;
 #endif
 
 	return parsedQuery;

@@ -28,6 +28,21 @@
 #include "SearchEngineInterface.h"
 #include "DownloaderFactory.h"
 
+// Spelling correction in Xapian <= 1.0.2 may cause a crash
+// See http://www.xapian.org/cgi-bin/bugzilla/show_bug.cgi?id=194
+#define ENABLE_XAPIAN_SPELLING_CORRECTION 0
+#if XAPIAN_MAJOR_VERSION>1
+#define ENABLE_XAPIAN_SPELLING_CORRECTION 1
+#elif XAPIAN_MAJOR_VERSION==1
+#if XAPIAN_MINOR_VERSION>0
+#define ENABLE_XAPIAN_SPELLING_CORRECTION 1
+#else
+#if XAPIAN_REVISION>2
+#define ENABLE_XAPIAN_SPELLING_CORRECTION 1
+#endif
+#endif
+#endif
+
 /// Wraps Xapian's search funtionality.
 class XapianEngine : public SearchEngineInterface
 {
@@ -52,9 +67,6 @@ class XapianEngine : public SearchEngineInterface
 
 		bool queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			unsigned int startDoc, unsigned int maxResultsCount);
-
-		static Xapian::Query dateFilter(unsigned int minDay, unsigned int minMonth, unsigned int minYear,
-		        unsigned int maxDay, unsigned int maxMonth, unsigned int maxYear);
 
 		static Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 			const string &stemLanguage, DefaultOperator defaultOperator,

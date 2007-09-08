@@ -370,6 +370,45 @@ void mainWindow::populate_indexMenu()
 }
 
 //
+// Add a query
+//
+void mainWindow::add_query(QueryProperties &queryProps, bool mergeQueries)
+{
+	ustring queryName(queryProps.getName());
+
+	// Does such a query already exist ?
+	TreeModel::Children children = m_refQueryTree->children();
+	for (TreeModel::Children::iterator iter = children.begin();
+		iter != children.end(); ++iter)
+	{
+		TreeModel::Row row = *iter;
+
+		if (queryName == from_utf8(row[m_queryColumns.m_name]))
+		{
+			if (mergeQueries == true)
+			{
+				QueryProperties existingQueryProps = row[m_queryColumns.m_properties];
+				ustring freeQuery(existingQueryProps.getFreeQuery());
+
+				if (freeQuery != queryProps.getFreeQuery())
+				{
+					queryProps.setFreeQuery(freeQuery + " | " + queryProps.getFreeQuery());
+				}
+			}
+			m_settings.removeQuery(queryName);
+			break;
+		}
+	}
+
+	// Update everything
+	if (m_settings.addQuery(queryProps) == true)
+	{
+		populate_queryTreeview(queryName);
+		queryExpander->set_expanded(true);
+	}	
+}
+
+//
 // Query list selection changed
 //
 void mainWindow::on_queryTreeviewSelection_changed()
@@ -1000,8 +1039,25 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			pResultsTree->deleteResults(engineName);
 			pResultsTree->addResults(engineName, resultsList,
 				resultsCharset);
+		}
 
-			// FIXME: if wasCorrected is true, suggest the correction to the user
+		// Suggest the correction to the user
+		if (wasCorrected == true)
+		{
+			ustring correctedQueryName(_("Corrected"));
+
+			if (queryName.empty() == true)
+			{
+				correctedQueryName += "...";
+			}
+			else
+			{
+				correctedQueryName += " ";
+				correctedQueryName += queryName;
+			}
+			queryProps.setName(correctedQueryName);
+
+			add_query(queryProps, true);
 		}
 
 		// Index results ?
@@ -1092,6 +1148,8 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		{
 			moreLike = " ";
 		}
+
+		// Add the expand terms
 		for (set<string>::const_iterator termIter = expandTerms.begin();
 			termIter != expandTerms.end(); ++termIter)
 		{
@@ -1101,30 +1159,9 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			}
 			moreLike += *termIter;
 		}
-
-		// Does such a query already exist ?
-		TreeModel::Children children = m_refQueryTree->children();
-		for (TreeModel::Children::iterator iter = children.begin();
-			iter != children.end(); ++iter)
-		{
-			TreeModel::Row row = *iter;
-
-			if (queryName == from_utf8(row[m_queryColumns.m_name]))
-			{
-				m_settings.removeQuery(queryName);
-				break;
-			}
-		}
-
-		// Add these terms
 		queryProps.setFreeQuery(queryProps.getFreeQuery() + moreLike);
 
-		// Update everything
-		if (m_settings.addQuery(queryProps) == true)
-		{
-			populate_queryTreeview(queryName);
-			queryExpander->set_expanded(true);
-		}
+		add_query(queryProps, false);
 	}
 	else if (type == "LabelUpdateThread")
 	{
@@ -1395,8 +1432,6 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 
 		// Refresh the engines list
 		m_pEnginesTree->populate();
-		// ...and the index menu
-		populate_indexMenu();
 	}
 
 	set_status(_("Edited index"));

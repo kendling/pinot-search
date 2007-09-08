@@ -58,12 +58,6 @@ class StringManip
 		/// Hashes a string so that it is no longer than maxLength.
 		static std::string hashString(const std::string &str, unsigned int maxLength);
 
-		/// Converts a binary string to an integer.
-		static uint32_t binaryStringToInteger(const std::string &str);
-
-		/// Converts an integer to a binary string.
-		static std::string integerToBinaryString(uint32_t value);
-
 	protected:
 		StringManip();
 

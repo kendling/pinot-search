@@ -69,16 +69,6 @@ class QueryProperties
 		/// Gets the maximum number of results.
 		unsigned int getMaximumResultsCount(void) const;
 
-		/// Sets the minimum date.
-		void setMinimumDate(bool enable, unsigned int day, unsigned int month, unsigned int year);
-		/// Gets the minimum date.
-		bool getMinimumDate(unsigned int &day, unsigned int &month, unsigned int &year) const;
-
-		/// Sets the maximum date.
-		void setMaximumDate(bool enable, unsigned int day, unsigned int month, unsigned int year);
-		/// Gets the maximum date.
-		bool getMaximumDate(unsigned int &day, unsigned int &month, unsigned int &year) const;
-
 		/// Sets whether results should be indexed.
 		void setIndexResults(bool index);
 		/// Gets whether results should be indexed
@@ -104,14 +94,6 @@ class QueryProperties
 		string m_hostFilter;
 		string m_fileFilter;
 		unsigned int m_resultsCount;
-		bool m_enableMinDate;
-		unsigned int m_minDay;
-		unsigned int m_minMonth;
-		unsigned int m_minYear;
-		bool m_enableMaxDate;
-		unsigned int m_maxDay;
-		unsigned int m_maxMonth;
-		unsigned int m_maxYear;
 		bool m_indexResults;
 		string m_labelName;
 

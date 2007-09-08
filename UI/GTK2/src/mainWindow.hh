@@ -60,6 +60,7 @@ protected:
 	void save_queryTreeview();
 	void populate_cacheMenu();
 	void populate_indexMenu();
+	void add_query(QueryProperties &queryProps, bool mergeQueries);
 
 	// Handlers
 	bool on_queryCompletion_match(const Glib::ustring &key, const Gtk::TreeModel::const_iterator &iter);

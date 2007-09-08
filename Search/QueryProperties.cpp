@@ -29,14 +29,6 @@
 QueryProperties::QueryProperties() :
 	m_type(XAPIAN_QP),
 	m_resultsCount(10),
-	m_enableMinDate(false),
-	m_minDay(0),
-	m_minMonth(0),
-	m_minYear(0),
-	m_enableMaxDate(false),
-	m_maxDay(0),
-	m_maxMonth(0),
-	m_maxYear(0),
 	m_indexResults(false)
 {
 }
@@ -47,14 +39,6 @@ QueryProperties::QueryProperties(const string &name, const string &freeQuery,
 	m_type(type),
 	m_freeQuery(freeQuery),
 	m_resultsCount(10),
-	m_enableMinDate(false),
-	m_minDay(0),
-	m_minMonth(0),
-	m_minYear(0),
-	m_enableMaxDate(false),
-	m_maxDay(0),
-	m_maxMonth(0),
-	m_maxYear(0),
 	m_indexResults(false)
 {
 	removeFilters();
@@ -69,14 +53,6 @@ QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_hostFilter(other.m_hostFilter),
 	m_fileFilter(other.m_fileFilter),
 	m_resultsCount(other.m_resultsCount),
-	m_enableMinDate(other.m_enableMinDate),
-	m_minDay(other.m_minDay),
-	m_minMonth(other.m_minMonth),
-	m_minYear(other.m_minYear),
-	m_enableMaxDate(other.m_enableMaxDate),
-	m_maxDay(other.m_maxDay),
-	m_maxMonth(other.m_maxMonth),
-	m_maxYear(other.m_maxYear),
 	m_indexResults(other.m_indexResults),
 	m_labelName(other.m_labelName)
 {
@@ -98,14 +74,6 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 		m_hostFilter = other.m_hostFilter;
 		m_fileFilter = other.m_fileFilter;
 		m_resultsCount = other.m_resultsCount;
-		m_enableMinDate = other.m_enableMinDate;
-		m_minDay = other.m_minDay;
-		m_minMonth = other.m_minMonth;
-		m_minYear = other.m_minYear;
-		m_enableMaxDate = other.m_enableMaxDate;
-		m_maxDay = other.m_maxDay;
-		m_maxMonth = other.m_maxMonth;
-		m_maxYear = other.m_maxYear;
 		m_indexResults = other.m_indexResults;
 		m_labelName = other.m_labelName;
 	}
@@ -270,44 +238,6 @@ unsigned int QueryProperties::getMaximumResultsCount(void) const
 	return m_resultsCount;
 }
 
-/// Sets the minimum date.
-void QueryProperties::setMinimumDate(bool enable, unsigned int day, unsigned int month, unsigned int year)
-{
-	m_enableMinDate = enable;
-	m_minDay = day;
-	m_minMonth = month;
-	m_minYear = year;
-}
-
-/// Gets the minimum date.
-bool QueryProperties::getMinimumDate(unsigned int &day, unsigned int &month, unsigned int &year) const
-{
-	day = m_minDay;
-	month = m_minMonth;
-	year = m_minYear;
-
-	return m_enableMinDate;
-}
-
-/// Sets the maximum date.
-void QueryProperties::setMaximumDate(bool enable, unsigned int day, unsigned int month, unsigned int year)
-{
-	m_enableMaxDate = enable;
-	m_maxDay = day;
-	m_maxMonth = month;
-	m_maxYear = year;
-}
-
-/// Gets the maximum date.
-bool QueryProperties::getMaximumDate(unsigned int &day, unsigned int &month, unsigned int &year) const
-{
-	day = m_maxDay;
-	month = m_maxMonth;
-	year = m_maxYear;
-
-	return m_enableMaxDate;
-}
-
 /// Sets whether results should be indexed.
 void QueryProperties::setIndexResults(bool index)
 {
@@ -352,9 +282,7 @@ void QueryProperties::getTerms(set<string> &terms) const
 /// Returns whether the query is empty.
 bool QueryProperties::isEmpty() const
 {
-	if ((m_freeQuery.empty() == true) &&
-		(m_enableMinDate == false) &&
-		(m_enableMaxDate == false))
+	if (m_freeQuery.empty() == true)
 	{
 		return true;
 	}

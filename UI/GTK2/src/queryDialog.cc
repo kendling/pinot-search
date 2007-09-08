@@ -27,7 +27,6 @@
 #include "TimeConverter.h"
 #include "PinotUtils.h"
 #include "queryDialog.hh"
-#include "dateDialog.hh"
 
 using namespace std;
 using namespace Glib;
@@ -59,29 +58,6 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	}
 	// Maximum number of results
 	resultsCountSpinbutton->set_value((double)m_properties.getMaximumResultsCount());
-	// Date range
-	bool enable = m_properties.getMinimumDate(day, month, year);
-	if (year > 0)
-	{
-		m_fromDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
-	}
-	else
-	{
-		m_fromDate.set_time(time(NULL));
-	}
-	fromCheckbutton->set_active(enable);
-	fromButton->set_label(m_fromDate.format_string("%x"));
-	enable = m_properties.getMaximumDate(day, month, year);
-	if (year > 0)
-	{
-		m_toDate.set_dmy((Date::Day )day, (Date::Month )month, (Date::Year )year);
-	}
-	else
-	{
-		m_toDate.set_time(time(NULL));
-	}
-	toCheckbutton->set_active(enable);
-	toButton->set_label(m_toDate.format_string("%x"));
 	// Index all results
 	indexCheckbutton->set_active(m_properties.getIndexResults());
 
@@ -146,6 +122,7 @@ void queryDialog::populate_comboboxes()
 	filterCombobox->append_text(_("Language code"));
 	filterCombobox->append_text(_("MIME type"));
 	filterCombobox->append_text(_("Label"));
+	filterCombobox->append_text(_("Date range"));
 	filterCombobox->set_active(0);
 }
 
@@ -186,9 +163,6 @@ void queryDialog::on_queryOkbutton_clicked()
 	}
 	// Maximum number of results
 	m_properties.setMaximumResultsCount((unsigned int)resultsCountSpinbutton->get_value());
-	// Date range
-	m_properties.setMinimumDate(fromCheckbutton->get_active(), m_fromDate.get_day(), m_fromDate.get_month(), m_fromDate.get_year());
-	m_properties.setMaximumDate(toCheckbutton->get_active(), m_toDate.get_day(), m_toDate.get_month(), m_toDate.get_year());
 	// Index all results
 	m_properties.setIndexResults(indexCheckbutton->get_active());
 	// Index label
@@ -216,6 +190,9 @@ void queryDialog::on_nameEntry_changed()
 void queryDialog::on_addFilterButton_clicked()
 {
 	ustring filter;
+	time_t timeT = time(NULL);
+	struct tm *tm = localtime(&timeT);
+	bool isDateRange = false;
 
 	// What's the corresponding filter ?
 	int chosenFilter = filterCombobox->get_active_row_number();
@@ -252,6 +229,11 @@ void queryDialog::on_addFilterButton_clicked()
 		case 9:
 			filter = "label";
 			break;
+		case 10:
+			filter = TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+			filter += "..20991231";
+			isDateRange = true;
+			break;
 		default:
 			break;
 	}
@@ -262,38 +244,11 @@ void queryDialog::on_addFilterButton_clicked()
 		ustring queryText = refBuffer->get_text();
 		queryText += " ";
 		queryText += filter;
-		queryText += ":xxx";
+		if (isDateRange == false)
+		{
+			queryText += ":xxx";
+		}
 		refBuffer->set_text(queryText);
-	}
-}
-
-void queryDialog::on_fromButton_clicked()
-{
-	dateDialog datePicker(_("Start date"), m_fromDate);
-
-#ifdef DEBUG
-	cout << "queryDialog::on_fromButton_clicked: start date is " << m_fromDate.format_string("%x") << endl;
-#endif
-	datePicker.show();
-	if (datePicker.run() == RESPONSE_OK)
-	{
-		datePicker.getChoice(m_fromDate);
-		fromButton->set_label(m_fromDate.format_string("%x"));
-	}
-}
-
-void queryDialog::on_toButton_clicked()
-{
-	dateDialog datePicker(_("End date"), m_toDate);
-
-#ifdef DEBUG
-	cout << "queryDialog::on_toButton_clicked: end date is " << m_toDate.format_string("%x") << endl;
-#endif
-	datePicker.show();
-	if (datePicker.run() == RESPONSE_OK)
-	{
-		datePicker.getChoice(m_toDate);
-	        toButton->set_label(m_toDate.format_string("%x"));
 	}
 }
 
