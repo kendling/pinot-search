@@ -1,8 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
-	dateDialog_glade.hh \
-	dateDialog.hh \
 	importDialog_glade.hh \
 	importDialog.hh \
 	indexDialog_glade.hh \
@@ -33,8 +31,6 @@ noinst_HEADERS = \
 
 pinot_SOURCES = \
 	pinot.cc \
-	dateDialog_glade.cc \
-	dateDialog.cc \
 	importDialog_glade.cc \
 	importDialog.cc \
 	indexDialog_glade.cc \
