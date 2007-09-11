@@ -611,7 +611,9 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 
 	// Add this value to allow sorting by date
 	doc.add_value(0, yyyymmdd);
-	// FIXME: add a value for size
+	// FIXME: checksum in value 1
+	// Size goes in value 2
+	doc.add_value(2, Xapian::sortable_serialise((double )info.getSize()));
 
 	DocumentInfo docCopy(info);
 	docCopy.setLanguage(language);

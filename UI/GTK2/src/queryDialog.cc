@@ -123,6 +123,7 @@ void queryDialog::populate_comboboxes()
 	filterCombobox->append_text(_("MIME type"));
 	filterCombobox->append_text(_("Label"));
 	filterCombobox->append_text(_("Date range"));
+	filterCombobox->append_text(_("Size"));
 	filterCombobox->set_active(0);
 }
 
@@ -192,7 +193,7 @@ void queryDialog::on_addFilterButton_clicked()
 	ustring filter;
 	time_t timeT = time(NULL);
 	struct tm *tm = localtime(&timeT);
-	bool isDateRange = false;
+	bool hasValue = true;
 
 	// What's the corresponding filter ?
 	int chosenFilter = filterCombobox->get_active_row_number();
@@ -232,7 +233,11 @@ void queryDialog::on_addFilterButton_clicked()
 		case 10:
 			filter = TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 			filter += "..20991231";
-			isDateRange = true;
+			hasValue = false;
+			break;
+		case 11:
+			filter += "0..10240b";
+			hasValue = false;
 			break;
 		default:
 			break;
@@ -244,7 +249,7 @@ void queryDialog::on_addFilterButton_clicked()
 		ustring queryText = refBuffer->get_text();
 		queryText += " ";
 		queryText += filter;
-		if (isDateRange == false)
+		if (hasValue == true)
 		{
 			queryText += ":xxx";
 		}

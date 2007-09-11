@@ -273,6 +273,20 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	Xapian::DateValueRangeProcessor dateProcessor(0);
 	parser.add_valuerangeprocessor(&dateProcessor);
 
+	// Size with a "b" suffix, ie 1024..10240b
+#if XAPIAN_MAJOR_VERSION>1
+	Xapian::NumberValueRangeProcessor sizeProcessor(2, "b", false);
+	parser.add_valuerangeprocessor(&sizeProcessor);
+#elif XAPIAN_MAJOR_VERSION==1
+#if XAPIAN_MINOR_VERSION>0
+	Xapian::NumberValueRangeProcessor sizeProcessor(2, "b", false);
+#else
+	// Xapian 1.02 is the bare minimum
+	Xapian::v102::NumberValueRangeProcessor sizeProcessor(2, "b", false);
+#endif
+	parser.add_valuerangeprocessor(&sizeProcessor);
+#endif
+
 	// Parse the query string
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
 	if (minimal == true)
