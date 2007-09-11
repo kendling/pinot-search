@@ -238,15 +238,8 @@ int main(int argc, char **argv)
 	}
 
 	// Initialize utility classes
-	string desktopFilesDirectory(SHARED_MIME_INFO_PREFIX);
-	desktopFilesDirectory += "/share/applications/";
-	string homeDirectory(PinotSettings::getHomeDirectory());
-	if (homeDirectory.empty() == true)
-	{
-		homeDirectory = "~/";
-	}
-	MIMEScanner::initialize(desktopFilesDirectory, homeDirectory + "/.local/share/applications/mimeinfo.cache", 10);
-	if (MIMEScanner::initialize(desktopFilesDirectory, desktopFilesDirectory + "mimeinfo.cache") == false)
+	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local/share/applications/",
+		string(SHARED_MIME_INFO_PREFIX) + "/share/applications/") == false)
 	{
 		cerr << "Couldn't load MIME settings" << endl;
 	}

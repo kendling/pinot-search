@@ -21,7 +21,9 @@
 
 #include <pthread.h>
 #include <string>
+#include <list>
 #include <map>
+#include <set>
 #include <vector>
 
 #include "Url.h"
@@ -43,6 +45,7 @@ class MIMEAction
 
 		MIMEAction &operator=(const MIMEAction &other);
 
+		void load(void);
 		void parseExec(void);
 
 		bool m_multipleArgs;
@@ -52,7 +55,34 @@ class MIMEAction
 		std::string m_exec;
 		std::string m_icon;
 		std::string m_device;
-		unsigned int m_priority;
+
+};
+
+/** Caching of MIME type information.
+  * A cache can be reloaded as required.
+  */
+class MIMECache
+{
+	public:
+		MIMECache();
+		MIMECache(const std::string &file, const std::string &section);
+		MIMECache(const MIMECache& other);
+		~MIMECache();
+
+		bool operator<(const MIMECache &other) const;
+
+		MIMECache &operator=(const MIMECache &other);
+
+		bool load(const std::list<std::string> &desktopFilesPaths);
+		void reload(const std::list<std::string> &desktopFilesPaths);
+  
+		std::string m_file;
+		std::string m_section;
+		std::multimap<std::string, MIMEAction> m_defaultActions;
+
+	protected:
+		bool findDesktopFile(const std::string &desktopFile, const std::string &mimeType,
+			std::map<std::string, MIMEAction> &loadedActions);
 
 };
 
@@ -65,9 +95,8 @@ class MIMEScanner
 		~MIMEScanner();
 
 		/// Initializes the MIME system.
-		static bool initialize(const std::string &desktopFilesDirectory,
-			const std::string &mimeInfoCache, unsigned int priority = 0);
-
+		static bool initialize(const std::string &userDirectory, const std::string &systemDirectory);
+  
 		/// Shutdowns the MIME system.
 		static void shutdown(void);
 
@@ -77,6 +106,9 @@ class MIMEScanner
 		/// Finds out the given URL's MIME type.
 		static std::string scanUrl(const Url &urlObj);
 
+		/// Gets parent MIME types.
+		static bool getParentTypes(const std::string &mimeType, std::set<std::string> &parentMimeTypes);
+
 		/// Adds a user-defined action for the given type.
 		static void addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction);
 
@@ -84,12 +116,19 @@ class MIMEScanner
 		static bool getDefaultActions(const std::string &mimeType, std::vector<MIMEAction> &typeActions);
 
 	protected:
+		/// Mutex to protect access to xdgmime.
 		static pthread_mutex_t m_mutex;
-		static std::multimap<std::string, MIMEAction> m_defaultActions;
+		/// MIME type caches, ordered by decreasing priority.
+		static std::list<MIMECache> m_caches;
 
 		MIMEScanner();
 
 		static std::string scanFileType(const std::string &fileName);
+  
+		static bool addCache(const std::string &file, const std::string &section,
+			const std::list<std::string> &desktopFilesPaths);
+  
+		static bool getDefaultActionsForType(const std::string &mimeType, std::vector<MIMEAction> &typeActions);
 
 	private:
 		MIMEScanner(const MIMEScanner &other);

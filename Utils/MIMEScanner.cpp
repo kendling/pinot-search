@@ -17,6 +17,7 @@
  */
 
 #include <strings.h>
+#include <unistd.h>
 #include <glib.h>
 #include <iostream>
 
@@ -26,13 +27,18 @@
 #include "StringManip.h"
 #include "Url.h"
 
-// FIXME: "Default Applications" here ?
-#define MIME_DEFAULTS_SECTION "MIME Cache"
+#define MIME_DEFAULTS_LIST	"defaults.list"
+#define MIME_DEFAULTS_SECTION	"Default Applications"
+#define MIME_CACHE		"mimeinfo.cache"
+#define MIME_CACHE_SECTION	"MIME Cache"
 
 using std::cout;
 using std::endl;
 using std::string;
+using std::list;
+using std::map;
 using std::multimap;
+using std::set;
 using std::vector;
 using std::pair;
 
@@ -69,8 +75,7 @@ static string getKeyValue(GKeyFile *pDesktopFile, const string &key)
 
 MIMEAction::MIMEAction() :
 	m_multipleArgs(false),
-	m_localOnly(true),
-	m_priority(0)
+	m_localOnly(true)
 {
 }
 
@@ -78,8 +83,7 @@ MIMEAction::MIMEAction(const string &name, const string &cmdLine) :
 	m_multipleArgs(false),
 	m_localOnly(true),
 	m_name(name),
-	m_exec(cmdLine),
-	m_priority(0)
+	m_exec(cmdLine)
 {
 	parseExec();
 }
@@ -87,34 +91,9 @@ MIMEAction::MIMEAction(const string &name, const string &cmdLine) :
 MIMEAction::MIMEAction(const string &desktopFile) :
 	m_multipleArgs(false),
 	m_localOnly(true),
-	m_location(desktopFile),
-	m_priority(0)
+	m_location(desktopFile)
 {
-	GKeyFile *pDesktopFile = g_key_file_new();
-	GError *pError = NULL;
-
-	if (pDesktopFile != NULL)
-	{
-		g_key_file_load_from_file(pDesktopFile, (const gchar *)desktopFile.c_str(),
-			G_KEY_FILE_NONE, &pError);
-		if (pError == NULL)
-		{
-			m_name = getKeyValue(pDesktopFile, "Name");
-			// This may contain parameters described here :
-			// http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s06.html
-			m_exec = getKeyValue(pDesktopFile, "Exec");
-			m_icon = getKeyValue(pDesktopFile, "Icon");
-			m_device = getKeyValue(pDesktopFile, "Device");
-
-			parseExec();
-		}
-		else
-		{
-			g_error_free(pError);
-		}
-
-		g_key_file_free(pDesktopFile);
-	}
+	load();
 }
 
 MIMEAction::MIMEAction(const MIMEAction &other) :
@@ -124,8 +103,7 @@ MIMEAction::MIMEAction(const MIMEAction &other) :
 	m_location(other.m_location),
 	m_exec(other.m_exec),
 	m_icon(other.m_icon),
-	m_device(other.m_device),
-	m_priority(other.m_priority)
+	m_device(other.m_device)
 {
 }
 
@@ -135,16 +113,9 @@ MIMEAction::~MIMEAction()
 
 bool MIMEAction::operator<(const MIMEAction &other) const
 {
-	if (m_priority < other.m_priority)
+	if (m_name < other.m_name)
 	{
 		return true;
-	}
-	else if (m_priority == other.m_priority)
-	{
-		if (m_name < other.m_name)
-		{
-			return true;
-		}
 	}
 
 	return false;
@@ -164,6 +135,34 @@ MIMEAction &MIMEAction::operator=(const MIMEAction &other)
 	}
 
 	return *this;
+}
+
+void MIMEAction::load(void)
+{
+	GKeyFile *pDesktopFile = g_key_file_new();
+	GError *pError = NULL;
+
+	if (pDesktopFile != NULL)
+	{
+		g_key_file_load_from_file(pDesktopFile, (const gchar *)m_location.c_str(),
+			G_KEY_FILE_NONE, &pError);
+		if (pError == NULL)
+		{
+			m_name = getKeyValue(pDesktopFile, "Name");
+			// This may contain parameters described here :
+			// http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s06.html
+			m_exec = getKeyValue(pDesktopFile, "Exec");
+			m_icon = getKeyValue(pDesktopFile, "Icon");
+			m_device = getKeyValue(pDesktopFile, "Device");
+			parseExec();
+		}
+		else
+		{
+			g_error_free(pError);
+		}
+
+		g_key_file_free(pDesktopFile);
+	}
 }
 
 void MIMEAction::parseExec(void)
@@ -186,29 +185,102 @@ void MIMEAction::parseExec(void)
 	}
 }
 
-multimap<string, MIMEAction> MIMEScanner::m_defaultActions;
-
-pthread_mutex_t MIMEScanner::m_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-MIMEScanner::MIMEScanner()
+MIMECache::MIMECache()
 {
 }
 
-MIMEScanner::~MIMEScanner()
+MIMECache::MIMECache(const string &file, const string &section) :
+	m_file(file),
+	m_section(section)
 {
 }
 
-bool MIMEScanner::initialize(const string &desktopFilesDirectory, const string &mimeInfoCache,
-	unsigned int priority)
+MIMECache::MIMECache(const MIMECache &other) :
+	m_file(other.m_file),
+	m_section(other.m_section),
+	m_defaultActions(other.m_defaultActions)
 {
+}
+
+MIMECache::~MIMECache()
+{
+}
+
+bool MIMECache::operator<(const MIMECache &other) const
+{
+	if (m_file < other.m_file)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+MIMECache& MIMECache::operator=(const MIMECache &other)
+{
+	if (this != &other)
+	{
+		m_file = other.m_file;
+		m_section = other.m_section;
+		m_defaultActions = other.m_defaultActions;
+	}
+
+	return *this;
+}
+
+bool MIMECache::findDesktopFile(const string &desktopFile, const string &mimeType,
+	map<string, MIMEAction> &loadedActions)
+{
+	// Has already been loaded ?
+	map<string, MIMEAction>::const_iterator actionIter = loadedActions.find(desktopFile);
+	if (actionIter != loadedActions.end())
+	{
+		// Yes, it was so just copy it
+		m_defaultActions.insert(pair<string, MIMEAction>(mimeType, actionIter->second));
+#ifdef DEBUG
+		cout << "MIMECache::findDesktopFile: copied " << desktopFile << endl;
+#endif
+
+		return true;
+	}
+	// Does it exist in that path ?
+	else if (access(desktopFile.c_str(), F_OK) == 0)
+	{
+		// It's here, we need to read it off the disk
+		MIMEAction typeAction(desktopFile);
+#ifdef DEBUG
+		cout << "MIMECache::findDesktopFile: read " << desktopFile << endl;
+#endif
+
+		if (typeAction.m_exec.empty() == false)
+		{
+			m_defaultActions.insert(pair<string, MIMEAction>(mimeType, typeAction));
+			loadedActions.insert(pair<string, MIMEAction>(desktopFile, typeAction));
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void MIMECache::reload(const list<string> &desktopFilesPaths)
+{
+	if (m_file.empty() == true)
+	{
+		// We can't reload anything !
+		return;
+	}
+
+	m_defaultActions.clear();
+	load(desktopFilesPaths);
+}
+
+bool MIMECache::load(const list<string> &desktopFilesPaths)
+{
+	map<string, MIMEAction> loadedActions;
 	GError *pError = NULL;
 	bool foundActions = false;
-
-	if ((desktopFilesDirectory.empty() == true) ||
-		(mimeInfoCache.empty() == true))
-	{
-		return false;
-	}
 
 	GKeyFile *pDefaults = g_key_file_new();
 	if (pDefaults == NULL)
@@ -216,13 +288,16 @@ bool MIMEScanner::initialize(const string &desktopFilesDirectory, const string &
 		return false;
 	}
 
-	g_key_file_load_from_file(pDefaults, (const gchar *)mimeInfoCache.c_str(),
+	g_key_file_load_from_file(pDefaults, (const gchar *)m_file.c_str(),
 		G_KEY_FILE_NONE, &pError);
 	if (pError == NULL)
 	{
-		gchar **pMimeTypes = g_key_file_get_keys(pDefaults, MIME_DEFAULTS_SECTION,
-			NULL, &pError);
+#ifdef DEBUG
+		cout << "MIMECache::load: loaded " << m_file << endl;
+#endif
 
+		gchar **pMimeTypes = g_key_file_get_keys(pDefaults, m_section.c_str(),
+			NULL, &pError);
 		if (pMimeTypes != NULL)
 		{
 			if (pError == NULL)
@@ -230,7 +305,7 @@ bool MIMEScanner::initialize(const string &desktopFilesDirectory, const string &
 				for (unsigned int i = 0; pMimeTypes[i] != NULL; ++i)
 				{
 					gchar **pDesktopFiles = g_key_file_get_string_list(pDefaults,
-						MIME_DEFAULTS_SECTION, pMimeTypes[i], NULL, &pError);
+						m_section.c_str(), pMimeTypes[i], NULL, &pError);
 
 					if (pDesktopFiles == NULL)
 					{
@@ -242,16 +317,19 @@ bool MIMEScanner::initialize(const string &desktopFilesDirectory, const string &
 						continue;
 					}
 
+					// Register all applications for that type
 					for (unsigned int j = 0; pDesktopFiles[j] != NULL; ++j)
 					{
-						MIMEAction typeAction(desktopFilesDirectory + string(pDesktopFiles[j]));
-
-						// Register all applications for that type
-						if (typeAction.m_exec.empty() == false)
+						// Search the paths for this desktop file
+						for (list<string>::const_iterator iter = desktopFilesPaths.begin();
+							iter != desktopFilesPaths.end(); ++iter)
 						{
-							typeAction.m_priority = priority;
-							m_defaultActions.insert(pair<string, MIMEAction>(pMimeTypes[i], typeAction));
-							foundActions = true;
+							if (findDesktopFile(*iter + pDesktopFiles[j], pMimeTypes[i],
+								loadedActions) == true)
+							{
+								foundActions = true;
+								break;
+							}
 						}
 					}
 
@@ -268,11 +346,78 @@ bool MIMEScanner::initialize(const string &desktopFilesDirectory, const string &
 	}
 	else
 	{
+#ifdef DEBUG
+		cout << "MIMECache::load: failed to load " << m_file << endl;
+#endif
 		g_error_free(pError);
 	}
 	g_key_file_free(pDefaults);
 
 	return foundActions;
+}
+
+pthread_mutex_t MIMEScanner::m_mutex = PTHREAD_MUTEX_INITIALIZER;
+list<MIMECache> MIMEScanner::m_caches;
+
+MIMEScanner::MIMEScanner()
+{
+}
+
+MIMEScanner::~MIMEScanner()
+{
+}
+
+bool MIMEScanner::initialize(const string &userDirectory, const string &systemDirectory)
+{
+	list<string> desktopFilesPaths;
+	bool foundActions = false;
+
+	if (systemDirectory.empty() == false)
+	{
+		// User-specific actions may point to desktop files in this path, so add it in
+		desktopFilesPaths.push_front(systemDirectory);
+	}
+
+	// Load user-specific settings first
+	if (userDirectory.empty() == false)
+	{
+		// Add the user's directory to the paths list
+		desktopFilesPaths.push_front(userDirectory);
+
+#ifdef DEBUG
+		cout << "MIMEScanner::initialize: user-specific directory " << userDirectory << endl;
+#endif
+		foundActions |= addCache(userDirectory + MIME_DEFAULTS_LIST,
+			MIME_DEFAULTS_SECTION, desktopFilesPaths);
+		foundActions |= addCache(userDirectory + MIME_CACHE,
+			MIME_CACHE_SECTION, desktopFilesPaths);
+	}
+
+	// Then load system-wide settings
+	if (systemDirectory.empty() == false)
+	{
+		// Make sure only the system directory is in the list
+		desktopFilesPaths.clear();
+		desktopFilesPaths.push_front(systemDirectory);
+
+#ifdef DEBUG
+		cout << "MIMEScanner::initialize: system-wide directory " << systemDirectory << endl;
+#endif
+		foundActions |= addCache(systemDirectory + MIME_DEFAULTS_LIST,
+			MIME_DEFAULTS_SECTION, desktopFilesPaths);
+		foundActions |= addCache(systemDirectory + MIME_CACHE,
+			MIME_CACHE_SECTION, desktopFilesPaths);
+	}
+
+	return foundActions;
+}
+
+bool MIMEScanner::addCache(const string &file, const string &section,
+	const list<string> &desktopFilesPaths)
+{
+	m_caches.push_back(MIMECache(file, section));
+
+	return m_caches.back().load(desktopFilesPaths);
 }
 
 void MIMEScanner::shutdown(void)
@@ -380,21 +525,82 @@ string MIMEScanner::scanUrl(const Url &urlObj)
 	return mimeType;
 }
 
-/// Adds a user-defined action for the given type.
-void MIMEScanner::addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction)
+/// Gets parent MIME types.
+bool MIMEScanner::getParentTypes(const string &mimeType, set<string> &parentMimeTypes)
 {
-	m_defaultActions.insert(pair<string, MIMEAction>(mimeType, typeAction));
+	if (mimeType.empty() == true)
+	{
+		return false;
+	}
+
+	char **pParentTypes = xdg_mime_list_mime_parents(mimeType.c_str());
+	if ((pParentTypes != NULL) &&
+		(pParentTypes[0] != NULL))
+	{
+		for (unsigned int i = 0; pParentTypes[i] != NULL; ++i)
+		{
+			parentMimeTypes.insert(pParentTypes[i]);
+		}
+
+		free(pParentTypes);
+
+		return true;
+	}
+
+	return false;
+}
+
+/// Adds a user-defined action for the given type.
+void MIMEScanner::addDefaultAction(const string &mimeType, const MIMEAction &typeAction)
+{
+	// Custom actions get stored in a cache object which is not connected to a file
+	// We need to create this object the first time a custom action gets added
+	if ((m_caches.empty() == true) ||
+		(m_caches.front().m_file.empty() == false))
+	{
+		m_caches.push_front(MIMECache());
+	}
+
+	m_caches.front().m_defaultActions.insert(pair<string, MIMEAction>(mimeType, typeAction));
+}
+
+bool MIMEScanner::getDefaultActionsForType(const string &mimeType, vector<MIMEAction> &typeActions)
+{
+	bool foundAction = false;
+
+	// Each cache may have more than one action for this type
+	for (list<MIMECache>::iterator cacheIter = m_caches.begin(); cacheIter != m_caches.end(); ++cacheIter)
+	{
+		MIMECache &cache = *cacheIter;
+		multimap<string, MIMEAction> &defaultActions = cache.m_defaultActions;
+		multimap<string, MIMEAction>::const_iterator actionIter = defaultActions.lower_bound(mimeType);
+		multimap<string, MIMEAction>::const_iterator endActionIter = defaultActions.upper_bound(mimeType);
+
+		// Found anything ?
+		for (; actionIter != endActionIter; ++actionIter)
+		{
+#ifdef DEBUG
+			cout << "MIMEScanner::getDefaultActions: action " << actionIter->second.m_name
+				<< " at " << actionIter->second.m_location << endl;
+#endif
+			typeActions.push_back(actionIter->second);
+			foundAction = true;
+		}
+	}
+  
+	return foundAction;
 }
 
 /// Determines the default action(s) for the given type.
 bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &typeActions)
 {
-	multimap<string, MIMEAction>::const_iterator actionIter = m_defaultActions.lower_bound(mimeType);
-	multimap<string, MIMEAction>::const_iterator endActionIter = m_defaultActions.upper_bound(mimeType);
-	bool foundAction = false;
-
 	typeActions.clear();
-	if (actionIter == m_defaultActions.end())
+  
+#ifdef DEBUG
+	cout << "MIMEScanner::getDefaultActions: searching for " << mimeType << endl;
+#endif
+	bool foundAction = getDefaultActionsForType(mimeType, typeActions);
+	if (foundAction == false)
 	{
 		// Is there an action for any of this type's parents ?
 		char **pParentTypes = xdg_mime_list_mime_parents(mimeType.c_str());
@@ -403,14 +609,12 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 		{
 			for (unsigned int i = 0; pParentTypes[i] != NULL; ++i)
 			{
-				actionIter = m_defaultActions.lower_bound(pParentTypes[i]);
-				endActionIter = m_defaultActions.upper_bound(pParentTypes[i]);
-				if (actionIter != m_defaultActions.end())
-				{
 #ifdef DEBUG
-					cout << "MIMEScanner::getDefaultActions: " << mimeType << " has parent type " << pParentTypes[i] << endl;
+				cout << "MIMEScanner::getDefaultActions: searching for parent type " << pParentTypes[i] << endl;
 #endif
-					typeActions.reserve(m_defaultActions.count(pParentTypes[i]));
+				foundAction = getDefaultActionsForType(string(pParentTypes[i]), typeActions);
+				if (foundAction)
+				{
 					break;
 				}
 			}
@@ -421,21 +625,7 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 		else cout << "MIMEScanner::getDefaultActions: " << mimeType << " has no parent types" << endl;
 #endif
 	}
-	else
-	{
-		typeActions.reserve(m_defaultActions.count(mimeType));
-	}
-
-	// Found anything ?
-	for (; actionIter != endActionIter; ++actionIter)
-	{
-#ifdef DEBUG
-		cout << "MIMEScanner::getDefaultActions: action " << actionIter->second.m_name
-			<< ", " << actionIter->second.m_priority << endl;
-#endif
-		typeActions.push_back(actionIter->second);
-		foundAction = true;
-	}
 
 	return foundAction;
 }
+
