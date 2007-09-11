@@ -19,8 +19,9 @@
 #include <stdlib.h>
 #include <unistd.h> 
 #include <iostream>
-#include <map>
+#include <set>
 
+#include "MIMEScanner.h"
 #include "StringManip.h"
 #include "Url.h"
 #include "FilterFactory.h"
@@ -32,7 +33,8 @@ using std::endl;
 using std::string;
 using std::set;
 using std::map;
-using namespace Dijon;
+
+map<string, string> FilterUtils::m_typeAliases;
 
 FilterUtils::FilterUtils()
 {
@@ -40,6 +42,49 @@ FilterUtils::FilterUtils()
 
 FilterUtils::~FilterUtils()
 {
+}
+
+Dijon::Filter *FilterUtils::getFilter(const string &mimeType)
+{
+	Dijon::Filter *pFilter = NULL;
+
+	// Is this type aliased ?
+	map<string, string>::const_iterator aliasIter = m_typeAliases.find(mimeType);
+	if (aliasIter != m_typeAliases.end())
+	{
+		pFilter = Dijon::FilterFactory::getFilter(aliasIter->second);
+	}
+	else
+	{
+		// Is there a filter for this type ?
+		pFilter = Dijon::FilterFactory::getFilter(mimeType);
+	}
+
+	if (pFilter != NULL)
+	{
+		return pFilter;
+	}
+
+	if (mimeType.empty() == false)
+	{
+		set<string> parentTypes;
+
+		// Try that type's parents
+		MIMEScanner::getParentTypes(mimeType, parentTypes);
+		for (set<string>::const_iterator parentIter = parentTypes.begin();
+			parentIter != parentTypes.end(); ++parentIter)
+		{
+			pFilter = Dijon::FilterFactory::getFilter(*parentIter);
+			if (pFilter != NULL)
+			{
+				// Add an alias
+				m_typeAliases[mimeType] = *parentIter;
+				return pFilter;
+			}
+		}
+	}
+
+	return NULL;
 }
 
 bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
@@ -64,7 +109,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 
 	// Prefer feeding the data
 	if (((dataLength > 0) && (pData != NULL)) &&
-		(pFilter->is_data_input_ok(Filter::DOCUMENT_DATA) == true))
+		(pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_DATA) == true))
 	{
 #ifdef DEBUG
 		cout << "FilterUtils::feedFilter: feeding " << dataLength << " bytes of data from " << location << endl;
@@ -75,7 +120,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 	if ((fedInput == false) &&
 		(fileName.empty() == false))
 	{ 
-		if (pFilter->is_data_input_ok(Filter::DOCUMENT_FILE_NAME) == true)
+		if (pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_FILE_NAME) == true)
 		{
 #ifdef DEBUG
 			cout << "FilterUtils::feedFilter: feeding file " << fileName << endl;
@@ -84,7 +129,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 		}
 		// ...and to feeding the file's contents
 		if ((fedInput == false) &&
-			(pFilter->is_data_input_ok(Filter::DOCUMENT_DATA) == true))
+			(pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_DATA) == true))
 		{
 			Document docCopy(doc);
 
@@ -114,7 +159,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 	// ... to feeding data through a temporary file
 	if ((fedInput == false) &&
 		((dataLength > 0) && (pData != NULL)) &&
-		(pFilter->is_data_input_ok(Filter::DOCUMENT_FILE_NAME) == true))
+		(pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_FILE_NAME) == true))
 	{
 		char inTemplate[18] = "/tmp/filterXXXXXX";
 

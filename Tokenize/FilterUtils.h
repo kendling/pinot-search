@@ -20,7 +20,7 @@
 #define _FILTER_UTILS_H
 
 #include <string>
-#include <set>
+#include <map>
 
 #include "Document.h"
 #include "Filter.h"
@@ -30,6 +30,9 @@ class FilterUtils
 {
 	public:
 		virtual ~FilterUtils();
+
+		/// Returns a Filter that handles the given MIME type, or one of its parents.
+		static Dijon::Filter *getFilter(const std::string &mimeType);
 
 		/// Feeds a document's data to a filter.
 		static bool feedFilter(const Document &doc, Dijon::Filter *pFilter);
@@ -41,6 +44,8 @@ class FilterUtils
 		static std::string stripMarkup(const std::string &text);
 
 	protected:
+		static std::map<std::string, std::string> m_typeAliases;
+
 		FilterUtils();
 
 	private:

@@ -1368,7 +1368,7 @@ void IndexingThread::doWork(void)
 	}
 	else
 	{
-		Dijon::Filter *pFilter = Dijon::FilterFactory::getFilter(m_docInfo.getType());
+		Dijon::Filter *pFilter = FilterUtils::getFilter(m_docInfo.getType());
 
 		if (pFilter != NULL)
 		{

@@ -84,7 +84,7 @@ bool FilterWrapper::unindexDocument(const string &location)
 bool FilterWrapper::filterDocument(const Document &doc, const string &originalType,
 	const set<string> &labels, unsigned int &docId, bool doUpdate)
 {
-	Filter *pFilter = FilterFactory::getFilter(doc.getType());
+	Filter *pFilter = FilterUtils::getFilter(doc.getType());
 	bool fedFilter = false, docSuccess = false, finalSuccess = false;
 
 	if (pFilter != NULL)
