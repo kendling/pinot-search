@@ -168,7 +168,7 @@ string PinotSettings::getHomeDirectory(void)
 		}
 	}
 
-	return "";
+	return "~";
 }
 
 string PinotSettings::getConfigurationDirectory(void)
