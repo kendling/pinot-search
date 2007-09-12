@@ -72,7 +72,9 @@ AC_PATH_PROG(DESKTOP_INSTALL, desktop-file-install, no)
 
 dnl DEBUG mode
 AC_MSG_CHECKING(whether to enable DEBUG mode)
-AC_ARG_ENABLE(debug, [  --enable-debug Enable debug],,[enable_debug=no])
+AC_ARG_ENABLE(debug,
+   [AS_HELP_STRING([--enable-debug], [enable debug [default=no]])],
+   ,[enable_debug=no])
 if test "x$enable_debug" = "xyes"; then
    if test "x$GCC" = "xyes"; then
       CXXFLAGS="$CXXFLAGS -ggdb3 -O0 -DDEBUG"
@@ -85,7 +87,9 @@ AC_MSG_RESULT($enable_debug)
 
 dnl SOAP API support
 AC_MSG_CHECKING(whether to enable SOAP support)
-AC_ARG_ENABLE(soap, [ --enable-soap Enable SOAP support],,[enable_soap=no])
+AC_ARG_ENABLE(soap,
+   [AS_HELP_STRING([--enable-soap], [enable SOAP support [default=no]])],
+   ,[enable_soap=no])
 if test "x$enable_soap" != "xyes"; then
    SOAP_CFLAGS=""
    SOAP_LIBS=""
@@ -110,8 +114,8 @@ AC_SUBST(SEARCH_LIBS)
 
 dnl Neon or Curl ?
 AC_MSG_CHECKING(which HTTP library to use)
-AC_ARG_WITH(http, AS_HELP_STRING(--with-http@<:@=neon|curl@:>@,
-   which HTTP library to use (default: curl)))
+AC_ARG_WITH(http,
+   [AS_HELP_STRING([--with-http@<:@=neon|curl@:>@], [which HTTP library to use [default=curl]])])
 httplibrary=$with_http
 if test "x$httplibrary" = "x"; then
    httplibrary="curl"
