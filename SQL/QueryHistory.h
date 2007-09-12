@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 #include "DocumentInfo.h"
 #include "SQLiteBase.h"
@@ -59,6 +60,10 @@ class QueryHistory : public SQLiteBase
 		/// Gets an item's extract.
 		string getItemExtract(const string &queryName, const string &engineName,
 			const string &url, string &charset);
+
+		/// Finds URLs.
+		bool findUrlsLike(const string &url, unsigned int count,
+			set<string> &urls);
 
 		/// Gets a query's last run time.
 		string getLastRun(const string &queryName, const string &engineName = "");

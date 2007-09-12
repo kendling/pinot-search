@@ -23,8 +23,11 @@
 #include <set>
 #include <sigc++/slot.h>
 #include <sigc++/connection.h>
+#include <gtkmm/entrycompletion.h>
+#include <gtkmm/liststore.h>
 #include <glibmm/ustring.h>
 
+#include "ModelColumns.h"
 #include "WorkerThreads.h"
 #include "importDialog_glade.hh"
 
@@ -47,6 +50,9 @@ protected:
 	void on_thread_end(WorkerThread *pThread);
 
 private:
+	ComboModelColumns m_locationColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refLocationList;
+	Glib::RefPtr<Gtk::EntryCompletion> m_refLocationCompletion;
 	unsigned int m_docsCount;
 	// Activity timeout
 	SigC::Connection m_timeoutConnection;
@@ -57,6 +63,7 @@ private:
 			InternalState(unsigned int maxIndexThreads, importDialog *pWindow);
 			~InternalState();
 
+			unsigned int m_locationLength;
 			bool m_importing;
 
 	} m_state;

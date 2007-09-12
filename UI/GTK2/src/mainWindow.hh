@@ -63,7 +63,6 @@ protected:
 	void add_query(QueryProperties &queryProps, bool mergeQueries);
 
 	// Handlers
-	bool on_queryCompletion_match(const Glib::ustring &key, const Gtk::TreeModel::const_iterator &iter);
 	void on_enginesTreeviewSelection_changed();
 	void on_queryTreeviewSelection_changed();
 	void on_resultsTreeviewSelection_changed(Glib::ustring queryName);

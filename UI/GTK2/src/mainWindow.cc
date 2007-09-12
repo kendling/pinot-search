@@ -130,8 +130,6 @@ mainWindow::mainWindow() :
 	m_refLiveQueryCompletion->set_text_column(m_liveQueryColumns.m_name);
 	m_refLiveQueryCompletion->set_minimum_key_length(3);
 	m_refLiveQueryCompletion->set_popup_completion(true);
-	m_refLiveQueryCompletion->set_match_func(
-		SigC::slot(*this, &mainWindow::on_queryCompletion_match));
 	liveQueryEntry->set_completion(m_refLiveQueryCompletion);
 
 	// Associate the columns model to the query tree
@@ -429,15 +427,6 @@ void mainWindow::on_queryTreeviewSelection_changed()
 		removeQueryButton->set_sensitive(false);
 		findQueryButton->set_sensitive(false);
 	}
-}
-
-bool mainWindow::on_queryCompletion_match(const ustring &key, const TreeModel::const_iterator &iter)
-{
-	TreeModel::Row row = *iter;
-
-	ustring match = row[m_liveQueryColumns.m_name];
-
-	return true;
 }
 
 //

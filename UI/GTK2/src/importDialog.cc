@@ -30,6 +30,7 @@
 #include "MIMEScanner.h"
 #include "NLS.h"
 #include "Url.h"
+#include "QueryHistory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "importDialog.hh"
@@ -40,6 +41,7 @@ using namespace Gtk;
 
 importDialog::InternalState::InternalState(unsigned int maxIndexThreads, importDialog *pWindow) :
 	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
+	m_locationLength(0),
 	m_importing(false)
 {
 	m_onThreadEndSignal.connect(SigC::slot(*pWindow, &importDialog::on_thread_end));
@@ -54,6 +56,15 @@ importDialog::importDialog() :
 	m_docsCount(0),
 	m_state(10, this)
 {
+	// Enable completion on the location field
+	m_refLocationList = ListStore::create(m_locationColumns);
+	m_refLocationCompletion = EntryCompletion::create();
+	m_refLocationCompletion->set_model(m_refLocationList);
+	m_refLocationCompletion->set_text_column(m_locationColumns.m_name);
+	m_refLocationCompletion->set_minimum_key_length(8);
+	m_refLocationCompletion->set_popup_completion(true);
+	locationEntry->set_completion(m_refLocationCompletion);
+
 	// Populate
 	populate_comboboxes();
 
@@ -216,6 +227,36 @@ void importDialog::on_locationEntry_changed()
 		enableImport = false;
 	}
 	importButton->set_sensitive(enableImport);
+
+	unsigned int locationLength = fileName.length();
+
+	// Reset the list
+	m_refLocationList->clear();
+
+	// If characters are being deleted or if the location is too short, don't
+	// attempt to offer suggestions
+	if ((m_state.m_locationLength > locationLength) ||
+		(fileName.empty() == true) ||
+		(m_refLocationCompletion->get_minimum_key_length() > fileName.length()))
+	{
+		m_state.m_locationLength = locationLength;
+		return;
+	}
+	m_state.m_locationLength = locationLength;
+
+	// Get 10 URLs like this one
+	QueryHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+	set<string> suggestedUrls;
+	history.findUrlsLike(fileName, 10, suggestedUrls);
+	// Populate the list
+	for (set<string>::iterator urlIter = suggestedUrls.begin();
+		urlIter != suggestedUrls.end(); ++urlIter)
+	{
+		TreeModel::iterator iter = m_refLocationList->append();
+		TreeModel::Row row = *iter;
+
+		row[m_locationColumns.m_name] = to_utf8(*urlIter);
+	}
 }
 
 void importDialog::on_importButton_clicked()

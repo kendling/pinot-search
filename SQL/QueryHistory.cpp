@@ -71,14 +71,13 @@ bool QueryHistory::insertItem(const string &queryName, const string &engineName,
 	const string &title, const string &extract, const string &charset, float score)
 {
 	Url urlObj(url);
-	string hostName = urlObj.getHost();
-	string escapedUrl = Url::escapeUrl(url);
+	string hostName(urlObj.getHost());
 	bool success = false;
 
 	SQLiteResults *results = executeStatement("INSERT INTO QueryHistory \
 		VALUES('%q', '%q', '%q', '%q', '%q', '%q', '%q', '%f', '0.0', '%d');",
 		queryName.c_str(), engineName.c_str(), hostName.c_str(),
-		escapedUrl.c_str(), title.c_str(), extract.c_str(), charset.c_str(),
+		Url::escapeUrl(url).c_str(), title.c_str(), extract.c_str(), charset.c_str(),
 		score, time(NULL));
 	if (results != NULL)
 	{
@@ -198,6 +197,41 @@ string QueryHistory::getItemExtract(const string &queryName, const string &engin
 	return extract;
 }
 
+/// Finds URLs.
+bool QueryHistory::findUrlsLike(const string &url, unsigned int count, set<string> &urls)
+{
+	bool success = false;
+
+	if (url.empty() == true)
+	{
+		return false; 
+	}
+
+	SQLiteResults *results = executeStatement("SELECT Url FROM QueryHistory \
+		WHERE Url LIKE '%q%%' ORDER BY Url LIMIT %u",
+		Url::escapeUrl(url).c_str(), count);
+	if (results != NULL)
+	{
+		while (results->hasMoreRows() == true)
+		{
+			SQLiteRow *row = results->nextRow();
+			if (row == NULL)
+			{
+				break;
+			}
+
+			urls.insert(Url::unescapeUrl(row->getColumn(0)));
+			success = true;
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return success;
+}
+
 /// Gets a query's last run time.
 string QueryHistory::getLastRun(const string &queryName, const string &engineName)
 {
@@ -206,7 +240,7 @@ string QueryHistory::getLastRun(const string &queryName, const string &engineNam
 
 	if (queryName.empty() == true)
 	{
-		return lastRun;
+		return "";
 	}
 
 	if (engineName.empty() == true)
