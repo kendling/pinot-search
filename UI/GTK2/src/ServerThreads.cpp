@@ -40,7 +40,7 @@
 #include "Url.h"
 #include "DBusXapianIndex.h"
 #include "XapianIndex.h"
-#include "XapianEngine.h"
+#include "SearchEngineFactory.h"
 #include "config.h"
 #include "NLS.h"
 #include "DaemonState.h"
@@ -816,27 +816,36 @@ bool DBusServletThread::mustQuit(void) const
 
 bool DBusServletThread::runQuery(QueryProperties &queryProps, vector<string> &docIds)
 {
-	XapianEngine engine(PinotSettings::getInstance().m_daemonIndexLocation);
-
 	docIds.clear();
 
-	// Run the query
-	engine.setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
-	if (engine.runQuery(queryProps) == false)
+	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine("xapian",
+		PinotSettings::getInstance().m_daemonIndexLocation);
+	if (pEngine == NULL)
 	{
 		return false;
 	}
 
-	const vector<DocumentInfo> &resultsList = engine.getResults();
+	// Run the query
+	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
+	if (pEngine->runQuery(queryProps) == false)
+	{
+		delete pEngine;
+
+		return false;
+	}
+
+	const vector<DocumentInfo> &resultsList = pEngine->getResults();
 	if (resultsList.empty() == true)
 	{
 #ifdef DEBUG
 		cout << "DBusServletThread::runQuery: trying again" << endl;
 #endif
 		// Try again, this time with OR as default operator
-		engine.setDefaultOperator(SearchEngineInterface::DEFAULT_OP_OR);
-		if (engine.runQuery(queryProps) == false)
+		pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_OR);
+		if (pEngine->runQuery(queryProps) == false)
 		{
+			delete pEngine;
+
 			return false;
 		}
 	}
@@ -856,6 +865,8 @@ bool DBusServletThread::runQuery(QueryProperties &queryProps, vector<string> &do
 			docIds.push_back(docIdStr);
 		}
 	}
+
+	delete pEngine;
 
 	return true;
 }

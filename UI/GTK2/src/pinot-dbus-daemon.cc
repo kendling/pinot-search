@@ -45,7 +45,6 @@
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
 #include "XapianIndex.h"
-#include "XapianEngine.h"
 #include "config.h"
 #include "NLS.h"
 #include "DaemonState.h"
