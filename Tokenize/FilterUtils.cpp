@@ -87,6 +87,38 @@ Dijon::Filter *FilterUtils::getFilter(const string &mimeType)
 	return NULL;
 }
 
+bool FilterUtils::isSupportedType(const string &mimeType)
+{
+	// Is this type aliased ?
+	map<string, string>::const_iterator aliasIter = m_typeAliases.find(mimeType);
+	if (aliasIter != m_typeAliases.end())
+	{
+		// There's an alias because we were able to get a filter for this parent type
+		// or a previous call to isSupportedType() succeeded
+		return true;
+	}
+
+	if (Dijon::FilterFactory::isSupportedType(mimeType) == false)
+	{
+		set<string> parentTypes;
+
+		// Try that type's parents
+		MIMEScanner::getParentTypes(mimeType, parentTypes);
+		for (set<string>::const_iterator parentIter = parentTypes.begin();
+			parentIter != parentTypes.end(); ++parentIter)
+		{
+			if (Dijon::FilterFactory::isSupportedType(*parentIter) == true)
+			{
+				// Add an alias
+				m_typeAliases[mimeType] = *parentIter;
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 {
 	string location(doc.getLocation());

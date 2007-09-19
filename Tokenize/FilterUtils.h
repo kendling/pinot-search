@@ -34,6 +34,9 @@ class FilterUtils
 		/// Returns a Filter that handles the given MIME type, or one of its parents.
 		static Dijon::Filter *getFilter(const std::string &mimeType);
 
+		/// Indicates whether a MIME type is supported or not.
+		static bool isSupportedType(const std::string &mimeType);
+
 		/// Feeds a document's data to a filter.
 		static bool feedFilter(const Document &doc, Dijon::Filter *pFilter);
 

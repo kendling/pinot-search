@@ -1351,7 +1351,7 @@ void IndexingThread::doWork(void)
 		m_docInfo.setType(MIMEScanner::scanUrl(thisUrl));
 	}
 
-	if (Dijon::FilterFactory::isSupportedType(m_docInfo.getType()) == false)
+	if (FilterUtils::isSupportedType(m_docInfo.getType()) == false)
 	{
 		// Skip unsupported types ?
 		if (m_allowAllMIMETypes == false)
@@ -1430,7 +1430,7 @@ void IndexingThread::doWork(void)
 #endif
 
 		// Check again as the downloader may have altered the MIME type
-		if (Dijon::FilterFactory::isSupportedType(m_docInfo.getType()) == false)
+		if (FilterUtils::isSupportedType(m_docInfo.getType()) == false)
 		{
 			// Skip unsupported types ?
 			if (m_allowAllMIMETypes == false)
