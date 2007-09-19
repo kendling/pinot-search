@@ -356,7 +356,8 @@ bool MIMECache::load(const list<string> &desktopFilesPaths)
 	return foundActions;
 }
 
-pthread_mutex_t MIMEScanner::m_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t MIMEScanner::m_xdgMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_rwlock_t MIMEScanner::m_cachesLock = PTHREAD_RWLOCK_INITIALIZER;
 list<MIMECache> MIMEScanner::m_caches;
 
 MIMEScanner::MIMEScanner()
@@ -371,6 +372,15 @@ bool MIMEScanner::initialize(const string &userDirectory, const string &systemDi
 {
 	list<string> desktopFilesPaths;
 	bool foundActions = false;
+
+	// This may be a re-initialize
+	if (pthread_rwlock_wrlock(&m_cachesLock) == 0)
+	{
+		// Empty the caches list
+		m_caches.clear();
+
+		pthread_rwlock_unlock(&m_cachesLock);
+	}
 
 	if (systemDirectory.empty() == false)
 	{
@@ -415,9 +425,18 @@ bool MIMEScanner::initialize(const string &userDirectory, const string &systemDi
 bool MIMEScanner::addCache(const string &file, const string &section,
 	const list<string> &desktopFilesPaths)
 {
-	m_caches.push_back(MIMECache(file, section));
+	bool addedCache = false;
 
-	return m_caches.back().load(desktopFilesPaths);
+	if (pthread_rwlock_wrlock(&m_cachesLock) == 0)
+	{
+		m_caches.push_back(MIMECache(file, section));
+
+		addedCache = m_caches.back().load(desktopFilesPaths);
+
+		pthread_rwlock_unlock(&m_cachesLock);
+	}
+
+	return addedCache;
 }
 
 void MIMEScanner::shutdown(void)
@@ -435,11 +454,11 @@ string MIMEScanner::scanFileType(const string &fileName)
 	}
 
 	// Does it have an obvious extension ?
-	if (pthread_mutex_lock(&m_mutex) == 0)
+	if (pthread_mutex_lock(&m_xdgMutex) == 0)
 	{
 		pType = xdg_mime_get_mime_type_from_file_name(fileName.c_str());
 
-		pthread_mutex_unlock(&m_mutex);
+		pthread_mutex_unlock(&m_xdgMutex);
 	}
 
 	if ((pType == NULL) ||
@@ -466,11 +485,11 @@ string MIMEScanner::scanFile(const string &fileName)
 		const char *pType = NULL;
 
 		// Have a peek at the file
-		if (pthread_mutex_lock(&m_mutex) == 0)
+		if (pthread_mutex_lock(&m_xdgMutex) == 0)
 		{
 			pType = xdg_mime_get_mime_type_for_file(fileName.c_str(), NULL);
 
-			pthread_mutex_unlock(&m_mutex);
+			pthread_mutex_unlock(&m_xdgMutex);
 		}
 
 		if (pType != NULL)
@@ -555,18 +574,29 @@ void MIMEScanner::addDefaultAction(const string &mimeType, const MIMEAction &typ
 {
 	// Custom actions get stored in a cache object which is not connected to a file
 	// We need to create this object the first time a custom action gets added
-	if ((m_caches.empty() == true) ||
-		(m_caches.front().m_file.empty() == false))
+	if (pthread_rwlock_wrlock(&m_cachesLock) == 0)
 	{
-		m_caches.push_front(MIMECache());
-	}
+		if ((m_caches.empty() == true) ||
+			(m_caches.front().m_file.empty() == false))
+		{
+			m_caches.push_front(MIMECache());
+		}
 
-	m_caches.front().m_defaultActions.insert(pair<string, MIMEAction>(mimeType, typeAction));
+		m_caches.front().m_defaultActions.insert(pair<string, MIMEAction>(mimeType, typeAction));
+
+		pthread_rwlock_unlock(&m_cachesLock);
+	}
 }
 
-bool MIMEScanner::getDefaultActionsForType(const string &mimeType, vector<MIMEAction> &typeActions)
+bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &actionNames,
+	vector<MIMEAction> &typeActions)
 {
 	bool foundAction = false;
+
+	if (pthread_rwlock_rdlock(&m_cachesLock) != 0)
+	{
+		return false;
+	}
 
 	// Each cache may have more than one action for this type
 	for (list<MIMECache>::iterator cacheIter = m_caches.begin(); cacheIter != m_caches.end(); ++cacheIter)
@@ -579,27 +609,36 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, vector<MIMEAc
 		// Found anything ?
 		for (; actionIter != endActionIter; ++actionIter)
 		{
+			// The same action may be defined for another type
+			if (actionNames.find(actionIter->second.m_name) == actionNames.end())
+			{
 #ifdef DEBUG
-			cout << "MIMEScanner::getDefaultActions: action " << actionIter->second.m_name
-				<< " at " << actionIter->second.m_location << endl;
+				cout << "MIMEScanner::getDefaultActions: action " << actionIter->second.m_name
+					<< " at " << actionIter->second.m_location << endl;
 #endif
-			typeActions.push_back(actionIter->second);
-			foundAction = true;
+				actionNames.insert(actionIter->second.m_name);
+				typeActions.push_back(actionIter->second);
+				foundAction = true;
+			}
 		}
 	}
   
+	pthread_rwlock_unlock(&m_cachesLock);
+
 	return foundAction;
 }
 
 /// Determines the default action(s) for the given type.
 bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &typeActions)
 {
+	set<string> actionNames;
+	
 	typeActions.clear();
   
 #ifdef DEBUG
 	cout << "MIMEScanner::getDefaultActions: searching for " << mimeType << endl;
 #endif
-	bool foundAction = getDefaultActionsForType(mimeType, typeActions);
+	bool foundAction = getDefaultActionsForType(mimeType, actionNames, typeActions);
 	if (foundAction == false)
 	{
 		// Is there an action for any of this type's parents ?
@@ -609,10 +648,12 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 		{
 			for (unsigned int i = 0; pParentTypes[i] != NULL; ++i)
 			{
+				string parentType(pParentTypes[i]);
+
 #ifdef DEBUG
-				cout << "MIMEScanner::getDefaultActions: searching for parent type " << pParentTypes[i] << endl;
+				cout << "MIMEScanner::getDefaultActions: searching for parent type " << parentType << endl;
 #endif
-				foundAction = getDefaultActionsForType(string(pParentTypes[i]), typeActions);
+				foundAction = getDefaultActionsForType(parentType, actionNames, typeActions);
 				if (foundAction)
 				{
 					break;

@@ -117,7 +117,9 @@ class MIMEScanner
 
 	protected:
 		/// Mutex to protect access to xdgmime.
-		static pthread_mutex_t m_mutex;
+		static pthread_mutex_t m_xdgMutex;
+		/// Lock to protect access to caches.
+		static pthread_rwlock_t m_cachesLock;
 		/// MIME type caches, ordered by decreasing priority.
 		static std::list<MIMECache> m_caches;
 
@@ -128,7 +130,8 @@ class MIMEScanner
 		static bool addCache(const std::string &file, const std::string &section,
 			const std::list<std::string> &desktopFilesPaths);
   
-		static bool getDefaultActionsForType(const std::string &mimeType, std::vector<MIMEAction> &typeActions);
+		static bool getDefaultActionsForType(const std::string &mimeType, std::set<std::string> &actionNames,
+			std::vector<MIMEAction> &typeActions);
 
 	private:
 		MIMEScanner(const MIMEScanner &other);
