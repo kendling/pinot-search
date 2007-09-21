@@ -36,15 +36,9 @@ class StringManip
 		static std::string extractField(const std::string &str, const std::string &start,
 			const std::string &end, std::string::size_type &endPos, bool anyCharacterOfEnd = false);
 
-		/// Replaces entities.
-		static std::string replaceEntities(const std::string &str);
-
 		/// Replaces a sub-string.
 		static std::string replaceSubString(const std::string &str, const std::string &substr,
 			const std::string &rep);
-
-		/// Removes characters from a string.
-		static unsigned int removeCharacters(std::string &str, const std::string &characters);
 
 		/// Removes double and single quotes.
 		static std::string removeQuotes(const std::string &str);

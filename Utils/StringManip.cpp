@@ -109,62 +109,6 @@ string StringManip::extractField(const string &str, const string &start, const s
 	return fieldValue;
 }
 
-/// Replaces entities.
-string StringManip::replaceEntities(const string &str)
-{
-	// FIXME: replace all
-	static const char *escapedChars[] = { "quot", "amp", "lt", "gt", "nbsp", "eacute", "egrave", "agrave", "ccedil"};
-	static const char *unescapedChars[] = { "\"", "&", "<", ">", " ", "e", "e", "a", "c"};
-	static const unsigned int escapedCharsCount = 9;
-	string unescapedStr;
-	string::size_type startPos = 0;
-
-	string::size_type pos = str.find("&");
-	while (pos != string::npos)
-	{
-		unescapedStr += str.substr(startPos, pos - startPos);
-
-		startPos = pos + 1;
-		pos = str.find(";", startPos);
-		if ((pos != string::npos) &&
-			(pos < startPos + 10))
-		{
-			string escapedChar(str.substr(startPos, pos - startPos));
-			bool replacedChar = false;
-
-			// See if we can replace this with an actual character
-			for (unsigned int count = 0; count < escapedCharsCount; ++count)
-			{
-				if (escapedChar == escapedChars[count])
-				{
-					unescapedStr += unescapedChars[count];
-					replacedChar = true;
-					break;
-				}
-			}
-
-			if (replacedChar == false)
-			{
-				// This couldn't be replaced, leave it as it is...
-				unescapedStr += "&";
-				unescapedStr += escapedChar;
-				unescapedStr += ";";
-			}
-
-			startPos = pos + 1;
-		}
-
-		// Next
-		pos = str.find("&", startPos);
-	}
-	if (startPos < str.length())
-	{
-		unescapedStr  += str.substr(startPos);
-	}
-
-	return unescapedStr;
-}
-
 /// Replaces a sub-string.
 string StringManip::replaceSubString(const string &str, const std::string &substr, const std::string &rep)
 {
@@ -195,23 +139,6 @@ string StringManip::replaceSubString(const string &str, const std::string &subst
 	}
 
 	return cleanStr;
-}
-
-/// Removes characters from a string.
-unsigned int StringManip::removeCharacters(string &str, const string &characters)
-{
-	unsigned int count = 0;
-
-	string::size_type charPos = str.find_first_of(characters.c_str());
-	while (charPos != string::npos)
-	{
-		str.erase(charPos, 1);
-		++count;
-
-		charPos = str.find_first_of(characters.c_str(), charPos);
-	}
-
-	return count;	
 }
 
 /// Trims spaces at the start and end of a string.
