@@ -37,6 +37,8 @@
 
 #include "DocumentInfo.h"
 #include "QueryProperties.h"
+#include "MonitorInterface.h"
+#include "MonitorHandler.h"
 #include "EnginesTree.h"
 #include "IndexPage.h"
 #include "ModelColumns.h"
@@ -164,6 +166,9 @@ private:
 	SigC::Connection m_pageSwitchConnection;
 	// Activity timeout
 	SigC::Connection m_timeoutConnection;
+	// Monitoring
+	MonitorInterface *m_pSettingsMonitor;
+	MonitorHandler *m_pSettingsHandler;
 	// Internal state
 	class InternalState : public ThreadsManager
 	{

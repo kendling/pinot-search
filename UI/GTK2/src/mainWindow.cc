@@ -41,6 +41,7 @@
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "XapianDatabase.h"
+#include "MonitorFactory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderFactory.h"
@@ -61,6 +62,76 @@ using namespace std;
 using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
+
+class ReloadHandler : public MonitorHandler
+{
+	public:
+		ReloadHandler() : MonitorHandler() {}
+		virtual ~ReloadHandler() {}
+
+		/// Initializes things before starting monitoring.
+		virtual void initialize(void) {}
+
+		/// Handles flushing the index.
+		virtual void flushIndex(void) {}
+
+		/// Handles file existence events.
+		virtual bool fileExists(const std::string &fileName)
+		{
+			// Nothing to do here
+			return true; 
+		}
+
+		/// Handles file creation events.
+		virtual bool fileCreated(const std::string &fileName)
+		{
+			// Nothing to do here
+			return true; 
+		}
+
+		/// Handles file modified events.
+		virtual bool fileModified(const std::string &fileName)
+		{
+			// Re-initialize the MIME sub-system
+			return MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
+				string(SHARED_MIME_INFO_PREFIX));
+		}
+
+		/// Handles file moved events.
+		virtual bool fileMoved(const std::string &fileName,
+			const std::string &previousFileName)
+		{
+			// Nothing to do here
+			return true; 
+		}
+
+		/// Handles directory moved events.
+		virtual bool directoryMoved(const std::string &dirName,
+			const std::string &previousDirName)
+		{
+			// Nothing to do here
+			return true; 
+		}
+
+		/// Handles file deleted events.
+		virtual bool fileDeleted(const std::string &fileName)
+		{
+			// Nothing to do here
+			return true; 
+		}
+
+		/// Handles directory deleted events.
+		virtual bool directoryDeleted(const std::string &dirName)
+		{
+			// Nothing to do here
+			return true; 
+		}
+
+	private:
+		ReloadHandler(const ReloadHandler &other);
+		ReloadHandler &operator=(const ReloadHandler &other);
+
+};
 
 // FIXME: this ought to be configurable
 unsigned int mainWindow::m_maxDocsCount = 100;
@@ -89,6 +160,8 @@ mainWindow::mainWindow() :
 	m_pNotebook(NULL),
 	m_pIndexMenu(NULL),
 	m_pCacheMenu(NULL),
+	m_pSettingsMonitor(MonitorFactory::getMonitor()),
+	m_pSettingsHandler(NULL),
 	m_state(m_maxIndexThreads, this)
 {
 	// Reposition and resize the window
@@ -186,6 +259,19 @@ mainWindow::mainWindow() :
 	// Connect to threads' finished signal
 	m_state.connect();
 
+	// Monitor MIME settings files for changes in the background
+	set<string> mimeFiles;
+	MIMEScanner::listConfigurationFiles(PinotSettings::getHomeDirectory() + "/.local", mimeFiles);
+	MIMEScanner::listConfigurationFiles(string(SHARED_MIME_INFO_PREFIX), mimeFiles);
+	for (set<string>::const_iterator fileIter = mimeFiles.begin();
+		fileIter != mimeFiles.end(); ++fileIter)
+	{
+		m_pSettingsMonitor->addLocation(*fileIter, false);
+	}
+	m_pSettingsHandler = new ReloadHandler();
+	MonitorThread *pSettingsMonitorThread = new MonitorThread(m_pSettingsMonitor, m_pSettingsHandler, false);
+	start_thread(pSettingsMonitorThread, true);
+
 	// Now we are ready
 	set_status(_("Ready"));
 	m_pNotebook->show();
@@ -205,6 +291,15 @@ mainWindow::mainWindow() :
 mainWindow::~mainWindow()
 {
 	// FIXME: delete all "ignored" threads when exiting !!!
+
+	if (m_pSettingsMonitor != NULL)
+	{
+		delete m_pSettingsMonitor;
+	}
+	if (m_pSettingsHandler != NULL)
+	{
+		delete m_pSettingsHandler;
+	}
 
 	// Save engines
 	m_pEnginesTree->save();

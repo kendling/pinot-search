@@ -23,7 +23,6 @@
 #include <pthread.h>
 #include <string>
 #include <map>
-#include <sigc++/slot.h>
 
 #include "CrawlHistory.h"
 #include "MonitorHandler.h"

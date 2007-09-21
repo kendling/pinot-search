@@ -35,7 +35,6 @@
 #include "OnDiskHandler.h"
 
 using namespace std;
-using namespace SigC;
 
 OnDiskHandler::OnDiskHandler() :
 	MonitorHandler(),

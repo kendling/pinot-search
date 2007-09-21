@@ -27,6 +27,7 @@
 #include "StringManip.h"
 #include "Url.h"
 
+#define APPLICATIONS_DIRECTORY	"/share/applications/"
 #define MIME_DEFAULTS_LIST	"defaults.list"
 #define MIME_DEFAULTS_SECTION	"Default Applications"
 #define MIME_CACHE		"mimeinfo.cache"
@@ -237,9 +238,6 @@ bool MIMECache::findDesktopFile(const string &desktopFile, const string &mimeTyp
 	{
 		// Yes, it was so just copy it
 		m_defaultActions.insert(pair<string, MIMEAction>(mimeType, actionIter->second));
-#ifdef DEBUG
-		cout << "MIMECache::findDesktopFile: copied " << desktopFile << endl;
-#endif
 
 		return true;
 	}
@@ -368,9 +366,11 @@ MIMEScanner::~MIMEScanner()
 {
 }
 
-bool MIMEScanner::initialize(const string &userDirectory, const string &systemDirectory)
+bool MIMEScanner::initialize(const string &userPrefix, const string &systemPrefix)
 {
 	list<string> desktopFilesPaths;
+	string userDirectory(userPrefix + APPLICATIONS_DIRECTORY);
+	string systemDirectory(systemPrefix + APPLICATIONS_DIRECTORY);
 	bool foundActions = false;
 
 	// This may be a re-initialize
@@ -442,6 +442,15 @@ bool MIMEScanner::addCache(const string &file, const string &section,
 void MIMEScanner::shutdown(void)
 {
 	xdg_mime_shutdown();
+}
+
+void MIMEScanner::listConfigurationFiles(const string &prefix, set<string> &files)
+{
+	if (prefix.empty() == false)
+	{
+		files.insert(prefix + APPLICATIONS_DIRECTORY + MIME_DEFAULTS_LIST);
+		files.insert(prefix + APPLICATIONS_DIRECTORY + MIME_CACHE);
+	}
 }
 
 string MIMEScanner::scanFileType(const string &fileName)

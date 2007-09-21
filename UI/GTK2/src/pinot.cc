@@ -238,8 +238,8 @@ int main(int argc, char **argv)
 	}
 
 	// Initialize utility classes
-	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local/share/applications/",
-		string(SHARED_MIME_INFO_PREFIX) + "/share/applications/") == false)
+	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
+		string(SHARED_MIME_INFO_PREFIX)) == false)
 	{
 		cerr << "Couldn't load MIME settings" << endl;
 	}

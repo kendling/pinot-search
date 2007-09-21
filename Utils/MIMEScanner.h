@@ -95,10 +95,13 @@ class MIMEScanner
 		~MIMEScanner();
 
 		/// Initializes the MIME system.
-		static bool initialize(const std::string &userDirectory, const std::string &systemDirectory);
+		static bool initialize(const std::string &userPrefix, const std::string &systemPrefix);
   
 		/// Shutdowns the MIME system.
 		static void shutdown(void);
+
+		/// Lists MIME configuration files under the given prefix.
+		static void listConfigurationFiles(const std::string &prefix, std::set<std::string> &files);
 
 		/// Finds out the given file's MIME type.
 		static std::string scanFile(const std::string &fileName);

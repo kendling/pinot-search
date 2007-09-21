@@ -35,6 +35,8 @@
 
 #include "Document.h"
 #include "DownloaderInterface.h"
+#include "MonitorInterface.h"
+#include "MonitorHandler.h"
 #include "QueryProperties.h"
 
 class WorkerThread
@@ -437,6 +439,36 @@ class StartDaemonThread : public WorkerThread
 	private:
 		StartDaemonThread(const StartDaemonThread &other);
 		StartDaemonThread &operator=(const StartDaemonThread &other);
+
+};
+
+class MonitorThread : public WorkerThread
+{
+	public:
+		MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler,
+			bool checkHistory = true);
+		virtual ~MonitorThread();
+
+		virtual std::string getType(void) const;
+
+		virtual bool stop(void);
+
+		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool>& getDirectoryFoundSignal(void);
+
+	protected:
+		int m_ctrlReadPipe;
+		int m_ctrlWritePipe;
+		MonitorInterface *m_pMonitor;
+		MonitorHandler *m_pHandler;
+		bool m_checkHistory;
+		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalDirectoryFound;
+
+		void processEvents(void);
+		virtual void doWork(void);
+
+	private:
+		MonitorThread(const MonitorThread &other);
+		MonitorThread &operator=(const MonitorThread &other);
 
 };
 

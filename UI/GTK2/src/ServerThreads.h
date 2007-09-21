@@ -43,34 +43,6 @@ extern "C"
 #include "DaemonState.h"
 #include "WorkerThreads.h"
 
-class MonitorThread : public WorkerThread
-{
-	public:
-		MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler);
-		virtual ~MonitorThread();
-
-		virtual std::string getType(void) const;
-
-		virtual bool stop(void);
-
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool>& getDirectoryFoundSignal(void);
-
-	protected:
-		int m_ctrlReadPipe;
-		int m_ctrlWritePipe;
-		MonitorInterface *m_pMonitor;
-		MonitorHandler *m_pHandler;
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalDirectoryFound;
-
-		void processEvents(void);
-		virtual void doWork(void);
-
-	private:
-		MonitorThread(const MonitorThread &other);
-		MonitorThread &operator=(const MonitorThread &other);
-
-};
-
 class DirectoryScannerThread : public WorkerThread
 {
 	public:

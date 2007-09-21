@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
+#include <errno.h>
 #include <exception>
 #include <iostream>
 #include <fstream>
@@ -1786,6 +1787,256 @@ void StartDaemonThread::doWork(void)
 		// Ask the daemon to reload its configuration
 		// Let D-Bus activate the service if necessary
 		DBusXapianIndex::reload();
+	}
+}
+
+MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler,
+	bool checkHistory) :
+	WorkerThread(),
+	m_ctrlReadPipe(-1),
+	m_ctrlWritePipe(-1),
+	m_pMonitor(pMonitor),
+	m_pHandler(pHandler),
+	m_checkHistory(checkHistory)
+{
+	int pipeFds[2];
+
+	if (pipe(pipeFds) == 0)
+	{
+		// This pipe will allow to stop select()
+		m_ctrlReadPipe = pipeFds[0];
+		m_ctrlWritePipe = pipeFds[1];
+	}
+}
+
+MonitorThread::~MonitorThread()
+{
+	close(m_ctrlReadPipe);
+	close(m_ctrlWritePipe);
+}
+
+string MonitorThread::getType(void) const
+{
+	return "MonitorThread";
+}
+
+bool MonitorThread::stop(void)
+{
+	// Disconnect the signal
+	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type slotsList = m_signalDirectoryFound.slots();
+	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	if (slotIter != slotsList.end())
+	{
+		if (slotIter->empty() == false)
+		{
+			slotIter->block();
+			slotIter->disconnect();
+		}
+	}
+	m_done = true;
+	write(m_ctrlWritePipe, "X", 1);
+
+	return true;
+}
+
+Signal3<void, const DocumentInfo&, const std::string&, bool>& MonitorThread::getDirectoryFoundSignal(void)
+{
+	return m_signalDirectoryFound;
+}
+
+void MonitorThread::processEvents(void)
+{
+	CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+	queue<MonitorEvent> events;
+
+#ifdef DEBUG
+	cout << "MonitorThread::processEvents: checking for events" << endl;
+#endif
+	if ((m_pMonitor == NULL) ||
+		(m_pMonitor->retrievePendingEvents(events) == false))
+	{
+#ifdef DEBUG
+		cout << "MonitorThread::processEvents: failed to retrieve pending events" << endl;
+#endif
+		return;
+	}
+#ifdef DEBUG
+	cout << "MonitorThread::processEvents: retrieved " << events.size() << " events" << endl;
+#endif
+
+	while ((events.empty() == false) &&
+		(m_done == false))
+	{
+		MonitorEvent &event = events.front();
+
+		if ((event.m_location.empty() == true) ||
+			(event.m_type == MonitorEvent::UNKNOWN))
+		{
+			// Next
+			events.pop();
+			continue;
+		}
+#ifdef DEBUG
+		cout << "MonitorThread::processEvents: event " << event.m_type << " on "
+			<< event.m_location << " " << event.m_isDirectory << endl;
+#endif
+
+		// Skip dotfiles and blacklisted files
+		Url urlObj("file://" + event.m_location);
+		if ((urlObj.getFile()[0] == '.') ||
+			(PinotSettings::getInstance().isBlackListed(event.m_location) == true))
+		{
+			// Next
+			events.pop();
+			continue;
+		}
+
+		// What's the event code ?
+		if (event.m_type == MonitorEvent::EXISTS)
+		{
+			if (event.m_isDirectory == false)
+			{
+				m_pHandler->fileExists(event.m_location);
+			}
+		}
+		else if (event.m_type == MonitorEvent::CREATED)
+		{
+			if (event.m_isDirectory == false)
+			{
+				m_pHandler->fileCreated(event.m_location);
+			}
+			else
+			{
+				DocumentInfo docInfo("", string("file://") + event.m_location, "", "");
+
+				// Report this directory so that it is crawled
+				m_signalDirectoryFound(docInfo, "", true);
+			}
+		}
+		else if (event.m_type == MonitorEvent::WRITE_CLOSED)
+		{
+			if (event.m_isDirectory == false)
+			{
+				CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
+				struct stat fileStat;
+				time_t itemDate = 0;
+
+				if (m_checkHistory == false)
+				{
+					m_pHandler->fileModified(event.m_location);
+				}
+				else if (history.hasItem("file://" + event.m_location, status, itemDate) == true)
+				{
+					// Was the file actually modified ?
+					if ((stat(event.m_location.c_str(), &fileStat) == 0) &&
+						(itemDate < fileStat.st_mtime))
+					{
+						m_pHandler->fileModified(event.m_location);
+					}
+#ifdef DEBUG
+					else cout << "MonitorThread::processEvents: file wasn't modified" << endl;
+#endif
+				}
+#ifdef DEBUG
+				else cout << "MonitorThread::processEvents: file wasn't crawled" << endl;
+#endif
+			}
+		}
+		else if (event.m_type == MonitorEvent::MOVED)
+		{
+			if (event.m_isDirectory == false)
+			{
+				m_pHandler->fileMoved(event.m_location, event.m_previousLocation);
+			}
+			else
+			{
+				// We should receive this only if the destination directory is monitored too
+				m_pHandler->directoryMoved(event.m_location, event.m_previousLocation);
+			}
+		}
+		else if (event.m_type == MonitorEvent::DELETED)
+		{
+			if (event.m_isDirectory == false)
+			{
+				m_pHandler->fileDeleted(event.m_location);
+			}
+			else
+			{
+				// The monitor should have stopped monitoring this
+				// In practice, events for the files in this directory will already have been received 
+				m_pHandler->directoryDeleted(event.m_location);
+			}
+		}
+
+		// Next
+		events.pop();
+	}
+}
+
+void MonitorThread::doWork(void)
+{
+	if ((m_pHandler == NULL) ||
+		(m_pMonitor == NULL))
+	{
+		m_status = _("No monitoring handler");
+		return;
+	}
+
+	// Initialize the handler
+	m_pHandler->initialize();
+
+	// Get the list of files to monitor
+	const set<string> &fileNames = m_pHandler->getFileNames();
+	for (set<string>::const_iterator fileIter = fileNames.begin();
+		fileIter != fileNames.end(); ++fileIter)
+	{
+		m_pMonitor->addLocation(*fileIter, false);
+	}
+	// Directories, if any, are set elsewhere
+	// In the case of OnDiskHandler, they are set by DirectoryScannerThread
+
+	// There might already be events that need processing
+	processEvents();
+
+	// Wait for something to happen
+	while (m_done == false)
+	{
+		struct timeval selectTimeout;
+		fd_set listenSet;
+
+		selectTimeout.tv_sec = 60;
+		selectTimeout.tv_usec = 0;
+
+		FD_ZERO(&listenSet);
+		if (m_ctrlReadPipe >= 0)
+		{
+			FD_SET(m_ctrlReadPipe, &listenSet);
+		}
+
+		m_pHandler->flushIndex();
+
+		// The file descriptor may change over time
+		int monitorFd = m_pMonitor->getFileDescriptor();
+		FD_SET(monitorFd, &listenSet);
+		if (monitorFd < 0)
+		{
+			m_status = _("Couldn't initialize file monitor");
+			return;
+		}
+
+		int fdCount = select(max(monitorFd, m_ctrlReadPipe) + 1, &listenSet, NULL, NULL, &selectTimeout);
+		if ((fdCount < 0) &&
+			(errno != EINTR))
+		{
+#ifdef DEBUG
+			cout << "MonitorThread::doWork: select() failed" << endl;
+#endif
+			break;
+		}
+		else if (FD_ISSET(monitorFd, &listenSet))
+		{
+			processEvents();
+		}
 	}
 }
 
