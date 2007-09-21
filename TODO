@@ -1,19 +1,17 @@
 Documentation
 - List what files from libtextcat 2.2 go where ?
+- Say where libtextcat 3.0 can (and cannot ;-) be found
 - MIME type should be as returned by xdg-utils' 'xdg-mime query filetype ...'
 - Try listing names of dependency packages for most distros
 - How to trouble-shoot with delve, get to a file with filters and labels
 - Explain when indexing and updating are done, eg in the results list, Index on
  a result already indexed doesn't update it
+- Document which query parameters apply to Web engines
 
 General
 - Fix the FIXMEs
 - Get rid of dead code/classes/methods...
 - Advertise service via Rendezvous
-- MIMEScanner should also return parent types so that we don't filter out types unnecessarily
-- Load desktop files from /usr/share/applications/kde ?
-- DBUS_API_SUBJECT_TO_CHANGE only needed for DBus < 1.0
-- Document which query parameters apply to Web engines
 - Extend metadata beyond title,location,language,type,timestamp,size
 - Sync with gtk+'s xdgmime
 - Build against Fedora's patched libtextcat
@@ -54,11 +52,11 @@ Search
 - Make sure Description files' SyndicationRight is not private or closed
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers
  and remove stopwords from queries as first step of search
-- If a Web query fails, get spelling suggestions from the MERGED database
-- Unify spelling suggestions, terms expansion and default-to-OR search as user feedback
 - Enable to search in results, either by combining queries or via a results set
 - The ext filter should apply to all engines
 - Google and maybe others support the site filter so don't remove it from queries
+- Isolate dependencies on Xapian so that it can eventually be moved into a .so
+- Filter on time
 
 Index
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
@@ -70,13 +68,11 @@ Index
 - Index Nautilus metadata (http://linuxboxadmin.com/articles/nautilus.php)
 - Reverse terms so that left wildcards can be applied ?
 - XapianIndex could do with some common code refactoring
-- Xapian > 1.0 has a version of Xapian::Database::allterms_begin() that takes a prefix
-- With Xapian > 1.0.2, for date ranges, use QueryParser::add_valuerangeprocessor()
- NumberValueRangeProcessor and sortable_serialise()
 - Automatically categorize documents based on MIME type and source into picture, video, etc...
 - DBusXapianIndex to use D-Bus method Index
 - pinot-index to instantiate a DBusXapianIndex if dealing with the daemon index
 - After indexing or updating a document, a call to getDocumentInfo() shouldn't be necessary
+- Add a value for time
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -98,10 +94,10 @@ Daemon
 - Labels should be managed by the daemon, and not saved to the configuration file
 - DBus SetDocument[s]Labels should create labels if necessary
 - Reintroduce Index method in D-Bus interface
+- Export term suggestion over D-Bus
 - There's currently no way to get a document's ID without running a search
 - Follow updates to Xesam specs
 - Enable to deactivate D-Bus interface
-- Force full scans on Reload ?
 
 UI
 - When sorting results by host name, give better score to results that appear
@@ -118,7 +114,6 @@ UI
 - When viewing a result, all rows for that same URL should be updated with the
  Viewed icon
 - Set results' indexed status after IndexingThread returns
-- Show date ranges in queries summary
 - Make use of GTKmm 2.10 StatusIcon
 - Query expansion should be interactive
 - UI doesn't show documents indexed by the daemon the very first time it's run,
@@ -128,10 +123,10 @@ UI
 - Show whether Pinot was built with boost Spirit and how many plugins of each
  type there are
 - Delete all temporary files when exiting
-- Add less than, equal to, greater than filters on size for stored queries
 - Show which stored queries are fully, partially or not at all Web friendly
 - List viewed URLs
-- Unify ExpandQuery and Querying threads !
-- Suggest links from previous results when importing, as done for terms
 - Let queries index only new results
+- Show a query's latest results, as cached in the history database
+- Query correction should be optional
+- Default cache provider should be configurable
 
