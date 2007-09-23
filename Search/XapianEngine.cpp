@@ -45,21 +45,6 @@ using std::endl;
 using std::inserter;
 using namespace Dijon;
 
-// The following function was lifted from Xapian's xapian-applications/omega/date.cc
-// where it's called last_day(), and prettified slightly
-static int lastDay(int year, int month)
-{
-	static const int lastDays[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
-	if (month != 2)
-	{
-		return lastDays[month];
-	}
-
-	// Good until 2100
-	return 28 + (year % 4 == 0);
-}
-
 static void checkFilter(const string &freeQuery, string::size_type filterValueStart,
 	bool &escapeValue, bool &hashValue)
 {
@@ -93,6 +78,48 @@ static void checkFilter(const string &freeQuery, string::size_type filterValueSt
 		escapeValue = true;
 	}
 }
+
+class TimeValueRangeProcessor : public Xapian::ValueRangeProcessor
+{
+	public:
+		TimeValueRangeProcessor(Xapian::valueno valno) : Xapian::ValueRangeProcessor(), m_valueNumber(valno) { }
+
+		Xapian::valueno operator()(string &begin, string &end)
+		{
+			if ((begin.size() == 6) &&
+					(end.size() == 6))
+			{
+				// HHMMSS
+#ifdef DEBUG
+				cout << "TimeValueRangeProcessor::operator: accepting " << begin << ".." << end << endl;
+#endif
+				return m_valueNumber;
+			}
+			if ((begin.size() == 8) && (end.size() == 8) &&
+					(begin[2] == begin[5]) && (end[2] == end[5]) && (begin[2] == end[2]) &&
+					(end[4] == ':'))
+			{
+				// HH:MM:SS
+				begin.erase(2, 1);
+				begin.erase(5, 1);
+				end.erase(2, 1);
+				end.erase(5, 1);
+#ifdef DEBUG
+				cout << "TimeValueRangeProcessor::operator: accepting " << begin << ".." << end << endl;
+#endif
+				return m_valueNumber;
+			}
+#ifdef DEBUG
+			cout << "TimeValueRangeProcessor::operator: rejecting " << begin << ".." << end << endl;
+#endif
+
+			return Xapian::BAD_VALUENO;
+		}
+
+	protected:
+		Xapian::valueno m_valueNumber;
+
+};
 
 XapianEngine::XapianEngine(const string &database) :
 	SearchEngineInterface()
@@ -287,6 +314,10 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_valuerangeprocessor(&sizeProcessor);
 #endif
 
+	// Time range
+	TimeValueRangeProcessor timeProcessor(3);
+	parser.add_valuerangeprocessor(&timeProcessor);
+
 	// Parse the query string
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
 	if (minimal == true)
@@ -364,7 +395,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		enquire.set_query(query);
 
 		// Get the top results of the query
-		Xapian::MSet matches = enquire.get_mset(startDoc, maxResultsCount);
+		Xapian::MSet matches = enquire.get_mset(startDoc, maxResultsCount, maxResultsCount + 1);
 		if (matches.empty() == false)
 		{
 			m_resultsCountEstimate = matches.get_matches_estimated();

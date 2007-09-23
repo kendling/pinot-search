@@ -69,7 +69,7 @@ queryDialog_glade::queryDialog_glade(
    nameEntry = Gtk::manage(new class Gtk::Entry());
    
    Gtk::Table *nameTable = Gtk::manage(new class Gtk::Table(2, 2, false));
-   Gtk::Label *filterLabel = Gtk::manage(new class Gtk::Label(_("New filter:")));
+   Gtk::Label *filterLabel = Gtk::manage(new class Gtk::Label(_("New filter or range:")));
    filterCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    
    Gtk::Button *addFilterButton = Gtk::manage(new class Gtk::Button(Gtk::StockID("gtk-add")));

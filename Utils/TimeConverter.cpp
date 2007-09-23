@@ -243,7 +243,7 @@ time_t TimeConverter::fromTimestamp(const string &timestamp, bool inGMTime)
 /// Converts to a YYYYMMDD-formatted string.
 string TimeConverter::toYYYYMMDDString(int year, int month, int day)
 {
-	char timeStr[64];
+	char dateStr[64];
 
 	if (year < 0)
 	{
@@ -270,9 +270,9 @@ string TimeConverter::toYYYYMMDDString(int year, int month, int day)
 		day = 31;
 	}
 
-	if (snprintf(timeStr, 63, "%04d%02d%02d", year, month, day) > 0)
+	if (snprintf(dateStr, 63, "%04d%02d%02d", year, month, day) > 0)
 	{
-		return timeStr;
+		return dateStr;
 	}
 
 	return "";
@@ -291,6 +291,70 @@ time_t TimeConverter::fromYYYYMMDDString(const string &yyyymmdd, bool inGMTime)
 	strptime(yyyymmdd.c_str(), "%Y%m%d", &timeTm);
 #ifdef DEBUG
 	cout << "TimeConverter::fromYYYYMMDDString: " << timeTm.tm_year << " " << timeTm.tm_mon << " " << timeTm.tm_mday << endl;
+#endif
+	if (inGMTime == true)
+	{
+		gmTime = timegm(&timeTm);
+	}
+	else
+	{
+		gmTime = mktime(&timeTm);
+	}
+
+	return gmTime;
+}
+
+/// Converts to a HHMMSS-formatted string.
+string TimeConverter::toHHMMSSString(int hours, int minutes, int seconds)
+{
+	char timeStr[64];
+
+	if (hours < 0)
+	{
+		hours = 0;
+	}
+	else if (hours > 23)
+	{
+		hours = 23;
+	}
+	if (minutes < 0)
+	{
+		minutes = 0;
+	}
+	else if (minutes > 59)
+	{
+		minutes = 59;
+	}
+	if (seconds < 0)
+	{
+		seconds = 0;
+	}
+	else if (seconds > 59)
+	{
+		seconds = 59;
+	}
+
+	if (snprintf(timeStr, 63, "%02d%02d%02d", hours, minutes, seconds) > 0)
+	{
+		return timeStr;
+	}
+
+	return "";
+}
+
+/// Converts from a HHMMSS-formatted string.
+time_t TimeConverter::fromHHMMSSString(const string &hhmmss, bool inGMTime)
+{
+	struct tm timeTm;
+	time_t gmTime = 0;
+
+	// Initialize the structure
+	timeTm.tm_sec = timeTm.tm_min = timeTm.tm_hour = timeTm.tm_mday = 0;
+	timeTm.tm_mon = timeTm.tm_year = timeTm.tm_wday = timeTm.tm_yday = timeTm.tm_isdst = 0;
+
+	strptime(hhmmss.c_str(), "%H%M%S", &timeTm);
+#ifdef DEBUG
+	cout << "TimeConverter::fromHHMMSSString: " << timeTm.tm_hour << " " << timeTm.tm_min << " " << timeTm.tm_sec << endl;
 #endif
 	if (inGMTime == true)
 	{

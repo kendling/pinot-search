@@ -37,6 +37,12 @@ class TimeConverter
 		/// Converts from a YYYYMMDD-formatted string.
 		static time_t fromYYYYMMDDString(const std::string &yyyymmdd, bool inGMTime = false);
 
+		/// Converts to a HHMMSS-formatted string.
+		static std::string toHHMMSSString(int hours, int minutes, int seconds);
+
+		/// Converts from a HHMMSS-formatted string.
+		static time_t fromHHMMSSString(const std::string &hhmmss, bool inGMTime = false);
+
 	protected:
 		TimeConverter();
 

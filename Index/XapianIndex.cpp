@@ -608,12 +608,15 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	time_t timeT = TimeConverter::fromTimestamp(info.getTimestamp());
 	struct tm *tm = localtime(&timeT);
 	string yyyymmdd(TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday));
+	string hhmmss(TimeConverter::toHHMMSSString(tm->tm_hour, tm->tm_min, tm->tm_sec));
 
 	// Add this value to allow sorting by date
 	doc.add_value(0, yyyymmdd);
 	// FIXME: checksum in value 1
 	// Size goes in value 2
 	doc.add_value(2, Xapian::sortable_serialise((double )info.getSize()));
+	// Time goes in value 3
+	doc.add_value(3, hhmmss);
 
 	DocumentInfo docCopy(info);
 	docCopy.setLanguage(language);
