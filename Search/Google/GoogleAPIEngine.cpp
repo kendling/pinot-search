@@ -97,8 +97,6 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps,
 		return false;
 	}
 
-	setHostNameFilter(queryProps.getHostFilter());
-	setFileNameFilter(queryProps.getFileFilter());
 	setQuery(queryProps);
 
 	if (m_key.empty() == true)

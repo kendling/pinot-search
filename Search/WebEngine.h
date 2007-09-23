@@ -38,8 +38,6 @@ class WebEngine : public SearchEngineInterface
 
 	protected:
 		DownloaderInterface *m_pDownloader;
-		std::string m_hostFilter;
-		std::string m_fileFilter;
 		std::set<std::string> m_queryTerms;
 
 		Document *downloadPage(const DocumentInfo &docInfo);

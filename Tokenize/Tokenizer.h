@@ -29,7 +29,8 @@
 class Tokenizer
 {
 	public:
-		Tokenizer(const Document *pDocument);
+		Tokenizer(const Document *pDocument,
+			bool splitOnSpaces = false);
 		virtual ~Tokenizer();
 
 		/// Returns a pointer to the document being tokenized.
@@ -43,6 +44,7 @@ class Tokenizer
 
 	protected:
 		const Document *m_pDocument;
+		bool m_splitOnSpaces;
 		unsigned int m_currentPos;
 
 		void setDocument(const Document *pDocument);

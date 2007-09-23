@@ -32,7 +32,10 @@ using std::cerr;
 using std::endl;
 using std::string;
 
-Tokenizer::Tokenizer(const Document *pDocument)
+Tokenizer::Tokenizer(const Document *pDocument, bool splitOnSpaces) :
+	m_pDocument(NULL),
+	m_splitOnSpaces(splitOnSpaces),
+	m_currentPos(0)
 {
 	setDocument(pDocument);
 	rewind();
@@ -92,7 +95,8 @@ bool Tokenizer::nextToken(string &token)
 #endif
 	while (pos < dataLength)
 	{
-		if (isalnum(pData[pos]) != 0)
+		if (((m_splitOnSpaces == false) && (isalnum(pData[pos]) != 0)) ||
+			((m_splitOnSpaces == true) && (isspace(pData[pos]) == 0)))
 		{
 			if (bStarted == false)
 			{

@@ -256,8 +256,6 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		formattedQuery += m_properties.m_parametersRemainder;
 	}
 
-	setHostNameFilter(queryProps.getHostFilter());
-	setFileNameFilter(queryProps.getFileFilter());
 	setQuery(queryProps);
 
 #ifdef DEBUG

@@ -55,14 +55,8 @@ class QueryProperties
 		/// Gets the query string.
 		string getFreeQuery(bool withoutFilters = false) const;
 
-		/// Gets the query's language.
-		string getLanguage(void) const;
-
-		/// Gets the query's host filter.
-		string getHostFilter(void) const;
-
-		/// Gets the query's file filter.
-		string getFileFilter(void) const;
+		/// Gets the value of a specific filter.
+		string getFilter(const string &filterStr);
 
 		/// Sets the maximum number of results.
 		void setMaximumResultsCount(unsigned int count);
@@ -90,9 +84,6 @@ class QueryProperties
 		QueryType m_type;
 		string m_freeQuery;
 		string m_freeQueryWithoutFilters;
-		string m_language;
-		string m_hostFilter;
-		string m_fileFilter;
 		unsigned int m_resultsCount;
 		bool m_indexResults;
 		string m_labelName;

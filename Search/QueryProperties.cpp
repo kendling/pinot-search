@@ -23,7 +23,6 @@
 #include <utility>
 
 #include "Tokenizer.h"
-#include "XapianEngine.h"
 #include "QueryProperties.h"
 
 QueryProperties::QueryProperties() :
@@ -49,9 +48,6 @@ QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_type(other.m_type),
 	m_freeQuery(other.m_freeQuery),
 	m_freeQueryWithoutFilters(other.m_freeQueryWithoutFilters),
-	m_language(other.m_language),
-	m_hostFilter(other.m_hostFilter),
-	m_fileFilter(other.m_fileFilter),
 	m_resultsCount(other.m_resultsCount),
 	m_indexResults(other.m_indexResults),
 	m_labelName(other.m_labelName)
@@ -70,9 +66,6 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 		m_type = other.m_type;
 		m_freeQuery = other.m_freeQuery;
 		m_freeQueryWithoutFilters = other.m_freeQueryWithoutFilters;
-		m_language = other.m_language;
-		m_hostFilter = other.m_hostFilter;
-		m_fileFilter = other.m_fileFilter;
 		m_resultsCount = other.m_resultsCount;
 		m_indexResults = other.m_indexResults;
 		m_labelName = other.m_labelName;
@@ -104,9 +97,6 @@ bool QueryProperties::operator<(const QueryProperties &other) const
 void QueryProperties::removeFilters(void)
 {
 	m_freeQueryWithoutFilters.clear();
-	m_language.clear();
-	m_hostFilter.clear();
-	m_fileFilter.clear();
 
 	if (m_freeQuery.empty() == true)
 	{
@@ -116,50 +106,29 @@ void QueryProperties::removeFilters(void)
 	if (m_type != XAPIAN_QP)
 	{
 		m_freeQueryWithoutFilters = m_freeQuery.substr(0, min(20, (int)m_freeQuery.length()));
+		return;
 	}
 
-	vector<string> terms;
-	if (XapianEngine::validateQuery(*this, true, terms) == true)
+	Document doc;
+
+	doc.setData(m_freeQuery.c_str(), m_freeQuery.length());
+	Tokenizer tokens(&doc);
+
+	string token;
+	while (tokens.nextToken(token) == true)
 	{
-		for (vector<string>::const_iterator termIter = terms.begin();
-			termIter != terms.end(); ++termIter)
+		if ((token.find(':') != string::npos) ||
+			(token.find("..") != string::npos))
 		{
-			string term(*termIter);
-
-			if (term.empty() == true)
-			{
-				continue;
-			}
-
-			// Is this a prefixed term ?
-			// The query shouldn't have the same filter twice
-			if (isupper((int)((*termIter)[0])) == 0)
-			{
-				// FIXME: operators have been lost !
-				if (m_freeQueryWithoutFilters.empty() == false)
-				{
-					m_freeQueryWithoutFilters += " ";
-				}
-				m_freeQueryWithoutFilters += term;
-			}
-			else
-			{
-				switch (term[0])
-				{
-					case 'L':
-						m_language = term.substr(1);
-						break;
-					case 'H':
-						m_hostFilter = term.substr(1);
-						break;
-					case 'P':
-						m_fileFilter = term.substr(1);
-						break;
-					default:
-						break;
-				}
-			}
+			// It's a filter or a range
+			continue;
 		}
+
+		if (m_freeQueryWithoutFilters.empty() == false)
+		{
+			m_freeQueryWithoutFilters += " ";
+		}
+		m_freeQueryWithoutFilters += token;
 	}
 }
 
@@ -209,21 +178,37 @@ string QueryProperties::getFreeQuery(bool withoutFilters) const
 }
 
 /// Gets the query's language.
-string QueryProperties::getLanguage(void) const
+string QueryProperties::getFilter(const string &filterStr)
 {
-	return m_language;
-}
+	if ((m_freeQuery.empty() == true) ||
+		(filterStr.empty() == true))
+	{
+		return "";
+	}
 
-/// Gets the query's host filter.
-string QueryProperties::getHostFilter(void) const
-{
-	return m_hostFilter;
-}
+	Document doc;
 
-/// Gets the query's file filter.
-string QueryProperties::getFileFilter(void) const
-{
-	return m_fileFilter;
+	doc.setData(m_freeQuery.c_str(), m_freeQuery.length());
+	Tokenizer tokens(&doc, true);
+
+	string token;
+	while (tokens.nextToken(token) == true)
+	{
+		string::size_type langPos = token.find(filterStr + ":");
+
+		// Is it the language filter ?
+		if (langPos != string::npos)
+		{
+			string filterValue(token.substr(langPos + filterStr.length() + 1));
+
+#ifdef DEBUG
+			cout << "QueryProperties::getFilter: " << filterStr << "=" << filterValue << endl;
+#endif
+			return filterValue;
+		}
+	}
+
+	return "";
 }
 
 /// Sets the maximum number of results.

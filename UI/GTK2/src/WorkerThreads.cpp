@@ -840,18 +840,18 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
 	{
-		DocumentInfo current(*resultIter);
+		DocumentInfo currentDoc(*resultIter);
 		string title(_("No title"));
-		string location(current.getLocation());
-		string language(current.getLanguage());
+		string location(currentDoc.getLocation());
+		string language(currentDoc.getLanguage());
 		unsigned int docId = 0;
 
 		// The title may contain formatting
-		if (current.getTitle().empty() == false)
+		if (currentDoc.getTitle().empty() == false)
 		{
-			title = FilterUtils::stripMarkup(current.getTitle());
+			title = FilterUtils::stripMarkup(currentDoc.getTitle());
 		}
-		current.setTitle(title);
+		currentDoc.setTitle(title);
 #ifdef DEBUG
 		cout << "QueryingThread::processResults: title is " << title << endl;
 #endif
@@ -859,16 +859,16 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 		// Use the query's language if the result's is unknown
 		if (language.empty() == true)
 		{
-			language = m_queryProps.getLanguage();
+			language = m_queryProps.getFilter("lang");
 		}
-		current.setLanguage(language);
+		currentDoc.setLanguage(language);
 
 		if (isIndexQuery == true)
 		{
 			unsigned int tmpId = 0;
 
 			// The index engine should have set this
-			docId = current.getIsIndexed(tmpId);
+			docId = currentDoc.getIsIndexed(tmpId);
 		}
 
 		// Is this in one of the indexes ?
@@ -894,7 +894,7 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 
 		if (docId > 0)
 		{
-			current.setIsIndexed(indexId, docId);
+			currentDoc.setIsIndexed(indexId, docId);
 #ifdef DEBUG
 			cout << "QueryingThread::processResults: found in index " << indexId << endl;
 #endif
@@ -903,7 +903,7 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 		else cout << "QueryingThread::processResults: not found in any index" << endl;
 #endif
 
-		m_documentsList.push_back(current);
+		m_documentsList.push_back(currentDoc);
 	}
 
 	if (pDocsIndex != NULL)
@@ -925,13 +925,13 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList,
 	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
 	{
-		DocumentInfo current(*resultIter);
+		DocumentInfo currentDoc(*resultIter);
 
 		// The engine has no notion of index IDs
-		unsigned int docId = current.getIsIndexed(zeroId);
-		current.setIsIndexed(indexId, docId);
+		unsigned int docId = currentDoc.getIsIndexed(zeroId);
+		currentDoc.setIsIndexed(indexId, docId);
 
-		m_documentsList.push_back(current);
+		m_documentsList.push_back(currentDoc);
 	}
 }
 

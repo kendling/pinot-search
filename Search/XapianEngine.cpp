@@ -336,43 +336,6 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	return parsedQuery;
 }
 
-/// Validates a query and extracts its terms.
-bool XapianEngine::validateQuery(QueryProperties& queryProps, bool includePrefixed,
-	vector<string> &terms)
-{
-	bool goodQuery = false;
-
-	try
-	{
-		string correctedSpelling;
-		// Do minimal parsing
-		Xapian::Query fullQuery = parseQuery(NULL, queryProps, "",
-			DEFAULT_OP_AND, correctedSpelling, true);
-
-		if (fullQuery.empty() == false)
-		{
-			for (Xapian::TermIterator termIter = fullQuery.get_terms_begin();
-				termIter != fullQuery.get_terms_end(); ++termIter)
-			{
-				// Skip prefixed terms unless instructed otherwise
-				if ((includePrefixed == true) ||
-					(isupper((int)((*termIter)[0])) == 0))
-				{
-					terms.push_back(*termIter);
-				}
-			}
-
-			goodQuery = true;
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "XapianEngine::validateQuery: " << error.get_type() << ": " << error.get_msg() << endl;
-	}
-
-	return goodQuery;
-}
-
 bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	unsigned int startDoc, unsigned int maxResultsCount)
 {
@@ -535,7 +498,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	Xapian::Database *pIndex = pDatabase->readLock();
 	try
 	{
-		string stemLanguage(queryProps.getLanguage());
+		string stemLanguage(queryProps.getFilter("lang"));
 		unsigned int searchStep = 1;
 
 		// Searches are run in this order :

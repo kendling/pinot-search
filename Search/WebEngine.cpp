@@ -95,16 +95,6 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 	return pDoc;
 }
 
-void WebEngine::setHostNameFilter(const string &filter)
-{
-	m_hostFilter = filter;
-}
-
-void WebEngine::setFileNameFilter(const string &filter)
-{
-	m_fileFilter = filter;
-}
-
 void WebEngine::setQuery(const QueryProperties &queryProps)
 {
 	queryProps.getTerms(m_queryTerms);
@@ -143,24 +133,6 @@ bool WebEngine::processResult(const string &queryUrl, DocumentInfo &result)
 	}
 
 	Url resultUrlObj(resultUrl);
-
-	if ((m_hostFilter.empty() == false) &&
-		(resultUrlObj.getHost() != m_hostFilter))
-	{
-#ifdef DEBUG
-		cout << "WebEngine::processResult: skipping " << resultUrl << endl;
-#endif
-		return false;
-	}
-
-	if ((m_fileFilter.empty() == false) &&
-		(resultUrlObj.getFile() != m_fileFilter))
-	{
-#ifdef DEBUG
-		cout << "WebEngine::processResult: skipping " << resultUrl << endl;
-#endif
-		return false;
-	}
 
 	// Is the result's host name the same as the search engine's ?
 	// FIXME: not all TLDs have leafs at level 2
