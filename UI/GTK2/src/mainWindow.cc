@@ -259,18 +259,24 @@ mainWindow::mainWindow() :
 	// Connect to threads' finished signal
 	m_state.connect();
 
-	// Monitor MIME settings files for changes in the background
-	set<string> mimeFiles;
-	MIMEScanner::listConfigurationFiles(PinotSettings::getHomeDirectory() + "/.local", mimeFiles);
-	MIMEScanner::listConfigurationFiles(string(SHARED_MIME_INFO_PREFIX), mimeFiles);
-	for (set<string>::const_iterator fileIter = mimeFiles.begin();
-		fileIter != mimeFiles.end(); ++fileIter)
+	if (m_pSettingsMonitor != NULL)
 	{
-		m_pSettingsMonitor->addLocation(*fileIter, false);
+		set<string> mimeFiles;
+
+		// Monitor MIME settings files for changes
+		MIMEScanner::listConfigurationFiles(PinotSettings::getHomeDirectory() + "/.local", mimeFiles);
+		MIMEScanner::listConfigurationFiles(string(SHARED_MIME_INFO_PREFIX), mimeFiles);
+		for (set<string>::const_iterator fileIter = mimeFiles.begin();
+			fileIter != mimeFiles.end(); ++fileIter)
+		{
+			m_pSettingsMonitor->addLocation(*fileIter, false);
+		}
+
+		// Run this in the background
+		m_pSettingsHandler = new ReloadHandler();
+		MonitorThread *pSettingsMonitorThread = new MonitorThread(m_pSettingsMonitor, m_pSettingsHandler, false);
+		start_thread(pSettingsMonitorThread, true);
 	}
-	m_pSettingsHandler = new ReloadHandler();
-	MonitorThread *pSettingsMonitorThread = new MonitorThread(m_pSettingsMonitor, m_pSettingsHandler, false);
-	start_thread(pSettingsMonitorThread, true);
 
 	// Now we are ready
 	set_status(_("Ready"));
