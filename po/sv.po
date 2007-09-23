@@ -7,14 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-22 22:25+0800\n"
+"POT-Creation-Date: 2007-09-23 19:22+0800\n"
 "PO-Revision-Date: 2007-07-29 16:48+0000\n"
 "Last-Translator: Daniel Nylander <yeager@ubuntu.com>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Rosetta-Export-Date: 2007-08-19 07:58:27+0000\n"
+"X-Launchpad-Export-Date: 2007-09-23 13:58+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:68
 msgid "Search Engines"
@@ -24,35 +25,27 @@ msgstr "Sökmotorer"
 msgid "Current User"
 msgstr "Aktuell användare"
 
-#. Bind the callback's parameter to the index name
 #. Enable these menu items unless it is not the documents index
+#. Allow this only for internal indexes
 #. Internal indices
-#: UI/GTK2/src/EnginesTree.cpp:337 UI/GTK2/src/mainWindow.cc:325
-#: UI/GTK2/src/mainWindow.cc:328 UI/GTK2/src/mainWindow.cc:541
-#: UI/GTK2/src/mainWindow.cc:1030 UI/GTK2/src/mainWindow.cc:1201
-#: UI/GTK2/src/mainWindow.cc:1243 UI/GTK2/src/mainWindow.cc:1265
-#: UI/GTK2/src/mainWindow.cc:1296 UI/GTK2/src/mainWindow.cc:1907
-#: UI/GTK2/src/PinotSettings.cpp:311 UI/GTK2/src/PinotSettings.cpp:1368
-#: UI/GTK2/src/PinotSettings.cpp:1424 UI/GTK2/src/statisticsDialog.cc:77
-#: UI/GTK2/src/WorkerThreads.cpp:821 UI/GTK2/src/WorkerThreads.cpp:880
+#: UI/GTK2/src/EnginesTree.cpp:337 UI/GTK2/src/mainWindow.cc:677
+#: UI/GTK2/src/mainWindow.cc:1187 UI/GTK2/src/mainWindow.cc:1339
+#: UI/GTK2/src/mainWindow.cc:1381 UI/GTK2/src/mainWindow.cc:1403
+#: UI/GTK2/src/mainWindow.cc:1434 UI/GTK2/src/mainWindow.cc:2045
+#: UI/GTK2/src/mainWindow.cc:2157 UI/GTK2/src/PinotSettings.cpp:311
+#: UI/GTK2/src/PinotSettings.cpp:1387 UI/GTK2/src/PinotSettings.cpp:1443
+#: UI/GTK2/src/statisticsDialog.cc:77 UI/GTK2/src/WorkerThreads.cpp:822
+#: UI/GTK2/src/WorkerThreads.cpp:881
 msgid "My Web Pages"
 msgstr "Mina webbsidor"
 
-#. Populate the submenu
-#. Bind the callback's parameter to the index name
-#: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:319
-#: UI/GTK2/src/mainWindow.cc:322 UI/GTK2/src/mainWindow.cc:1037
-#: UI/GTK2/src/PinotSettings.cpp:312 UI/GTK2/src/PinotSettings.cpp:1369
-#: UI/GTK2/src/PinotSettings.cpp:1425 UI/GTK2/src/statisticsDialog.cc:82
-#: UI/GTK2/src/WorkerThreads.cpp:826 UI/GTK2/src/WorkerThreads.cpp:890
+#: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:680
+#: UI/GTK2/src/mainWindow.cc:1194 UI/GTK2/src/mainWindow.cc:2158
+#: UI/GTK2/src/PinotSettings.cpp:312 UI/GTK2/src/PinotSettings.cpp:1388
+#: UI/GTK2/src/PinotSettings.cpp:1444 UI/GTK2/src/statisticsDialog.cc:82
+#: UI/GTK2/src/WorkerThreads.cpp:827 UI/GTK2/src/WorkerThreads.cpp:891
 msgid "My Documents"
 msgstr "Mina dokument"
-
-#. The last column is for the timestamp
-#: UI/GTK2/src/dateDialog_glade.cc:76 UI/GTK2/src/queryDialog_glade.cc:91
-#: UI/GTK2/src/queryDialog_glade.cc:92 UI/GTK2/src/ResultsTree.cpp:151
-msgid "Date"
-msgstr "Datum"
 
 #: UI/GTK2/src/indexDialog.cc:122
 msgid "Served by"
@@ -94,7 +87,7 @@ msgstr "Adress:"
 msgid "External index"
 msgstr "Externt index"
 
-#: UI/GTK2/src/importDialog.cc:76 UI/GTK2/src/queryDialog.cc:119
+#: UI/GTK2/src/importDialog.cc:87 UI/GTK2/src/queryDialog.cc:95
 msgid "None"
 msgstr "Ingen"
 
@@ -143,216 +136,220 @@ msgstr "Använd det här kommandot för andra dokument av samma typ."
 msgid "Helper application"
 msgstr "Hjälpprogram"
 
-#: UI/GTK2/src/mainWindow.cc:140
+#: UI/GTK2/src/mainWindow.cc:211
 msgid "Query Name"
 msgstr "Frågenamn"
 
-#: UI/GTK2/src/mainWindow.cc:145
+#: UI/GTK2/src/mainWindow.cc:216
 msgid "Last Run"
 msgstr "Senaste körning"
 
-#: UI/GTK2/src/mainWindow.cc:150
+#: UI/GTK2/src/mainWindow.cc:221
 msgid "Summary"
 msgstr "Sammandrag"
 
 #. Set tooltips
-#: UI/GTK2/src/mainWindow.cc:183
+#: UI/GTK2/src/mainWindow.cc:255
 msgid "Show all search engines"
 msgstr "Visa alla sökmotorer"
 
-#: UI/GTK2/src/mainWindow.cc:184
+#: UI/GTK2/src/mainWindow.cc:256
 msgid "Add index"
 msgstr "Lägg till index"
 
-#: UI/GTK2/src/mainWindow.cc:185
+#: UI/GTK2/src/mainWindow.cc:257
 msgid "Remove index"
 msgstr "Ta bort index"
 
 #. Now we are ready
-#: UI/GTK2/src/mainWindow.cc:191
+#: UI/GTK2/src/mainWindow.cc:282
 msgid "Ready"
 msgstr "Redo"
 
-#: UI/GTK2/src/mainWindow.cc:242
+#: UI/GTK2/src/mainWindow.cc:342
 msgid "N/A"
 msgstr "-"
 
-#: UI/GTK2/src/mainWindow.cc:257
+#: UI/GTK2/src/mainWindow.cc:357
 msgid "Undefined"
 msgstr "Odefinierad"
 
 #. Show the URL of the first result in the status bar
-#: UI/GTK2/src/mainWindow.cc:476
+#: UI/GTK2/src/mainWindow.cc:611
 msgid "Result location is"
 msgstr "Resultatplatsen är"
 
 #. Show the URL in the status bar
-#: UI/GTK2/src/mainWindow.cc:551
+#: UI/GTK2/src/mainWindow.cc:691
 msgid "Document location is"
 msgstr "Dokumentplatsen är"
 
-#: UI/GTK2/src/mainWindow.cc:884
+#: UI/GTK2/src/mainWindow.cc:1024
 msgid "Showing"
 msgstr "Visar"
 
-#: UI/GTK2/src/mainWindow.cc:889
+#: UI/GTK2/src/mainWindow.cc:1029
 msgid "of"
 msgstr "av"
 
-#: UI/GTK2/src/mainWindow.cc:894
+#: UI/GTK2/src/mainWindow.cc:1034
 msgid "documents, starting at"
 msgstr "dokument, börjar med"
 
-#: UI/GTK2/src/mainWindow.cc:928
+#: UI/GTK2/src/mainWindow.cc:1068
 msgid "Query"
 msgstr "Fråga"
 
-#: UI/GTK2/src/mainWindow.cc:932 UI/GTK2/src/mainWindow.cc:3028
+#: UI/GTK2/src/mainWindow.cc:1072 UI/GTK2/src/mainWindow.cc:3177
 msgid "on"
 msgstr "på"
 
-#: UI/GTK2/src/mainWindow.cc:936
+#: UI/GTK2/src/mainWindow.cc:1076
 msgid "ended"
 msgstr "slutade"
 
-#: UI/GTK2/src/mainWindow.cc:1066
+#: UI/GTK2/src/mainWindow.cc:1137
+msgid "Corrected"
+msgstr ""
+
+#: UI/GTK2/src/mainWindow.cc:1223
 msgid "More Like"
 msgstr "Kanske mer som"
 
-#: UI/GTK2/src/mainWindow.cc:1127
+#: UI/GTK2/src/mainWindow.cc:1265
 msgid "Updated label(s)"
 msgstr "Uppdaterade etikett(er)"
 
 #. Yes, it did
-#: UI/GTK2/src/mainWindow.cc:1211
+#: UI/GTK2/src/mainWindow.cc:1349
 msgid "Updated document"
 msgstr "Uppdaterade dokument"
 
-#: UI/GTK2/src/mainWindow.cc:1224
+#: UI/GTK2/src/mainWindow.cc:1362
 msgid "Indexed"
 msgstr "Indexerade"
 
-#: UI/GTK2/src/mainWindow.cc:1266
+#: UI/GTK2/src/mainWindow.cc:1404
 msgid "Unindexed document(s)"
 msgstr "Ej indexerade dokument"
 
-#: UI/GTK2/src/mainWindow.cc:1306
+#: UI/GTK2/src/mainWindow.cc:1444
 msgid "Updated document properties"
 msgstr "Egenskaper för uppdaterade dokument"
 
-#: UI/GTK2/src/mainWindow.cc:1359
+#: UI/GTK2/src/mainWindow.cc:1497
 msgid "Couldn't rename index, name"
 msgstr "Kunde inte byta namn på index, namn"
 
-#: UI/GTK2/src/mainWindow.cc:1363 UI/GTK2/src/mainWindow.cc:2296
-#: UI/GTK2/src/mainWindow.cc:2833
+#: UI/GTK2/src/mainWindow.cc:1501 UI/GTK2/src/mainWindow.cc:2441
+#: UI/GTK2/src/mainWindow.cc:2982
 msgid "is already in use"
 msgstr "används redan"
 
-#: UI/GTK2/src/mainWindow.cc:1376
+#: UI/GTK2/src/mainWindow.cc:1514
 msgid "Couldn't rename index"
 msgstr "Kunde inte byta namn på index"
 
-#: UI/GTK2/src/mainWindow.cc:1389
+#: UI/GTK2/src/mainWindow.cc:1527
 msgid "Edited index"
 msgstr "Redigerade index"
 
-#: UI/GTK2/src/mainWindow.cc:1715
+#: UI/GTK2/src/mainWindow.cc:1853
 msgid "Export Results"
 msgstr "Exportresultat"
 
 #. Find this query
-#: UI/GTK2/src/mainWindow.cc:1804 UI/GTK2/src/mainWindow.cc:2466
+#: UI/GTK2/src/mainWindow.cc:1942 UI/GTK2/src/mainWindow.cc:2615
 msgid "Live query"
 msgstr "Levande fråga"
 
-#: UI/GTK2/src/mainWindow.cc:1830
+#: UI/GTK2/src/mainWindow.cc:1968
 msgid "Couldn't find query"
 msgstr "Kunde inte hitta fråga"
 
-#: UI/GTK2/src/mainWindow.cc:2022 UI/GTK2/src/WorkerThreads.cpp:677
-#: UI/GTK2/src/WorkerThreads.cpp:1719
+#: UI/GTK2/src/mainWindow.cc:2167 UI/GTK2/src/WorkerThreads.cpp:678
+#: UI/GTK2/src/WorkerThreads.cpp:1720
 msgid "Index"
 msgstr "Index"
 
-#: UI/GTK2/src/mainWindow.cc:2026 UI/GTK2/src/WorkerThreads.cpp:681
-#: UI/GTK2/src/WorkerThreads.cpp:1723
+#: UI/GTK2/src/mainWindow.cc:2171 UI/GTK2/src/WorkerThreads.cpp:682
+#: UI/GTK2/src/WorkerThreads.cpp:1724
 msgid "doesn't exist"
 msgstr "finns inte"
 
-#: UI/GTK2/src/mainWindow.cc:2181
+#: UI/GTK2/src/mainWindow.cc:2326
 msgid "Remove this document from the index ?"
 msgstr "Ta bort detta dokument från indexet?"
 
-#: UI/GTK2/src/mainWindow.cc:2200
+#: UI/GTK2/src/mainWindow.cc:2345
 msgid "Remove these documents from the index ?"
 msgstr "Ta bort dessa dokument från indexet?"
 
-#: UI/GTK2/src/mainWindow.cc:2246
+#: UI/GTK2/src/mainWindow.cc:2391
 msgid "A metasearch tool for the Free Desktop"
 msgstr "Ett metasökningsverktyg för Free Desktop"
 
-#: UI/GTK2/src/mainWindow.cc:2247
+#: UI/GTK2/src/mainWindow.cc:2392
 msgid "Search the Web and your documents !"
 msgstr "Sök på webben och i dina dokument!"
 
-#: UI/GTK2/src/mainWindow.cc:2292
+#: UI/GTK2/src/mainWindow.cc:2437
 msgid "Index name"
 msgstr "Indexnamn"
 
-#: UI/GTK2/src/mainWindow.cc:2307
+#: UI/GTK2/src/mainWindow.cc:2452
 msgid "Couldn't add index"
 msgstr "Kunde inte lägga till index"
 
-#: UI/GTK2/src/mainWindow.cc:2321
+#: UI/GTK2/src/mainWindow.cc:2468
 msgid "Added new index"
 msgstr "Lade till nytt index"
 
-#: UI/GTK2/src/mainWindow.cc:2356
+#: UI/GTK2/src/mainWindow.cc:2503
 msgid "Couldn't remove index"
 msgstr "Kunde inte ta bort index"
 
-#: UI/GTK2/src/mainWindow.cc:2646
+#: UI/GTK2/src/mainWindow.cc:2795
 msgid "At least one task hasn't completed yet. Quit now ?"
 msgstr "Åtminstone en uppgift har inte färdigställts än. Avsluta nu?"
 
-#: UI/GTK2/src/mainWindow.cc:2829
+#: UI/GTK2/src/mainWindow.cc:2978
 msgid "Query name"
 msgstr "Frågenamn"
 
-#: UI/GTK2/src/mainWindow.cc:2856
+#: UI/GTK2/src/mainWindow.cc:3005
 msgid "Couldn't update query"
 msgstr "Kunde inte uppdatera fråga"
 
-#: UI/GTK2/src/mainWindow.cc:2864
+#: UI/GTK2/src/mainWindow.cc:3013
 msgid "Edited query"
 msgstr "Redigerade fråga"
 
-#: UI/GTK2/src/mainWindow.cc:2871
+#: UI/GTK2/src/mainWindow.cc:3020
 msgid "Couldn't add query"
 msgstr "Kunde inte lägga till fråga"
 
-#: UI/GTK2/src/mainWindow.cc:2879
+#: UI/GTK2/src/mainWindow.cc:3028
 msgid "Added new query"
 msgstr "Lade till ny fråga"
 
-#: UI/GTK2/src/mainWindow.cc:2917
+#: UI/GTK2/src/mainWindow.cc:3066
 msgid "Query is not set"
 msgstr "Frågan är inte inställd"
 
-#: UI/GTK2/src/mainWindow.cc:2928
+#: UI/GTK2/src/mainWindow.cc:3077
 msgid "No search engine selected"
 msgstr "Ingen sökmotor vald"
 
-#: UI/GTK2/src/mainWindow.cc:3015
+#: UI/GTK2/src/mainWindow.cc:3164
 msgid "Please set the Google API key first"
 msgstr "Ställ in Google API-nyckeln först"
 
-#: UI/GTK2/src/mainWindow.cc:3024
+#: UI/GTK2/src/mainWindow.cc:3173
 msgid "Running query"
 msgstr "Kör fråga"
 
-#: UI/GTK2/src/mainWindow.cc:3236
+#: UI/GTK2/src/mainWindow.cc:3382
 msgid "No default application defined for type"
 msgstr "Inget standardprogram definierat för typen"
 
@@ -455,80 +452,80 @@ msgid "Pinot"
 msgstr "Pinot"
 
 #. Localize language names
-#: UI/GTK2/src/pinot.cc:256 UI/GTK2/src/pinot-dbus-daemon.cc:332
+#: UI/GTK2/src/pinot.cc:249 UI/GTK2/src/pinot-dbus-daemon.cc:324
 #: UI/GTK2/src/propertiesDialog.cc:72 UI/GTK2/src/propertiesDialog.cc:81
 msgid "Unknown"
 msgstr "Okänd"
 
-#: UI/GTK2/src/pinot.cc:257 UI/GTK2/src/pinot-dbus-daemon.cc:333
+#: UI/GTK2/src/pinot.cc:250 UI/GTK2/src/pinot-dbus-daemon.cc:325
 msgid "Danish"
 msgstr "Danska"
 
-#: UI/GTK2/src/pinot.cc:258 UI/GTK2/src/pinot-dbus-daemon.cc:334
+#: UI/GTK2/src/pinot.cc:251 UI/GTK2/src/pinot-dbus-daemon.cc:326
 msgid "Dutch"
 msgstr "Nederländska"
 
-#: UI/GTK2/src/pinot.cc:259 UI/GTK2/src/pinot-dbus-daemon.cc:335
+#: UI/GTK2/src/pinot.cc:252 UI/GTK2/src/pinot-dbus-daemon.cc:327
 msgid "English"
 msgstr "Engelska"
 
-#: UI/GTK2/src/pinot.cc:260 UI/GTK2/src/pinot-dbus-daemon.cc:336
+#: UI/GTK2/src/pinot.cc:253 UI/GTK2/src/pinot-dbus-daemon.cc:328
 msgid "Finnish"
 msgstr "Finska"
 
-#: UI/GTK2/src/pinot.cc:261 UI/GTK2/src/pinot-dbus-daemon.cc:337
+#: UI/GTK2/src/pinot.cc:254 UI/GTK2/src/pinot-dbus-daemon.cc:329
 msgid "French"
 msgstr "Franska"
 
-#: UI/GTK2/src/pinot.cc:262 UI/GTK2/src/pinot-dbus-daemon.cc:338
+#: UI/GTK2/src/pinot.cc:255 UI/GTK2/src/pinot-dbus-daemon.cc:330
 msgid "German"
 msgstr "Tyska"
 
-#: UI/GTK2/src/pinot.cc:263 UI/GTK2/src/pinot-dbus-daemon.cc:339
+#: UI/GTK2/src/pinot.cc:256 UI/GTK2/src/pinot-dbus-daemon.cc:331
 msgid "Hungarian"
 msgstr "Ungerska"
 
-#: UI/GTK2/src/pinot.cc:264 UI/GTK2/src/pinot-dbus-daemon.cc:340
+#: UI/GTK2/src/pinot.cc:257 UI/GTK2/src/pinot-dbus-daemon.cc:332
 msgid "Italian"
 msgstr "Italienska"
 
-#: UI/GTK2/src/pinot.cc:265 UI/GTK2/src/pinot-dbus-daemon.cc:341
+#: UI/GTK2/src/pinot.cc:258 UI/GTK2/src/pinot-dbus-daemon.cc:333
 msgid "Norwegian"
 msgstr "Norska"
 
-#: UI/GTK2/src/pinot.cc:266 UI/GTK2/src/pinot-dbus-daemon.cc:342
+#: UI/GTK2/src/pinot.cc:259 UI/GTK2/src/pinot-dbus-daemon.cc:334
 msgid "Portuguese"
 msgstr "Portugisiska"
 
-#: UI/GTK2/src/pinot.cc:267 UI/GTK2/src/pinot-dbus-daemon.cc:343
+#: UI/GTK2/src/pinot.cc:260 UI/GTK2/src/pinot-dbus-daemon.cc:335
 msgid "Romanian"
 msgstr "Rumänska"
 
-#: UI/GTK2/src/pinot.cc:268 UI/GTK2/src/pinot-dbus-daemon.cc:344
+#: UI/GTK2/src/pinot.cc:261 UI/GTK2/src/pinot-dbus-daemon.cc:336
 msgid "Russian"
 msgstr "Ryska"
 
-#: UI/GTK2/src/pinot.cc:269 UI/GTK2/src/pinot-dbus-daemon.cc:345
+#: UI/GTK2/src/pinot.cc:262 UI/GTK2/src/pinot-dbus-daemon.cc:337
 msgid "Spanish"
 msgstr "Spanska"
 
-#: UI/GTK2/src/pinot.cc:270 UI/GTK2/src/pinot-dbus-daemon.cc:346
+#: UI/GTK2/src/pinot.cc:263 UI/GTK2/src/pinot-dbus-daemon.cc:338
 msgid "Swedish"
 msgstr "Svenska"
 
-#: UI/GTK2/src/pinot.cc:271 UI/GTK2/src/pinot-dbus-daemon.cc:347
+#: UI/GTK2/src/pinot.cc:264 UI/GTK2/src/pinot-dbus-daemon.cc:339
 msgid "Turkish"
 msgstr "Turkiska"
 
-#: UI/GTK2/src/pinot.cc:296
+#: UI/GTK2/src/pinot.cc:289
 msgid "Couldn't open index"
 msgstr "Kunde inte öppna index"
 
-#: UI/GTK2/src/pinot.cc:317
+#: UI/GTK2/src/pinot.cc:310
 msgid "Couldn't create history database"
 msgstr "Kunde inte skapa historikdatabas"
 
-#: UI/GTK2/src/pinot.cc:343
+#: UI/GTK2/src/pinot.cc:336
 msgid "Updating all documents in My Web Pages is recommended"
 msgstr "Uppdatering av alla dokument i Mina webbsidor rekommenderas"
 
@@ -545,7 +542,7 @@ msgstr "Ny"
 msgid "Personal"
 msgstr "Personlig"
 
-#: UI/GTK2/src/PinotSettings.cpp:1175
+#: UI/GTK2/src/PinotSettings.cpp:1198
 msgid "Unclassified"
 msgstr "Oklassificerad"
 
@@ -656,7 +653,7 @@ msgstr "Indexering"
 msgid "Preferences"
 msgstr "Inställningar"
 
-#: UI/GTK2/src/propertiesDialog.cc:60 UI/GTK2/src/queryDialog.cc:148
+#: UI/GTK2/src/propertiesDialog.cc:60 UI/GTK2/src/queryDialog.cc:124
 msgid "Label"
 msgstr "Etikett"
 
@@ -680,50 +677,58 @@ msgstr "Storlek:"
 msgid "Terms:"
 msgstr "Villkor:"
 
-#: UI/GTK2/src/queryDialog.cc:138
+#: UI/GTK2/src/queryDialog.cc:114
 msgid "Host name"
 msgstr "Värdnamn"
 
-#: UI/GTK2/src/queryDialog.cc:139
+#: UI/GTK2/src/queryDialog.cc:115
 msgid "File name"
 msgstr "Filnamn"
 
-#: UI/GTK2/src/queryDialog.cc:142
+#: UI/GTK2/src/queryDialog.cc:118
 msgid "File extension"
 msgstr "Filändelse"
 
 #. This is the title column
-#: UI/GTK2/src/queryDialog.cc:143 UI/GTK2/src/ResultsTree.cpp:133
+#: UI/GTK2/src/queryDialog.cc:119 UI/GTK2/src/ResultsTree.cpp:133
 msgid "Title"
 msgstr "Titel"
 
 #. URL
-#: UI/GTK2/src/queryDialog.cc:144 UI/GTK2/src/ResultsTree.cpp:143
+#: UI/GTK2/src/queryDialog.cc:120 UI/GTK2/src/ResultsTree.cpp:143
 msgid "URL"
 msgstr "Url"
 
-#: UI/GTK2/src/queryDialog.cc:145
+#: UI/GTK2/src/queryDialog.cc:121
 msgid "Directory"
 msgstr "Katalog"
 
-#: UI/GTK2/src/queryDialog.cc:146
+#: UI/GTK2/src/queryDialog.cc:122
 msgid "Language code"
 msgstr "Språkkod"
 
-#: UI/GTK2/src/queryDialog.cc:147
+#: UI/GTK2/src/queryDialog.cc:123
 msgid "MIME type"
 msgstr "MIME-typ"
 
-#: UI/GTK2/src/queryDialog.cc:272
-msgid "Start date"
-msgstr "Startdatum"
+#. The last column is for the timestamp
+#: UI/GTK2/src/queryDialog.cc:127 UI/GTK2/src/ResultsTree.cpp:151
+msgid "Date"
+msgstr "Datum"
 
-#: UI/GTK2/src/queryDialog.cc:287
-msgid "End date"
-msgstr "Slutdatum"
+#: UI/GTK2/src/queryDialog.cc:128
+#, fuzzy
+msgid "Time"
+msgstr "Titel"
+
+#: UI/GTK2/src/queryDialog.cc:129
+#, fuzzy
+msgid "Size"
+msgstr "Storlek:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:72
-msgid "New filter:"
+#, fuzzy
+msgid "New filter or range:"
 msgstr "Nytt filter:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:81
@@ -738,15 +743,7 @@ msgstr "Indexera resultat med etikett"
 msgid "Number of results:"
 msgstr "Antal resultat:"
 
-#: UI/GTK2/src/queryDialog_glade.cc:89
-msgid "Start date:"
-msgstr "Startdatum:"
-
-#: UI/GTK2/src/queryDialog_glade.cc:90
-msgid "End date:"
-msgstr "Slutdatum:"
-
-#: UI/GTK2/src/queryDialog_glade.cc:201
+#: UI/GTK2/src/queryDialog_glade.cc:181
 msgid "Query parameters"
 msgstr "Frågeparametrar"
 
@@ -808,67 +805,75 @@ msgstr "filer"
 msgid "Errors"
 msgstr "Fel"
 
-#: UI/GTK2/src/WorkerThreads.cpp:306
+#: UI/GTK2/src/WorkerThreads.cpp:307
 msgid "Can't index mail here"
 msgstr "Kan inte indexera post här"
 
-#: UI/GTK2/src/WorkerThreads.cpp:327 UI/GTK2/src/WorkerThreads.cpp:580
+#: UI/GTK2/src/WorkerThreads.cpp:328 UI/GTK2/src/WorkerThreads.cpp:581
 msgid "is already being indexed"
 msgstr "håller redan på att bli indexerad"
 
-#: UI/GTK2/src/WorkerThreads.cpp:337
+#: UI/GTK2/src/WorkerThreads.cpp:338
 msgid "is blacklisted"
 msgstr "är svartlistad"
 
-#: UI/GTK2/src/WorkerThreads.cpp:690 UI/GTK2/src/WorkerThreads.cpp:1050
-#: UI/GTK2/src/WorkerThreads.cpp:1134 UI/GTK2/src/WorkerThreads.cpp:1143
-#: UI/GTK2/src/WorkerThreads.cpp:1329 UI/GTK2/src/WorkerThreads.cpp:1599
-#: UI/GTK2/src/WorkerThreads.cpp:1732
+#: UI/GTK2/src/WorkerThreads.cpp:691 UI/GTK2/src/WorkerThreads.cpp:1051
+#: UI/GTK2/src/WorkerThreads.cpp:1135 UI/GTK2/src/WorkerThreads.cpp:1144
+#: UI/GTK2/src/WorkerThreads.cpp:1330 UI/GTK2/src/WorkerThreads.cpp:1600
+#: UI/GTK2/src/WorkerThreads.cpp:1733
 msgid "Index error on"
 msgstr "Indexfel på"
 
-#: UI/GTK2/src/WorkerThreads.cpp:843
+#: UI/GTK2/src/WorkerThreads.cpp:844
 msgid "No title"
 msgstr "Ingen titel"
 
-#: UI/GTK2/src/WorkerThreads.cpp:945 UI/GTK2/src/WorkerThreads.cpp:1071
+#: UI/GTK2/src/WorkerThreads.cpp:946 UI/GTK2/src/WorkerThreads.cpp:1072
 msgid "Couldn't create search engine"
 msgstr "Kunde inte skapa sökmotor"
 
-#: UI/GTK2/src/WorkerThreads.cpp:969 UI/GTK2/src/WorkerThreads.cpp:1084
+#: UI/GTK2/src/WorkerThreads.cpp:970 UI/GTK2/src/WorkerThreads.cpp:1085
 msgid "Couldn't run query on search engine"
 msgstr "Kunde inte köra fråga på sökmotor"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1237
+#: UI/GTK2/src/WorkerThreads.cpp:1238
 msgid "Couldn't obtain downloader for protocol"
 msgstr "Kunde inte få protokollhämtare"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1262
+#: UI/GTK2/src/WorkerThreads.cpp:1263
 msgid "Couldn't retrieve"
 msgstr "Kunde inte hämta"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1359 UI/GTK2/src/WorkerThreads.cpp:1438
+#: UI/GTK2/src/WorkerThreads.cpp:1360 UI/GTK2/src/WorkerThreads.cpp:1439
 msgid "Cannot index document type"
 msgstr "Kan inte indexera dokumenttyp"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1363 UI/GTK2/src/WorkerThreads.cpp:1442
+#: UI/GTK2/src/WorkerThreads.cpp:1364 UI/GTK2/src/WorkerThreads.cpp:1443
 msgid "at"
 msgstr "på"
 
 #. No, it isn't
-#: UI/GTK2/src/WorkerThreads.cpp:1474
+#: UI/GTK2/src/WorkerThreads.cpp:1475
 msgid "Robots META tag forbids indexing"
 msgstr "Robots META-tagg förbjuder indexering"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1528
+#: UI/GTK2/src/WorkerThreads.cpp:1529
 msgid "Couldn't index"
 msgstr "Kunde inte indexera"
 
 #. Be pessimistic and assume something will go wrong ;-)
-#: UI/GTK2/src/WorkerThreads.cpp:1610
+#: UI/GTK2/src/WorkerThreads.cpp:1611
 msgid "Couldn't unindex document(s)"
 msgstr "Kunde inte avindexera dokument"
 
-#: UI/GTK2/src/WorkerThreads.cpp:1744
+#: UI/GTK2/src/WorkerThreads.cpp:1745
 msgid "Couldn't update document"
 msgstr "Kunde inte uppdatera dokument"
+
+#: UI/GTK2/src/WorkerThreads.cpp:1981
+msgid "No monitoring handler"
+msgstr ""
+
+#: UI/GTK2/src/WorkerThreads.cpp:2023
+msgid "Couldn't initialize file monitor"
+msgstr ""
