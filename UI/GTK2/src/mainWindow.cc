@@ -225,9 +225,6 @@ mainWindow::mainWindow() :
 	// Connect to the "changed" signal
 	queryTreeview->get_selection()->signal_changed().connect(
 		SigC::slot(*this, &mainWindow::on_queryTreeviewSelection_changed));
-	// Connect to the find button's "show menu" signal
-	findQueryButton->signal_show_menu().connect(
-		SigC::slot(*this, &mainWindow::populate_findMenu));
 	// Populate
 	populate_queryTreeview("");
 
@@ -243,7 +240,6 @@ mainWindow::mainWindow() :
 		SigC::slot(*this, &mainWindow::on_switch_page), false);
 
 	// Gray out menu items
-	editQueryButton->set_sensitive(false);
 	removeQueryButton->set_sensitive(false);
 	findQueryButton->set_sensitive(false);
 	show_global_menuitems(false);
@@ -253,8 +249,12 @@ mainWindow::mainWindow() :
 
 	// Set tooltips
 	m_tooltips.set_tip(*enginesTogglebutton, _("Show all search engines"));
-	m_tooltips.set_tip(*addIndexButton, _("Add index"));
-	m_tooltips.set_tip(*removeIndexButton, _("Remove index"));
+	m_tooltips.set_tip(*findButton, _("Find documents that match the query string"));
+	m_tooltips.set_tip(*addIndexButton, _("Add an index"));
+	m_tooltips.set_tip(*removeIndexButton, _("Remove an index"));
+	m_tooltips.set_tip(*addQueryButton, _("Add a query"));
+	m_tooltips.set_tip(*removeQueryButton, _("Remove a query"));
+	m_tooltips.set_tip(*findQueryButton, _("Find documents that match the query"));
 
 	// Connect to threads' finished signal
 	m_state.connect();
@@ -481,7 +481,7 @@ void mainWindow::populate_findMenu()
 	if (m_pFindMenu == NULL)
 	{
 		m_pFindMenu = manage(new Menu());
-		findQueryButton->set_menu(*m_pFindMenu);
+		searchagain1->set_submenu(*m_pFindMenu);
 	}
 	else
 	{
@@ -489,28 +489,20 @@ void mainWindow::populate_findMenu()
 		m_pFindMenu->items().clear();
 	}
 
-	// Regular find, as if the button was clicked
-	m_pFindMenu->items().push_back(Menu_Helpers::MenuElem(_("In all documents")));
-	MenuItem &menuItem0 = m_pFindMenu->items().back();
-	menuItem0.signal_activate().connect(SigC::slot(*this, &mainWindow::on_findQueryButton_clicked));
+	SigC::Slot1<void, ustring> findSlot = SigC::slot(*this, &mainWindow::on_searchagain_changed);
 
-	// Is a results page being shown right now ?
-	NotebookPageBox *pNotebookPage = get_current_page();
-	if (pNotebookPage != NULL)
+	TreeModel::Children children = m_refQueryTree->children();
+	for (TreeModel::Children::iterator iter = children.begin();
+		iter != children.end(); ++iter)
 	{
-		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-		if (pResultsPage != NULL)
-		{
-			ustring findMenuItem(_("In all results of"));
+		TreeModel::Row row = *iter;
+		ustring queryName(row[m_queryColumns.m_name]);
 
-			findMenuItem += " ";
-			findMenuItem += pResultsPage->getTitle();
-
-			// Find and combine with the query whose results are being shown
-			m_pFindMenu->items().push_back(Menu_Helpers::MenuElem(findMenuItem));
-			MenuItem &menuItem = m_pFindMenu->items().back();
-			menuItem.signal_activate().connect(SigC::slot(*this, &mainWindow::on_find_changed));
-		}
+		m_pFindMenu->items().push_back(Menu_Helpers::MenuElem(queryName));
+		MenuItem &menuItem = m_pFindMenu->items().back();
+		// Bind the callback's parameter to the query name
+		SigC::Slot0<void> menuItemSlot = sigc::bind(findSlot, queryName);
+		menuItem.signal_activate().connect(menuItemSlot);
 	}
 }
 
@@ -550,44 +542,49 @@ void mainWindow::add_query(QueryProperties &queryProps, bool mergeQueries)
 	{
 		populate_queryTreeview(queryName);
 		queryExpander->set_expanded(true);
+		populate_findMenu();
 	}	
 }
 
 //
 // Get selected results in the current results tab
 //
-bool mainWindow::get_results_page_details(QueryProperties &queryProps, set<string> &locations)
+bool mainWindow::get_results_page_details(const ustring &queryName,
+	QueryProperties &queryProps, set<string> &locations)
 {
 	vector<DocumentInfo> resultsList;
-	ustring queryName;
+	ustring currentQueryName(queryName);
 
 	locations.clear();
 
-	NotebookPageBox *pNotebookPage = get_current_page();
-	if (pNotebookPage != NULL)
+	if (currentQueryName.empty() == true)
 	{
-		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-		if (pResultsPage != NULL)
+		NotebookPageBox *pNotebookPage = get_current_page();
+		if (pNotebookPage != NULL)
 		{
-			ResultsTree *pResultsTree = pResultsPage->getTree();
-			if (pResultsTree != NULL)
+			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+			if (pResultsPage != NULL)
 			{
-				pResultsTree->getSelection(resultsList);
-			}
+				ResultsTree *pResultsTree = pResultsPage->getTree();
+				if (pResultsTree != NULL)
+				{
+					pResultsTree->getSelection(resultsList);
+				}
 
-			queryName = pResultsPage->getTitle();
+				currentQueryName = pResultsPage->getTitle();
+			}
+		}
+
+		if (currentQueryName.empty() == true)
+		{
+			return false;
 		}
 	}
 
-	if (queryName.empty() == true)
-	{
-		return false;
-	}
-
 	// Find this query
-	if (queryName == _("Live query"))
+	if (currentQueryName == _("Live query"))
 	{
-		queryProps.setName(queryName);
+		queryProps.setName(currentQueryName);
 		queryProps.setFreeQuery(liveQueryEntry->get_text());
 	}
 	else
@@ -600,7 +597,7 @@ bool mainWindow::get_results_page_details(QueryProperties &queryProps, set<strin
 		{
 			TreeModel::Row row = *iter;
 
-			if (queryName == from_utf8(row[m_queryColumns.m_name]))
+			if (currentQueryName == from_utf8(row[m_queryColumns.m_name]))
 			{
 				queryProps = row[m_queryColumns.m_properties];
 				foundQuery = true;
@@ -641,7 +638,6 @@ void mainWindow::on_queryTreeviewSelection_changed()
 		enableButtons = true;
 	}
 
-	editQueryButton->set_sensitive(enableButtons);
 	removeQueryButton->set_sensitive(enableButtons);
 	findQueryButton->set_sensitive(enableButtons);
 }
@@ -753,6 +749,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 		viewresults1->set_sensitive(isViewable);
 		viewcache1->set_sensitive(isCached);
 		morelikethis1->set_sensitive(isIndexed);
+		searchagain1->set_sensitive(isIndexed);
 		indexresults1->set_sensitive(isIndexable);
 	}
 	else
@@ -761,6 +758,7 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 		viewresults1->set_sensitive(false);
 		viewcache1->set_sensitive(false);
 		morelikethis1->set_sensitive(false);
+		searchagain1->set_sensitive(false);
 		indexresults1->set_sensitive(false);
 
 		// Reset
@@ -972,42 +970,71 @@ void mainWindow::on_cache_changed(PinotSettings::CacheProvider cacheProvider)
 }
 
 //
-// Stored queries' Find menu selected
+// Results > Search This For menu selected
 //
-void mainWindow::on_find_changed()
+void mainWindow::on_searchagain_changed(ustring queryName)
 {
+	QueryProperties queryProps;
 	QueryProperties currentQueryProps;
 	set<string> locations;
 
-	if (get_results_page_details(currentQueryProps, locations) == false)
+	// Get the properties of the given query and
+	// selected results on the current results page
+	if ((get_results_page_details(queryName, queryProps, locations) == false) ||
+		(get_results_page_details("", currentQueryProps, locations) == false))
 	{
-		// No query and/or results found, run the search as per normal
-		on_findQueryButton_clicked();
+		// Maybe the query was deleted
+		if (queryProps.getName().empty() == false)
+		{
+			ustring status(_("Couldn't find query"));
+			status += " ";
+			status += queryName;
+			set_status(status);
+		}
+
 		return;
 	}
 
-	TreeModel::iterator queryIter = queryTreeview->get_selection()->get_selected();
-	// Anything selected ?
-	if (queryIter)
+	if (locations.empty() == false)
 	{
-		TreeModel::Row queryRow = *queryIter;
-		QueryProperties queryProps = queryRow[m_queryColumns.m_properties];
+		std::map<std::string, std::string> indexes = m_settings.getIndexes();
 		ustring queryName(queryProps.getName());
-		string queryStr(queryProps.getFreeQuery());
-		time_t lastRunTime = time(NULL);
+		ustring queryStr(queryProps.getFreeQuery());
+		bool firstLocation = true;
 
-		// Combine both queries
-		queryProps.setName(queryName + " " + _("in") + " " + currentQueryProps.getName());
-		queryProps.setFreeQuery("(" + currentQueryProps.getFreeQuery() + ") + (" + queryStr + ")");
+		queryProps.setName(queryName + " " + _("in results"));
+		queryStr += " +(";
+		for (set<string>::const_iterator locationIter = locations.begin();
+			locationIter != locations.end(); ++locationIter)
+		{
+			if (firstLocation == false)
+			{
+				queryStr += " or ";
+			}
+			queryStr += "url:\"";
+			queryStr += *locationIter;
+			queryStr += "\"";
+			firstLocation = false;
+		}
+		queryStr += ")";
 #ifdef DEBUG
-		cout << "mainWindow::on_find_changed: combined into " << queryProps.getFreeQuery() << endl;
+		cout << "mainWindow::on_searchagain_changed: " << queryStr << endl;
 #endif
+		queryProps.setFreeQuery(queryStr);
 
-		run_search(queryProps);
-
-		// Update the Last Run column
-		queryRow[m_queryColumns.m_lastRun] = to_utf8(TimeConverter::toTimestamp(lastRunTime));
-		queryRow[m_queryColumns.m_lastRunTime] = lastRunTime;
+		// Spawn new threads
+		std::map<std::string, std::string>::const_iterator indexIter = indexes.find(_("My Documents"));
+		if (indexIter != indexes.end())
+		{
+			start_thread(new QueryingThread("xapian", indexIter->first,
+				indexIter->second, queryProps));
+		}
+		indexIter = indexes.find(_("My Web Pages"));
+		if (indexIter != indexes.end())
+		{
+			start_thread(new QueryingThread("xapian", indexIter->first,
+				indexIter->second, queryProps));
+		}
 	}
 }
 
@@ -2076,7 +2103,8 @@ void mainWindow::on_morelikethis_activate()
 	QueryProperties queryProps;
 	set<string> locations;
 
-	if (get_results_page_details(queryProps, locations) == false)
+	// Get the current page's details
+	if (get_results_page_details("", queryProps, locations) == false)
 	{
 		// Maybe the query was deleted
 		if (queryProps.getName().empty() == false)
@@ -2737,26 +2765,6 @@ void mainWindow::on_addQueryButton_clicked()
 }
 
 //
-// Edit query button click
-//
-void mainWindow::on_editQueryButton_clicked()
-{
-	TreeModel::iterator iter = queryTreeview->get_selection()->get_selected();
-	// Anything selected ?
-	if (iter)
-	{
-		TreeModel::Row row = *iter;
-#ifdef DEBUG
-		cout << "mainWindow::on_editQueryButton_clicked: selected " << row[m_queryColumns.m_name] << endl;
-#endif
-
-		// Edit this query's properties
-		QueryProperties queryProps = row[m_queryColumns.m_properties];
-		edit_query(queryProps, false);
-	}
-}
-
-//
 // Remove query button click
 //
 void mainWindow::on_removeQueryButton_clicked()
@@ -2783,6 +2791,8 @@ void mainWindow::on_removeQueryButton_clicked()
 			m_refQueryTree->erase(row);
 
 			queryTreeview->columns_autosize();
+
+			populate_findMenu();
 		}
 
 		if (m_state.read_lock_lists() == true)
@@ -2818,7 +2828,7 @@ void mainWindow::on_removeQueryButton_clicked()
 void mainWindow::on_findQueryButton_clicked()
 {
 	TreeModel::iterator queryIter = queryTreeview->get_selection()->get_selected();
-	// Anything selected ?
+	// Any query selected ?
 	if (queryIter)
 	{
 		TreeModel::Row queryRow = *queryIter;
@@ -2885,7 +2895,19 @@ bool mainWindow::on_queryTreeview_button_press_event(GdkEventButton *ev)
 	// Check for double clicks
 	if (ev->type == GDK_2BUTTON_PRESS)
 	{
-		on_editQueryButton_clicked();
+		TreeModel::iterator iter = queryTreeview->get_selection()->get_selected();
+		// Anything selected ?
+		if (iter)
+		{
+			TreeModel::Row row = *iter;
+#ifdef DEBUG
+			cout << "mainWindow::on_queryTreeview_button_press_event: selected " << row[m_queryColumns.m_name] << endl;
+#endif
+
+			// Edit this query's properties
+			QueryProperties queryProps = row[m_queryColumns.m_properties];
+			edit_query(queryProps, false);
+		}
 	}
 
 	return false;
@@ -2953,6 +2975,7 @@ void mainWindow::show_selectionbased_menuitems(bool showItems)
 	viewresults1->set_sensitive(showItems);
 	viewcache1->set_sensitive(showItems);
 	morelikethis1->set_sensitive(showItems);
+	searchagain1->set_sensitive(showItems);
 	indexresults1->set_sensitive(showItems);
 
 	// Index menuitems that depend on selection
@@ -3136,6 +3159,7 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 	}
 
 	populate_queryTreeview(queryProps.getName());
+	populate_findMenu();
 
 	if (m_state.read_lock_lists() == true)
 	{

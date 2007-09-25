@@ -176,7 +176,7 @@
 			      <property name="visible">True</property>
 			      <property name="label" translatable="yes">Search Engine</property>
 			      <property name="use_underline">True</property>
-			      <property name="active">True</property>
+			      <property name="active">False</property>
 			      <signal name="activate" handler="on_groupresults_activate" last_modification_time="Sat, 28 Feb 2004 17:56:26 GMT"/>
 			    </widget>
 			  </child>
@@ -187,7 +187,7 @@
 			      <property name="visible">True</property>
 			      <property name="label" translatable="yes">Host Name</property>
 			      <property name="use_underline">True</property>
-			      <property name="active">False</property>
+			      <property name="active">True</property>
 			      <property name="group">searchenginegroup1</property>
 			    </widget>
 			  </child>
@@ -215,7 +215,7 @@
 		      <signal name="activate" handler="on_clearresults_activate" last_modification_time="Wed, 03 Mar 2004 19:51:48 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image701">
+			<widget class="GtkImage" id="image718">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-clear</property>
 			  <property name="icon_size">1</property>
@@ -262,7 +262,28 @@
 		      <signal name="activate" handler="on_morelikethis_activate" last_modification_time="Sun, 18 Jun 2006 10:50:56 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image702">
+			<widget class="GtkImage" id="image719">
+			  <property name="visible">True</property>
+			  <property name="stock">gtk-add</property>
+			  <property name="icon_size">1</property>
+			  <property name="xalign">0.5</property>
+			  <property name="yalign">0.5</property>
+			  <property name="xpad">0</property>
+			  <property name="ypad">0</property>
+			</widget>
+		      </child>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkImageMenuItem" id="searchagain1">
+		      <property agent="glademm" name="cxx_visibility">protected</property>
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Search This For</property>
+		      <property name="use_underline">True</property>
+
+		      <child internal-child="image">
+			<widget class="GtkImage" id="image720">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-find</property>
 			  <property name="icon_size">1</property>
@@ -317,7 +338,7 @@
 		      <signal name="activate" handler="on_import_activate" last_modification_time="Tue, 02 Mar 2004 22:13:44 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image703">
+			<widget class="GtkImage" id="image721">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-open</property>
 			  <property name="icon_size">1</property>
@@ -355,7 +376,7 @@
 		      <signal name="activate" handler="on_refreshindex_activate" last_modification_time="Fri, 20 Feb 2004 18:57:09 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image704">
+			<widget class="GtkImage" id="image722">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-refresh</property>
 			  <property name="icon_size">1</property>
@@ -377,7 +398,7 @@
 		      <signal name="activate" handler="on_unindex_activate" last_modification_time="Thu, 28 Jul 2005 12:42:23 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image705">
+			<widget class="GtkImage" id="image723">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-delete</property>
 			  <property name="icon_size">1</property>
@@ -399,7 +420,7 @@
 		      <signal name="activate" handler="on_showfromindex_activate" last_modification_time="Sun, 06 Nov 2005 08:43:05 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image706">
+			<widget class="GtkImage" id="image724">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-properties</property>
 			  <property name="icon_size">1</property>
@@ -728,75 +749,54 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkToolbar" id="queryToolbar">
+			<widget class="GtkVButtonBox" id="queryVbuttonbox">
 			  <property name="visible">True</property>
-			  <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
-			  <property name="toolbar_style">GTK_TOOLBAR_ICONS</property>
-			  <property name="tooltips">True</property>
-			  <property name="show_arrow">False</property>
+			  <property name="layout_style">GTK_BUTTONBOX_START</property>
+			  <property name="spacing">0</property>
 
 			  <child>
-			    <widget class="GtkToolButton" id="addQueryButton">
+			    <widget class="GtkButton" id="addQueryButton">
+			      <property name="border_width">4</property>
 			      <property agent="glademm" name="cxx_visibility">protected</property>
 			      <property name="visible">True</property>
-			      <property name="stock_id">gtk-add</property>
-			      <property name="visible_horizontal">True</property>
-			      <property name="visible_vertical">True</property>
-			      <property name="is_important">False</property>
-			      <signal name="clicked" handler="on_addQueryButton_clicked" last_modification_time="Mon, 24 Sep 2007 03:03:29 GMT"/>
+			      <property name="can_default">True</property>
+			      <property name="can_focus">True</property>
+			      <property name="label">gtk-add</property>
+			      <property name="use_stock">True</property>
+			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
+			      <signal name="clicked" handler="on_addQueryButton_clicked" last_modification_time="Fri, 25 Feb 2005 23:22:27 GMT"/>
 			    </widget>
-			    <packing>
-			      <property name="expand">False</property>
-			      <property name="homogeneous">False</property>
-			    </packing>
 			  </child>
 
 			  <child>
-			    <widget class="GtkToolButton" id="editQueryButton">
+			    <widget class="GtkButton" id="removeQueryButton">
+			      <property name="border_width">4</property>
 			      <property agent="glademm" name="cxx_visibility">protected</property>
 			      <property name="visible">True</property>
-			      <property name="stock_id">gtk-edit</property>
-			      <property name="visible_horizontal">True</property>
-			      <property name="visible_vertical">True</property>
-			      <property name="is_important">False</property>
-			      <signal name="clicked" handler="on_editQueryButton_clicked" last_modification_time="Mon, 24 Sep 2007 03:04:25 GMT"/>
+			      <property name="can_default">True</property>
+			      <property name="can_focus">True</property>
+			      <property name="label">gtk-remove</property>
+			      <property name="use_stock">True</property>
+			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
+			      <signal name="clicked" handler="on_removeQueryButton_clicked" last_modification_time="Fri, 25 Feb 2005 23:38:42 GMT"/>
 			    </widget>
-			    <packing>
-			      <property name="expand">False</property>
-			      <property name="homogeneous">False</property>
-			    </packing>
 			  </child>
 
 			  <child>
-			    <widget class="GtkToolButton" id="removeQueryButton">
+			    <widget class="GtkButton" id="findQueryButton">
+			      <property name="border_width">4</property>
 			      <property agent="glademm" name="cxx_visibility">protected</property>
 			      <property name="visible">True</property>
-			      <property name="stock_id">gtk-remove</property>
-			      <property name="visible_horizontal">True</property>
-			      <property name="visible_vertical">True</property>
-			      <property name="is_important">False</property>
-			      <signal name="clicked" handler="on_removeQueryButton_clicked" last_modification_time="Mon, 24 Sep 2007 03:07:13 GMT"/>
+			      <property name="can_default">True</property>
+			      <property name="can_focus">True</property>
+			      <property name="label">gtk-find</property>
+			      <property name="use_stock">True</property>
+			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
+			      <signal name="clicked" handler="on_findQueryButton_clicked" last_modification_time="Sat, 26 Feb 2005 13:31:59 GMT"/>
 			    </widget>
-			    <packing>
-			      <property name="expand">False</property>
-			      <property name="homogeneous">False</property>
-			    </packing>
-			  </child>
-
-			  <child>
-			    <widget class="GtkToolButton" id="findQueryButton">
-			      <property agent="glademm" name="cxx_visibility">protected</property>
-			      <property name="visible">True</property>
-			      <property name="stock_id">gtk-find</property>
-			      <property name="visible_horizontal">True</property>
-			      <property name="visible_vertical">True</property>
-			      <property name="is_important">False</property>
-			      <signal name="clicked" handler="on_findQueryButton_clicked" last_modification_time="Mon, 24 Sep 2007 03:07:43 GMT"/>
-			    </widget>
-			    <packing>
-			      <property name="expand">False</property>
-			      <property name="homogeneous">False</property>
-			    </packing>
 			  </child>
 			</widget>
 			<packing>

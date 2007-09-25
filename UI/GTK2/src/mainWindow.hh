@@ -64,7 +64,8 @@ protected:
 	void populate_indexMenu();
 	void populate_findMenu();
 	void add_query(QueryProperties &queryProps, bool mergeQueries);
-	bool get_results_page_details(QueryProperties &queryProps, std::set<std::string> &locations);
+	bool get_results_page_details(const Glib::ustring &queryName,
+		QueryProperties &queryProps, std::set<std::string> &locations);
 
 	// Handlers
 	void on_enginesTreeviewSelection_changed();
@@ -73,7 +74,7 @@ protected:
 	void on_indexTreeviewSelection_changed(Glib::ustring indexName);
 	void on_index_changed(Glib::ustring indexName);
 	void on_cache_changed(PinotSettings::CacheProvider cacheProvider);
-	void on_find_changed();
+	void on_searchagain_changed(Glib::ustring queryName);
 	void on_query_changed(Glib::ustring indexName, Glib::ustring queryName);
 	void on_switch_page(GtkNotebookPage *p0, guint p1);
 	void on_close_page(Glib::ustring title, NotebookPageBox::PageType type);
@@ -115,7 +116,6 @@ protected:
 	virtual void on_liveQueryEntry_activate();
 	virtual void on_findButton_clicked();
 	virtual void on_addQueryButton_clicked();
-	virtual void on_editQueryButton_clicked();
 	virtual void on_removeQueryButton_clicked();
 	virtual void on_findQueryButton_clicked();
 
