@@ -249,7 +249,7 @@ class ExpandQueryThread : public WorkerThread
 {
 	public:
 		ExpandQueryThread(const QueryProperties &queryProps,
-			const std::set<std::string> &relevantDocs);
+			const std::set<std::string> &expandFromDocsSet);
 		virtual ~ExpandQueryThread();
 
 		virtual std::string getType(void) const;
@@ -262,7 +262,7 @@ class ExpandQueryThread : public WorkerThread
 
 	protected:
 		QueryProperties m_queryProps;
-		std::set<std::string> m_relevantDocs;
+		std::set<unsigned int> m_docIdsSet;
 		std::set<std::string> m_expandTerms;
 
 		virtual void doWork(void);

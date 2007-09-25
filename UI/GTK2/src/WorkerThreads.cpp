@@ -69,6 +69,34 @@ public:
 	}
 };
 
+static string locationsToMergedIndexIds(const set<string> &locations, set<unsigned int> &docIds)
+{
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex("MERGED");
+
+	if ((pIndex == NULL) ||
+		(pIndex->isGood() == false))
+	{
+		string status(_("Index error on"));
+		status += " MERGED";
+		if (pIndex != NULL)
+		{
+			delete pIndex;
+		}
+		return status;
+	}
+
+	for (set<string>::iterator locationIter = locations.begin();
+		locationIter != locations.end(); ++locationIter)
+	{
+		unsigned int docId = pIndex->hasDocument(*locationIter);
+		docIds.insert(docId);
+	}
+
+	delete pIndex;
+
+	return "";
+}
+
 Dispatcher WorkerThread::m_dispatcher;
 pthread_mutex_t WorkerThread::m_dispatcherMutex = PTHREAD_MUTEX_INITIALIZER;
 bool WorkerThread::m_immediateFlush = true;
@@ -764,7 +792,7 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 	m_correctedSpelling(false)
 {
 #ifdef DEBUG
-	cout << "QueryingThread::QueryingThread: engine " << m_engineName << ", " << engineOption
+	cout << "QueryingThread::QueryingThread: engine " << m_engineName << ", " << m_engineOption
 		<< ", mode " << m_listingIndex << endl;
 #endif
 }
@@ -1007,12 +1035,12 @@ void QueryingThread::doWork(void)
 }
 
 ExpandQueryThread::ExpandQueryThread(const QueryProperties &queryProps,
-	const set<string> &relevantDocs) :
+	const set<string> &expandFromDocsSet) :
 	WorkerThread(),
 	m_queryProps(queryProps)
 {
-	copy(relevantDocs.begin(), relevantDocs.end(),
-		inserter(m_relevantDocs, m_relevantDocs.begin()));
+	// Get the IDs of the documents to expand from
+	m_status = locationsToMergedIndexIds(expandFromDocsSet, m_docIdsSet);
 }
 
 ExpandQueryThread::~ExpandQueryThread()
@@ -1042,28 +1070,11 @@ bool ExpandQueryThread::stop(void)
 
 void ExpandQueryThread::doWork(void)
 {
-	IndexInterface *pIndex = PinotSettings::getInstance().getIndex("MERGED");
-	set<unsigned int> relevantDocIds;
-
-	if ((pIndex == NULL) ||
-		(pIndex->isGood() == false))
+	// Did locationsToMergedIndexIds() fail ?
+	if (m_status.empty() == false)
 	{
-		m_status = _("Index error on");
-		m_status += " MERGED";
-		if (pIndex != NULL)
-		{
-			delete pIndex;
-		}
 		return;
 	}
-
-	for (set<string>::iterator locationIter = m_relevantDocs.begin();
-		locationIter != m_relevantDocs.end(); ++locationIter)
-	{
-		relevantDocIds.insert(pIndex->hasDocument(*locationIter));
-	}
-
-	delete pIndex;
 
 	// Get the SearchEngine
 	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine("xapian", "MERGED");
@@ -1075,8 +1086,8 @@ void ExpandQueryThread::doWork(void)
 		return;
 	}
 
-	// Set whether to expand the query
-	pEngine->setQueryExpansion(relevantDocIds);
+	// Expand the query
+	pEngine->setExpandSet(m_docIdsSet);
 
 	// Run the query
 	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
