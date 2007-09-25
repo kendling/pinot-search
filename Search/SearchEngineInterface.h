@@ -39,8 +39,8 @@ class SearchEngineInterface
 		/// Sets the search engine's key, if applicable.
 		virtual void setKey(const string &key);
 
-		/// Sets whether the query should be expanded.
-		virtual bool setQueryExpansion(set<unsigned int> &relevantDocuments);
+		/// Sets the set of documents to expand from.
+		virtual bool setExpandSet(const set<unsigned int> &docsSet);
 
 		typedef enum { DEFAULT_OP_AND = 0, DEFAULT_OP_OR } DefaultOperator;
 

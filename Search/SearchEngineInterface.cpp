@@ -42,8 +42,8 @@ void SearchEngineInterface::setKey(const string &key)
 	m_key = key;
 }
 
-/// Sets whether the query should be expanded.
-bool SearchEngineInterface::setQueryExpansion(set<unsigned int> &relevantDocuments)
+/// Sets the set of documents to expand from.
+bool SearchEngineInterface::setExpandSet(const set<unsigned int> &docsSet)
 {
 	// Not all engines support this
 	return false;

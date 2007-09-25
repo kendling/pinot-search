@@ -82,9 +82,10 @@ static void checkFilter(const string &freeQuery, string::size_type filterValueSt
 class TimeValueRangeProcessor : public Xapian::ValueRangeProcessor
 {
 	public:
-		TimeValueRangeProcessor(Xapian::valueno valno) : Xapian::ValueRangeProcessor(), m_valueNumber(valno) { }
+		TimeValueRangeProcessor(Xapian::valueno valueNumber) : Xapian::ValueRangeProcessor(), m_valueNumber(valueNumber) { }
+		~TimeValueRangeProcessor() { }
 
-		Xapian::valueno operator()(string &begin, string &end)
+		virtual Xapian::valueno operator()(string &begin, string &end)
 		{
 			if ((begin.size() == 6) &&
 					(end.size() == 6))
@@ -118,6 +119,31 @@ class TimeValueRangeProcessor : public Xapian::ValueRangeProcessor
 
 	protected:
 		Xapian::valueno m_valueNumber;
+
+};
+
+class PrefixDecider : public Xapian::ExpandDecider
+{
+	public:
+		PrefixDecider(const string &allowedPrefixes) : Xapian::ExpandDecider(), m_allowedPrefixes(allowedPrefixes) { }
+		~PrefixDecider() { }
+
+		virtual bool operator()(const std::string &term) const
+		{
+			if ((isupper((int)(term[0])) == 0) ||
+				(m_allowedPrefixes.find(term[0]) != string::npos))
+			{
+				return true;
+			}
+#ifdef DEBUG
+			cout << "PrefixDecider::operator: rejecting " << term << endl;
+#endif
+
+			return false;
+		}
+
+	protected:
+		string m_allowedPrefixes;
 
 };
 
@@ -363,7 +389,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		{
 			m_resultsCountEstimate = matches.get_matches_estimated();
 #ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: " << m_resultsCountEstimate << "/"
+			cout << "XapianEngine::queryDatabase: " << matches.size() << "/" << m_resultsCountEstimate << "/"
 				<< maxResultsCount << " results found from position " << startDoc << endl;
 #endif
 
@@ -418,27 +444,38 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		m_expandTerms.clear();
 
 		// Expand the query ?
-		if (m_relevantDocuments.empty() == false)
+		if (m_expandDocuments.empty() == false)
 		{
-			Xapian::RSet relevantDocs;
+			Xapian::RSet expandDocs;
 			unsigned int count = 0;
 
-			for (set<unsigned int>::const_iterator docIter = m_relevantDocuments.begin();
-				docIter != m_relevantDocuments.end(); ++docIter)
+			for (set<unsigned int>::const_iterator docIter = m_expandDocuments.begin();
+				docIter != m_expandDocuments.end(); ++docIter)
 			{
-				relevantDocs.add_document(*docIter);
+				expandDocs.add_document(*docIter);
 			}
 
 			// Get 10 non-prefixed terms
-			Xapian::ESet expandTerms = enquire.get_eset(20, relevantDocs);
+			PrefixDecider expandDecider("RS");
+			Xapian::ESet expandTerms = enquire.get_eset(20, expandDocs, &expandDecider);
+#ifdef DEBUG
+			cout << "XapianEngine::queryDatabase: " << expandTerms.size() << " expand terms" << endl;
+#endif
 			for (Xapian::ESetIterator termIter = expandTerms.begin();
 				(termIter != expandTerms.end()) && (count < 10); ++termIter)
 			{
-				if (isupper((int)((*termIter)[0])) == 0)
+				char firstChar = (*termIter)[0];
+
+				if ((firstChar == 'R') ||
+					(firstChar == 'S'))
+				{
+					m_expandTerms.insert((*termIter).substr(1));
+				}
+				else
 				{
 					m_expandTerms.insert(*termIter);
-					++count;
 				}
+				++count;
 			}
 		}
 	}
@@ -461,11 +498,14 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 // Implementation of SearchEngineInterface
 //
 
-/// Sets whether the query should be expanded.
-bool XapianEngine::setQueryExpansion(set<unsigned int> &relevantDocuments)
+/// Sets the set of documents to expand from.
+bool XapianEngine::setExpandSet(const set<unsigned int> &docsSet)
 {
-	copy(relevantDocuments.begin(), relevantDocuments.end(),
-		inserter(m_relevantDocuments, m_relevantDocuments.begin()));
+	copy(docsSet.begin(), docsSet.end(),
+		inserter(m_expandDocuments, m_expandDocuments.begin()));
+#ifdef DEBUG
+	cout << "XapianEngine::setExpandSet: " << m_expandDocuments.size() << " documents" << endl;
+#endif
 
 	return true;
 }
