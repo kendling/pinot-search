@@ -79,7 +79,7 @@ bool queryDialog::is_separator(const RefPtr<TreeModel>& model, const TreeModel::
 
 		// FIXME: this is extremely hacky !
 		if ((sscanf(rowPath.c_str(), "%u", &rowPos) == 1) &&
-			((rowPos == 2) || (rowPos == 10)))
+			(rowPos == 9))
 		{
 			return true;
 		}
@@ -92,29 +92,10 @@ void queryDialog::populate_comboboxes()
 {
 	unsigned int labelNum = 1;
 
-	labelNameCombobox->append_text(_("None"));
-	labelNameCombobox->set_active(0);
-
-	// Add all labels to the label combo and select the one defined for the query
-	for (set<string>::const_iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
-	{
-		string labelName(*labelIter);
-
-		labelNameCombobox->append_text(to_utf8(labelName));
-		if (labelName == m_properties.getLabelName())
-		{
-			labelNameCombobox->set_active(labelNum);
-		}
-
-		++labelNum;
-	}
-
 	// All supported filters
 	filterCombobox->set_row_separator_func(SigC::slot(*this, &queryDialog::is_separator));
 	filterCombobox->append_text(_("Host name"));
 	filterCombobox->append_text(_("File name"));
-	// Separate filters that apply to all engines from the rest
-	filterCombobox->append_text("===");
 	filterCombobox->append_text(_("File extension"));
 	filterCombobox->append_text(_("Title"));
 	filterCombobox->append_text(_("URL"));
@@ -128,6 +109,35 @@ void queryDialog::populate_comboboxes()
 	filterCombobox->append_text(_("Time"));
 	filterCombobox->append_text(_("Size"));
 	filterCombobox->set_active(0);
+
+	// Sort order
+	sortOrderCombobox->append_text(_("By relevance"));
+	sortOrderCombobox->append_text(_("By date"));
+	if (m_properties.getSortOrder() == QueryProperties::DATE)
+	{
+		sortOrderCombobox->set_active(1);
+	}
+	else
+	{
+		sortOrderCombobox->set_active(0);
+	}
+
+	// Labels
+	labelNameCombobox->append_text(_("None"));
+	labelNameCombobox->set_active(0);
+	// Add all labels to the label combo and select the one defined for the query
+	for (set<string>::const_iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
+	{
+		string labelName(*labelIter);
+
+		labelNameCombobox->append_text(to_utf8(labelName));
+		if (labelName == m_properties.getLabelName())
+		{
+			labelNameCombobox->set_active(labelNum);
+		}
+
+		++labelNum;
+	}
 }
 
 bool queryDialog::badName(void) const
@@ -167,6 +177,15 @@ void queryDialog::on_queryOkbutton_clicked()
 	}
 	// Maximum number of results
 	m_properties.setMaximumResultsCount((unsigned int)resultsCountSpinbutton->get_value());
+	// Sort order
+	if (sortOrderCombobox->get_active_row_number() == 1)
+	{
+		m_properties.setSortOrder(QueryProperties::DATE);
+	}
+	else
+	{
+		m_properties.setSortOrder(QueryProperties::RELEVANCE);
+	}
 	// Index all results
 	m_properties.setIndexResults(indexCheckbutton->get_active());
 	// Index label
@@ -210,43 +229,40 @@ void queryDialog::on_addFilterButton_clicked()
 			filter = "file";
 			break;
 		case 2:
-			// Separator
-			break;
-		case 3:
 			filter = "ext";
 			break;
-		case 4:
+		case 3:
 			filter = "title";
 			break;
-		case 5:
+		case 4:
 			filter = "url";
 			break;
-		case 6:
+		case 5:
 			filter = "dir";
 			break;
-		case 7:
+		case 6:
 			filter = "lang";
 			break;
-		case 8:
+		case 7:
 			filter = "type";
 			break;
-		case 9:
+		case 8:
 			filter = "label";
 			break;
-		case 10:
+		case 9:
 			// Separator
 			break;
-		case 11:
+		case 10:
 			filter = TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 			filter += "..20991231";
 			hasValue = false;
 			break;
-		case 12:
+		case 11:
 			filter = TimeConverter::toHHMMSSString(tm->tm_hour, tm->tm_min, tm->tm_sec);
 			filter += "..235959";
 			hasValue = false;
 			break;
-		case 13:
+		case 12:
 			filter += "0..10240b";
 			hasValue = false;
 			break;

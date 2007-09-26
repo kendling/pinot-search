@@ -685,6 +685,17 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		{
 			queryProps.setName(nodeContent);
 		}
+		else if (nodeName == "sortorder")
+		{
+			if (nodeContent == "DATE")
+			{
+				queryProps.setSortOrder(QueryProperties::DATE);
+			}
+			else
+			{
+				queryProps.setSortOrder(QueryProperties::RELEVANCE);
+			}
+		}
 		else if (nodeName == "text")
 		{
 			freeQuery = nodeContent;
@@ -1294,6 +1305,7 @@ bool PinotSettings::save(void)
 			unsigned int day, month, year;
 
 			addChildElement(pElem, "name", queryIter->first);
+			addChildElement(pElem, "sortorder", (queryIter->second.getSortOrder() == QueryProperties::DATE ? "DATE" : "RELEVANCE"));
 			addChildElement(pElem, "text", queryIter->second.getFreeQuery());
 			sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
 			addChildElement(pElem, "maxresults", numStr);
