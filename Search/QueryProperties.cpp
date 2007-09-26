@@ -27,6 +27,7 @@
 
 QueryProperties::QueryProperties() :
 	m_type(XAPIAN_QP),
+	m_order(RELEVANCE),
 	m_resultsCount(10),
 	m_indexResults(false)
 {
@@ -36,6 +37,7 @@ QueryProperties::QueryProperties(const string &name, const string &freeQuery,
 	QueryType type) :
 	m_name(name),
 	m_type(type),
+	m_order(RELEVANCE),
 	m_freeQuery(freeQuery),
 	m_resultsCount(10),
 	m_indexResults(false)
@@ -46,6 +48,7 @@ QueryProperties::QueryProperties(const string &name, const string &freeQuery,
 QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_name(other.m_name),
 	m_type(other.m_type),
+	m_order(other.m_order),
 	m_freeQuery(other.m_freeQuery),
 	m_freeQueryWithoutFilters(other.m_freeQueryWithoutFilters),
 	m_resultsCount(other.m_resultsCount),
@@ -64,6 +67,7 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 	{
 		m_name = other.m_name;
 		m_type = other.m_type;
+		m_order = other.m_order;
 		m_freeQuery = other.m_freeQuery;
 		m_freeQueryWithoutFilters = other.m_freeQueryWithoutFilters;
 		m_resultsCount = other.m_resultsCount;
@@ -154,6 +158,18 @@ void QueryProperties::setType(QueryType type)
 QueryProperties::QueryType QueryProperties::getType(void) const
 {
 	return m_type;
+}
+
+/// Sets the sort order.
+void QueryProperties::setSortOrder(SortOrder order)
+{
+	m_order = order;
+}
+
+/// Gets the sort order.
+QueryProperties::SortOrder QueryProperties::getSortOrder(void) const
+{
+	return m_order;
 }
 
 /// Sets the query string.

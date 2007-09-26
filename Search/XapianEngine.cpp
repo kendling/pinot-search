@@ -363,8 +363,9 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 }
 
 bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
-	unsigned int startDoc, unsigned int maxResultsCount)
+	unsigned int startDoc, const QueryProperties &queryProps)
 {
+	unsigned int maxResultsCount = queryProps.getMaximumResultsCount();
 	bool completedQuery = false;
 
 	if (pIndex == NULL)
@@ -382,6 +383,17 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 
 		// Give the query object to the enquire session
 		enquire.set_query(query);
+		// How should results be sorted ?
+		if (queryProps.getSortOrder() == QueryProperties::RELEVANCE)
+		{
+			// By relevance, only
+			enquire.set_sort_by_relevance();
+		}
+		else if (queryProps.getSortOrder() == QueryProperties::DATE)
+		{
+			// By date, and then by relevance
+			enquire.set_sort_by_value_then_relevance(4);
+		}
 
 		// Get the top results of the query
 		Xapian::MSet matches = enquire.get_mset(startDoc, maxResultsCount, maxResultsCount + 1);
@@ -552,8 +564,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 			cout << "XapianEngine::runQuery: " << fullQuery.get_description() << endl;
 #endif
 			// Query the database
-			if (queryDatabase(pIndex, fullQuery, startDoc,
-				queryProps.getMaximumResultsCount()) == false)
+			if (queryDatabase(pIndex, fullQuery, startDoc, queryProps) == false)
 			{
 				break;
 			}

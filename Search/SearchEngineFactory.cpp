@@ -48,8 +48,7 @@ SearchEngineInterface *SearchEngineFactory::getSearchEngine(const string &type, 
 #ifdef HAVE_GOOGLEAPI
 	else if (type == "googleapi")
 	{
-		myEngine = new GoogleAPIEngine();
-		myEngine->setKey(option);
+		myEngine = new GoogleAPIEngine(option);
 	}
 #endif
 

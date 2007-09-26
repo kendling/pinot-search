@@ -29,8 +29,9 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-GoogleAPIEngine::GoogleAPIEngine() :
-	WebEngine()
+GoogleAPIEngine::GoogleAPIEngine(const string &key) :
+	WebEngine(),
+	m_key(key)
 {
 }
 
@@ -44,7 +45,8 @@ Document *GoogleAPIEngine::retrieveCachedUrl(const string &url)
 	GoogleSearchBinding soapProxy;
 	xsd__base64Binary base64Page;
 
-	if (soapProxy.gapi1__doGetCachedPage(m_key, url, base64Page))
+	if ((m_key.empty() == true) ||
+		(soapProxy.gapi1__doGetCachedPage(m_key, url, base64Page)))
 	{
 		return NULL;
 	}
@@ -69,7 +71,8 @@ string GoogleAPIEngine::checkSpelling(const string &text)
 	GoogleSearchBinding soapProxy;
 	string spellOut;
 
-	if (soapProxy.gapi1__doSpellingSuggestion(m_key, text, spellOut))
+	if ((m_key.empty() == true) ||
+		(soapProxy.gapi1__doSpellingSuggestion(m_key, text, spellOut)))
 	{
 		return "";
 	}

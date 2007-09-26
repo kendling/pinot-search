@@ -36,12 +36,6 @@ SearchEngineInterface::~SearchEngineInterface()
 {
 }
 
-/// Sets the search engine's key, if applicable.
-void SearchEngineInterface::setKey(const string &key)
-{
-	m_key = key;
-}
-
 /// Sets the set of documents to expand from.
 bool SearchEngineInterface::setExpandSet(const set<unsigned int> &docsSet)
 {

@@ -36,9 +36,6 @@ class SearchEngineInterface
 	public:
 		virtual ~SearchEngineInterface();
 
-		/// Sets the search engine's key, if applicable.
-		virtual void setKey(const string &key);
-
 		/// Sets the set of documents to expand from.
 		virtual bool setExpandSet(const set<unsigned int> &docsSet);
 
@@ -70,7 +67,6 @@ class SearchEngineInterface
 		virtual const set<string> &getExpandTerms(void) const;
 
 	protected:
-		string m_key;
 		DefaultOperator m_defaultOperator;
 		vector<DocumentInfo> m_resultsList;
 		unsigned int m_resultsCountEstimate;

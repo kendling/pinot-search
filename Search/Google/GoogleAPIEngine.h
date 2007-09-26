@@ -30,7 +30,7 @@ using namespace std;
 class GoogleAPIEngine : public WebEngine
 {
 	public:
-		GoogleAPIEngine();
+		GoogleAPIEngine(const string &key);
 		virtual ~GoogleAPIEngine();
 
 		/// Runs a query; true if success.
@@ -42,6 +42,9 @@ class GoogleAPIEngine : public WebEngine
 
 		/// Checks spelling.
 		string checkSpelling(const string &text);
+
+	protected:
+		string m_key;
 
 	private:
 		GoogleAPIEngine(const GoogleAPIEngine &other);

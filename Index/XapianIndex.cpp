@@ -610,13 +610,15 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	string yyyymmdd(TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday));
 	string hhmmss(TimeConverter::toHHMMSSString(tm->tm_hour, tm->tm_min, tm->tm_sec));
 
-	// Add this value to allow sorting by date
+	// Date
 	doc.add_value(0, yyyymmdd);
 	// FIXME: checksum in value 1
-	// Size goes in value 2
+	// Size
 	doc.add_value(2, Xapian::sortable_serialise((double )info.getSize()));
-	// Time goes in value 3
+	// Time
 	doc.add_value(3, hhmmss);
+	// Date and time, for results sorting
+	doc.add_value(4, yyyymmdd + hhmmss);
 
 	DocumentInfo docCopy(info);
 	docCopy.setLanguage(language);

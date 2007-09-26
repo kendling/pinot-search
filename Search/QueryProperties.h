@@ -29,6 +29,7 @@ class QueryProperties
 {
 	public:
 		typedef enum { XAPIAN_QP = 0, XESAM_QL, XESAM_UL } QueryType;
+		typedef enum { RELEVANCE = 0, DATE } SortOrder;
 
 		QueryProperties();
 		QueryProperties(const string &name, const string &freeQuery,
@@ -49,6 +50,11 @@ class QueryProperties
 		void setType(QueryType type);
 		/// Gets the type.
 		QueryType getType(void) const;
+
+		/// Sets the sort order.
+		void setSortOrder(SortOrder order);
+		/// Gets the sort order.
+		SortOrder getSortOrder(void) const;
 
 		/// Sets the query string.
 		void setFreeQuery(const string &freeQuery);
@@ -82,6 +88,7 @@ class QueryProperties
 	protected:
 		string m_name;
 		QueryType m_type;
+		SortOrder m_order;
 		string m_freeQuery;
 		string m_freeQueryWithoutFilters;
 		unsigned int m_resultsCount;
