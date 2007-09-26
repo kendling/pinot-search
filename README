@@ -167,17 +167,17 @@ http://pinot.berlios.de/
   When querying an index, Pinot attempts to find the documents that best match
   the query. The query is run first as is. If no results are found, the terms
   are stemmed and the query is run again.
-  Stemming is available only to Stored Queries for which a language is defined.
+  Stemming is available only to Stored Queries for which a language filter is
+  defined.
 
-  Queries can be expressed in a very natural way, using a combination of operators
-  and filters. For instance "type:text/html and lang:en and (tcp near ip)" looks
-  for HTML files in English that mention TCP/IP. 
+  Queries can be expressed in a very natural way, using a combination of
+  operators, filters and ranges. For instance, the query "type:text/html and
+  lang:en and (tcp near ip)" will look for HTML files in English that mention
+  TCP/IP. 
 
   Supported filters are :
-    * filters that apply to all engines
       "site" for host name, eg "site:pinot.berlios.de"
       "file" for file name, eg "file:index.html"
-    * filters that only apply to Current User engines
       "ext" for file extension, eg "ext:html"
       "title" for title, eg "title:Session"
       "url" for URL, eg "url:http://pinot.berlios.de/"
@@ -188,6 +188,13 @@ http://pinot.berlios.de/
 
   Allowed language codes are "da", "nl", "en", "fi", "fr", "de", "it", "nn", "pt",
   "ru", "es" and "sv".
+
+  The values of "file", "url", "dir" and "label" may be double-quoted.
+
+  Supported ranges are :
+      "YYYYMMDD..YYYYMMDD" for date ranges, eg "20070801..20070831"
+      "HHMMSS..HHMMSS" for time ranges, eg "090000..180000"
+      "size0..size1b" for size in bytes, eg "0..10240b"
 
   For more information about the query syntax, you may want to have a look at the
   documentation for Xapian's QueryParser at http://www.xapian.org/docs/queryparser.html
