@@ -999,41 +999,22 @@ void mainWindow::on_searchagain_changed(ustring queryName)
 	{
 		std::map<std::string, std::string> indexes = m_settings.getIndexes();
 		ustring queryName(queryProps.getName());
-		ustring queryStr(queryProps.getFreeQuery());
 		bool firstLocation = true;
 
-		queryProps.setName(queryName + " " + _("in results"));
-		queryStr += " +(";
-		for (set<string>::const_iterator locationIter = locations.begin();
-			locationIter != locations.end(); ++locationIter)
-		{
-			if (firstLocation == false)
-			{
-				queryStr += " or ";
-			}
-			queryStr += "url:\"";
-			queryStr += *locationIter;
-			queryStr += "\"";
-			firstLocation = false;
-		}
-		queryStr += ")";
-#ifdef DEBUG
-		cout << "mainWindow::on_searchagain_changed: " << queryStr << endl;
-#endif
-		queryProps.setFreeQuery(queryStr);
+		queryProps.setName(queryName + " " + _("In Results"));
 
 		// Spawn new threads
 		std::map<std::string, std::string>::const_iterator indexIter = indexes.find(_("My Documents"));
 		if (indexIter != indexes.end())
 		{
 			start_thread(new QueryingThread("xapian", indexIter->first,
-				indexIter->second, queryProps));
+				indexIter->second, queryProps, locations));
 		}
 		indexIter = indexes.find(_("My Web Pages"));
 		if (indexIter != indexes.end())
 		{
 			start_thread(new QueryingThread("xapian", indexIter->first,
-				indexIter->second, queryProps));
+				indexIter->second, queryProps, locations));
 		}
 	}
 }

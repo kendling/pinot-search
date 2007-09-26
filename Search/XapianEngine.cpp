@@ -167,10 +167,11 @@ XapianEngine::~XapianEngine()
 
 Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 	const string &stemLanguage, DefaultOperator defaultOperator,
-	string &correctedFreeQuery, bool minimal)
+	const string &limitQuery, string &correctedFreeQuery, bool minimal)
 {
 	Xapian::QueryParser parser;
 	Xapian::Stem stemmer;
+	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
 	unsigned int minDay, minMonth, minYear = 0;
 	unsigned int maxDay, maxMonth, maxYear = 0;
 
@@ -218,6 +219,15 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_boolean_prefix("type", "T");
 	parser.add_boolean_prefix("label", "XLABEL:");
 
+	// Any limit on what documents should be searched ?
+	if (limitQuery.empty() == false)
+	{
+		freeQuery += limitQuery;
+#ifdef DEBUG
+		cout << "XapianEngine::parseQuery: " << freeQuery << endl;
+#endif
+	}
+
 	// What type of query is this ?
 	QueryProperties::QueryType type = queryProps.getType();
 	if (type != QueryProperties::XAPIAN_QP)
@@ -242,7 +252,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 
 		if (pParser != NULL)
 		{
-			bool parsedQuery = pParser->parse(queryProps.getFreeQuery(), builder);
+			bool parsedQuery = pParser->parse(freeQuery, builder);
 
 			delete pParser;
 
@@ -256,7 +266,6 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	}
 
 	// Do some pre-processing : look for filters with quoted values
-	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
 	string::size_type escapedFilterEnd = 0;
 	string::size_type escapedFilterStart = freeQuery.find(":\"");
 	while ((escapedFilterStart != string::npos) &&
@@ -310,18 +319,6 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		escapedFilterStart = freeQuery.find(":\"", escapedFilterEnd);
 	}
 
-	// Activate all necessary options
-	unsigned int flags = Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|
-		Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|
-		Xapian::QueryParser::FLAG_PURE_NOT;
-	if (minimal == false)
-	{
-		flags |= Xapian::QueryParser::FLAG_WILDCARD;
-#if ENABLE_XAPIAN_SPELLING_CORRECTION>0
-		flags |= Xapian::QueryParser::FLAG_SPELLING_CORRECTION;
-#endif
-	}
-
 	// Date range
 	Xapian::DateValueRangeProcessor dateProcessor(0);
 	parser.add_valuerangeprocessor(&dateProcessor);
@@ -344,7 +341,17 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	TimeValueRangeProcessor timeProcessor(3);
 	parser.add_valuerangeprocessor(&timeProcessor);
 
-	// Parse the query string
+	// Parse the query string with all necessary options
+	unsigned int flags = Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|
+		Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|
+		Xapian::QueryParser::FLAG_PURE_NOT;
+	if (minimal == false)
+	{
+		flags |= Xapian::QueryParser::FLAG_WILDCARD;
+#if ENABLE_XAPIAN_SPELLING_CORRECTION>0
+		flags |= Xapian::QueryParser::FLAG_SPELLING_CORRECTION;
+#endif
+	}
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
 	if (minimal == true)
 	{
@@ -461,11 +468,21 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			Xapian::RSet expandDocs;
 			unsigned int count = 0;
 
-			for (set<unsigned int>::const_iterator docIter = m_expandDocuments.begin();
+			for (set<string>::const_iterator docIter = m_expandDocuments.begin();
 				docIter != m_expandDocuments.end(); ++docIter)
 			{
-				expandDocs.add_document(*docIter);
+				string uniqueTerm(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(Url::canonicalizeUrl(*docIter)), true));
+
+				// Only one document may have this term
+				Xapian::PostingIterator postingIter = pIndex->postlist_begin(uniqueTerm);
+				if (postingIter != pIndex->postlist_end(uniqueTerm))
+				{
+					expandDocs.add_document(*postingIter);
+				}
 			}
+#ifdef DEBUG
+			cout << "XapianEngine::queryDatabase: expand from " << expandDocs.size() << " documents" << endl;
+#endif
 
 			// Get 10 non-prefixed terms
 			PrefixDecider expandDecider("RS");
@@ -510,8 +527,42 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 // Implementation of SearchEngineInterface
 //
 
+/// Sets the set of documents to limit to.
+bool XapianEngine::setLimitSet(const set<string> &docsSet)
+{
+	bool firstLocation = true;
+
+	m_limitQuery.clear();
+
+	if (docsSet.empty() == true)
+	{
+		return true;
+	}
+
+	// FIXME: there must be a better way !
+	m_limitQuery = " +(";
+	for (set<string>::const_iterator docIter = docsSet.begin();
+		docIter != docsSet.end(); ++docIter)
+	{
+		if (firstLocation == false)
+		{
+			m_limitQuery += " or ";
+		}
+		m_limitQuery += "url:\"";
+		m_limitQuery += *docIter;
+		m_limitQuery += "\"";
+		firstLocation = false;
+	}
+	m_limitQuery += ")";
+#ifdef DEBUG
+	cout << "XapianEngine::setLimitSet: " << m_limitQuery << endl;
+#endif
+
+	return true;
+}
+
 /// Sets the set of documents to expand from.
-bool XapianEngine::setExpandSet(const set<unsigned int> &docsSet)
+bool XapianEngine::setExpandSet(const set<string> &docsSet)
 {
 	copy(docsSet.begin(), docsSet.end(),
 		inserter(m_expandDocuments, m_expandDocuments.begin()));
@@ -557,7 +608,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 		// 1. don't stem terms
 		// 2. if no results, stem terms if a language is defined for the query
 		Xapian::Query fullQuery = parseQuery(pIndex, queryProps, "",
-			m_defaultOperator, m_correctedFreeQuery);
+			m_defaultOperator, m_limitQuery, m_correctedFreeQuery);
 		while (fullQuery.empty() == false)
 		{
 #ifdef DEBUG
@@ -578,7 +629,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 				cout << "XapianEngine::runQuery: trying again with stemming" << endl;
 #endif
 				fullQuery = parseQuery(pIndex, queryProps, Languages::toEnglish(stemLanguage),
-					m_defaultOperator, m_correctedFreeQuery);
+					m_defaultOperator, m_limitQuery, m_correctedFreeQuery);
 				++searchStep;
 				continue;
 			}

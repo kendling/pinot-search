@@ -36,17 +36,24 @@ SearchEngineInterface::~SearchEngineInterface()
 {
 }
 
-/// Sets the set of documents to expand from.
-bool SearchEngineInterface::setExpandSet(const set<unsigned int> &docsSet)
+/// Sets whether AND is the default operator.
+void SearchEngineInterface::setDefaultOperator(DefaultOperator op)
+{
+	m_defaultOperator = op;
+}
+
+/// Sets the set of documents to limit to.
+bool SearchEngineInterface::setLimitSet(const set<string> &docsSet)
 {
 	// Not all engines support this
 	return false;
 }
 
-/// Sets whether AND is the default operator.
-void SearchEngineInterface::setDefaultOperator(DefaultOperator op)
+/// Sets the set of documents to expand from.
+bool SearchEngineInterface::setExpandSet(const set<string> &docsSet)
 {
-	m_defaultOperator = op;
+	// Not all engines support this
+	return false;
 }
 
 /// Returns the downloader used if any.

@@ -211,6 +211,9 @@ class QueryingThread : public ListerThread
 		QueryingThread(const std::string &engineName, const std::string &engineDisplayableName,
 			const std::string &engineOption, const QueryProperties &queryProps,
 			unsigned int startDoc = 0, bool listingIndex = false);
+		QueryingThread(const std::string &engineName, const std::string &engineDisplayableName,
+			const std::string &engineOption, const QueryProperties &queryProps,
+			const std::set<std::string> &limitToDocsSet, unsigned int startDoc = 0);
 		virtual ~QueryingThread();
 
 		virtual std::string getType(void) const;
@@ -229,6 +232,7 @@ class QueryingThread : public ListerThread
 		std::string m_engineOption;
 		QueryProperties m_queryProps;
 		std::string m_resultsCharset;
+		std::set<std::string> m_limitToDocsSet;
 		bool m_listingIndex;
 		bool m_correctedSpelling;
 
@@ -262,7 +266,7 @@ class ExpandQueryThread : public WorkerThread
 
 	protected:
 		QueryProperties m_queryProps;
-		std::set<unsigned int> m_docIdsSet;
+		std::set<std::string> m_expandFromDocsSet;
 		std::set<std::string> m_expandTerms;
 
 		virtual void doWork(void);

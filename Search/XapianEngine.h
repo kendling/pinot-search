@@ -50,8 +50,11 @@ class XapianEngine : public SearchEngineInterface
 		XapianEngine(const std::string &database);
 		virtual ~XapianEngine();
 
+		/// Sets the set of documents to limit to.
+		virtual bool setLimitSet(const std::set<std::string> &docsSet);
+
 		/// Sets the set of documents to expand from.
-		virtual bool setExpandSet(const std::set<unsigned int> &docsSet);
+		virtual bool setExpandSet(const std::set<std::string> &docsSet);
 
 		/// Runs a query; true if success.
 		virtual bool runQuery(QueryProperties& queryProps,
@@ -59,14 +62,15 @@ class XapianEngine : public SearchEngineInterface
 
 	protected:
 		std::string m_databaseName;
-		std::set<Xapian::docid> m_expandDocuments;
+		std::string m_limitQuery;
+		std::set<std::string> m_expandDocuments;
 
 		bool queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			unsigned int startDoc, const QueryProperties &queryProps);
 
 		static Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 			const string &stemLanguage, DefaultOperator defaultOperator,
-			string &correctedFreeQuery, bool minimal = false);
+			const string &limitQuery, string &correctedFreeQuery, bool minimal = false);
 
 	private:
 		XapianEngine(const XapianEngine &other);

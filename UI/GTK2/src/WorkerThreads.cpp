@@ -69,34 +69,6 @@ public:
 	}
 };
 
-static string locationsToMergedIndexIds(const set<string> &locations, set<unsigned int> &docIds)
-{
-	IndexInterface *pIndex = PinotSettings::getInstance().getIndex("MERGED");
-
-	if ((pIndex == NULL) ||
-		(pIndex->isGood() == false))
-	{
-		string status(_("Index error on"));
-		status += " MERGED";
-		if (pIndex != NULL)
-		{
-			delete pIndex;
-		}
-		return status;
-	}
-
-	for (set<string>::iterator locationIter = locations.begin();
-		locationIter != locations.end(); ++locationIter)
-	{
-		unsigned int docId = pIndex->hasDocument(*locationIter);
-		docIds.insert(docId);
-	}
-
-	delete pIndex;
-
-	return "";
-}
-
 Dispatcher WorkerThread::m_dispatcher;
 pthread_mutex_t WorkerThread::m_dispatcherMutex = PTHREAD_MUTEX_INITIALIZER;
 bool WorkerThread::m_immediateFlush = true;
@@ -744,33 +716,29 @@ void IndexBrowserThread::doWork(void)
 	m_documentsList.clear();
 	m_documentsList.reserve(m_maxDocsCount);
 
+	unsigned int indexId = PinotSettings::getInstance().getIndexId(m_indexName);
 	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
 	{
+		unsigned int docId = (*iter);
+
 		if (m_done == true)
 		{
 			break;
 		}
 
-		// Get the document ID
-		unsigned int docId = (*iter);
-
 		DocumentInfo docInfo;
 		if (pIndex->getDocumentInfo(docId, docInfo) == true)
 		{
-			string type = docInfo.getType();
+			string type(docInfo.getType());
+
 			if (type.empty() == true)
 			{
-				type = "text/html";
+				docInfo.setType("text/html");
 			}
-
-			DocumentInfo indexedDoc(docInfo.getTitle(), docInfo.getLocation(),
-				type, docInfo.getLanguage());
-			indexedDoc.setTimestamp(docInfo.getTimestamp());
-			indexedDoc.setSize(docInfo.getSize());
-			indexedDoc.setIsIndexed(PinotSettings::getInstance().getIndexId(m_indexName), docId);
+			docInfo.setIsIndexed(indexId, docId);
 
 			// Insert that document
-			m_documentsList.push_back(indexedDoc);
+			m_documentsList.push_back(docInfo);
 			++numDocs;
 		}
 #ifdef DEBUG
@@ -794,6 +762,25 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 #ifdef DEBUG
 	cout << "QueryingThread::QueryingThread: engine " << m_engineName << ", " << m_engineOption
 		<< ", mode " << m_listingIndex << endl;
+#endif
+}
+
+QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
+	const string &engineOption, const QueryProperties &queryProps,
+	const set<string> &limitToDocsSet, unsigned int startDoc) :
+	ListerThread(engineDisplayableName, startDoc),
+	m_engineName("xapian"),
+	m_engineDisplayableName(engineDisplayableName),
+	m_engineOption(engineOption),
+	m_queryProps(queryProps),
+	m_listingIndex(false),
+	m_correctedSpelling(false)
+{
+	copy(limitToDocsSet.begin(), limitToDocsSet.end(),
+		inserter(m_limitToDocsSet, m_limitToDocsSet.begin()));
+#ifdef DEBUG
+	cout << "QueryingThread::QueryingThread: engine " << m_engineName << ", " << m_engineOption
+		<< ", limited to " << m_limitToDocsSet.size() << " documents" << endl;
 #endif
 }
 
@@ -991,6 +978,11 @@ void QueryingThread::doWork(void)
 		pDownloader->setSetting("proxytype", settings.m_proxyType);
 	}
 
+	if (m_listingIndex == false)
+	{
+		pEngine->setLimitSet(m_limitToDocsSet);
+	}
+
 	// Run the query
 	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
 	if (pEngine->runQuery(m_queryProps, m_startDoc) == false)
@@ -1039,8 +1031,8 @@ ExpandQueryThread::ExpandQueryThread(const QueryProperties &queryProps,
 	WorkerThread(),
 	m_queryProps(queryProps)
 {
-	// Get the IDs of the documents to expand from
-	m_status = locationsToMergedIndexIds(expandFromDocsSet, m_docIdsSet);
+	copy(expandFromDocsSet.begin(), expandFromDocsSet.end(),
+		inserter(m_expandFromDocsSet, m_expandFromDocsSet.begin()));
 }
 
 ExpandQueryThread::~ExpandQueryThread()
@@ -1070,12 +1062,6 @@ bool ExpandQueryThread::stop(void)
 
 void ExpandQueryThread::doWork(void)
 {
-	// Did locationsToMergedIndexIds() fail ?
-	if (m_status.empty() == false)
-	{
-		return;
-	}
-
 	// Get the SearchEngine
 	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine("xapian", "MERGED");
 	if (pEngine == NULL)
@@ -1087,7 +1073,7 @@ void ExpandQueryThread::doWork(void)
 	}
 
 	// Expand the query
-	pEngine->setExpandSet(m_docIdsSet);
+	pEngine->setExpandSet(m_expandFromDocsSet);
 
 	// Run the query
 	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
@@ -1110,8 +1096,10 @@ LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToDelete,
 	const map<string, string> &labelsToRename) :
 	WorkerThread()
 {
-	copy(labelsToDelete.begin(), labelsToDelete.end(), inserter(m_labelsToDelete, m_labelsToDelete.begin()));
-	copy(labelsToRename.begin(), labelsToRename.end(), inserter(m_labelsToRename, m_labelsToRename.begin()));
+	copy(labelsToDelete.begin(), labelsToDelete.end(),
+		inserter(m_labelsToDelete, m_labelsToDelete.begin()));
+	copy(labelsToRename.begin(), labelsToRename.end(),
+		inserter(m_labelsToRename, m_labelsToRename.begin()));
 }
 
 LabelUpdateThread::LabelUpdateThread(const string &labelName,

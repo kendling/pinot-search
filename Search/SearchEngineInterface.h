@@ -34,15 +34,18 @@ using namespace std;
 class SearchEngineInterface
 {
 	public:
-		virtual ~SearchEngineInterface();
-
-		/// Sets the set of documents to expand from.
-		virtual bool setExpandSet(const set<unsigned int> &docsSet);
-
 		typedef enum { DEFAULT_OP_AND = 0, DEFAULT_OP_OR } DefaultOperator;
+
+		virtual ~SearchEngineInterface();
 
 		/// Sets whether AND is the default operator.
 		virtual void setDefaultOperator(DefaultOperator op);
+
+		/// Sets the set of documents to limit to.
+		virtual bool setLimitSet(const set<string> &docsSet);
+
+		/// Sets the set of documents to expand from.
+		virtual bool setExpandSet(const set<string> &docsSet);
 
 		/// Returns the downloader used if any.
 		virtual DownloaderInterface *getDownloader(void);
