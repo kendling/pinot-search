@@ -53,6 +53,9 @@ class QueryHistory : public SQLiteBase
 		bool updateItem(const string &queryName, const string &engineName, const string &url,
 			const string &title, const string &extract, const string &charset, float score);
 
+		/// Gets the list of engines the query was run on.
+		bool getEngines(const string &queryName, set<string> &enginesList);
+
 		/// Gets the first max items for the given query, engine pair.
 		bool getItems(const string &queryName, const string &engineName,
 			unsigned int max, vector<DocumentInfo> &resultsList);
@@ -67,6 +70,10 @@ class QueryHistory : public SQLiteBase
 
 		/// Gets a query's last run time.
 		string getLastRun(const string &queryName, const string &engineName = "");
+
+		/// Deletes items at least as old as the given date.
+		bool deleteItems(const string &queryName, const string &engineName,
+			time_t cutOffDate);
 
 		/// Deletes items.
 		bool deleteItems(const string &name, bool isQueryName);

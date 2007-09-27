@@ -134,6 +134,36 @@ bool QueryHistory::updateItem(const string &queryName, const string &engineName,
 	return success;
 }
 
+/// Gets the list of engines the query was run on.
+bool QueryHistory::getEngines(const string &queryName, set<string> &enginesList)
+{
+	bool success = false;
+
+	SQLiteResults *results = executeStatement("SELECT EngineName FROM QueryHistory \
+		WHERE QueryName='%q' GROUP BY EngineName",
+		queryName.c_str());
+	if (results != NULL)
+	{
+		while (results->hasMoreRows() == true)
+		{
+			SQLiteRow *row = results->nextRow();
+			if (row == NULL)
+			{
+				break;
+			}
+
+			enginesList.insert(row->getColumn(0));
+			success = true;
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return success;
+}
+
 /// Gets the first max items for the given query, engine pair.
 bool QueryHistory::getItems(const string &queryName, const string &engineName,
 	unsigned int max, vector<DocumentInfo> &resultsList)
@@ -273,6 +303,23 @@ string QueryHistory::getLastRun(const string &queryName, const string &engineNam
 	}
 
 	return lastRun;
+}
+
+/// Deletes items at least as old as the given date.
+bool QueryHistory::deleteItems(const string &queryName, const string &engineName,
+	time_t cutOffDate)
+{
+	SQLiteResults *results = executeStatement("DELETE FROM QueryHistory \
+		WHERE QueryName='%q' AND EngineName='%q' AND Date<='%d';",
+		queryName.c_str(), engineName.c_str(), cutOffDate);
+	if (results != NULL)
+	{
+		delete results;
+
+		return true;
+	}
+
+	return false;
 }
 
 /// Deletes items.
