@@ -128,6 +128,13 @@ Glib::Thread *WorkerThread::start(void)
 	return Thread::create(slot_class(*this, &WorkerThread::threadHandler), false);
 }
 
+bool WorkerThread::stop(void)
+{
+	m_done = true;
+
+	return true;
+}
+
 bool WorkerThread::isDone(void) const
 {
 	return m_done;
@@ -659,12 +666,6 @@ IndexBrowserThread::~IndexBrowserThread()
 {
 }
 
-bool IndexBrowserThread::stop(void)
-{
-	m_done = true;
-	return true;
-}
-
 void IndexBrowserThread::doWork(void)
 {
 	set<unsigned int> docIDList;
@@ -757,31 +758,9 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 	m_engineOption(engineOption),
 	m_queryProps(queryProps),
 	m_listingIndex(listingIndex),
-	m_correctedSpelling(false)
+	m_correctedSpelling(false),
+	m_isLive(true)
 {
-#ifdef DEBUG
-	cout << "QueryingThread::QueryingThread: engine " << m_engineName << ", " << m_engineOption
-		<< ", mode " << m_listingIndex << endl;
-#endif
-}
-
-QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
-	const string &engineOption, const QueryProperties &queryProps,
-	const set<string> &limitToDocsSet, unsigned int startDoc) :
-	ListerThread(engineDisplayableName, startDoc),
-	m_engineName("xapian"),
-	m_engineDisplayableName(engineDisplayableName),
-	m_engineOption(engineOption),
-	m_queryProps(queryProps),
-	m_listingIndex(false),
-	m_correctedSpelling(false)
-{
-	copy(limitToDocsSet.begin(), limitToDocsSet.end(),
-		inserter(m_limitToDocsSet, m_limitToDocsSet.begin()));
-#ifdef DEBUG
-	cout << "QueryingThread::QueryingThread: engine " << m_engineName << ", " << m_engineOption
-		<< ", limited to " << m_limitToDocsSet.size() << " documents" << endl;
-#endif
 }
 
 QueryingThread::~QueryingThread()
@@ -796,6 +775,11 @@ string QueryingThread::getType(void) const
 	}
 
 	return "QueryingThread";
+}
+
+bool QueryingThread::isLive(void) const
+{
+	return m_isLive;
 }
 
 string QueryingThread::getEngineName(void) const
@@ -814,13 +798,35 @@ string QueryingThread::getCharset(void) const
 	return m_resultsCharset;
 }
 
-bool QueryingThread::stop(void)
+EngineQueryThread::EngineQueryThread(const string &engineName, const string &engineDisplayableName,
+	const string &engineOption, const QueryProperties &queryProps,
+	unsigned int startDoc, bool listingIndex) :
+	QueryingThread(engineName, engineDisplayableName, engineOption, queryProps, startDoc, listingIndex)
 {
-	m_done = true;
-	return true;
+#ifdef DEBUG
+	cout << "EngineQueryThread::EngineQueryThread: engine " << m_engineName << ", " << m_engineOption
+		<< ", mode " << m_listingIndex << endl;
+#endif
 }
 
-void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
+EngineQueryThread::EngineQueryThread(const string &engineName, const string &engineDisplayableName,
+	const string &engineOption, const QueryProperties &queryProps,
+	const set<string> &limitToDocsSet, unsigned int startDoc) :
+	QueryingThread(engineName, engineDisplayableName, engineOption, queryProps, startDoc, false)
+{
+	copy(limitToDocsSet.begin(), limitToDocsSet.end(),
+		inserter(m_limitToDocsSet, m_limitToDocsSet.begin()));
+#ifdef DEBUG
+	cout << "EngineQueryThread::EngineQueryThread: engine " << m_engineName << ", " << m_engineOption
+		<< ", limited to " << m_limitToDocsSet.size() << " documents" << endl;
+#endif
+}
+
+EngineQueryThread::~EngineQueryThread()
+{
+}
+
+void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 {
 	PinotSettings &settings = PinotSettings::getInstance();
 	IndexInterface *pDocsIndex = NULL;
@@ -868,7 +874,7 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 		}
 		currentDoc.setTitle(title);
 #ifdef DEBUG
-		cout << "QueryingThread::processResults: title is " << title << endl;
+		cout << "EngineQueryThread::processResults: title is " << title << endl;
 #endif
 
 		// Use the query's language if the result's is unknown
@@ -911,11 +917,11 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 		{
 			currentDoc.setIsIndexed(indexId, docId);
 #ifdef DEBUG
-			cout << "QueryingThread::processResults: found in index " << indexId << endl;
+			cout << "EngineQueryThread::processResults: found in index " << indexId << endl;
 #endif
 		}
 #ifdef DEBUG
-		else cout << "QueryingThread::processResults: not found in any index" << endl;
+		else cout << "EngineQueryThread::processResults: not found in any index" << endl;
 #endif
 
 		m_documentsList.push_back(currentDoc);
@@ -931,7 +937,7 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList)
 	}
 }
 
-void QueryingThread::processResults(const vector<DocumentInfo> &resultsList,
+void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList,
 	unsigned int indexId)
 {
 	unsigned int zeroId = 0;
@@ -950,7 +956,7 @@ void QueryingThread::processResults(const vector<DocumentInfo> &resultsList,
 	}
 }
 
-void QueryingThread::doWork(void)
+void EngineQueryThread::doWork(void)
 {
 	PinotSettings &settings = PinotSettings::getInstance();
 
@@ -999,7 +1005,7 @@ void QueryingThread::doWork(void)
 		m_documentsList.reserve(resultsList.size());
 		m_documentsCount = pEngine->getResultsCountEstimate();
 #ifdef DEBUG
-		cout << "QueryingThread::doWork: " << resultsList.size() << " off " << m_documentsCount
+		cout << "EngineQueryThread::doWork: " << resultsList.size() << " off " << m_documentsCount
 			<< " results to process, starting at position " << m_startDoc << endl;
 #endif
 
@@ -1024,6 +1030,40 @@ void QueryingThread::doWork(void)
 	}
 
 	delete pEngine;
+}
+
+EngineHistoryThread::EngineHistoryThread(const string &engineDisplayableName,
+	const QueryProperties &queryProps, unsigned int maxDocsCount) :
+	QueryingThread("", engineDisplayableName, "", queryProps, 0, false),
+	m_maxDocsCount(maxDocsCount)
+{
+#ifdef DEBUG
+	cout << "EngineHistoryThread::EngineHistoryThread: engine " << m_engineDisplayableName << endl;
+#endif
+	m_isLive = false;
+}
+
+EngineHistoryThread::~EngineHistoryThread()
+{
+}
+
+void EngineHistoryThread::doWork(void)
+{
+	QueryHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+
+	if (history.getItems(m_queryProps.getName(), m_engineDisplayableName,
+		m_maxDocsCount, m_documentsList) == false)
+	{
+		m_status = _("Couldn't get history for search engine");
+		m_status += " ";
+		m_status += m_engineDisplayableName;
+	}
+	else if (m_documentsList.empty() == false)
+	{
+		// Get the first result's charset
+		history.getItemExtract(m_queryProps.getName(), m_engineDisplayableName,
+			m_documentsList.front().getLocation(), m_resultsCharset);
+	}
 }
 
 ExpandQueryThread::ExpandQueryThread(const QueryProperties &queryProps,
@@ -1052,12 +1092,6 @@ QueryProperties ExpandQueryThread::getQuery(void) const
 const set<string> &ExpandQueryThread::getExpandTerms(void) const
 {
 	return m_expandTerms;
-}
-
-bool ExpandQueryThread::stop(void)
-{
-	m_done = true;
-	return true;
 }
 
 void ExpandQueryThread::doWork(void)
@@ -1118,12 +1152,6 @@ LabelUpdateThread::~LabelUpdateThread()
 string LabelUpdateThread::getType(void) const
 {
 	return "LabelUpdateThread";
-}
-
-bool LabelUpdateThread::stop(void)
-{
-	m_done = true;
-	return true;
 }
 
 void LabelUpdateThread::doWork(void)
@@ -1214,12 +1242,6 @@ const Document *DownloadingThread::getDocument(void) const
 	return m_pDoc;
 }
 
-bool DownloadingThread::stop(void)
-{
-	m_done = true;
-	return true;
-}
-
 void DownloadingThread::doWork(void)
 {
 	if (m_pDownloader != NULL)
@@ -1303,17 +1325,6 @@ bool IndexingThread::isNewDocument(void) const
 		return false;
 	}
 	return true;
-}
-
-bool IndexingThread::stop(void)
-{
-	if (DownloadingThread::stop() == true)
-	{
-		m_done = true;
-		return true;
-	}
-
-	return false;
 }
 
 void IndexingThread::doWork(void)
@@ -1583,12 +1594,6 @@ unsigned int UnindexingThread::getDocumentsCount(void) const
 	return m_docsCount;
 }
 
-bool UnindexingThread::stop(void)
-{
-	m_done = true;
-	return true;
-}
-
 void UnindexingThread::doWork(void)
 {
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
@@ -1702,12 +1707,6 @@ const DocumentInfo &UpdateDocumentThread::getDocumentInfo(void) const
 	return m_docInfo;
 }
 
-bool UpdateDocumentThread::stop(void)
-{
-	m_done = true;
-	return true;
-}
-
 void UpdateDocumentThread::doWork(void)
 {
 	if (m_done == false)
@@ -1771,12 +1770,6 @@ StartDaemonThread::~StartDaemonThread()
 string StartDaemonThread::getType(void) const
 {
 	return "StartDaemonThread";
-}
-
-bool StartDaemonThread::stop(void)
-{
-	m_done = true;
-	return true;
 }
 
 void StartDaemonThread::doWork(void)

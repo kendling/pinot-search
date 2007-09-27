@@ -63,7 +63,7 @@ class WorkerThread
 
 		virtual std::string getType(void) const = 0;
 
-		virtual bool stop(void) = 0;
+		virtual bool stop(void);
 
 		bool isDone(void) const;
 
@@ -192,8 +192,6 @@ class IndexBrowserThread : public ListerThread
 
 		std::string getLabelName(void) const;
 
-		virtual bool stop(void);
-
 	protected:
 		unsigned int m_maxDocsCount;
 
@@ -211,12 +209,11 @@ class QueryingThread : public ListerThread
 		QueryingThread(const std::string &engineName, const std::string &engineDisplayableName,
 			const std::string &engineOption, const QueryProperties &queryProps,
 			unsigned int startDoc = 0, bool listingIndex = false);
-		QueryingThread(const std::string &engineName, const std::string &engineDisplayableName,
-			const std::string &engineOption, const QueryProperties &queryProps,
-			const std::set<std::string> &limitToDocsSet, unsigned int startDoc = 0);
 		virtual ~QueryingThread();
 
 		virtual std::string getType(void) const;
+
+		bool isLive(void) const;
 
 		std::string getEngineName(void) const;
 
@@ -224,17 +221,35 @@ class QueryingThread : public ListerThread
 
 		std::string getCharset(void) const;
 
-		virtual bool stop(void);
-
 	protected:
 		std::string m_engineName;
 		std::string m_engineDisplayableName;
 		std::string m_engineOption;
 		QueryProperties m_queryProps;
 		std::string m_resultsCharset;
-		std::set<std::string> m_limitToDocsSet;
 		bool m_listingIndex;
 		bool m_correctedSpelling;
+		bool m_isLive;
+
+	private:
+		QueryingThread(const QueryingThread &other);
+		QueryingThread &operator=(const QueryingThread &other);
+
+};
+
+class EngineQueryThread : public QueryingThread
+{
+	public:
+		EngineQueryThread(const std::string &engineName, const std::string &engineDisplayableName,
+			const std::string &engineOption, const QueryProperties &queryProps,
+			unsigned int startDoc = 0, bool listingIndex = false);
+		EngineQueryThread(const std::string &engineName, const std::string &engineDisplayableName,
+			const std::string &engineOption, const QueryProperties &queryProps,
+			const std::set<std::string> &limitToDocsSet, unsigned int startDoc = 0);
+		virtual ~EngineQueryThread();
+
+	protected:
+		std::set<std::string> m_limitToDocsSet;
 
 		virtual void processResults(const std::vector<DocumentInfo> &resultsList);
 
@@ -244,8 +259,26 @@ class QueryingThread : public ListerThread
 		virtual void doWork(void);
 
 	private:
-		QueryingThread(const QueryingThread &other);
-		QueryingThread &operator=(const QueryingThread &other);
+		EngineQueryThread(const EngineQueryThread &other);
+		EngineQueryThread &operator=(const EngineQueryThread &other);
+
+};
+
+class EngineHistoryThread : public QueryingThread
+{
+	public:
+		EngineHistoryThread(const std::string &engineDisplayableName,
+			const QueryProperties &queryProps, unsigned int maxDocsCount);
+		virtual ~EngineHistoryThread();
+
+	protected:
+		unsigned int m_maxDocsCount;
+
+		virtual void doWork(void);
+
+	private:
+		EngineHistoryThread(const EngineHistoryThread &other);
+		EngineHistoryThread &operator=(const EngineHistoryThread &other);
 
 };
 
@@ -261,8 +294,6 @@ class ExpandQueryThread : public WorkerThread
 		QueryProperties getQuery(void) const;
 
 		const std::set<std::string> &getExpandTerms(void) const;
-
-		virtual bool stop(void);
 
 	protected:
 		QueryProperties m_queryProps;
@@ -290,8 +321,6 @@ class LabelUpdateThread : public WorkerThread
 
 		virtual std::string getType(void) const;
 
-		virtual bool stop(void);
-
 	protected:
 		std::set<std::string> m_labelsToDelete;
 		std::map<std::string, std::string> m_labelsToRename;
@@ -318,8 +347,6 @@ class DownloadingThread : public WorkerThread
 		std::string getURL(void) const;
 
 		const Document *getDocument(void) const;
-
-		virtual bool stop(void);
 
 	protected:
 		DocumentInfo m_docInfo;
@@ -351,8 +378,6 @@ class IndexingThread : public DownloadingThread
 
 		bool isNewDocument(void) const;
 
-		virtual bool stop(void);
-
 	protected:
 		DocumentInfo m_docInfo;
 		unsigned int m_docId;
@@ -380,8 +405,6 @@ class UnindexingThread : public WorkerThread
 		virtual std::string getType(void) const;
 
 		unsigned int getDocumentsCount(void) const;
-
-		virtual bool stop(void);
 
 	protected:
 		std::set<unsigned int> m_docIdList;
@@ -411,8 +434,6 @@ class UpdateDocumentThread : public WorkerThread
 
 		const DocumentInfo &getDocumentInfo(void) const;
 
-		virtual bool stop(void);
-
 	protected:
 		std::string m_indexName;
 		unsigned int m_docId;
@@ -434,8 +455,6 @@ class StartDaemonThread : public WorkerThread
 		virtual ~StartDaemonThread();
 
 		virtual std::string getType(void) const;
-
-		virtual bool stop(void);
 
 	protected:
 		virtual void doWork(void);

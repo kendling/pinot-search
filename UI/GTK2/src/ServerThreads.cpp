@@ -549,12 +549,6 @@ string DBusServletThread::getType(void) const
 	return "DBusServletThread";
 }
 
-bool DBusServletThread::stop(void)
-{
-	m_done = true;
-	return true;
-}
-
 DBusConnection *DBusServletThread::getConnection(void) const
 {
 	return m_pConnection;

@@ -64,7 +64,7 @@ class ResultsTree : public Gtk::TreeView
 		  * Returns true if something was added to the tree.
 		  */
 		bool addResults(const std::string &engineName, const std::vector<DocumentInfo> &resultsList,
-			const std::string &charset);
+			const std::string &charset, bool updateHistory);
 
 		/// Sets how results are grouped.
 		void setGroupMode(GroupByMode groupMode);

@@ -458,7 +458,7 @@ ustring ResultsTree::getExtract(void) const
 // Returns true if something was added to the tree.
 //
 bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo> &resultsList,
-	const string &charset)
+	const string &charset, bool updateHistory)
 {
 	std::map<string, TreeModel::iterator> updatedGroups;
 	ResultsModelColumns::RowType rootType;
@@ -502,15 +502,23 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 
 	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
 	ViewHistory viewHistory(m_settings.getHistoryDatabaseName());
+	string lastRun(queryHistory.getLastRun(m_treeName, engineName));
+	time_t lastRunTime = 0;
 	bool isNewQuery = false;
-	if (queryHistory.getLastRun(m_treeName, engineName).empty() == true)
+
+	// Is this a new query ?
+	if (lastRun.empty() == true)
 	{
 		isNewQuery = true;
+	}
+	else
+	{
+		lastRunTime = TimeConverter::fromTimestamp(lastRun);
 	}
 
 	// Look at the results list
 #ifdef DEBUG
-	cout << "ResultsTree::addResults: " << resultsList.size() << " results" << endl;
+	cout << "ResultsTree::addResults: " << resultsList.size() << " results, last run " << lastRun << endl;
 #endif
 	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
@@ -544,16 +552,22 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 				location, oldestScore);
 			if (previousScore > 0)
 			{
-				// Update this result whatever the current and previous rankings were
-				queryHistory.updateItem(m_treeName, engineName, location,
-					title, extract, charset, currentScore);
+				if (updateHistory == true)
+				{
+					// Update this result whatever the current and previous rankings were
+					queryHistory.updateItem(m_treeName, engineName, location,
+						title, extract, charset, currentScore);
+				}
 				rankDiff = (int)(currentScore - previousScore);
 			}
 			else
 			{
 				// No, this is a new result
-				queryHistory.insertItem(m_treeName, engineName, location,
-					resultIter->getTitle(), extract, charset, currentScore);
+				if (updateHistory == true)
+				{
+					queryHistory.insertItem(m_treeName, engineName, location,
+						resultIter->getTitle(), extract, charset, currentScore);
+				}
 				// New results are displayed as such only if the query has already been run on the engine
 				if (isNewQuery == false)
 				{
@@ -593,6 +607,17 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 				updatedGroups[groupName] = groupIter;
 			}
 		}
+	}
+
+	// Remove older items ?
+	if ((isNewQuery == false) &&
+		(updateHistory == true))
+	{
+#ifdef DEBUG
+		cout << "ResultsTree::addResults: removing items for " << m_treeName
+			<< ", " << engineName << " older than " << lastRunTime << endl;
+#endif
+		queryHistory.deleteItems(m_treeName, engineName, lastRunTime);
 	}
 
 	if (count > 0)

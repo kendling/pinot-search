@@ -91,8 +91,6 @@ class DBusServletThread : public WorkerThread
 
 		virtual std::string getType(void) const;
 
-		virtual bool stop(void);
-
 		DBusConnection *getConnection(void) const;
 
 		DBusMessage *getReply(void) const;

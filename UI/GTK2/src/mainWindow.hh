@@ -117,6 +117,7 @@ protected:
 	virtual void on_findButton_clicked();
 	virtual void on_addQueryButton_clicked();
 	virtual void on_removeQueryButton_clicked();
+	virtual void on_queryHistoryButton_clicked();
 	virtual void on_findQueryButton_clicked();
 
 	virtual void on_indexBackButton_clicked(Glib::ustring indexName);

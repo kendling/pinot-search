@@ -706,7 +706,7 @@
 		  <property agent="glademm" name="cxx_visibility">protected</property>
 		  <property name="visible">True</property>
 		  <property name="can_focus">True</property>
-		  <property name="expanded">True</property>
+		  <property name="expanded">False</property>
 		  <property name="spacing">0</property>
 
 		  <child>
@@ -781,6 +781,21 @@
 			      <property name="relief">GTK_RELIEF_NORMAL</property>
 			      <property name="focus_on_click">True</property>
 			      <signal name="clicked" handler="on_removeQueryButton_clicked" last_modification_time="Fri, 25 Feb 2005 23:38:42 GMT"/>
+			    </widget>
+			  </child>
+
+			  <child>
+			    <widget class="GtkButton" id="queryHistoryButton">
+			      <property name="border_width">4</property>
+			      <property agent="glademm" name="cxx_visibility">protected</property>
+			      <property name="visible">True</property>
+			      <property name="can_default">True</property>
+			      <property name="can_focus">True</property>
+			      <property name="label">History</property>
+			      <property name="use_underline">True</property>
+			      <property name="relief">GTK_RELIEF_NORMAL</property>
+			      <property name="focus_on_click">True</property>
+			      <signal name="clicked" handler="on_queryHistoryButton_clicked" last_modification_time="Wed, 26 Sep 2007 15:13:22 GMT"/>
 			    </widget>
 			  </child>
 
@@ -2254,7 +2269,7 @@
 	    <widget class="GtkTable" id="nameTable">
 	      <property name="visible">True</property>
 	      <property name="n_rows">1</property>
-	      <property name="n_columns">2</property>
+	      <property name="n_columns">3</property>
 	      <property name="homogeneous">False</property>
 	      <property name="row_spacing">0</property>
 	      <property name="column_spacing">0</property>
@@ -2308,6 +2323,27 @@
 		  <property name="bottom_attach">1</property>
 		  <property name="x_padding">4</property>
 		  <property name="y_padding">4</property>
+		  <property name="y_options"></property>
+		</packing>
+	      </child>
+
+	      <child>
+		<widget class="GtkButton" id="queryHistoryButton">
+		  <property agent="glademm" name="cxx_visibility">protected</property>
+		  <property name="visible">True</property>
+		  <property name="can_focus">True</property>
+		  <property name="label">Show History</property>
+		  <property name="use_underline">True</property>
+		  <property name="relief">GTK_RELIEF_NORMAL</property>
+		  <property name="focus_on_click">True</property>
+		  <signal name="clicked" handler="on_addFilterButton_clicked" last_modification_time="Sat, 14 Oct 2006 01:28:04 GMT"/>
+		</widget>
+		<packing>
+		  <property name="left_attach">2</property>
+		  <property name="right_attach">3</property>
+		  <property name="top_attach">0</property>
+		  <property name="bottom_attach">1</property>
+		  <property name="x_options">fill</property>
 		  <property name="y_options"></property>
 		</packing>
 	      </child>

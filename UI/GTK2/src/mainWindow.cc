@@ -241,6 +241,7 @@ mainWindow::mainWindow() :
 
 	// Gray out menu items
 	removeQueryButton->set_sensitive(false);
+	queryHistoryButton->set_sensitive(false);
 	findQueryButton->set_sensitive(false);
 	show_global_menuitems(false);
 	show_selectionbased_menuitems(false);
@@ -254,6 +255,7 @@ mainWindow::mainWindow() :
 	m_tooltips.set_tip(*removeIndexButton, _("Remove an index"));
 	m_tooltips.set_tip(*addQueryButton, _("Add a query"));
 	m_tooltips.set_tip(*removeQueryButton, _("Remove a query"));
+	m_tooltips.set_tip(*queryHistoryButton, _("Show the query's previous results"));
 	m_tooltips.set_tip(*findQueryButton, _("Find documents that match the query"));
 
 	// Connect to threads' finished signal
@@ -639,6 +641,7 @@ void mainWindow::on_queryTreeviewSelection_changed()
 	}
 
 	removeQueryButton->set_sensitive(enableButtons);
+	queryHistoryButton->set_sensitive(enableButtons);
 	findQueryButton->set_sensitive(enableButtons);
 }
 
@@ -1007,13 +1010,13 @@ void mainWindow::on_searchagain_changed(ustring queryName)
 		std::map<std::string, std::string>::const_iterator indexIter = indexes.find(_("My Documents"));
 		if (indexIter != indexes.end())
 		{
-			start_thread(new QueryingThread("xapian", indexIter->first,
+			start_thread(new EngineQueryThread("xapian", indexIter->first,
 				indexIter->second, queryProps, locations));
 		}
 		indexIter = indexes.find(_("My Web Pages"));
 		if (indexIter != indexes.end())
 		{
-			start_thread(new QueryingThread("xapian", indexIter->first,
+			start_thread(new EngineQueryThread("xapian", indexIter->first,
 				indexIter->second, queryProps, locations));
 		}
 	}
@@ -1179,7 +1182,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				const vector<DocumentInfo> &docsList = pListThread->getDocuments();
 
 				// Add the documents to the tree
-				pResultsTree->addResults("", docsList, "");
+				pResultsTree->addResults("", docsList, "", false);
 
 				pIndexPage->setDocumentsCount(pListThread->getDocumentsCount());
 				pIndexPage->updateButtonsState(m_maxDocsCount);
@@ -1291,7 +1294,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			// Add the results to the tree, using the current group by mode
 			pResultsTree->deleteResults(engineName);
 			pResultsTree->addResults(engineName, resultsList,
-				resultsCharset);
+				resultsCharset, pQueryThread->isLive());
 		}
 
 		// Suggest the correction to the user
@@ -2804,6 +2807,41 @@ void mainWindow::on_removeQueryButton_clicked()
 }
 
 //
+// Previous Results button click
+//
+void mainWindow::on_queryHistoryButton_clicked()
+{
+	TreeModel::iterator queryIter = queryTreeview->get_selection()->get_selected();
+	// Any query selected ?
+	if (queryIter)
+	{
+		QueryHistory history(m_settings.getHistoryDatabaseName());
+		TreeModel::Row queryRow = *queryIter;
+		set<string> engineNames;
+		QueryProperties queryProps = queryRow[m_queryColumns.m_properties];
+		ustring queryName(queryRow[m_queryColumns.m_name]);
+
+		if ((history.getEngines(queryName, engineNames) == false) ||
+			(engineNames.empty() == true))
+		{
+			ustring statusText = _("No history for");
+			statusText += " ";
+			statusText += queryName;
+
+			set_status(statusText);
+			return;
+		}
+
+		for (set<string>::const_iterator engineIter = engineNames.begin();
+			engineIter != engineNames.end(); ++engineIter)
+		{
+			// Spawn a new thread
+			start_thread(new EngineHistoryThread(*engineIter, queryProps, m_maxDocsCount));
+		}
+	}
+}
+
+//
 // Find query button click
 //
 void mainWindow::on_findQueryButton_clicked()
@@ -3292,7 +3330,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 		set_status(status);
 
 		// Spawn a new thread
-		start_thread(new QueryingThread(from_utf8(engineName),
+		start_thread(new EngineQueryThread(from_utf8(engineName),
 			from_utf8(engineDisplayableName), engineOption, queryProps));
 	}
 }
@@ -3350,7 +3388,7 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 			std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
 			if (mapIter != indexesMap.end())
 			{
-				start_thread(new QueryingThread("xapian", from_utf8(indexName),
+				start_thread(new EngineQueryThread("xapian", from_utf8(indexName),
 					mapIter->second, queryProps, startDoc, true));
 			}
 #ifdef DEBUG
@@ -3570,7 +3608,7 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 
 		// Add a row
 		docsList.push_back(docInfo);
-		pResultsTree->addResults("", docsList, "");
+		pResultsTree->addResults("", docsList, "", false);
 
 		return true;
 	}
