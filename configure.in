@@ -159,6 +159,9 @@ if test "$XAPIAN_CONFIG" = "no" ; then
 fi
 XAPIAN_CFLAGS=`$XAPIAN_CONFIG --cxxflags`
 XAPIAN_LIBS=`$XAPIAN_CONFIG --libs`
+XAPIAN_NUM_VERSION=`xapian-config --version | $SED -e "s/xapian-config - xapian-core //g" | $AWK 'BEGIN { FS = "."; } { printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
+AC_DEFINE_UNQUOTED(XAPIAN_NUM_VERSION,$XAPIAN_NUM_VERSION,
+    [Xapian version number])
 
 dnl inotify
 linuxinotify="no"
@@ -254,9 +257,9 @@ AC_SUBST(INDEX_LIBS)
 PKG_CHECK_MODULES(DBUS, dbus-glib-1)
 AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DBUS_LIBS)
-DBUS_VERSION=`pkg-config --modversion dbus-1 | $AWK 'BEGIN { FS = "."; } { printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
-AC_DEFINE_UNQUOTED(DBUS_VERSION,$DBUS_VERSION,
-    [DBus version])
+DBUS_NUM_VERSION=`pkg-config --modversion dbus-1 | $AWK 'BEGIN { FS = "."; } { printf "%d", ($1 * 1000 + $2) * 1000 + $3;}'`
+AC_DEFINE_UNQUOTED(DBUS_NUM_VERSION,$DBUS_NUM_VERSION,
+    [DBus version number])
 PKG_CHECK_MODULES(SIGCPP, sigc++-2.0 >= 2.0 )
 AC_SUBST(SIGCPP_CFLAGS)
 AC_SUBST(SIGCPP_LIBS)

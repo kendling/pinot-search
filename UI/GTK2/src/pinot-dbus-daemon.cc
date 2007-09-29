@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 	}
 	// Initialize the GType and the D-Bus thread system
 	g_type_init();
-#if DBUS_VERSION > 1000000
+#if DBUS_NUM_VERSION > 1000000
 	dbus_threads_init_default();
 #endif
 	dbus_g_thread_init();

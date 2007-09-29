@@ -28,18 +28,13 @@
 #include "SearchEngineInterface.h"
 #include "DownloaderFactory.h"
 
+#if !ENABLE_XAPIAN_SPELLING_CORRECTION
 // Spelling correction in Xapian <= 1.0.2 may cause a crash
 // See http://www.xapian.org/cgi-bin/bugzilla/show_bug.cgi?id=194
-#define ENABLE_XAPIAN_SPELLING_CORRECTION 0
-#if XAPIAN_MAJOR_VERSION>1
-#define ENABLE_XAPIAN_SPELLING_CORRECTION 1
-#elif XAPIAN_MAJOR_VERSION==1
-#if XAPIAN_MINOR_VERSION>0
+#if XAPIAN_NUM_VERSION > 1000002
 #define ENABLE_XAPIAN_SPELLING_CORRECTION 1
 #else
-#if XAPIAN_REVISION>2
-#define ENABLE_XAPIAN_SPELLING_CORRECTION 1
-#endif
+#define ENABLE_XAPIAN_SPELLING_CORRECTION 0
 #endif
 #endif
 
