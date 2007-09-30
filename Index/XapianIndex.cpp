@@ -682,9 +682,36 @@ bool XapianIndex::isGood(void) const
 /// Gets the version number.
 string XapianIndex::getVersion(void) const
 {
+	string version;
+
+#if ENABLE_XAPIAN_DB_METADATA>0
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			version = pIndex->get_metadata("version");
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get database version: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get database version, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+#else
 	ifstream verFile;
 	string verFileName(m_databaseName + "/version");
-	string version;
 
 	verFile.open(verFileName.c_str());
 	if (verFile.good() == true)
@@ -692,6 +719,7 @@ string XapianIndex::getVersion(void) const
 		verFile >> version;
 	}
 	verFile.close();
+#endif
 
 	return version;
 }
@@ -699,10 +727,38 @@ string XapianIndex::getVersion(void) const
 /// Sets the version number.
 bool XapianIndex::setVersion(const string &version) const
 {
+	bool setVer = false;
+
+#if ENABLE_XAPIAN_DB_METADATA>0
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			pIndex->set_metadata("version", version);
+			setVer = true;
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't set database version: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't set database version, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+#else
 	ofstream verFile, cacheDirFile;
 	string verFileName(m_databaseName + "/version");
 	string cacheDirFileName(m_databaseName + "/CACHEDIR.TAG");
-	bool setVer = false;
 
 	verFile.open(verFileName.c_str(), ios::trunc);
 	if (verFile.good() == true)
@@ -723,6 +779,7 @@ bool XapianIndex::setVersion(const string &version) const
 		cacheDirFile << "# http://www.brynosaurus.com/cachedir/" << endl;
 	}
 	cacheDirFile.close();
+#endif
 
 	return setVer;
 }
@@ -840,6 +897,109 @@ unsigned int XapianIndex::getDocumentTermsCount(unsigned int docId) const
 	return termsCount;
 }
 
+/// Sets the list of known labels.
+bool XapianIndex::setLabels(const set<string> &labels)
+{
+	bool setLabels = false;
+
+#if ENABLE_XAPIAN_DB_METADATA>0
+	string labelString;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	for (set<string>::const_iterator labelIter = labels.begin();
+		labelIter != labels.end(); ++labelIter)
+	{
+		labelString += "[";
+		labelString += Url::escapeUrl(*labelIter);
+		labelString += "]";
+	}
+
+	try
+	{
+#ifdef DEBUG
+		cout << "XapianIndex::setLabels: " << labels.size() << " labels" << endl;
+#endif
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			pIndex->set_metadata("labels", labelString);
+			setLabels = true;
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't set database labels: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't set database labels, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+#endif
+
+	return setLabels;
+}
+
+/// Gets the list of known labels.
+bool XapianIndex::getLabels(set<string> &labels) const
+{
+#if ENABLE_XAPIAN_DB_METADATA>0
+	string labelsString;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			labelsString = pIndex->get_metadata("labels");
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get database labels: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get database labels, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+
+	if (labelsString.empty() == false)
+	{
+		string::size_type endPos = 0;
+		string label(StringManip::extractField(labelsString, "[", "]", endPos));
+
+		while (label.empty() == false)
+		{
+			labels.insert(Url::unescapeUrl(label));
+
+			if (endPos == string::npos)
+			{
+				break;
+			}
+			label = StringManip::extractField(labelsString, "[", "]", endPos);
+		}
+
+		return true;
+	}
+#endif
+
+	return false;
+}
+
 /// Determines whether a document has a label.
 bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 {
@@ -938,6 +1098,89 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 	pDatabase->unlock();
 
 	return gotLabels;
+}
+
+/// Sets a document's labels.
+bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
+	bool resetLabels)
+{
+	set<unsigned int> docIds;
+
+	docIds.insert(docId);
+	return setDocumentsLabels(docIds, labels, resetLabels);
+}
+
+/// Sets documents' labels.
+bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
+	const set<string> &labels, bool resetLabels)
+{
+	bool updatedLabels = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	for (set<unsigned int>::const_iterator docIter = docIds.begin();
+		docIter != docIds.end(); ++docIter)
+	{
+		try
+		{
+			Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+			if (pIndex == NULL)
+			{
+				break;
+			}
+
+			unsigned int docId = (*docIter);
+			Xapian::Document doc = pIndex->get_document(docId);
+
+			// Reset existing labels ?
+			if (resetLabels == true)
+			{
+				Xapian::TermIterator termIter = pIndex->termlist_begin(docId);
+				if (termIter != pIndex->termlist_end(docId))
+				{
+					for (termIter.skip_to("XLABEL:");
+						termIter != pIndex->termlist_end(docId); ++termIter)
+					{
+						// Is this a label ?
+						if (strncasecmp((*termIter).c_str(), "XLABEL:", min(7, (int)(*termIter).length())) == 0)
+						{
+							doc.remove_term(*termIter);
+						}
+					}
+				}
+			}
+
+			// Set new labels
+			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
+				++labelIter)
+			{
+				if (labelIter->empty() == false)
+				{
+					doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
+				}
+			}
+
+			pIndex->replace_document(docId, doc);
+			updatedLabels = true;
+		}
+		catch (const Xapian::Error &error)
+		{
+			cerr << "Couldn't update document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
+		}
+		catch (...)
+		{
+			cerr << "Couldn't update document's labels, unknown exception occured" << endl;
+		}
+
+		pDatabase->unlock();
+	}
+
+	return updatedLabels;
 }
 
 /// Checks whether the given URL is in the index.
@@ -1361,89 +1604,6 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 	return updated;
 }
 
-/// Sets a document's labels.
-bool XapianIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
-	bool resetLabels)
-{
-	set<unsigned int> docIds;
-
-	docIds.insert(docId);
-	return setDocumentsLabels(docIds, labels, resetLabels);
-}
-
-/// Sets documents' labels.
-bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
-	const set<string> &labels, bool resetLabels)
-{
-	bool updatedLabels = false;
-
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return false;
-	}
-
-	for (set<unsigned int>::const_iterator docIter = docIds.begin();
-		docIter != docIds.end(); ++docIter)
-	{
-		try
-		{
-			Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-			if (pIndex == NULL)
-			{
-				break;
-			}
-
-			unsigned int docId = (*docIter);
-			Xapian::Document doc = pIndex->get_document(docId);
-
-			// Reset existing labels ?
-			if (resetLabels == true)
-			{
-				Xapian::TermIterator termIter = pIndex->termlist_begin(docId);
-				if (termIter != pIndex->termlist_end(docId))
-				{
-					for (termIter.skip_to("XLABEL:");
-						termIter != pIndex->termlist_end(docId); ++termIter)
-					{
-						// Is this a label ?
-						if (strncasecmp((*termIter).c_str(), "XLABEL:", min(7, (int)(*termIter).length())) == 0)
-						{
-							doc.remove_term(*termIter);
-						}
-					}
-				}
-			}
-
-			// Set new labels
-			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
-				++labelIter)
-			{
-				if (labelIter->empty() == false)
-				{
-					doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
-				}
-			}
-
-			pIndex->replace_document(docId, doc);
-			updatedLabels = true;
-		}
-		catch (const Xapian::Error &error)
-		{
-			cerr << "Couldn't update document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
-		}
-		catch (...)
-		{
-			cerr << "Couldn't update document's labels, unknown exception occured" << endl;
-		}
-
-		pDatabase->unlock();
-	}
-
-	return updatedLabels;
-}
-
 /// Unindexes the given document; true if success.
 bool XapianIndex::unindexDocument(unsigned int docId)
 {
@@ -1653,5 +1813,19 @@ bool XapianIndex::flush(void)
 	pDatabase->unlock();
 
 	return flushed;
+}
+
+/// Resets the index.
+bool XapianIndex::reset(void)
+{
+	// Overwrite and reopen
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false, true);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	return true;
 }
 

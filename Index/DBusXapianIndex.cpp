@@ -352,6 +352,74 @@ bool DBusXapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo)
 	return XapianIndex::getDocumentInfo(docId, docInfo);
 }
 
+/// Sets the list of known labels.
+bool DBusXapianIndex::setLabels(const set<string> &labels)
+{
+	gboolean updatedLabels = FALSE;
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusXapianIndex::setLabels: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	dbus_uint32_t labelsCount = labels.size();
+	char **pLabels;
+	unsigned int labelIndex = 0;
+
+	pLabels = g_new(char *, labelsCount + 1);
+	for (set<string>::const_iterator labelIter = labels.begin();
+		labelIter != labels.end(); ++labelIter)
+	{
+		pLabels[labelIndex] = g_strdup(labelIter->c_str());
+		++labelIndex;
+	}
+	pLabels[labelIndex] = NULL;
+
+	// G_TYPE_STRV is the GLib equivalent of DBUS_TYPE_ARRAY, DBUS_TYPE_STRING
+	if (dbus_g_proxy_call(pBusProxy, "SetLabels", &pError,
+		G_TYPE_STRV, pLabels,
+		G_TYPE_INVALID,
+		G_TYPE_BOOLEAN, &updatedLabels,
+		G_TYPE_INVALID) == FALSE)
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusXapianIndex::setDocumentLabels: " << pError->message << endl;
+			g_error_free(pError);
+		}
+	}
+
+	// Free the array
+	g_strfreev(pLabels);
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	if (updatedLabels == TRUE)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+/// Gets the list of known labels.
+bool DBusXapianIndex::getLabels(set<string> &labels) const
+{
+	reopen();
+
+	return XapianIndex::getLabels(labels);
+}
+
 /// Determines whether a document has a label.
 bool DBusXapianIndex::hasLabel(unsigned int docId, const string &name) const
 {
@@ -366,6 +434,149 @@ bool DBusXapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels)
 	reopen();
 
 	return XapianIndex::getDocumentLabels(docId, labels);
+}
+
+/// Sets a document's labels.
+bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
+	bool resetLabels)
+{
+	bool updatedLabels = false;
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusXapianIndex::setDocumentLabels: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	dbus_uint32_t labelsCount = labels.size();
+	char **pLabels;
+	unsigned int labelIndex = 0;
+
+	pLabels = g_new(char *, labelsCount + 1);
+	for (set<string>::const_iterator labelIter = labels.begin();
+		labelIter != labels.end(); ++labelIter)
+	{
+		pLabels[labelIndex] = g_strdup(labelIter->c_str());
+		++labelIndex;
+	}
+	pLabels[labelIndex] = NULL;
+
+	// G_TYPE_STRV is the GLib equivalent of DBUS_TYPE_ARRAY, DBUS_TYPE_STRING
+	if (dbus_g_proxy_call(pBusProxy, "SetDocumentLabels", &pError,
+		G_TYPE_UINT, docId,
+		G_TYPE_STRV, pLabels,
+		G_TYPE_BOOLEAN, (resetLabels == true ? TRUE : FALSE),
+		G_TYPE_INVALID,
+		G_TYPE_UINT, &docId,
+		G_TYPE_INVALID) == TRUE)
+	{
+		updatedLabels = true;
+	}
+	else
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusXapianIndex::setDocumentLabels: " << pError->message << endl;
+			g_error_free(pError);
+		}
+	}
+
+	// Free the array
+	g_strfreev(pLabels);
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	return updatedLabels;
+}
+
+/// Sets documents' labels.
+bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
+	const set<string> &labels, bool resetLabels)
+{
+	gboolean updatedLabels = FALSE;
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusXapianIndex::setDocumentsLabels: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	dbus_uint32_t idsCount = docIds.size();
+	dbus_uint32_t labelsCount = labels.size();
+	char **pDocIds;
+	char **pLabels;
+	unsigned int idIndex = 0, labelIndex = 0;
+
+	pDocIds = g_new(char *, idsCount + 1);
+	pLabels = g_new(char *, labelsCount + 1);
+	for (set<unsigned int>::const_iterator idIter = docIds.begin();
+		idIter != docIds.end(); ++idIter)
+	{
+		pDocIds[idIndex] = g_strdup_printf("%u", *idIter); 
+#ifdef DEBUG
+		cout << "DBusXapianIndex::setDocumentsLabels: document " << pDocIds[idIndex] << endl;
+#endif
+		++idIndex;
+	}
+	pDocIds[idIndex] = NULL;
+	for (set<string>::const_iterator labelIter = labels.begin();
+		labelIter != labels.end(); ++labelIter)
+	{
+		pLabels[labelIndex] = g_strdup(labelIter->c_str());
+#ifdef DEBUG
+		cout << "DBusXapianIndex::setDocumentsLabels: label " << pLabels[labelIndex] << endl;
+#endif
+		++labelIndex;
+	}
+	pLabels[labelIndex] = NULL;
+
+	// G_TYPE_STRV is the GLib equivalent of DBUS_TYPE_ARRAY, DBUS_TYPE_STRING
+	if (dbus_g_proxy_call(pBusProxy, "SetDocumentsLabels", &pError,
+		G_TYPE_STRV, pDocIds,
+		G_TYPE_STRV, pLabels,
+		G_TYPE_BOOLEAN, (resetLabels == true ? TRUE : FALSE),
+		G_TYPE_INVALID,
+		G_TYPE_BOOLEAN, &updatedLabels,
+		G_TYPE_INVALID) == FALSE)
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusXapianIndex::setDocumentsLabels: " << pError->message << endl;
+			g_error_free(pError);
+		}
+		updatedLabels = false;
+	}
+
+	// Free the arrays
+	g_strfreev(pDocIds);
+	g_strfreev(pLabels);
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	if (updatedLabels == TRUE)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 /// Checks whether the given URL is in the index.
@@ -526,144 +737,6 @@ bool DBusXapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo 
 	return updated;
 }
 
-/// Sets a document's labels.
-bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
-	bool resetLabels)
-{
-	bool updatedLabels = false;
-
-	DBusGConnection *pBus = getBusConnection();
-	if (pBus == NULL)
-	{
-		return false;
-	}
-
-	DBusGProxy *pBusProxy = getBusProxy(pBus);
-	if (pBusProxy == NULL)
-	{
-		cerr << "DBusXapianIndex::setDocumentLabels: couldn't get bus proxy" << endl;
-		return false;
-	}
-
-	GError *pError = NULL;
-	dbus_uint32_t labelsCount = labels.size();
-	char **pLabels;
-	unsigned int labelIndex = 0;
-
-	pLabels = g_new(char *, labelsCount + 1);
-	for (set<string>::const_iterator labelIter = labels.begin();
-		labelIter != labels.end(); ++labelIter)
-	{
-		pLabels[labelIndex] = g_strdup(labelIter->c_str());
-		++labelIndex;
-	}
-	pLabels[labelIndex] = NULL;
-
-	// G_TYPE_STRV is the GLib equivalent of DBUS_TYPE_ARRAY, DBUS_TYPE_STRING
-	if (dbus_g_proxy_call(pBusProxy, "SetDocumentLabels", &pError,
-		G_TYPE_UINT, docId,
-		G_TYPE_STRV, pLabels,
-		G_TYPE_BOOLEAN, resetLabels,
-		G_TYPE_INVALID,
-		G_TYPE_UINT, &docId,
-		G_TYPE_INVALID) == TRUE)
-	{
-		updatedLabels = true;
-	}
-	else
-	{
-		if (pError != NULL)
-		{
-			cerr << "DBusXapianIndex::setDocumentLabels: " << pError->message << endl;
-			g_error_free(pError);
-		}
-	}
-
-	// Free the array
-	g_strfreev(pLabels);
-
-	g_object_unref(pBusProxy);
-	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
-
-	return updatedLabels;
-}
-
-/// Sets documents' labels.
-bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
-	const set<string> &labels, bool resetLabels)
-{
-	bool updatedLabels = false;
-
-	DBusGConnection *pBus = getBusConnection();
-	if (pBus == NULL)
-	{
-		return false;
-	}
-
-	DBusGProxy *pBusProxy = getBusProxy(pBus);
-	if (pBusProxy == NULL)
-	{
-		cerr << "DBusXapianIndex::setDocumentsLabels: couldn't get bus proxy" << endl;
-		return false;
-	}
-
-	GError *pError = NULL;
-	dbus_uint32_t idsCount = docIds.size();
-	dbus_uint32_t labelsCount = labels.size();
-	char **pDocIds;
-	char **pLabels;
-	unsigned int idIndex = 0, labelIndex = 0;
-
-	pDocIds = g_new(char *, idsCount + 1);
-	pLabels = g_new(char *, labelsCount + 1);
-	for (set<unsigned int>::const_iterator idIter = docIds.begin();
-		idIter != docIds.end(); ++idIter)
-	{
-		pDocIds[idIndex] = g_strdup_printf("%u", *idIter); 
-#ifdef DEBUG
-		cout << "DBusXapianIndex::setDocumentsLabels: document " << pDocIds[idIndex] << endl;
-#endif
-		++idIndex;
-	}
-	pDocIds[idIndex] = NULL;
-	for (set<string>::const_iterator labelIter = labels.begin();
-		labelIter != labels.end(); ++labelIter)
-	{
-		pLabels[labelIndex] = g_strdup(labelIter->c_str());
-#ifdef DEBUG
-		cout << "DBusXapianIndex::setDocumentsLabels: label " << pLabels[labelIndex] << endl;
-#endif
-		++labelIndex;
-	}
-	pLabels[labelIndex] = NULL;
-
-	// G_TYPE_STRV is the GLib equivalent of DBUS_TYPE_ARRAY, DBUS_TYPE_STRING
-	if (dbus_g_proxy_call(pBusProxy, "SetDocumentsLabels", &pError,
-		G_TYPE_STRV, pDocIds,
-		G_TYPE_STRV, pLabels,
-		G_TYPE_BOOLEAN, resetLabels,
-		G_TYPE_INVALID,
-		G_TYPE_BOOLEAN, &updatedLabels,
-		G_TYPE_INVALID) == FALSE)
-	{
-		if (pError != NULL)
-		{
-			cerr << "DBusXapianIndex::setDocumentsLabels: " << pError->message << endl;
-			g_error_free(pError);
-		}
-		updatedLabels = false;
-	}
-
-	// Free the arrays
-	g_strfreev(pDocIds);
-	g_strfreev(pLabels);
-
-	g_object_unref(pBusProxy);
-	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
-
-	return updatedLabels;
-}
-
 /// Unindexes the given document; true if success.
 bool DBusXapianIndex::unindexDocument(unsigned int docId)
 {
@@ -778,6 +851,14 @@ bool DBusXapianIndex::deleteLabel(const string &name)
 /// Flushes recent changes to the disk.
 bool DBusXapianIndex::flush(void)
 {
-	// There is no method for this because the daemon knows best when to flush
+	// The daemon knows best when to flush
 	return true;
 }
+
+/// Resets the index.
+bool DBusXapianIndex::reset(void)
+{
+	// This can't be done here
+	return false;
+}
+

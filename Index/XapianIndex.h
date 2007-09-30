@@ -25,6 +25,15 @@
 #include "XapianDatabase.h"
 #include "IndexInterface.h"
 
+#if !ENABLE_XAPIAN_DB_METADATA
+// Database metadata is only available in Xapian > 1.0.2
+#if XAPIAN_NUM_VERSION > 1000002
+#define ENABLE_XAPIAN_DB_METADATA 1
+#else
+#define ENABLE_XAPIAN_DB_METADATA 0
+#endif
+#endif
+
 /// A Xapian-based index.
 class XapianIndex : public IndexInterface
 {
@@ -53,11 +62,25 @@ class XapianIndex : public IndexInterface
 		/// Returns a document's terms count.
 		virtual unsigned int getDocumentTermsCount(unsigned int docId) const;
 
+		/// Sets the list of known labels.
+		virtual bool setLabels(const std::set<std::string> &labels);
+
+		/// Gets the list of known labels.
+		virtual bool getLabels(std::set<std::string> &labels) const;
+
 		/// Determines whether a document has a label.
 		virtual bool hasLabel(unsigned int docId, const std::string &name) const;
 
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const;
+
+		/// Sets a document's labels.
+		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
+			bool resetLabels = true);
+
+		/// Sets documents' labels.
+		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
+			const std::set<std::string> &labels, bool resetLabels = true);
 
 		/// Checks whether the given URL is in the index.
 		virtual unsigned int hasDocument(const std::string &url) const;
@@ -89,14 +112,6 @@ class XapianIndex : public IndexInterface
 		/// Updates a document's properties.
 		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);
 
-		/// Sets a document's labels.
-		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
-			bool resetLabels = true);
-
-		/// Sets documents' labels.
-		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
-			const std::set<std::string> &labels, bool resetLabels = true);
-
 		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId);
 
@@ -117,6 +132,9 @@ class XapianIndex : public IndexInterface
 
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void);
+
+		/// Resets the index.
+		virtual bool reset(void);
 
 	protected:
 		static const std::string MAGIC_TERM;

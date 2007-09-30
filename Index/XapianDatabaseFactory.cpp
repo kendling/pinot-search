@@ -81,12 +81,28 @@ XapianDatabase *XapianDatabaseFactory::getDatabase(const string &location,
 		return NULL;
 	}
 
+	// Is the database already open ?
 	map<string, XapianDatabase *>::iterator dbIter = m_databases.find(location);
 	if (dbIter != m_databases.end())
 	{
 		pDb = dbIter->second;
+
+		// Overwrite the database ?
+		if (overwrite == true)
+		{
+			dbIter->second = NULL;
+#ifdef DEBUG
+			cout << "XapianDatabaseFactory::getDatabase: closing " << dbIter->first << endl;
+#endif
+			m_databases.erase(dbIter);
+			delete pDb;
+
+			dbIter = m_databases.end();
+		}
 	}
-	else
+
+	// Open the database ?
+	if (dbIter == m_databases.end())
 	{
 		// Create a new instance
 		pDb = new XapianDatabase(location, readOnly, overwrite);

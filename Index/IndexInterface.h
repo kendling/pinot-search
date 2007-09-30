@@ -51,11 +51,25 @@ class IndexInterface
 		/// Returns a document's terms count.
 		virtual unsigned int getDocumentTermsCount(unsigned int docId) const = 0;
 
+		/// Sets the list of known labels.
+		virtual bool setLabels(const std::set<std::string> &labels) = 0;
+
+		/// Gets the list of known labels.
+		virtual bool getLabels(std::set<std::string> &labels) const = 0;
+
 		/// Determines whether a document has a label.
 		virtual bool hasLabel(unsigned int docId, const std::string &name) const = 0;
 
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const = 0;
+
+		/// Sets a document's labels.
+		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
+			bool resetLabels = true) = 0;
+
+		/// Sets documents' labels.
+		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
+			const std::set<std::string> &labels, bool resetLabels = true) = 0;
 
 		/// Checks whether the given URL is in the index.
 		virtual unsigned int hasDocument(const std::string &url) const = 0;
@@ -87,14 +101,6 @@ class IndexInterface
 		/// Updates a document's properties.
 		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo) = 0;
 
-		/// Sets a document's labels.
-		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
-			bool resetLabels = true) = 0;
-
-		/// Sets documents' labels.
-		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
-			const std::set<std::string> &labels, bool resetLabels = true) = 0;
-
 		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId) = 0;
 
@@ -115,6 +121,9 @@ class IndexInterface
 
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void) = 0;
+
+		/// Resets the index.
+		virtual bool reset(void) = 0;
 
 	protected:
 		IndexInterface() { };

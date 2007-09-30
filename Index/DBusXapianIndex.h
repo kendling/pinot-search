@@ -61,11 +61,25 @@ class DBusXapianIndex : public XapianIndex
 		/// Returns a document's properties.
 		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const;
 
+		/// Sets the list of known labels.
+		virtual bool setLabels(const std::set<std::string> &labels);
+
+		/// Gets the list of known labels.
+		virtual bool getLabels(std::set<std::string> &labels) const;
+
 		/// Determines whether a document has a label.
 		virtual bool hasLabel(unsigned int docId, const std::string &name) const;
 
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const;
+
+		/// Sets a document's labels.
+		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
+			bool resetLabels = true);
+
+		/// Sets documents' labels.
+		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
+			const std::set<std::string> &labels, bool resetLabels = true);
 
 		/// Checks whether the given URL is in the index.
 		virtual unsigned int hasDocument(const std::string &url) const;
@@ -97,14 +111,6 @@ class DBusXapianIndex : public XapianIndex
 		/// Updates a document's properties.
 		virtual bool updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo);
 
-		/// Sets a document's labels.
-		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
-			bool resetLabels = true);
-
-		/// Sets documents' labels.
-		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
-			const std::set<std::string> &labels, bool resetLabels = true);
-
 		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId);
 
@@ -122,6 +128,9 @@ class DBusXapianIndex : public XapianIndex
 
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void);
+
+		/// Resets the index.
+		virtual bool reset(void);
 
 	protected:
 		void reopen(void) const;
