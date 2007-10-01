@@ -682,7 +682,7 @@ bool XapianIndex::isGood(void) const
 /// Gets the version number.
 string XapianIndex::getVersion(void) const
 {
-	string version;
+	string version("0.00");
 
 #if ENABLE_XAPIAN_DB_METADATA>0
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);

@@ -25,6 +25,7 @@
 
 #include <xapian.h>
 
+#include "config.h"
 #include "SearchEngineInterface.h"
 #include "DownloaderFactory.h"
 

@@ -22,6 +22,7 @@
 #include <string>
 #include <set>
 
+#include "config.h"
 #include "XapianDatabase.h"
 #include "IndexInterface.h"
 
