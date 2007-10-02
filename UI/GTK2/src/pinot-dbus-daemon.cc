@@ -455,18 +455,15 @@ int main(int argc, char **argv)
 				cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
 
 				reindex = true;
-
-				resetLabels = true;
 			}
-			// Reindex all ?
 			if (reindex == true)
 			{
-				if (index.getDocumentsCount() > 0)
-				{
-					// Reset the index so that all documents are reindexed
-					index.reset();
-					resetHistory = true;
-				}
+				// Reset the index so that all documents are reindexed
+				index.reset();
+
+				cout << "Reset index" << endl;
+
+				resetHistory = resetLabels = true;
 			}
 			index.setVersion(VERSION);
 
@@ -474,8 +471,6 @@ int main(int argc, char **argv)
 			{
 				CrawlHistory history(historyDatabase);
 				map<unsigned int, string> sources;
-
-				cout << "Resetting history" << endl;
 
 				// Reset the history
 				history.getSources(sources);
@@ -485,6 +480,8 @@ int main(int argc, char **argv)
 					history.deleteItems(sourceIter->first);
 					history.deleteSource(sourceIter->first);
 				}
+
+				cout << "Reset crawler history" << endl;
 			}
 
 			if (resetLabels == true)
@@ -496,7 +493,7 @@ int main(int argc, char **argv)
 					// needs to be pulled from the configuration file
 					index.setLabels(settings.m_labels);
 
-					cout << "Resetting labels as per the configuration file" << endl;
+					cout << "Set labels as per the configuration file" << endl;
 				}
 				else
 				{
