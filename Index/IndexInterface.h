@@ -57,6 +57,15 @@ class IndexInterface
 		/// Gets the list of known labels.
 		virtual bool getLabels(std::set<std::string> &labels) const = 0;
 
+		/// Adds a label.
+		virtual bool addLabel(const std::string &name) = 0;
+
+		/// Renames a label.
+		virtual bool renameLabel(const std::string &name, const std::string &newName) = 0;
+
+		/// Deletes all references to a label.
+		virtual bool deleteLabel(const std::string &name) = 0;
+
 		/// Determines whether a document has a label.
 		virtual bool hasLabel(unsigned int docId, const std::string &name) const = 0;
 
@@ -65,11 +74,11 @@ class IndexInterface
 
 		/// Sets a document's labels.
 		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
-			bool resetLabels = true) = 0;
+			bool readdLabel = true) = 0;
 
 		/// Sets documents' labels.
 		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
-			const std::set<std::string> &labels, bool resetLabels = true) = 0;
+			const std::set<std::string> &labels, bool readdLabel = true) = 0;
 
 		/// Checks whether the given URL is in the index.
 		virtual unsigned int hasDocument(const std::string &url) const = 0;
@@ -112,12 +121,6 @@ class IndexInterface
 
 		/// Unindexes all documents.
 		virtual bool unindexAllDocuments(void) = 0;
-
-		/// Renames a label.
-		virtual bool renameLabel(const std::string &name, const std::string &newName) = 0;
-
-		/// Deletes all references to a label.
-		virtual bool deleteLabel(const std::string &name) = 0;
 
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void) = 0;

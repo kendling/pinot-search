@@ -355,7 +355,28 @@ bool DBusXapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo)
 /// Sets the list of known labels.
 bool DBusXapianIndex::setLabels(const set<string> &labels)
 {
-	gboolean updatedLabels = FALSE;
+	// Not allowed here
+	return false;
+}
+
+/// Gets the list of known labels.
+bool DBusXapianIndex::getLabels(set<string> &labels) const
+{
+	reopen();
+
+	return XapianIndex::getLabels(labels);
+}
+
+/// Gets the list of known labels.
+bool DBusXapianIndex::getLabels(set<string> &labels, bool forceDBus) const
+{
+	bool gotLabels = false;
+
+	if (forceDBus == false)
+	{
+		// Call overload
+		return getLabels(labels);
+	}
 
 	DBusGConnection *pBus = getBusConnection();
 	if (pBus == NULL)
@@ -366,58 +387,176 @@ bool DBusXapianIndex::setLabels(const set<string> &labels)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::setLabels: couldn't get bus proxy" << endl;
+		cerr << "DBusXapianIndex::getLabels: couldn't get bus proxy" << endl;
 		return false;
 	}
 
 	GError *pError = NULL;
-	dbus_uint32_t labelsCount = labels.size();
 	char **pLabels;
-	unsigned int labelIndex = 0;
-
-	pLabels = g_new(char *, labelsCount + 1);
-	for (set<string>::const_iterator labelIter = labels.begin();
-		labelIter != labels.end(); ++labelIter)
-	{
-		pLabels[labelIndex] = g_strdup(labelIter->c_str());
-		++labelIndex;
-	}
-	pLabels[labelIndex] = NULL;
 
 	// G_TYPE_STRV is the GLib equivalent of DBUS_TYPE_ARRAY, DBUS_TYPE_STRING
-	if (dbus_g_proxy_call(pBusProxy, "SetLabels", &pError,
-		G_TYPE_STRV, pLabels,
+	if (dbus_g_proxy_call(pBusProxy, "GetLabels", &pError,
 		G_TYPE_INVALID,
-		G_TYPE_BOOLEAN, &updatedLabels,
-		G_TYPE_INVALID) == FALSE)
+		G_TYPE_STRV, &pLabels,
+		G_TYPE_INVALID) == TRUE)
+	{
+		for (char **pLabel = pLabels; (*pLabel) != NULL; ++pLabel)
+		{
+			labels.insert(*pLabel);
+		}
+
+		// Free the array
+		g_strfreev(pLabels);
+
+		gotLabels = true;
+	}
+	else
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::setDocumentLabels: " << pError->message << endl;
+			cerr << "DBusXapianIndex::getLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
 
-	// Free the array
-	g_strfreev(pLabels);
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	return gotLabels;
+}
+
+/// Adds a label.
+bool DBusXapianIndex::addLabel(const string &name)
+{
+	bool addedLabel = false;
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusXapianIndex::addLabel: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	const char *pLabel = name.c_str();
+
+	if (dbus_g_proxy_call(pBusProxy, "AddLabel", &pError,
+		G_TYPE_STRING, pLabel,
+		G_TYPE_INVALID,
+		G_TYPE_STRING, &pLabel,
+		G_TYPE_INVALID) == TRUE)
+	{
+		addedLabel = true;
+	}
+	else
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusXapianIndex::addLabel: " << pError->message << endl;
+			g_error_free(pError);
+		}
+	}
 
 	g_object_unref(pBusProxy);
 	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
 
-	if (updatedLabels == TRUE)
-	{
-		return true;
-	}
-
-	return false;
+	return addedLabel;
 }
 
-/// Gets the list of known labels.
-bool DBusXapianIndex::getLabels(set<string> &labels) const
+/// Renames a label.
+bool DBusXapianIndex::renameLabel(const string &name, const string &newName)
 {
-	reopen();
+	bool renamedLabel = false;
 
-	return XapianIndex::getLabels(labels);
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusXapianIndex::renameLabel: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	const char *pOldLabel = name.c_str();
+	const char *pNewLabel = newName.c_str();
+
+	if (dbus_g_proxy_call(pBusProxy, "RenameLabel", &pError,
+		G_TYPE_STRING, pOldLabel,
+		G_TYPE_STRING, pNewLabel,
+		G_TYPE_INVALID,
+		G_TYPE_STRING, &pNewLabel,
+		G_TYPE_INVALID) == TRUE)
+	{
+		renamedLabel = true;
+	}
+	else
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusXapianIndex::renameLabel: " << pError->message << endl;
+			g_error_free(pError);
+		}
+	}
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	return renamedLabel;
+}
+
+/// Deletes all references to a label.
+bool DBusXapianIndex::deleteLabel(const string &name)
+{
+	bool deletedLabel = false;
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusXapianIndex::deleteLabel: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	const char *pLabel = name.c_str();
+
+	if (dbus_g_proxy_call(pBusProxy, "DeleteLabel", &pError,
+		G_TYPE_STRING, pLabel,
+		G_TYPE_INVALID,
+		G_TYPE_STRING, &pLabel,
+		G_TYPE_INVALID) == TRUE)
+	{
+		deletedLabel = true;
+	}
+	else
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusXapianIndex::deleteLabel: " << pError->message << endl;
+			g_error_free(pError);
+		}
+	}
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	return deletedLabel;
 }
 
 /// Determines whether a document has a label.
@@ -756,96 +895,6 @@ bool DBusXapianIndex::unindexAllDocuments(void)
 {
 	cerr << "DBusXapianIndex::unindexDocuments: not allowed" << endl;
 	return false;
-}
-
-/// Renames a label.
-bool DBusXapianIndex::renameLabel(const string &name, const string &newName)
-{
-	bool renamedLabel = false;
-
-	DBusGConnection *pBus = getBusConnection();
-	if (pBus == NULL)
-	{
-		return false;
-	}
-
-	DBusGProxy *pBusProxy = getBusProxy(pBus);
-	if (pBusProxy == NULL)
-	{
-		cerr << "DBusXapianIndex::renameLabel: couldn't get bus proxy" << endl;
-		return false;
-	}
-
-	GError *pError = NULL;
-	const char *pOldLabel = name.c_str();
-	const char *pNewLabel = newName.c_str();
-
-	if (dbus_g_proxy_call(pBusProxy, "RenameLabel", &pError,
-		G_TYPE_STRING, pOldLabel,
-		G_TYPE_STRING, pNewLabel,
-		G_TYPE_INVALID,
-		G_TYPE_STRING, &pNewLabel,
-		G_TYPE_INVALID) == TRUE)
-	{
-		renamedLabel = true;
-	}
-	else
-	{
-		if (pError != NULL)
-		{
-			cerr << "DBusXapianIndex::renameLabel: " << pError->message << endl;
-			g_error_free(pError);
-		}
-	}
-
-	g_object_unref(pBusProxy);
-	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
-
-	return renamedLabel;
-}
-
-/// Deletes all references to a label.
-bool DBusXapianIndex::deleteLabel(const string &name)
-{
-	bool deletedLabel = false;
-
-	DBusGConnection *pBus = getBusConnection();
-	if (pBus == NULL)
-	{
-		return false;
-	}
-
-	DBusGProxy *pBusProxy = getBusProxy(pBus);
-	if (pBusProxy == NULL)
-	{
-		cerr << "DBusXapianIndex::deleteLabel: couldn't get bus proxy" << endl;
-		return false;
-	}
-
-	GError *pError = NULL;
-	const char *pLabel = name.c_str();
-
-	if (dbus_g_proxy_call(pBusProxy, "DeleteLabel", &pError,
-		G_TYPE_STRING, pLabel,
-		G_TYPE_INVALID,
-		G_TYPE_STRING, &pLabel,
-		G_TYPE_INVALID) == TRUE)
-	{
-		deletedLabel = true;
-	}
-	else
-	{
-		if (pError != NULL)
-		{
-			cerr << "DBusXapianIndex::deleteLabel: " << pError->message << endl;
-			g_error_free(pError);
-		}
-	}
-
-	g_object_unref(pBusProxy);
-	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
-
-	return deletedLabel;
 }
 
 /// Flushes recent changes to the disk.

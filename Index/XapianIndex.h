@@ -69,6 +69,15 @@ class XapianIndex : public IndexInterface
 		/// Gets the list of known labels.
 		virtual bool getLabels(std::set<std::string> &labels) const;
 
+		/// Adds a label.
+		virtual bool addLabel(const std::string &name);
+
+		/// Renames a label.
+		virtual bool renameLabel(const std::string &name, const std::string &newName);
+
+		/// Deletes all references to a label.
+		virtual bool deleteLabel(const std::string &name);
+
 		/// Determines whether a document has a label.
 		virtual bool hasLabel(unsigned int docId, const std::string &name) const;
 
@@ -124,12 +133,6 @@ class XapianIndex : public IndexInterface
 
 		/// Unindexes all documents.
 		virtual bool unindexAllDocuments(void);
-
-		/// Renames a label.
-		virtual bool renameLabel(const std::string &name, const std::string &newName);
-
-		/// Deletes all references to a label.
-		virtual bool deleteLabel(const std::string &name);
 
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void);

@@ -1000,6 +1000,114 @@ bool XapianIndex::getLabels(set<string> &labels) const
 	return false;
 }
 
+/// Adds a label.
+bool XapianIndex::addLabel(const string &name)
+{
+	// Nothing to do here
+	return false;
+}
+
+/// Renames a label.
+bool XapianIndex::renameLabel(const string &name, const string &newName)
+{
+	bool renamedLabel = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			string term("XLABEL:");
+
+			// Get documents that have this label
+			term += XapianDatabase::limitTermLength(Url::escapeUrl(name));
+			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
+				postingIter != pIndex->postlist_end(term); ++postingIter)
+			{
+				Xapian::docid docId = *postingIter;
+
+				// Get the document
+				Xapian::Document doc = pIndex->get_document(docId);
+				// Remove the term
+				doc.remove_term(term);
+				// ...add the new one
+				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(newName)));
+				// ...and update the document
+				pIndex->replace_document(docId, doc);
+			}
+
+			renamedLabel = true;
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't delete label, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+
+	return renamedLabel;
+}
+
+/// Deletes all references to a label.
+bool XapianIndex::deleteLabel(const string &name)
+{
+	bool deletedLabel = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
+		if (pIndex != NULL)
+		{
+			string term("XLABEL:");
+
+			// Get documents that have this label
+			term += XapianDatabase::limitTermLength(Url::escapeUrl(name));
+			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
+				postingIter != pIndex->postlist_end(term); ++postingIter)
+			{
+				Xapian::docid docId = *postingIter;
+
+				// Get the document
+				Xapian::Document doc = pIndex->get_document(docId);
+				// Remove the term
+				doc.remove_term(term);
+				// ...and update the document
+				pIndex->replace_document(docId, doc);
+			}
+			deletedLabel = true;
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't delete label, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+
+	return deletedLabel;
+}
+
 /// Determines whether a document has a label.
 bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 {
@@ -1678,107 +1786,6 @@ bool XapianIndex::unindexAllDocuments(void)
 {
 	// All documents have the magic term
 	return deleteDocuments(MAGIC_TERM);
-}
-
-/// Renames a label.
-bool XapianIndex::renameLabel(const string &name, const string &newName)
-{
-	bool renamedLabel = false;
-
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return false;
-	}
-
-	try
-	{
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-		if (pIndex != NULL)
-		{
-			string term("XLABEL:");
-
-			// Get documents that have this label
-			term += XapianDatabase::limitTermLength(Url::escapeUrl(name));
-			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
-				postingIter != pIndex->postlist_end(term); ++postingIter)
-			{
-				Xapian::docid docId = *postingIter;
-
-				// Get the document
-				Xapian::Document doc = pIndex->get_document(docId);
-				// Remove the term
-				doc.remove_term(term);
-				// ...add the new one
-				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(newName)));
-				// ...and update the document
-				pIndex->replace_document(docId, doc);
-			}
-
-			renamedLabel = true;
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't delete label, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
-
-	return renamedLabel;
-}
-
-/// Deletes all references to a label.
-bool XapianIndex::deleteLabel(const string &name)
-{
-	bool deletedLabel = false;
-
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return false;
-	}
-
-	try
-	{
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-		if (pIndex != NULL)
-		{
-			string term("XLABEL:");
-
-			// Get documents that have this label
-			term += XapianDatabase::limitTermLength(Url::escapeUrl(name));
-			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
-				postingIter != pIndex->postlist_end(term); ++postingIter)
-			{
-				Xapian::docid docId = *postingIter;
-
-				// Get the document
-				Xapian::Document doc = pIndex->get_document(docId);
-				// Remove the term
-				doc.remove_term(term);
-				// ...and update the document
-				pIndex->replace_document(docId, doc);
-			}
-			deletedLabel = true;
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't delete label, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
-
-	return deletedLabel;
 }
 
 /// Flushes recent changes to the disk.
