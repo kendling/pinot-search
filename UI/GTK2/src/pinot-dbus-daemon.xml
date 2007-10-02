@@ -15,9 +15,44 @@
       <arg type="u" name="docsCount" direction="out"/>
     </method>
     <!--
+	Instructs the daemon program to reload the configuration file.
+	 loadStatus: TRUE if the configuration is being reloaded
+	-->
+    <method name="Reload">
+      <annotation name="de.berlios.Pinot.Reload" value="pinotDBus"/>
+      <arg type="b" name="reloading" direction="out" />
+    </method>
+    <!--
+	Stops the daemon program.
+	 exitStatus: the daemon's exit status.
+	-->
+    <method name="Stop">
+      <annotation name="de.berlios.Pinot.Stop" value="pinotDBus"/>
+      <arg type="i" name="exitStatus" direction="out" />
+    </method>
+    <!--
+	Gets the list of known labels.
+	 labels: array of labels
+	-->
+    <method name="GetLabels">
+      <annotation name="de.berlios.Pinot.GetLabels" value="pinotDBus"/>
+      <arg type="as" name="labels" direction="out"/>
+    </method>
+    <!--
+	Adds a label.
+	 label: the name of the new label
+        This method shouldn't be used by applications other than Pinot.
+	-->
+    <method name="AddLabel">
+      <annotation name="de.berlios.Pinot.AddLabel" value="pinotDBus"/>
+      <arg type="s" name="label" direction="in"/>
+      <arg type="s" name="label" direction="out"/>
+    </method>
+    <!--
 	Renames a label.
 	 oldLabel: the label to rename
 	 newLabel: the new label name
+        This method shouldn't be used by applications other than Pinot.
 	-->
     <method name="RenameLabel">
       <annotation name="de.berlios.Pinot.RenameLabel" value="pinotDBus"/>
@@ -28,6 +63,7 @@
     <!--
 	Deletes a label.
 	 label: the name of the label to delete
+        This method shouldn't be used by applications other than Pinot.
 	-->
     <method name="DeleteLabel">
       <annotation name="de.berlios.Pinot.DeleteLabel" value="pinotDBus"/>
@@ -45,14 +81,6 @@
       <arg type="as" name="labels" direction="out"/>
     </method>
     <!--
-	Instructs the daemon program to reload the configuration file.
-	 loadStatus: TRUE if the configuration is being reloaded
-	-->
-    <method name="Reload">
-      <annotation name="de.berlios.Pinot.Reload" value="pinotDBus"/>
-      <arg type="b" name="reloading" direction="out" />
-    </method>
-    <!--
 	Sets a document's labels.
 	 docId: the document's ID
 	 labels: array of labels to apply to the document
@@ -66,7 +94,7 @@
       <arg type="u" name="docId" direction="out"/>
     </method>
     <!--
-	Sets a group of documents' labels.
+	Sets labels on a group of documents.
 	 docIds: array of document IDs
 	 labels: array of labels to apply to the documents
 	 resetLabels: TRUE if existing labels should be unset
@@ -113,14 +141,6 @@
       <arg type="s" name="searchText" direction="in" />
       <arg type="u" name="maxHits" direction="in" />
       <arg type="as" name="docIds" direction="out" />
-    </method>
-    <!--
-	Stops the daemon program.
-	 exitStatus: the daemon's exit status.
-	-->
-    <method name="Stop">
-      <annotation name="de.berlios.Pinot.Stop" value="pinotDBus"/>
-      <arg type="i" name="exitStatus" direction="out" />
     </method>
     <!--
 	Updates a document.

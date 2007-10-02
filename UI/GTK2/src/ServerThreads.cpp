@@ -625,7 +625,7 @@ void DBusServletThread::doWork(void)
 {
 	XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 	DBusError error;
-	bool processedMessage = true, flushIndex = false;
+	bool processedMessage = true, updateLabelsCache = false, flushIndex = false;
 
 	if ((m_pServer == NULL) ||
 		(m_pConnection == NULL) ||
@@ -635,6 +635,13 @@ void DBusServletThread::doWork(void)
 	}
 
 	dbus_error_init(&error);
+
+	// Access the settings' labels list directly
+	set<string> &labelsCache = PinotSettings::getInstance().m_labels;
+	if (labelsCache.empty() == true)
+	{
+		index.getLabels(labelsCache);
+	}
 
 #ifdef DEBUG
 	const char *pSender = dbus_message_get_sender(m_pRequest);
@@ -667,6 +674,114 @@ void DBusServletThread::doWork(void)
 				DBUS_TYPE_INVALID);
 		}
 	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "Reload") == TRUE)
+	{
+		if (dbus_message_get_args(m_pRequest, &error,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			gboolean reloading = TRUE;
+
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received Reload" << endl;
+#endif
+			m_pServer->reload();
+
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_BOOLEAN, &reloading,
+					DBUS_TYPE_INVALID);
+			}
+		}
+	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "Stop") == TRUE)
+	{
+		if (dbus_message_get_args(m_pRequest, &error,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			int exitStatus = EXIT_SUCCESS;
+
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received Stop" << endl;
+#endif
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_INT32, &exitStatus,
+					DBUS_TYPE_INVALID);
+			}
+
+			m_mustQuit = true;
+		}
+	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetLabels") == TRUE)
+	{
+#ifdef DEBUG
+		cout << "DBusServletThread::doWork: received GetLabels" << endl;
+#endif
+		// This method doesn't take any argument
+		m_pArray = g_ptr_array_new();
+
+		for (set<string>::const_iterator labelIter = labelsCache.begin();
+			labelIter != labelsCache.end(); ++labelIter)
+		{
+			string labelName(*labelIter);
+
+			g_ptr_array_add(m_pArray, const_cast<char*>(labelName.c_str()));
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: adding label " << m_pArray->len << " " << labelName << endl;
+#endif
+		}
+
+		// Prepare the reply
+		m_pReply = newDBusReply(m_pRequest);
+		if (m_pReply != NULL)
+		{
+			dbus_message_append_args(m_pReply,
+				DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &m_pArray->pdata, m_pArray->len,
+				DBUS_TYPE_INVALID);
+		}
+	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "AddLabel") == TRUE)
+	{
+		char *pLabel = NULL;
+
+		if (dbus_message_get_args(m_pRequest, &error,
+			DBUS_TYPE_STRING, &pLabel,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received AddLabel " << pLabel << endl;
+#endif
+			if (pLabel != NULL)
+			{
+				string labelName(pLabel);
+
+				// Add the label
+				flushIndex = index.addLabel(labelName);
+				// Is this a known label ?
+				if (labelsCache.find(labelName) == labelsCache.end())
+				{
+					// No, it isn't but that's okay
+					labelsCache.insert(labelName);
+					updateLabelsCache = true;
+				}
+			}
+
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_STRING, &pLabel,
+					DBUS_TYPE_INVALID);
+			}
+		}
+	}
 	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "RenameLabel") == TRUE)
 	{
 		char *pOldLabel = NULL;
@@ -680,8 +795,21 @@ void DBusServletThread::doWork(void)
 #ifdef DEBUG
 			cout << "DBusServletThread::doWork: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
 #endif
-			// Rename the label
-			flushIndex = index.renameLabel(pOldLabel, pNewLabel);
+
+			if ((pOldLabel != NULL) &&
+				(pNewLabel != NULL))
+			{
+				// Rename the label
+				flushIndex = index.renameLabel(pOldLabel, pNewLabel);
+				// Update the labels list
+				set<string>::const_iterator oldLabelIter = labelsCache.find(pOldLabel);
+				if (oldLabelIter != labelsCache.end())
+				{
+					labelsCache.erase(oldLabelIter);
+					labelsCache.insert(pNewLabel);
+					updateLabelsCache = true;
+				}
+			}
 
 			// Prepare the reply
 			m_pReply = newDBusReply(m_pRequest);
@@ -704,8 +832,18 @@ void DBusServletThread::doWork(void)
 #ifdef DEBUG
 			cout << "DBusServletThread::doWork: received DeleteLabel " << pLabel << endl;
 #endif
-			// Delete the label
-			flushIndex = index.deleteLabel(pLabel);
+			if (pLabel != NULL)
+			{
+				// Delete the label
+				flushIndex = index.deleteLabel(pLabel);
+				// Update the labels list
+				set<string>::const_iterator labelIter = labelsCache.find(pLabel);
+				if (labelIter != labelsCache.end())
+				{
+					labelsCache.erase(labelIter);
+					updateLabelsCache = true;
+				}
+			}
 
 			// Prepare the reply
 			m_pReply = newDBusReply(m_pRequest);
@@ -783,7 +921,16 @@ void DBusServletThread::doWork(void)
 				{
 					break;
 				}
-				labels.insert(ppLabels[labelIndex]);
+
+				string labelName(ppLabels[labelIndex]);
+				labels.insert(labelName);
+				// Is this a known label ?
+				if (labelsCache.find(labelName) == labelsCache.end())
+				{
+					// No, it isn't but that's okay
+					labelsCache.insert(labelName);
+					updateLabelsCache = true;
+				}
 			}
 #ifdef DEBUG
 			cout << "DBusServletThread::doWork: received SetDocumentLabels on ID " << docId
@@ -836,14 +983,27 @@ void DBusServletThread::doWork(void)
 				{
 					break;
 				}
-				labels.insert(ppLabels[labelIndex]);
+
+				string labelName(ppLabels[labelIndex]);
+				labels.insert(labelName);
+				// Is this a known label ?
+				if (labelsCache.find(labelName) == labelsCache.end())
+				{
+					// No, it isn't but that's okay
+					labelsCache.insert(labelName);
+					updateLabelsCache = true;
+				}
 			}
 #ifdef DEBUG
 			cout << "DBusServletThread::doWork: received SetDocumentsLabels on " << docIds.size()
 				<< " IDs, " << labelsCount << " labels" << ", " << resetLabels << endl;
 #endif
 			// Set labels
-			flushIndex = index.setDocumentsLabels(docIds, labels, ((resetLabels == TRUE) ? true : false));
+			if (index.setDocumentsLabels(docIds, labels, ((resetLabels == TRUE) ? true : false)) == true)
+			{
+				resetLabels = TRUE;
+				flushIndex = true;
+			}
 
 			// Free container types
 			g_strfreev(ppDocIds);
@@ -854,7 +1014,7 @@ void DBusServletThread::doWork(void)
 			if (m_pReply != NULL)
 			{
 				dbus_message_append_args(m_pReply,
-					DBUS_TYPE_BOOLEAN, &flushIndex,
+					DBUS_TYPE_BOOLEAN, &resetLabels,
 					DBUS_TYPE_INVALID);
 			}
 		}
@@ -987,50 +1147,6 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "Reload") == TRUE)
-	{
-		if (dbus_message_get_args(m_pRequest, &error,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			gboolean reloading = TRUE;
-
-#ifdef DEBUG
-			cout << "DBusServletThread::doWork: received Reload" << endl;
-#endif
-			m_pServer->reload();
-
-			// Prepare the reply
-			m_pReply = newDBusReply(m_pRequest);
-			if (m_pReply != NULL)
-			{
-				dbus_message_append_args(m_pReply,
-					DBUS_TYPE_BOOLEAN, &reloading,
-					DBUS_TYPE_INVALID);
-			}
-		}
-	}
-	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "Stop") == TRUE)
-	{
-		if (dbus_message_get_args(m_pRequest, &error,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-			int exitStatus = EXIT_SUCCESS;
-
-#ifdef DEBUG
-			cout << "DBusServletThread::doWork: received Stop" << endl;
-#endif
-			// Prepare the reply
-			m_pReply = newDBusReply(m_pRequest);
-			if (m_pReply != NULL)
-			{
-				dbus_message_append_args(m_pReply,
-					DBUS_TYPE_INT32, &exitStatus,
-					DBUS_TYPE_INVALID);
-			}
-
-			m_mustQuit = true;
-		}
-	}
 	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "UpdateDocument") == TRUE)
 	{
 		unsigned int docId = 0;
@@ -1100,6 +1216,14 @@ void DBusServletThread::doWork(void)
 
 	dbus_error_free(&error);
 
+	// Set labels ?
+	if ((updateLabelsCache == true) &&
+		(index.setLabels(labelsCache) == false))
+	{
+		// Updating failed... reset the cache
+		labelsCache.clear();
+		index.getLabels(labelsCache);
+	}
 	if (flushIndex == true)
 	{
 		// Flush now for the sake of the client application

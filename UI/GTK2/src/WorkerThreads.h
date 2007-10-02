@@ -311,7 +311,8 @@ class ExpandQueryThread : public WorkerThread
 class LabelUpdateThread : public WorkerThread
 {
 	public:
-		LabelUpdateThread(const std::set<std::string> &labelsToDelete,
+		LabelUpdateThread(const std::set<std::string> &labelsToAdd,
+			const std::set<std::string> &labelsToDelete,
 			const std::map<std::string, std::string> &labelsToRename);
 		LabelUpdateThread(const std::string &labelName,
 			const std::set<unsigned int> &docsIds,
@@ -322,6 +323,7 @@ class LabelUpdateThread : public WorkerThread
 		virtual std::string getType(void) const;
 
 	protected:
+		std::set<std::string> m_labelsToAdd;
 		std::set<std::string> m_labelsToDelete;
 		std::map<std::string, std::string> m_labelsToRename;
 		std::string m_labelName;

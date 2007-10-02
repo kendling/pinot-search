@@ -36,7 +36,6 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	queryDialog_glade(),
 	m_name(properties.getName()),
 	m_properties(properties),
-	m_labels(PinotSettings::getInstance().getLabels()),
 	m_badName(true)
 {
 	unsigned int day, month, year;
@@ -126,7 +125,8 @@ void queryDialog::populate_comboboxes()
 	labelNameCombobox->append_text(_("None"));
 	labelNameCombobox->set_active(0);
 	// Add all labels to the label combo and select the one defined for the query
-	for (set<string>::const_iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
+	set<string> &labels = PinotSettings::getInstance().m_labels;
+	for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end(); ++labelIter)
 	{
 		string labelName(*labelIter);
 

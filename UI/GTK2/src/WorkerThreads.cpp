@@ -1126,10 +1126,12 @@ void ExpandQueryThread::doWork(void)
 	delete pEngine;
 }
 
-LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToDelete,
-	const map<string, string> &labelsToRename) :
+LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToAdd,
+	const set<string> &labelsToDelete, const map<string, string> &labelsToRename) :
 	WorkerThread()
 {
+	copy(labelsToAdd.begin(), labelsToAdd.end(),
+		inserter(m_labelsToAdd, m_labelsToAdd.begin()));
 	copy(labelsToDelete.begin(), labelsToDelete.end(),
 		inserter(m_labelsToDelete, m_labelsToDelete.begin()));
 	copy(labelsToRename.begin(), labelsToRename.end(),
@@ -1189,6 +1191,12 @@ void LabelUpdateThread::doWork(void)
 		{
 			pDaemonIndex->setDocumentsLabels(m_daemonIds, labels, false);
 		}
+	}
+	// Add labels
+	for (set<string>::iterator iter = m_labelsToAdd.begin(); iter != m_labelsToAdd.end(); ++iter)
+	{
+		pDocsIndex->addLabel(*iter);
+		pDaemonIndex->addLabel(*iter);
 	}
 	// Delete labels
 	for (set<string>::iterator iter = m_labelsToDelete.begin(); iter != m_labelsToDelete.end(); ++iter)
@@ -1774,12 +1782,9 @@ string StartDaemonThread::getType(void) const
 
 void StartDaemonThread::doWork(void)
 {
-	if (m_done == false)
-        {
-		// Ask the daemon to reload its configuration
-		// Let D-Bus activate the service if necessary
-		DBusXapianIndex::reload();
-	}
+	// Ask the daemon to reload its configuration
+	// Let D-Bus activate the service if necessary
+	DBusXapianIndex::reload();
 }
 
 MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler,

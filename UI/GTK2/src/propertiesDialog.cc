@@ -153,7 +153,7 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 	TreeModel::Row row;
 
 	// Populate the tree
-	const set<string> &sysLabels = PinotSettings::getInstance().getLabels();
+	set<string> &sysLabels = PinotSettings::getInstance().m_labels;
 	for (set<string>::const_iterator labelIter = sysLabels.begin(); labelIter != sysLabels.end(); ++labelIter)
 	{
 		string labelName(*labelIter);

@@ -61,6 +61,7 @@ static struct option g_longOptions[] = {
 	{"fullscan", 1, 0, 'f'},
 	{"help", 0, 0, 'h'},
 	{"priority", 1, 0, 'p'},
+	{"reindex", 0, 0, 'r'},
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
@@ -166,35 +167,18 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 	return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-static void checkIndexVersion(const string &indexName, bool &overwriteIndex, bool &upgradeIndex)
-{
-	// What version is the index at ?
-	XapianIndex index(indexName);
-	string indexVersion(index.getVersion());
-
-	// Is an upgrade necessary ?
-	if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
-		(index.getDocumentsCount() > 0))
-	{
-		cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
-
-		// Yes, it is
-		overwriteIndex = upgradeIndex = true;
-	}
-	index.setVersion(VERSION);
-}
-
 int main(int argc, char **argv)
 {
 	string prefixDir(PREFIX);
 	struct sigaction newAction;
 	int longOptionIndex = 0, priority = 15;
-	bool overwriteIndex = false;
-	bool upgradeIndex = false;
+	bool resetHistory = false;
+	bool resetLabels = false;
 	bool fullScan = false;
+	bool reindex = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "fhp:v", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "fhp:rv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -210,6 +194,7 @@ int main(int argc, char **argv)
 					<< "  -f, --fullscan	force a full scan\n"
 					<< "  -h, --help		display this help and exit\n"
 					<< "  -p, --priority	set the daemon's priority (default 15)\n"
+					<< "  -r, --reindex		force a reindex\n"
 					<< "  -v, --version		output version information and exit\n"
 					<< "\nReport bugs to " << PACKAGE_BUGREPORT << endl;
 				return EXIT_SUCCESS;
@@ -224,6 +209,9 @@ int main(int argc, char **argv)
 					}
 				}
 				break;
+			case 'r':
+				reindex = true;
+				break;
 			case 'v':
 				cout << "pinot-dbus-daemon - " << PACKAGE_STRING << "\n\n" 
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
@@ -235,7 +223,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "fhp:v", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "fhp:rv", g_longOptions, &longOptionIndex);
 	}
 
 #if defined(ENABLE_NLS)
@@ -362,7 +350,10 @@ int main(int argc, char **argv)
 		cerr << "Couldn't open index " << settings.m_daemonIndexLocation << endl;
 		return EXIT_FAILURE;
 	}
-	upgradeIndex = pDb->wasObsoleteFormat();
+	if (pDb->wasObsoleteFormat() == true)
+	{
+		resetHistory = resetLabels = true;
+	}
 
 	// Do the same for the history database
 	PinotSettings::checkHistoryDatabase();
@@ -399,9 +390,6 @@ int main(int argc, char **argv)
 #ifdef DEBUG
 	else cout << "Set priority to " << priority << endl;
 #endif
-
-	// What version of the daemon is this ?
-	checkIndexVersion(settings.m_daemonIndexLocation, overwriteIndex, upgradeIndex);
 
 	GError *pError = NULL;
 	DBusGConnection *pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
@@ -456,22 +444,38 @@ int main(int argc, char **argv)
 
 		try
 		{
-			server.getQuitSignal().connect(SigC::slot(&quitAll));
+			XapianIndex index(settings.m_daemonIndexLocation);
+			set<string> labels;
+			string indexVersion(index.getVersion());
+			bool gotLabels = index.getLabels(labels);
 
-			// Connect to threads' finished signal
-			server.connect();
-
-			if (overwriteIndex == true)
+			// What version is the index at ?
+			if (indexVersion < PINOT_INDEX_MIN_VERSION)
 			{
-				// Close and overwrite the index
-				XapianDatabaseFactory::closeAll();
-				XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation, false, true);
-			}
+				cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
 
-			if (upgradeIndex == true)
+				reindex = true;
+
+				resetLabels = true;
+			}
+			// Reindex all ?
+			if (reindex == true)
+			{
+				if (index.getDocumentsCount() > 0)
+				{
+					// Reset the index so that all documents are reindexed
+					index.reset();
+					resetHistory = true;
+				}
+			}
+			index.setVersion(VERSION);
+
+			if (resetHistory == true)
 			{
 				CrawlHistory history(historyDatabase);
 				map<unsigned int, string> sources;
+
+				cout << "Resetting history" << endl;
 
 				// Reset the history
 				history.getSources(sources);
@@ -482,6 +486,29 @@ int main(int argc, char **argv)
 					history.deleteSource(sourceIter->first);
 				}
 			}
+
+			if (resetLabels == true)
+			{
+				// Re-apply the labels list
+				if (gotLabels == false)
+				{
+					// If this is an upgrade from a version < 0.80, the labels list
+					// needs to be pulled from the configuration file
+					index.setLabels(settings.m_labels);
+
+					cout << "Resetting labels as per the configuration file" << endl;
+				}
+				else
+				{
+					index.setLabels(labels);
+				}
+			}
+
+			// Connect to the quit signal
+			server.getQuitSignal().connect(SigC::slot(&quitAll));
+
+			// Connect to threads' finished signal
+			server.connect();
 
 			server.start(fullScan);
 

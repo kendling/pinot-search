@@ -106,29 +106,13 @@ static void quitAll(int sigNum)
 	Gtk::Main::quit();
 }
 
-static void checkIndexVersion(const string &indexName, bool &upgradeIndex)
-{
-	// What version is the index at ?
-	XapianIndex index(indexName);
-	string indexVersion(index.getVersion());
-
-	// Is an upgrade necessary ?
-	if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
-		(index.getDocumentsCount() > 0))
-	{
-		// Yes, it is
-		upgradeIndex = true;
-	}
-	index.setVersion(VERSION);
-}
-
 int main(int argc, char **argv)
 {
 	string prefixDir(PREFIX);
 	Glib::ustring errorMsg;
 	struct sigaction newAction;
 	int longOptionIndex = 0;
-	bool upgradeIndex = false;
+	bool warnAboutIndex = false;
 
 	// Look at the options
 	int optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
@@ -292,7 +276,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		upgradeIndex = pFirstDb->wasObsoleteFormat();
+		warnAboutIndex = pFirstDb->wasObsoleteFormat();
 	}
 	// ...and the daemon index in read-only mode
 	// If it can't be open, it just means the daemon has not yet created it
@@ -327,12 +311,22 @@ int main(int argc, char **argv)
 
 	atexit(closeAll);
 
-	// What version of the UI is this ?
-	checkIndexVersion(settings.m_docsIndexLocation, upgradeIndex);
+	XapianIndex index(settings.m_docsIndexLocation);
+	string indexVersion(index.getVersion());
 
-	if ((upgradeIndex == true) &&
+	// What version is the index at ?
+	// Is an upgrade necessary ?
+	if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
+		(index.getDocumentsCount() > 0))
+	{
+		warnAboutIndex = true;
+	}
+	index.setVersion(VERSION);
+
+	if ((warnAboutIndex == true) &&
 		(errorMsg.empty() == true))
 	{
+		// Warn the user
 		errorMsg = _("Updating all documents in My Web Pages is recommended");
 	}
 

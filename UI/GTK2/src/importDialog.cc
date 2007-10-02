@@ -88,7 +88,7 @@ void importDialog::populate_comboboxes(void)
 	labelNameCombobox->set_active(0);
 
 	// Add all labels
-	const set<string> &labels = PinotSettings::getInstance().getLabels();
+	set<string> &labels = PinotSettings::getInstance().m_labels;
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{

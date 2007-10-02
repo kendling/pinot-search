@@ -1641,34 +1641,6 @@ void PinotSettings::clearQueries(void)
 	m_queries.clear();
 }
 
-/// Returns the labels list.
-const set<string> &PinotSettings::getLabels(void) const
-{
-	return m_labels;
-}
-
-/// Adds a new label.
-void PinotSettings::addLabel(const string &name)
-{
-	m_labels.insert(name);
-}
-
-/// Removes a label.
-void PinotSettings::removeLabel(const string &name)
-{
-	set<string>::iterator labelIter = m_labels.find(name);
-	if (labelIter != m_labels.end())
-	{
-		m_labels.erase(labelIter);
-	}
-}
-
-/// Clears the labels list.
-void PinotSettings::clearLabels(void)
-{
-	m_labels.clear();
-}
-
 /// Determines if a file matches the blacklist.
 bool PinotSettings::isBlackListed(const string &fileName)
 {

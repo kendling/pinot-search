@@ -20,7 +20,6 @@
 #define _QUERYDIALOG_HH
 
 #include <string>
-#include <set>
 #include <glibmm/date.h>
 #include <glibmm/ustring.h>
 
@@ -39,7 +38,6 @@ public:
 protected:
 	Glib::ustring m_name;
 	QueryProperties& m_properties;
-	const std::set<std::string> &m_labels;
 	Glib::Date m_fromDate;
 	Glib::Date m_toDate;
 	bool m_badName;

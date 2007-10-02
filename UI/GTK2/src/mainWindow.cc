@@ -1724,13 +1724,15 @@ void mainWindow::on_configure_activate()
 		start_thread(new StartDaemonThread());
 	}
 
-	// Any labels to delete or rename ?
+	// Any labels to add, delete or rename ?
+	const set<string> &labelsToAdd = prefsBox.getLabelsToAdd();
 	const set<string> &labelsToDelete = prefsBox.getLabelsToDelete();
 	const std::map<string, string> &labelsToRename = prefsBox.getLabelsToRename();
-	if ((labelsToDelete.empty() == false) ||
+	if ((labelsToAdd.empty() == false) ||
+		(labelsToDelete.empty() == false) ||
 		(labelsToRename.empty() == false))
 	{
-		start_thread(new LabelUpdateThread(labelsToDelete, labelsToRename));
+		start_thread(new LabelUpdateThread(labelsToAdd, labelsToDelete, labelsToRename));
 	}
 }
 

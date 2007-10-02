@@ -130,18 +130,6 @@ class PinotSettings
 		/// Clears the queries map.
 		void clearQueries(void);
 
-		/// Returns the labels list.
-		const std::set<std::string> &getLabels(void) const;
-
-		/// Adds a new label.
-		void addLabel(const std::string &name);
-
-		/// Removes a label.
-		void removeLabel(const std::string &name);
-
-		/// Clears the labels list.
-		void clearLabels(void);
-
 		/// Determines if a file matches the blacklist.
 		bool isBlackListed(const std::string &fileName);
 
@@ -212,6 +200,7 @@ class PinotSettings
 		unsigned int m_proxyPort;
 		Glib::ustring  m_proxyType;
 		bool m_proxyEnabled;
+		std::set<std::string> m_labels;
 		std::set<IndexableLocation> m_indexableLocations;
 		std::set<Glib::ustring> m_filePatternsList;
 		bool m_isBlackList;
@@ -228,7 +217,6 @@ class PinotSettings
 		std::map<unsigned int, std::string> m_engineIds;
 		std::map<std::string, bool> m_engineChannels;
 		std::map<std::string, QueryProperties> m_queries;
-		std::set<std::string> m_labels;
 
 		PinotSettings();
 		bool loadConfiguration(const std::string &fileName, bool isGlobal);
