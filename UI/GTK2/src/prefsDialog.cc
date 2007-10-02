@@ -128,6 +128,11 @@ prefsDialog::~prefsDialog()
 {
 }
 
+const set<string> &prefsDialog::getLabelsToAdd(void) const
+{
+	return m_addedLabels;
+}
+
 const set<string> &prefsDialog::getLabelsToDelete(void) const
 {
 	return m_deletedLabels;
@@ -154,8 +159,18 @@ void prefsDialog::populate_labelsTreeview()
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
+	set<string> &labels = m_settings.m_labels;
 
-	const set<string> &labels = m_settings.getLabels();
+	// Get labels directly from the daemon's index
+	IndexInterface *pDaemonIndex = m_settings.getIndex(m_settings.m_daemonIndexLocation);
+	if (pDaemonIndex != NULL)
+	{
+		labels.clear();
+		pDaemonIndex->getLabels(labels);
+
+		delete pDaemonIndex;
+	}
+
 	if (labels.empty() == true)
 	{
 		// This button will stay disabled until labels are added to the list
@@ -183,8 +198,9 @@ void prefsDialog::populate_labelsTreeview()
 
 void prefsDialog::save_labelsTreeview()
 {
-	// Clear the current settings
-	m_settings.clearLabels();
+	set<string> &labels = m_settings.m_labels;
+
+	labels.clear();
 
 	// Go through the labels tree
 	TreeModel::Children children = m_refLabelsTree->children();
@@ -196,8 +212,8 @@ void prefsDialog::save_labelsTreeview()
 			TreeModel::Row row = *iter;
 
 			// Add this new label to the settings
-			ustring labelName = row[m_labelsColumns.m_name];
-			ustring oldName = row[m_labelsColumns.m_oldName];
+			ustring labelName(row[m_labelsColumns.m_name]);
+			ustring oldName(row[m_labelsColumns.m_oldName]);
 			// Was this label renamed ?
 			if ((row[m_labelsColumns.m_enabled] == true) &&
 				(labelName != oldName))
@@ -211,11 +227,16 @@ void prefsDialog::save_labelsTreeview()
 			{
 				m_deletedLabels.erase(labelIter);
 			}
+			// Is this a nw label ?
+			if (row[m_labelsColumns.m_enabled] == false)
+			{
+				m_addedLabels.insert(from_utf8(labelName));
+			}
 
 #ifdef DEBUG
 			cout << "prefsDialog::save_labelsTreeview: " << labelName << endl;
 #endif
-			m_settings.addLabel(labelName);
+			labels.insert(labelName);
 		}
 	}
 }

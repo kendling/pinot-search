@@ -36,6 +36,8 @@ public:
 	prefsDialog();
 	virtual ~prefsDialog();
 
+	const std::set<std::string> &getLabelsToAdd(void) const;
+
 	const std::set<std::string> &getLabelsToDelete(void) const;
 
 	const std::map<std::string, std::string> &getLabelsToRename(void) const;
@@ -71,6 +73,7 @@ private:
 	TimestampedModelColumns m_mailColumns;
 	TimestampedModelColumns m_patternsColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refPatternsTree;
+	std::set<std::string> m_addedLabels;
 	std::set<std::string> m_deletedLabels;
 	std::map<std::string, std::string> m_renamedLabels;
 	std::set<std::string> m_deletedDirectories;
