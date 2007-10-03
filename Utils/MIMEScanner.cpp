@@ -389,7 +389,8 @@ bool MIMEScanner::initialize(const string &userPrefix, const string &systemPrefi
 	}
 
 	// Load user-specific settings first
-	if (userDirectory.empty() == false)
+	if ((userPrefix.empty() == false) &&
+		(userDirectory.empty() == false))
 	{
 		// Add the user's directory to the paths list
 		desktopFilesPaths.push_front(userDirectory);
@@ -404,7 +405,8 @@ bool MIMEScanner::initialize(const string &userPrefix, const string &systemPrefi
 	}
 
 	// Then load system-wide settings
-	if (systemDirectory.empty() == false)
+	if ((systemPrefix.empty() == false) &&
+		(systemDirectory.empty() == false))
 	{
 		// Make sure only the system directory is in the list
 		desktopFilesPaths.clear();
