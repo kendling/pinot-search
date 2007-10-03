@@ -1223,6 +1223,9 @@ void DBusServletThread::doWork(void)
 		// Updating failed... reset the cache
 		labelsCache.clear();
 		index.getLabels(labelsCache);
+#ifdef DEBUG
+		cout << "DBusServletThread::doWork: failed to update labels" << endl;
+#endif
 	}
 	if (flushIndex == true)
 	{

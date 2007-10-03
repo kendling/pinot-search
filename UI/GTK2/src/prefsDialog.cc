@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <algorithm>
 #include <glibmm/convert.h>
 #include <gdkmm/color.h>
 #include <gtkmm/colorselection.h>
@@ -165,8 +166,20 @@ void prefsDialog::populate_labelsTreeview()
 	IndexInterface *pDaemonIndex = m_settings.getIndex(m_settings.m_daemonIndexLocation);
 	if (pDaemonIndex != NULL)
 	{
-		labels.clear();
-		pDaemonIndex->getLabels(labels);
+		set<string> indexLabels;
+
+		// Nothing might be found if we are upgrading from an older version
+		// and the daemon has not been run
+		if (pDaemonIndex->getLabels(indexLabels) == true)
+		{
+			labels.clear();
+
+			copy(indexLabels.begin(), indexLabels.end(),
+				inserter(labels, labels.begin()));
+		}
+#ifdef DEBUG
+		else cout << "prefsDialog::populate_labelsTreeview: relying on configuration file" << endl;
+#endif
 
 		delete pDaemonIndex;
 	}
