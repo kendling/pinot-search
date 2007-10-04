@@ -74,11 +74,11 @@ class IndexInterface
 
 		/// Sets a document's labels.
 		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
-			bool readdLabel = true) = 0;
+			bool resetLabels = true) = 0;
 
 		/// Sets documents' labels.
 		virtual bool setDocumentsLabels(const std::set<unsigned int> &docIds,
-			const std::set<std::string> &labels, bool readdLabel = true) = 0;
+			const std::set<std::string> &labels, bool resetLabels = true) = 0;
 
 		/// Checks whether the given URL is in the index.
 		virtual unsigned int hasDocument(const std::string &url) const = 0;

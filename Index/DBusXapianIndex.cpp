@@ -575,6 +575,65 @@ bool DBusXapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels)
 	return XapianIndex::getDocumentLabels(docId, labels);
 }
 
+/// Returns a document's labels.
+bool DBusXapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels, bool forceDBus) const
+{
+	bool gotLabels = false;
+
+	if (forceDBus == false)
+	{
+		// Call overload
+		return getDocumentLabels(docId, labels);
+	}
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusXapianIndex::getDocumentLabels: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	char **pLabels;
+
+	// G_TYPE_STRV is the GLib equivalent of DBUS_TYPE_ARRAY, DBUS_TYPE_STRING
+	if (dbus_g_proxy_call(pBusProxy, "GetDocumentLabels", &pError,
+		G_TYPE_UINT, docId,
+		G_TYPE_INVALID,
+		G_TYPE_STRV, &pLabels,
+		G_TYPE_INVALID) == TRUE)
+	{
+		for (char **pLabel = pLabels; (*pLabel) != NULL; ++pLabel)
+		{
+			labels.insert(*pLabel);
+		}
+
+		// Free the array
+		g_strfreev(pLabels);
+
+		gotLabels = true;
+	}
+	else
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusXapianIndex::getDocumentLabels: " << pError->message << endl;
+			g_error_free(pError);
+		}
+	}
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	return gotLabels;
+}
+
 /// Sets a document's labels.
 bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
 	bool resetLabels)

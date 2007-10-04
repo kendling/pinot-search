@@ -85,6 +85,10 @@ class DBusXapianIndex : public XapianIndex
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const;
 
+		/// Returns a document's labels.
+		bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels,
+			bool forceDBus) const;
+
 		/// Sets a document's labels.
 		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
 			bool resetLabels = true);
