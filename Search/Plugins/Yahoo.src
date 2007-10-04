@@ -1,23 +1,33 @@
-# Yahoo! Search Plugin
+# Yahoo! REST API Search Plugin
 
 <SEARCH
 	version="1.0"
 	name="Yahoo!"
-	description="Yahoo.com"
+	description="Yahoo! REST API"
 	method="GET"
-	action="http://search.yahoo.com/search"
+	action="http://api.search.yahoo.com/WebSearchService/V1/webSearch"
 	routeType="The Web"
 >
 
-<INPUT NAME="p" USER>
-<INPUT NAME="ei" VALUE="UTF-8">
-<INPUTNEXT NAME="b" FACTOR="10" VALUE="1">
+# Edit this field's value to set to your application ID
+<INPUT NAME="appid" VALUE="YahooDemo">
+<INPUT NAME="query" USER>
+<INPUT NAME="results" VALUE="10">
 
 <INTERPRET
-resultListStart=""
-resultListEnd=""
-resultItemStart="<li><div>"
-resultItemEnd="</em> "
+resultListStart="<ResultSet"
+resultListEnd="</ResultSet>"
+resultItemStart="<Result>"
+resultItemEnd="</Result>"
+# The following attributes are specific to Pinot
+resultTitleStart="<Title>"
+resultTitleEnd="</Title>"
+resultLinkStart="<Url>"
+resultLinkEnd="</Url>"
+resultExtractStart="<Summary>"
+resultExtractEnd="</Summary>"
 >
 
 </SEARCH>
+
+
