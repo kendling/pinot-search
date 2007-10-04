@@ -698,6 +698,10 @@ string XapianIndex::getVersion(void) const
 		if (pIndex != NULL)
 		{
 			version = pIndex->get_metadata("version");
+			if (version.empty() == true)
+			{
+				version = "0.00";
+			}
 		}
 	}
 	catch (const Xapian::Error &error)
@@ -915,6 +919,11 @@ bool XapianIndex::setLabels(const set<string> &labels)
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{
+		// Prevent from setting internal labels
+		if (labelIter->substr(0, 2) == "X-")
+		{
+			continue;
+		}
 		labelString += "[";
 		labelString += Url::escapeUrl(*labelIter);
 		labelString += "]";
@@ -1012,6 +1021,13 @@ bool XapianIndex::renameLabel(const string &name, const string &newName)
 {
 	bool renamedLabel = false;
 
+	// Prevent from renaming or setting internal labels
+	if ((name.substr(0, 2) == "X-") ||
+		(newName.substr(0, 2) == "X-"))
+	{
+		return false;
+	}
+
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
@@ -1063,6 +1079,12 @@ bool XapianIndex::renameLabel(const string &name, const string &newName)
 bool XapianIndex::deleteLabel(const string &name)
 {
 	bool deletedLabel = false;
+
+	// Prevent from deleting internal labels
+	if (name.substr(0, 2) == "X-")
+	{
+		return false;
+	}
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
@@ -1254,10 +1276,13 @@ bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 					for (termIter.skip_to("XLABEL:");
 						termIter != pIndex->termlist_end(docId); ++termIter)
 					{
-						// Is this a label ?
-						if (strncasecmp((*termIter).c_str(), "XLABEL:", min(7, (int)(*termIter).length())) == 0)
+						string term(*termIter);
+
+						// Is this a non-internal label ?
+						if ((strncasecmp(term.c_str(), "XLABEL:", min(7, (int)term.length())) == 0) &&
+							(strncasecmp(term.c_str(), "XLABEL:X-", min(9, (int)term.length())) != 0))
 						{
-							doc.remove_term(*termIter);
+							doc.remove_term(term);
 						}
 					}
 				}
@@ -1267,7 +1292,9 @@ bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
 				++labelIter)
 			{
-				if (labelIter->empty() == false)
+				// Prevent from setting internal labels
+				if ((labelIter->empty() == false) &&
+					(labelIter->substr(0, 2) != "X-"))
 				{
 					doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
 				}
