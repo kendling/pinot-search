@@ -288,11 +288,11 @@ int main(int argc, char **argv)
 		}
 		if (pIndex->getDocumentLabels(docId, labels) == true)
 		{
-			cout << "Labels:";
+			cout << "Labels: ";
 			for (set<string>::const_iterator labelIter = labels.begin();
 				labelIter != labels.end(); ++labelIter)
 			{
-				cout << " '" << *labelIter << "'";
+				cout << "[" << *labelIter << "]";
 			}
 			cout << endl;
 		}

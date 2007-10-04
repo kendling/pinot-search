@@ -24,10 +24,10 @@ Group: Applications/Internet
 Source: %{name}-%{version}.tar.gz
 URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires: xapian-core-libs >= 1.0.2, libtextcat >= 2.2, sqlite >= 3.3.1, curl >= 7.13, gmime >= 2.1
+Requires: xapian-core-libs >= 1.0.3, libtextcat >= 2.2, sqlite >= 3.3.1, curl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.6, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
 Requires: unzip, antiword, unrtf, %{pftotext_pkg}
-BuildRequires: xapian-core-devel >= 1.0.2, libtextcat-devel >= 2.2, sqlite-devel >= 3.3.1, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
+BuildRequires: xapian-core-devel >= 1.0.3, libtextcat-devel >= 2.2, sqlite-devel >= 3.3.1, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4
 BuildRequires: gcc-c++
@@ -102,6 +102,7 @@ fi
 %{_bindir}/pinot
 %{_bindir}/pinot-dbus-daemon
 %{_bindir}/pinot-index
+%{_bindir}/pinot-label
 %{_bindir}/pinot-search
 %{_libdir}/pinot/filters/libexternalfilter.so*
 %{_libdir}/pinot/filters/libmboxfilter.so*
@@ -114,10 +115,7 @@ fi
 %{_datadir}/icons/hicolor/16x16/apps/pinot.png
 %{_sysconfdir}/xdg/autostart/*.desktop
 %{_datadir}/applications/*.desktop
-%{_mandir}/man1/pinot.*
-%{_mandir}/man1/pinot-dbus-daemon.*
-%{_mandir}/man1/pinot-index.*
-%{_mandir}/man1/pinot-search.*
+%{_mandir}/man1/pinot*
 
 %files audio-docs 
 %defattr(-, root, root, -)

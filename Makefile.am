@@ -6,7 +6,7 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO mkinstalldir
 	textcat_conf.txt textcat3_conf.txt \
 	pinot.desktop pinot-dbus-daemon.desktop pinot.spec \
 	Search/Plugins/*src Search/Plugins/*.xml \
-	Index/pinot-index.1 Search/pinot-search.1 \
+	Index/pinot-index.1 Index/pinot-label.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1 \
 	UI/GTK2/src/pinot-dbus-daemon.xml UI/GTK2/src/de.berlios.Pinot.service \
 	UI/GTK2/xapian-powered.png UI/icons/48x48/pinot.png \
@@ -15,7 +15,7 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO mkinstalldir
 	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
 	scripts/bash/pinot-enum-index.sh scripts/python/pinot-live.py
 
-man_MANS = Index/pinot-index.1 Search/pinot-search.1 \
+man_MANS = Index/pinot-index.1 Index/pinot-label.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
 
 install-data-local:
