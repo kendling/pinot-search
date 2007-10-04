@@ -1382,6 +1382,8 @@ void IndexingThread::doWork(void)
 			m_status += _("at");
 			m_status += " ";
 			m_status += m_docInfo.getLocation();
+			delete pIndex;
+
 			return;
 		}
 	}
@@ -1461,6 +1463,8 @@ void IndexingThread::doWork(void)
 				m_status += _("at");
 				m_status += " ";
 				m_status += m_docInfo.getLocation();
+				delete pIndex;
+
 				return;
 			}
 
@@ -1493,6 +1497,8 @@ void IndexingThread::doWork(void)
 						m_status = _("Robots META tag forbids indexing");
 						m_status += " ";
 						m_status += m_docInfo.getLocation();
+						delete pIndex;
+
 						return;
 					}
 				}

@@ -119,13 +119,14 @@ bool statisticsDialog::on_activity_timeout(void)
 
 	row = *m_myWebPagesIter;
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_docsIndexLocation);
-	if ((pIndex != NULL) &&
-		(pIndex->isGood() == true))
+	if (pIndex != NULL)
 	{
 		unsigned int docsCount = pIndex->getDocumentsCount();
 
 		snprintf(countStr, 64, "%u", docsCount);
 		row[m_statsColumns.m_name] = ustring(countStr) + " " + _("documents");
+
+		delete pIndex;
 	}
 	else
 	{
@@ -134,13 +135,14 @@ bool statisticsDialog::on_activity_timeout(void)
 
 	row = *m_myDocumentsIter;
 	pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
-	if ((pIndex != NULL) &&
-		(pIndex->isGood() == true))
+	if (pIndex != NULL)
 	{
 		unsigned int docsCount = pIndex->getDocumentsCount();
 
 		snprintf(countStr, 64, "%u", docsCount);
 		row[m_statsColumns.m_name] = ustring(countStr) + " " + _("documents");
+
+		delete pIndex;
 	}
 	else
 	{
