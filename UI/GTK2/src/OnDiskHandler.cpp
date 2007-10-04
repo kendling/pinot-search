@@ -203,7 +203,7 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 			char sourceStr[64];
 
 			// That's the one
-			snprintf(sourceStr, 64, "SOURCE%u", sourceIter->first);
+			snprintf(sourceStr, 64, "X-SOURCE%u", sourceIter->first);
 			labels.insert(sourceStr);
 			break;
 		}
@@ -290,7 +290,7 @@ void OnDiskHandler::initialize(void)
 			{
 				char sourceStr[64];
 
-				snprintf(sourceStr, 64, "SOURCE%u", sourceId);
+				snprintf(sourceStr, 64, "X-SOURCE%u", sourceId);
 
 #ifdef DEBUG
 				cout << "OnDiskHandler::initialize: " << sourceIter->second

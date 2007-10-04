@@ -176,8 +176,8 @@ string DirectoryScannerThread::getDirectory(void) const
 bool DirectoryScannerThread::stop(void)
 {
 	// Disconnect the signal
-	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
-	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	Signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
+	Signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
 	if (slotIter != slotsList.end())
 	{
 		if (slotIter->empty() == false)
@@ -191,7 +191,7 @@ bool DirectoryScannerThread::stop(void)
 	return true;
 }
 
-Signal3<void, const DocumentInfo&, const std::string&, bool>& DirectoryScannerThread::getFileFoundSignal(void)
+Signal3<void, const DocumentInfo&, const string&, bool>& DirectoryScannerThread::getFileFoundSignal(void)
 {
 	return m_signalFileFound;
 }
@@ -229,8 +229,7 @@ void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 	}
 
 	// This identifies the source
-	snprintf(labelStr, 64, "SOURCE%u", m_sourceId);
-
+	snprintf(labelStr, 64, "X-SOURCE%u", m_sourceId);
 	m_signalFileFound(docInfo, labelStr, false);
 }
 
@@ -1227,11 +1226,6 @@ void DBusServletThread::doWork(void)
 		cout << "DBusServletThread::doWork: failed to update labels" << endl;
 #endif
 	}
-	if (flushIndex == true)
-	{
-		// Flush now for the sake of the client application
-		index.flush();
-	}
 
 	// Send a reply ?
 	if ((m_pConnection != NULL) &&
@@ -1243,6 +1237,13 @@ void DBusServletThread::doWork(void)
 		cout << "DBusServletThread::doWork: sent reply" << endl;
 #endif
 		dbus_message_unref(m_pReply);
+	}
+
+	// Flush the index ?
+	if (flushIndex == true)
+	{
+		// Flush now for the sake of the client application
+		index.flush();
 	}
 }
 
