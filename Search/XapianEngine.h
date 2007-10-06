@@ -30,7 +30,7 @@
 #include "DownloaderFactory.h"
 
 #if !ENABLE_XAPIAN_SPELLING_CORRECTION
-// Spelling correction in Xapian <= 1.0.2 may cause a crash
+// Spelling correction in Xapian 1.0.2 may cause a crash
 // See http://www.xapian.org/cgi-bin/bugzilla/show_bug.cgi?id=194
 #if XAPIAN_NUM_VERSION > 1000002
 #define ENABLE_XAPIAN_SPELLING_CORRECTION 1
