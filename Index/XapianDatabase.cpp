@@ -216,6 +216,12 @@ void XapianDatabase::openDatabase(void)
 #endif
 					Xapian::Database remoteDatabase = Xapian::Remote::open(hostName, port);
 					m_pDatabase = new Xapian::Database(remoteDatabase);
+				}
+
+				if (m_pDatabase != NULL)
+				{
+					// Stop remote databases timing out
+					m_pDatabase->keep_alive();
 					m_isOpen = true;
 				}
 
@@ -286,10 +292,15 @@ void XapianDatabase::openDatabase(void)
 
 			m_pDatabase = new Xapian::WritableDatabase(m_databaseName, openAction);
 		}
+
+		if (m_pDatabase != NULL)
+		{
 #ifdef DEBUG
-		cout << "XapianDatabase::openDatabase: opened " << m_databaseName << endl;
+			cout << "XapianDatabase::openDatabase: opened " << m_databaseName
+				<< " " << m_pDatabase->get_description() << endl;
 #endif
-		m_isOpen = true;
+			m_isOpen = true;
+		}
 
 		return;
 	}
