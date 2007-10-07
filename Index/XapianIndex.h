@@ -21,6 +21,7 @@
 
 #include <string>
 #include <set>
+#include <map>
 
 #include "config.h"
 #include "XapianDatabase.h"
@@ -62,6 +63,10 @@ class XapianIndex : public IndexInterface
 
 		/// Returns a document's terms count.
 		virtual unsigned int getDocumentTermsCount(unsigned int docId) const;
+
+		/// Returns a document's terms.
+		virtual bool getDocumentTerms(unsigned int docId,
+			std::map<unsigned int, std::string> &wordsBuffer) const;
 
 		/// Sets the list of known labels.
 		virtual bool setLabels(const std::set<std::string> &labels);

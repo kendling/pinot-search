@@ -21,6 +21,7 @@
 
 #include <string>
 #include <set>
+#include <map>
 
 #include "Document.h"
 
@@ -50,6 +51,10 @@ class IndexInterface
 
 		/// Returns a document's terms count.
 		virtual unsigned int getDocumentTermsCount(unsigned int docId) const = 0;
+
+		/// Returns a document's terms.
+		virtual bool getDocumentTerms(unsigned int docId,
+			std::map<unsigned int, std::string> &wordsBuffer) const = 0;
 
 		/// Sets the list of known labels.
 		virtual bool setLabels(const std::set<std::string> &labels) = 0;

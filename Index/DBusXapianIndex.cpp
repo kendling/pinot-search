@@ -27,6 +27,7 @@ using std::cerr;
 using std::endl;
 using std::string;
 using std::set;
+using std::map;
 using std::min;
 
 const char *g_fieldNames[] = { "caption", "url", "type", "language", "modtime", "size", NULL };
@@ -350,6 +351,23 @@ bool DBusXapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo)
 	reopen();
 
 	return XapianIndex::getDocumentInfo(docId, docInfo);
+}
+
+/// Returns a document's terms count.
+unsigned int DBusXapianIndex::getDocumentTermsCount(unsigned int docId) const
+{
+	reopen();
+
+	return XapianIndex::getDocumentTermsCount(docId);
+}
+
+/// Returns a document's terms.
+bool DBusXapianIndex::getDocumentTerms(unsigned int docId,
+	map<unsigned int, string> &wordsBuffer) const
+{
+	reopen();
+
+	return XapianIndex::getDocumentTerms(docId, wordsBuffer);
 }
 
 /// Sets the list of known labels.

@@ -17,6 +17,7 @@
  */
 
 #include <fcntl.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,8 +48,42 @@ using std::ofstream;
 using std::string;
 using std::vector;
 using std::set;
+using std::map;
 using std::min;
 using std::max;
+
+static bool setVersionFile(const string &databaseName, const string &version)
+{
+	ofstream verFile;
+	string verFileName(databaseName + "/version");
+	bool setVer = false;
+
+	verFile.open(verFileName.c_str(), ios::trunc);
+	if (verFile.good() == true)
+	{
+		verFile << version;
+		setVer = true;
+	}
+	verFile.close();
+
+	return setVer;
+}
+
+static string getVersionFromFile(const string &databaseName)
+{
+	ifstream verFile;
+	string verFileName(databaseName + "/version");
+	string version;
+
+	verFile.open(verFileName.c_str());
+	if (verFile.good() == true)
+	{
+		verFile >> version;
+	}
+	verFile.close();
+
+	return version;
+}
 
 const string XapianIndex::MAGIC_TERM = "X-MetaSE-Doc";
 
@@ -704,6 +739,11 @@ string XapianIndex::getVersion(void) const
 			}
 		}
 	}
+	catch (const Xapian::UnimplementedError &error)
+	{
+		cerr << "Couldn't get database version, no support for metadata: " << error.get_type() << ": " << error.get_msg() << endl;
+		version = getVersionFromFile(m_databaseName);
+	}
 	catch (const Xapian::Error &error)
 	{
 		cerr << "Couldn't get database version: " << error.get_type() << ": " << error.get_msg() << endl;
@@ -714,15 +754,7 @@ string XapianIndex::getVersion(void) const
 	}
 	pDatabase->unlock();
 #else
-	ifstream verFile;
-	string verFileName(m_databaseName + "/version");
-
-	verFile.open(verFileName.c_str());
-	if (verFile.good() == true)
-	{
-		verFile >> version;
-	}
-	verFile.close();
+	version = getVersionFromFile(m_databaseName);
 #endif
 
 	return version;
@@ -750,6 +782,11 @@ bool XapianIndex::setVersion(const string &version) const
 			setVer = true;
 		}
 	}
+	catch (const Xapian::UnimplementedError &error)
+	{
+		cerr << "Couldn't set database version, no support for metadata: " << error.get_type() << ": " << error.get_msg() << endl;
+		setVer = setVersionFile(m_databaseName, version);
+	}
 	catch (const Xapian::Error &error)
 	{
 		cerr << "Couldn't set database version: " << error.get_type() << ": " << error.get_msg() << endl;
@@ -760,20 +797,13 @@ bool XapianIndex::setVersion(const string &version) const
 	}
 	pDatabase->unlock();
 #else
-	ofstream verFile, cacheDirFile;
-	string verFileName(m_databaseName + "/version");
-	string cacheDirFileName(m_databaseName + "/CACHEDIR.TAG");
-
-	verFile.open(verFileName.c_str(), ios::trunc);
-	if (verFile.good() == true)
-	{
-		verFile << version;
-		setVer = true;
-	}
-	verFile.close();
+	setVer = setVersionFile(m_databaseName, version);
+#endif
 
 	// While we are at it, create a CACHEDIR.TAG file
 	// See the spec at http://www.brynosaurus.com/cachedir/
+	string cacheDirFileName(m_databaseName + "/CACHEDIR.TAG");
+	ofstream cacheDirFile;
 	cacheDirFile.open(cacheDirFileName.c_str(), ios::trunc);
 	if (cacheDirFile.good() == true)
 	{
@@ -783,7 +813,6 @@ bool XapianIndex::setVersion(const string &version) const
 		cacheDirFile << "# http://www.brynosaurus.com/cachedir/" << endl;
 	}
 	cacheDirFile.close();
-#endif
 
 	return setVer;
 }
@@ -899,6 +928,58 @@ unsigned int XapianIndex::getDocumentTermsCount(unsigned int docId) const
 	pDatabase->unlock();
 
 	return termsCount;
+}
+
+/// Returns a document's terms.
+bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string> &wordsBuffer) const
+{
+	bool gotTerms = false;
+
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	try
+	{
+		Xapian::Database *pIndex = pDatabase->readLock();
+		if (pIndex != NULL)
+		{
+			// Go through the position list of each term
+			for (Xapian::TermIterator termIter = pIndex->termlist_begin(docId);
+				termIter != pIndex->termlist_end(docId); ++termIter)
+			{
+				string termName(*termIter);
+
+				// Skip prefixed terms
+				if (isupper((int)termName[0]) != 0)
+				{
+					continue;
+				}
+
+				for (Xapian::PositionIterator positionIter = pIndex->positionlist_begin(docId, termName);
+					positionIter != pIndex->positionlist_end(docId, termName); ++positionIter)
+				{
+					wordsBuffer[*positionIter] = termName;
+				}
+
+				gotTerms = true;
+			}
+		}
+	}
+	catch (const Xapian::Error &error)
+	{
+		cerr << "Couldn't get document terms: " << error.get_type() << ": " << error.get_msg() << endl;
+	}
+	catch (...)
+	{
+		cerr << "Couldn't get document terms, unknown exception occured" << endl;
+	}
+	pDatabase->unlock();
+
+	return gotTerms;
 }
 
 /// Sets the list of known labels.
