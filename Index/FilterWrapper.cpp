@@ -154,7 +154,7 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 			// Preserve the top-level document's title
 			filteredDoc.setTitle(originalTitle);
 		}
-		else if (filteredDoc.getTitle().empty() == false)
+		else if (filteredDoc.getTitle().empty() == true)
 		{
 			Url urlObj(doc.getLocation());
 
