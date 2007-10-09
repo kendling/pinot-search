@@ -96,7 +96,7 @@ static void printHelp(void)
 	cout << "Examples:\n"
 		<< "pinot-label --get /home/fabrice/Documents/Bozo.txt\n\n"
 		<< "pinot-label --list\n\n"
-		<< "pinot-label --set \"[Clowns][Fun][My Hero]\" /home/fabrice/Documents/Bozo.txt/\n\n"
+		<< "pinot-label --set \"[Clowns][Fun][My Hero]\" /home/fabrice/Documents/Bozo.txt\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }
 
