@@ -732,17 +732,19 @@ string XapianIndex::getVersion(void) const
 		Xapian::Database *pIndex = pDatabase->readLock();
 		if (pIndex != NULL)
 		{
+			// If this index type doesn't support metadata, no exception will be thrown
+			// We will just get an empty string
 			version = pIndex->get_metadata("version");
 			if (version.empty() == true)
 			{
-				version = "0.00";
+				// Is there a pre-0.80 version file ?
+				version = getVersionFromFile(m_databaseName);
+				if (version.empty() == true)
+				{
+					version = "0.00";
+				}
 			}
 		}
-	}
-	catch (const Xapian::UnimplementedError &error)
-	{
-		cerr << "Couldn't get database version, no support for metadata: " << error.get_type() << ": " << error.get_msg() << endl;
-		version = getVersionFromFile(m_databaseName);
 	}
 	catch (const Xapian::Error &error)
 	{
@@ -785,6 +787,7 @@ bool XapianIndex::setVersion(const string &version) const
 	catch (const Xapian::UnimplementedError &error)
 	{
 		cerr << "Couldn't set database version, no support for metadata: " << error.get_type() << ": " << error.get_msg() << endl;
+		// Revert to a version file
 		setVer = setVersionFile(m_databaseName, version);
 	}
 	catch (const Xapian::Error &error)
@@ -933,6 +936,7 @@ unsigned int XapianIndex::getDocumentTermsCount(unsigned int docId) const
 /// Returns a document's terms.
 bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string> &wordsBuffer) const
 {
+	vector<string> noPosTerms;
 	bool gotTerms = false;
 
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
@@ -947,25 +951,57 @@ bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string>
 		Xapian::Database *pIndex = pDatabase->readLock();
 		if (pIndex != NULL)
 		{
+			unsigned int lastPos = 0;
+
 			// Go through the position list of each term
 			for (Xapian::TermIterator termIter = pIndex->termlist_begin(docId);
 				termIter != pIndex->termlist_end(docId); ++termIter)
 			{
 				string termName(*termIter);
+				char firstChar = termName[0];
+				bool hasPositions = false;
 
-				// Skip prefixed terms
-				if (isupper((int)termName[0]) != 0)
+				// Is it prefixed ?
+				if (isupper((int)firstChar) != 0)
 				{
-					continue;
+					// Skip X-prefixed terms
+					if (firstChar == 'X')
+					{
+#ifdef DEBUG
+						cout << "XapianIndex::getDocumentTerms: skipping " << termName << endl;
+#endif
+						continue;
+					}
+
+					// Keep other prefixed terms (S, U, H, P, L, T...)
+					termName.erase(0, 1);
 				}
 
-				for (Xapian::PositionIterator positionIter = pIndex->positionlist_begin(docId, termName);
-					positionIter != pIndex->positionlist_end(docId, termName); ++positionIter)
+				for (Xapian::PositionIterator positionIter = pIndex->positionlist_begin(docId, *termIter);
+					positionIter != pIndex->positionlist_end(docId, *termIter); ++positionIter)
 				{
 					wordsBuffer[*positionIter] = termName;
+					if (*positionIter > lastPos)
+					{
+						lastPos = *positionIter;
+					}
+					hasPositions = true;
+				}
+
+				if (hasPositions == false)
+				{
+					noPosTerms.push_back(termName);
 				}
 
 				gotTerms = true;
+			}
+
+			// Append terms without positional information as if they were at the end of the document
+			for (vector<string>::const_iterator noPosIter = noPosTerms.begin();
+				noPosIter != noPosTerms.end(); ++noPosIter)
+			{
+				wordsBuffer[lastPos] = *noPosIter;
+				++lastPos;
 			}
 		}
 	}
