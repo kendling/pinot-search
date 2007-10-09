@@ -429,10 +429,8 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 
 		if (reportFile == true)
 		{
-			DocumentInfo docInfo;
+			DocumentInfo docInfo("", location, "", "");
 
-			docInfo.setLocation(location);
-			docInfo.setTitle(urlObj.getFile());
 			if (S_ISDIR(fileStat.st_mode))
 			{
 				docInfo.setType("x-directory/normal");

@@ -209,7 +209,7 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 		}
 	}
 
-	DocumentInfo docInfo(urlObj.getFile(), location, MIMEScanner::scanUrl(urlObj), "");
+	DocumentInfo docInfo("", location, MIMEScanner::scanUrl(urlObj), "");
 
 	FileCollector fileCollector;
 	Document *pDoc = fileCollector.retrieveUrl(docInfo);

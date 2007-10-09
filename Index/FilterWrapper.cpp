@@ -154,6 +154,16 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 			// Preserve the top-level document's title
 			filteredDoc.setTitle(originalTitle);
 		}
+		else if (filteredDoc.getTitle().empty() == false)
+		{
+			Url urlObj(doc.getLocation());
+
+			// Default to the file name as title
+			filteredDoc.setTitle(urlObj.getFile());
+#ifdef DEBUG
+			cout << "FilterWrapper::filterDocument: set default title " << urlObj.getFile() << endl;
+#endif
+		}
 
 		// Pass it down to another filter ?
 		if ((filteredDoc.getType().length() >= 10) &&

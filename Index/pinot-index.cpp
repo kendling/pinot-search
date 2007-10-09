@@ -234,7 +234,7 @@ int main(int argc, char **argv)
 			pDownloader->setSetting("proxytype", proxyType);
 		}
 
-		DocumentInfo docInfo(urlParam, urlParam, MIMEScanner::scanUrl(thisUrl), "");
+		DocumentInfo docInfo("", urlParam, MIMEScanner::scanUrl(thisUrl), "");
 		Document *pDoc = pDownloader->retrieveUrl(docInfo);
 		if (pDoc == NULL)
 		{
