@@ -23,6 +23,7 @@
 
 #include "MIMEScanner.h"
 #include "StringManip.h"
+#include "TimeConverter.h"
 #include "Url.h"
 #include "FilterFactory.h"
 #include "FilterUtils.h"
@@ -247,6 +248,10 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 			cout << "FilterUtils::populateDocument: set " << metaIter->second.length()
 				<< " characters of data" << endl;
 #endif
+		}
+		else if (metaIter->first == "date")
+		{
+			doc.setTimestamp(metaIter->second);
 		}
 		else if (metaIter->first == "ipath")
 		{
