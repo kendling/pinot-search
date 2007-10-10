@@ -21,6 +21,8 @@
 
 #include "config.h"
 #include "NLS.h"
+#include "Url.h"
+#include "PinotSettings.h"
 #include "PinotUtils.h"
 
 using namespace std;
@@ -71,19 +73,15 @@ bool prepare_file_chooser(FileChooserDialog &fileChooser, ustring &location,
 	if (openOrCreate == false)
 	{
 		okButtonStockId = Stock::SAVE;
+		fileChooser.set_do_overwrite_confirmation(true);
 	}
 
 	// Have we been provided with an initial location ?
 	if (location.empty() == true)
 	{
 		// No, get the location of the home directory then
-		char *homeDir = getenv("HOME");
-		if (homeDir != NULL)
-		{
-			location = homeDir;
-			location += "/";
-			isDirectory = true;
-		}
+		location = PinotSettings::getInstance().getHomeDirectory();
+		isDirectory = true;
 	}
 
 	if (directoriesOnly == false)
@@ -111,13 +109,11 @@ bool prepare_file_chooser(FileChooserDialog &fileChooser, ustring &location,
 	}
 
 	fileChooser.set_action(chooserAction);
-	if (isDirectory == true)
+	Url urlObj(location);
+	fileChooser.set_current_folder(filename_from_utf8(urlObj.getLocation()));
+	if (isDirectory == false)
 	{
-		fileChooser.set_current_folder(filename_from_utf8(location));
-	}
-	else
-	{
-		fileChooser.set_filename(filename_from_utf8(location));
+		fileChooser.set_current_name(filename_from_utf8(urlObj.getFile()));
 	}
 	fileChooser.set_local_only();
 	fileChooser.set_select_multiple(false);
