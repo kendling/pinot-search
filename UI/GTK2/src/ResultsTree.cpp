@@ -1306,6 +1306,7 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 				result.setExtract(queryHistory.getItemExtract(from_utf8(m_treeName),
 					engineName, result.getLocation(), charset));
 			}
+			result.setTimestamp(from_utf8(childRow[m_resultsColumns.m_timestamp]));
 
 			// Export this
 			pExporter->exportResult(engineName, result);
