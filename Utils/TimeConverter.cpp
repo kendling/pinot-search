@@ -204,6 +204,10 @@ time_t TimeConverter::fromTimestamp(const string &timestamp, bool inGMTime)
 		else
 		{
 			gmTime = mktime(&timeTm);
+#ifndef _STRPTIME_COPES_WITH_TIMEZONE
+			// No need to worry about the timezone here
+			fixTimezone = false;
+#endif
 		}
 
 #ifndef _STRPTIME_COPES_WITH_TIMEZONE
