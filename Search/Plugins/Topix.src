@@ -16,8 +16,8 @@
 <INTERPRET
 resultListStart=""
 resultListEnd=""
-resultItemStart='<div class="article"'
-resultItemEnd='<div class="divclear">'
+resultItemStart='<p class="headline">'
+resultItemEnd='<li>'
 >
 
 </SEARCH>
