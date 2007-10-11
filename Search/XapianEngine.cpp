@@ -222,7 +222,12 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	// Any limit on what documents should be searched ?
 	if (limitQuery.empty() == false)
 	{
-		freeQuery += limitQuery;
+		string limitedQuery(limitQuery);
+
+		limitedQuery += " AND ( ";
+		limitedQuery += freeQuery;
+		limitedQuery += " )";
+		freeQuery = limitedQuery;
 #ifdef DEBUG
 		cout << "XapianEngine::parseQuery: " << freeQuery << endl;
 #endif
@@ -358,7 +363,10 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	// Any correction ?
 	correctedFreeQuery = parser.get_corrected_query_string();
 #ifdef DEBUG
-	cout << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
+	if (correctedFreeQuery.empty() == false)
+	{
+		cout << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
+	}
 #endif
 #endif
 
@@ -481,7 +489,8 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 #endif
 
 			// Get 10 non-prefixed terms
-			PrefixDecider expandDecider("RS");
+			string allowedPrefixes("RSZ");
+			PrefixDecider expandDecider(allowedPrefixes);
 			Xapian::ESet expandTerms = enquire.get_eset(20, expandDocs, &expandDecider);
 #ifdef DEBUG
 			cout << "XapianEngine::queryDatabase: " << expandTerms.size() << " expand terms" << endl;
@@ -491,8 +500,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			{
 				char firstChar = (*termIter)[0];
 
-				if ((firstChar == 'R') ||
-					(firstChar == 'S'))
+				if (allowedPrefixes.find(firstChar) != string::npos)
 				{
 					m_expandTerms.insert((*termIter).substr(1));
 				}
@@ -526,6 +534,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 /// Sets the set of documents to limit to.
 bool XapianEngine::setLimitSet(const set<string> &docsSet)
 {
+	unsigned int bracketsLevel = 1;
 	bool firstLocation = true;
 
 	m_limitQuery.clear();
@@ -536,20 +545,26 @@ bool XapianEngine::setLimitSet(const set<string> &docsSet)
 	}
 
 	// FIXME: there must be a better way !
-	m_limitQuery = " +(";
+	m_limitQuery = "( ";
 	for (set<string>::const_iterator docIter = docsSet.begin();
 		docIter != docsSet.end(); ++docIter)
 	{
 		if (firstLocation == false)
 		{
-			m_limitQuery += " or ";
+			m_limitQuery += " OR ( ";
+			++bracketsLevel;
 		}
+
 		m_limitQuery += "url:\"";
 		m_limitQuery += *docIter;
 		m_limitQuery += "\"";
+
 		firstLocation = false;
 	}
-	m_limitQuery += ")";
+	for (unsigned int count = 0; count < bracketsLevel; ++count)
+	{
+		m_limitQuery += " )";
+	}
 #ifdef DEBUG
 	cout << "XapianEngine::setLimitSet: " << m_limitQuery << endl;
 #endif
