@@ -293,7 +293,7 @@ int main(int argc, char **argv)
 			for (set<string>::const_iterator labelIter = labels.begin();
 				labelIter != labels.end(); ++labelIter)
 			{
-				cout << "[" << *labelIter << "]";
+				cout << "[" << Url::escapeUrl(*labelIter) << "]";
 			}
 			cout << endl;
 		}

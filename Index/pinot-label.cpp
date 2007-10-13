@@ -56,7 +56,7 @@ static void printLabels(const set<string> &labels)
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{
-		cout << "[" << *labelIter << "]";
+		cout << "[" << Url::escapeUrl(*labelIter) << "]";
 	}
 	cout << endl;
 }
