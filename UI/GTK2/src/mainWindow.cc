@@ -2020,9 +2020,12 @@ void mainWindow::on_exportresults_activate()
 			{
 				FileChooserDialog fileChooser(_("Export Results"));
 				FileFilter csvFilter, xmlFilter;
-				ustring location;
+				ustring location(m_settings.getHomeDirectory());
 				bool exportToCSV = true;
 
+				location += "/";
+				location += pNotebookPage->getTitle();
+				location += ".csv";
 				prepare_file_chooser(fileChooser, location, false);
 
 				// Add filters
@@ -2255,12 +2258,8 @@ void mainWindow::on_refreshindex_activate()
 void mainWindow::on_showfromindex_activate()
 {
 	vector<DocumentInfo> documentsList;
-	set<string> docLabels;
 	string indexName, queryName;
-	DocumentInfo docInfo;
-	unsigned int docId = 0, termsCount = 0;
 	int width, height;
-	bool editDocument = false;
 
 #ifdef DEBUG
 	cout << "mainWindow::on_showfromindex_activate: called" << endl;
@@ -2303,139 +2302,75 @@ void mainWindow::on_showfromindex_activate()
 		return;
 	}
 
-	IndexInterface *pIndex = m_settings.getIndex(mapIter->second);
-	if ((pIndex == NULL) ||
-		(pIndex->isGood() == false))
-	{
-		if (pIndex != NULL)
-		{
-			delete pIndex;
-		}
-		return;
-	}
-
-	// If there's only one document selected, get its labels
-	if (documentsList.size() == 1)
-	{
-		vector<DocumentInfo>::iterator docIter = documentsList.begin();
-		unsigned int indexId = 0;
-
-		// Get the document ID
-		docId = docIter->getIsIndexed(indexId);
-#ifdef DEBUG
-		cout << "mainWindow::on_showfromindex_activate: document " << docId << " in index " << indexId << endl;
-#endif
-		if (docId > 0)
-		{
-			// Get the properties from the index because they have been altered
-			// by the tree for display purposes
-			pIndex->getDocumentInfo(docId, docInfo);
-			pIndex->getDocumentLabels(docId, docLabels);
-			docInfo.setIsIndexed(indexId, docId);
-			termsCount = pIndex->getDocumentTermsCount(docId);
-			editDocument = true;
-		}
-	}
-	else
-	{
-		// If all documents are of the same language, show it
-		for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
-			docIter != documentsList.end(); ++docIter)
-		{
-			if (docInfo.getLanguage().empty() == true)
-			{
-				docInfo.setLanguage(docIter->getLanguage());
-			}
-			if (docIter->getLanguage() != docInfo.getLanguage())
-			{
-				// They aren't
-				docInfo.setLanguage("");
-				break;
-			}
-		}
-
-		// Show a blank labels list
-	}
-
 	// Let the user set the labels
 	get_size(width, height);
-	propertiesDialog propertiesBox(docLabels, docInfo, termsCount, editDocument);
+	propertiesDialog propertiesBox(mapIter->second, documentsList);
 	propertiesBox.setHeight(height / 2);
 	propertiesBox.show();
+	// What labels will this show ?
+	const set<string> &labels = propertiesBox.getLabels();
+	bool hasNoLabels = labels.empty();
 	if (propertiesBox.run() != RESPONSE_OK)
 	{
-		delete pIndex;
 		return;
 	}
 
-	const set<string> &labels = propertiesBox.getLabels();
-	string newTitle(propertiesBox.getDocumentInfo().getTitle());
-	string newLanguage(propertiesBox.getDocumentInfo().getLanguage());
+	DocumentInfo docInfo(propertiesBox.getDocumentInfo());
+	string newTitle(docInfo.getTitle());
+	string newLanguage(docInfo.getLanguage());
 #ifdef DEBUG
 	cout << "mainWindow::on_showfromindex_activate: properties changed to "
 		<< newTitle << ", " << newLanguage << endl;
 #endif
 
 	// Now apply these labels to all the documents
-	if ((docLabels.empty() == false) ||
-		(labels.empty() == false) ||
-		(documentsList.size() > 1))
+	// FIXME: do that only if something was modified
+	if ((hasNoLabels == false) &&
+		(labels.empty() == false))
 	{
-		set<unsigned int> docIds;
-
-		for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
-			docIter != documentsList.end(); ++docIter)
+		IndexInterface *pIndex = m_settings.getIndex(mapIter->second);
+		if (pIndex != NULL)
 		{
-			unsigned int indexId = 0;
-
-			docIds.insert(docIter->getIsIndexed(indexId));
-		}
-
-		// Set the document's labels list
-		pIndex->setDocumentsLabels(docIds, labels);
-	}
-
-	if ((documentsList.size() == 1) &&
-		(docId > 0))
-	{
-		// Did the title or language change ?
-		if ((newTitle != docInfo.getTitle()) ||
-			(newLanguage != docInfo.getLanguage()))
-		{
-			docInfo.setTitle(newTitle);
-			docInfo.setLanguage(newLanguage);
-
-			// Update the document
-			start_thread(new UpdateDocumentThread(indexName, docId, docInfo));
-		}
-	}
-	else
-	{
-		// Was the language changed ?
-		if (newLanguage.empty() == false)
-		{
-			// Update all documents
-			for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
-				docIter != documentsList.end(); ++docIter)
+			if (pIndex->isGood() == true)
 			{
-				unsigned int indexId = 0;
-				docId = docIter->getIsIndexed(indexId);
+				set<unsigned int> docIds;
 
-				docIter->setLanguage(newLanguage);
+				for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
+					docIter != documentsList.end(); ++docIter)
+				{
+					unsigned int indexId = 0;
 
-				start_thread(new UpdateDocumentThread(indexName, docId, *docIter));
+					docIds.insert(docIter->getIsIndexed(indexId));
+				}
+
+				// Set the document's labels list
+				// FIXME: this should be done by a thread
+				pIndex->setDocumentsLabels(docIds, labels);
 			}
-		}
 
-		if (queryName.empty() == false)
-		{
-			// The current label may have been applied to or removed from
-			// one or more of the selected documents, so refresh the list
-			browse_index(indexName, queryName, 0, 0);
+			delete pIndex;
 		}
 	}
 
-	delete pIndex;
+	// Update all documents
+	// FIXME: do that only if something was modified
+	for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
+		docIter != documentsList.end(); ++docIter)
+	{
+		unsigned int indexId = 0;
+		unsigned int docId = docIter->getIsIndexed(indexId);
+
+		docIter->setLanguage(newLanguage);
+
+		start_thread(new UpdateDocumentThread(indexName, docId, *docIter));
+	}
+
+	if (queryName.empty() == false)
+	{
+		// The current label may have been applied to or removed from
+		// one or more of the selected documents, so refresh the list
+		browse_index(indexName, queryName, 0, 0);
+	}
 }
 
 //

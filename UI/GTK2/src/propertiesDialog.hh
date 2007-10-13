@@ -16,10 +16,11 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _LABELDIALOG_HH
-#define _LABELDIALOG_HH
+#ifndef _PROPERTIESDIALOG_HH
+#define _PROPERTIESDIALOG_HH
 
 #include <string>
+#include <vector>
 #include <set>
 #include <glibmm/refptr.h>
 #include <gtkmm/liststore.h>
@@ -31,9 +32,8 @@
 class propertiesDialog : public propertiesDialog_glade
 {  
 public:
-	propertiesDialog(const std::set<std::string> &docLabels,
-		const DocumentInfo &docInfo, unsigned int termsCount,
-		bool editDocument = true);
+	propertiesDialog(const std::string &indexLocation,
+	        const std::vector<DocumentInfo> &documentsList);
 	virtual ~propertiesDialog();
 
 	void setHeight(int maxHeight);
@@ -45,7 +45,9 @@ public:
 protected:
 	LabelModelColumns m_labelsColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
+	std::string m_indexLocation;
 	std::set<std::string> m_labels;
+	unsigned int m_docId;
 	bool m_editDocument;
 	DocumentInfo m_docInfo;
 
@@ -53,7 +55,8 @@ protected:
 
 	void populate_labelsTreeview(const std::set<std::string> &docLabels);
 
-	void on_labelOkButton_clicked();
+	virtual void on_labelOkButton_clicked();
+	virtual void on_saveTermsButton_clicked();
 
 };
-#endif // _LABELDIALOG_HH
+#endif

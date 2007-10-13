@@ -18,11 +18,13 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <fstream>
 #include <utility>
 
 #include "config.h"
 #include "Languages.h"
 #include "NLS.h"
+#include "XapianIndex.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "propertiesDialog.hh"
@@ -31,27 +33,64 @@ using namespace std;
 using namespace Glib;
 using namespace Gtk;
 
-propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
-	const DocumentInfo &docInfo, unsigned int termsCount, bool editDocument) :
+propertiesDialog::propertiesDialog(const string &indexLocation,
+	const vector<DocumentInfo> &documentsList) :
 	propertiesDialog_glade(),
-	m_editDocument(editDocument),
-	m_docInfo(docInfo)
+	m_indexLocation(indexLocation),
+	m_docId(0),
+	m_editDocument(false)
 {
-	string language(docInfo.getLanguage());
-	char numStr[128];
-	unsigned int indexId = 0;
+	set<string> docLabels;
+	string language;
+	unsigned int termsCount = 0;
 	bool notALanguageName = false;
+	char numStr[128];
 
-	// Get the document ID
-	unsigned int docId = docInfo.getIsIndexed(indexId);
-#ifdef DEBUG
-	cout << "propertiesDialog: document " << docId << endl;
-#endif
-	if (docId > 0)
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
+	if ((pIndex == NULL) ||
+		(pIndex->isGood() == false))
 	{
-		snprintf(numStr, 128, "%u", docId);
-		set_title(get_title() + " (ID " + numStr + ")");
+		if (pIndex != NULL)
+		{
+			delete pIndex;
+		}
+		return;
 	}
+
+	// If there's only one document selected, get its labels
+	if (documentsList.size() == 1)
+	{
+		vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
+		unsigned int indexId = 0;
+
+		// Get the document ID
+		m_docId = docIter->getIsIndexed(indexId);
+#ifdef DEBUG
+		cout << "propertiesDialog::propertiesDialog: document " << m_docId << " in index " << indexId << endl;
+#endif
+		if (m_docId > 0)
+		{
+			// Get the properties from the index because they may have been altered
+			// for display purposes
+			pIndex->getDocumentInfo(m_docId, m_docInfo);
+			pIndex->getDocumentLabels(m_docId, docLabels);
+			m_docInfo.setIsIndexed(indexId, m_docId);
+			termsCount = pIndex->getDocumentTermsCount(m_docId);
+			language = m_docInfo.getLanguage();
+			m_editDocument = true;
+
+			snprintf(numStr, 128, "%u", m_docId);
+			set_title(get_title() + " (ID " + numStr + ")");
+		}
+	}
+	else
+	{
+		// Leave the labels list blank
+		// FIXME: if all documents are of the same language, show it
+		language = _("Per document");
+		notALanguageName = true;
+	}
+	delete pIndex;
 
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
@@ -63,10 +102,10 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 
 	if (m_editDocument == true)
 	{
-		unsigned int size = docInfo.getSize();
+		unsigned int size = m_docInfo.getSize();
 
-		titleEntry->set_text(to_utf8(docInfo.getTitle()));
-		typeEntry->set_text(to_utf8(docInfo.getType()));
+		titleEntry->set_text(to_utf8(m_docInfo.getTitle()));
+		typeEntry->set_text(to_utf8(m_docInfo.getType()));
 		if (size == 0)
 		{
 			sizeEntry->set_text(_("Unknown"));
@@ -88,12 +127,6 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 	}
 	else
 	{
-		if (language.empty() == true)
-		{
-			language = _("Per document"); 
-			notALanguageName = true;
-		}
-
 		titleLabel->hide();
 		titleEntry->hide();
 		typeLabel->hide();
@@ -102,6 +135,7 @@ propertiesDialog::propertiesDialog(const std::set<std::string> &docLabels,
 		sizeEntry->hide();
 		termsLabel->hide();
 		termsEntry->hide();
+		saveTermsButton->hide();
 	}
 
 	populate_languageCombobox(language, notALanguageName);
@@ -169,6 +203,7 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 		{
 			// Yup
 			row[m_labelsColumns.m_enabled] = true;
+			m_labels.insert(labelName);
 		}
 		else
 		{
@@ -227,6 +262,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 	}
 
 	// Go through the labels tree
+	m_labels.clear();
 	TreeModel::Children children = m_refLabelsTree->children();
 	if (children.empty() == false)
 	{
@@ -243,3 +279,47 @@ void propertiesDialog::on_labelOkButton_clicked()
 		}
 	}
 }
+
+void propertiesDialog::on_saveTermsButton_clicked()
+{
+	ustring location(PinotSettings::getInstance().getHomeDirectory());
+
+	location += "/terms.txt";
+#ifdef DEBUG
+	cout << "propertiesDialog::on_saveTermsButton_clicked: " << location << endl;
+#endif
+
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
+	if ((pIndex == NULL) ||
+		(pIndex->isGood() == false))
+	{
+		if (pIndex != NULL)
+		{
+			delete pIndex;
+		}
+		return;
+	}
+
+	if (select_file_name(_("Export Terms"), location, false) == true)
+	{
+		std::map<unsigned int, string> wordsMap;
+
+		if ((location.empty() == false) &&
+			(pIndex->getDocumentTerms(m_docId, wordsMap) == true))
+		{
+			ofstream termsFile;
+
+			termsFile.open(location.c_str());
+			if (termsFile.good() == true)
+			{
+				for (std::map<unsigned int, string>::const_iterator termIter = wordsMap.begin();
+					termIter != wordsMap.end(); ++termIter)
+				{
+					termsFile << termIter->second << " ";
+				}
+			}
+			termsFile.close();
+		}
+	}
+}
+
