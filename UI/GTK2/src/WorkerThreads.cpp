@@ -73,6 +73,58 @@ Dispatcher WorkerThread::m_dispatcher;
 pthread_mutex_t WorkerThread::m_dispatcherMutex = PTHREAD_MUTEX_INITIALIZER;
 bool WorkerThread::m_immediateFlush = true;
 
+string WorkerThread::errorToString(int errorNum)
+{
+	if (errorNum == 0)
+	{
+		return "";
+	}
+
+	if (errorNum < INDEX_ERROR)
+	{
+		return strerror(errorNum);
+	}
+
+	// Internal error codes
+	switch (errorNum)
+	{
+		case INDEX_ERROR:
+			return _("Index error");
+		case INDEXING_FAILED:
+			return _("Couldn't index document");
+		case UPDATE_FAILED:
+			return _("Couldn't update document");
+		case UNINDEXING_FAILED:
+			return _("Couldn't unindex document(s)");
+		case QUERY_FAILED:
+			return _("Couldn't run query on search engine");
+		case HISTORY_FAILED:
+			return _("Couldn't get history for search engine");
+		case DOWNLOAD_FAILED:
+			return _("Couldn't retrieve document");
+		case MONITORING_FAILED:
+			return _("Couldn't initialize file monitor");
+		case OPENDIR_FAILED:
+			return _("Couldn't open directory");
+		case UNKNOWN_INDEX:
+			return _("Index doesn't exist");
+		case UNKNOWN_ENGINE:
+			return  _("Couldn't create search engine");
+		case UNSUPPORTED_TYPE:
+			return _("Cannot index document type");
+		case UNSUPPORTED_PROTOCOL:
+			return _("No downloader for this protocol");
+		case ROBOTS_FORBIDDEN:
+			return _("Robots META tag forbids indexing");
+		case NO_MONITORING:
+			return _("No monitoring handler");
+		default:
+			break;
+	}
+
+	return _("Unknown error");
+}
+
 Dispatcher &WorkerThread::getDispatcher(void)
 {
 	return m_dispatcher;
@@ -86,7 +138,8 @@ void WorkerThread::immediateFlush(bool doFlush)
 WorkerThread::WorkerThread() :
 	m_id(0),
 	m_background(false),
-	m_done(false)
+	m_done(false),
+	m_errorNum(0)
 {
 }
 
@@ -140,9 +193,24 @@ bool WorkerThread::isDone(void) const
 	return m_done;
 }
 
+int WorkerThread::getErrorNum(void) const
+{
+	return m_errorNum;
+}
+
 string WorkerThread::getStatus(void) const
 {
-	return m_status;
+	string status(errorToString(m_errorNum));
+
+	if ((status.empty() == false) &&
+		(m_errorParam.empty() == false))
+	{
+		status += " (";
+		status += m_errorParam;
+		status += ")";
+	}
+
+	return status;
 }
 
 void WorkerThread::threadHandler(void)
@@ -417,7 +485,8 @@ unsigned int ThreadsManager::get_threads_count(void)
 		unlock_threads();
 	}
 #ifdef DEBUG
-	cout << "ThreadsManager::get_threads_count: " << count << " threads left" << endl;
+	cout << "ThreadsManager::get_threads_count: " << count << "/"
+		<< m_backgroundThreadsCount << " threads left" << endl;
 #endif
 
 	// A negative count would mean that a background thread
@@ -676,11 +745,8 @@ void IndexBrowserThread::doWork(void)
 	map<string, string>::const_iterator mapIter = indexesMap.find(m_indexName);
 	if (mapIter == indexesMap.end())
 	{
-		m_status = _("Index");
-		m_status += " ";
-		m_status += m_indexName;
-		m_status += " ";
-		m_status += _("doesn't exist");
+		m_errorNum = UNKNOWN_INDEX;
+		m_errorParam = m_indexName;
 		return;
 	}
 
@@ -689,9 +755,8 @@ void IndexBrowserThread::doWork(void)
 	if ((pIndex == NULL) ||
 		(pIndex->isGood() == false))
 	{
-		m_status = _("Index error on");
-		m_status += " ";
-		m_status += mapIter->second;
+		m_errorNum = INDEX_ERROR;
+		m_errorParam = mapIter->second;
 		if (pIndex != NULL)
 		{
 			delete pIndex;
@@ -964,9 +1029,8 @@ void EngineQueryThread::doWork(void)
 	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(m_engineName, m_engineOption);
 	if (pEngine == NULL)
 	{
-		m_status = _("Couldn't create search engine");
-		m_status += " ";
-		m_status += m_engineDisplayableName;
+		m_errorNum = UNKNOWN_ENGINE;
+		m_errorParam = m_engineDisplayableName;
 		return;
 	}
 
@@ -993,9 +1057,8 @@ void EngineQueryThread::doWork(void)
 	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
 	if (pEngine->runQuery(m_queryProps, m_startDoc) == false)
 	{
-		m_status = _("Couldn't run query on search engine");
-		m_status += " ";
-		m_status += m_engineDisplayableName;
+		m_errorNum = QUERY_FAILED;
+		m_errorParam = m_engineDisplayableName;
 	}
 	else
 	{
@@ -1054,9 +1117,8 @@ void EngineHistoryThread::doWork(void)
 	if (history.getItems(m_queryProps.getName(), m_engineDisplayableName,
 		m_maxDocsCount, m_documentsList) == false)
 	{
-		m_status = _("Couldn't get history for search engine");
-		m_status += " ";
-		m_status += m_engineDisplayableName;
+		m_errorNum = HISTORY_FAILED;
+		m_errorParam = m_engineDisplayableName;
 	}
 	else if (m_documentsList.empty() == false)
 	{
@@ -1100,9 +1162,8 @@ void ExpandQueryThread::doWork(void)
 	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine("xapian", "MERGED");
 	if (pEngine == NULL)
 	{
-		m_status = _("Couldn't create search engine");
-		m_status += " ";
-		m_status += m_queryProps.getName();
+		m_errorNum = UNKNOWN_ENGINE;
+		m_errorParam = m_queryProps.getName();
 		return;
 	}
 
@@ -1113,7 +1174,7 @@ void ExpandQueryThread::doWork(void)
 	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
 	if (pEngine->runQuery(m_queryProps) == false)
 	{
-		m_status = _("Couldn't run query on search engine");
+		m_errorNum = QUERY_FAILED;
 	}
 	else
 	{
@@ -1161,18 +1222,16 @@ void LabelUpdateThread::doWork(void)
 	IndexInterface *pDocsIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_docsIndexLocation);
 	if (pDocsIndex == NULL)
 	{
-		m_status = _("Index error on");
-		m_status += " ";
-		m_status += PinotSettings::getInstance().m_docsIndexLocation;
+		m_errorNum = INDEX_ERROR;
+		m_errorParam = PinotSettings::getInstance().m_docsIndexLocation;
 		return;
 	}
 
 	IndexInterface *pDaemonIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
 	if (pDaemonIndex == NULL)
 	{
-		m_status = _("Index error on");
-		m_status += " ";
-		m_status += PinotSettings::getInstance().m_daemonIndexLocation;
+		m_errorNum = INDEX_ERROR;
+		m_errorParam = PinotSettings::getInstance().m_daemonIndexLocation;
 		delete pDocsIndex;
 		return;
 	}
@@ -1264,9 +1323,8 @@ void DownloadingThread::doWork(void)
 	m_pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
 	if (m_pDownloader == NULL)
 	{
-		m_status = _("Couldn't obtain downloader for protocol");
-		m_status += " ";
-		m_status += thisUrl.getProtocol();
+		m_errorNum = UNSUPPORTED_PROTOCOL;
+		m_errorParam = thisUrl.getProtocol();
 	}
 	else if (m_done == false)
 	{
@@ -1289,9 +1347,8 @@ void DownloadingThread::doWork(void)
 
 	if (m_pDoc == NULL)
 	{
-		m_status = _("Couldn't retrieve");
-		m_status += " ";
-		m_status += m_docInfo.getLocation();
+		m_errorNum = DOWNLOAD_FAILED;
+		m_errorParam = m_docInfo.getLocation();
 	}
 }
 
@@ -1345,9 +1402,8 @@ void IndexingThread::doWork(void)
 	if ((pIndex == NULL) ||
 		(pIndex->isGood() == false))
 	{
-		m_status = _("Index error on");
-		m_status += " ";
-		m_status += m_indexLocation;
+		m_errorNum = INDEX_ERROR;
+		m_errorParam = m_indexLocation;
 		if (pIndex != NULL)
 		{
 			delete pIndex;
@@ -1375,13 +1431,8 @@ void IndexingThread::doWork(void)
 		// Skip unsupported types ?
 		if (m_allowAllMIMETypes == false)
 		{
-			m_status = _("Cannot index document type");
-			m_status += " ";
-			m_status += m_docInfo.getType();
-			m_status += " ";
-			m_status += _("at");
-			m_status += " ";
-			m_status += m_docInfo.getLocation();
+			m_errorNum = UNSUPPORTED_TYPE;
+			m_errorParam = m_docInfo.getType();
 			delete pIndex;
 
 			return;
@@ -1456,13 +1507,8 @@ void IndexingThread::doWork(void)
 			// Skip unsupported types ?
 			if (m_allowAllMIMETypes == false)
 			{
-				m_status = _("Cannot index document type");
-				m_status += " ";
-				m_status += m_docInfo.getType();
-				m_status += " ";
-				m_status += _("at");
-				m_status += " ";
-				m_status += m_docInfo.getLocation();
+				m_errorNum = UNSUPPORTED_TYPE;
+				m_errorParam = m_docInfo.getType();
 				delete pIndex;
 
 				return;
@@ -1494,9 +1540,8 @@ void IndexingThread::doWork(void)
 						(pos2 != string::npos))
 					{
 						// No, it isn't
-						m_status = _("Robots META tag forbids indexing");
-						m_status += " ";
-						m_status += m_docInfo.getLocation();
+						m_errorNum = ROBOTS_FORBIDDEN;
+						m_errorParam = m_docInfo.getLocation();
 						delete pIndex;
 
 						return;
@@ -1550,9 +1595,8 @@ void IndexingThread::doWork(void)
 
 			if (success == false)
 			{
-				m_status = _("Couldn't index");
-				m_status += " ";
-				m_status += m_docInfo.getLocation();
+				m_errorNum = INDEXING_FAILED;
+				m_errorParam = m_docInfo.getLocation();
 			}
 			else
 			{
@@ -1615,9 +1659,8 @@ void UnindexingThread::doWork(void)
 	if ((pIndex == NULL) ||
 		(pIndex->isGood() == false))
 	{
-		m_status = _("Index error on");
-		m_status += " ";
-		m_status += m_indexLocation;
+		m_errorNum = INDEX_ERROR;
+		m_errorParam = m_indexLocation;
 		if (pIndex != NULL)
 		{
 			delete pIndex;
@@ -1626,7 +1669,7 @@ void UnindexingThread::doWork(void)
 	}
 
 	// Be pessimistic and assume something will go wrong ;-)
-	m_status = _("Couldn't unindex document(s)");
+	m_errorNum = UNINDEXING_FAILED;
 
 	// Are we supposed to remove documents based on labels ?
 	if (m_docIdList.empty() == true)
@@ -1653,7 +1696,7 @@ void UnindexingThread::doWork(void)
 		}
 
 		// Nothing to report
-		m_status = "";
+		m_errorNum = 0;
 	}
 	else
 	{
@@ -1687,7 +1730,7 @@ void UnindexingThread::doWork(void)
 		}
 
 		// Nothing to report
-		m_status = "";
+		m_errorNum = 0;
 	}
 
 	delete pIndex;
@@ -1729,11 +1772,8 @@ void UpdateDocumentThread::doWork(void)
 		map<string, string>::const_iterator mapIter = indexesMap.find(m_indexName);
 		if (mapIter == indexesMap.end())
 		{
-			m_status = _("Index");
-			m_status += " ";
-			m_status += m_indexName;
-			m_status += " ";
-			m_status += _("doesn't exist");
+			m_errorNum = UNKNOWN_INDEX;
+			m_errorParam = m_indexName;
 			return;
 		}
 
@@ -1742,9 +1782,8 @@ void UpdateDocumentThread::doWork(void)
 		if ((pIndex == NULL) ||
 			(pIndex->isGood() == false))
 		{
-			m_status = _("Index error on");
-			m_status += " ";
-			m_status += mapIter->second;
+			m_errorNum = INDEX_ERROR;
+			m_errorParam = mapIter->second;
 			if (pIndex != NULL)
 			{
 				delete pIndex;
@@ -1754,7 +1793,7 @@ void UpdateDocumentThread::doWork(void)
 
 		if (pIndex->updateDocumentInfo(m_docId, m_docInfo) == false)
 		{
-			m_status = _("Couldn't update document");
+			m_errorNum = UPDATE_FAILED;
 		}
 		else
 		{
@@ -1981,7 +2020,7 @@ void MonitorThread::doWork(void)
 	if ((m_pHandler == NULL) ||
 		(m_pMonitor == NULL))
 	{
-		m_status = _("No monitoring handler");
+		m_errorNum = NO_MONITORING;
 		return;
 	}
 
@@ -2023,7 +2062,7 @@ void MonitorThread::doWork(void)
 		FD_SET(monitorFd, &listenSet);
 		if (monitorFd < 0)
 		{
-			m_status = _("Couldn't initialize file monitor");
+			m_errorNum = MONITORING_FAILED;
 			return;
 		}
 

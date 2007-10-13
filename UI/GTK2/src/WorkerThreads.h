@@ -45,6 +45,13 @@ class WorkerThread
 		WorkerThread();
 		virtual ~WorkerThread();
 
+		typedef enum { INDEX_ERROR = 10000, INDEXING_FAILED, UPDATE_FAILED, UNINDEXING_FAILED, \
+			QUERY_FAILED, HISTORY_FAILED, DOWNLOAD_FAILED, MONITORING_FAILED, OPENDIR_FAILED, \
+			UNKNOWN_INDEX, UNKNOWN_ENGINE, UNSUPPORTED_TYPE, UNSUPPORTED_PROTOCOL, \
+			ROBOTS_FORBIDDEN, NO_MONITORING } ThreadError;
+
+		static std::string errorToString(int errorNum);
+
 		static Glib::Dispatcher &getDispatcher(void);
 
 		static void immediateFlush(bool doFlush);
@@ -67,6 +74,8 @@ class WorkerThread
 
 		bool isDone(void) const;
 
+		int getErrorNum(void) const;
+
 		std::string getStatus(void) const;
 
 	protected:
@@ -77,7 +86,8 @@ class WorkerThread
 		unsigned int m_id;
 		bool m_background;
 		bool m_done;
-		std::string m_status;
+		int m_errorNum;
+		std::string m_errorParam;
 
 		void threadHandler(void);
 

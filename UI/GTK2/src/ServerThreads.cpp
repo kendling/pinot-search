@@ -239,7 +239,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 	string location("file://" + entryName);
 	time_t itemDate;
 	struct stat fileStat;
-	int statSuccess = 0;
+	int entryStatus = 0;
 	bool scanSuccess = true, reportFile = false, itemExists = false;
 
 	if (entryName.empty() == true)
@@ -260,24 +260,25 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 		return false;
 	}
 
+	// Is this item in the database already ?
+	itemExists = history.hasItem(location, status, itemDate);
+
 	if (m_followSymLinks == false)
 	{
-		statSuccess = lstat(entryName.c_str(), &fileStat);
+		entryStatus = lstat(entryName.c_str(), &fileStat);
 	}
 	else
 	{
 		// Stat the files pointed to by symlinks
-		statSuccess = stat(entryName.c_str(), &fileStat);
+		entryStatus = stat(entryName.c_str(), &fileStat);
 	}
 
-	// Is this item in the database already ?
-	itemExists = history.hasItem(location, status, itemDate);
-
-	if (statSuccess == -1)
+	if (entryStatus == -1)
 	{
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: stat failed with error " << errno << " " << strerror(errno) << endl;
+		cout << "DirectoryScannerThread::scanEntry: stat failed with error " << errno << endl;
 #endif
+		entryStatus = errno;
 		scanSuccess = false;
 	}
 	// Is it a file or a directory ?
@@ -365,8 +366,9 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 			else
 			{
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: opendir failed with error " << errno << " " << strerror(errno) << endl;
+				cout << "DirectoryScannerThread::scanEntry: opendir failed with error " << errno << endl;
 #endif
+				entryStatus = errno;
 				scanSuccess = false;
 			}
 		}
@@ -376,6 +378,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 #ifdef DEBUG
 		cout << "DirectoryScannerThread::scanEntry: unknown entry type" << endl;
 #endif
+		entryStatus = ENOENT;
 		scanSuccess = false;
 	}
 
@@ -387,11 +390,11 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 		// Record this error
 		if (itemExists == false)
 		{
-			history.insertItem(location, CrawlHistory::ERROR, m_sourceId, timeNow);
+			history.insertItem(location, CrawlHistory::ERROR, m_sourceId, timeNow, entryStatus);
 		}
 		else
 		{
-			history.updateItem(location, CrawlHistory::ERROR, timeNow);
+			history.updateItem(location, CrawlHistory::ERROR, timeNow, entryStatus);
 		}
 	}
 	else if (reportFile == true)
@@ -474,9 +477,8 @@ void DirectoryScannerThread::doWork(void)
 
 	if (scanEntry(m_dirName, history) == false)
 	{
-		m_status = _("Couldn't open directory");
-		m_status += " ";
-		m_status += m_dirName;
+		m_errorNum = OPENDIR_FAILED;
+		m_errorParam = m_dirName;
 	}
 	flushUpdates(history);
 
