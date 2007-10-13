@@ -28,6 +28,8 @@
 #include "FilterFactory.h"
 #include "FilterUtils.h"
 
+#define UNSUPPORTED_TYPE "X-Unsupported"
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -53,6 +55,12 @@ Dijon::Filter *FilterUtils::getFilter(const string &mimeType)
 	map<string, string>::const_iterator aliasIter = m_typeAliases.find(mimeType);
 	if (aliasIter != m_typeAliases.end())
 	{
+		if (aliasIter->second == UNSUPPORTED_TYPE)
+		{
+			// We already know that none of this type's parents are supported
+			return NULL;
+		}
+
 		pFilter = Dijon::FilterFactory::getFilter(aliasIter->second);
 	}
 	else
@@ -83,6 +91,9 @@ Dijon::Filter *FilterUtils::getFilter(const string &mimeType)
 				return pFilter;
 			}
 		}
+
+		// This type has no valid parent
+		m_typeAliases[mimeType] = UNSUPPORTED_TYPE;
 	}
 
 	return NULL;
@@ -94,7 +105,12 @@ bool FilterUtils::isSupportedType(const string &mimeType)
 	map<string, string>::const_iterator aliasIter = m_typeAliases.find(mimeType);
 	if (aliasIter != m_typeAliases.end())
 	{
-		// There's an alias because we were able to get a filter for this parent type
+		if (aliasIter->second == UNSUPPORTED_TYPE)
+		{
+			return false;
+		}
+
+		// We were able to get a filter for this parent type
 		// or a previous call to isSupportedType() succeeded
 		return true;
 	}
@@ -115,6 +131,9 @@ bool FilterUtils::isSupportedType(const string &mimeType)
 				return true;
 			}
 		}
+
+		// This type has no valid parent
+		m_typeAliases[mimeType] = UNSUPPORTED_TYPE;
 	}
 
 	return false;
