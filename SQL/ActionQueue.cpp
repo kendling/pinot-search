@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <set>
 #include <iostream>
 
 #include "Url.h"
@@ -29,6 +30,7 @@
 #include "ActionQueue.h"
 
 using std::string;
+using std::set;
 using std::cout;
 using std::endl;
 
@@ -134,23 +136,25 @@ bool ActionQueue::pushItem(ActionType type, const DocumentInfo &docInfo)
 
 	// Serialize DocumentInfo
 	info += docInfo.getTitle();
-	info += "\n";
-	info += "url=";
+	info += "\nurl=";
 	info += url;
-	info += "\n";
-	info += "type=";
+	info += "\ntype=";
 	info += docInfo.getType();
-	info += "\n";
-	info += "language=";
+	info += "\nlanguage=";
 	info += docInfo.getLanguage();
-	info += "\n";
-	info += "modtime=";
+	info += "\nmodtime=";
 	info += docInfo.getTimestamp();
-	info += "\n";
-	info += "size=";
+	info += "\nsize=";
 	char sizeStr[64];
 	snprintf(sizeStr, 64, "%ld", docInfo.getSize());
 	info += sizeStr;
+	info += "\nlabels=";
+	const set<string> &labels = docInfo.getLabels();
+	for (set<string>::const_iterator labelIter = labels.begin();
+		labelIter != labels.end(); ++labelIter)
+	{
+		info += "[" + Url::escapeUrl(*labelIter) + "]";
+	}
 	info += "\n";
 
 	if (update == false)
@@ -238,6 +242,27 @@ bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo)
 			if (bytesSize.empty() == false)
 			{
 				docInfo.setSize((off_t )atol(bytesSize.c_str()));
+			}
+			string labelsString(StringManip::extractField(info, "labels=", "\n"));
+			if (labelsString.empty() == false)
+			{
+				string::size_type endPos = 0;
+				string label(StringManip::extractField(labelsString, "[", "]", endPos));
+				set<string> labels;
+
+				// Parse labels
+				while (label.empty() == false)
+				{
+					labels.insert(Url::unescapeUrl(label));
+
+					if (endPos == string::npos)
+					{
+						break;
+					}
+					label = StringManip::extractField(labelsString, "[", "]", endPos);
+				}
+
+				docInfo.setLabels(labels);
 			}
 
 			delete row;
