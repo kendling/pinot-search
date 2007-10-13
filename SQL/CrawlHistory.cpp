@@ -81,6 +81,8 @@ CrawlHistory::CrawlStatus CrawlHistory::textToStatus(const string &text)
 /// Creates the CrawlHistory table in the database.
 bool CrawlHistory::create(const string &database)
 {
+	bool createHistoryTable = false;
+
 	// The specified path must be a file
 	if (SQLiteBase::check(database) == false)
 	{
@@ -102,8 +104,28 @@ bool CrawlHistory::create(const string &database)
 	// Does CrawlHistory exist ?
 	if (db.executeSimpleStatement("SELECT * FROM CrawlHistory LIMIT 1;") == false)
 	{
-		if (db.executeSimpleStatement("CREATE TABLE CrawlHistory (Url VARCHAR(255) \
-			PRIMARY KEY, Status VARCHAR(255), SourceID INTEGER, DATE INTEGER);") == false)
+		createHistoryTable = true;
+	}
+	else
+	{
+		// Previous versions didn't include a ErrorNum field, so check for it
+		if (db.executeSimpleStatement("SELECT ErrorNum FROM CrawlHistory LIMIT 1;") == false)
+		{
+#ifdef DEBUG
+			cout << "CrawlHistory::create: CrawlHistory needs updating" << endl;
+#endif
+			// Ideally, we would use ALTER TABLE but it's not supported by SQLite
+			if (db.executeSimpleStatement("DROP TABLE CrawlHistory; VACUUM;") == true)
+			{
+				createHistoryTable = true;
+			}
+		}
+	}
+
+	if (createHistoryTable == true)
+	{
+		if (db.executeSimpleStatement("CREATE TABLE CrawlHistory (Url VARCHAR(255) PRIMARY KEY, \
+			Status VARCHAR(255), SourceID INTEGER, DATE INTEGER, ErrorNum INTEGER);") == false)
 		{
 			return false;
 		}
@@ -212,14 +234,15 @@ bool CrawlHistory::deleteSource(unsigned int sourceId)
 }
 
 /// Inserts an URL.
-bool CrawlHistory::insertItem(const string &url, CrawlStatus status, unsigned int sourceId, time_t date)
+bool CrawlHistory::insertItem(const string &url, CrawlStatus status, unsigned int sourceId,
+	time_t date, int errNum)
 {
 	bool success = false;
 
 	SQLiteResults *results = executeStatement("INSERT INTO CrawlHistory \
-		VALUES('%q', '%q', '%u', '%d');",
+		VALUES('%q', '%q', '%u', '%d', '%d');",
 		Url::escapeUrl(url).c_str(), statusToText(status).c_str(), sourceId,
-		(date == 0 ? time(NULL) : date));
+		(date == 0 ? time(NULL) : date), errNum);
 	if (results != NULL)
 	{
 		success = true;
@@ -255,13 +278,13 @@ bool CrawlHistory::hasItem(const string &url, CrawlStatus &status, time_t &date)
 }
 
 /// Updates an URL.
-bool CrawlHistory::updateItem(const string &url, CrawlStatus status, time_t date)
+bool CrawlHistory::updateItem(const string &url, CrawlStatus status, time_t date, int errNum)
 {
 	bool success = false;
 
 	SQLiteResults *results = executeStatement("UPDATE CrawlHistory \
-		SET Status='%q', Date='%d' WHERE Url='%q';",
-		statusToText(status).c_str(), (date == 0 ? time(NULL) : date),
+		SET Status='%q', Date='%d', ErrorNum='%d' WHERE Url='%q';",
+		statusToText(status).c_str(), (date == 0 ? time(NULL) : date), errNum,
 		Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
@@ -311,6 +334,29 @@ bool CrawlHistory::updateItemsStatus(unsigned int sourceId, CrawlStatus currentS
 	}
 
 	return success;
+}
+
+/// Gets the error number for a URL.
+int CrawlHistory::getErrorNum(const string &url)
+{
+	int errNum = 0;
+
+	SQLiteResults *results = executeStatement("SELECT ErrorNum FROM CrawlHistory WHERE Url='%q';",
+		Url::escapeUrl(url).c_str());
+	if (results != NULL)
+	{
+		SQLiteRow *row = results->nextRow();
+		if (row != NULL)
+		{
+			errNum = atoi(row->getColumn(0).c_str());
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return errNum;
 }
 
 /// Returns items that belong to a source.

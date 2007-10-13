@@ -53,19 +53,23 @@ class CrawlHistory : public SQLiteBase
 		bool deleteSource(unsigned int sourceId);
 
 		/// Inserts an URL.
-		bool insertItem(const string &url, CrawlStatus status, unsigned int sourceId, time_t date);
+		bool insertItem(const string &url, CrawlStatus status, unsigned int sourceId,
+			time_t date, int errNum = 0);
 
 		/// Checks if an URL is in the history.
 		bool hasItem(const string &url, CrawlStatus &status, time_t &date);
 
 		/// Updates an URL.
-		bool updateItem(const string &url, CrawlStatus status, time_t date);
+		bool updateItem(const string &url, CrawlStatus status, time_t date, int errNum = 0);
 
 		/// Updates URLs.
 		bool updateItems(const map<string, time_t> urls, CrawlStatus status);
 
 		/// Updates the status of items en masse.
 		bool updateItemsStatus(unsigned int sourceId, CrawlStatus currentStatus, CrawlStatus newStatus);
+
+		/// Gets the error number for a URL.
+		int getErrorNum(const string &url);
 
 		/// Returns items that belong to a source.
 		unsigned int getSourceItems(unsigned int sourceId, CrawlStatus status,
