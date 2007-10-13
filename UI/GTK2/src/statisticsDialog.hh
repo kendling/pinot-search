@@ -20,6 +20,7 @@
 #define _STATISTICSDIALOG_HH
 
 #include <time.h>
+#include <map>
 #include <sigc++/slot.h>
 #include <sigc++/connection.h>
 #include <glibmm/refptr.h>
@@ -43,7 +44,8 @@ protected:
 	Gtk::TreeModel::iterator m_daemonIter;
 	Gtk::TreeModel::iterator m_daemonStatIter;
 	Gtk::TreeModel::iterator m_crawledStatIter;
-	Gtk::TreeModel::iterator m_errorsIter;
+	Gtk::TreeModel::iterator m_errorsTopIter;
+	std::map<int, Gtk::TreeModel::iterator> m_errorsIters;
 	bool m_hasErrors;
 	time_t m_lastErrorDate;
 	SigC::Connection m_idleConnection;

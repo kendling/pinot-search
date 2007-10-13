@@ -32,6 +32,7 @@
 #include "ViewHistory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
+#include "WorkerThreads.h"
 #include "statisticsDialog.hh"
 
 using namespace std;
@@ -193,47 +194,56 @@ bool statisticsDialog::on_activity_timeout(void)
 		// Did any error occur on this source ?
 		unsigned int errorCount = crawlerHistory.getSourceItems(sourceIter->first,
 			CrawlHistory::ERROR, errors, m_lastErrorDate);
+		m_lastErrorDate = time(NULL);
 		if ((errorCount > 0) &&
 			(errors.empty() == false))
 		{
-			Url urlObj(sourceIter->second);
-			ustring sourceName(urlObj.getLocation());
-
 			// Add an errors row
 			if (m_hasErrors == false)
 			{
-				m_errorsIter  = m_refStore->append(m_daemonIter->children());
-				row = *m_errorsIter;
+				m_errorsTopIter = m_refStore->append(m_daemonIter->children());
+				row = *m_errorsTopIter;
 				row[m_statsColumns.m_name] = _("Errors");
-
-				// Don't expand it
-				TreeModel::Path errPath = m_refStore->get_path(m_errorsIter);
-				statisticsTreeview->collapse_row(errPath);
 
 				m_hasErrors = true;
 			}
-
-			// Add the source
-			TreeModel::iterator srcIter = m_refStore->append(m_errorsIter->children());
-			row = *srcIter;
-			if (urlObj.getFile().empty() == false)
-			{
-				sourceName += "/";
-				sourceName += urlObj.getFile();
-			}
-			row[m_statsColumns.m_name] = sourceName;
 
 			// List them
 			for (set<string>::const_iterator errorIter = errors.begin();
 				errorIter != errors.end(); ++errorIter)
 			{
-				TreeModel::iterator errIter = m_refStore->append(srcIter->children());
-				row = *errIter;
-				row[m_statsColumns.m_name] = (*errorIter);
+				string locationWithError(*errorIter);
+				TreeModel::iterator errIter;
+				int errorNum = crawlerHistory.getErrorNum(locationWithError);
+
+				// Find or create the iterator for this particular kind of error
+				std::map<int, TreeModel::iterator>::const_iterator errorTreeIter = m_errorsIters.find(errorNum);
+				if (errorTreeIter == m_errorsIters.end())
+				{
+					string errorText(WorkerThread::errorToString(errorNum));
+
+					errIter = m_refStore->append(m_errorsTopIter->children());
+					row = *errIter;
+					row[m_statsColumns.m_name] = errorText;
+
+					m_errorsIters.insert(pair<int, TreeModel::iterator>(errorNum, errIter));
+				}
+				else
+				{
+					errIter = errorTreeIter->second;
+				}
+
+				// Display the location itself
+				TreeModel::iterator locIter = m_refStore->append(errIter->children());
+				row = *locIter;
+				row[m_statsColumns.m_name] = locationWithError;
 			}
+
+			// Expand errors
+			TreeModel::Path errPath = m_refStore->get_path(m_errorsTopIter);
+			statisticsTreeview->expand_to_path(errPath);
 		}
 	}
-	m_lastErrorDate = time(NULL);
 
 	return true;
 }
