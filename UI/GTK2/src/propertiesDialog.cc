@@ -85,10 +85,31 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 	}
 	else
 	{
+		string perDoc(_("Per document"));
+
 		// Leave the labels list blank
-		// FIXME: if all documents are of the same language, show it
-		language = _("Per document");
-		notALanguageName = true;
+		// If all documents are of the same language, show it
+		for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
+			docIter != documentsList.end(); ++docIter)
+		{
+#ifdef DEBUG
+			cout << "propertiesDialog::propertiesDialog: language " << docIter->getLanguage() << endl;
+#endif
+			if (language.empty() == true)
+			{
+				language = docIter->getLanguage();
+			}
+			else if (language != docIter->getLanguage())
+			{
+				language = perDoc;
+				notALanguageName = true;
+			}
+		}
+		if (language.empty() == true)
+		{
+			language = perDoc;
+			notALanguageName = true;
+		}
 	}
 	delete pIndex;
 
@@ -132,6 +153,7 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 		typeLabel->hide();
 		typeEntry->hide();
 		sizeLabel->hide();
+		bytesLabel->hide();
 		sizeEntry->hide();
 		termsLabel->hide();
 		termsEntry->hide();
