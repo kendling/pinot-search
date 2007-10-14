@@ -38,8 +38,6 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	m_properties(properties),
 	m_badName(true)
 {
-	unsigned int day, month, year;
-
 	// Name
 	if (m_name.empty() == true)
 	{

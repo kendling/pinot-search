@@ -1302,8 +1302,6 @@ bool PinotSettings::save(void)
 				return false;
 			}
 
-			unsigned int day, month, year;
-
 			addChildElement(pElem, "name", queryIter->first);
 			addChildElement(pElem, "sortorder", (queryIter->second.getSortOrder() == QueryProperties::DATE ? "DATE" : "RELEVANCE"));
 			addChildElement(pElem, "text", queryIter->second.getFreeQuery());
