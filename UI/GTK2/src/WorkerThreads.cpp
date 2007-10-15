@@ -1396,7 +1396,20 @@ void IndexingThread::doWork(void)
 {
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
 	Url thisUrl(m_docInfo.getLocation());
+	string indexName;
 	bool doDownload = true;
+
+	// What's the name of this index ?
+	const map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
+	for (map<string, string>::const_iterator mapIter = indexesMap.begin();
+		mapIter != indexesMap.end(); ++mapIter)
+	{
+		if (m_indexLocation == mapIter->second)
+		{
+			indexName = mapIter->first;
+			break;
+		}
+	}
 
 	// First things first, get the index
 	if ((pIndex == NULL) ||
@@ -1608,6 +1621,7 @@ void IndexingThread::doWork(void)
 
 				// The document properties may have changed
 				pIndex->getDocumentInfo(m_docId, m_docInfo);
+				m_docInfo.setIsIndexed(PinotSettings::getInstance().getIndexId(indexName), m_docId);
 			}
 		}
 	}
@@ -1754,6 +1768,11 @@ string UpdateDocumentThread::getType(void) const
 	return "UpdateDocumentThread";
 }
 
+string UpdateDocumentThread::getIndexName(void) const
+{
+	return m_indexName;
+}
+
 unsigned int UpdateDocumentThread::getDocumentID(void) const
 {
 	return m_docId;
@@ -1795,16 +1814,10 @@ void UpdateDocumentThread::doWork(void)
 		{
 			m_errorNum = UPDATE_FAILED;
 		}
-		else
+		// Flush the index ?
+		else if (m_immediateFlush == true)
 		{
-			// Flush the index ?
-			if (m_immediateFlush == true)
-			{
-				pIndex->flush();
-			}
-
-			// The document properties may have changed
-			pIndex->getDocumentInfo(m_docId, m_docInfo);
+			pIndex->flush();
 		}
 
 		delete pIndex;

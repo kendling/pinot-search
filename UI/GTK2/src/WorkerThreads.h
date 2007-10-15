@@ -442,6 +442,8 @@ class UpdateDocumentThread : public WorkerThread
 
 		virtual std::string getType(void) const;
 
+		std::string getIndexName(void) const;
+
 		unsigned int getDocumentID(void) const;
 
 		const DocumentInfo &getDocumentInfo(void) const;
