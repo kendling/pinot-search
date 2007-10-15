@@ -592,8 +592,9 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 
 		// OK, add a row for this result within the group
 		TreeModel::iterator titleIter;
-		if (appendResult(title, location, resultIter->getType(), (int)currentScore, rankDiff, isIndexed, wasViewed,
-			docId, resultIter->getTimestamp(), engineId, indexId, titleIter, groupIter, true) == true)
+		if (appendResult(title, location, (int)currentScore, rankDiff, isIndexed, wasViewed,
+			docId, resultIter->getTimestamp(), resultIter->serialize(),
+			engineId, indexId, titleIter, groupIter, true) == true)
 		{
 #ifdef DEBUG
 			cout << "ResultsTree::addResults: added row for result " << count
@@ -740,13 +741,13 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 					// Add result
 					success = appendResult(childRow[m_resultsColumns.m_text],
 						childRow[m_resultsColumns.m_url],
-						childRow[m_resultsColumns.m_type],
 						childRow[m_resultsColumns.m_score],
 						childRow[m_resultsColumns.m_rankDiff],
 						childRow[m_resultsColumns.m_indexed],
 						childRow[m_resultsColumns.m_viewed],
 						childRow[m_resultsColumns.m_docId],
 						childRow[m_resultsColumns.m_timestamp],
+						childRow[m_resultsColumns.m_serial],
 						engineIds, indexIds,
 						newIter, groupIter, true);
 				}
@@ -815,13 +816,13 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 							// Add result
 							appendResult(childRow[m_resultsColumns.m_text],
 								childRow[m_resultsColumns.m_url],
-								childRow[m_resultsColumns.m_type],
 								childRow[m_resultsColumns.m_score],
 								childRow[m_resultsColumns.m_rankDiff],
 								childRow[m_resultsColumns.m_indexed],
 								childRow[m_resultsColumns.m_viewed],
 								childRow[m_resultsColumns.m_docId],
 								childRow[m_resultsColumns.m_timestamp],
+								childRow[m_resultsColumns.m_serial],
 								engineId, indexId,
 								newIter, groupIter, true);
 #ifdef DEBUG
@@ -911,9 +912,10 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 		if ((skipIndexed == false) ||
 			(isIndexed == false))
 		{
-			DocumentInfo current(from_utf8(row[m_resultsColumns.m_text]),
-				from_utf8(row[m_resultsColumns.m_url]),
-				from_utf8(row[m_resultsColumns.m_type]), "");
+			DocumentInfo current;
+			string serial(from_utf8(row[m_resultsColumns.m_serial]));
+
+			current.deserialize(serial);
 
 			if (isIndexed == true)
 			{
@@ -997,10 +999,11 @@ void ResultsTree::updateResult(const DocumentInfo &result)
 
 		if (docId == row[m_resultsColumns.m_docId])
 		{
-			updateRow(row, result.getTitle(), result.getLocation(), result.getType(),
+			updateRow(row, result.getTitle(), result.getLocation(),
 				row[m_resultsColumns.m_score], row[m_resultsColumns.m_engines],
 				row[m_resultsColumns.m_indexes], docId,
-				result.getTimestamp(), ResultsModelColumns::ROW_RESULT,
+				result.getTimestamp(), result.serialize(),
+				ResultsModelColumns::ROW_RESULT,
 				row[m_resultsColumns.m_indexed], row[m_resultsColumns.m_viewed],
 				row[m_resultsColumns.m_rankDiff]);
 			break;
@@ -1276,16 +1279,15 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 		{
 			set<string> engineNames, indexNames;
 			TreeModel::Row childRow = *childIter;
-			DocumentInfo result(from_utf8(childRow[m_resultsColumns.m_text]),
-				from_utf8(childRow[m_resultsColumns.m_url]),
-				from_utf8(childRow[m_resultsColumns.m_type]), "");
-			string engineName, charset;
+			DocumentInfo result;
+			string engineName, charset, serial(from_utf8(childRow[m_resultsColumns.m_serial]));
 			unsigned int engineIds = childRow[m_resultsColumns.m_engines];
 			unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
 
 #ifdef DEBUG
 			cout << "ResultsTree::exportResults: engines " << engineIds << ", indexes " << indexIds << endl;
 #endif
+			result.deserialize(serial);
 			m_settings.getEngineNames(engineIds, engineNames);
 			if (engineNames.empty() == false)
 			{
@@ -1339,8 +1341,9 @@ Signal0<void>& ResultsTree::getDoubleClickSignal(void)
 // Adds a new row in the results tree.
 //
 bool ResultsTree::appendResult(const ustring &text, const ustring &url,
-	const ustring &type, int score, int rankDiff, bool isIndexed, bool wasViewed,
-	unsigned int docId, const ustring &timestamp, unsigned int engineId,
+	int score, int rankDiff, bool isIndexed, bool wasViewed,
+	unsigned int docId, const ustring &timestamp,
+	const ustring &serial, unsigned int engineId,
 	unsigned int indexId, TreeModel::iterator &newRowIter,
 	const TreeModel::iterator &parentIter, bool noDuplicates)
 {
@@ -1386,8 +1389,8 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 	}
 
 	TreeModel::Row childRow = *newRowIter;
-	updateRow(childRow, text, url, type, score, engineId, indexId,
-		docId, timestamp, ResultsModelColumns::ROW_RESULT, isIndexed,
+	updateRow(childRow, text, url, score, engineId, indexId,
+		docId, timestamp, serial, ResultsModelColumns::ROW_RESULT, isIndexed,
 		wasViewed, rankDiff);
 
 	return true;
@@ -1409,7 +1412,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::RowT
 		groupIter = m_refStore->append();
 		TreeModel::Row groupRow = *groupIter;
 		updateRow(groupRow, to_utf8(groupName),
-			"", "", 0, 0, 0, 0, "", groupType,
+			"", 0, 0, 0, 0, "", "", groupType,
 			false, false, false);
 
 		// Update the map
@@ -1477,16 +1480,14 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 // Updates a row.
 //
 void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
-	const ustring &url, const ustring &type, int score,
-	unsigned int engineId, unsigned int indexId,
-	unsigned int docId, const ustring &timestamp,
+	const ustring &url, int score, 	unsigned int engineId, unsigned int indexId,
+	unsigned int docId, const ustring &timestamp, const ustring &serial,
 	ResultsModelColumns::RowType resultType, bool indexed, bool viewed, int rankDiff)
 {
 	try
 	{
 		row[m_resultsColumns.m_text] = text;
 		row[m_resultsColumns.m_url] = url;
-		row[m_resultsColumns.m_type] = type;
 		row[m_resultsColumns.m_score] = score;
 		row[m_resultsColumns.m_scoreText] = "";
 		row[m_resultsColumns.m_engines] = engineId;
@@ -1495,6 +1496,7 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 		row[m_resultsColumns.m_resultType] = resultType;
 		row[m_resultsColumns.m_timestamp] = timestamp;
 		row[m_resultsColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
+		row[m_resultsColumns.m_serial] = serial;
 
 		row[m_resultsColumns.m_indexed] = indexed;
 		row[m_resultsColumns.m_viewed] = viewed;

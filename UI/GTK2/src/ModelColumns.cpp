@@ -58,7 +58,6 @@ ResultsModelColumns::ResultsModelColumns()
 {
 	add(m_text);
 	add(m_url);
-	add(m_type);
 	add(m_indexed);
 	add(m_viewed);
 	add(m_rankDiff);
@@ -70,6 +69,7 @@ ResultsModelColumns::ResultsModelColumns()
 	add(m_resultType);
 	add(m_timestamp);
 	add(m_timestampTime);
+	add(m_serial);
 }
 
 ResultsModelColumns::~ResultsModelColumns()

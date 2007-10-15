@@ -159,8 +159,8 @@ class ResultsTree : public Gtk::TreeView
 
 		/// Adds a new row in the results tree.
 		bool appendResult(const Glib::ustring &text, const Glib::ustring &url,
-			const Glib::ustring &type, int score, int rankDiff,
-			bool isIndexed, bool wasViewed, unsigned int docId, const Glib::ustring &timestamp,
+			int score, int rankDiff, bool isIndexed, bool wasViewed,
+			unsigned int docId, const Glib::ustring &timestamp, const Glib::ustring &serial,
 			unsigned int engineId, unsigned int indexId,
 			Gtk::TreeModel::iterator &newRowIter,
 			const Gtk::TreeModel::iterator &parentIter,
@@ -171,10 +171,9 @@ class ResultsTree : public Gtk::TreeView
 
 		/// Updates a row.
 		void updateRow(Gtk::TreeModel::Row &row, const Glib::ustring &text,
-			const Glib::ustring &url, const Glib::ustring &type,
-			int score, unsigned int engineId, unsigned int indexId,
-			unsigned int docId, const Glib::ustring &timestamp,
-			ResultsModelColumns::RowType type, bool indexed, bool viewed, int rankDiff);
+			const Glib::ustring &url, int score, unsigned int engineId, unsigned int indexId,
+			unsigned int docId, const Glib::ustring &timestamp, const Glib::ustring &serial,
+			ResultsModelColumns::RowType resultType, bool indexed, bool viewed, int rankDiff);
 
 		/// Retrieves the extract to show for the given row.
 		Glib::ustring findResultsExtract(const Gtk::TreeModel::Row &row);

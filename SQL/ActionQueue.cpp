@@ -110,7 +110,7 @@ bool ActionQueue::create(const string &database)
 bool ActionQueue::pushItem(ActionType type, const DocumentInfo &docInfo)
 {
 	string url(docInfo.getLocation());
-	string info("caption=");
+	string info(docInfo.serialize());
 	bool update = false, success = false;
 
 	// Is there already an item for this URL ?
@@ -134,42 +134,19 @@ bool ActionQueue::pushItem(ActionType type, const DocumentInfo &docInfo)
 		delete results;
 	}
 
-	// Serialize DocumentInfo
-	info += docInfo.getTitle();
-	info += "\nurl=";
-	info += url;
-	info += "\ntype=";
-	info += docInfo.getType();
-	info += "\nlanguage=";
-	info += docInfo.getLanguage();
-	info += "\nmodtime=";
-	info += docInfo.getTimestamp();
-	info += "\nsize=";
-	char sizeStr[64];
-	snprintf(sizeStr, 64, "%ld", docInfo.getSize());
-	info += sizeStr;
-	info += "\nlabels=";
-	const set<string> &labels = docInfo.getLabels();
-	for (set<string>::const_iterator labelIter = labels.begin();
-		labelIter != labels.end(); ++labelIter)
-	{
-		info += "[" + Url::escapeUrl(*labelIter) + "]";
-	}
-	info += "\n";
-
 	if (update == false)
 	{
 		results = executeStatement("INSERT INTO ActionQueue \
 			VALUES('%q', '%q', '%q', '%d', '%q');",
 			m_queueId.c_str(), Url::escapeUrl(url).c_str(),
-			typeToText(type).c_str(), time(NULL), Url::escapeUrl(info).c_str());
+			typeToText(type).c_str(), time(NULL), info.c_str());
 	}
 	else
 	{
 		results = executeStatement("UPDATE ActionQueue \
 			SET Type='%q', Date='%d', Info='%q' WHERE \
 			QueueId='%q' AND Url='%q';",
-			typeToText(type).c_str(), time(NULL), Url::escapeUrl(info).c_str(),
+			typeToText(type).c_str(), time(NULL), info.c_str(),
 			m_queueId.c_str(), Url::escapeUrl(url).c_str());
 	}
 	if (results != NULL)
@@ -219,7 +196,7 @@ bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("SELECT Url, Type, Info FROM ActionQueue \
+	SQLiteResults *results = executeStatement("SELECT Type, Info FROM ActionQueue \
 		WHERE QueueId='%q' ORDER BY Date DESC LIMIT 1",
 		m_queueId.c_str());
 	if (results != NULL)
@@ -227,43 +204,11 @@ bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo)
 		SQLiteRow *row = results->nextRow();
 		if (row != NULL)
 		{
-			string url(Url::unescapeUrl(row->getColumn(0)));
-			type = textToType(row->getColumn(1));
-			string info(Url::unescapeUrl(row->getColumn(2)));
+			type = textToType(row->getColumn(0));
 			success = true;
 
 			// Deserialize DocumentInfo
-			docInfo.setTitle(StringManip::extractField(info, "caption=", "\n"));
-			docInfo.setLocation(url);
-			docInfo.setType(StringManip::extractField(info, "type=", "\n"));
-			docInfo.setLanguage(StringManip::extractField(info, "language=", "\n"));
-			docInfo.setTimestamp(StringManip::extractField(info, "modtime=", "\n"));
-			string bytesSize(StringManip::extractField(info, "size=", "\n"));
-			if (bytesSize.empty() == false)
-			{
-				docInfo.setSize((off_t )atol(bytesSize.c_str()));
-			}
-			string labelsString(StringManip::extractField(info, "labels=", "\n"));
-			if (labelsString.empty() == false)
-			{
-				string::size_type endPos = 0;
-				string label(StringManip::extractField(labelsString, "[", "]", endPos));
-				set<string> labels;
-
-				// Parse labels
-				while (label.empty() == false)
-				{
-					labels.insert(Url::unescapeUrl(label));
-
-					if (endPos == string::npos)
-					{
-						break;
-					}
-					label = StringManip::extractField(labelsString, "[", "]", endPos);
-				}
-
-				docInfo.setLabels(labels);
-			}
+			docInfo.deserialize(row->getColumn(1));
 
 			delete row;
 		}

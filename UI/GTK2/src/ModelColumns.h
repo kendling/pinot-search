@@ -81,7 +81,6 @@ public:
 
 	Gtk::TreeModelColumn<Glib::ustring> m_text;
 	Gtk::TreeModelColumn<Glib::ustring> m_url;
-	Gtk::TreeModelColumn<Glib::ustring> m_type;
 	Gtk::TreeModelColumn<bool> m_indexed;
 	Gtk::TreeModelColumn<bool> m_viewed;
 	Gtk::TreeModelColumn<int> m_rankDiff;
@@ -94,6 +93,7 @@ public:
 	Gtk::TreeModelColumn<RowType> m_resultType;
 	Gtk::TreeModelColumn<Glib::ustring> m_timestamp;
 	Gtk::TreeModelColumn<time_t> m_timestampTime;
+	Gtk::TreeModelColumn<Glib::ustring> m_serial;
 
 };
 
