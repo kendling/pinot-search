@@ -30,6 +30,7 @@
 #include <sigc++/compatibility.h>
 #include <sigc++/slot.h>
 #include <glibmm/miscutils.h>
+#include <glibmm/exception.h>
 
 #include "MIMEScanner.h"
 #include "StringManip.h"
@@ -222,9 +223,14 @@ void WorkerThread::threadHandler(void)
 	{
 		doWork();
 	}
-	catch (exception &ex)
+	catch (Glib::Exception &ex)
 	{
-		cerr << "Exception in thread " << m_id << ", type " << getType()
+		cerr << "Glib exception in thread " << m_id << ", type " << getType()
+			<< ":" << ex.what() << endl;
+	}
+	catch (std::exception &ex)
+	{
+		cerr << "STL exception in thread " << m_id << ", type " << getType()
 			<< ":" << ex.what() << endl;
 	}
 	catch (...)
