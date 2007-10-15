@@ -436,8 +436,8 @@ class UpdateDocumentThread : public WorkerThread
 {
 	public:
 		// Update a document's properties
-		UpdateDocumentThread(const std::string &indexName,
-			unsigned int docId, const DocumentInfo &docInfo);
+		UpdateDocumentThread(const std::string &indexName, unsigned int docId,
+			const DocumentInfo &docInfo, bool updateLabels);
 		virtual ~UpdateDocumentThread();
 
 		virtual std::string getType(void) const;
@@ -452,6 +452,7 @@ class UpdateDocumentThread : public WorkerThread
 		std::string m_indexName;
 		unsigned int m_docId;
 		DocumentInfo m_docInfo;
+		bool m_updateLabels;
 
 		virtual void doWork(void);
 

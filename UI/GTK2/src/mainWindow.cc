@@ -2316,7 +2316,7 @@ void mainWindow::on_showfromindex_activate()
 
 	// Now apply these labels to all the documents
 	// FIXME: do that only if something was modified
-	if ((hadNoLabels == false) &&
+	if ((hadNoLabels == false) ||
 		(labels.empty() == false))
 	{
 		IndexInterface *pIndex = m_settings.getIndex(mapIter->second);
@@ -2348,7 +2348,7 @@ void mainWindow::on_showfromindex_activate()
 		unsigned int indexId = 0;
 		unsigned int docId = docIter->getIsIndexed(indexId);
 
-		start_thread(new UpdateDocumentThread(indexName, docId, *docIter));
+		start_thread(new UpdateDocumentThread(indexName, docId, *docIter, false));
 	}
 
 	// Is the index list filtered with a query ?
@@ -3521,7 +3521,7 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 	ustring queryName = pIndexPage->getQueryName();
 	if (queryName.empty() == false)
 	{
-		// FIXME: run th document through the query
+		// FIXME: run the document through the query
 		appendToList = false;
 	}
 

@@ -1671,8 +1671,7 @@ void UnindexingThread::doWork(void)
 	// Are we supposed to remove documents based on labels ?
 	if (m_docIdList.empty() == true)
 	{
-		// Yep
-		// FIXME: better delete documents one label at a time
+		// Yep, delete documents one label at a time
 		for (set<string>::iterator iter = m_labelNames.begin(); iter != m_labelNames.end(); ++iter)
 		{
 			string labelName = (*iter);
@@ -1733,12 +1732,13 @@ void UnindexingThread::doWork(void)
 	delete pIndex;
 }
 
-UpdateDocumentThread::UpdateDocumentThread(const string &indexName,
-	unsigned int docId, const DocumentInfo &docInfo) :
+UpdateDocumentThread::UpdateDocumentThread(const string &indexName, unsigned int docId,
+	const DocumentInfo &docInfo, bool updateLabels) :
 	WorkerThread(),
 	m_indexName(indexName),
 	m_docId(docId),
-	m_docInfo(docInfo)
+	m_docInfo(docInfo),
+	m_updateLabels(updateLabels)
 {
 }
 
@@ -1793,12 +1793,26 @@ void UpdateDocumentThread::doWork(void)
 			return;
 		}
 
+		// Update the DocumentInfo
 		if (pIndex->updateDocumentInfo(m_docId, m_docInfo) == false)
 		{
 			m_errorNum = UPDATE_FAILED;
+			m_errorParam = m_docInfo.getLocation();
+			return;
 		}
+		// ...and the labels if necessary
+		if (m_updateLabels == true)
+		{
+			if (pIndex->setDocumentLabels(m_docId, m_docInfo.getLabels()) == false)
+			{
+				m_errorNum = UPDATE_FAILED;
+				m_errorParam = m_docInfo.getLocation();
+				return;
+			}
+		}
+
 		// Flush the index ?
-		else if (m_immediateFlush == true)
+		if (m_immediateFlush == true)
 		{
 			pIndex->flush();
 		}
