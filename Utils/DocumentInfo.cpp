@@ -16,9 +16,13 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdlib.h>
 #include <algorithm>
+
+#include "StringManip.h"
 #include "TimeConverter.h"
 #include "DocumentInfo.h"
+#include "Url.h"
 
 using std::string;
 using std::map;
@@ -90,6 +94,81 @@ bool DocumentInfo::operator<(const DocumentInfo& other) const
 	}
 
 	return false;
+}
+
+/// Serializes the document.
+string DocumentInfo::serialize(void) const
+{
+	string info;
+	char numStr[64];
+
+	// Serialize DocumentInfo into a string
+	for (map<string, string>::const_iterator fieldIter = m_fields.begin();
+		fieldIter != m_fields.end(); ++fieldIter)
+	{
+		info += "\n";
+		info += fieldIter->first;
+		info += "=";
+		info += fieldIter->second;
+	}
+	info += "\nlabels=";
+	for (set<string>::const_iterator labelIter = m_labels.begin();
+		labelIter != m_labels.end(); ++labelIter)
+	{
+		info += "[" + Url::escapeUrl(*labelIter) + "]";
+	}
+	info += "\nextract=";
+	info += m_extract;
+	info += "\nscore=";
+	snprintf(numStr, 64, "%f", m_score);
+	info += numStr;
+	info += "\nindexid=";
+	snprintf(numStr, 64, "%u", m_indexId);
+	info += numStr;
+	info += "\ndocid=";
+	snprintf(numStr, 64, "%u", m_docId);
+	info += numStr;
+	info += "\n";
+
+	return Url::escapeUrl(info);
+}
+
+/// Deserializes the document.
+void DocumentInfo::deserialize(const string &info)
+{
+	string unescapedInfo(Url::unescapeUrl(info));
+
+	// Deserialize DocumentInfo
+	setField("caption", StringManip::extractField(unescapedInfo, "caption=", "\n"));
+	setField("url", StringManip::extractField(unescapedInfo, "url=", "\n"));
+	setField("type", StringManip::extractField(unescapedInfo, "type=", "\n"));
+	setField("language", StringManip::extractField(unescapedInfo, "language=", "\n"));
+	setField("modtime", StringManip::extractField(unescapedInfo, "modtime=", "\n"));
+	setField("size", StringManip::extractField(unescapedInfo, "size=", "\n"));
+	string labelsString(StringManip::extractField(unescapedInfo, "labels=", "\n"));
+	if (labelsString.empty() == false)
+	{
+		string::size_type endPos = 0;
+		string labelName(StringManip::extractField(labelsString, "[", "]", endPos));
+
+		m_labels.clear();
+
+		// Parse labels
+		while (labelName.empty() == false)
+		{
+			m_labels.insert(Url::unescapeUrl(labelName));
+
+			if (endPos == string::npos)
+			{
+				break;
+			}
+			labelName = StringManip::extractField(labelsString, "[", "]", endPos);
+		}
+	}
+	m_extract = StringManip::extractField(unescapedInfo, "extract=", "\n");
+	m_score = (float)atof(StringManip::extractField(unescapedInfo, "score=", "\n").c_str());
+	m_indexId = (unsigned int)atoi(StringManip::extractField(unescapedInfo, "indexid=", "\n").c_str());
+	m_docId = (unsigned int)atoi(StringManip::extractField(unescapedInfo, "docid=", "\n").c_str());
 }
 
 /// Sets the title of the document.

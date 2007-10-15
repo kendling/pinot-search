@@ -38,6 +38,12 @@ class DocumentInfo
 
 		bool operator<(const DocumentInfo& other) const;
 
+		/// Serializes the document.
+		std::string serialize(void) const;
+
+		/// Deserializes the document.
+		void deserialize(const std::string &info);
+
 		/// Sets the title of the document.
 		virtual void setTitle(const std::string &title);
 
