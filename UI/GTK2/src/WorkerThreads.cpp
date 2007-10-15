@@ -782,7 +782,7 @@ void IndexBrowserThread::doWork(void)
 	m_documentsList.clear();
 	m_documentsList.reserve(m_maxDocsCount);
 
-	unsigned int indexId = PinotSettings::getInstance().getIndexId(m_indexName);
+	unsigned int indexId = PinotSettings::getInstance().getIndexIdByName(m_indexName);
 	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
 	{
 		unsigned int docId = (*iter);
@@ -903,14 +903,10 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 	if (m_engineName == "xapian")
 	{
 		// Internal index ?
-		if (m_engineOption == settings.m_docsIndexLocation)
+		if ((m_engineOption == settings.m_docsIndexLocation) ||
+			(m_engineOption == settings.m_daemonIndexLocation))
 		{
-			indexId = settings.getIndexId(_("My Web Pages"));
-			isIndexQuery = true;
-		}
-		else if (m_engineOption == settings.m_daemonIndexLocation)
-		{
-			indexId = settings.getIndexId(_("My Documents"));
+			indexId = settings.getIndexIdByLocation(m_engineOption);
 			isIndexQuery = true;
 		}
 	}
@@ -964,7 +960,7 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 			docId = pDocsIndex->hasDocument(location);
 			if (docId > 0)
 			{
-				indexId = settings.getIndexId(_("My Web Pages"));
+				indexId = settings.getIndexIdByName(_("My Web Pages"));
 			}
 		}
 		if ((pDaemonIndex != NULL) &&
@@ -974,7 +970,7 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 			docId = pDaemonIndex->hasDocument(location);
 			if (docId > 0)
 			{
-				indexId = settings.getIndexId(_("My Documents"));
+				indexId = settings.getIndexIdByName(_("My Documents"));
 			}
 		}
 
@@ -1080,7 +1076,7 @@ void EngineQueryThread::doWork(void)
 		else
 		{
 			processResults(resultsList,
-				PinotSettings::getInstance().getIndexId(m_engineDisplayableName));
+				PinotSettings::getInstance().getIndexIdByName(m_engineDisplayableName));
 		}
 
 		// Any spelling correction ?
@@ -1396,20 +1392,7 @@ void IndexingThread::doWork(void)
 {
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
 	Url thisUrl(m_docInfo.getLocation());
-	string indexName;
 	bool doDownload = true;
-
-	// What's the name of this index ?
-	const map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
-	for (map<string, string>::const_iterator mapIter = indexesMap.begin();
-		mapIter != indexesMap.end(); ++mapIter)
-	{
-		if (m_indexLocation == mapIter->second)
-		{
-			indexName = mapIter->first;
-			break;
-		}
-	}
 
 	// First things first, get the index
 	if ((pIndex == NULL) ||
@@ -1621,7 +1604,7 @@ void IndexingThread::doWork(void)
 
 				// The document properties may have changed
 				pIndex->getDocumentInfo(m_docId, m_docInfo);
-				m_docInfo.setIsIndexed(PinotSettings::getInstance().getIndexId(indexName), m_docId);
+				m_docInfo.setIsIndexed(PinotSettings::getInstance().getIndexIdByLocation(m_indexLocation), m_docId);
 			}
 		}
 	}

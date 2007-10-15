@@ -80,7 +80,10 @@ class PinotSettings
 		void clearIndexes(void);
 
 		/// Returns an ID that identifies the given index.
-		unsigned int getIndexId(const std::string &name);
+		unsigned int getIndexIdByName(const std::string &name);
+
+		/// Returns an ID that identifies the given index.
+		unsigned int getIndexIdByLocation(const std::string &location);
 
 		/// Returns the name(s) for the given ID.
 		void getIndexNames(unsigned int id, std::set<std::string> &names);

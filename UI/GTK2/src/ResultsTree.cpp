@@ -486,7 +486,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		if (mapIter != m_settings.getIndexes().end())
 		{
 			// Yes, it is
-			indexId = m_settings.getIndexId(engineName);
+			indexId = m_settings.getIndexIdByName(engineName);
 			engineId = m_settings.getEngineId("Xapian");
 #ifdef DEBUG
 			cout << "ResultsTree::addResults: engine is index " << engineName << " " << indexId << endl;
@@ -797,7 +797,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 						if (engineId == 0)
 						{
 							// This is actually an index, not an engine...
-							indexId = m_settings.getIndexId(engineName);
+							indexId = m_settings.getIndexIdByName(engineName);
 							if (indexId > 0)
 							{
 								engineId = m_settings.getEngineId("Xapian");
@@ -931,7 +931,7 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 #ifdef DEBUG
 						cout << "ResultsTree::getSelection: result in internal index " << *indexIter << endl;
 #endif
-						current.setIsIndexed(m_settings.getIndexId(*indexIter), row[m_resultsColumns.m_docId]);
+						current.setIsIndexed(m_settings.getIndexIdByName(*indexIter), row[m_resultsColumns.m_docId]);
 						break;
 					}
 				}
@@ -1091,7 +1091,7 @@ bool ResultsTree::deleteResults(const string &engineName)
 		if (mapIter != m_settings.getIndexes().end())
 		{
 			// Yes, it is
-			indexId = m_settings.getIndexId(engineName);
+			indexId = m_settings.getIndexIdByName(engineName);
 			engineId = m_settings.getEngineId("Xapian");
 		}
 	}

@@ -1455,9 +1455,10 @@ void PinotSettings::clearIndexes(void)
 }
 
 /// Returns an ID that identifies the given index.
-unsigned int PinotSettings::getIndexId(const std::string &name)
+unsigned int PinotSettings::getIndexIdByName(const std::string &name)
 {
 	unsigned int indexId = 0;
+
 	for (map<unsigned int, string>::iterator mapIter = m_indexIds.begin();
 		mapIter != m_indexIds.end(); ++mapIter)
 	{
@@ -1469,6 +1470,21 @@ unsigned int PinotSettings::getIndexId(const std::string &name)
 	}
 
 	return indexId;
+}
+
+/// Returns an ID that identifies the given index.
+unsigned int PinotSettings::getIndexIdByLocation(const std::string &location)
+{
+	for (map<string, string>::iterator mapIter = m_indexNames.begin();
+		mapIter != m_indexNames.end(); ++mapIter)
+	{
+		if (mapIter->second == location)
+		{
+			return getIndexIdByName(mapIter->first);
+		}
+	}
+
+	return 0;
 }
 
 /// Returns the name(s) for the given ID.

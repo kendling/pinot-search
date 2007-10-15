@@ -1350,14 +1350,14 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 					// This document is not in either index
 					m_state.queue_index(docInfo);
 				}
-				else if (indexId == m_settings.getIndexId(_("My Web Pages")))
+				else if (indexId == m_settings.getIndexIdByName(_("My Web Pages")))
 				{
 					if (labelName.empty() == false)
 					{
 						docsIds.insert(docId);
 					}
 				}
-				else if (indexId == m_settings.getIndexId(_("My Documents")))
+				else if (indexId == m_settings.getIndexIdByName(_("My Documents")))
 				{
 					if (labelName.empty() == false)
 					{
