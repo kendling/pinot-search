@@ -79,7 +79,7 @@ class ResultsTree : public Gtk::TreeView
 		void setSelectionState(bool viewed);
 
 		/// Updates a result's properties.
-		void updateResult(const DocumentInfo &result);
+		bool updateResult(const DocumentInfo &result);
 
 		/**
 		  * Deletes the current selection.

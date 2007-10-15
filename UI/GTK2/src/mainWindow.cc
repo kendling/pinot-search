@@ -1597,18 +1597,17 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Web Pages"), NotebookPageBox::INDEX_PAGE));
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(pUpdateThread->getIndexName(), NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
 			ResultsTree *pResultsTree = pIndexPage->getTree();
-			if (pResultsTree != NULL)
+			if ((pResultsTree != NULL) &&
+				(pResultsTree->updateResult(pUpdateThread->getDocumentInfo()) == true))
 			{
-				pResultsTree->updateResult(pUpdateThread->getDocumentInfo());
+				status = _("Updated document properties");
+				set_status(status);
 			}
 		}
-
-		status = _("Updated document properties");
-		set_status(status);
 	}
 	else if (type == "StartDaemonThread")
 	{
@@ -2309,44 +2308,33 @@ void mainWindow::on_showfromindex_activate()
 	propertiesBox.show();
 	// What labels will this show ?
 	const set<string> &labels = propertiesBox.getLabels();
-	bool hasNoLabels = labels.empty();
+	bool hadNoLabels = labels.empty();
 	if (propertiesBox.run() != RESPONSE_OK)
 	{
 		return;
 	}
 
-	DocumentInfo docInfo(propertiesBox.getDocumentInfo());
-	string newTitle(docInfo.getTitle());
-	string newLanguage(docInfo.getLanguage());
-#ifdef DEBUG
-	cout << "mainWindow::on_showfromindex_activate: properties changed to "
-		<< newTitle << ", " << newLanguage << endl;
-#endif
-
 	// Now apply these labels to all the documents
 	// FIXME: do that only if something was modified
-	if ((hasNoLabels == false) &&
+	if ((hadNoLabels == false) &&
 		(labels.empty() == false))
 	{
 		IndexInterface *pIndex = m_settings.getIndex(mapIter->second);
 		if (pIndex != NULL)
 		{
-			if (pIndex->isGood() == true)
+			set<unsigned int> docIds;
+
+			for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
+				docIter != documentsList.end(); ++docIter)
 			{
-				set<unsigned int> docIds;
+				unsigned int indexId = 0;
 
-				for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
-					docIter != documentsList.end(); ++docIter)
-				{
-					unsigned int indexId = 0;
-
-					docIds.insert(docIter->getIsIndexed(indexId));
-				}
-
-				// Set the document's labels list
-				// FIXME: this should be done by a thread
-				pIndex->setDocumentsLabels(docIds, labels);
+				docIds.insert(docIter->getIsIndexed(indexId));
 			}
+
+			// Set the document's labels list
+			// FIXME: this should be done by a thread
+			pIndex->setDocumentsLabels(docIds, labels);
 
 			delete pIndex;
 		}
@@ -2360,15 +2348,13 @@ void mainWindow::on_showfromindex_activate()
 		unsigned int indexId = 0;
 		unsigned int docId = docIter->getIsIndexed(indexId);
 
-		docIter->setLanguage(newLanguage);
-
 		start_thread(new UpdateDocumentThread(indexName, docId, *docIter));
 	}
 
+	// Is the index list filtered with a query ?
 	if (queryName.empty() == false)
 	{
-		// The current label may have been applied to or removed from
-		// one or more of the selected documents, so refresh the list
+		// The query may filter on a label, so refresh the list
 		browse_index(indexName, queryName, 0, 0);
 	}
 }

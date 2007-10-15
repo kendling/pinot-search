@@ -981,14 +981,14 @@ void ResultsTree::setSelectionState(bool viewed)
 //
 // Updates a result's properties.
 //
-void ResultsTree::updateResult(const DocumentInfo &result)
+bool ResultsTree::updateResult(const DocumentInfo &result)
 {
 	unsigned int indexId = 0;
 	unsigned int docId = result.getIsIndexed(indexId);
 
 	if (docId == 0)
 	{
-		return;
+		return false;
 	}
 
 	// Go through the list
@@ -1006,9 +1006,12 @@ void ResultsTree::updateResult(const DocumentInfo &result)
 				ResultsModelColumns::ROW_RESULT,
 				row[m_resultsColumns.m_indexed], row[m_resultsColumns.m_viewed],
 				row[m_resultsColumns.m_rankDiff]);
-			break;
+
+			return true;
 		}
 	}
+
+	return false;
 }
 
 //
