@@ -33,25 +33,24 @@ class propertiesDialog : public propertiesDialog_glade
 {  
 public:
 	propertiesDialog(const std::string &indexLocation,
-	        const std::vector<DocumentInfo> &documentsList);
+	        std::vector<DocumentInfo> &documentsList);
 	virtual ~propertiesDialog();
 
 	void setHeight(int maxHeight);
-
-	const DocumentInfo &getDocumentInfo(void);
 
 	const std::set<std::string> &getLabels(void) const;
 
 protected:
 	LabelModelColumns m_labelsColumns;
+	std::vector<DocumentInfo> &m_documentsList;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
 	std::string m_indexLocation;
 	std::set<std::string> m_labels;
 	unsigned int m_docId;
+	bool m_notALanguageName;
 	bool m_editDocument;
-	DocumentInfo m_docInfo;
 
-	void populate_languageCombobox(const std::string &language, bool notALanguageName);
+	void populate_languageCombobox(const std::string &language);
 
 	void populate_labelsTreeview(const std::set<std::string> &docLabels);
 

@@ -34,84 +34,17 @@ using namespace Glib;
 using namespace Gtk;
 
 propertiesDialog::propertiesDialog(const string &indexLocation,
-	const vector<DocumentInfo> &documentsList) :
+	vector<DocumentInfo> &documentsList) :
 	propertiesDialog_glade(),
 	m_indexLocation(indexLocation),
+	m_documentsList(documentsList),
 	m_docId(0),
+	m_notALanguageName(false),
 	m_editDocument(false)
 {
 	set<string> docLabels;
 	string language;
-	unsigned int termsCount = 0;
-	bool notALanguageName = false;
 	char numStr[128];
-
-	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
-	if ((pIndex == NULL) ||
-		(pIndex->isGood() == false))
-	{
-		if (pIndex != NULL)
-		{
-			delete pIndex;
-		}
-		return;
-	}
-
-	// If there's only one document selected, get its labels
-	if (documentsList.size() == 1)
-	{
-		vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
-		unsigned int indexId = 0;
-
-		// Get the document ID
-		m_docId = docIter->getIsIndexed(indexId);
-#ifdef DEBUG
-		cout << "propertiesDialog::propertiesDialog: document " << m_docId << " in index " << indexId << endl;
-#endif
-		if (m_docId > 0)
-		{
-			// Get the properties from the index because they may have been altered
-			// for display purposes
-			pIndex->getDocumentInfo(m_docId, m_docInfo);
-			pIndex->getDocumentLabels(m_docId, docLabels);
-			m_docInfo.setIsIndexed(indexId, m_docId);
-			termsCount = pIndex->getDocumentTermsCount(m_docId);
-			language = m_docInfo.getLanguage();
-			m_editDocument = true;
-
-			snprintf(numStr, 128, "%u", m_docId);
-			set_title(get_title() + " (ID " + numStr + ")");
-		}
-	}
-	else
-	{
-		string perDoc(_("Per document"));
-
-		// Leave the labels list blank
-		// If all documents are of the same language, show it
-		for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
-			docIter != documentsList.end(); ++docIter)
-		{
-#ifdef DEBUG
-			cout << "propertiesDialog::propertiesDialog: language " << docIter->getLanguage() << endl;
-#endif
-			if (language.empty() == true)
-			{
-				language = docIter->getLanguage();
-			}
-			else if (language != docIter->getLanguage())
-			{
-				language = perDoc;
-				notALanguageName = true;
-			}
-		}
-		if (language.empty() == true)
-		{
-			language = perDoc;
-			notALanguageName = true;
-		}
-	}
-	delete pIndex;
 
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
@@ -121,33 +54,90 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 	// Allow only single selection
 	labelsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 
-	if (m_editDocument == true)
+	// If there's only one document selected, get its labels
+	if (m_documentsList.size() == 1)
 	{
-		unsigned int size = m_docInfo.getSize();
+		DocumentInfo docInfo(m_documentsList.front());
+		unsigned int indexId = 0;
+		unsigned int termsCount = 0;
 
-		titleEntry->set_text(to_utf8(m_docInfo.getTitle()));
-		typeEntry->set_text(to_utf8(m_docInfo.getType()));
-		if (size == 0)
+		// Get the document ID
+		m_docId = docInfo.getIsIndexed(indexId);
+#ifdef DEBUG
+		cout << "propertiesDialog::propertiesDialog: document " << m_docId << " in index " << indexId << endl;
+#endif
+		if (m_docId > 0)
 		{
-			sizeEntry->set_text(_("Unknown"));
-		}
-		else
-		{
-			snprintf(numStr, 128, "%u", size);
-			sizeEntry->set_text(numStr);
-		}
-		if (termsCount == 0)
-		{
-			termsEntry->set_text(_("Unknown"));
-		}
-		else
-		{
-			snprintf(numStr, 128, "%u", termsCount);
-			termsEntry->set_text(numStr);
+			IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
+			if (pIndex != NULL)
+			{
+				// Get the document's labels
+				pIndex->getDocumentLabels(m_docId, docLabels);
+				// Get the number of terms
+				termsCount = pIndex->getDocumentTermsCount(m_docId);
+
+				delete pIndex;
+			}
+			language = docInfo.getLanguage();
+
+			snprintf(numStr, 128, "%u", m_docId);
+			set_title(get_title() + " (ID " + numStr + ")");
+
+			titleEntry->set_text(to_utf8(docInfo.getTitle()));
+			typeEntry->set_text(to_utf8(docInfo.getType()));
+			unsigned int size = docInfo.getSize();
+			if (size == 0)
+			{
+				sizeEntry->set_text(_("Unknown"));
+			}
+			else
+			{
+				snprintf(numStr, 128, "%u", size);
+				sizeEntry->set_text(numStr);
+			}
+			if (termsCount == 0)
+			{
+				termsEntry->set_text(_("Unknown"));
+			}
+			else
+			{
+				snprintf(numStr, 128, "%u", termsCount);
+				termsEntry->set_text(numStr);
+			}
+
+			m_editDocument = true;
 		}
 	}
 	else
 	{
+		string perDoc(_("Per document"));
+		bool firstDoc = true;
+
+		// If all documents are of the same language, show it
+		for (vector<DocumentInfo>::const_iterator docIter = m_documentsList.begin();
+			docIter != m_documentsList.end(); ++docIter)
+		{
+#ifdef DEBUG
+			cout << "propertiesDialog::propertiesDialog: language " << language << endl;
+#endif
+			if (firstDoc == true)
+			{
+				language = docIter->getLanguage();
+				firstDoc = false;
+			}
+			else if (language != docIter->getLanguage())
+			{
+				language = perDoc;
+				m_notALanguageName = true;
+			}
+		}
+		if (language.empty() == true)
+		{
+			language = perDoc;
+			m_notALanguageName = true;
+		}
+
+		// Hide these widgets
 		titleLabel->hide();
 		titleEntry->hide();
 		typeLabel->hide();
@@ -160,7 +150,7 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 		saveTermsButton->hide();
 	}
 
-	populate_languageCombobox(language, notALanguageName);
+	populate_languageCombobox(language);
 	populate_labelsTreeview(docLabels);
 }
 
@@ -168,12 +158,12 @@ propertiesDialog::~propertiesDialog()
 {
 }
 
-void propertiesDialog::populate_languageCombobox(const string &language, bool notALanguageName)
+void propertiesDialog::populate_languageCombobox(const string &language)
 {
 	unsigned int languageStart = 0;
 	bool foundLanguage = false;
 
-	if (notALanguageName == true)
+	if (m_notALanguageName == true)
 	{
 		languageCombobox->append_text(to_utf8(language));
 		languageCombobox->set_active(0);
@@ -186,7 +176,7 @@ void propertiesDialog::populate_languageCombobox(const string &language, bool no
 		string languageName(Languages::getIntlName(languageNum));
 
 		languageCombobox->append_text(to_utf8(languageName));
-		if ((notALanguageName == false) &&
+		if ((m_notALanguageName == false) &&
 			(languageName == language))
 		{
 			languageCombobox->set_active(languageNum + languageStart);
@@ -195,7 +185,7 @@ void propertiesDialog::populate_languageCombobox(const string &language, bool no
 	}
 
 	// Did we find the given language ?
-	if ((notALanguageName == false) &&
+	if ((m_notALanguageName == false) &&
 		(foundLanguage == false))
 	{
 		// Select the first language in the list
@@ -232,6 +222,10 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 			row[m_labelsColumns.m_enabled] = false;
 		}
 	}
+#ifdef DEBUG
+	cout << "propertiesDialog::populate_labelsTreeview: showing " << docLabels.size()
+		<< "/" << sysLabels.size() << " labels" << endl;
+#endif
 }
 
 void propertiesDialog::setHeight(int maxHeight)
@@ -253,11 +247,6 @@ void propertiesDialog::setHeight(int maxHeight)
 	}
 }
 
-const DocumentInfo &propertiesDialog::getDocumentInfo(void)
-{
-	return m_docInfo;
-}
-
 const set<string> &propertiesDialog::getLabels(void) const
 {
 	return m_labels;
@@ -266,22 +255,24 @@ const set<string> &propertiesDialog::getLabels(void) const
 void propertiesDialog::on_labelOkButton_clicked()
 {
 	unsigned int languageStart = 0;
+
+	// If only one document was edited, set its title
 	if (m_editDocument == true)
 	{
-		// Title
-		m_docInfo.setTitle(from_utf8(titleEntry->get_text()));
+		vector<DocumentInfo>::iterator docIter = m_documentsList.begin();
+
+		docIter->setTitle(from_utf8(titleEntry->get_text()));
 	}
 
 	// Did we add an extra string to the languages list ?
-	if (m_docInfo.getLanguage().empty() == true)
+	if (m_notALanguageName == true)
 	{
 		languageStart = 1;
 	}
 	int chosenLanguage = languageCombobox->get_active_row_number();
-	if (chosenLanguage >= languageStart)
-	{
-		m_docInfo.setLanguage(from_utf8(languageCombobox->get_active_text()));
-	}
+#ifdef DEBUG
+	cout << "propertiesDialog::on_labelOkButton_clicked: chosen language " << languageCombobox->get_active_text() << endl;
+#endif
 
 	// Go through the labels tree
 	m_labels.clear();
@@ -300,6 +291,22 @@ void propertiesDialog::on_labelOkButton_clicked()
 			}
 		}
 	}
+#ifdef DEBUG
+	cout << "propertiesDialog::on_labelOkButton_clicked: chosen " << m_labels.size() << " labels" << endl;
+#endif
+
+	for (vector<DocumentInfo>::iterator docIter = m_documentsList.begin();
+		docIter != m_documentsList.end(); ++docIter)
+	{
+		// Apply the new language if necessary
+		if (chosenLanguage >= languageStart)
+		{
+			docIter->setLanguage(from_utf8(languageCombobox->get_active_text()));
+		}
+
+		// Apply labels
+		docIter->setLabels(m_labels);
+	}
 }
 
 void propertiesDialog::on_saveTermsButton_clicked()
@@ -312,13 +319,8 @@ void propertiesDialog::on_saveTermsButton_clicked()
 #endif
 
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
-	if ((pIndex == NULL) ||
-		(pIndex->isGood() == false))
+	if (pIndex == NULL)
 	{
-		if (pIndex != NULL)
-		{
-			delete pIndex;
-		}
 		return;
 	}
 
@@ -343,5 +345,7 @@ void propertiesDialog::on_saveTermsButton_clicked()
 			termsFile.close();
 		}
 	}
+
+	delete pIndex;
 }
 
