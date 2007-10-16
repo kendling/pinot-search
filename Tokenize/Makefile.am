@@ -22,7 +22,7 @@ libexternalfilter_la_SOURCES = \
 
 libexternalfilter_la_LDFLAGS = -module @XML_CFLAGS@
 
-libexternalfilter_la_LIBADD = -L../Utils -lBasicUtils
+libexternalfilter_la_LIBADD =
 
 libmboxfilter_la_SOURCES = \
 	filters/Filter.cc \
@@ -30,7 +30,7 @@ libmboxfilter_la_SOURCES = \
 
 libmboxfilter_la_LDFLAGS = -module @GMIME_CFLAGS@
 
-libmboxfilter_la_LIBADD = -L../Utils -lBasicUtils
+libmboxfilter_la_LIBADD =
 
 libtaglibfilter_la_SOURCES = \
 	filters/Filter.cc \
@@ -38,7 +38,7 @@ libtaglibfilter_la_SOURCES = \
 
 libtaglibfilter_la_LDFLAGS = -module @TAGLIB_LIBS@
 
-libtaglibfilter_la_LIBADD = -L../Utils -lBasicUtils
+libtaglibfilter_la_LIBADD =
 
 libTokenize_la_SOURCES = \
 	FilterUtils.cpp \
