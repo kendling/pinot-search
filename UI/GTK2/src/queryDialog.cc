@@ -213,7 +213,6 @@ void queryDialog::on_addFilterButton_clicked()
 	ustring filter;
 	time_t timeT = time(NULL);
 	struct tm *tm = localtime(&timeT);
-	bool hasValue = true;
 
 	// What's the corresponding filter ?
 	int chosenFilter = filterCombobox->get_active_row_number();
@@ -221,31 +220,31 @@ void queryDialog::on_addFilterButton_clicked()
 	switch (chosenFilter)
 	{
 		case 0:
-			filter = "site";
+			filter = "site:localhost";
 			break;
 		case 1:
-			filter = "file";
+			filter = "file:xxx.txt";
 			break;
 		case 2:
-			filter = "ext";
+			filter = "ext:txt";
 			break;
 		case 3:
-			filter = "title";
+			filter = "title:pinot";
 			break;
 		case 4:
-			filter = "url";
+			filter = "url:file:///home/xxx/yyy.txt";
 			break;
 		case 5:
-			filter = "dir";
+			filter = "dir:/home/xxx";
 			break;
 		case 6:
-			filter = "lang";
+			filter = "lang:en";
 			break;
 		case 7:
-			filter = "type";
+			filter = "type:text/plain";
 			break;
 		case 8:
-			filter = "label";
+			filter = "label:New";
 			break;
 		case 9:
 			// Separator
@@ -253,16 +252,13 @@ void queryDialog::on_addFilterButton_clicked()
 		case 10:
 			filter = TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 			filter += "..20991231";
-			hasValue = false;
 			break;
 		case 11:
 			filter = TimeConverter::toHHMMSSString(tm->tm_hour, tm->tm_min, tm->tm_sec);
 			filter += "..235959";
-			hasValue = false;
 			break;
 		case 12:
 			filter += "0..10240b";
-			hasValue = false;
 			break;
 		default:
 			break;
@@ -274,10 +270,6 @@ void queryDialog::on_addFilterButton_clicked()
 		ustring queryText = refBuffer->get_text();
 		queryText += " ";
 		queryText += filter;
-		if (hasValue == true)
-		{
-			queryText += ":xxx";
-		}
 		refBuffer->set_text(queryText);
 	}
 }
