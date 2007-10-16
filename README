@@ -167,8 +167,8 @@ http://pinot.berlios.de/
   When querying an index, Pinot attempts to find the documents that best match
   the query. The query is run first as is. If no results are found, the terms
   are stemmed and the query is run again.
-  Stemming is available only to Stored Queries for which a language filter is
-  defined.
+  Stemming is available only to Stored Queries for which a language code filter
+  is defined.
 
   Queries can be expressed in a very natural way, using a combination of
   operators, filters and ranges. For instance, the query "type:text/html and
@@ -179,9 +179,9 @@ http://pinot.berlios.de/
       "site" for host name, eg "site:pinot.berlios.de"
       "file" for file name, eg "file:index.html"
       "ext" for file extension, eg "ext:html"
-      "title" for title, eg "title:Session"
+      "title" for title, eg "title:pinot"
       "url" for URL, eg "url:http://pinot.berlios.de/"
-      "dir" for directory, eg "dir:/home/fabrice/test.txt"
+      "dir" for directory, eg "dir:/home/fabrice"
       "lang" for ISO language code, eg "lang:en"
       "type" for MIME type, eg "type:text/html"
       "label" for label, eg "label:Important"
