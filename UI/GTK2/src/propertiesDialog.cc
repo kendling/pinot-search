@@ -50,7 +50,7 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
 	labelsTreeview->set_model(m_refLabelsTree);
 	labelsTreeview->append_column_editable(" ", m_labelsColumns.m_enabled);
-	labelsTreeview->append_column(_("Label"), m_labelsColumns.m_name);
+	labelsTreeview->append_column(_("Labels"), m_labelsColumns.m_name);
 	// Allow only single selection
 	labelsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 
@@ -86,15 +86,8 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 			titleEntry->set_text(to_utf8(docInfo.getTitle()));
 			typeEntry->set_text(to_utf8(docInfo.getType()));
 			unsigned int size = docInfo.getSize();
-			if (size == 0)
-			{
-				sizeEntry->set_text(_("Unknown"));
-			}
-			else
-			{
-				snprintf(numStr, 128, "%u", size);
-				sizeEntry->set_text(numStr);
-			}
+			snprintf(numStr, 128, "%u", size);
+			sizeEntry->set_text(numStr);
 			if (termsCount == 0)
 			{
 				termsEntry->set_text(_("Unknown"));
@@ -254,7 +247,8 @@ const set<string> &propertiesDialog::getLabels(void) const
 
 void propertiesDialog::on_labelOkButton_clicked()
 {
-	unsigned int languageStart = 0;
+	string languageName(from_utf8(languageCombobox->get_active_text()));
+	int unknownLanguagePos = 0;
 
 	// If only one document was edited, set its title
 	if (m_editDocument == true)
@@ -267,11 +261,15 @@ void propertiesDialog::on_labelOkButton_clicked()
 	// Did we add an extra string to the languages list ?
 	if (m_notALanguageName == true)
 	{
-		languageStart = 1;
+		unknownLanguagePos = 1;
 	}
-	int chosenLanguage = languageCombobox->get_active_row_number();
+	int chosenLanguagePos = languageCombobox->get_active_row_number();
+	if (chosenLanguagePos == unknownLanguagePos)
+	{
+		languageName.clear();
+	}
 #ifdef DEBUG
-	cout << "propertiesDialog::on_labelOkButton_clicked: chosen language " << languageCombobox->get_active_text() << endl;
+	cout << "propertiesDialog::on_labelOkButton_clicked: chosen language " << languageName << endl;
 #endif
 
 	// Go through the labels tree
@@ -299,9 +297,9 @@ void propertiesDialog::on_labelOkButton_clicked()
 		docIter != m_documentsList.end(); ++docIter)
 	{
 		// Apply the new language if necessary
-		if (chosenLanguage >= languageStart)
+		if (chosenLanguagePos >= unknownLanguagePos)
 		{
-			docIter->setLanguage(from_utf8(languageCombobox->get_active_text()));
+			docIter->setLanguage(from_utf8(languageName));
 		}
 
 		// Apply labels
