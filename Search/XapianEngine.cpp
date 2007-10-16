@@ -398,12 +398,18 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		if (queryProps.getSortOrder() == QueryProperties::RELEVANCE)
 		{
 			// By relevance, only
-			enquire.set_sort_by_relevance();
+			enquire.set_sort_by_relevance_then_value(4);
+#ifdef DEBUG
+			cout << "XapianEngine::queryDatabase: sorting by relevance first" << endl;
+#endif
 		}
 		else if (queryProps.getSortOrder() == QueryProperties::DATE)
 		{
 			// By date, and then by relevance
 			enquire.set_sort_by_value_then_relevance(4);
+#ifdef DEBUG
+			cout << "XapianEngine::queryDatabase: sorting by date and time first" << endl;
+#endif
 		}
 
 		// Get the top results of the query
