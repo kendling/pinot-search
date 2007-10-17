@@ -8,7 +8,7 @@ http://pinot.berlios.de/
 3. Available engines
 4. Indexes
 5. Indexing and monitoring
-6. Search strategy
+6. Searching
 7. Viewing cached results
 8. File formats
 9. File patterns
@@ -161,19 +161,21 @@ http://pinot.berlios.de/
   patterns as described in section "9. File patterns".
 
 
-6. Search strategy
+6. Searching
 
 
-  When querying an index, Pinot attempts to find the documents that best match
-  the query. The query is run first as is. If no results are found, the terms
-  are stemmed and the query is run again.
-  Stemming is available only to Stored Queries for which a language code filter
-  is defined.
+  Searches are run differently based on the type of engine being queries.
 
-  Queries can be expressed in a very natural way, using a combination of
-  operators, filters and ranges. For instance, the query "type:text/html and
-  lang:en and (tcp near ip)" will look for HTML files in English that mention
-  TCP/IP. 
+  When querying a Web engine, Pinot assumes this engine understands the query,
+  which is sent as is. No pre-processing is performed on the text of the query,
+  and the results list is more or less presented as retrieved from the Web
+  engine.
+
+  When querying an index, things are somewhat different. Queries can be
+  expressed in a very natural way, using a combination of operators, filters
+  and ranges.
+  For instance, the query "type:text/html and lang:en and (tcp near ip)" will
+  look for HTML files in English that mention TCP/IP. 
 
   Supported filters are :
       "site" for host name, eg "site:pinot.berlios.de"
@@ -189,7 +191,13 @@ http://pinot.berlios.de/
   Allowed language codes are "da", "nl", "en", "fi", "fr", "de", "it", "nn", "pt",
   "ru", "es" and "sv".
 
-  The values of "file", "url", "dir" and "label" may be double-quoted.
+  Stemming is available to queries for which a language code filter is defined.
+  If no results are found for such a query, the terms are stemmed and the query
+  is run again.
+
+  The values of "file", "url", "dir" and "label" may be double-quoted. It's also
+  worth pointing out that the query "dir:/X/Y" will return files and directories
+  located in /X/Y, but not Y itself, which is what "dir:/X file:Y" would do.
 
   Supported ranges are :
       "YYYYMMDD..YYYYMMDD" for date ranges, eg "20070801..20070831"
