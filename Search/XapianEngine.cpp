@@ -212,7 +212,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_boolean_prefix("site", "H");
 	parser.add_boolean_prefix("file", "P");
 	parser.add_boolean_prefix("ext", "XEXT:");
-	parser.add_boolean_prefix("title", "S");
+	parser.add_prefix("title", "S");
 	parser.add_boolean_prefix("url", "U");
 	parser.add_boolean_prefix("dir", "XDIR:");
 	parser.add_boolean_prefix("lang", "L");
@@ -418,8 +418,10 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		{
 			m_resultsCountEstimate = matches.get_matches_estimated();
 #ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: " << matches.size() << "/" << m_resultsCountEstimate << "/"
-				<< maxResultsCount << " results found from position " << startDoc << endl;
+			cout << "XapianEngine::queryDatabase: found " << matches.size() << "/" << maxResultsCount
+				<< " results found from position " << startDoc << endl;
+			cout << "XapianEngine::queryDatabase: estimated " << matches.get_matches_lower_bound()
+				<< "/" << m_resultsCountEstimate << "/" << matches.get_matches_upper_bound() << endl;
 #endif
 
 			// Get the results
