@@ -318,13 +318,19 @@ http://pinot.berlios.de/
      * when starting, the service will first crawl all configured locations
        and (re)index new and modified files. Starting with 0.64, the daemon's
        scheduling priority is set very low (15, can be adjusted with --priority)
-       so that you can still play UT2004 while it is indexing !
+       so that you can do stuff while it is indexing !
      * when finished crawling, the service will monitor these locations
        for changes and should consume little resources, unless a huge
        quantity of files needs its attention.
      * any change detected by the monitor is immediately queued and acted upon
        as soon as possible, eg reindex a file that was modified. This and low
        priority should make the daemon not very intrusive.
+     * operations that involve communicating with the daemon, such as editing
+       documents metadata, may timeout if the system is under heavy load and/or
+       the daemon is busy. In most cases, the message will have been received
+       by the daemon, but the reply may take longer than expected. The Pinot
+       UI may report that the operation failed, even though it was queued for
+       processing and will be acted upon by the daemon as soon as possible.
 
   If you have dbus-send installed, you can start the daemon manually by calling
   the GetStatistics method with

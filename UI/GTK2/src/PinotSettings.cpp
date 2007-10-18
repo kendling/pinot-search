@@ -337,6 +337,30 @@ bool PinotSettings::load(void)
 		m_filePatternsList.insert("*.wmv");
 		m_filePatternsList.insert("*.xbm");
 		m_filePatternsList.insert("*.xpm");
+		// Create default queries
+		struct passwd *pPasswd = getpwuid(geteuid());
+		if (pPasswd != NULL)
+		{
+			string userName;
+
+			if ((pPasswd->pw_gecos != NULL) &&
+				(strlen(pPasswd->pw_gecos) > 0))
+			{
+				userName = pPasswd->pw_gecos;
+			}
+			else if (pPasswd->pw_name != NULL)
+			{
+				userName = pPasswd->pw_name;
+			}
+
+			if (userName.empty() == false)
+			{
+				QueryProperties queryProps(_("Me"), userName);
+
+				queryProps.setSortOrder(QueryProperties::DATE);
+				addQuery(queryProps);
+			}
+		}
 	}
 
 	// Some search engines are hardcoded
@@ -1620,7 +1644,7 @@ const map<string, QueryProperties> &PinotSettings::getQueries(void) const
 /// Adds a new query.
 bool PinotSettings::addQuery(const QueryProperties &properties)
 {
-	string name = properties.getName();
+	string name(properties.getName());
 
 	map<string, QueryProperties>::iterator queryIter = m_queries.find(name);
 	if (queryIter == m_queries.end())

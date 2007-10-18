@@ -28,6 +28,7 @@
 #include "Languages.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
+#include "Timer.h"
 #include "Url.h"
 #include "XapianDatabaseFactory.h"
 #include "AbstractGenerator.h"
@@ -376,6 +377,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	unsigned int startDoc, const QueryProperties &queryProps)
 {
+	Timer timer;
 	unsigned int maxResultsCount = queryProps.getMaximumResultsCount();
 	bool completedQuery = false;
 
@@ -387,6 +389,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	// Start an enquire session on the database
 	Xapian::Enquire enquire(*pIndex);
 
+	timer.start();
 	try
 	{
 		AbstractGenerator abstractGen(pIndex, 50);
@@ -469,6 +472,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	{
 		cerr << "XapianEngine::queryDatabase: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
+	cout << "Ran query \"" << query.get_description() << "\" in " << timer.stop() << " ms" << endl;
 
 	try
 	{
@@ -630,9 +634,6 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 			m_defaultOperator, m_limitQuery, m_correctedFreeQuery);
 		while (fullQuery.empty() == false)
 		{
-#ifdef DEBUG
-			cout << "XapianEngine::runQuery: " << fullQuery.get_description() << endl;
-#endif
 			// Query the database
 			if (queryDatabase(pIndex, fullQuery, startDoc, queryProps) == false)
 			{

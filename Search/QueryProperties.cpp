@@ -193,7 +193,7 @@ string QueryProperties::getFreeQuery(bool withoutFilters) const
 	return m_freeQueryWithoutFilters;
 }
 
-/// Gets the query's language.
+/// Gets the value of a specific filter.
 string QueryProperties::getFilter(const string &filterStr)
 {
 	if ((m_freeQuery.empty() == true) ||
