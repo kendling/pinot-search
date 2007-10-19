@@ -472,7 +472,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	{
 		cerr << "XapianEngine::queryDatabase: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
-	cout << "Ran query \"" << query.get_description() << "\" in " << timer.stop() << " ms" << endl;
+	cout << "Ran query \"" << queryProps.getFreeQuery() << "\" in " << timer.stop() << " ms" << endl;
 
 	try
 	{

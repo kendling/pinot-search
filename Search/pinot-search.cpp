@@ -272,15 +272,13 @@ int main(int argc, char **argv)
 				while (resultIter != resultsList.end())
 				{
 					string rawUrl(resultIter->getLocation());
-					Url thisUrl(rawUrl);
 
-					cout << count << " Raw URL  : '" << rawUrl << "'"<< endl;
-					cout << count << " Protocol : " << thisUrl.getProtocol() << endl;
-					cout << count << " Host     : " << thisUrl.getHost() << endl;
-					cout << count << " Location : " << thisUrl.getLocation() << "/" << thisUrl.getFile() << endl;
+					cout << count << " Location : '" << rawUrl << "'"<< endl;
 					cout << count << " Title    : " << resultIter->getTitle() << endl;
 					cout << count << " Type     : " << resultIter->getType() << endl;
 					cout << count << " Language : " << resultIter->getLanguage() << endl;
+					cout << count << " Date     : " << resultIter->getTimestamp() << endl;
+					cout << count << " Size     : " << resultIter->getSize() << endl;
 					cout << count << " Extract  : " << resultIter->getExtract() << endl;
 					cout << count << " Score    : " << resultIter->getScore() << endl;
 					count++;
