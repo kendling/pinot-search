@@ -42,9 +42,9 @@ public:
 
 protected:
 	LabelModelColumns m_labelsColumns;
-	std::vector<DocumentInfo> &m_documentsList;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
 	std::string m_indexLocation;
+	std::vector<DocumentInfo> &m_documentsList;
 	std::set<std::string> m_labels;
 	unsigned int m_docId;
 	bool m_notALanguageName;
