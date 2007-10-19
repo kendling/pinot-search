@@ -30,6 +30,7 @@
 #include "config.h"
 #include "Url.h"
 #include "MonitorFactory.h"
+#include "CrawlHistory.h"
 #include "XapianIndex.h"
 #include "DaemonState.h"
 #include "OnDiskHandler.h"
@@ -226,6 +227,17 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		{
 			m_signalQuit(0);
 		}
+	}
+
+	// Did it fail ?
+	int errorNum = pThread->getErrorNum();
+	if ((errorNum > 0) &&
+		(indexedUrl.empty() == false))
+	{
+		CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+
+		// An entry should already exist for this
+		history.updateItem(indexedUrl, CrawlHistory::ERROR, time(NULL), errorNum);
 	}
 
 	// Delete the thread

@@ -1604,7 +1604,11 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			if ((pResultsTree != NULL) &&
 				(pResultsTree->updateResult(pUpdateThread->getDocumentInfo()) == true))
 			{
-				status = _("Updated document properties");
+				char docIdStr[64];
+
+				status = _("Updated document");
+				snprintf(docIdStr, 64, "%u", pUpdateThread->getDocumentID());
+				status += docIdStr;
 				set_status(status);
 			}
 		}
@@ -2259,6 +2263,7 @@ void mainWindow::on_showfromindex_activate()
 	vector<DocumentInfo> documentsList;
 	string indexName, queryName;
 	int width, height;
+	bool updateLabels = false;
 
 #ifdef DEBUG
 	cout << "mainWindow::on_showfromindex_activate: called" << endl;
@@ -2319,25 +2324,7 @@ void mainWindow::on_showfromindex_activate()
 	if ((hadNoLabels == false) ||
 		(labels.empty() == false))
 	{
-		IndexInterface *pIndex = m_settings.getIndex(mapIter->second);
-		if (pIndex != NULL)
-		{
-			set<unsigned int> docIds;
-
-			for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
-				docIter != documentsList.end(); ++docIter)
-			{
-				unsigned int indexId = 0;
-
-				docIds.insert(docIter->getIsIndexed(indexId));
-			}
-
-			// Set the document's labels list
-			// FIXME: this should be done by a thread
-			pIndex->setDocumentsLabels(docIds, labels);
-
-			delete pIndex;
-		}
+		updateLabels = true;
 	}
 
 	// Update all documents
@@ -2348,7 +2335,7 @@ void mainWindow::on_showfromindex_activate()
 		unsigned int indexId = 0;
 		unsigned int docId = docIter->getIsIndexed(indexId);
 
-		start_thread(new UpdateDocumentThread(indexName, docId, *docIter, false));
+		start_thread(new UpdateDocumentThread(indexName, docId, *docIter, updateLabels));
 	}
 
 	// Is the index list filtered with a query ?
