@@ -416,7 +416,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		}
 
 		// Get the top results of the query
-		Xapian::MSet matches = enquire.get_mset(startDoc, maxResultsCount, maxResultsCount + 1);
+		Xapian::MSet matches = enquire.get_mset(startDoc, maxResultsCount, (2 * maxResultsCount) + 1);
 		if (matches.empty() == false)
 		{
 			m_resultsCountEstimate = matches.get_matches_estimated();
