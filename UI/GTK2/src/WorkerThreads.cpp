@@ -227,15 +227,18 @@ void WorkerThread::threadHandler(void)
 	{
 		cerr << "Glib exception in thread " << m_id << ", type " << getType()
 			<< ":" << ex.what() << endl;
+		m_errorNum = UNKNOWN_ERROR;
 	}
 	catch (std::exception &ex)
 	{
 		cerr << "STL exception in thread " << m_id << ", type " << getType()
 			<< ":" << ex.what() << endl;
+		m_errorNum = UNKNOWN_ERROR;
 	}
 	catch (...)
 	{
 		cerr << "Unknown exception in thread " << m_id << ", type " << getType() << endl;
+		m_errorNum = UNKNOWN_ERROR;
 	}
 
 	emitSignal();
