@@ -777,7 +777,7 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 			cerr << "DBusXapianIndex::setDocumentsLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
-		updatedLabels = false;
+		updatedLabels = FALSE;
 	}
 
 	// Free the arrays
