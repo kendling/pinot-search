@@ -286,7 +286,15 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		}
 		else if (metaIter->first == "size")
 		{
-			doc.setSize((off_t)atoi(metaIter->second.c_str()));
+			off_t size = (off_t)atoi(metaIter->second.c_str());
+
+			if (size > 0)
+			{
+				doc.setSize(size);
+			}
+#ifdef DEBUG
+			else cout << "FilterUtils::populateDocument: ignoring size zero" << endl;
+#endif
 		}
 		else if (metaIter->first == "title")
 		{
