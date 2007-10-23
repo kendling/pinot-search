@@ -474,23 +474,17 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	}
 
 	string language(StringManip::extractField(record, "language=", "\n"));
-	string timestamp(StringManip::extractField(record, "timestamp=", "\n"));
 
 	docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
 		StringManip::extractField(record, "url=", "\n"),
 		StringManip::extractField(record, "type=", "\n"),
 		Languages::toLocale(language));
-	// We used to use timestamp prior to 0.60
-	if (timestamp.empty() == true)
+	string modTime(StringManip::extractField(record, "modtime=", "\n"));
+	if (modTime.empty() == false)
 	{
-		string modTime(StringManip::extractField(record, "modtime=", "\n"));
-		if (modTime.empty() == false)
-		{
-			time_t timeT = (time_t )atol(modTime.c_str());
-			timestamp = TimeConverter::toTimestamp(timeT);
-		}
+		time_t timeT = (time_t )atol(modTime.c_str());
+		docInfo.setTimestamp(TimeConverter::toTimestamp(timeT));
 	}
-	docInfo.setTimestamp(timestamp);
 	string bytesSize(StringManip::extractField(record, "size=", ""));
 	if (bytesSize.empty() == false)
 	{
@@ -656,6 +650,7 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	doc.add_value(4, yyyymmdd + hhmmss);
 
 	DocumentInfo docCopy(info);
+	// XapianDatabase expects the language in English, which is okay here
 	docCopy.setLanguage(language);
 	doc.set_data(XapianDatabase::propsToRecord(&docCopy));
 }
@@ -849,35 +844,14 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 		if (pIndex != NULL)
 		{
 			Xapian::Document doc = pIndex->get_document(docId);
+			string record(doc.get_data());
 
 			// Get the current document data
-			string record = doc.get_data();
 			if (record.empty() == false)
 			{
-				string language(Languages::toLocale(StringManip::extractField(record, "language=", "\n")));
-				// We used to use timestamp prior to 0.60
-				string timestamp(StringManip::extractField(record, "timestamp=", "\n"));
-
-				docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
-					StringManip::extractField(record, "url=", "\n"),
-					StringManip::extractField(record, "type=", "\n"),
-					language);
-				if (timestamp.empty() == true)
-				{
-					// This is the format used by Omega
-					string modTime(StringManip::extractField(record, "modtime=", "\n"));
-					if (modTime.empty() == false)
-					{
-						time_t timeT = (time_t )atol(modTime.c_str());
-						timestamp = TimeConverter::toTimestamp(timeT);
-					}
-				}
-				docInfo.setTimestamp(timestamp);
-				string bytesSize(StringManip::extractField(record, "size=", ""));
-				if (bytesSize.empty() == false)
-				{
-					docInfo.setSize((off_t )atol(bytesSize.c_str()));
-				}
+				XapianDatabase::recordToProps(record, &docInfo);
+				// XapianDatabase stored the language in English
+				docInfo.setLanguage(Languages::toLocale(docInfo.getLanguage()));
 				foundDocument = true;
 			}
 		}

@@ -449,6 +449,8 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 				cout << "XapianEngine::queryDatabase: found document ID " << docId << endl;
 #endif
 				XapianDatabase::recordToProps(doc.get_data(), &thisResult);
+				// XapianDatabase stored the language in English
+				thisResult.setLanguage(Languages::toLocale(thisResult.getLanguage()));
 
 				string url(thisResult.getLocation());
 				if (url.empty() == true)

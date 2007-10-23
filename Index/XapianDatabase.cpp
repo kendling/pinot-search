@@ -539,7 +539,7 @@ string XapianDatabase::propsToRecord(DocumentInfo *pDoc)
 	record += tmpStr;
 	// ...and the language
 	record += "\nlanguage=";
-	record += StringManip::toLowerCase(pDoc->getLanguage());
+	record += pDoc->getLanguage();
 	// ...and the file size
 	record += "\nsize=";
 	snprintf(tmpStr, 64, "%ld", pDoc->getSize());
@@ -573,13 +573,12 @@ void XapianDatabase::recordToProps(const string &record, DocumentInfo *pDoc)
 	// ... the language, if available
 	pDoc->setLanguage(StringManip::extractField(record, "language=", "\n"));
 	// ... and the timestamp
-	string timestamp, modTime(StringManip::extractField(record, "modtime=", "\n"));
+	string modTime(StringManip::extractField(record, "modtime=", "\n"));
 	if (modTime.empty() == false)
 	{
 		time_t timeT = (time_t )atol(modTime.c_str());
-		timestamp = TimeConverter::toTimestamp(timeT);
+		pDoc->setTimestamp(TimeConverter::toTimestamp(timeT));
 	}
-	pDoc->setTimestamp(timestamp);
 	string bytesSize(StringManip::extractField(record, "size=", ""));
 	if (bytesSize.empty() == false)
 	{
