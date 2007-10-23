@@ -23,6 +23,7 @@
 #include <fstream>
 #include <string>
 
+#include "Languages.h"
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "XapianDatabaseFactory.h"
@@ -200,6 +201,23 @@ int main(int argc, char **argv)
 
 	MIMEScanner::initialize("", "");
 	DownloaderInterface::initialize();
+	// Localize language names
+	Languages::setIntlName(0, "Unknown");
+	Languages::setIntlName(1, "Danish");
+	Languages::setIntlName(2, "Dutch");
+	Languages::setIntlName(3, "English");
+	Languages::setIntlName(4, "Finnish");
+	Languages::setIntlName(5, "French");
+	Languages::setIntlName(6, "German");
+	Languages::setIntlName(7, "Hungarian");
+	Languages::setIntlName(8, "Italian");
+	Languages::setIntlName(9, "Norwegian");
+	Languages::setIntlName(10, "Portuguese");
+	Languages::setIntlName(11, "Romanian");
+	Languages::setIntlName(12, "Russian");
+	Languages::setIntlName(13, "Spanish");
+	Languages::setIntlName(14, "Swedish");
+	Languages::setIntlName(15, "Turkish");
 
 	engineType = argv[optind];
 	option = argv[optind + 1];
