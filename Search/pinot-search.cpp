@@ -194,7 +194,7 @@ int main(int argc, char **argv)
 	if ((argc < 4) ||
 		(argc - optind != 3))
 	{
-		cerr << "Not enough parameters" << endl;
+		cerr << "Wrong number of parameters" << endl;
 		return EXIT_FAILURE;
 	}
 
