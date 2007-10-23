@@ -108,7 +108,7 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 	{
 		for (unsigned int i=0; i<resultNum; ++i)
 		{
-			string language = StringManip::toLowerCase(catResults[i]);
+			string language(StringManip::toLowerCase(catResults[i]));
 
 			// Remove the charset information
 			string::size_type dashPos = language.find('-');
@@ -139,7 +139,7 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 		}
 		else
 		{
-			string languageList = languages;
+			string languageList(languages);
 			string::size_type lastPos = 0, pos = languageList.find_first_of("[");
 
 			while (pos != string::npos)
@@ -151,7 +151,7 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 					break;
 				}
 
-				string language = StringManip::toLowerCase(languageList.substr(pos, lastPos - pos));
+				string language(StringManip::toLowerCase(languageList.substr(pos, lastPos - pos)));
 				// Remove the charset information
 				string::size_type dashPos = language.find('-');
 				if (dashPos != string::npos)
