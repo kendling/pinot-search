@@ -1194,7 +1194,8 @@ void ExpandQueryThread::doWork(void)
 
 LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToAdd,
 	const set<string> &labelsToDelete, const map<string, string> &labelsToRename) :
-	WorkerThread()
+	WorkerThread(),
+	m_resetLabels(false)
 {
 	copy(labelsToAdd.begin(), labelsToAdd.end(),
 		inserter(m_labelsToAdd, m_labelsToAdd.begin()));
@@ -1204,13 +1205,18 @@ LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToAdd,
 		inserter(m_labelsToRename, m_labelsToRename.begin()));
 }
 
-LabelUpdateThread::LabelUpdateThread(const string &labelName,
-	const set<unsigned int> &docsIds, const set<unsigned int> &daemonIds) :
+LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToAdd,
+	const set<unsigned int> &docsIds, const set<unsigned int> &daemonIds,
+	bool resetLabels) :
 	WorkerThread(),
-	m_labelName(labelName)
+	m_resetLabels(resetLabels)
 {
-	copy(docsIds.begin(), docsIds.end(), inserter(m_docsIds, m_docsIds.begin()));
-	copy(daemonIds.begin(), daemonIds.end(), inserter(m_daemonIds, m_daemonIds.begin()));
+	copy(labelsToAdd.begin(), labelsToAdd.end(),
+		inserter(m_labelsToAdd, m_labelsToAdd.begin()));
+	copy(docsIds.begin(), docsIds.end(),
+		inserter(m_docsIds, m_docsIds.begin()));
+	copy(daemonIds.begin(), daemonIds.end(),
+		inserter(m_daemonIds, m_daemonIds.begin()));
 }
 
 LabelUpdateThread::~LabelUpdateThread()
@@ -1224,6 +1230,8 @@ string LabelUpdateThread::getType(void) const
 
 void LabelUpdateThread::doWork(void)
 {
+	bool actOnDocuments = false;
+
 	IndexInterface *pDocsIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_docsIndexLocation);
 	if (pDocsIndex == NULL)
 	{
@@ -1241,38 +1249,38 @@ void LabelUpdateThread::doWork(void)
 		return;
 	}
 
-	// Apply the new label to existing documents
-	if (m_labelName.empty() == false)
+	// Apply the labels to existing documents
+	if (m_docsIds.empty() == false)
 	{
-		set<string> labels;
+		pDocsIndex->setDocumentsLabels(m_docsIds, m_labelsToAdd, m_resetLabels);
+		actOnDocuments = true;
+	}
+	if (m_daemonIds.empty() == false)
+	{
+		pDaemonIndex->setDocumentsLabels(m_daemonIds, m_labelsToAdd, m_resetLabels);
+		actOnDocuments = true;
+	}
 
-		labels.insert(m_labelName);
-		if (m_docsIds.empty() == false)
+	if (actOnDocuments == false)
+	{
+		// Add labels
+		for (set<string>::iterator iter = m_labelsToAdd.begin(); iter != m_labelsToAdd.end(); ++iter)
 		{
-			pDocsIndex->setDocumentsLabels(m_docsIds, labels, false);
+			pDocsIndex->addLabel(*iter);
+			pDaemonIndex->addLabel(*iter);
 		}
-		if (m_daemonIds.empty() == false)
+		// Delete labels
+		for (set<string>::iterator iter = m_labelsToDelete.begin(); iter != m_labelsToDelete.end(); ++iter)
 		{
-			pDaemonIndex->setDocumentsLabels(m_daemonIds, labels, false);
+			pDocsIndex->deleteLabel(*iter);
+			pDaemonIndex->deleteLabel(*iter);
 		}
-	}
-	// Add labels
-	for (set<string>::iterator iter = m_labelsToAdd.begin(); iter != m_labelsToAdd.end(); ++iter)
-	{
-		pDocsIndex->addLabel(*iter);
-		pDaemonIndex->addLabel(*iter);
-	}
-	// Delete labels
-	for (set<string>::iterator iter = m_labelsToDelete.begin(); iter != m_labelsToDelete.end(); ++iter)
-	{
-		pDocsIndex->deleteLabel(*iter);
-		pDaemonIndex->deleteLabel(*iter);
-	}
-	// Rename labels
-	for (map<string, string>::iterator iter = m_labelsToRename.begin(); iter != m_labelsToRename.end(); ++iter)
-	{
-		pDocsIndex->renameLabel(iter->first, iter->second);
-		pDaemonIndex->renameLabel(iter->first, iter->second);
+		// Rename labels
+		for (map<string, string>::iterator iter = m_labelsToRename.begin(); iter != m_labelsToRename.end(); ++iter)
+		{
+			pDocsIndex->renameLabel(iter->first, iter->second);
+			pDaemonIndex->renameLabel(iter->first, iter->second);
+		}
 	}
 
 	delete pDaemonIndex;

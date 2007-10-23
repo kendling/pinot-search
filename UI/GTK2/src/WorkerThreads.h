@@ -324,9 +324,10 @@ class LabelUpdateThread : public WorkerThread
 		LabelUpdateThread(const std::set<std::string> &labelsToAdd,
 			const std::set<std::string> &labelsToDelete,
 			const std::map<std::string, std::string> &labelsToRename);
-		LabelUpdateThread(const std::string &labelName,
+		LabelUpdateThread(const std::set<std::string> &labelsToAdd,
 			const std::set<unsigned int> &docsIds,
-			const std::set<unsigned int> &daemonIds);
+			const std::set<unsigned int> &daemonIds,
+			bool resetLabels);
 
 		virtual ~LabelUpdateThread();
 
@@ -336,9 +337,9 @@ class LabelUpdateThread : public WorkerThread
 		std::set<std::string> m_labelsToAdd;
 		std::set<std::string> m_labelsToDelete;
 		std::map<std::string, std::string> m_labelsToRename;
-		std::string m_labelName;
 		std::set<unsigned int> m_docsIds;
 		std::set<unsigned int> m_daemonIds;
+		bool m_resetLabels;
 
 		virtual void doWork(void);
 

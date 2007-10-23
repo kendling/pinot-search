@@ -1370,8 +1370,11 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				((docsIds.empty() == false) ||
 				(daemonIds.empty() == false)))
 			{
+				set<string> labels;
+
 				// Apply the new label to existing documents
-				start_thread(new LabelUpdateThread(labelName, docsIds, daemonIds));
+				labels.insert(labelName);
+				start_thread(new LabelUpdateThread(labels, docsIds, daemonIds, false));
 			}
 		}
 	}
@@ -1607,6 +1610,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				char docIdStr[64];
 
 				status = _("Updated document");
+				status += " ";
 				snprintf(docIdStr, 64, "%u", pUpdateThread->getDocumentID());
 				status += docIdStr;
 				set_status(status);
@@ -2261,9 +2265,10 @@ void mainWindow::on_refreshindex_activate()
 void mainWindow::on_showfromindex_activate()
 {
 	vector<DocumentInfo> documentsList;
+	set<unsigned int> docIds;
 	string indexName, queryName;
 	int width, height;
-	bool updateLabels = false;
+	bool docsIndex = false, daemonIndex = false;
 
 #ifdef DEBUG
 	cout << "mainWindow::on_showfromindex_activate: called" << endl;
@@ -2278,8 +2283,15 @@ void mainWindow::on_showfromindex_activate()
 	}
 
 	// Allow this only for internal indexes
-	if ((indexName != _("My Web Pages")) &&
-		(indexName != _("My Documents")))
+	if (indexName == _("My Web Pages"))
+	{
+		docsIndex = true;
+	}
+	else if (indexName == _("My Documents"))
+	{
+		daemonIndex = true;
+	}
+	else
 	{
 		return;
 	}
@@ -2313,29 +2325,47 @@ void mainWindow::on_showfromindex_activate()
 	propertiesBox.show();
 	// What labels will this show ?
 	const set<string> &labels = propertiesBox.getLabels();
-	bool hadNoLabels = labels.empty();
 	if (propertiesBox.run() != RESPONSE_OK)
 	{
 		return;
 	}
 
-	// Now apply these labels to all the documents
-	// FIXME: do that only if something was modified
-	if ((hadNoLabels == false) ||
-		(labels.empty() == false))
-	{
-		updateLabels = true;
-	}
-
 	// Update all documents
-	// FIXME: do that only if something was modified
 	for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
 	{
 		unsigned int indexId = 0;
 		unsigned int docId = docIter->getIsIndexed(indexId);
 
-		start_thread(new UpdateDocumentThread(indexName, docId, *docIter, updateLabels));
+		// ... only if something was modified
+		if (propertiesBox.changedInfo() == true)
+		{
+			start_thread(new UpdateDocumentThread(indexName, docId, *docIter, false));
+		}
+
+		docIds.insert(docId);
+	}
+
+	// Now apply these labels to all the documents
+	if (propertiesBox.changedLabels() == true)
+	{
+		LabelUpdateThread *pThread = NULL;
+		set<unsigned int> empty;
+
+		// Apply the labels en masse
+		if (docsIndex == true)
+		{
+			pThread = new LabelUpdateThread(labels, docIds, empty, true);
+		}
+		else if (daemonIndex == true)
+		{
+			pThread = new LabelUpdateThread(labels, empty, docIds, true);
+		}
+
+		if (pThread != NULL)
+		{
+			start_thread(pThread);
+		}
 	}
 
 	// Is the index list filtered with a query ?

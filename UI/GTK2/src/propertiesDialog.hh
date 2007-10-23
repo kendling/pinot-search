@@ -40,6 +40,10 @@ public:
 
 	const std::set<std::string> &getLabels(void) const;
 
+	bool changedInfo(void) const;
+
+	bool changedLabels(void) const;
+
 protected:
 	LabelModelColumns m_labelsColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
@@ -49,6 +53,10 @@ protected:
 	unsigned int m_docId;
 	bool m_notALanguageName;
 	bool m_editDocument;
+	std::string m_infoHash;
+	std::string m_labelsHash;
+	bool m_changedInfo;
+	bool m_changedLabels;
 
 	void populate_languageCombobox(const std::string &language);
 

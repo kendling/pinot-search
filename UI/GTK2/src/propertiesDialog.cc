@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include "Languages.h"
+#include "StringManip.h"
 #include "NLS.h"
 #include "XapianIndex.h"
 #include "PinotSettings.h"
@@ -40,10 +41,12 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 	m_documentsList(documentsList),
 	m_docId(0),
 	m_notALanguageName(false),
-	m_editDocument(false)
+	m_editDocument(false),
+	m_changedInfo(false),
+	m_changedLabels(false)
 {
 	set<string> docLabels;
-	string language;
+	string title, language;
 	char numStr[128];
 
 	// Associate the columns model to the labels tree
@@ -78,12 +81,13 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 
 				delete pIndex;
 			}
+			title = docInfo.getTitle();
 			language = docInfo.getLanguage();
 
 			snprintf(numStr, 128, "%u", m_docId);
 			set_title(get_title() + " (ID " + numStr + ")");
 
-			titleEntry->set_text(to_utf8(docInfo.getTitle()));
+			titleEntry->set_text(to_utf8(title));
 			typeEntry->set_text(to_utf8(docInfo.getType()));
 			unsigned int size = docInfo.getSize();
 			snprintf(numStr, 128, "%u", size);
@@ -144,6 +148,7 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 	}
 
 	populate_languageCombobox(language);
+	m_infoHash = StringManip::hashString(title + language);
 	populate_labelsTreeview(docLabels);
 }
 
@@ -153,14 +158,14 @@ propertiesDialog::~propertiesDialog()
 
 void propertiesDialog::populate_languageCombobox(const string &language)
 {
-	unsigned int languageStart = 0;
+	int unknownLanguagePos = 0;
 	bool foundLanguage = false;
 
 	if (m_notALanguageName == true)
 	{
 		languageCombobox->append_text(to_utf8(language));
 		languageCombobox->set_active(0);
-		languageStart = 1;
+		unknownLanguagePos = 1;
 	}
 
 	// Add all supported languages
@@ -169,10 +174,12 @@ void propertiesDialog::populate_languageCombobox(const string &language)
 		string languageName(Languages::getIntlName(languageNum));
 
 		languageCombobox->append_text(to_utf8(languageName));
+		// Is this the language we are looking for ?
 		if ((m_notALanguageName == false) &&
-			(languageName == language))
+			(strncasecmp(languageName.c_str(), language.c_str(),
+			min(languageName.length(), language.length())) == 0))
 		{
-			languageCombobox->set_active(languageNum + languageStart);
+			languageCombobox->set_active(languageNum + unknownLanguagePos);
 			foundLanguage = true;
 		}
 	}
@@ -181,8 +188,8 @@ void propertiesDialog::populate_languageCombobox(const string &language)
 	if ((m_notALanguageName == false) &&
 		(foundLanguage == false))
 	{
-		// Select the first language in the list
-		languageCombobox->set_active(languageStart);
+		// The first language in the list should be unknown
+		languageCombobox->set_active(unknownLanguagePos);
 	}
 }
 
@@ -190,6 +197,7 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
+	string labelsString;
 
 	// Populate the tree
 	set<string> &sysLabels = PinotSettings::getInstance().m_labels;
@@ -208,6 +216,7 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 		{
 			// Yup
 			row[m_labelsColumns.m_enabled] = true;
+			labelsString += labelName;
 			m_labels.insert(labelName);
 		}
 		else
@@ -219,6 +228,9 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 	cout << "propertiesDialog::populate_labelsTreeview: showing " << docLabels.size()
 		<< "/" << sysLabels.size() << " labels" << endl;
 #endif
+
+	// This will help determining if changes were made
+	m_labelsHash = StringManip::hashString(labelsString);
 }
 
 void propertiesDialog::setHeight(int maxHeight)
@@ -245,9 +257,19 @@ const set<string> &propertiesDialog::getLabels(void) const
 	return m_labels;
 }
 
+bool propertiesDialog::changedInfo(void) const
+{
+	return m_changedInfo;
+}
+
+bool propertiesDialog::changedLabels(void) const
+{
+	return m_changedLabels;
+}
+
 void propertiesDialog::on_labelOkButton_clicked()
 {
-	string languageName(from_utf8(languageCombobox->get_active_text()));
+	string title, languageName(from_utf8(languageCombobox->get_active_text())), labelsString;
 	int unknownLanguagePos = 0;
 
 	// If only one document was edited, set its title
@@ -255,15 +277,20 @@ void propertiesDialog::on_labelOkButton_clicked()
 	{
 		vector<DocumentInfo>::iterator docIter = m_documentsList.begin();
 
-		docIter->setTitle(from_utf8(titleEntry->get_text()));
+		title = from_utf8(titleEntry->get_text());
+		docIter->setTitle(title);
+		// FIXME: find out if changes were actually made 
 	}
+#ifdef DEBUG
+	cout << "propertiesDialog::on_labelOkButton_clicked: chosen title " << title << endl;
+#endif
 
 	// Did we add an extra string to the languages list ?
+	int chosenLanguagePos = languageCombobox->get_active_row_number();
 	if (m_notALanguageName == true)
 	{
 		unknownLanguagePos = 1;
 	}
-	int chosenLanguagePos = languageCombobox->get_active_row_number();
 	if (chosenLanguagePos == unknownLanguagePos)
 	{
 		languageName.clear();
@@ -271,6 +298,14 @@ void propertiesDialog::on_labelOkButton_clicked()
 #ifdef DEBUG
 	cout << "propertiesDialog::on_labelOkButton_clicked: chosen language " << languageName << endl;
 #endif
+	string newInfoHash(StringManip::hashString(title + languageName));
+	if (newInfoHash != m_infoHash)
+	{
+#ifdef DEBUG
+		cout << "propertiesDialog::on_labelOkButton_clicked: properties changed" << endl;
+#endif
+		m_changedInfo = true;
+	}
 
 	// Go through the labels tree
 	m_labels.clear();
@@ -285,6 +320,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 			if (enabled == true)
 			{
 				ustring labelName = row[m_labelsColumns.m_name];
+				labelsString += labelName;
 				m_labels.insert(from_utf8(labelName));
 			}
 		}
@@ -292,6 +328,14 @@ void propertiesDialog::on_labelOkButton_clicked()
 #ifdef DEBUG
 	cout << "propertiesDialog::on_labelOkButton_clicked: chosen " << m_labels.size() << " labels" << endl;
 #endif
+	string newLabelsHash(StringManip::hashString(labelsString));
+	if (newLabelsHash != m_labelsHash)
+	{
+#ifdef DEBUG
+		cout << "propertiesDialog::on_labelOkButton_clicked: labels changed" << endl;
+#endif
+		m_changedLabels = true;
+	}
 
 	for (vector<DocumentInfo>::iterator docIter = m_documentsList.begin();
 		docIter != m_documentsList.end(); ++docIter)
