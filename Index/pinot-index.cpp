@@ -51,7 +51,7 @@ static void printHelp(void)
 {
 	// Help
 	cout << "pinot-index - Index documents from the command-line\n\n"
-		<< "Usage: pinot-index [OPTIONS] URL\n\n"
+		<< "Usage: pinot-index [OPTIONS] URLS\n\n"
 		<< "Options:\n"
 		<< "  -c, --check               check whether the given URL is in the index\n"
 		<< "  -d, --db                  path to index to use (mandatory)\n"
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 	}
 
 	if ((argc < 2) ||
-		(argc - optind != 1))
+		(argc - optind == 0))
 	{
 		cerr << "Not enough parameters" << endl;
 		return EXIT_FAILURE;
@@ -191,112 +191,116 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	string urlParam(argv[optind]);
-
-	if (checkDocument == true)
+	while (optind < argc)
 	{
-		if (pIndex->isGood() == true)
+		string urlParam(argv[optind]);
+
+		if (checkDocument == true)
 		{
-			docId = pIndex->hasDocument(urlParam);
-			if (docId > 0)
+			if (pIndex->isGood() == true)
 			{
-				cout << urlParam << ": document ID " << docId << endl;
-				success = true;
-			}
-		}
-	}
-	if (indexDocument == true)
-	{
-		Url thisUrl(urlParam);
-
-		// Which Downloader ?
-		DownloaderInterface *pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
-		if (pDownloader == NULL)
-		{
-			cerr << "Couldn't obtain downloader for protocol " << thisUrl.getProtocol() << endl;
-
-			delete pIndex;
-			XapianDatabaseFactory::closeAll();
-			Dijon::FilterFactory::unloadFilters();
-			Dijon::HtmlFilter::shutdown();
-			DownloaderInterface::shutdown();
-			MIMEScanner::shutdown();
-
-			return EXIT_FAILURE;
-		}
-
-		// Set up the proxy
-		if ((proxyAddress.empty() == false) &&
-			(proxyPort.empty() == false))
-		{
-			pDownloader->setSetting("proxyaddress", proxyAddress);
-			pDownloader->setSetting("proxyport", proxyPort);
-			pDownloader->setSetting("proxytype", proxyType);
-		}
-
-		DocumentInfo docInfo("", urlParam, MIMEScanner::scanUrl(thisUrl), "");
-		Document *pDoc = pDownloader->retrieveUrl(docInfo);
-		if (pDoc == NULL)
-		{
-			cerr << "Download operation failed !" << endl;
-		}
-		else
-		{
-			FilterWrapper wrapFilter(pIndex);
-			set<string> labels;
-
-			// Update an existing document or add to the index ?
-			docId = pIndex->hasDocument(urlParam);
-			if (docId > 0)
-			{
-				// Update the document
-				if (wrapFilter.updateDocument(*pDoc, docId) == true)
+				docId = pIndex->hasDocument(urlParam);
+				if (docId > 0)
 				{
+					cout << urlParam << ": document ID " << docId << endl;
 					success = true;
 				}
 			}
+		}
+		if (indexDocument == true)
+		{
+			Url thisUrl(urlParam);
+
+			// Which Downloader ?
+			DownloaderInterface *pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
+			if (pDownloader == NULL)
+			{
+				cerr << "Couldn't obtain downloader for protocol " << thisUrl.getProtocol() << endl;
+
+				success = false;
+				continue;
+			}
+
+			// Set up the proxy
+			if ((proxyAddress.empty() == false) &&
+				(proxyPort.empty() == false))
+			{
+				pDownloader->setSetting("proxyaddress", proxyAddress);
+				pDownloader->setSetting("proxyport", proxyPort);
+				pDownloader->setSetting("proxytype", proxyType);
+			}
+
+			DocumentInfo docInfo("", urlParam, MIMEScanner::scanUrl(thisUrl), "");
+			Document *pDoc = pDownloader->retrieveUrl(docInfo);
+			if (pDoc == NULL)
+			{
+				cerr << "Couldn't download " << urlParam << endl;
+			}
 			else
 			{
-				// Index the document
-				success = wrapFilter.indexDocument(*pDoc, labels, docId);
+				FilterWrapper wrapFilter(pIndex);
+				set<string> labels;
+
+				// Update an existing document or add to the index ?
+				docId = pIndex->hasDocument(urlParam);
+				if (docId > 0)
+				{
+					// Update the document
+					if (wrapFilter.updateDocument(*pDoc, docId) == true)
+					{
+						success = true;
+					}
+				}
+				else
+				{
+					// Index the document
+					success = wrapFilter.indexDocument(*pDoc, labels, docId);
+				}
+
+				if (success == true)
+				{
+					// Flush the index
+					pIndex->flush();
+				}
+
+				delete pDoc;
 			}
 
-			if (success == true)
-			{
-				// Flush the index
-				pIndex->flush();
-			}
-
-			delete pDoc;
+			delete pDownloader;
 		}
-
-		delete pDownloader;
-	}
-	if ((showInfo == true) &&
-		(docId > 0))
-	{
-		DocumentInfo docInfo;
-		set<string> labels;
-
-		if (pIndex->getDocumentInfo(docId, docInfo) == true)
+		if ((showInfo == true) &&
+			(docId > 0))
 		{
-			cout << "Title: " << docInfo.getTitle() << endl;
-			cout << "Location: " << docInfo.getLocation() << endl;
-			cout << "Type: " << docInfo.getType() << endl;
-			cout << "Language: " << docInfo.getLanguage() << endl;
-			cout << "Timestamp: " << docInfo.getTimestamp() << endl;
-			cout << "Size: " << docInfo.getSize() << endl;
-		}
-		if (pIndex->getDocumentLabels(docId, labels) == true)
-		{
-			cout << "Labels: ";
-			for (set<string>::const_iterator labelIter = labels.begin();
-				labelIter != labels.end(); ++labelIter)
+			DocumentInfo docInfo;
+			set<string> labels;
+
+			if (pIndex->getDocumentInfo(docId, docInfo) == true)
 			{
-				cout << "[" << Url::escapeUrl(*labelIter) << "]";
+				cout << "Location : '" << docInfo.getLocation() << "'" << endl;
+				cout << "Title    : " << docInfo.getTitle() << endl;
+				cout << "Type     : " << docInfo.getType() << endl;
+				cout << "Language : " << docInfo.getLanguage() << endl;
+				cout << "Date     : " << docInfo.getTimestamp() << endl;
+				cout << "Size     : " << docInfo.getSize() << endl;
 			}
-			cout << endl;
+			if (pIndex->getDocumentLabels(docId, labels) == true)
+			{
+				cout << "Labels   : ";
+				for (set<string>::const_iterator labelIter = labels.begin();
+					labelIter != labels.end(); ++labelIter)
+				{
+					if (labelIter->substr(0, 2) == "X-")
+					{
+						continue;
+					}
+					cout << "[" << Url::escapeUrl(*labelIter) << "]";
+				}
+				cout << endl;
+			}
 		}
+
+		// Next
+		++optind;
 	}
 	delete pIndex;
 

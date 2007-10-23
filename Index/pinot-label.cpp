@@ -50,12 +50,21 @@ static struct option g_longOptions[] = {
 };
 
 
-static void printLabels(const set<string> &labels)
+static void printLabels(const set<string> &labels, const string &fileName)
 {
+	if (fileName.empty() == false)
+	{
+		cout << fileName << endl;
+	}
 	cout << "Labels: ";
+
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{
+		if (labelIter->substr(0, 2) == "X-")
+		{
+			continue;
+		}
 		cout << "[" << Url::escapeUrl(*labelIter) << "]";
 	}
 	cout << endl;
@@ -86,7 +95,7 @@ static void printHelp(void)
 {
 	// Help
 	cout << "pinot-label - Label files from the command-line\n\n"
-		<< "Usage: pinot-label [OPTIONS] [FILE]\n\n"
+		<< "Usage: pinot-label [OPTIONS] [FILES]\n\n"
 		<< "Options:\n"
 		<< "  -g, --get                 get the labels list for the given file\n"
 		<< "  -h, --help                display this help and exit\n"
@@ -152,6 +161,13 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
+	if ((argc < 2) ||
+		(argc - optind == 0))
+	{
+		cerr << "Not enough parameters" << endl;
+		return EXIT_FAILURE;
+	}
+
 	if ((setDocumentLabels == true) &&
 		(labelsString.empty() == true))
 	{
@@ -176,68 +192,72 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if ((getDocumentLabels == true) ||
-		(setDocumentLabels == true))
-	{
-		string fileParam(argv[optind]);
-
-		docId = index.hasDocument(string("file://") + fileParam);
-		if (docId == 0)
-		{
-			cerr << "File is not indexed" << endl;
-
-			XapianDatabaseFactory::closeAll();
-			MIMEScanner::shutdown();
-
-			return EXIT_FAILURE;
-		}
-	}
-
 	if (getLabels == true)
 	{
 		if (index.getLabels(labels, true) == true)
 		{
-			printLabels(labels);
+			printLabels(labels, "");
 
 			success = true;
 		}
 	}
 
-	if (getDocumentLabels == true)
+	while (optind < argc)
 	{
-		labels.clear();
+		string fileParam(argv[optind]);
 
-		if (index.getDocumentLabels(docId, labels, true) == true)
+		if ((getDocumentLabels == true) ||
+			(setDocumentLabels == true))
 		{
-			printLabels(labels);
-
-			success = true;
-		}
-	}
-
-	if (setDocumentLabels == true)
-	{
-		string::size_type endPos = 0;
-		string label(StringManip::extractField(labelsString, "[", "]", endPos));
-
-		labels.clear();
-
-		// Parse labels
-		while (label.empty() == false)
-		{
-			labels.insert(Url::unescapeUrl(label));
-
-			if (endPos == string::npos)
+			docId = index.hasDocument(string("file://") + fileParam);
+			if (docId == 0)
 			{
-				break;
+				cerr << fileParam << " is not indexed" << endl;
+
+				success = false;
+				continue;
 			}
-			label = StringManip::extractField(labelsString, "[", "]", endPos);
 		}
+
+		if (getDocumentLabels == true)
+		{
+			labels.clear();
+
+			if (index.getDocumentLabels(docId, labels, true) == true)
+			{
+				printLabels(labels, fileParam);
+
+				success = true;
+			}
+		}
+
+		if (setDocumentLabels == true)
+		{
+			string::size_type endPos = 0;
+			string label(StringManip::extractField(labelsString, "[", "]", endPos));
+
+			labels.clear();
+
+			// Parse labels
+			while (label.empty() == false)
+			{
+				labels.insert(Url::unescapeUrl(label));
+
+				if (endPos == string::npos)
+				{
+					break;
+				}
+				label = StringManip::extractField(labelsString, "[", "]", endPos);
+			}
 
 #ifdef DEBUG
-		printLabels(labels);
+			printLabels(labels, fileParam);
 #endif
-		success = index.setDocumentLabels(docId, labels);
+			success = index.setDocumentLabels(docId, labels);
+		}
+
+		// Next
+		++optind;
 	}
 
 	XapianDatabaseFactory::closeAll();
