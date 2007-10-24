@@ -176,6 +176,7 @@ void propertiesDialog::populate_languageCombobox(const string &language)
 		languageCombobox->append_text(to_utf8(languageName));
 		// Is this the language we are looking for ?
 		if ((m_notALanguageName == false) &&
+			(language.empty() == false) &&
 			(strncasecmp(languageName.c_str(), language.c_str(),
 			min(languageName.length(), language.length())) == 0))
 		{

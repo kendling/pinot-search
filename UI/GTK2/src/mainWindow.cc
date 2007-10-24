@@ -2366,13 +2366,13 @@ void mainWindow::on_showfromindex_activate()
 		{
 			start_thread(pThread);
 		}
-	}
 
-	// Is the index list filtered with a query ?
-	if (queryName.empty() == false)
-	{
-		// The query may filter on a label, so refresh the list
-		browse_index(indexName, queryName, 0, 0);
+		// Is the index list filtered with a query ?
+		if (queryName.empty() == false)
+		{
+			// The query may filter on a label, so refresh the list
+			browse_index(indexName, queryName, 0, 0);
+		}
 	}
 }
 
