@@ -609,6 +609,7 @@ bool mainWindow::get_results_page_details(const ustring &queryName,
 
 		if (foundQuery == false)
 		{
+			queryProps.setName(currentQueryName);
 			return false;
 		}
 	}
