@@ -45,6 +45,23 @@ public:
 	bool startDaemon(void) const;
 
 protected:
+	PinotSettings &m_settings;
+	Glib::RefPtr<Gtk::ListStore> m_refViewTree;
+	LabelModelColumns m_labelsColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
+	IndexableModelColumns m_directoriesColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refDirectoriesTree;
+	TimestampedModelColumns m_mailColumns;
+	TimestampedModelColumns m_patternsColumns;
+	Glib::RefPtr<Gtk::ListStore> m_refPatternsTree;
+	std::set<std::string> m_addedLabels;
+	std::set<std::string> m_deletedLabels;
+	std::map<std::string, std::string> m_renamedLabels;
+	std::set<std::string> m_deletedDirectories;
+	std::string m_directoriesHash;
+	std::string m_patternsHash;
+	bool m_startDaemon;
+
 	virtual void on_prefsOkbutton_clicked();
 	virtual void on_directConnectionRadiobutton_toggled();
 	virtual void on_addLabelButton_clicked();
@@ -61,23 +78,8 @@ protected:
 	void populate_directoriesTreeview();
 	bool save_directoriesTreeview();
 	void populate_patternsTreeview();
-	void save_patternsTreeview();
-
-private:
-	PinotSettings &m_settings;
-	Glib::RefPtr<Gtk::ListStore> m_refViewTree;
-	LabelModelColumns m_labelsColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refLabelsTree;
-	IndexableModelColumns m_directoriesColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refDirectoriesTree;
-	TimestampedModelColumns m_mailColumns;
-	TimestampedModelColumns m_patternsColumns;
-	Glib::RefPtr<Gtk::ListStore> m_refPatternsTree;
-	std::set<std::string> m_addedLabels;
-	std::set<std::string> m_deletedLabels;
-	std::map<std::string, std::string> m_renamedLabels;
-	std::set<std::string> m_deletedDirectories;
-	bool m_startDaemon;
+	bool save_patternsTreeview();
 
 };
+
 #endif

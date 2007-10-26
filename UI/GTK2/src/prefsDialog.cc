@@ -25,9 +25,10 @@
 #include <gtkmm/menu.h>
 #include <gtkmm/messagedialog.h>
 
-#include "SearchEngineFactory.h"
 #include "config.h"
 #include "NLS.h"
+#include "StringManip.h"
+#include "SearchEngineFactory.h"
 #include "PinotUtils.h"
 #include "prefsDialog.hh"
 
@@ -100,14 +101,6 @@ prefsDialog::prefsDialog() :
 	// Allow only single selection
 	patternsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	populate_patternsTreeview();
-	if (m_settings.m_isBlackList == true)
-	{
-		patternsCombobox->set_active(0);
-	}
-	else
-	{
-		patternsCombobox->set_active(1);
-	}
 
 	// Hide the Google API entry field ?
 	if (SearchEngineFactory::isSupported("googleapi") == false)
@@ -258,6 +251,7 @@ void prefsDialog::populate_directoriesTreeview()
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
+	ustring dirsString;
 
 	if (m_settings.m_indexableLocations.empty() == true)
 	{
@@ -276,14 +270,16 @@ void prefsDialog::populate_directoriesTreeview()
 		row = *iter;
 		row[m_directoriesColumns.m_monitor] = dirIter->m_monitor;
 		row[m_directoriesColumns.m_location] = dirIter->m_name;
+		dirsString += dirIter->m_name + (dirIter->m_monitor == true ? "1" : "0") + "|";
 	}
 
+	m_directoriesHash = StringManip::hashString(dirsString);
 	removeDirectoryButton->set_sensitive(true);
 }
 
 bool prefsDialog::save_directoriesTreeview()
 {
-	bool startService = false;
+	string dirsString;
 
 	// Clear the current settings
 	m_settings.m_indexableLocations.clear();
@@ -316,17 +312,26 @@ bool prefsDialog::save_directoriesTreeview()
 			cout << "prefsDialog::save_directoriesTreeview: " << indexableLocation.m_name << endl;
 #endif
 			m_settings.m_indexableLocations.insert(indexableLocation);
-			startService = true;
+			dirsString += indexableLocation.m_name + (indexableLocation.m_monitor == true ? "1" : "0") + "|";
 		}
 	}
 
-	return startService;
+	if (m_directoriesHash != StringManip::hashString(dirsString))
+	{
+#ifdef DEBUG
+		cout << "prefsDialog::save_directoriesTreeview: directories changed" << endl;
+#endif
+		return true;
+	}
+
+	return false;
 }
 
 void prefsDialog::populate_patternsTreeview()
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
+	ustring patternsString;
 
 	if (m_settings.m_filePatternsList.empty() == true)
 	{
@@ -340,20 +345,39 @@ void prefsDialog::populate_patternsTreeview()
 		patternIter != m_settings.m_filePatternsList.end();
 		++patternIter)
 	{
+		ustring pattern(*patternIter);
+
 		// Create a new row
 		iter = m_refPatternsTree->append();
 		row = *iter;
 		// Set its name
-		row[m_patternsColumns.m_location] = *patternIter;
+		row[m_patternsColumns.m_location] = pattern;
+		patternsString += pattern + "|";
 	}
 	patternsCombobox->append_text(_("Exclude these patterns from indexing"));
 	patternsCombobox->append_text(_("Only index these patterns"));
 
 	removePatternButton->set_sensitive(true);
+
+	// Is it a black or white list ?
+	if (m_settings.m_isBlackList == true)
+	{
+		patternsCombobox->set_active(0);
+		patternsString += "0";
+	}
+	else
+	{
+		patternsCombobox->set_active(1);
+		patternsString += "1";
+	}
+
+	m_patternsHash = StringManip::hashString(patternsString);
 }
 
-void prefsDialog::save_patternsTreeview()
+bool prefsDialog::save_patternsTreeview()
 {
+	ustring patternsString;
+
 	// Clear the current settings
 	m_settings.m_filePatternsList.clear();
 
@@ -370,17 +394,30 @@ void prefsDialog::save_patternsTreeview()
 			if (pattern.empty() == false)
 			{
 				m_settings.m_filePatternsList.insert(pattern);
+				patternsString += pattern + "|";
 			}
 		}
 	}
 	if (patternsCombobox->get_active_row_number() == 0)
 	{
 		m_settings.m_isBlackList = true;
+		patternsString += "0";
 	}
 	else
 	{
 		m_settings.m_isBlackList = false;
+		patternsString += "1";
 	}
+
+	if (m_patternsHash != StringManip::hashString(patternsString))
+	{
+#ifdef DEBUG
+		cout << "prefsDialog::save_patternsTreeview: patterns changed" << endl;
+#endif
+		return true;
+	}
+
+	return false;
 }
 
 void prefsDialog::on_prefsOkbutton_clicked()
@@ -414,8 +451,9 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	// Validate the current lists
 	save_labelsTreeview();
 	bool startForDirectories = save_directoriesTreeview();
-	save_patternsTreeview();
-	if (startForDirectories == true)
+	bool startForPatterns = save_patternsTreeview();
+	if ((startForDirectories == true) ||
+		(startForPatterns == true))
 	{
 		// Save the settings
 		m_settings.save();

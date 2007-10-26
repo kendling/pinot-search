@@ -217,7 +217,7 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 		{
 			// Yup
 			row[m_labelsColumns.m_enabled] = true;
-			labelsString += labelName;
+			labelsString += labelName + "|";
 			m_labels.insert(labelName);
 		}
 		else
@@ -299,8 +299,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 #ifdef DEBUG
 	cout << "propertiesDialog::on_labelOkButton_clicked: chosen language " << languageName << endl;
 #endif
-	string newInfoHash(StringManip::hashString(title + languageName));
-	if (newInfoHash != m_infoHash)
+	if (m_infoHash != StringManip::hashString(title + languageName))
 	{
 #ifdef DEBUG
 		cout << "propertiesDialog::on_labelOkButton_clicked: properties changed" << endl;
@@ -321,7 +320,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 			if (enabled == true)
 			{
 				ustring labelName = row[m_labelsColumns.m_name];
-				labelsString += labelName;
+				labelsString += labelName + "|";
 				m_labels.insert(from_utf8(labelName));
 			}
 		}
@@ -329,8 +328,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 #ifdef DEBUG
 	cout << "propertiesDialog::on_labelOkButton_clicked: chosen " << m_labels.size() << " labels" << endl;
 #endif
-	string newLabelsHash(StringManip::hashString(labelsString));
-	if (newLabelsHash != m_labelsHash)
+	if (m_labelsHash != StringManip::hashString(labelsString))
 	{
 #ifdef DEBUG
 		cout << "propertiesDialog::on_labelOkButton_clicked: labels changed" << endl;
