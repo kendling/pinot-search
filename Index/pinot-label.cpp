@@ -115,6 +115,7 @@ int main(int argc, char **argv)
 	string labelsString;
 	int longOptionIndex = 0;
 	unsigned int docId = 0;
+	int minArgNum = 1;
 	bool getLabels = false, getDocumentLabels = false, setDocumentLabels = false, success = false;
 
 	// Look at the options
@@ -132,6 +133,7 @@ int main(int argc, char **argv)
 				printHelp();
 				return EXIT_SUCCESS;
 			case 'l':
+				minArgNum = 0;
 				getLabels = true;
 				break;
 			case 's':
@@ -162,7 +164,7 @@ int main(int argc, char **argv)
 	}
 
 	if ((argc < 2) ||
-		(argc - optind == 0))
+		(argc - optind < minArgNum))
 	{
 		cerr << "Not enough parameters" << endl;
 		return EXIT_FAILURE;
