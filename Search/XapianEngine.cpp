@@ -396,6 +396,9 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		vector<string> seedTerms;
 
 		// Give the query object to the enquire session
+#ifdef DEBUG
+		cout << "XapianEngine::queryDatabase: enquiring about " << query.get_description() << endl;
+#endif
 		enquire.set_query(query);
 		// How should results be sorted ?
 		if (queryProps.getSortOrder() == QueryProperties::RELEVANCE)
