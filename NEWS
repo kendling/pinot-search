@@ -2,9 +2,10 @@
 Build :
  - SMP builds, thanks to Gabriel C
 Index :
- - external programs are limited to 5 minutes of CPU time
  - unknown document types can be indexed if one of their parent types is known
- - new pinot-label tool to get, set and list labels from the command-line
+ - new pinot-label tool to get, set and list labels on indexed files from the
+  command-line
+ - limit external programs to 5 minutes of CPU time
 Search :
  - support for date (year, month, day), time (hours, minutes, seconds) and
   size (in bytes) ranges
@@ -14,7 +15,7 @@ Search :
  - better query expansion
  - the Yahoo! plugin was replaced with the Yahoo! API plugin
  - pass queries to Web engines unmodified, without attempting to filter results
-  based on filters or range used in the query
+  based on a filter or a range used in the query
 Daemon :
  - fixed Reload method
  - new D-Bus methods to manage labels
@@ -26,12 +27,14 @@ UI :
  - inline URL completion in the import dialog box, based on previous results
  - better support for user-specific MIME settings, thanks to Lee Marks
  - reload MIME settings when they are edited
- - can now get a stored query to search in the results of a previous query
- - results of stored queries can be sorted by relevance or by date
+ - results of stored queries can be sorted by relevance (default) or by date
  - new History button to show previous results for a stored query
  - documents' properties are updated in the background
  - documents' terms can be saved to a file
  - Status window shows description of errors
+ - send a Reload to the daemon only when the relevant preferences are modified
+ - updated Brazilian Portuguese translation by Leonardo Melo
+ - updated Dutch translation by JW
 
 2007/08/23 version_0_7_6
 Build :

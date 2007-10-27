@@ -392,7 +392,7 @@ http://pinot.berlios.de/
   with; older versions may or may not work.
 
 ---------------------------------------------------------------
-Name							Version
+Libraries and tools					Version
 ---------------------------------------------------------------
 SQLite							3.3.1
 http://www.sqlite.org/
@@ -435,24 +435,37 @@ http://freedesktop.org/Software/shared-mime-info
 desktop-file-utils					0.10
 http://www.freedesktop.org/software/desktop-file-utils
 
-unzip							5.52
-http://www.info-zip.org/pub/infozip/UnZip.html
-
-pdftotext						3.00
-http://www.foolabs.com/xpdf/
-http://poppler.freedesktop.org/
-
-antiword						0.36.1
-http://www.winfield.demon.nl/
-
-unrtf							0.19.3
-http://www.gnu.org/software/unrtf/unrtf.html
-
 TagLib							1.4
 http://ktown.kde.org/~wheeler/taglib/
 
 openssh-askpass (4)					4.3
 http://www.openssh.com/portable.html
+
+---------------------------------------------------------------
+External filter programs
+---------------------------------------------------------------
+unzip
+http://www.info-zip.org/pub/infozip/UnZip.html
+
+pdftotext
+http://www.foolabs.com/xpdf/
+http://poppler.freedesktop.org/
+
+antiword
+http://www.winfield.demon.nl/
+
+unrtf
+http://www.gnu.org/software/unrtf/unrtf.html
+
+djvutxt							
+http://djvu.sourceforge.net/
+
+catdvi
+http://catdvi.sourceforge.net/
+
+catppt
+xls2csv
+http://www.wagner.pp.ru/~vitus/software/catdoc/
 
 ---------------------------------------------------------------
 Notes :
