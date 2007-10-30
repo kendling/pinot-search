@@ -26,7 +26,8 @@ URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: xapian-core-libs >= 1.0.3, libtextcat >= 2.2, sqlite >= 3.3.1, curl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.6, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
-Requires: unzip, antiword, unrtf, %{pftotext_pkg}
+Requires: deskbar-applet, taglib >= 1.4, unzip, antiword, unrtf, %{pftotext_pkg}
+#Suggests: xapian-omega
 BuildRequires: xapian-core-devel >= 1.0.3, libtextcat-devel >= 2.2, sqlite-devel >= 3.3.1, curl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.6, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4
@@ -34,39 +35,17 @@ BuildRequires: gcc-c++
 %if 0%{?_with_soap:1}
 BuildRequires: gsoap >= 2.7.9e
 %endif
+# These used to be independant packages
+Obsoletes: pinot-audio-docs
+Obsoletes: pinot-deskbar
+Obsoletes: pinot-omega
 
 %description
 Pinot is a D-Bus service that crawls, indexes your documents and monitors them
 for changes, as well as a GTK-based user interface that enables to query
 the index built by the service and your favourite Web engines, and display and
-analyze the results
-
-%package audio-docs 
-Summary: Help Pinot handle various audio document formats
-Group: Applications/Internet
-Requires: %{name} = %{version}
-Requires: taglib >= 1.4
-
-%description audio-docs 
-The included filter adds support for OGG, MP3 and FLAC files
-
-%package omega 
-Summary: Xapian Omega plugin for Pinot
-Group: Applications/Internet
-Requires: %{name} = %{version}
-Requires: xapian-omega
-
-%description omega
-The included plugin enables Pinot to use Xapian Omega as a search engine
-
-%package deskbar
-Summary: Pinot plugin for DeskbarApplet
-Group: Applications/Internet
-Requires: %{name} = %{version}
-Requires: deskbar-applet
-
-%description deskbar
-The included plugin enables Deskbar to search documents indexed by Pinot
+analyze the results.
+A plugin for DeskbarApplet is included.
 
 %prep
 %setup -q
@@ -106,6 +85,8 @@ fi
 %{_bindir}/pinot-search
 %{_libdir}/pinot/filters/libexternalfilter.so*
 %{_libdir}/pinot/filters/libmboxfilter.so*
+%{_libdir}/pinot/filters/libtaglibfilter.so*
+%{_libdir}/deskbar-applet/handlers/pinot-live.py*
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
@@ -116,18 +97,6 @@ fi
 %{_sysconfdir}/xdg/autostart/*.desktop
 %{_datadir}/applications/*.desktop
 %{_mandir}/man1/pinot*
-
-%files audio-docs 
-%defattr(-, root, root, -)
-%{_libdir}/pinot/filters/libtaglibfilter.so*
-
-%files omega
-%defattr(-, root, root, -)
-%{_datadir}/pinot/engines/OmegaDescription.xml
-
-%files deskbar
-%defattr(-, root, root, -)
-%{_libdir}/deskbar-applet/handlers/pinot-live.py*
 
 %changelog
 
