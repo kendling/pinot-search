@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 0.76,[fabricecolin@users.berlios.de])
+AC_INIT(pinot, 0.78,[fabricecolin@users.berlios.de])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -16,7 +16,7 @@ AC_PROG_CXXCPP
 AM_PROG_LIBTOOL
 
 dnl An index with a version older than this should be upgraded
-AC_DEFINE_UNQUOTED(PINOT_INDEX_MIN_VERSION,"0.76",
+AC_DEFINE_UNQUOTED(PINOT_INDEX_MIN_VERSION,"0.78",
     [Minimum index version])
 
 dnl gettext support
@@ -115,17 +115,18 @@ AC_SUBST(SEARCH_LIBS)
 dnl Neon or Curl ?
 AC_MSG_CHECKING(which HTTP library to use)
 AC_ARG_WITH(http,
-   [AS_HELP_STRING([--with-http@<:@=neon|curl@:>@], [which HTTP library to use [default=curl]])])
+   [AS_HELP_STRING([--with-http=@<:@neon|curl@:>@], [which HTTP library to use [default=curl]])])
 httplibrary=$with_http
 if test "x$httplibrary" = "x"; then
    httplibrary="curl"
 fi
 AC_MSG_RESULT($httplibrary)
 
+testforssl="no"
 case "$httplibrary" in
 neon)
 PKG_CHECK_MODULES(NEON, neon >= 0.24 )
-PKG_CHECK_MODULES(SSL, openssl >= 0.9.7 )
+testforssl="yes"
 EXTRA_HTTP_CFLAGS="-DUSE_NEON -DUSE_SSL"
 HTTP_DOWNLOADER="NeonDownloader"
 ;;
@@ -145,12 +146,36 @@ if test "x$CURL_SSL_FEATURE" = "x"; then
 else
    EXTRA_HTTP_CFLAGS="-DUSE_CURL -DUSE_SSL"
    AC_MSG_RESULT(yes)
-   PKG_CHECK_MODULES(SSL, openssl >= 0.9.7 )
+   testforssl="yes"
 fi
 HTTP_DOWNLOADER="CurlDownloader"
 ;;
 esac
 AC_SUBST(HTTP_DOWNLOADER)
+
+dnl OpenSSL
+dnl If no path is provided, fall back on pkg-config
+if test "$testforssl" = "yes" ; then
+   AC_ARG_WITH(ssl,
+   [AS_HELP_STRING([--with-ssl=PATH], [where to look for OpenSSL [default=/usr/local/ssl]])])
+   sslpath=$with_ssl
+   dnl We want a prefix, not yes or no
+   case "$sslpath" in
+   yes)
+   sslpath="/usr/local/ssl"
+   ;;
+   no)
+   sslpath="/usr/local/ssl"
+   ;;
+   esac
+
+   if test "x$sslpath" = "x"; then
+      PKG_CHECK_MODULES(SSL, openssl >= 0.9.7 )
+   else
+      SSL_CFLAGS="-I$sslpath/include -I$sslpath/include/openssl"
+      SSL_LIBS="-L$sslpath/lib -lssl -lcrypto"
+   fi
+fi
 
 dnl Xapian
 AC_PATH_PROG(XAPIAN_CONFIG, xapian-config, no)
