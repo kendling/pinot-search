@@ -4,9 +4,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.75\n"
+"Project-Id-Version: pinot 0.80\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-27 00:15+0800\n"
+"POT-Creation-Date: 2007-10-28 22:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Marco Bazzani <visitors@libero.it>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -33,7 +33,7 @@ msgstr "Utente attual"
 #: UI/GTK2/src/mainWindow.cc:1573 UI/GTK2/src/mainWindow.cc:2177
 #: UI/GTK2/src/mainWindow.cc:2287 UI/GTK2/src/PinotSettings.cpp:311
 #: UI/GTK2/src/PinotSettings.cpp:1421 UI/GTK2/src/PinotSettings.cpp:1477
-#: UI/GTK2/src/statisticsDialog.cc:78 UI/GTK2/src/WorkerThreads.cpp:972
+#: UI/GTK2/src/statisticsDialog.cc:78 UI/GTK2/src/WorkerThreads.cpp:974
 msgid "My Web Pages"
 msgstr "Pagine web personali"
 
@@ -42,7 +42,7 @@ msgstr "Pagine web personali"
 #: UI/GTK2/src/mainWindow.cc:1011 UI/GTK2/src/mainWindow.cc:1361
 #: UI/GTK2/src/mainWindow.cc:2291 UI/GTK2/src/PinotSettings.cpp:312
 #: UI/GTK2/src/PinotSettings.cpp:1422 UI/GTK2/src/PinotSettings.cpp:1478
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:982
+#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:984
 msgid "My Documents"
 msgstr "Documenti personali"
 
@@ -831,7 +831,7 @@ msgid "documents"
 msgstr "documenti"
 
 #: UI/GTK2/src/statisticsDialog.cc:134 UI/GTK2/src/statisticsDialog.cc:150
-#: UI/GTK2/src/WorkerThreads.cpp:126
+#: UI/GTK2/src/WorkerThreads.cpp:128
 msgid "Unknown error"
 msgstr "errore Sconosciuto"
 
@@ -864,85 +864,85 @@ msgstr "files"
 msgid "Errors"
 msgstr "Errori"
 
-#: UI/GTK2/src/WorkerThreads.cpp:93
+#: UI/GTK2/src/WorkerThreads.cpp:95
 #, fuzzy
 msgid "Index error"
 msgstr "Errori indice su"
 
-#: UI/GTK2/src/WorkerThreads.cpp:95
+#: UI/GTK2/src/WorkerThreads.cpp:97
 #, fuzzy
 msgid "Couldn't index document"
 msgstr "Impossiible rimuovere i(l) documento/i dall'indice"
 
-#: UI/GTK2/src/WorkerThreads.cpp:97
+#: UI/GTK2/src/WorkerThreads.cpp:99
 msgid "Couldn't update document"
 msgstr "Impossibile aggiornare il documento"
 
-#: UI/GTK2/src/WorkerThreads.cpp:99
+#: UI/GTK2/src/WorkerThreads.cpp:101
 msgid "Couldn't unindex document(s)"
 msgstr "Impossiible rimuovere i(l) documento/i dall'indice"
 
-#: UI/GTK2/src/WorkerThreads.cpp:101
-msgid "Couldn't run query on search engine"
-msgstr "Impossibile avviare un query sul motore di ricerca"
-
 #: UI/GTK2/src/WorkerThreads.cpp:103
-#, fuzzy
-msgid "Couldn't get history for search engine"
+msgid "Couldn't run query on search engine"
 msgstr "Impossibile avviare un query sul motore di ricerca"
 
 #: UI/GTK2/src/WorkerThreads.cpp:105
 #, fuzzy
+msgid "Couldn't get history for search engine"
+msgstr "Impossibile avviare un query sul motore di ricerca"
+
+#: UI/GTK2/src/WorkerThreads.cpp:107
+#, fuzzy
 msgid "Couldn't retrieve document"
 msgstr "Impossibile aggiornare il documento"
 
-#: UI/GTK2/src/WorkerThreads.cpp:107
+#: UI/GTK2/src/WorkerThreads.cpp:109
 msgid "Couldn't initialize file monitor"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:109
+#: UI/GTK2/src/WorkerThreads.cpp:111
 #, fuzzy
 msgid "Couldn't open directory"
 msgstr "Impossibile aprire l'indice"
 
-#: UI/GTK2/src/WorkerThreads.cpp:111
+#: UI/GTK2/src/WorkerThreads.cpp:113
 #, fuzzy
 msgid "Index doesn't exist"
 msgstr "non esiste"
 
-#: UI/GTK2/src/WorkerThreads.cpp:113
+#: UI/GTK2/src/WorkerThreads.cpp:115
 msgid "Couldn't create search engine"
 msgstr "Impossibile creare un motore di ricerca"
 
-#: UI/GTK2/src/WorkerThreads.cpp:115
+#: UI/GTK2/src/WorkerThreads.cpp:117
 msgid "Cannot index document type"
 msgstr "Impossibile indicizzare tipo di documento"
 
-#: UI/GTK2/src/WorkerThreads.cpp:117
+#: UI/GTK2/src/WorkerThreads.cpp:119
 #, fuzzy
 msgid "No downloader for this protocol"
 msgstr "Impossibile ottenere un downloader per il protocollo"
 
-#: UI/GTK2/src/WorkerThreads.cpp:119
+#: UI/GTK2/src/WorkerThreads.cpp:121
 msgid "Robots META tag forbids indexing"
 msgstr "il Robots META tag vieta l'indicizzazione"
 
-#: UI/GTK2/src/WorkerThreads.cpp:121
+#: UI/GTK2/src/WorkerThreads.cpp:123
 msgid "No monitoring handler"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:391
+#: UI/GTK2/src/WorkerThreads.cpp:393
 msgid "Can't index mail here"
 msgstr "Impossibile indicizzare la mail qui"
 
-#: UI/GTK2/src/WorkerThreads.cpp:412 UI/GTK2/src/WorkerThreads.cpp:666
+#: UI/GTK2/src/WorkerThreads.cpp:414 UI/GTK2/src/WorkerThreads.cpp:668
 msgid "is already being indexed"
 msgstr "è gia' stato indicizzato"
 
-#: UI/GTK2/src/WorkerThreads.cpp:422
+#: UI/GTK2/src/WorkerThreads.cpp:424
 msgid "is blacklisted"
 msgstr "e' blacklistato"
 
-#: UI/GTK2/src/WorkerThreads.cpp:935
+#: UI/GTK2/src/WorkerThreads.cpp:937
 msgid "No title"
 msgstr "Nessun titolo"

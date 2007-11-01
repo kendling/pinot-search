@@ -235,16 +235,22 @@ http://pinot.berlios.de/
 8. File formats
 
 
-  The following document types are supported and will be fully indexed :
+  The following document types are supported internally :
     * plain text
     * HTML
-    * PDF (pdftotext is required)
-    * RTF (unrtf is required)
-    * MS Word (antiword is required)
     * XML
-    * OpenDocument/StarOffice files
     * mbox
-    * MP3 and Ogg Vorbis (TagLib required)
+    * MP3 and Ogg Vorbis
+
+  The following document types are supported through external programs :
+    * PDF (pdftotext required)
+    * RTF (unrtf required)
+    * OpenDocument/StarOffice files (unzip required)
+    * MS Word (antiword required)
+    * PowerPoint (catppt required)
+    * Excel (xls2csv required)
+    * DVI (catdvi required)
+    * DjVu (djvutext required)
     * RPM (rpm required)
     * DEB (dpkg required)
 
@@ -253,7 +259,7 @@ http://pinot.berlios.de/
 
   If you wish to add support for another document type, and know of a
   command-line program that can convert that type to plain text, XML or HTML,
-  you should be able to add it to external-filters.xml, located in /etc/pinot/.
+  add it to external-filters.xml, located in /etc/pinot/.
 
 
 9. File patterns

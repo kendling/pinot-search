@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 0.78,[fabricecolin@users.berlios.de])
+AC_INIT(pinot, 0.80,[fabricecolin@users.berlios.de])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -16,7 +16,7 @@ AC_PROG_CXXCPP
 AM_PROG_LIBTOOL
 
 dnl An index with a version older than this should be upgraded
-AC_DEFINE_UNQUOTED(PINOT_INDEX_MIN_VERSION,"0.78",
+AC_DEFINE_UNQUOTED(PINOT_INDEX_MIN_VERSION,"0.80",
     [Minimum index version])
 
 dnl gettext support

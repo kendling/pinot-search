@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot\n"
+"Project-Id-Version: pinot 0.80\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-27 00:15+0800\n"
+"POT-Creation-Date: 2007-10-28 22:51+0800\n"
 "PO-Revision-Date: 2007-08-17 15:54+0000\n"
 "Last-Translator: Yung-chung Lin <henearkrxern@gmail.com>\n"
 "Language-Team: Traditional Chinese <zh_TW@li.org>\n"
@@ -34,7 +34,7 @@ msgstr "目前的使用者"
 #: UI/GTK2/src/mainWindow.cc:1573 UI/GTK2/src/mainWindow.cc:2177
 #: UI/GTK2/src/mainWindow.cc:2287 UI/GTK2/src/PinotSettings.cpp:311
 #: UI/GTK2/src/PinotSettings.cpp:1421 UI/GTK2/src/PinotSettings.cpp:1477
-#: UI/GTK2/src/statisticsDialog.cc:78 UI/GTK2/src/WorkerThreads.cpp:972
+#: UI/GTK2/src/statisticsDialog.cc:78 UI/GTK2/src/WorkerThreads.cpp:974
 msgid "My Web Pages"
 msgstr "我的網頁"
 
@@ -43,7 +43,7 @@ msgstr "我的網頁"
 #: UI/GTK2/src/mainWindow.cc:1011 UI/GTK2/src/mainWindow.cc:1361
 #: UI/GTK2/src/mainWindow.cc:2291 UI/GTK2/src/PinotSettings.cpp:312
 #: UI/GTK2/src/PinotSettings.cpp:1422 UI/GTK2/src/PinotSettings.cpp:1478
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:982
+#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:984
 msgid "My Documents"
 msgstr "我的文件"
 
@@ -828,7 +828,7 @@ msgid "documents"
 msgstr "文件"
 
 #: UI/GTK2/src/statisticsDialog.cc:134 UI/GTK2/src/statisticsDialog.cc:150
-#: UI/GTK2/src/WorkerThreads.cpp:126
+#: UI/GTK2/src/WorkerThreads.cpp:128
 msgid "Unknown error"
 msgstr "原因不明的錯誤"
 
@@ -861,84 +861,84 @@ msgstr "檔案"
 msgid "Errors"
 msgstr "錯誤"
 
-#: UI/GTK2/src/WorkerThreads.cpp:93
+#: UI/GTK2/src/WorkerThreads.cpp:95
 #, fuzzy
 msgid "Index error"
 msgstr "索引錯誤："
 
-#: UI/GTK2/src/WorkerThreads.cpp:95
+#: UI/GTK2/src/WorkerThreads.cpp:97
 #, fuzzy
 msgid "Couldn't index document"
 msgstr "無法解除文件的索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:97
+#: UI/GTK2/src/WorkerThreads.cpp:99
 msgid "Couldn't update document"
 msgstr "無法更新文件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:99
+#: UI/GTK2/src/WorkerThreads.cpp:101
 msgid "Couldn't unindex document(s)"
 msgstr "無法解除文件的索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:101
-msgid "Couldn't run query on search engine"
-msgstr "搜尋引擎無法執行查詢"
-
 #: UI/GTK2/src/WorkerThreads.cpp:103
-#, fuzzy
-msgid "Couldn't get history for search engine"
+msgid "Couldn't run query on search engine"
 msgstr "搜尋引擎無法執行查詢"
 
 #: UI/GTK2/src/WorkerThreads.cpp:105
 #, fuzzy
+msgid "Couldn't get history for search engine"
+msgstr "搜尋引擎無法執行查詢"
+
+#: UI/GTK2/src/WorkerThreads.cpp:107
+#, fuzzy
 msgid "Couldn't retrieve document"
 msgstr "無法更新文件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:107
+#: UI/GTK2/src/WorkerThreads.cpp:109
 msgid "Couldn't initialize file monitor"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:109
+#: UI/GTK2/src/WorkerThreads.cpp:111
 #, fuzzy
 msgid "Couldn't open directory"
 msgstr "無法開啟索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:111
+#: UI/GTK2/src/WorkerThreads.cpp:113
 #, fuzzy
 msgid "Index doesn't exist"
 msgstr "不存在"
 
-#: UI/GTK2/src/WorkerThreads.cpp:113
+#: UI/GTK2/src/WorkerThreads.cpp:115
 msgid "Couldn't create search engine"
 msgstr "無法建立搜尋引擎"
 
-#: UI/GTK2/src/WorkerThreads.cpp:115
+#: UI/GTK2/src/WorkerThreads.cpp:117
 msgid "Cannot index document type"
 msgstr "無法索引檔案類別"
 
-#: UI/GTK2/src/WorkerThreads.cpp:117
+#: UI/GTK2/src/WorkerThreads.cpp:119
 msgid "No downloader for this protocol"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:119
+#: UI/GTK2/src/WorkerThreads.cpp:121
 msgid "Robots META tag forbids indexing"
 msgstr "Robots的meta標記不允許索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:121
+#: UI/GTK2/src/WorkerThreads.cpp:123
 msgid "No monitoring handler"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:391
+#: UI/GTK2/src/WorkerThreads.cpp:393
 msgid "Can't index mail here"
 msgstr "無法索引郵件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:412 UI/GTK2/src/WorkerThreads.cpp:666
+#: UI/GTK2/src/WorkerThreads.cpp:414 UI/GTK2/src/WorkerThreads.cpp:668
 msgid "is already being indexed"
 msgstr "已經被索引了"
 
-#: UI/GTK2/src/WorkerThreads.cpp:422
+#: UI/GTK2/src/WorkerThreads.cpp:424
 msgid "is blacklisted"
 msgstr "列入黑名單"
 
-#: UI/GTK2/src/WorkerThreads.cpp:935
+#: UI/GTK2/src/WorkerThreads.cpp:937
 msgid "No title"
 msgstr "無標題"

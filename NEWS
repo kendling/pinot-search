@@ -1,4 +1,4 @@
-??? version_0_8_0
+2007/11/01 version_0_8_0
 Build :
  - SMP builds, thanks to Gabriel C
 Index :
@@ -33,8 +33,8 @@ UI :
  - documents' terms can be saved to a file
  - Status window shows description of errors
  - send a Reload to the daemon only when the relevant preferences are modified
- - updated Brazilian Portuguese translation by Leonardo Melo
  - updated Dutch translation by JW
+ - updated Brazilian Portuguese translation by Leonardo Melo
 
 2007/08/23 version_0_7_6
 Build :

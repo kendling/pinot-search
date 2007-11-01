@@ -4,9 +4,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.75\n"
+"Project-Id-Version: pinot 0.80\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-27 00:15+0800\n"
+"POT-Creation-Date: 2007-10-28 22:51+0800\n"
 "PO-Revision-Date: 2007-10-21 13:24+0000\n"
 "Last-Translator: JW <jw00000@gmail.com>\n"
 "Language-Team: Dutch <nl@li.org>\n"
@@ -33,7 +33,7 @@ msgstr "Huidige gebruiker"
 #: UI/GTK2/src/mainWindow.cc:1573 UI/GTK2/src/mainWindow.cc:2177
 #: UI/GTK2/src/mainWindow.cc:2287 UI/GTK2/src/PinotSettings.cpp:311
 #: UI/GTK2/src/PinotSettings.cpp:1421 UI/GTK2/src/PinotSettings.cpp:1477
-#: UI/GTK2/src/statisticsDialog.cc:78 UI/GTK2/src/WorkerThreads.cpp:972
+#: UI/GTK2/src/statisticsDialog.cc:78 UI/GTK2/src/WorkerThreads.cpp:974
 msgid "My Web Pages"
 msgstr "Mijn webpagina's"
 
@@ -42,7 +42,7 @@ msgstr "Mijn webpagina's"
 #: UI/GTK2/src/mainWindow.cc:1011 UI/GTK2/src/mainWindow.cc:1361
 #: UI/GTK2/src/mainWindow.cc:2291 UI/GTK2/src/PinotSettings.cpp:312
 #: UI/GTK2/src/PinotSettings.cpp:1422 UI/GTK2/src/PinotSettings.cpp:1478
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:982
+#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:984
 msgid "My Documents"
 msgstr "Mijn documenten"
 
@@ -820,7 +820,7 @@ msgid "documents"
 msgstr "documenten"
 
 #: UI/GTK2/src/statisticsDialog.cc:134 UI/GTK2/src/statisticsDialog.cc:150
-#: UI/GTK2/src/WorkerThreads.cpp:126
+#: UI/GTK2/src/WorkerThreads.cpp:128
 msgid "Unknown error"
 msgstr "Onbekende fout."
 
@@ -853,78 +853,78 @@ msgstr "bestanden"
 msgid "Errors"
 msgstr "Fouten"
 
-#: UI/GTK2/src/WorkerThreads.cpp:93
+#: UI/GTK2/src/WorkerThreads.cpp:95
 msgid "Index error"
 msgstr "Indexfout"
 
-#: UI/GTK2/src/WorkerThreads.cpp:95
+#: UI/GTK2/src/WorkerThreads.cpp:97
 msgid "Couldn't index document"
 msgstr "Het document kon niet geïndexeerd worden"
 
-#: UI/GTK2/src/WorkerThreads.cpp:97
+#: UI/GTK2/src/WorkerThreads.cpp:99
 msgid "Couldn't update document"
 msgstr "Kan document niet actualiseren"
 
-#: UI/GTK2/src/WorkerThreads.cpp:99
+#: UI/GTK2/src/WorkerThreads.cpp:101
 msgid "Couldn't unindex document(s)"
 msgstr "Kan indexering van bestand(en) niet ongedaan maken"
 
-#: UI/GTK2/src/WorkerThreads.cpp:101
+#: UI/GTK2/src/WorkerThreads.cpp:103
 msgid "Couldn't run query on search engine"
 msgstr "Kon query niet uitvoeren op zoekmachine"
 
-#: UI/GTK2/src/WorkerThreads.cpp:103
+#: UI/GTK2/src/WorkerThreads.cpp:105
 msgid "Couldn't get history for search engine"
 msgstr "De geschiedenis voor de zoekmachine kon niet verkregen worden"
 
-#: UI/GTK2/src/WorkerThreads.cpp:105
+#: UI/GTK2/src/WorkerThreads.cpp:107
 msgid "Couldn't retrieve document"
 msgstr "Het document kon niet verkregen worden"
 
-#: UI/GTK2/src/WorkerThreads.cpp:107
+#: UI/GTK2/src/WorkerThreads.cpp:109
 msgid "Couldn't initialize file monitor"
 msgstr "Kan bestandsmonitor niet initialiseren"
 
-#: UI/GTK2/src/WorkerThreads.cpp:109
+#: UI/GTK2/src/WorkerThreads.cpp:111
 msgid "Couldn't open directory"
 msgstr "De map kon niet geopend worden"
 
-#: UI/GTK2/src/WorkerThreads.cpp:111
+#: UI/GTK2/src/WorkerThreads.cpp:113
 msgid "Index doesn't exist"
 msgstr "De index bestaat niet"
 
-#: UI/GTK2/src/WorkerThreads.cpp:113
+#: UI/GTK2/src/WorkerThreads.cpp:115
 msgid "Couldn't create search engine"
 msgstr "Kon zoekmachine niet maken"
 
-#: UI/GTK2/src/WorkerThreads.cpp:115
+#: UI/GTK2/src/WorkerThreads.cpp:117
 msgid "Cannot index document type"
 msgstr "Kan documenttype niet indexeren"
 
-#: UI/GTK2/src/WorkerThreads.cpp:117
+#: UI/GTK2/src/WorkerThreads.cpp:119
 msgid "No downloader for this protocol"
 msgstr "Er is geen downloader voor dit protocol"
 
-#: UI/GTK2/src/WorkerThreads.cpp:119
+#: UI/GTK2/src/WorkerThreads.cpp:121
 msgid "Robots META tag forbids indexing"
 msgstr "Robots META taf verbiedt indexeren"
 
-#: UI/GTK2/src/WorkerThreads.cpp:121
+#: UI/GTK2/src/WorkerThreads.cpp:123
 msgid "No monitoring handler"
 msgstr "Geen monitoring handler"
 
-#: UI/GTK2/src/WorkerThreads.cpp:391
+#: UI/GTK2/src/WorkerThreads.cpp:393
 msgid "Can't index mail here"
 msgstr "Kan mail hier niet indexeren"
 
-#: UI/GTK2/src/WorkerThreads.cpp:412 UI/GTK2/src/WorkerThreads.cpp:666
+#: UI/GTK2/src/WorkerThreads.cpp:414 UI/GTK2/src/WorkerThreads.cpp:668
 msgid "is already being indexed"
 msgstr "wordt al geindexeerd"
 
-#: UI/GTK2/src/WorkerThreads.cpp:422
+#: UI/GTK2/src/WorkerThreads.cpp:424
 msgid "is blacklisted"
 msgstr "staat op blacklist"
 
-#: UI/GTK2/src/WorkerThreads.cpp:935
+#: UI/GTK2/src/WorkerThreads.cpp:937
 msgid "No title"
 msgstr "Geen titel"
