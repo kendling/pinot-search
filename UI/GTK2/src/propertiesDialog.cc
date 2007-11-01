@@ -137,6 +137,8 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 		// Hide these widgets
 		titleLabel->hide();
 		titleEntry->hide();
+		languageLabel->hide();
+		languageCombobox->hide();
 		typeLabel->hide();
 		typeEntry->hide();
 		sizeLabel->hide();
