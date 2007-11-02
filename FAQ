@@ -45,3 +45,9 @@
      [/usr/local/bin/pinot]
      libpthread.so.2         libc_r.so.6
      libpthread.so           libc_r.so
+
+  * If you are using KDE 3.* and pinot-dbus-daemon does not autostart, symlink
+    the file /etc/xdg/autostart/pinot-dbus-daemon.desktop to either
+    $(kde-config --prefix)/share/autostart (for all users) or ~/.kde/Autostart
+    (current user only).
+
