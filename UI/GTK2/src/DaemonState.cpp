@@ -18,9 +18,7 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include <sigc++/class_slot.h>
-#include <sigc++/compatibility.h>
-#include <sigc++/slot.h>
+#include <sigc++/sigc++.h>
 #include <glibmm/ustring.h>
 #include <glibmm/stringutils.h>
 #include <glibmm/convert.h>
@@ -48,7 +46,7 @@ DaemonState::DaemonState() :
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
 	m_pDiskHandler(NULL)
 {
-	m_onThreadEndSignal.connect(SigC::slot(*this, &DaemonState::on_thread_end));
+	m_onThreadEndSignal.connect(sigc::mem_fun(*this, &DaemonState::on_thread_end));
 }
 
 DaemonState::~DaemonState()
@@ -82,7 +80,7 @@ bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bo
 		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource, m_fullScan,
 			m_pDiskMonitor, m_pDiskHandler);
 	}
-	pScannerThread->getFileFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
+	pScannerThread->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 
 	return start_thread(pScannerThread);
 }
@@ -119,7 +117,7 @@ void DaemonState::start(bool forceFullScan)
 		m_pDiskHandler = new OnDiskHandler();
 	}
 	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, m_pDiskHandler);
-	pDiskMonitorThread->getDirectoryFoundSignal().connect(SigC::slot(*this, &DaemonState::on_message_filefound));
+	pDiskMonitorThread->getDirectoryFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 	start_thread(pDiskMonitorThread, true);
 
 	set<PinotSettings::IndexableLocation>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
@@ -302,7 +300,7 @@ void DaemonState::on_message_filefound(const DocumentInfo &docInfo, const string
 	}
 }
 
-SigC::Signal1<void, int>& DaemonState::getQuitSignal(void)
+sigc::signal1<void, int>& DaemonState::getQuitSignal(void)
 {
 	return m_signalQuit;
 }

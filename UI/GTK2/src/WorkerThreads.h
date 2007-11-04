@@ -26,9 +26,7 @@
 #include <set>
 #include <map>
 #include <pthread.h>
-#include <sigc++/object.h>
-#include <sigc++/slot.h>
-#include <sigc++/connection.h>
+#include <sigc++/sigc++.h>
 #include <glibmm/dispatcher.h>
 #include <glibmm/thread.h>
 #include <glibmm/ustring.h>
@@ -101,7 +99,7 @@ class WorkerThread
 
 };
 
-class ThreadsManager : virtual public SigC::Object
+class ThreadsManager : virtual public sigc::trackable
 {
 	public:
 		ThreadsManager(const std::string &defaultIndexLocation,
@@ -135,7 +133,7 @@ class ThreadsManager : virtual public SigC::Object
 		void get_statistics(unsigned int &queueSize);
 
 	protected:
-		SigC::Connection m_threadsEndConnection;
+		sigc::connection m_threadsEndConnection;
 		pthread_rwlock_t m_threadsLock;
 		pthread_rwlock_t m_listsLock;
 		std::map<WorkerThread *, Glib::Thread *> m_threads;
@@ -144,7 +142,7 @@ class ThreadsManager : virtual public SigC::Object
 		unsigned int m_nextThreadId;
 		unsigned int m_backgroundThreadsCount;
 		long m_numCPUs;
-		SigC::Signal1<void, WorkerThread *> m_onThreadEndSignal;
+		sigc::signal1<void, WorkerThread *> m_onThreadEndSignal;
 		std::set<std::string> m_beingIndexed;
 
 		bool read_lock_threads(void);
@@ -492,7 +490,7 @@ class MonitorThread : public WorkerThread
 
 		virtual bool stop(void);
 
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool>& getDirectoryFoundSignal(void);
+		sigc::signal3<void, const DocumentInfo&, const std::string&, bool>& getDirectoryFoundSignal(void);
 
 	protected:
 		int m_ctrlReadPipe;
@@ -500,7 +498,7 @@ class MonitorThread : public WorkerThread
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
 		bool m_checkHistory;
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalDirectoryFound;
+		sigc::signal3<void, const DocumentInfo&, const std::string&, bool> m_signalDirectoryFound;
 
 		void processEvents(void);
 		virtual void doWork(void);

@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
+#include <sigc++/sigc++.h>
 #include <glibmm.h>
 #include <glibmm/thread.h>
 #include <glibmm/ustring.h>
@@ -502,7 +503,7 @@ int main(int argc, char **argv)
 			}
 
 			// Connect to the quit signal
-			server.getQuitSignal().connect(SigC::slot(&quitAll));
+			server.getQuitSignal().connect(sigc::ptr_fun(&quitAll));
 
 			// Connect to threads' finished signal
 			server.connect();

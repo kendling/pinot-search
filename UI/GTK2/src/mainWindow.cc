@@ -23,7 +23,6 @@
 #include <iostream>
 #include <fstream>
 #include <list>
-#include <sigc++/class_slot.h>
 #include <glibmm/ustring.h>
 #include <glibmm/stringutils.h>
 #include <glibmm/convert.h>
@@ -143,7 +142,7 @@ mainWindow::InternalState::InternalState(unsigned int maxIndexThreads, mainWindo
 	m_currentPage(0),
 	m_browsingIndex(false)
 {
-	m_onThreadEndSignal.connect(SigC::slot(*pWindow, &mainWindow::on_thread_end));
+	m_onThreadEndSignal.connect(sigc::mem_fun(*pWindow, &mainWindow::on_thread_end));
 }
 
 mainWindow::InternalState::~InternalState()
@@ -192,10 +191,10 @@ mainWindow::mainWindow() :
 	m_pEnginesTree = manage(new EnginesTree(enginesVbox, m_settings));
 	// Connect to the "changed" signal
 	m_pEnginesTree->get_selection()->signal_changed().connect(
-		SigC::slot(*this, &mainWindow::on_enginesTreeviewSelection_changed));
+		sigc::mem_fun(*this, &mainWindow::on_enginesTreeviewSelection_changed));
 	// Connect to the edit index signal
 	m_pEnginesTree->getDoubleClickSignal().connect(
-		SigC::slot(*this, &mainWindow::on_editindex));
+		sigc::mem_fun(*this, &mainWindow::on_editindex));
 
 	// Enable completion on the live query field
 	m_refLiveQueryList = ListStore::create(m_liveQueryColumns);
@@ -224,7 +223,7 @@ mainWindow::mainWindow() :
 	queryTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	// Connect to the "changed" signal
 	queryTreeview->get_selection()->signal_changed().connect(
-		SigC::slot(*this, &mainWindow::on_queryTreeviewSelection_changed));
+		sigc::mem_fun(*this, &mainWindow::on_queryTreeviewSelection_changed));
 	// Populate
 	populate_queryTreeview("");
 
@@ -237,7 +236,7 @@ mainWindow::mainWindow() :
 	m_pNotebook->set_scrollable(false);
 	rightVbox->pack_start(*m_pNotebook, Gtk::PACK_EXPAND_WIDGET, 4);
 	m_pageSwitchConnection = m_pNotebook->signal_switch_page().connect(
-		SigC::slot(*this, &mainWindow::on_switch_page), false);
+		sigc::mem_fun(*this, &mainWindow::on_switch_page), false);
 
 	// Gray out menu items
 	removeQueryButton->set_sensitive(false);
@@ -420,7 +419,7 @@ void mainWindow::populate_cacheMenu()
 		m_pCacheMenu->items().clear();
 	}
 
-	SigC::Slot1<void, PinotSettings::CacheProvider> cacheSlot = SigC::slot(*this, &mainWindow::on_cache_changed);
+	sigc::slot1<void, PinotSettings::CacheProvider> cacheSlot = sigc::mem_fun(*this, &mainWindow::on_cache_changed);
 
 	if (m_settings.m_cacheProviders.empty() == true)
 	{
@@ -437,7 +436,7 @@ void mainWindow::populate_cacheMenu()
 			MenuItem *pCacheMenuItem = &m_pCacheMenu->items().back();
 
 			// Bind the callback's parameter to the cache provider
-			SigC::Slot0<void> cachedDocumentsActivateSlot = sigc::bind(cacheSlot, (*cacheIter));
+			sigc::slot0<void> cachedDocumentsActivateSlot = sigc::bind(cacheSlot, (*cacheIter));
 			pCacheMenuItem->signal_activate().connect(cachedDocumentsActivateSlot);
 		}
 	}
@@ -459,7 +458,7 @@ void mainWindow::populate_indexMenu()
 		m_pIndexMenu->items().clear();
 	}
 
-	SigC::Slot1<void, ustring> indexSlot = SigC::slot(*this, &mainWindow::on_index_changed);
+	sigc::slot1<void, ustring> indexSlot = sigc::mem_fun(*this, &mainWindow::on_index_changed);
 
 	std::map<std::string, std::string> indexes = m_settings.getIndexes();
 	for (std::map<std::string, std::string>::const_iterator indexIter = indexes.begin();
@@ -470,7 +469,7 @@ void mainWindow::populate_indexMenu()
 		m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(indexName));
 		MenuItem &menuItem = m_pIndexMenu->items().back();
 		// Bind the callback's parameter to the index name
-		SigC::Slot0<void> menuItemSlot = sigc::bind(indexSlot, indexName);
+		sigc::slot0<void> menuItemSlot = sigc::bind(indexSlot, indexName);
 		menuItem.signal_activate().connect(menuItemSlot);
 	}
 }
@@ -491,7 +490,7 @@ void mainWindow::populate_findMenu()
 		m_pFindMenu->items().clear();
 	}
 
-	SigC::Slot1<void, ustring> findSlot = SigC::slot(*this, &mainWindow::on_searchagain_changed);
+	sigc::slot1<void, ustring> findSlot = sigc::mem_fun(*this, &mainWindow::on_searchagain_changed);
 
 	TreeModel::Children children = m_refQueryTree->children();
 	for (TreeModel::Children::iterator iter = children.begin();
@@ -503,7 +502,7 @@ void mainWindow::populate_findMenu()
 		m_pFindMenu->items().push_back(Menu_Helpers::MenuElem(queryName));
 		MenuItem &menuItem = m_pFindMenu->items().back();
 		// Bind the callback's parameter to the query name
-		SigC::Slot0<void> menuItemSlot = sigc::bind(findSlot, queryName);
+		sigc::slot0<void> menuItemSlot = sigc::bind(findSlot, queryName);
 		menuItem.signal_activate().connect(menuItemSlot);
 	}
 }
@@ -855,7 +854,7 @@ void mainWindow::on_index_changed(ustring indexName)
 		NotebookTabBox *pTab = manage(new NotebookTabBox(indexName,
 			NotebookPageBox::INDEX_PAGE));
 		pTab->getCloseSignal().connect(
-			SigC::slot(*this, &mainWindow::on_close_page));
+			sigc::mem_fun(*this, &mainWindow::on_close_page));
 
 		// Position the index tree
 		pResultsTree = manage(new ResultsTree(indexName, indexMenuitem->get_submenu(),
@@ -863,18 +862,18 @@ void mainWindow::on_index_changed(ustring indexName)
 		pIndexPage = manage(new IndexPage(indexName, pResultsTree, m_settings));
 		// Connect to the "changed" signal
 		pResultsTree->getSelectionChangedSignal().connect(
-			SigC::slot(*this, &mainWindow::on_indexTreeviewSelection_changed));
+			sigc::mem_fun(*this, &mainWindow::on_indexTreeviewSelection_changed));
 		// Connect to the edit document signal
 		pResultsTree->getDoubleClickSignal().connect(
-			SigC::slot(*this, &mainWindow::on_showfromindex_activate));
+			sigc::mem_fun(*this, &mainWindow::on_showfromindex_activate));
 		// Connect to the label changed signal
 		pIndexPage->getQueryChangedSignal().connect(
-			SigC::slot(*this, &mainWindow::on_query_changed));
+			sigc::mem_fun(*this, &mainWindow::on_query_changed));
 		// ...and to the buttons clicked signals
 		pIndexPage->getBackClickedSignal().connect(
-			SigC::slot(*this, &mainWindow::on_indexBackButton_clicked));
+			sigc::mem_fun(*this, &mainWindow::on_indexBackButton_clicked));
 		pIndexPage->getForwardClickedSignal().connect(
-			SigC::slot(*this, &mainWindow::on_indexForwardButton_clicked));
+			sigc::mem_fun(*this, &mainWindow::on_indexForwardButton_clicked));
 
 		// Append the page
 		if (m_state.write_lock_lists() == true)
@@ -1258,7 +1257,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			NotebookTabBox *pTab = manage(new NotebookTabBox(queryName,
 				NotebookPageBox::RESULTS_PAGE));
 			pTab->getCloseSignal().connect(
-				SigC::slot(*this, &mainWindow::on_close_page));
+				sigc::mem_fun(*this, &mainWindow::on_close_page));
 
 			ResultsTree::GroupByMode groupMode = ResultsTree::BY_ENGINE;
 			if (searchenginegroup1->get_active() == false)
@@ -1272,10 +1271,10 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			pResultsTree->showExtract(showextract1->get_active());
 			// Connect to the "changed" signal
 			pResultsTree->getSelectionChangedSignal().connect(
-				SigC::slot(*this, &mainWindow::on_resultsTreeviewSelection_changed));
+				sigc::mem_fun(*this, &mainWindow::on_resultsTreeviewSelection_changed));
 			// Connect to the view results signal
 			pResultsTree->getDoubleClickSignal().connect(
-				SigC::slot(*this, &mainWindow::on_viewresults_activate));
+				sigc::mem_fun(*this, &mainWindow::on_viewresults_activate));
 
 			// Append the page
 			if (m_state.write_lock_lists() == true)
@@ -3577,7 +3576,7 @@ bool mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 		// Enable the activity progress bar
 		m_timeoutConnection.block();
 		m_timeoutConnection.disconnect();
-		m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
+		m_timeoutConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
 			&mainWindow::on_activity_timeout), 1000);
 		m_timeoutConnection.unblock();
 	}

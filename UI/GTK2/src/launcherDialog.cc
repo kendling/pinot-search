@@ -18,7 +18,7 @@
 #include <iostream>
 #include <string>
 #include <glibmm/ustring.h>
-#include <sigc++/slot.h>
+#include <sigc++/sigc++.h>
 
 #include "config.h"
 #include "NLS.h"

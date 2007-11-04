@@ -21,7 +21,7 @@
 
 #include <string>
 #include <set>
-#include <sigc++/connection.h>
+#include <sigc++/sigc++.h>
 #include <glibmm/refptr.h>
 #include <gdkmm/pixbuf.h>
 #include <gdkmm/color.h>
@@ -169,9 +169,9 @@ private:
 	// Tooltips
 	Gtk::Tooltips m_tooltips;
 	// Page switching
-	SigC::Connection m_pageSwitchConnection;
+	sigc::connection m_pageSwitchConnection;
 	// Activity timeout
-	SigC::Connection m_timeoutConnection;
+	sigc::connection m_timeoutConnection;
 	// Monitoring
 	MonitorInterface *m_pSettingsMonitor;
 	MonitorHandler *m_pSettingsHandler;

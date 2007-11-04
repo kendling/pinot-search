@@ -21,7 +21,7 @@
 
 #include <string>
 #include <vector>
-#include <sigc++/slot.h>
+#include <sigc++/sigc++.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/menu.h>
@@ -70,13 +70,13 @@ class IndexPage : public NotebookPageBox
 		void setFirstDocument(unsigned int startDoc);
 
 		/// Returns the changed query signal.
-		SigC::Signal2<void, Glib::ustring, Glib::ustring>& getQueryChangedSignal(void);
+		sigc::signal2<void, Glib::ustring, Glib::ustring>& getQueryChangedSignal(void);
 
 		/// Returns the back button clicked signal.
-		SigC::Signal1<void, Glib::ustring>& getBackClickedSignal(void);
+		sigc::signal1<void, Glib::ustring>& getBackClickedSignal(void);
 
 		/// Returns the forward button clicked signal.
-		SigC::Signal1<void, Glib::ustring>& getForwardClickedSignal(void);
+		sigc::signal1<void, Glib::ustring>& getForwardClickedSignal(void);
 
 	protected:
 		Glib::ustring m_indexName;
@@ -87,9 +87,9 @@ class IndexPage : public NotebookPageBox
 		Gtk::Button *m_pForwardButton;
 		unsigned int m_docsCount;
 		unsigned int m_firstDoc;
-		SigC::Signal2<void, Glib::ustring, Glib::ustring> m_signalQueryChanged;
-		SigC::Signal1<void, Glib::ustring> m_signalBackClicked;
-		SigC::Signal1<void, Glib::ustring> m_signalForwardClicked;
+		sigc::signal2<void, Glib::ustring, Glib::ustring> m_signalQueryChanged;
+		sigc::signal1<void, Glib::ustring> m_signalBackClicked;
+		sigc::signal1<void, Glib::ustring> m_signalForwardClicked;
 
 		void onQueryChanged(void);
 

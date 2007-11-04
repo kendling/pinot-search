@@ -21,7 +21,6 @@
 #include <map>
 #include <set>
 #include <iostream>
-#include <sigc++/class_slot.h>
 #include <glibmm/convert.h>
 #include <gtkmm/stock.h>
 
@@ -57,7 +56,7 @@ statisticsDialog::statisticsDialog() :
 	// Populate
 	populate();
 	// ...and update regularly
-	m_idleConnection = Glib::signal_timeout().connect(SigC::slot(*this,
+	m_idleConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
 		&statisticsDialog::on_activity_timeout), 5000);
 }
 

@@ -90,7 +90,7 @@ void queryDialog::populate_comboboxes()
 	unsigned int labelNum = 1;
 
 	// All supported filters
-	filterCombobox->set_row_separator_func(SigC::slot(*this, &queryDialog::is_separator));
+	filterCombobox->set_row_separator_func(sigc::mem_fun(*this, &queryDialog::is_separator));
 	filterCombobox->append_text(_("Host name"));
 	filterCombobox->append_text(_("File name"));
 	filterCombobox->append_text(_("File extension"));

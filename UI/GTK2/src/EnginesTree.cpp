@@ -33,7 +33,6 @@
 #include "EnginesTree.h"
 
 using namespace std;
-using namespace SigC;
 using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
@@ -69,17 +68,17 @@ EnginesTree::EnginesTree(VBox *enginesVbox, PinotSettings &settings) :
 	// Pack an icon renderer for engines icons
 	CellRendererPixbuf *pIconRenderer = new CellRendererPixbuf();
 	pColumn->pack_start(*manage(pIconRenderer), false);
-	pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &EnginesTree::renderEngineIcon));
+	pColumn->set_cell_data_func(*pIconRenderer, sigc::mem_fun(*this, &EnginesTree::renderEngineIcon));
 	pColumn->pack_end(m_enginesColumns.m_name, false);
 	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 	append_column(*manage(pColumn));
 
 	// Handle button presses
-	signal_button_press_event().connect_notify(SigC::slot(*this, &EnginesTree::onButtonPressEvent));
+	signal_button_press_event().connect_notify(sigc::mem_fun(*this, &EnginesTree::onButtonPressEvent));
 	// Control which rows can be selected
-	get_selection()->set_select_function(SigC::slot(*this, &EnginesTree::onSelectionSelect));
+	get_selection()->set_select_function(sigc::mem_fun(*this, &EnginesTree::onSelectionSelect));
 	// Listen for style changes
-	signal_style_changed().connect_notify(SigC::slot(*this, &EnginesTree::onStyleChanged));
+	signal_style_changed().connect_notify(sigc::mem_fun(*this, &EnginesTree::onStyleChanged));
 
 	// Render the icons
 	m_engineFolderIconPixbuf = render_icon(Stock::DIRECTORY, ICON_SIZE_MENU, "MetaSE-pinot");
@@ -383,7 +382,7 @@ void EnginesTree::clear(void)
 //
 // Returns the double-click signal.
 //
-Signal2<void, string, string>& EnginesTree::getDoubleClickSignal(void)
+sigc::signal2<void, string, string>& EnginesTree::getDoubleClickSignal(void)
 {
 	return m_signalDoubleClick;
 }

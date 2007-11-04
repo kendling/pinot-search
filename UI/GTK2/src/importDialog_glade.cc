@@ -28,8 +28,7 @@
 #endif
 #include <gtkmmconfig.h>
 #if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>2
-#include <sigc++/compatibility.h>
-#include <sigc++/bind.h>
+#include <sigc++/sigc++.h>
 #define GMM_GTKMM_22_24(a,b) b
 #else //gtkmm 2.2
 #define GMM_GTKMM_22_24(a,b) a
@@ -168,9 +167,9 @@ importDialog_glade::importDialog_glade(
    importButton->show();
    importHbox->show();
    importVbox->show();
-   locationEntry->signal_changed().connect(SigC::slot(*this, &importDialog_glade::on_locationEntry_changed), false);
-   importButton->signal_clicked().connect(SigC::slot(*this, &importDialog_glade::on_importButton_clicked), false);
-   importDialog->signal_response().connect(SigC::slot(*this, &importDialog_glade::on_importDialog_response), false);
+   locationEntry->signal_changed().connect(sigc::mem_fun(*this, &importDialog_glade::on_locationEntry_changed), false);
+   importButton->signal_clicked().connect(sigc::mem_fun(*this, &importDialog_glade::on_importButton_clicked), false);
+   importDialog->signal_response().connect(sigc::mem_fun(*this, &importDialog_glade::on_importDialog_response), false);
 }
 
 importDialog_glade::~importDialog_glade()

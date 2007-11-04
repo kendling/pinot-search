@@ -31,7 +31,6 @@
 #include "IndexPage.h"
 
 using namespace std;
-using namespace SigC;
 using namespace Glib;
 using namespace Gtk;
 
@@ -110,11 +109,11 @@ IndexPage::IndexPage(const ustring &indexName, ResultsTree *pTree,
 
 	// Connect the signals
 	m_pQueryCombobox->signal_changed().connect(
-		SigC::slot(*this, &IndexPage::onQueryChanged));
+		sigc::mem_fun(*this, &IndexPage::onQueryChanged));
 	m_pBackButton->signal_clicked().connect(
-		SigC::slot(*this, &IndexPage::onBackClicked));
+		sigc::mem_fun(*this, &IndexPage::onBackClicked));
 	m_pForwardButton->signal_clicked().connect(
-		SigC::slot(*this, &IndexPage::onForwardClicked));
+		sigc::mem_fun(*this, &IndexPage::onForwardClicked));
 
 	// Disable the buttons until something is being shown
 	m_pBackButton->set_sensitive(false);
@@ -272,7 +271,7 @@ void IndexPage::setFirstDocument(unsigned int startDoc)
 //
 // Returns the changed query signal.
 //
-Signal2<void, ustring, ustring>& IndexPage::getQueryChangedSignal(void)
+sigc::signal2<void, ustring, ustring>& IndexPage::getQueryChangedSignal(void)
 {
 	return m_signalQueryChanged;
 }
@@ -280,7 +279,7 @@ Signal2<void, ustring, ustring>& IndexPage::getQueryChangedSignal(void)
 //
 // Returns the back button clicked signal.
 //
-Signal1<void, ustring>& IndexPage::getBackClickedSignal(void)
+sigc::signal1<void, ustring>& IndexPage::getBackClickedSignal(void)
 {
 	return m_signalBackClicked;
 }
@@ -288,7 +287,7 @@ Signal1<void, ustring>& IndexPage::getBackClickedSignal(void)
 //
 // Returns the forward button clicked signal.
 //
-Signal1<void, ustring>& IndexPage::getForwardClickedSignal(void)
+sigc::signal1<void, ustring>& IndexPage::getForwardClickedSignal(void)
 {
 	return m_signalForwardClicked;
 }

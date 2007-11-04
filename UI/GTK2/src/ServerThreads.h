@@ -30,9 +30,7 @@ extern "C"
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 }
-#include <sigc++/object.h>
-#include <sigc++/slot.h>
-#include <sigc++/connection.h>
+#include <sigc++/sigc++.h>
 #include <glibmm/ustring.h>
 
 #include "DocumentInfo.h"
@@ -57,7 +55,7 @@ class DirectoryScannerThread : public WorkerThread
 
 		virtual bool stop(void);
 
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool>& getFileFoundSignal(void);
+		sigc::signal3<void, const DocumentInfo&, const std::string&, bool>& getFileFoundSignal(void);
 
 	protected:
 		std::string m_dirName;
@@ -68,7 +66,7 @@ class DirectoryScannerThread : public WorkerThread
 		unsigned int m_currentLevel;
 		unsigned int m_maxLevel;
 		bool m_followSymLinks;
-		SigC::Signal3<void, const DocumentInfo&, const std::string&, bool> m_signalFileFound;
+		sigc::signal3<void, const DocumentInfo&, const std::string&, bool> m_signalFileFound;
 		std::map<std::string, time_t> m_updateCache;
 
 		void cacheUpdate(const std::string &location, time_t mTime, CrawlHistory &history);

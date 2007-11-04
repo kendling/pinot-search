@@ -21,9 +21,6 @@
 
 #include <string>
 #include <gtkmmconfig.h>
-#if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>2
-#include <sigc++/compatibility.h>
-#endif
 #include <glibmm/ustring.h>
 #include <gtkmm/window.h>
 #include <gtkmm/filechooserdialog.h>

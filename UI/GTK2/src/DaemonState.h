@@ -42,14 +42,14 @@ class DaemonState : public ThreadsManager
 		void on_message_filefound(const DocumentInfo &docInfo, const std::string &sourceLabel,
 			bool isDirectory);
 
-		SigC::Signal1<void, int>& getQuitSignal(void);
+		sigc::signal1<void, int>& getQuitSignal(void);
 
 	protected:
 		bool m_fullScan;
 		bool m_reload;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pDiskHandler;
-		SigC::Signal1<void, int> m_signalQuit;
+		sigc::signal1<void, int> m_signalQuit;
 
 		bool crawlLocation(const std::string &locationToCrawl, bool isSource, bool doMonitoring);
 

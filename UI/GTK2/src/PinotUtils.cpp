@@ -26,7 +26,6 @@
 #include "PinotUtils.h"
 
 using namespace std;
-using namespace SigC;
 using namespace Glib;
 using namespace Gtk;
 

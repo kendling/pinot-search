@@ -21,8 +21,7 @@
 
 #include <string>
 #include <set>
-#include <sigc++/slot.h>
-#include <sigc++/connection.h>
+#include <sigc++/sigc++.h>
 #include <gtkmm/entrycompletion.h>
 #include <gtkmm/liststore.h>
 #include <glibmm/ustring.h>
@@ -55,7 +54,7 @@ private:
 	Glib::RefPtr<Gtk::EntryCompletion> m_refLocationCompletion;
 	unsigned int m_docsCount;
 	// Activity timeout
-	SigC::Connection m_timeoutConnection;
+	sigc::connection m_timeoutConnection;
 	// Internal state
 	class InternalState : public ThreadsManager
 	{

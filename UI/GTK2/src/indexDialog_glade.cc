@@ -28,8 +28,7 @@
 #endif
 #include <gtkmmconfig.h>
 #if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>2
-#include <sigc++/compatibility.h>
-#include <sigc++/bind.h>
+#include <sigc++/sigc++.h>
 #define GMM_GTKMM_22_24(a,b) b
 #else //gtkmm 2.2
 #define GMM_GTKMM_22_24(a,b) a
@@ -204,12 +203,12 @@ indexDialog_glade::indexDialog_glade(
    hostEntry->show();
    indexTable->show();
    indexDialog->show();
-   indexOkbutton->signal_clicked().connect(SigC::slot(*this, &indexDialog_glade::on_indexOkbutton_clicked), false);
-   locationEntry->signal_changed().connect(SigC::slot(*this, &indexDialog_glade::on_locationEntry_changed), false);
-   locationButton->signal_clicked().connect(SigC::slot(*this, &indexDialog_glade::on_locationButton_clicked), false);
-   nameEntry->signal_changed().connect(SigC::slot(*this, &indexDialog_glade::on_nameEntry_changed), false);
-   typeCombobox->signal_changed().connect(SigC::slot(*this, &indexDialog_glade::on_typeCombobox_changed), false);
-   hostEntry->signal_changed().connect(SigC::slot(*this, &indexDialog_glade::on_nameEntry_changed), false);
+   indexOkbutton->signal_clicked().connect(sigc::mem_fun(*this, &indexDialog_glade::on_indexOkbutton_clicked), false);
+   locationEntry->signal_changed().connect(sigc::mem_fun(*this, &indexDialog_glade::on_locationEntry_changed), false);
+   locationButton->signal_clicked().connect(sigc::mem_fun(*this, &indexDialog_glade::on_locationButton_clicked), false);
+   nameEntry->signal_changed().connect(sigc::mem_fun(*this, &indexDialog_glade::on_nameEntry_changed), false);
+   typeCombobox->signal_changed().connect(sigc::mem_fun(*this, &indexDialog_glade::on_typeCombobox_changed), false);
+   hostEntry->signal_changed().connect(sigc::mem_fun(*this, &indexDialog_glade::on_nameEntry_changed), false);
 }
 
 indexDialog_glade::~indexDialog_glade()

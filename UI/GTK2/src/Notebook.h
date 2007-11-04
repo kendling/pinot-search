@@ -19,7 +19,7 @@
 #ifndef _NOTEBOOK_HH
 #define _NOTEBOOK_HH
 
-#include <sigc++/signal.h>
+#include <sigc++/sigc++.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/box.h>
 #include <gtkmm/paned.h>
@@ -80,7 +80,7 @@ class NotebookTabBox : public Gtk::HBox
 		virtual ~NotebookTabBox();
 
 		/// Returns the close signal.
-		SigC::Signal2<void, Glib::ustring, NotebookPageBox::PageType>& getCloseSignal(void);
+		sigc::signal2<void, Glib::ustring, NotebookPageBox::PageType>& getCloseSignal(void);
 
 	protected:
 		Glib::ustring m_title;
@@ -93,7 +93,7 @@ class NotebookTabBox : public Gtk::HBox
 #else
 		Gtk::EventBox *m_tabEventBox;
 #endif
-		SigC::Signal2<void, Glib::ustring, NotebookPageBox::PageType> m_signalClose;
+		sigc::signal2<void, Glib::ustring, NotebookPageBox::PageType> m_signalClose;
 
 #if _USE_BUTTON_TAB
 		void onButtonClicked(void);

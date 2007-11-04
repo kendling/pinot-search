@@ -21,7 +21,6 @@
 #include <iostream>
 #include <algorithm>
 #include <utility>
-#include <sigc++/class_slot.h>
 #include <glibmm/convert.h>
 #include <gtkmm/stock.h>
 
@@ -44,7 +43,7 @@ importDialog::InternalState::InternalState(unsigned int maxIndexThreads, importD
 	m_locationLength(0),
 	m_importing(false)
 {
-	m_onThreadEndSignal.connect(SigC::slot(*pWindow, &importDialog::on_thread_end));
+	m_onThreadEndSignal.connect(sigc::mem_fun(*pWindow, &importDialog::on_thread_end));
 }
 
 importDialog::InternalState::~InternalState()
@@ -122,7 +121,7 @@ void importDialog::import_url(const string &title, const string &location,
 	ustring status = m_state.queue_index(docInfo);
 	if (status.empty() == true)
 	{
-		m_timeoutConnection = Glib::signal_timeout().connect(SigC::slot(*this,
+		m_timeoutConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
 			&importDialog::on_activity_timeout), 1000);
 	}
 	else

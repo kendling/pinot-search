@@ -28,8 +28,7 @@
 #endif
 #include <gtkmmconfig.h>
 #if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>2
-#include <sigc++/compatibility.h>
-#include <sigc++/bind.h>
+#include <sigc++/sigc++.h>
 #define GMM_GTKMM_22_24(a,b) b
 #else //gtkmm 2.2
 #define GMM_GTKMM_22_24(a,b) a
@@ -580,15 +579,15 @@ prefsDialog_glade::prefsDialog_glade(
    indexingLabel->show();
    prefsNotebook->show();
    prefsDialog->show();
-   prefsOkbutton->signal_clicked().connect(SigC::slot(*this, &prefsDialog_glade::on_prefsOkbutton_clicked), false);
-   directConnectionRadiobutton->signal_toggled().connect(SigC::slot(*this, &prefsDialog_glade::on_directConnectionRadiobutton_toggled), false);
-   addLabelButton->signal_clicked().connect(SigC::slot(*this, &prefsDialog_glade::on_addLabelButton_clicked), false);
-   removeLabelButton->signal_clicked().connect(SigC::slot(*this, &prefsDialog_glade::on_removeLabelButton_clicked), false);
-   addDirectoryButton->signal_clicked().connect(SigC::slot(*this, &prefsDialog_glade::on_addDirectoryButton_clicked), false);
-   removeDirectoryButton->signal_clicked().connect(SigC::slot(*this, &prefsDialog_glade::on_removeDirectoryButton_clicked), false);
-   patternsCombobox->signal_changed().connect(SigC::slot(*this, &prefsDialog_glade::on_patternsCombobox_changed), false);
-   addPatternButton->signal_clicked().connect(SigC::slot(*this, &prefsDialog_glade::on_addPatternButton_clicked), false);
-   removePatternButton->signal_clicked().connect(SigC::slot(*this, &prefsDialog_glade::on_removePatternButton_clicked), false);
+   prefsOkbutton->signal_clicked().connect(sigc::mem_fun(*this, &prefsDialog_glade::on_prefsOkbutton_clicked), false);
+   directConnectionRadiobutton->signal_toggled().connect(sigc::mem_fun(*this, &prefsDialog_glade::on_directConnectionRadiobutton_toggled), false);
+   addLabelButton->signal_clicked().connect(sigc::mem_fun(*this, &prefsDialog_glade::on_addLabelButton_clicked), false);
+   removeLabelButton->signal_clicked().connect(sigc::mem_fun(*this, &prefsDialog_glade::on_removeLabelButton_clicked), false);
+   addDirectoryButton->signal_clicked().connect(sigc::mem_fun(*this, &prefsDialog_glade::on_addDirectoryButton_clicked), false);
+   removeDirectoryButton->signal_clicked().connect(sigc::mem_fun(*this, &prefsDialog_glade::on_removeDirectoryButton_clicked), false);
+   patternsCombobox->signal_changed().connect(sigc::mem_fun(*this, &prefsDialog_glade::on_patternsCombobox_changed), false);
+   addPatternButton->signal_clicked().connect(sigc::mem_fun(*this, &prefsDialog_glade::on_addPatternButton_clicked), false);
+   removePatternButton->signal_clicked().connect(sigc::mem_fun(*this, &prefsDialog_glade::on_removePatternButton_clicked), false);
 }
 
 prefsDialog_glade::~prefsDialog_glade()

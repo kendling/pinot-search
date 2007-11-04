@@ -23,7 +23,7 @@
 #include <vector>
 #include <set>
 #include <map>
-#include <sigc++/slot.h>
+#include <sigc++/sigc++.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 #include <gdkmm/pixbuf.h>
@@ -106,18 +106,18 @@ class ResultsTree : public Gtk::TreeView
 		void exportResults(const std::string &fileName, bool csvFormat);
 
 		/// Returns the changed selection signal.
-		SigC::Signal1<void, Glib::ustring>& getSelectionChangedSignal(void);
+		sigc::signal1<void, Glib::ustring>& getSelectionChangedSignal(void);
 
 		/// Returns the double-click signal.
-		SigC::Signal0<void>& getDoubleClickSignal(void);
+		sigc::signal0<void>& getDoubleClickSignal(void);
 
 	protected:
 		Glib::ustring m_treeName;
 		Gtk::Menu *m_pPopupMenu;
 		Gtk::ScrolledWindow *m_pResultsScrolledwindow;
 		Glib::RefPtr<Gtk::TreeStore> m_refStore;
-		SigC::Signal1<void, Glib::ustring> m_signalSelectionChanged;
-		SigC::Signal0<void> m_signalDoubleClick;
+		sigc::signal1<void, Glib::ustring> m_signalSelectionChanged;
+		sigc::signal0<void> m_signalDoubleClick;
 		PinotSettings &m_settings;
 		Glib::RefPtr<Gdk::Pixbuf> m_indexedIconPixbuf;
 		Glib::RefPtr<Gdk::Pixbuf> m_viewededIconPixbuf;

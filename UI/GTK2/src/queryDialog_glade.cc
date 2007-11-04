@@ -28,8 +28,7 @@
 #endif
 #include <gtkmmconfig.h>
 #if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>2
-#include <sigc++/compatibility.h>
-#include <sigc++/bind.h>
+#include <sigc++/sigc++.h>
 #define GMM_GTKMM_22_24(a,b) b
 #else //gtkmm 2.2
 #define GMM_GTKMM_22_24(a,b) a
@@ -220,9 +219,9 @@ queryDialog_glade::queryDialog_glade(
    actionsTable->show();
    queryVbox->show();
    queryDialog->show();
-   queryOkbutton->signal_clicked().connect(SigC::slot(*this, &queryDialog_glade::on_queryOkbutton_clicked), false);
-   nameEntry->signal_changed().connect(SigC::slot(*this, &queryDialog_glade::on_nameEntry_changed), false);
-   addFilterButton->signal_clicked().connect(SigC::slot(*this, &queryDialog_glade::on_addFilterButton_clicked), false);
+   queryOkbutton->signal_clicked().connect(sigc::mem_fun(*this, &queryDialog_glade::on_queryOkbutton_clicked), false);
+   nameEntry->signal_changed().connect(sigc::mem_fun(*this, &queryDialog_glade::on_nameEntry_changed), false);
+   addFilterButton->signal_clicked().connect(sigc::mem_fun(*this, &queryDialog_glade::on_addFilterButton_clicked), false);
 }
 
 queryDialog_glade::~queryDialog_glade()

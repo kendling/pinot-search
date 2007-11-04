@@ -16,12 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <sigc++/slot.h>
-
 #include "Notebook.h"
 #include "PinotUtils.h"
 
-using namespace SigC;
 using namespace Glib;
 using namespace Gtk;
 
@@ -160,10 +157,10 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 
 #if _USE_BUTTON_TAB
 	m_tabButton->signal_clicked().connect(
-		SigC::slot(*this, &NotebookTabBox::onButtonClicked));
+		sigc::mem_fun(*this, &NotebookTabBox::onButtonClicked));
 #else
 	m_tabEventBox->signal_button_press_event().connect(
-		SigC::slot(*this, &NotebookTabBox::onButtonPressEvent));
+		sigc::mem_fun(*this, &NotebookTabBox::onButtonPressEvent));
 #endif
 }
 
@@ -187,7 +184,7 @@ bool NotebookTabBox::onButtonPressEvent(GdkEventButton *ev)
 //
 // Returns the close signal.
 //
-Signal2<void, ustring, NotebookPageBox::PageType>& NotebookTabBox::getCloseSignal(void)
+sigc::signal2<void, ustring, NotebookPageBox::PageType>& NotebookTabBox::getCloseSignal(void)
 {
 	return m_signalClose;
 }

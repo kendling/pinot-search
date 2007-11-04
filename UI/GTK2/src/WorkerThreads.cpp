@@ -28,9 +28,6 @@
 #include <exception>
 #include <iostream>
 #include <fstream>
-#include <sigc++/class_slot.h>
-#include <sigc++/compatibility.h>
-#include <sigc++/slot.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/exception.h>
 
@@ -54,7 +51,6 @@
 #include "PinotSettings.h"
 #include "WorkerThreads.h"
 
-using namespace SigC;
 using namespace Glib;
 using namespace std;
 
@@ -181,7 +177,7 @@ Glib::Thread *WorkerThread::start(void)
 	cout << "WorkerThread::start: " << getType() << " " << m_id << endl;
 #endif
 	// Create non-joinable threads
-	return Thread::create(slot_class(*this, &WorkerThread::threadHandler), false);
+	return Thread::create(sigc::mem_fun(*this, &WorkerThread::threadHandler), false);
 }
 
 bool WorkerThread::stop(void)
@@ -547,7 +543,7 @@ void ThreadsManager::connect(void)
 
 	// Connect the dispatcher
 	m_threadsEndConnection = WorkerThread::getDispatcher().connect(
-		SigC::slot(*this, &ThreadsManager::on_thread_signal));
+		sigc::mem_fun(*this, &ThreadsManager::on_thread_signal));
 #ifdef DEBUG
 	cout << "ThreadsManager::connect: connected" << endl;
 #endif
@@ -1894,8 +1890,8 @@ string MonitorThread::getType(void) const
 bool MonitorThread::stop(void)
 {
 	// Disconnect the signal
-	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type slotsList = m_signalDirectoryFound.slots();
-	Signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	sigc::signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type slotsList = m_signalDirectoryFound.slots();
+	sigc::signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
 	if (slotIter != slotsList.end())
 	{
 		if (slotIter->empty() == false)
@@ -1910,7 +1906,7 @@ bool MonitorThread::stop(void)
 	return true;
 }
 
-Signal3<void, const DocumentInfo&, const std::string&, bool>& MonitorThread::getDirectoryFoundSignal(void)
+sigc::signal3<void, const DocumentInfo&, const std::string&, bool>& MonitorThread::getDirectoryFoundSignal(void)
 {
 	return m_signalDirectoryFound;
 }

@@ -21,8 +21,7 @@
 
 #include <time.h>
 #include <map>
-#include <sigc++/slot.h>
-#include <sigc++/connection.h>
+#include <sigc++/sigc++.h>
 #include <glibmm/refptr.h>
 #include <gtkmm/treestore.h>
 
@@ -48,7 +47,7 @@ protected:
 	std::map<int, Gtk::TreeModel::iterator> m_errorsIters;
 	bool m_hasErrors;
 	time_t m_lastErrorDate;
-	SigC::Connection m_idleConnection;
+	sigc::connection m_idleConnection;
 
 	void populate(void);
 

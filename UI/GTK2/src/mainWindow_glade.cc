@@ -28,8 +28,7 @@
 #endif
 #include <gtkmmconfig.h>
 #if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>2
-#include <sigc++/compatibility.h>
-#include <sigc++/bind.h>
+#include <sigc++/sigc++.h>
 #define GMM_GTKMM_22_24(a,b) b
 #else //gtkmm 2.2
 #define GMM_GTKMM_22_24(a,b) a
@@ -452,38 +451,38 @@ mainWindow_glade::mainWindow_glade(
    mainStatusbar->show();
    mainHbox->show();
    mainVbox->show();
-   configure1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_configure_activate), false);
-   statistics1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_statistics_activate), false);
-   quit1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_quit_activate), false);
-   cut1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_cut_activate), false);
-   copy1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_copy_activate), false);
-   paste1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_paste_activate), false);
-   delete1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_delete_activate), false);
-   showextract1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_showextract_activate), false);
-   searchenginegroup1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_groupresults_activate), false);
-   exportresults1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_exportresults_activate), false);
-   clearresults1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_clearresults_activate), false);
-   viewresults1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_viewresults_activate), false);
-   morelikethis1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_morelikethis_activate), false);
-   indexresults1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_indexresults_activate), false);
-   import1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_import_activate), false);
-   viewfromindex1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_viewfromindex_activate), false);
-   refreshindex1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_refreshindex_activate), false);
-   unindex1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_unindex_activate), false);
-   showfromindex1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_showfromindex_activate), false);
-   about1->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_about_activate), false);
-   addIndexButton->signal_clicked().connect(SigC::slot(*this, &mainWindow_glade::on_addIndexButton_clicked), false);
-   removeIndexButton->signal_clicked().connect(SigC::slot(*this, &mainWindow_glade::on_removeIndexButton_clicked), false);
-   enginesTogglebutton->signal_toggled().connect(SigC::slot(*this, &mainWindow_glade::on_enginesTogglebutton_toggled), false);
-   liveQueryEntry->signal_changed().connect(SigC::slot(*this, &mainWindow_glade::on_liveQueryEntry_changed), false);
-   liveQueryEntry->signal_activate().connect(SigC::slot(*this, &mainWindow_glade::on_liveQueryEntry_activate), false);
-   findButton->signal_clicked().connect(SigC::slot(*this, &mainWindow_glade::on_findButton_clicked), false);
-   queryTreeview->signal_button_press_event().connect(SigC::slot(*this, &mainWindow_glade::on_queryTreeview_button_press_event), false);
-   addQueryButton->signal_clicked().connect(SigC::slot(*this, &mainWindow_glade::on_addQueryButton_clicked), false);
-   removeQueryButton->signal_clicked().connect(SigC::slot(*this, &mainWindow_glade::on_removeQueryButton_clicked), false);
-   queryHistoryButton->signal_clicked().connect(SigC::slot(*this, &mainWindow_glade::on_queryHistoryButton_clicked), false);
-   findQueryButton->signal_clicked().connect(SigC::slot(*this, &mainWindow_glade::on_findQueryButton_clicked), false);
-   mainWindow->signal_delete_event().connect(SigC::slot(*this, &mainWindow_glade::on_mainWindow_delete_event), false);
+   configure1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_configure_activate), false);
+   statistics1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_statistics_activate), false);
+   quit1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_quit_activate), false);
+   cut1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_cut_activate), false);
+   copy1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_copy_activate), false);
+   paste1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_paste_activate), false);
+   delete1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_delete_activate), false);
+   showextract1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_showextract_activate), false);
+   searchenginegroup1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_groupresults_activate), false);
+   exportresults1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_exportresults_activate), false);
+   clearresults1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_clearresults_activate), false);
+   viewresults1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_viewresults_activate), false);
+   morelikethis1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_morelikethis_activate), false);
+   indexresults1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_indexresults_activate), false);
+   import1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_import_activate), false);
+   viewfromindex1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_viewfromindex_activate), false);
+   refreshindex1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_refreshindex_activate), false);
+   unindex1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_unindex_activate), false);
+   showfromindex1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_showfromindex_activate), false);
+   about1->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_about_activate), false);
+   addIndexButton->signal_clicked().connect(sigc::mem_fun(*this, &mainWindow_glade::on_addIndexButton_clicked), false);
+   removeIndexButton->signal_clicked().connect(sigc::mem_fun(*this, &mainWindow_glade::on_removeIndexButton_clicked), false);
+   enginesTogglebutton->signal_toggled().connect(sigc::mem_fun(*this, &mainWindow_glade::on_enginesTogglebutton_toggled), false);
+   liveQueryEntry->signal_changed().connect(sigc::mem_fun(*this, &mainWindow_glade::on_liveQueryEntry_changed), false);
+   liveQueryEntry->signal_activate().connect(sigc::mem_fun(*this, &mainWindow_glade::on_liveQueryEntry_activate), false);
+   findButton->signal_clicked().connect(sigc::mem_fun(*this, &mainWindow_glade::on_findButton_clicked), false);
+   queryTreeview->signal_button_press_event().connect(sigc::mem_fun(*this, &mainWindow_glade::on_queryTreeview_button_press_event), false);
+   addQueryButton->signal_clicked().connect(sigc::mem_fun(*this, &mainWindow_glade::on_addQueryButton_clicked), false);
+   removeQueryButton->signal_clicked().connect(sigc::mem_fun(*this, &mainWindow_glade::on_removeQueryButton_clicked), false);
+   queryHistoryButton->signal_clicked().connect(sigc::mem_fun(*this, &mainWindow_glade::on_queryHistoryButton_clicked), false);
+   findQueryButton->signal_clicked().connect(sigc::mem_fun(*this, &mainWindow_glade::on_findQueryButton_clicked), false);
+   mainWindow->signal_delete_event().connect(sigc::mem_fun(*this, &mainWindow_glade::on_mainWindow_delete_event), false);
 }
 
 mainWindow_glade::~mainWindow_glade()

@@ -28,9 +28,6 @@
 #include <exception>
 #include <iostream>
 #include <fstream>
-#include <sigc++/class_slot.h>
-#include <sigc++/compatibility.h>
-#include <sigc++/slot.h>
 #include <glibmm/miscutils.h>
 
 #include "Languages.h"
@@ -47,7 +44,6 @@
 #include "PinotSettings.h"
 #include "ServerThreads.h"
 
-using namespace SigC;
 using namespace Glib;
 using namespace std;
 
@@ -176,8 +172,8 @@ string DirectoryScannerThread::getDirectory(void) const
 bool DirectoryScannerThread::stop(void)
 {
 	// Disconnect the signal
-	Signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
-	Signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	sigc::signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
+	sigc::signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
 	if (slotIter != slotsList.end())
 	{
 		if (slotIter->empty() == false)
@@ -191,7 +187,7 @@ bool DirectoryScannerThread::stop(void)
 	return true;
 }
 
-Signal3<void, const DocumentInfo&, const string&, bool>& DirectoryScannerThread::getFileFoundSignal(void)
+sigc::signal3<void, const DocumentInfo&, const string&, bool>& DirectoryScannerThread::getFileFoundSignal(void)
 {
 	return m_signalFileFound;
 }

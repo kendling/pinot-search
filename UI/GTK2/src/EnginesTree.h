@@ -23,7 +23,7 @@
 #include <vector>
 #include <set>
 #include <map>
-#include <sigc++/slot.h>
+#include <sigc++/sigc++.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 #include <gdkmm/pixbuf.h>
@@ -65,14 +65,14 @@ class EnginesTree : public Gtk::TreeView
 		void save(void);
 
 		/// Returns the double-click signal.
-		SigC::Signal2<void, std::string, std::string>& getDoubleClickSignal(void);
+		sigc::signal2<void, std::string, std::string>& getDoubleClickSignal(void);
 
 	protected:
 		Glib::RefPtr<Gtk::TreeStore> m_refStore;
 		PinotSettings &m_settings;
 		Glib::RefPtr<Gdk::Pixbuf> m_engineFolderIconPixbuf;
 		EnginesModelColumns m_enginesColumns;
-		SigC::Signal2<void, std::string, std::string> m_signalDoubleClick;
+		sigc::signal2<void, std::string, std::string> m_signalDoubleClick;
 
 		void renderEngineIcon(Gtk::CellRenderer *renderer, const Gtk::TreeModel::iterator &iter);
 

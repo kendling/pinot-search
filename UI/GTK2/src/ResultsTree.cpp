@@ -40,7 +40,6 @@
 #include "ResultsTree.h"
 
 using namespace std;
-using namespace SigC;
 using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
@@ -106,15 +105,15 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 		// Pack an icon renderer for the viewed status
 		CellRendererPixbuf *pIconRenderer = new CellRendererPixbuf();
 		pColumn->pack_start(*manage(pIconRenderer), false);
-		pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderViewStatus));
+		pColumn->set_cell_data_func(*pIconRenderer, sigc::mem_fun(*this, &ResultsTree::renderViewStatus));
 		// Pack a second icon renderer for the indexed status
 		pIconRenderer = new CellRendererPixbuf();
 		pColumn->pack_start(*manage(pIconRenderer), false);
-		pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderIndexStatus));
+		pColumn->set_cell_data_func(*pIconRenderer, sigc::mem_fun(*this, &ResultsTree::renderIndexStatus));
 		// And a third one for the ranking
 		pIconRenderer = new CellRendererPixbuf();
 		pColumn->pack_start(*manage(pIconRenderer), false);
-		pColumn->set_cell_data_func(*pIconRenderer, SigC::slot(*this, &ResultsTree::renderRanking));
+		pColumn->set_cell_data_func(*pIconRenderer, sigc::mem_fun(*this, &ResultsTree::renderRanking));
 		pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 		append_column(*manage(pColumn));
 
@@ -133,7 +132,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn = new TreeViewColumn(_("Title"));
 	CellRendererText *pTextRenderer = new CellRendererText();
 	pColumn->pack_start(*manage(pTextRenderer));
-	pColumn->set_cell_data_func(*pTextRenderer, SigC::slot(*this, &ResultsTree::renderTitleColumn));
+	pColumn->set_cell_data_func(*pTextRenderer, sigc::mem_fun(*this, &ResultsTree::renderTitleColumn));
 	pColumn->add_attribute(pTextRenderer->property_text(), m_resultsColumns.m_text);
 	pColumn->set_resizable(true);
 	pColumn->set_sort_column(m_resultsColumns.m_text);
@@ -157,16 +156,16 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	
 	// Connect the signals
 	signal_button_press_event().connect_notify(
-		SigC::slot(*this, &ResultsTree::onButtonPressEvent));
+		sigc::mem_fun(*this, &ResultsTree::onButtonPressEvent));
 	get_selection()->signal_changed().connect(
-		SigC::slot(*this, &ResultsTree::onSelectionChanged));
+		sigc::mem_fun(*this, &ResultsTree::onSelectionChanged));
 
 	// Enable interactive search
 	set_search_column(m_resultsColumns.m_text.index());
 	// Control which rows can be selected
-	get_selection()->set_select_function(SigC::slot(*this, &ResultsTree::onSelectionSelect));
+	get_selection()->set_select_function(sigc::mem_fun(*this, &ResultsTree::onSelectionSelect));
 	// Listen for style changes
-	signal_style_changed().connect_notify(SigC::slot(*this, &ResultsTree::onStyleChanged));
+	signal_style_changed().connect_notify(sigc::mem_fun(*this, &ResultsTree::onStyleChanged));
 
 	// Render the icons
 	m_indexedIconPixbuf = render_icon(Stock::INDEX, ICON_SIZE_MENU, "MetaSE-pinot");
@@ -180,7 +179,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	pColumn = new TreeViewColumn(_("Extract"));
 	pTextRenderer = new CellRendererText();
 	pColumn->pack_start(*manage(pTextRenderer));
-	pColumn->set_cell_data_func(*pTextRenderer, SigC::slot(*this, &ResultsTree::renderExtractColumn));
+	pColumn->set_cell_data_func(*pTextRenderer, sigc::mem_fun(*this, &ResultsTree::renderExtractColumn));
 	pColumn->add_attribute(pTextRenderer->property_text(), m_extractColumns.m_name);
 	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
 	m_extractTreeView->append_column(*manage(pColumn));
@@ -1327,7 +1326,7 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 //
 // Returns the changed selection signal.
 //
-Signal1<void, ustring>& ResultsTree::getSelectionChangedSignal(void)
+sigc::signal1<void, ustring>& ResultsTree::getSelectionChangedSignal(void)
 {
 	return m_signalSelectionChanged;
 }
@@ -1335,7 +1334,7 @@ Signal1<void, ustring>& ResultsTree::getSelectionChangedSignal(void)
 //
 // Returns the double-click signal.
 //
-Signal0<void>& ResultsTree::getDoubleClickSignal(void)
+sigc::signal0<void>& ResultsTree::getDoubleClickSignal(void)
 {
 	return m_signalDoubleClick;
 }
