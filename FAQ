@@ -51,3 +51,17 @@
     $(kde-config --prefix)/share/autostart (for all users) or ~/.kde/Autostart
     (current user only).
 
+  * If pinot's status bar shows a message like "Couldn't open index ~/.pinot/index"
+    at startup, it may be that a previous instance crashed and left a lock file
+    in that same directory. Exit pinot, check that no other process is using
+    ~/.pinot/index/flintlock and delete that file.
+
+  * Flushing is not directly configurable in Pinot, but some control is
+    possible with the environment variable XAPIAN_FLUSH_THRESHOLD. It can be
+    set to the number of documents after which changes should be flushed to the
+    index. The default value is 10000.
+    The daemon explicitely flushes the index once it has crawled one of the
+    directories configured in Preferences, Indexing. if this directory has more
+    documents than XAPIAN_FLUSH_THRESHOLD, changes will be buffered in RAM until
+    the directory is fully crawled.
+
