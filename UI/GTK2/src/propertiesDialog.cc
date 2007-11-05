@@ -89,18 +89,13 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 
 			titleEntry->set_text(to_utf8(title));
 			typeEntry->set_text(to_utf8(docInfo.getType()));
+
 			unsigned int size = docInfo.getSize();
 			snprintf(numStr, 128, "%u", size);
 			sizeEntry->set_text(numStr);
-			if (termsCount == 0)
-			{
-				termsEntry->set_text(_("Unknown"));
-			}
-			else
-			{
-				snprintf(numStr, 128, "%u", termsCount);
-				termsEntry->set_text(numStr);
-			}
+
+			snprintf(numStr, 128, "%u", termsCount);
+			termsEntry->set_text(numStr);
 
 			m_editDocument = true;
 		}

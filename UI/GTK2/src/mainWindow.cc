@@ -1002,7 +1002,6 @@ void mainWindow::on_searchagain_changed(ustring queryName)
 	{
 		std::map<std::string, std::string> indexes = m_settings.getIndexes();
 		ustring queryName(queryProps.getName());
-		bool firstLocation = true;
 
 		queryProps.setName(queryName + " " + _("In Results"));
 
