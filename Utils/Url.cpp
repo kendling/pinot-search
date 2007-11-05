@@ -78,8 +78,8 @@ Url& Url::operator=(const Url& other)
 
 void Url::parse(const string &url)
 {
-	string::size_type pos1 =0, pos2 = 0;
-	bool hasHostName = true;
+	string::size_type pos1 = 0, pos2 = 0;
+	bool hasHostName = true, hasParameters = true;
 
 	if ((url[0] == '/') ||
 		(url[0] == '.'))
@@ -92,7 +92,6 @@ void Url::parse(const string &url)
 
 		// Assume default protocol
 		m_protocol = "file";
-
 		hasHostName = false;
 	}
 	else
@@ -101,7 +100,7 @@ void Url::parse(const string &url)
 		pos1 = url.find("://");
 		if (pos1 != string::npos)
 		{
-			m_protocol = url.substr(0, pos1);
+			m_protocol = StringManip::toLowerCase(url.substr(0, pos1));
 			pos1 += 3;
 		}
 		else
@@ -116,6 +115,11 @@ void Url::parse(const string &url)
 			hasHostName = false;
 			pos2 = pos1;
 		}
+	}
+
+	if (m_protocol == "file")
+	{
+		hasParameters = false;
 	}
 
 	if (hasHostName == true)
@@ -182,13 +186,16 @@ void Url::parse(const string &url)
 		m_host = "localhost";
 	}
 
-	string locationAndFile = url.substr(pos2);
-	pos2 = locationAndFile.find("?");
+	string locationAndFile(url.substr(pos2));
 	// Parameters
-	if (pos2 != string::npos)
+	if (hasParameters == true)
 	{
-		m_parameters = locationAndFile.substr(pos2+1);
-		locationAndFile.resize(pos2);
+		pos2 = locationAndFile.find("?");
+		if (pos2 != string::npos)
+		{
+			m_parameters = locationAndFile.substr(pos2+1);
+			locationAndFile.resize(pos2);
+		}
 	}
 
 	// Location and file
