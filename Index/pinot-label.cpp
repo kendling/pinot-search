@@ -35,6 +35,7 @@ extern "C"
 
 #include "StringManip.h"
 #include "MIMEScanner.h"
+#include "Url.h"
 #include "DBusXapianIndex.h"
 #include "XapianDatabaseFactory.h"
 
@@ -215,8 +216,10 @@ int main(int argc, char **argv)
 			if (docId == 0)
 			{
 				cerr << fileParam << " is not indexed" << endl;
-
 				success = false;
+
+				// Next
+				++optind;
 				continue;
 			}
 		}
