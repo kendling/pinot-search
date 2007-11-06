@@ -1,10 +1,11 @@
   * At startup, when listing an index or indexing documents, Pinot complains
     of an "index error"
     This is likely because a previous instance didn't exit properly and one
-    (or more) index is still locked. Quit Pinot and look for a "db_lock" file
-    in "~/.pinot/index". If it's there, delete it and restart Pinot.
-    Starting with 0.60, indexes are created with the newer Flint back-end
-    which is immune to this issue.
+    (or more) index is still locked. Quit Pinot and look for a "db_lock",
+    "flicklock" or "flintlock" file (depending on what version of Xapian the
+    index was created with/is currently installed) in the directory that Pinot
+    complains about. If it's there, check that no other process is using this
+    file, delete it and restart Pinot.
 
   * When compiling from source, you may run into linking problems related to
     libstdc++.la. Try patching xapian-config as explained in the post at
@@ -50,11 +51,6 @@
     the file /etc/xdg/autostart/pinot-dbus-daemon.desktop to either
     $(kde-config --prefix)/share/autostart (for all users) or ~/.kde/Autostart
     (current user only).
-
-  * If pinot's status bar shows a message like "Couldn't open index ~/.pinot/index"
-    at startup, it may be that a previous instance crashed and left a lock file
-    in that same directory. Exit pinot, check that no other process is using
-    ~/.pinot/index/flintlock and delete that file.
 
   * Flushing is not directly configurable in Pinot, but some control is
     possible with the environment variable XAPIAN_FLUSH_THRESHOLD. It can be
