@@ -187,6 +187,7 @@ class PinotSettings
 		Glib::ustring m_googleAPIKey;
 		Glib::ustring m_docsIndexLocation;
 		Glib::ustring m_daemonIndexLocation;
+		double m_minimumDiskSpace;
 		int m_xPos;
 		int m_yPos;
 		int m_width;

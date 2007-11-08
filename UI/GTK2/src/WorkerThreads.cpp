@@ -262,7 +262,8 @@ ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	m_maxIndexThreads(maxIndexThreads),
 	m_nextThreadId(1),
 	m_backgroundThreadsCount(0),
-	m_numCPUs(1)
+	m_numCPUs(1),
+	m_stopIndexing(false)
 {
 	pthread_rwlock_init(&m_threadsLock, NULL);
 	pthread_rwlock_init(&m_listsLock, NULL);
@@ -375,6 +376,14 @@ WorkerThread *ThreadsManager::get_thread(void)
 ustring ThreadsManager::index_document(const DocumentInfo &docInfo)
 {
 	string location(docInfo.getLocation());
+
+	if (m_stopIndexing == true)
+	{
+#ifdef DEBUG
+		cout << "ThreadsManager::index_document: stopped indexing" << endl;
+#endif
+		return _("Indexing was stopped");
+	}
 
 	if (location.empty() == true)
 	{
@@ -576,9 +585,6 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 	double averageLoad[3];
 	bool addToQueue = false;
 
-#ifdef DEBUG
-	cout << "ThreadsManager::queue_index: called" << endl;
-#endif
 	if (get_threads_count() >= m_maxIndexThreads)
 	{
 #ifdef DEBUG

@@ -90,6 +90,7 @@ PinotSettings PinotSettings::m_instance;
 bool PinotSettings::m_clientMode = false;
 
 PinotSettings::PinotSettings() :
+	m_minimumDiskSpace(10),
 	m_xPos(0),
 	m_yPos(0),
 	m_width(0),
@@ -130,6 +131,14 @@ PinotSettings::PinotSettings() :
 	m_docsIndexLocation += "/index";
 	m_daemonIndexLocation = directoryName;
 	m_daemonIndexLocation += "/daemon";
+
+	// This is not set in the configuration file
+	char *minDiskSpace = getenv("PINOT_MINIMUM_DISK_SPACE");
+	if ((minDiskSpace != NULL) &&
+		(strlen(minDiskSpace) > 0))
+	{
+		m_minimumDiskSpace = atof(minDiskSpace);
+	}
 }
 
 PinotSettings::~PinotSettings()

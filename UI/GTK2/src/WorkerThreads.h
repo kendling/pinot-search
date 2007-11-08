@@ -144,6 +144,7 @@ class ThreadsManager : virtual public sigc::trackable
 		long m_numCPUs;
 		sigc::signal1<void, WorkerThread *> m_onThreadEndSignal;
 		std::set<std::string> m_beingIndexed;
+		bool m_stopIndexing;
 
 		bool read_lock_threads(void);
 

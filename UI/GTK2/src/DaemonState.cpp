@@ -16,16 +16,24 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #include <stdlib.h>
+#ifdef HAVE_STATFS
+#include <sys/vfs.h>
+#define CHECK_DISK_SPACE 1
+#else
+#ifdef HAVE_STATVFS
+#include <sys/statvfs.h>
+#define CHECK_DISK_SPACE 1
+#endif
+#endif
 #include <iostream>
-#include <sigc++/sigc++.h>
 #include <glibmm/ustring.h>
 #include <glibmm/stringutils.h>
 #include <glibmm/convert.h>
 #include <glibmm/thread.h>
 #include <glibmm/random.h>
 
-#include "config.h"
 #include "Url.h"
 #include "MonitorFactory.h"
 #include "CrawlHistory.h"
@@ -39,6 +47,62 @@
 using namespace std;
 using namespace Glib;
 
+static double getFSFreeSpace(const string &path)
+{
+	double availableBlocks = 0.0;
+	double blockSize = 0.0;
+	int statSuccess = -1;
+#ifdef HAVE_STATFS
+	struct statfs fsStats;
+
+	statSuccess = statfs(PinotSettings::getInstance().m_daemonIndexLocation.c_str(), &fsStats);
+	availableBlocks = (uintmax_t)fsStats.f_bavail;
+	blockSize = fsStats.f_bsize;
+#else
+#ifdef HAVE_STATVFS
+	struct statvfs vfsStats;
+
+	statSuccess = statvfs(path.c_str(), &vfsStats);
+	availableBlocks = (uintmax_t)vfsStats.f_bavail;
+	// f_frsize isn't supported by all implementations
+	blockSize = (vfsStats.f_frsize ? vfsStats.f_frsize : vfsStats.f_bsize);
+#endif
+#endif
+	// Did it fail ?
+	if ((statSuccess == -1) ||
+		(blockSize == 0.0))
+	{
+		return -1.0;
+	}
+
+	double mbRatio = blockSize / (1024 * 1024);
+	double availableMbSize = availableBlocks * mbRatio;
+#ifdef DEBUG
+	cout << "DaemonState::getFSFreeSpace: " << availableBlocks << " blocks of " << blockSize
+		<< " bytes (" << mbRatio << ")" << endl;
+#endif
+
+	return availableMbSize;
+}
+
+// A function object to stop DirectoryScanner threads with for_each()
+struct StopScannerThreadFunc
+{
+public:
+	void operator()(map<WorkerThread *, Thread *>::value_type &p)
+	{
+		string type(p.first->getType());
+
+		if (type == "DirectoryScannerThread")
+		{
+			p.first->stop();
+#ifdef DEBUG
+			cout << "StopScannerThreadFunc: stopped thread " << p.first->getId() << endl;
+#endif
+		}
+	}
+};
+
 DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 20),
 	m_fullScan(false),
@@ -46,6 +110,13 @@ DaemonState::DaemonState() :
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
 	m_pDiskHandler(NULL)
 {
+#ifdef CHECK_DISK_SPACE
+	// Check every minute
+	m_timeoutConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
+		&DaemonState::on_activity_timeout), 60000);
+	// Check right now before doing anything else
+	DaemonState::on_activity_timeout();
+#endif
 	m_onThreadEndSignal.connect(sigc::mem_fun(*this, &DaemonState::on_thread_end));
 }
 
@@ -59,9 +130,60 @@ DaemonState::~DaemonState()
 	// Since DaemonState is destroyed when the program exits, it's okay
 }
 
-bool DaemonState::crawlLocation(const string &locationToCrawl, bool isSource, bool doMonitoring)
+bool DaemonState::on_activity_timeout(void)
+{
+	if (m_timeoutConnection.blocked() == false)
+	{
+		double availableMbSize = getFSFreeSpace(PinotSettings::getInstance().m_daemonIndexLocation);
+		if (availableMbSize >= 0)
+		{
+#ifdef DEBUG
+			cout << "DaemonState::on_activity_timeout: " << availableMbSize << " Mb free for "
+				<< PinotSettings::getInstance().m_daemonIndexLocation << endl;
+#endif
+			if (availableMbSize < PinotSettings::getInstance().m_minimumDiskSpace)
+			{
+				// Stop indexing
+				m_stopIndexing = true;
+
+				if (m_threads.empty() == false)
+				{
+					if (write_lock_threads() == true)
+					{
+						// Stop threads
+						for_each(m_threads.begin(), m_threads.end(), StopScannerThreadFunc());
+						m_threads.clear();
+
+						unlock_threads();
+					}
+				}
+
+				cerr << "Stopped indexing because of low disk space" << endl;
+			}
+			else if (m_stopIndexing == true)
+			{
+				// Go ahead
+				m_stopIndexing = false;
+
+				cerr << "Resumed indexing following low disk space condition" << endl;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool DaemonState::crawl_location(const string &locationToCrawl, bool isSource, bool doMonitoring)
 {
 	DirectoryScannerThread *pScannerThread = NULL;
+
+	if (m_stopIndexing == true)
+	{
+#ifdef DEBUG
+		cout << "DaemonState::crawl_location: stopped indexing" << endl;
+#endif
+		return true;
+	}
 
 	if (locationToCrawl.empty() == true)
 	{
@@ -124,7 +246,7 @@ void DaemonState::start(bool forceFullScan)
 	if (locationIter != PinotSettings::getInstance().m_indexableLocations.end())
 	{
 		// Crawl this now
-		crawlLocation(locationIter->m_name, true, locationIter->m_monitor);
+		crawl_location(locationIter->m_name, true, locationIter->m_monitor);
 	}
 }
 
@@ -179,7 +301,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 				++locationIter;
 				if (locationIter != PinotSettings::getInstance().m_indexableLocations.end())
 				{
-					crawlLocation(locationIter->m_name, true, locationIter->m_monitor);
+					crawl_location(locationIter->m_name, true, locationIter->m_monitor);
 				}
 			}
 #ifdef DEBUG
@@ -223,6 +345,12 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 
 		if (pDBusThread->mustQuit() == true)
 		{
+			// Disconnect the timeout signal
+			if (m_timeoutConnection.connected() == true)
+			{
+				m_timeoutConnection.block();
+				m_timeoutConnection.disconnect();
+			}
 			m_signalQuit(0);
 		}
 	}
@@ -293,7 +421,7 @@ void DaemonState::on_message_filefound(const DocumentInfo &docInfo, const string
 	{
 		string location(docInfo.getLocation());
 
-		crawlLocation(location.substr(7), false, true);
+		crawl_location(location.substr(7), false, true);
 #ifdef DEBUG
 		cout << "DaemonState::on_message_filefound: new directory " << location.substr(7) << endl;
 #endif

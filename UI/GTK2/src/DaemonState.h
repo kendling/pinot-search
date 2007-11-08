@@ -22,6 +22,7 @@
 #include <string>
 #include <queue>
 #include <set>
+#include <sigc++/sigc++.h>
 
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
@@ -49,9 +50,12 @@ class DaemonState : public ThreadsManager
 		bool m_reload;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pDiskHandler;
+		sigc::connection m_timeoutConnection;
 		sigc::signal1<void, int> m_signalQuit;
 
-		bool crawlLocation(const std::string &locationToCrawl, bool isSource, bool doMonitoring);
+		bool on_activity_timeout(void);
+
+		bool crawl_location(const std::string &locationToCrawl, bool isSource, bool doMonitoring);
 
 };
 
