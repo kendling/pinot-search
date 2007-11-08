@@ -236,10 +236,11 @@ void DaemonState::start(bool forceFullScan)
 	// Fire up the disk monitor thread
 	if (m_pDiskHandler == NULL)
 	{
-		m_pDiskHandler = new OnDiskHandler();
+		OnDiskHandler *pDiskHandler = new OnDiskHandler();
+		pDiskHandler->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
+		m_pDiskHandler = pDiskHandler;
 	}
 	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, m_pDiskHandler);
-	pDiskMonitorThread->getDirectoryFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 	start_thread(pDiskMonitorThread, true);
 
 	set<PinotSettings::IndexableLocation>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
