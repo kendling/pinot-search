@@ -30,7 +30,6 @@
 #include "Url.h"
 #include "FilterWrapper.h"
 #include "XapianDatabase.h"
-#include "FileCollector.h"
 #include "PinotSettings.h"
 #include "OnDiskHandler.h"
 
@@ -47,6 +46,18 @@ OnDiskHandler::OnDiskHandler() :
 OnDiskHandler::~OnDiskHandler()
 {
 	pthread_mutex_destroy(&m_mutex);
+
+	// Disconnect the signal
+	sigc::signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
+	sigc::signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	if (slotIter != slotsList.end())
+	{
+		if (slotIter->empty() == false)
+		{
+			slotIter->block();
+			slotIter->disconnect();
+		}
+	}
 }
 
 bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFileName,
@@ -158,15 +169,13 @@ bool OnDiskHandler::fileDeleted(const string &fileName, IndexInterface::NameType
 	return handledEvent;
 }
 
-bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigned int &sourceId)
+bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned int &sourceId)
 {
 	string location(string("file://") + fileName);
 	Url urlObj(location);
-	set<string> labels;
-	bool indexedFile = false;
+	char labelStr[64];
 
-	if ((m_index.isGood() == false) || 
-		(fileName.empty() == true))
+	if (fileName.empty() == true)
 	{
 		return false;
 	}
@@ -175,15 +184,6 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 	if (PinotSettings::getInstance().isBlackListed(fileName) == true)
 	{
 		return false;
-	}
-
-	// Has this file been indexed already ?
-	unsigned int docId = m_index.hasDocument(location);
-	if ((docId > 0) &&
-		(alwaysUpdate == false))
-	{
-		// No need to update
-		return true;
 	}
 
 	// What source does it belong to ?
@@ -200,52 +200,18 @@ bool OnDiskHandler::indexFile(const string &fileName, bool alwaysUpdate, unsigne
 
 		if (sourceIter->second.substr(0, location.length()) == location)
 		{
-			char sourceStr[64];
 
 			// That's the one
-			snprintf(sourceStr, 64, "X-SOURCE%u", sourceIter->first);
-			labels.insert(sourceStr);
+			snprintf(labelStr, 64, "X-SOURCE%u", sourceIter->first);
 			break;
 		}
 	}
 
 	DocumentInfo docInfo("", location, MIMEScanner::scanUrl(urlObj), "");
 
-	FileCollector fileCollector;
-	Document *pDoc = fileCollector.retrieveUrl(docInfo);
-	if (pDoc == NULL)
-	{
-#ifdef DEBUG
-		cout << "OnDiskHandler::indexFile: couldn't download " << location << endl;
-#endif
+	m_signalFileFound(docInfo, labelStr, isDirectory);
 
-		// The file  couldn't be downloaded but exists nonetheless !
-		pDoc = new Document(docInfo);
-	}
-
-	FilterWrapper wrapFilter(&m_index);
-
-	// Get an ad hoc tokenizer for the message
-	// Index or update ?
-	if (docId == 0)
-	{
-		indexedFile = wrapFilter.indexDocument(*pDoc, labels, docId);
-	}
-	else
-	{
-		indexedFile = wrapFilter.updateDocument(*pDoc, docId);
-	}
-
-#ifdef DEBUG
-	if (indexedFile == false)
-	{
-		cout << "OnDiskHandler::indexFile: couldn't index " << location << endl;
-	}
-#endif
-
-	delete pDoc;
-
-	return indexedFile;
+	return true;
 }
 
 bool OnDiskHandler::replaceFile(unsigned int docId, DocumentInfo &docInfo)
@@ -288,16 +254,16 @@ void OnDiskHandler::initialize(void)
 			// Is this an indexable location ?
 			if (directories.find(sourceIter->second.substr(7)) == directories.end())
 			{
-				char sourceStr[64];
+				char labelStr[64];
 
-				snprintf(sourceStr, 64, "X-SOURCE%u", sourceId);
+				snprintf(labelStr, 64, "X-SOURCE%u", sourceId);
 
 #ifdef DEBUG
 				cout << "OnDiskHandler::initialize: " << sourceIter->second
 					<< ", source " << sourceId << " was removed" << endl;
 #endif
 				// All documents with this label will be unindexed
-				if (m_index.unindexDocuments(sourceStr, IndexInterface::BY_LABEL) == true)
+				if (m_index.unindexDocuments(labelStr, IndexInterface::BY_LABEL) == true)
 				{
 					// Delete the source itself and all its items
 					m_history.deleteSource(sourceId);
@@ -345,6 +311,22 @@ bool OnDiskHandler::fileCreated(const string &fileName)
 	return handledEvent;
 }
 
+bool OnDiskHandler::directoryCreated(const string &dirName)
+{
+	unsigned int sourceId;
+	bool handledEvent = false;
+
+#ifdef DEBUG
+	cout << "OnDiskHandler::directoryCreated: " << dirName << endl;
+#endif
+	pthread_mutex_lock(&m_mutex);
+	handledEvent = indexFile(dirName, true, sourceId);
+	// History will be set by crawling
+	pthread_mutex_unlock(&m_mutex);
+
+	return handledEvent;
+}
+
 bool OnDiskHandler::fileModified(const string &fileName)
 {
 	unsigned int sourceId;
@@ -355,7 +337,7 @@ bool OnDiskHandler::fileModified(const string &fileName)
 #endif
 	pthread_mutex_lock(&m_mutex);
 	// Update the file, or index if necessary
-	handledEvent = indexFile(fileName, true, sourceId);
+	handledEvent = indexFile(fileName, false, sourceId);
 	if (handledEvent == true)
 	{
 		m_history.updateItem("file://" + fileName, CrawlHistory::CRAWLED, time(NULL));
@@ -384,5 +366,10 @@ bool OnDiskHandler::fileDeleted(const string &fileName)
 bool OnDiskHandler::directoryDeleted(const string &dirName)
 {
 	return fileDeleted(dirName, IndexInterface::BY_DIRECTORY);
+}
+
+sigc::signal3<void, const DocumentInfo&, const string&, bool>& OnDiskHandler::getFileFoundSignal(void)
+{
+	return m_signalFileFound;
 }
 

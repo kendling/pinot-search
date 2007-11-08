@@ -44,6 +44,9 @@ class MonitorHandler
 		/// Handles file creation events.
 		virtual bool fileCreated(const std::string &fileName) = 0;
 
+		/// Handles directory creation events.
+		virtual bool directoryCreated(const std::string &dirName) = 0;
+
 		/// Handles file modified events.
 		virtual bool fileModified(const std::string &fileName) = 0;
 

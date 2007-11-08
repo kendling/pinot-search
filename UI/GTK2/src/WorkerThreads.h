@@ -491,15 +491,12 @@ class MonitorThread : public WorkerThread
 
 		virtual bool stop(void);
 
-		sigc::signal3<void, const DocumentInfo&, const std::string&, bool>& getDirectoryFoundSignal(void);
-
 	protected:
 		int m_ctrlReadPipe;
 		int m_ctrlWritePipe;
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
 		bool m_checkHistory;
-		sigc::signal3<void, const DocumentInfo&, const std::string&, bool> m_signalDirectoryFound;
 
 		void processEvents(void);
 		virtual void doWork(void);

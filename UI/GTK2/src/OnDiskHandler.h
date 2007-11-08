@@ -23,6 +23,7 @@
 #include <pthread.h>
 #include <string>
 #include <map>
+#include <sigc++/sigc++.h>
 
 #include "CrawlHistory.h"
 #include "MonitorHandler.h"
@@ -47,6 +48,9 @@ class OnDiskHandler : public MonitorHandler
 		/// Handles file creation events.
 		virtual bool fileCreated(const std::string &fileName);
 
+		/// Handles directory creation events.
+		virtual bool directoryCreated(const std::string &dirName);
+
 		/// Handles file modified events.
 		virtual bool fileModified(const std::string &fileName);
 
@@ -64,8 +68,11 @@ class OnDiskHandler : public MonitorHandler
 		/// Handles directory deleted events.
 		virtual bool directoryDeleted(const std::string &dirName);
 
+		sigc::signal3<void, const DocumentInfo&, const std::string&, bool>& getFileFoundSignal(void);
+
 	protected:
 		pthread_mutex_t m_mutex;
+		sigc::signal3<void, const DocumentInfo&, const std::string&, bool> m_signalFileFound;
 		std::map<unsigned int, std::string> m_fileSources;
 		CrawlHistory m_history;
 		XapianIndex m_index;
@@ -76,7 +83,7 @@ class OnDiskHandler : public MonitorHandler
 
 		bool fileDeleted(const std::string &fileName, IndexInterface::NameType type);
 
-		bool indexFile(const std::string &fileName, bool alwaysUpdate, unsigned int &sourceId);
+		bool indexFile(const std::string &fileName, bool isDirectory, unsigned int &sourceId);
 
 		bool replaceFile(unsigned int docId, DocumentInfo &docInfo);
 

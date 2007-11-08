@@ -88,6 +88,13 @@ class ReloadHandler : public MonitorHandler
 			return true; 
 		}
 
+		/// Handles directory creation events.
+		virtual bool directoryCreated(const std::string &dirName)
+		{
+			// Nothing to do here
+			return true; 
+		}
+
 		/// Handles file modified events.
 		virtual bool fileModified(const std::string &fileName)
 		{

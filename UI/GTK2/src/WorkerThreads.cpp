@@ -1895,26 +1895,10 @@ string MonitorThread::getType(void) const
 
 bool MonitorThread::stop(void)
 {
-	// Disconnect the signal
-	sigc::signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type slotsList = m_signalDirectoryFound.slots();
-	sigc::signal3<void, const DocumentInfo&, const std::string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
-	if (slotIter != slotsList.end())
-	{
-		if (slotIter->empty() == false)
-		{
-			slotIter->block();
-			slotIter->disconnect();
-		}
-	}
 	m_done = true;
 	write(m_ctrlWritePipe, "X", 1);
 
 	return true;
-}
-
-sigc::signal3<void, const DocumentInfo&, const std::string&, bool>& MonitorThread::getDirectoryFoundSignal(void)
-{
-	return m_signalDirectoryFound;
 }
 
 void MonitorThread::processEvents(void)
@@ -1980,10 +1964,7 @@ void MonitorThread::processEvents(void)
 			}
 			else
 			{
-				DocumentInfo docInfo("", string("file://") + event.m_location, "", "");
-
-				// Report this directory so that it is crawled
-				m_signalDirectoryFound(docInfo, "", true);
+				m_pHandler->directoryCreated(event.m_location);
 			}
 		}
 		else if (event.m_type == MonitorEvent::WRITE_CLOSED)
