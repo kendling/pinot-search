@@ -312,6 +312,8 @@ AC_CHECK_FUNCS(mmap)
 AC_CHECK_FUNCS(socketpair)
 AC_CHECK_FUNCS(fork)
 AC_CHECK_FUNCS(setrlimit)
+AC_CHECK_FUNCS(statvfs)
+AC_CHECK_FUNCS(statfs)
 
 AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile )
