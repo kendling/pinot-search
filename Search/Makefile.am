@@ -16,11 +16,11 @@ noinst_HEADERS = \
 	SOAPEnvStub.h \
 	WebEngine.h \
 	XapianEngine.h \
-	xesam/XapianQueryBuilder.h \
-	xesam/XesamParser.h \
-	xesam/XesamQLParser.h \
-	xesam/XesamQueryBuilder.h \
-	xesam/XesamULParser.h
+	$(top_srcdir)/Search/xesam/XapianQueryBuilder.h \
+	$(top_srcdir)/Search/xesam/XesamParser.h \
+	$(top_srcdir)/Search/xesam/XesamQLParser.h \
+	$(top_srcdir)/Search/xesam/XesamQueryBuilder.h \
+	$(top_srcdir)/Search/xesam/XesamULParser.h
 
 if HAVE_SOAP
 noinst_LTLIBRARIES = libSearch.la libSearchSOAP.la
@@ -39,25 +39,32 @@ libSearch_la_SOURCES = \
 	SearchPluginProperties.cpp \
 	WebEngine.cpp \
 	XapianEngine.cpp \
-	xesam/XapianQueryBuilder.cc \
-	xesam/XesamQLParser.cc \
-	xesam/XesamQueryBuilder.cc \
-	xesam/XesamULParser.cc
+	$(top_srcdir)/Search/xesam/XapianQueryBuilder.cc \
+	$(top_srcdir)/Search/xesam/XesamQLParser.cc \
+	$(top_srcdir)/Search/xesam/XesamQueryBuilder.cc \
+	$(top_srcdir)/Search/xesam/XesamULParser.cc
+
 if HAVE_BOOST_SPIRIT
 libSearch_la_SOURCES += SherlockParser.cpp
 endif
 
 if HAVE_SOAP
-libSearchSOAP_la_SOURCES = \
-	SOAPEnvC.cpp \
-	SOAPEnvNS.cpp
+libSearchSOAP_la_SOURCES = SOAPEnvC.cpp SOAPEnvNS.cpp
 endif
 
 bin_PROGRAMS = pinot-search
 
-pinot_search_LDADD = -L../Utils -L../Tokenize -L../Collect -L../Index -LGoogle -Lxesam \
-	@SEARCH_LIBS@ -lIndex -lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @INDEX_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @GMIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+pinot_search_LDADD = \
+	-L$(top_builddir)/Utils \
+	-L$(top_builddir)/Tokenize \
+	-L$(top_builddir)/Collect \
+	-L$(top_builddir)/Index \
+	-L$(top_srcdir)/Search/Google \
+	-L$(top_srcdir)/Search/xesam \
+	@SEARCH_LIBS@ -lIndex -lCollect \
+	-lTokenize -lUtils -lBasicUtils \
+	@GLIBMM_LIBS@ @INDEX_LIBS@ @SOAP_LIBS@ \
+	@XML_LIBS@ @GMIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 pinot_search_SOURCES = \
 	pinot-search.cpp
@@ -68,12 +75,22 @@ else
 pinot_search_DEPENDENCIES = libSearch.la
 endif
 
+if HAVE_SOAP
 SOAPEnvC.cpp : SOAPEnv.h
 	soapcpp2 -pSOAPEnv SOAPEnv.h
+endif
 
-AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Tokenize/filters \
-	-I$(srcdir)/../Collect -I$(srcdir)/../Index -IGoogle -Ixesam \
-	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @SOAP_CFLAGS@ @GMIME_CFLAGS@ @GLIBMM_CFLAGS@
+AM_CXXFLAGS = \
+	-I$(top_srcdir)/Utils \
+	-I$(top_srcdir)/Tokenize \
+	-I$(top_srcdir)/Tokenize/filters \
+	-I$(top_srcdir)/Collect \
+	-I$(top_srcdir)/Index \
+	-I$(top_srcdir)/Search/Google \
+	-I$(top_srcdir)/Search/xesam \
+	@HTTP_CFLAGS@ @XML_CFLAGS@ \
+	@INDEX_CFLAGS@ @SOAP_CFLAGS@ @GMIME_CFLAGS@ @GLIBMM_CFLAGS@
+
 if HAVE_BOOST_SPIRIT
 AM_CXXFLAGS += -DHAVE_BOOST_SPIRIT
 endif

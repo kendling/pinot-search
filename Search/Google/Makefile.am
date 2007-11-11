@@ -22,8 +22,13 @@ GoogleSearch.h :
 GAPIClientLib.cpp : GoogleSearch.h
 	soapcpp2 -n -pGAPI -I /usr/include/gsoap/import GoogleSearch.h
 
-AM_CXXFLAGS = -I$(srcdir)/../../Utils -I$(srcdir)/../../Tokenize \
-	-I$(srcdir)/../../Tokenize/filters -I$(srcdir)/../../Collect \
-	-I$(srcdir)/../../Index -I$(srcdir)/.. \
-	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ @INDEX_CFLAGS@ @GMIME_CFLAGS@
+libSearchGoogle_la_CXXFLAGS = \
+	-I$(top_srcdir)/Search \
+	-I$(top_srcdir)/Utils \
+	-I$(top_srcdir)/Tokenize \
+	-I$(top_srcdir)/Tokenize/filters \
+	-I$(top_srcdir)/Collect \
+	-I$(top_srcdir)/Index \
+	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ \
+	@INDEX_CFLAGS@ @GMIME_CFLAGS@
 

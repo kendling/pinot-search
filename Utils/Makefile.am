@@ -11,13 +11,13 @@ noinst_HEADERS = \
 	TimeConverter.h \
 	Timer.h \
 	Url.h \
-	xdgmime/xdgmimealias.h \
-	xdgmime/xdgmimecache.h \
-	xdgmime/xdgmimeglob.h \
-	xdgmime/xdgmime.h \
-	xdgmime/xdgmimeint.h \
-	xdgmime/xdgmimemagic.h \
-	xdgmime/xdgmimeparent.h
+	$(top_srcdir)/Utils/xdgmime/xdgmimealias.h \
+	$(top_srcdir)/Utils/xdgmime/xdgmimecache.h \
+	$(top_srcdir)/Utils/xdgmime/xdgmimeglob.h \
+	$(top_srcdir)/Utils/xdgmime/xdgmime.h \
+	$(top_srcdir)/Utils/xdgmime/xdgmimeint.h \
+	$(top_srcdir)/Utils/xdgmime/xdgmimemagic.h \
+	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.h
 
 noinst_LTLIBRARIES = libBasicUtils.la libUtils.la
 
@@ -33,13 +33,13 @@ libUtils_la_SOURCES = \
 	Languages.cpp \
 	MIMEScanner.cpp \
 	Timer.cpp \
-	xdgmime/xdgmimealias.c \
-	xdgmime/xdgmime.c \
-	xdgmime/xdgmimecache.c \
-	xdgmime/xdgmimeglob.c \
-	xdgmime/xdgmimeint.c \
-	xdgmime/xdgmimemagic.c \
-	xdgmime/xdgmimeparent.c
+	$(top_srcdir)/Utils/xdgmime/xdgmimealias.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmime.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimecache.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimeglob.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimeint.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimemagic.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.c
 
 AM_CFLAGS = -fPIC -DXDG_PREFIX=pinot_xdg
 AM_CXXFLAGS = -fPIC @HTTP_CFLAGS@ @INDEX_CFLAGS@ @GMIME_CFLAGS@ @GLIBMM_CFLAGS@ -DXDG_PREFIX=pinot_xdg

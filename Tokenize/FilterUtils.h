@@ -23,7 +23,7 @@
 #include <map>
 
 #include "Document.h"
-#include "Filter.h"
+#include "filters/Filter.h"
 
 /// Utility functions for dealing with Dijon filters.
 class FilterUtils

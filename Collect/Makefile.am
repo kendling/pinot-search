@@ -17,6 +17,10 @@ libCollect_la_SOURCES = \
 	FileCollector.cpp \
 	MboxCollector.cpp
 
-AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Tokenize/filters \
-	@INDEX_CFLAGS@ @XML_CFLAGS@ @HTTP_CFLAGS@ @GMIME_CFLAGS@ @GLIBMM_CFLAGS@
+libCollect_la_CXXFLAGS = \
+	-I$(top_srcdir)/Utils \
+	-I$(top_srcdir)/Tokenize \
+	-I$(top_srcdir)/Tokenize/filters \
+	@INDEX_CFLAGS@ @XML_CFLAGS@ @HTTP_CFLAGS@ \
+	@GMIME_CFLAGS@ @GLIBMM_CFLAGS@
 

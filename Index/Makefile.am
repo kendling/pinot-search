@@ -23,24 +23,33 @@ libIndex_la_SOURCES = \
 
 bin_PROGRAMS = pinot-index pinot-label
 
-pinot_index_LDADD = -L../Utils -L../Tokenize -L../Collect \
+pinot_index_LDADD = \
+	-L$(top_builddir)/Utils \
+	-L$(top_builddir)/Tokenize \
+	-L$(top_builddir)/Collect \
 	-lIndex -lCollect -lTokenize -lBasicUtils -lUtils \
-	@GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @XML_LIBS@ @GMIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+	@GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @XML_LIBS@ \
+	@GMIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
-pinot_index_SOURCES = \
-	pinot-index.cpp
+pinot_index_SOURCES = pinot-index.cpp
 
 pinot_index_DEPENDENCIES = libIndex.la
 
-pinot_label_LDADD = -L../Utils -L../Tokenize \
+pinot_label_LDADD = \
+	-L$(top_builddir)/Utils \
+	-L$(top_builddir)/Tokenize \
 	-lIndex -lTokenize -lBasicUtils -lUtils \
-	@GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @XML_LIBS@ @GMIME_LIBS@ @MISC_LIBS@
+	@GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ \
+	@XML_LIBS@ @GMIME_LIBS@ @MISC_LIBS@
 
-pinot_label_SOURCES = \
-	pinot-label.cpp
+pinot_label_SOURCES = pinot-label.cpp
 
 pinot_label_DEPENDENCIES = libIndex.la
 
-AM_CXXFLAGS = -I$(srcdir)/../Utils -I$(srcdir)/../Tokenize -I$(srcdir)/../Tokenize/filters \
-	-I$(srcdir)/../Collect @HTTP_CFLAGS@ @GMIME_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ @INDEX_CFLAGS@
+AM_CXXFLAGS = \
+	-I$(top_srcdir)/Utils \
+	-I$(top_srcdir)/Tokenize \
+	-I$(top_srcdir)/Tokenize/filters \
+	-I$(top_srcdir)/Collect \
+	@HTTP_CFLAGS@ @GMIME_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ @INDEX_CFLAGS@
 

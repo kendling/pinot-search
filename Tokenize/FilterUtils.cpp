@@ -17,7 +17,7 @@
  */
 
 #include <stdlib.h>
-#include <unistd.h> 
+#include <unistd.h>
 #include <iostream>
 #include <set>
 
@@ -25,7 +25,7 @@
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
-#include "FilterFactory.h"
+#include "filters/FilterFactory.h"
 #include "FilterUtils.h"
 
 #define UNSUPPORTED_TYPE "X-Unsupported"
