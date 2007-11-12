@@ -28,7 +28,58 @@ MonitorHandler::~MonitorHandler()
 {
 }
 
+void MonitorHandler::initialize(void)
+{
+}
+
+void MonitorHandler::flushIndex(void)
+{
+}
+
+bool MonitorHandler::fileExists(const string &fileName)
+{
+	return false;
+}
+
+bool MonitorHandler::fileCreated(const string &fileName)
+{
+	return false;
+}
+
+bool MonitorHandler::directoryCreated(const string &dirName)
+{
+	return false;
+}
+
+bool MonitorHandler::fileModified(const string &fileName)
+{
+	return false;
+}
+
+bool MonitorHandler::fileMoved(const string &fileName,
+	const string &previousFileName)
+{
+	return false;
+}
+
+bool MonitorHandler::directoryMoved(const string &dirName,
+	const string &previousDirName)
+{
+	return false;
+}
+
+bool MonitorHandler::fileDeleted(const string &fileName)
+{
+	return false;
+}
+
+bool MonitorHandler::directoryDeleted(const string &dirName)
+{
+	return false;
+}
+
 const set<string> &MonitorHandler::getFileNames(void) const
 {
 	return m_fileNames;
 }
+

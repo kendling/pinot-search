@@ -17,6 +17,11 @@
  */
 
 #include "config.h"
+#include <strings.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <stdlib.h>
 #ifdef HAVE_STATFS
 #include <sys/vfs.h>
@@ -27,6 +32,7 @@
 #define CHECK_DISK_SPACE 1
 #endif
 #endif
+#include <fstream>
 #include <iostream>
 #include <glibmm/ustring.h>
 #include <glibmm/stringutils.h>
@@ -85,6 +91,110 @@ static double getFSFreeSpace(const string &path)
 	return availableMbSize;
 }
 
+class BatteryHandler : public MonitorHandler
+{
+	public:
+		BatteryHandler(DaemonState *pServer) : MonitorHandler(), m_pServer(pServer)
+		{		
+			// Scan /proc/acpi/ac_adapter for battery states, eg AC/state
+			DIR *pDir = opendir("/proc/acpi/ac_adapter");
+			if (pDir != NULL)
+			{
+				// Iterate through this directory's entries
+				struct dirent *pDirEntry = readdir(pDir);
+				while ((pDirEntry != NULL) &&
+					(m_fileNames.empty() == true))
+				{
+					char *pEntryName = pDirEntry->d_name;
+
+					// Skip . .. and dotfiles
+					if ((pEntryName != NULL) &&
+						(pEntryName[0] != '.'))
+					{
+						string subEntryName("/proc/acpi/ac_adapter/");
+						struct stat fileStat;
+
+						subEntryName += pEntryName;
+#ifdef DEBUG
+						cout << "BatteryHandler: found " << subEntryName << endl;
+#endif
+
+						// Is this a directory ?
+						int entryStatus = stat(subEntryName.c_str(), &fileStat);
+						if ((entryStatus == 0) &&
+							(S_ISDIR(fileStat.st_mode)))
+						{
+							string stateFile(subEntryName);
+
+							stateFile += "/state";
+							// Does it contain a state file ?
+							if (access(stateFile.c_str(), R_OK) == 0)
+							{
+								// Check the current state
+								fileModified(stateFile);
+								// ...and add it for monitoring
+								m_fileNames.insert(stateFile);
+#ifdef DEBUG
+								cout << "BatteryHandler: monitoring " << stateFile << endl;
+#endif
+							}
+						}
+					}
+
+					// Next entry
+					pDirEntry = readdir(pDir);
+				}
+
+				// Close the directory
+				closedir(pDir);
+			}
+		}
+		virtual ~BatteryHandler() {}
+
+		/// Handles file modified events.
+		virtual bool fileModified(const std::string &fileName)
+		{
+			ifstream stateFile;
+			string battState;
+
+			if (m_pServer == NULL)
+			{
+				return false;
+			}
+
+			// What's the new state
+			stateFile.open(fileName.c_str());
+			if (stateFile.is_open() == true)
+			{
+				stateFile >> battState;
+
+				if (strncasecmp(battState.c_str(), "off-line", 8) == 0)
+				{
+					// We are now on battery
+					m_pServer->set_flag(DaemonState::ON_BATTERY);
+					m_pServer->stop_crawling();
+				}
+				else
+				{
+					// Back on-line
+					m_pServer->reset_flag(DaemonState::ON_BATTERY);
+				}
+
+				stateFile.close();
+			}
+
+			return true;
+		}
+
+	protected:
+		DaemonState *m_pServer;
+
+	private:
+		BatteryHandler(const BatteryHandler &other);
+		BatteryHandler &operator=(const BatteryHandler &other);
+
+};
+
 // A function object to stop DirectoryScanner threads with for_each()
 struct StopScannerThreadFunc
 {
@@ -107,9 +217,13 @@ DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 20),
 	m_fullScan(false),
 	m_reload(false),
+	m_pBatteryMonitor(MonitorFactory::getMonitor()),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
-	m_pDiskHandler(NULL)
+	m_pDiskHandler(NULL),
+	m_pBatteryHandler(NULL)
 {
+	FD_ZERO(&m_flagsSet);
+
 #ifdef CHECK_DISK_SPACE
 	// Check every minute
 	m_timeoutConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
@@ -128,6 +242,14 @@ DaemonState::~DaemonState()
 	}
 	// Don't delete m_pDiskHandler, threads may need it
 	// Since DaemonState is destroyed when the program exits, it's okay
+	if (m_pBatteryMonitor != NULL)
+	{
+		delete m_pBatteryMonitor;
+	}
+	if (m_pBatteryHandler != NULL)
+	{
+		delete m_pBatteryHandler;
+	}
 }
 
 bool DaemonState::on_activity_timeout(void)
@@ -145,18 +267,9 @@ bool DaemonState::on_activity_timeout(void)
 			{
 				// Stop indexing
 				m_stopIndexing = true;
-
-				if (m_threads.empty() == false)
-				{
-					if (write_lock_threads() == true)
-					{
-						// Stop threads
-						for_each(m_threads.begin(), m_threads.end(), StopScannerThreadFunc());
-						m_threads.clear();
-
-						unlock_threads();
-					}
-				}
+				// Stop crawling
+				set_flag(LOW_DISK_SPACE);
+				stop_crawling();
 
 				cerr << "Stopped indexing because of low disk space" << endl;
 			}
@@ -164,6 +277,7 @@ bool DaemonState::on_activity_timeout(void)
 			{
 				// Go ahead
 				m_stopIndexing = false;
+				reset_flag(LOW_DISK_SPACE);
 
 				cerr << "Resumed indexing following low disk space condition" << endl;
 			}
@@ -177,10 +291,11 @@ bool DaemonState::crawl_location(const string &locationToCrawl, bool isSource, b
 {
 	DirectoryScannerThread *pScannerThread = NULL;
 
-	if (m_stopIndexing == true)
+	if ((is_flag_set(LOW_DISK_SPACE) == true) ||
+		(is_flag_set(ON_BATTERY) == true))
 	{
 #ifdef DEBUG
-		cout << "DaemonState::crawl_location: stopped indexing" << endl;
+		cout << "DaemonState::crawl_location: stopped crawling" << endl;
 #endif
 		return true;
 	}
@@ -233,6 +348,23 @@ void DaemonState::start(bool forceFullScan)
 #endif
 	}
 
+	// Monitor battery state
+	if (m_pBatteryHandler == NULL)
+	{
+		m_pBatteryHandler = new BatteryHandler(this);
+	}
+	if (m_pBatteryHandler->getFileNames().empty() == false)
+	{
+		MonitorThread *pBatteryMonitorThread = new MonitorThread(m_pBatteryMonitor, m_pBatteryHandler);
+		start_thread(pBatteryMonitorThread, true);
+
+		cout << "Monitoring battery state" << endl;
+	}
+	else
+	{
+		cout << "Not monitoring battery state" << endl;
+	}
+
 	// Fire up the disk monitor thread
 	if (m_pDiskHandler == NULL)
 	{
@@ -255,6 +387,20 @@ void DaemonState::reload(void)
 {
 	// Reload whenever possible
 	m_reload = true;
+}
+
+void DaemonState::stop_crawling(void)
+{
+	if (m_threads.empty() == false)
+	{
+		if (write_lock_threads() == true)
+		{
+			// Stop all DirectoryScanner threads
+			for_each(m_threads.begin(), m_threads.end(), StopScannerThreadFunc());
+
+			unlock_threads();
+		}
+	}
 }
 
 void DaemonState::on_thread_end(WorkerThread *pThread)
@@ -432,5 +578,25 @@ void DaemonState::on_message_filefound(const DocumentInfo &docInfo, const string
 sigc::signal1<void, int>& DaemonState::getQuitSignal(void)
 {
 	return m_signalQuit;
+}
+
+void DaemonState::set_flag(StatusFlag flag)
+{
+	FD_SET((int)flag, &m_flagsSet);
+}
+
+bool DaemonState::is_flag_set(StatusFlag flag)
+{
+	if (FD_ISSET((int)flag, &m_flagsSet))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void DaemonState::reset_flag(StatusFlag flag)
+{
+	FD_CLR((int)flag, &m_flagsSet);
 }
 

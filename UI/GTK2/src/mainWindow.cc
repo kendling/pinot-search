@@ -65,35 +65,13 @@ using namespace Gtk;
 class ReloadHandler : public MonitorHandler
 {
 	public:
-		ReloadHandler() : MonitorHandler() {}
+		ReloadHandler() : MonitorHandler()
+		{
+			// Get the list of files we will be handling
+			MIMEScanner::listConfigurationFiles(PinotSettings::getHomeDirectory() + "/.local", m_fileNames);
+			MIMEScanner::listConfigurationFiles(string(SHARED_MIME_INFO_PREFIX), m_fileNames);
+		}
 		virtual ~ReloadHandler() {}
-
-		/// Initializes things before starting monitoring.
-		virtual void initialize(void) {}
-
-		/// Handles flushing the index.
-		virtual void flushIndex(void) {}
-
-		/// Handles file existence events.
-		virtual bool fileExists(const std::string &fileName)
-		{
-			// Nothing to do here
-			return true; 
-		}
-
-		/// Handles file creation events.
-		virtual bool fileCreated(const std::string &fileName)
-		{
-			// Nothing to do here
-			return true; 
-		}
-
-		/// Handles directory creation events.
-		virtual bool directoryCreated(const std::string &dirName)
-		{
-			// Nothing to do here
-			return true; 
-		}
 
 		/// Handles file modified events.
 		virtual bool fileModified(const std::string &fileName)
@@ -101,36 +79,6 @@ class ReloadHandler : public MonitorHandler
 			// Re-initialize the MIME sub-system
 			return MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
 				string(SHARED_MIME_INFO_PREFIX));
-		}
-
-		/// Handles file moved events.
-		virtual bool fileMoved(const std::string &fileName,
-			const std::string &previousFileName)
-		{
-			// Nothing to do here
-			return true; 
-		}
-
-		/// Handles directory moved events.
-		virtual bool directoryMoved(const std::string &dirName,
-			const std::string &previousDirName)
-		{
-			// Nothing to do here
-			return true; 
-		}
-
-		/// Handles file deleted events.
-		virtual bool fileDeleted(const std::string &fileName)
-		{
-			// Nothing to do here
-			return true; 
-		}
-
-		/// Handles directory deleted events.
-		virtual bool directoryDeleted(const std::string &dirName)
-		{
-			// Nothing to do here
-			return true; 
 		}
 
 	private:
@@ -269,17 +217,6 @@ mainWindow::mainWindow() :
 
 	if (m_pSettingsMonitor != NULL)
 	{
-		set<string> mimeFiles;
-
-		// Monitor MIME settings files for changes
-		MIMEScanner::listConfigurationFiles(PinotSettings::getHomeDirectory() + "/.local", mimeFiles);
-		MIMEScanner::listConfigurationFiles(string(SHARED_MIME_INFO_PREFIX), mimeFiles);
-		for (set<string>::const_iterator fileIter = mimeFiles.begin();
-			fileIter != mimeFiles.end(); ++fileIter)
-		{
-			m_pSettingsMonitor->addLocation(*fileIter, false);
-		}
-
 		// Run this in the background
 		m_pSettingsHandler = new ReloadHandler();
 		MonitorThread *pSettingsMonitorThread = new MonitorThread(m_pSettingsMonitor, m_pSettingsHandler, false);

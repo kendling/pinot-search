@@ -33,36 +33,36 @@ class MonitorHandler
 		virtual ~MonitorHandler();
 
 		/// Initializes things before starting monitoring.
-		virtual void initialize(void) = 0;
+		virtual void initialize(void);
 
 		/// Handles flushing the index.
-		virtual void flushIndex(void) = 0;
+		virtual void flushIndex(void);
 
 		/// Handles file existence events.
-		virtual bool fileExists(const std::string &fileName) = 0;
+		virtual bool fileExists(const std::string &fileName);
 
 		/// Handles file creation events.
-		virtual bool fileCreated(const std::string &fileName) = 0;
+		virtual bool fileCreated(const std::string &fileName);
 
 		/// Handles directory creation events.
-		virtual bool directoryCreated(const std::string &dirName) = 0;
+		virtual bool directoryCreated(const std::string &dirName);
 
 		/// Handles file modified events.
-		virtual bool fileModified(const std::string &fileName) = 0;
+		virtual bool fileModified(const std::string &fileName);
 
 		/// Handles file moved events.
 		virtual bool fileMoved(const std::string &fileName,
-			const std::string &previousFileName) = 0;
+			const std::string &previousFileName);
 
 		/// Handles directory moved events.
 		virtual bool directoryMoved(const std::string &dirName,
-			const std::string &previousDirName) = 0;
+			const std::string &previousDirName);
 
 		/// Handles file deleted events.
-		virtual bool fileDeleted(const std::string &fileName) = 0;
+		virtual bool fileDeleted(const std::string &fileName);
 
 		/// Handles directory deleted events.
-		virtual bool directoryDeleted(const std::string &dirName) = 0;
+		virtual bool directoryDeleted(const std::string &dirName);
 
 		/// Returns the names of files to monitor.
 		const std::set<std::string> &getFileNames(void) const;

@@ -19,6 +19,7 @@
 #ifndef _DBUSERVER_HH
 #define _DBUSERVER_HH
 
+#include <sys/select.h>
 #include <string>
 #include <queue>
 #include <set>
@@ -34,9 +35,13 @@ class DaemonState : public ThreadsManager
 		DaemonState();
 		virtual ~DaemonState();
 
+		typedef enum { LOW_DISK_SPACE = 0, ON_BATTERY } StatusFlag;
+
 		void start(bool forceFullScan);
 
 		void reload(void);
+
+		void stop_crawling(void);
 
 		void on_thread_end(WorkerThread *pThread);
 
@@ -45,11 +50,20 @@ class DaemonState : public ThreadsManager
 
 		sigc::signal1<void, int>& getQuitSignal(void);
 
+		void set_flag(StatusFlag flag);
+
+		bool is_flag_set(StatusFlag flag);
+
+		void reset_flag(StatusFlag flag);
+
 	protected:
 		bool m_fullScan;
 		bool m_reload;
+		fd_set m_flagsSet;
+		MonitorInterface *m_pBatteryMonitor;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pDiskHandler;
+		MonitorHandler *m_pBatteryHandler;
 		sigc::connection m_timeoutConnection;
 		sigc::signal1<void, int> m_signalQuit;
 
