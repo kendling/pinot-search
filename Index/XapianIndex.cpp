@@ -91,7 +91,7 @@ XapianIndex::XapianIndex(const string &indexName) :
 	IndexInterface(),
 	m_databaseName(indexName),
 	m_goodIndex(false),
-	m_supportSpellingCorrection(true)
+	m_doSpelling(true)
 {
 	// Open in read-only mode
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
@@ -99,6 +99,7 @@ XapianIndex::XapianIndex(const string &indexName) :
 		(pDatabase->isOpen() == true))
 	{
 		m_goodIndex = true;
+		m_doSpelling = pDatabase->withSpelling();
 	}
 }
 
@@ -106,7 +107,7 @@ XapianIndex::XapianIndex(const XapianIndex &other) :
 	IndexInterface(other),
 	m_databaseName(other.m_databaseName),
 	m_goodIndex(other .m_goodIndex),
-	m_supportSpellingCorrection(other.m_supportSpellingCorrection),
+	m_doSpelling(other.m_doSpelling),
 	m_stemLanguage(other.m_stemLanguage)
 {
 }
@@ -122,7 +123,7 @@ XapianIndex &XapianIndex::operator=(const XapianIndex &other)
 		IndexInterface::operator=(other);
 		m_databaseName = other.m_databaseName;
 		m_goodIndex = other .m_goodIndex;
-		m_supportSpellingCorrection = other.m_supportSpellingCorrection;
+		m_doSpelling = other.m_doSpelling;
 		m_stemLanguage = other.m_stemLanguage;
 	}
 
@@ -208,7 +209,7 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 	try
 	{
 		// Older Xapian backends don't support spelling correction
-		if (m_supportSpellingCorrection == true)
+		if (m_doSpelling == true)
 		{
 			// The database is required for the spelling dictionary
 			generator.set_flags(Xapian::TermGenerator::FLAG_SPELLING);
@@ -221,9 +222,9 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 	{
 		cerr << "Couldn't index with spelling correction: " << error.get_type() << ": " << error.get_msg() << endl;
 
-		if (m_supportSpellingCorrection == true)
+		if (m_doSpelling == true)
 		{
-			m_supportSpellingCorrection = false;
+			m_doSpelling = false;
 
 			// Try again without spelling correction
 			// Let the caller catch the exception

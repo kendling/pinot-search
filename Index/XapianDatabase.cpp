@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <strings.h>
 #include <regex.h>
 #include <stdio.h>
 #include <iostream>
@@ -41,6 +42,7 @@ const unsigned int XapianDatabase::m_maxTermLength = 230;
 XapianDatabase::XapianDatabase(const string &databaseName,
 	bool readOnly, bool overwrite) :
 	m_databaseName(databaseName),
+	m_withSpelling(true),
 	m_readOnly(readOnly),
 	m_overwrite(overwrite),
 	m_obsoleteFormat(false),
@@ -57,6 +59,7 @@ XapianDatabase::XapianDatabase(const string &databaseName,
 XapianDatabase::XapianDatabase(const string &databaseName, 
 	XapianDatabase *pFirst, XapianDatabase *pSecond) :
 	m_databaseName(databaseName),
+	m_withSpelling(true),
 	m_readOnly(true),
 	m_overwrite(false),
 	m_obsoleteFormat(false),
@@ -71,6 +74,7 @@ XapianDatabase::XapianDatabase(const string &databaseName,
 
 XapianDatabase::XapianDatabase(const XapianDatabase &other) :
 	m_databaseName(other.m_databaseName),
+	m_withSpelling(other.m_withSpelling),
 	m_readOnly(other.m_readOnly),
 	m_overwrite(other.m_overwrite),
 	m_obsoleteFormat(other.m_obsoleteFormat),
@@ -104,6 +108,7 @@ XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
 	if (this != &other)
 	{
 		m_databaseName = other.m_databaseName;
+		m_withSpelling = other.m_withSpelling;
 		m_readOnly = other.m_readOnly;
 		m_overwrite = other.m_overwrite;
 		m_obsoleteFormat = other.m_obsoleteFormat;
@@ -145,6 +150,20 @@ void XapianDatabase::openDatabase(void)
 	if (m_databaseName.empty() == true)
 	{
 		return;
+	}
+
+	// Should we build the spelling database ?
+	char *pEnvVar = getenv("PINOT_SPELLING_DB");
+	if ((pEnvVar != NULL) &&
+		(strncasecmp(pEnvVar, "no", 2) == 0))
+	{
+		// No
+		m_withSpelling = false;
+	}
+	else
+	{
+		// Yes
+		m_withSpelling = true;
 	}
 
 	// Assume things will fail
@@ -332,6 +351,12 @@ void XapianDatabase::openDatabase(void)
 		m_obsoleteFormat = true;
 		openDatabase();
 	}
+}
+
+/// Returns true if the database supports spelling.
+bool XapianDatabase::withSpelling(void)
+{
+	return m_withSpelling;
 }
 
 /// Returns false if the database couldn't be opened.

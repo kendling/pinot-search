@@ -149,7 +149,7 @@ class XapianIndex : public IndexInterface
 		static const std::string MAGIC_TERM;
 		std::string m_databaseName;
 		bool m_goodIndex;
-		bool m_supportSpellingCorrection;
+		bool m_doSpelling;
 		std::string m_stemLanguage;
 
 		bool listDocumentsWithTerm(const std::string &term, std::set<unsigned int> &docIds,

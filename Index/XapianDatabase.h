@@ -42,6 +42,9 @@ class XapianDatabase
 		/// Returns false if the database couldn't be opened.
 		bool isOpen(void) const;
 
+		/// Returns true if the database supports spelling.
+		bool withSpelling(void);
+
 		/// Returns false if the database was of an obsolete format.
 		bool wasObsoleteFormat(void) const;
 
@@ -72,6 +75,7 @@ class XapianDatabase
 	protected:
 		static const unsigned int m_maxTermLength;
 		std::string m_databaseName;
+		bool m_withSpelling;
 		bool m_readOnly;
 		bool m_overwrite;
 		bool m_obsoleteFormat;
