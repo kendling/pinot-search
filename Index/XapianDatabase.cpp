@@ -229,7 +229,7 @@ void XapianDatabase::openDatabase(void)
 			}
 			catch (const Xapian::Error &error)
 			{
-				cerr << "XapianDatabase::openDatabase: " << error.get_type()
+				cerr << "Error opening " << m_databaseName << ": " << error.get_type()
 					<< ": " << error.get_msg() << endl;
 			}
 		}
@@ -307,7 +307,7 @@ void XapianDatabase::openDatabase(void)
 #if XAPIAN_MAJOR_VERSION>0
 	catch (const Xapian::DatabaseVersionError &error)
 	{
-		cerr << "XapianDatabase::openDatabase: " << error.get_type()
+		cerr << "Error opening " << m_databaseName << ": " << error.get_type()
 			<< ": " << error.get_msg() << endl;
 
 		// This format is no longer supported
@@ -319,7 +319,7 @@ void XapianDatabase::openDatabase(void)
 #endif
 	catch (const Xapian::Error &error)
 	{
-		cerr << "XapianDatabase::openDatabase: " << error.get_type()
+		cerr << "Error opening " << m_databaseName << ": " << error.get_type()
 			<< ": " << error.get_msg() << endl;
 	}
 

@@ -90,7 +90,7 @@ PinotSettings PinotSettings::m_instance;
 bool PinotSettings::m_clientMode = false;
 
 PinotSettings::PinotSettings() :
-	m_minimumDiskSpace(10),
+	m_minimumDiskSpace(50),
 	m_xPos(0),
 	m_yPos(0),
 	m_width(0),
