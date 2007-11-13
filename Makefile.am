@@ -14,7 +14,8 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	UI/icons/32x32/pinot.png UI/icons/24x24/pinot.png \
 	UI/icons/22x22/pinot.png UI/icons/16x16/pinot.png \
 	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
-	scripts/bash/pinot-enum-index.sh scripts/python/pinot-live.py
+	scripts/bash/pinot-enum-index.sh \
+	scripts/python/pinot-live.py scripts/python/pinot-module.py
 
 man_MANS = Index/pinot-index.1 Index/pinot-label.1 Search/pinot-search.1 \
 	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
@@ -55,6 +56,8 @@ install-data-local:
 	@desktop-file-install --vendor="" --dir=$(DESTDIR)${sysconfdir}/xdg/autostart $(top_srcdir)/pinot-dbus-daemon.desktop
 	@mkdir -p $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 	$(INSTALL_DATA) $(top_srcdir)/scripts/python/pinot-live.py $(DESTDIR)$(libdir)/deskbar-applet/handlers/
+	@mkdir -p $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/
+	$(INSTALL_DATA) $(top_srcdir)/scripts/python/pinot-module.py $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/
 
 uninstall-local:
 	@rm -rf $(DESTDIR)$(sysconfdir)/pinot
@@ -69,6 +72,7 @@ uninstall-local:
 	@rm -rf $(DESTDIR)$(datadir)/applications/pinot.desktop
 	@rm -rf $(DESTDIR)${sysconfdir}/xdg/autostart/pinot-dbus-daemon.desktop
 	@rm -rf $(DESTDIR)$(libdir)/deskbar-applet/handlers/pinot-live.py*
+	@rm -rf $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/pinot-module.py*
 
 ACLOCAL_AMFLAGS = -I m4
 

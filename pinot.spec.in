@@ -87,6 +87,7 @@ fi
 %{_libdir}/pinot/filters/libmboxfilter.so*
 %{_libdir}/pinot/filters/libtaglibfilter.so*
 %{_libdir}/deskbar-applet/handlers/pinot-live.py*
+%{_libdir}/deskbar-applet/modules-2.20-compatible/pinot-module.py*
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
