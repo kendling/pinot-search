@@ -33,9 +33,9 @@
 #include "XapianDatabaseFactory.h"
 #include "AbstractGenerator.h"
 #include "XapianEngine.h"
-#include "XapianQueryBuilder.h"
-#include "XesamQLParser.h"
-#include "XesamULParser.h"
+#include "xesam/XapianQueryBuilder.h"
+#include "xesam/XesamQLParser.h"
+#include "xesam/XesamULParser.h"
 
 using std::string;
 using std::multimap;
