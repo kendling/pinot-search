@@ -300,11 +300,23 @@ bool OnDiskHandler::fileCreated(const string &fileName)
 	cout << "OnDiskHandler::fileCreated: " << fileName << endl;
 #endif
 	pthread_mutex_lock(&m_mutex);
-	// The file shouldn't exist in the index, but if it does for some reason, don't update it
+	// The file may exist in the index
 	handledEvent = indexFile(fileName, false, sourceId);
 	if (handledEvent == true)
 	{
-		m_history.insertItem("file://" + fileName, CrawlHistory::CRAWLED, sourceId, time(NULL));
+	        string location("file://" + fileName);
+		CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
+	        time_t itemDate;
+
+		// ...and therefore may exist in the history database
+		if (m_history.hasItem(location, status, itemDate) == true)
+		{
+			m_history.updateItem(location, CrawlHistory::CRAWLED, sourceId, time(NULL));
+		}
+		else
+		{
+			m_history.insertItem(location, CrawlHistory::CRAWLED, time(NULL));
+		}
 	}
 	pthread_mutex_unlock(&m_mutex);
 
