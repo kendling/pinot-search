@@ -1,0 +1,592 @@
+------------------------------------------------------------------------
+r66 | fabricecolin | 2007-10-18 19:18:40 +0800 (Thu, 18 Oct 2007) | 4 lines
+Changed paths:
+   M /branches/pinot/filters/ExternalFilter.cc
+   M /branches/pinot/filters/ExternalFilter.h
+
+If socketpair(), fork() and setrlimit() are available, fork and exec external
+programs, and limit their CPU time to 5 minutes. Most of that code comes from
+Xapian Omega's runfilter.cc, with some modifications.
+
+------------------------------------------------------------------------
+r65 | fabricecolin | 2007-10-17 21:41:35 +0800 (Wed, 17 Oct 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/external-filters.xml
+
+Keep an entry for application/msword.
+
+------------------------------------------------------------------------
+r64 | fabricecolin | 2007-10-10 21:53:45 +0800 (Wed, 10 Oct 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+
+Removed dependency on TimeConverter.
+
+------------------------------------------------------------------------
+r63 | fabricecolin | 2007-09-22 00:49:44 +0800 (Sat, 22 Sep 2007) | 3 lines
+Changed paths:
+   M /branches/pinot/xesam/XapianQueryBuilder.cc
+   M /branches/pinot/xesam/XapianQueryBuilder.h
+
+Date filters are applied with a DateValueRangeProcessor. Time is ignored for
+the time being.  
+
+------------------------------------------------------------------------
+r62 | fabricecolin | 2007-09-22 00:47:22 +0800 (Sat, 22 Sep 2007) | 3 lines
+Changed paths:
+   M /branches/pinot/xesam/XesamQLParser.cc
+   M /branches/pinot/xesam/XesamQueryBuilder.h
+   M /branches/pinot/xesam/XesamULParser.cc
+
+The query element in the Query Language has two attributes : content and
+storedAs.
+
+------------------------------------------------------------------------
+r61 | fabricecolin | 2007-09-22 00:45:45 +0800 (Sat, 22 Sep 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/ExternalFilter.cc
+   M /branches/pinot/filters/Filter.cc
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+   M /branches/pinot/filters/HtmlFilter.cc
+   M /branches/pinot/filters/TagLibMusicFilter.cc
+   M /branches/pinot/filters/XmlFilter.cc
+
+Removed dependencies on Pinot's code.
+
+------------------------------------------------------------------------
+r60 | fabricecolin | 2007-09-08 18:11:22 +0800 (Sat, 08 Sep 2007) | 4 lines
+Changed paths:
+   M /branches/pinot/filters/external-filters.xml
+
+Added support for Excel, PowerPoint and DVI documents. xls2csv, catppt (both
+come with catdoc), and catdvi are required.
+Added -mUTF-8.txt to parameters for antiword.
+
+------------------------------------------------------------------------
+r59 | fabricecolin | 2007-09-04 23:13:12 +0800 (Tue, 04 Sep 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XapianQueryBuilder.cc
+   M /branches/pinot/xesam/XesamQLParser.cc
+   M /branches/pinot/xesam/XesamQLParser.h
+   M /branches/pinot/xesam/XesamQueryBuilder.h
+
+Support for the type selector, as in xesam-tools 0.4.3.
+
+------------------------------------------------------------------------
+r58 | fabricecolin | 2007-08-19 18:37:58 +0800 (Sun, 19 Aug 2007) | 4 lines
+Changed paths:
+   M /branches/pinot/filters/HtmlFilter.cc
+   M /branches/pinot/filters/HtmlFilter.h
+
+Try to determine the document's charset to drive the parser. If the encoding is
+not supported, fall back to defaults.
+Replace tags with a space to avoid cramming text together.
+
+------------------------------------------------------------------------
+r57 | fabricecolin | 2007-08-14 22:41:35 +0800 (Tue, 14 Aug 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+
+Try to open files with O_NOATIME.
+
+------------------------------------------------------------------------
+r56 | fabricecolin | 2007-07-24 21:23:34 +0800 (Tue, 24 Jul 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XapianQueryBuilder.cc
+   M /branches/pinot/xesam/XapianQueryBuilder.h
+   M /branches/pinot/xesam/XesamQLParser.cc
+   M /branches/pinot/xesam/XesamQLParser.h
+   M /branches/pinot/xesam/XesamQueryBuilder.h
+   M /branches/pinot/xesam/XesamULParser.cc
+
+Keep values in the order they are found.
+
+------------------------------------------------------------------------
+r55 | fabricecolin | 2007-07-24 19:59:10 +0800 (Tue, 24 Jul 2007) | 3 lines
+Changed paths:
+   M /branches/pinot/xesam/XapianQueryBuilder.cc
+   M /branches/pinot/xesam/XapianQueryBuilder.h
+
+Xesam fields can be mapped to Xapian prefixes. Special considerations apply
+to "mime". Proximity search works as expected with two field values.
+
+------------------------------------------------------------------------
+r54 | fabricecolin | 2007-07-23 23:16:05 +0800 (Mon, 23 Jul 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XesamQLParser.cc
+   M /branches/pinot/xesam/XesamQueryBuilder.cc
+   M /branches/pinot/xesam/XesamQueryBuilder.h
+
+Caught up with the Xesam Query Langauge spec, as found in xesam-tools 0.4.1.
+
+------------------------------------------------------------------------
+r53 | fabricecolin | 2007-07-09 22:09:49 +0800 (Mon, 09 Jul 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/external-filters.xml
+
+Use djvutxt on type "image/vnd.djvu".
+
+------------------------------------------------------------------------
+r51 | fabricecolin | 2007-06-19 22:08:47 +0800 (Tue, 19 Jun 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XesamULParser.cc
+
+Renamed skip grammar.
+
+------------------------------------------------------------------------
+r50 | fabricecolin | 2007-06-19 21:58:27 +0800 (Tue, 19 Jun 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XesamULParser.cc
+
+Removed unused variable.
+
+------------------------------------------------------------------------
+r49 | fabricecolin | 2007-06-13 22:08:02 +0800 (Wed, 13 Jun 2007) | 2 lines
+Changed paths:
+   A /branches/pinot/xesam/XesamParser.h
+   M /branches/pinot/xesam/XesamQLParser.cc
+   M /branches/pinot/xesam/XesamQLParser.h
+   M /branches/pinot/xesam/XesamULParser.cc
+   M /branches/pinot/xesam/XesamULParser.h
+
+Both classes inherit from the XesamParser interface.
+
+------------------------------------------------------------------------
+r48 | fabricecolin | 2007-06-04 20:46:42 +0800 (Mon, 04 Jun 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XesamULParser.cc
+
+Moved semantic actions to ULActions class.
+
+------------------------------------------------------------------------
+r47 | fabricecolin | 2007-05-31 13:03:32 +0800 (Thu, 31 May 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XapianQueryBuilder.cc
+
+Removed unused include.
+
+------------------------------------------------------------------------
+r46 | fabricecolin | 2007-05-31 12:52:20 +0800 (Thu, 31 May 2007) | 4 lines
+Changed paths:
+   M /branches/pinot/xesam/XapianQueryBuilder.cc
+   M /branches/pinot/xesam/XapianQueryBuilder.h
+   M /branches/pinot/xesam/XesamULParser.cc
+
+In XesamULParser::parse(), if parsing stops half-way through, try parsing the
+remainder on its own.
+XapianQueryBuilder lets the caller initialize Xapian specifics.
+
+------------------------------------------------------------------------
+r45 | fabricecolin | 2007-05-31 12:23:16 +0800 (Thu, 31 May 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XapianQueryBuilder.cc
+   M /branches/pinot/xesam/XapianQueryBuilder.h
+   M /branches/pinot/xesam/XesamQLParser.cc
+   M /branches/pinot/xesam/XesamULParser.cc
+
+Synced with changes made to XesamQueryBuilder.
+
+------------------------------------------------------------------------
+r44 | fabricecolin | 2007-05-31 12:19:13 +0800 (Thu, 31 May 2007) | 5 lines
+Changed paths:
+   A /branches/pinot/xesam/XesamQueryBuilder.cc
+   M /branches/pinot/xesam/XesamQueryBuilder.h
+
+Moved implementation to cc file. Modifiers is now a class and I don't have to
+remember what values its members should default to.
+Provide a default implementation of on_user_query() that passes the string to a
+XesamULParser object.
+
+------------------------------------------------------------------------
+r43 | fabricecolin | 2007-05-31 11:40:26 +0800 (Thu, 31 May 2007) | 4 lines
+Changed paths:
+   M /branches/pinot/xesam/XesamULParser.cc
+
+Try to do the right thing in on_selection_action().
+Make sure on_phrase_action extracts the text correctly. Catch end of statements
+and reset globals.
+
+------------------------------------------------------------------------
+r42 | fabricecolin | 2007-05-29 23:04:10 +0800 (Tue, 29 May 2007) | 3 lines
+Changed paths:
+   M /branches/pinot/xesam/XesamULParser.cc
+
+Started implementing on_phrase_action(). Made sure modifiers are right after
+the double-quote that ends the phrase. Added comments.
+
+------------------------------------------------------------------------
+r41 | fabricecolin | 2007-05-29 22:55:59 +0800 (Tue, 29 May 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XesamQLParser.cc
+   M /branches/pinot/xesam/XesamQLParser.h
+   M /branches/pinot/xesam/XesamQueryBuilder.h
+
+Negation and boost may be set by collectors and selections.
+
+------------------------------------------------------------------------
+r40 | fabricecolin | 2007-05-28 22:50:32 +0800 (Mon, 28 May 2007) | 3 lines
+Changed paths:
+   A /branches/pinot/xesam/XesamULParser.cc
+   A /branches/pinot/xesam/XesamULParser.h
+
+First shot at a parser for the Xesam User Search Language, full of boost
+Spirit goodness :-)
+
+------------------------------------------------------------------------
+r39 | fabricecolin | 2007-05-28 22:49:01 +0800 (Mon, 28 May 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/XesamQLParser.cc
+   M /branches/pinot/xesam/XesamQueryBuilder.h
+
+Cosmetic mods.
+
+------------------------------------------------------------------------
+r38 | fabricecolin | 2007-05-26 14:09:55 +0800 (Sat, 26 May 2007) | 2 lines
+Changed paths:
+   A /branches/pinot/xesam/XapianQueryBuilder.cc (from /branches/pinot/xesam/querylanguage/XapianQueryBuilder.cc:37)
+   A /branches/pinot/xesam/XapianQueryBuilder.h (from /branches/pinot/xesam/querylanguage/XapianQueryBuilder.h:37)
+   A /branches/pinot/xesam/XesamQLParser.cc (from /branches/pinot/xesam/querylanguage/XesamQLParser.cc:37)
+   A /branches/pinot/xesam/XesamQLParser.h (from /branches/pinot/xesam/querylanguage/XesamQLParser.h:37)
+   A /branches/pinot/xesam/XesamQueryBuilder.h (from /branches/pinot/xesam/querylanguage/XesamQueryBuilder.h:37)
+   D /branches/pinot/xesam/querylanguage
+
+Moved code out of querylanguage directory.
+
+------------------------------------------------------------------------
+r37 | fabricecolin | 2007-05-26 13:13:34 +0800 (Sat, 26 May 2007) | 4 lines
+Changed paths:
+   M /branches/pinot/xesam/querylanguage/XapianQueryBuilder.cc
+   M /branches/pinot/xesam/querylanguage/XapianQueryBuilder.h
+   M /branches/pinot/xesam/querylanguage/XesamQLParser.cc
+   M /branches/pinot/xesam/querylanguage/XesamQLParser.h
+   A /branches/pinot/xesam/querylanguage/XesamQueryBuilder.h
+
+Moved XesamQueryBuilder to its own header.
+Implemented changes agreed in IRC meeting on May 23rd : distance is an attribute
+of proximity, and property is renamed field.
+
+------------------------------------------------------------------------
+r36 | fabricecolin | 2007-05-20 16:40:08 +0800 (Sun, 20 May 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/querylanguage/XesamQLParser.h
+
+Made set_collector() virtual, added comments.
+
+------------------------------------------------------------------------
+r35 | fabricecolin | 2007-05-20 15:45:51 +0800 (Sun, 20 May 2007) | 5 lines
+Changed paths:
+   M /branches/pinot/xesam/querylanguage/XapianQueryBuilder.cc
+   M /branches/pinot/xesam/querylanguage/XapianQueryBuilder.h
+   M /branches/pinot/xesam/querylanguage/XesamQLParser.cc
+   M /branches/pinot/xesam/querylanguage/XesamQLParser.h
+
+Renamed query buioder's on_userQuery() to on_user_query().
+Modified parse() and added parse_file().
+Support for any number of properties in a select statement and String's
+attributes, passed as Modifiers.
+
+------------------------------------------------------------------------
+r34 | oever | 2007-05-19 19:42:37 +0800 (Sat, 19 May 2007) | 1 line
+Changed paths:
+   D /branches/pinot/xesam/querylanguage/test
+
+
+------------------------------------------------------------------------
+r33 | oever | 2007-05-19 19:42:17 +0800 (Sat, 19 May 2007) | 1 line
+Changed paths:
+   A /branches/pinot/xesam/querylanguage/test
+
+
+------------------------------------------------------------------------
+r32 | fabricecolin | 2007-05-19 19:31:16 +0800 (Sat, 19 May 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/xesam/querylanguage/XapianQueryBuilder.cc
+   M /branches/pinot/xesam/querylanguage/XapianQueryBuilder.h
+   M /branches/pinot/xesam/querylanguage/XesamQLParser.h
+
+Fleshed out Xapian query builder.
+
+------------------------------------------------------------------------
+r31 | fabricecolin | 2007-05-19 18:29:05 +0800 (Sat, 19 May 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/ExternalFilter.h
+   M /branches/pinot/filters/GMimeMboxFilter.h
+   M /branches/pinot/filters/HtmlFilter.h
+   M /branches/pinot/filters/TagLibMusicFilter.h
+   M /branches/pinot/filters/TextFilter.h
+   M /branches/pinot/filters/XmlFilter.h
+
+Cosmetic change.
+
+------------------------------------------------------------------------
+r30 | fabricecolin | 2007-05-19 17:22:04 +0800 (Sat, 19 May 2007) | 3 lines
+Changed paths:
+   A /branches/pinot/xesam
+   A /branches/pinot/xesam/querylanguage
+   A /branches/pinot/xesam/querylanguage/XapianQueryBuilder.cc
+   A /branches/pinot/xesam/querylanguage/XapianQueryBuilder.h
+   A /branches/pinot/xesam/querylanguage/XesamQLParser.cc
+   A /branches/pinot/xesam/querylanguage/XesamQLParser.h
+
+First shot at a parser for the XML based Xesam Query Language.
+Note this code is under the LGPL, not the GPL.
+
+------------------------------------------------------------------------
+r29 | fabricecolin | 2007-05-12 15:25:28 +0800 (Sat, 12 May 2007) | 4 lines
+Changed paths:
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+   M /branches/pinot/filters/TagLibMusicFilter.cc
+
+In GMimeMbox's set_document_file(), don't extract the first message, wait until
+a call to next_document() or skip_to_document().
+TagLibMusic's next_document() provides a default title if the file has no tag.
+
+------------------------------------------------------------------------
+r28 | fabricecolin | 2007-05-12 11:52:23 +0800 (Sat, 12 May 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+
+Fixed pretty stupid bug in set_document_file() that would reset the file name.
+
+------------------------------------------------------------------------
+r26 | fabricecolin | 2007-04-16 21:26:16 +0800 (Mon, 16 Apr 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/ExternalFilter.cc
+   M /branches/pinot/filters/ExternalFilter.h
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+   M /branches/pinot/filters/GMimeMboxFilter.h
+   M /branches/pinot/filters/HtmlFilter.cc
+   M /branches/pinot/filters/HtmlFilter.h
+   M /branches/pinot/filters/TagLibMusicFilter.cc
+   M /branches/pinot/filters/TagLibMusicFilter.h
+   M /branches/pinot/filters/TextFilter.cc
+   M /branches/pinot/filters/TextFilter.h
+   M /branches/pinot/filters/XmlFilter.cc
+   M /branches/pinot/filters/XmlFilter.h
+
+Make use of base class rewind() and set_document_file() methods.
+
+------------------------------------------------------------------------
+r25 | fabricecolin | 2007-04-16 21:23:36 +0800 (Mon, 16 Apr 2007) | 3 lines
+Changed paths:
+   A /branches/pinot/filters/Filter.cc
+   M /branches/pinot/filters/Filter.h
+
+Provide a default implementation of set_document_file(). Base class handles
+deletion of temporary files, upon destruction or call to rewind() method.
+
+------------------------------------------------------------------------
+r23 | fabricecolin | 2007-03-24 15:30:20 +0800 (Sat, 24 Mar 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+
+MIME type may have a charset appended so cater for that.
+
+------------------------------------------------------------------------
+r22 | fabricecolin | 2007-03-16 23:50:47 +0800 (Fri, 16 Mar 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/external-filters.xml
+
+Take a peek at deb files with dpkg.
+
+------------------------------------------------------------------------
+r21 | fabricecolin | 2007-03-14 22:19:58 +0800 (Wed, 14 Mar 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+
+Only add headers to plain text parts. Part number starts at 0, not 1.
+
+------------------------------------------------------------------------
+r20 | fabricecolin | 2007-03-12 22:32:28 +0800 (Mon, 12 Mar 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+   M /branches/pinot/filters/GMimeMboxFilter.h
+
+Return the message's headers in view mode.
+
+------------------------------------------------------------------------
+r19 | fabricecolin | 2007-03-10 15:07:54 +0800 (Sat, 10 Mar 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/FilterFactory.cc
+   M /branches/pinot/filters/FilterFactory.h
+   M /branches/pinot/filters/HtmlFilter.cc
+   M /branches/pinot/filters/HtmlFilter.h
+
+Better initialize libxml2 once in the main thread than on a need-to basis.
+
+------------------------------------------------------------------------
+r16 | fabricecolin | 2007-02-24 16:11:37 +0800 (Sat, 24 Feb 2007) | 5 lines
+Changed paths:
+   M /branches/pinot/filters/ExternalFilter.cc
+   M /branches/pinot/filters/ExternalFilter.h
+   M /branches/pinot/filters/Filter.h
+   M /branches/pinot/filters/GMimeMboxFilter.cc
+   M /branches/pinot/filters/GMimeMboxFilter.h
+   M /branches/pinot/filters/HtmlFilter.cc
+   M /branches/pinot/filters/HtmlFilter.h
+   M /branches/pinot/filters/TagLibMusicFilter.cc
+   M /branches/pinot/filters/TagLibMusicFilter.h
+   M /branches/pinot/filters/TextFilter.cc
+   M /branches/pinot/filters/TextFilter.h
+   M /branches/pinot/filters/XmlFilter.cc
+   M /branches/pinot/filters/XmlFilter.h
+
+Changed set_document_file() to allow feeding a temporary file, and delete it
+when the filter is done.
+Moved temporary file code out of TagLibMusicFilter.
+In GMimeMboxFilter, fixed issues with skip_to_document().
+
+------------------------------------------------------------------------
+r15 | fabricecolin | 2007-02-23 23:20:36 +0800 (Fri, 23 Feb 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/external-filters.xml
+
+Better use short form for parameters to unrtf.
+
+------------------------------------------------------------------------
+r14 | fabricecolin | 2007-02-22 22:54:51 +0800 (Thu, 22 Feb 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/external-filters.xml
+
+Added tar.gz, tar.bz2 and zip.
+
+------------------------------------------------------------------------
+r13 | fabricecolin | 2007-02-20 13:20:43 +0800 (Tue, 20 Feb 2007) | 3 lines
+Changed paths:
+   M /branches/pinot/filters/FilterFactory.cc
+   M /branches/pinot/filters/external-filters.xml
+
+Added rpm and tar files to external-filters.xml.
+Minor fix to FilterFactory.cc.
+
+------------------------------------------------------------------------
+r12 | fabricecolin | 2007-02-17 12:15:50 +0800 (Sat, 17 Feb 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/ExternalFilter.cc
+   M /branches/pinot/filters/HtmlFilter.cc
+
+Minor fixes.
+
+------------------------------------------------------------------------
+r11 | fabricecolin | 2007-02-10 10:14:37 +0800 (Sat, 10 Feb 2007) | 3 lines
+Changed paths:
+   A /branches/pinot/filters/external-filters.xml
+
+ExternalFilter configuration file for common formats.
+The format is very similar to that used by Beagle with some alterations.
+
+------------------------------------------------------------------------
+r10 | fabricecolin | 2007-02-06 22:11:16 +0800 (Tue, 06 Feb 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/FilterFactory.cc
+   M /branches/pinot/filters/HtmlFilter.cc
+   M /branches/pinot/filters/HtmlFilter.h
+   M /branches/pinot/filters/XmlFilter.cc
+
+Allow building the HTML and XML filters statically.
+
+------------------------------------------------------------------------
+r9 | fabricecolin | 2007-02-01 20:44:41 +0800 (Thu, 01 Feb 2007) | 5 lines
+Changed paths:
+   M /branches/pinot/filters/FilterFactory.cc
+   M /branches/pinot/filters/XmlFilter.cc
+   M /branches/pinot/filters/filter-test.cc
+
+Removed reference to library-handled types from factory code.
+In XmlFilter, replace tags with spaces to make sure text is not crammed into
+one block.
+Test program unload filters before exiting.
+
+------------------------------------------------------------------------
+r8 | fabricecolin | 2007-01-29 22:30:39 +0800 (Mon, 29 Jan 2007) | 5 lines
+Changed paths:
+   M /branches/pinot/filters/ExternalFilter.cc
+   M /branches/pinot/filters/ExternalFilter.h
+   M /branches/pinot/filters/filter-test.cc
+
+In ExternalFilter's configuration file, the element "output" specifies the MIME
+type of the output generated by the program "command", so that it can be passed
+to another filter for processing.
+The test program shows how to chain filters.
+
+------------------------------------------------------------------------
+r7 | fabricecolin | 2007-01-29 21:17:56 +0800 (Mon, 29 Jan 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/ExternalFilter.cc
+   M /branches/pinot/filters/FilterFactory.cc
+   M /branches/pinot/filters/FilterFactory.h
+   M /branches/pinot/filters/filter-test.cc
+
+Can build ExternalFilter as a library.
+
+------------------------------------------------------------------------
+r6 | fabricecolin | 2007-01-27 15:09:10 +0800 (Sat, 27 Jan 2007) | 3 lines
+Changed paths:
+   A /branches/pinot/filters/GMimeMboxFilter.cc (from /branches/pinot/filters/MboxFilter.cc:5)
+   A /branches/pinot/filters/GMimeMboxFilter.h (from /branches/pinot/filters/MboxFilter.h:5)
+   D /branches/pinot/filters/MboxFilter.cc
+   D /branches/pinot/filters/MboxFilter.h
+   D /branches/pinot/filters/TagLibFilter.cc
+   D /branches/pinot/filters/TagLibFilter.h
+   A /branches/pinot/filters/TagLibMusicFilter.cc (from /branches/pinot/filters/TagLibFilter.cc:5)
+   A /branches/pinot/filters/TagLibMusicFilter.h (from /branches/pinot/filters/TagLibFilter.h:5)
+   M /branches/pinot/filters/filter-test.cc
+
+Renamed filters to make it more obvious what they handle and with what
+third-party library.
+
+------------------------------------------------------------------------
+r5 | fabricecolin | 2007-01-27 14:55:03 +0800 (Sat, 27 Jan 2007) | 2 lines
+Changed paths:
+   M /branches/pinot/filters/ExternalFilter.cc
+   M /branches/pinot/filters/ExternalFilter.h
+   M /branches/pinot/filters/Filter.h
+   M /branches/pinot/filters/FilterFactory.cc
+   M /branches/pinot/filters/FilterFactory.h
+   M /branches/pinot/filters/HtmlFilter.cc
+   M /branches/pinot/filters/HtmlFilter.h
+   M /branches/pinot/filters/MboxFilter.cc
+   M /branches/pinot/filters/MboxFilter.h
+   M /branches/pinot/filters/TagLibFilter.cc
+   M /branches/pinot/filters/TagLibFilter.h
+   M /branches/pinot/filters/TextFilter.cc
+   M /branches/pinot/filters/TextFilter.h
+   M /branches/pinot/filters/XmlFilter.cc
+   M /branches/pinot/filters/XmlFilter.h
+   M /branches/pinot/filters/filter-test.cc
+
+Changes for building filters into .so's and loading them in the factory class.
+
+------------------------------------------------------------------------
+r4 | fabricecolin | 2007-01-27 12:03:28 +0800 (Sat, 27 Jan 2007) | 4 lines
+Changed paths:
+   A /branches/pinot/filters
+   A /branches/pinot/filters/ExternalFilter.cc
+   A /branches/pinot/filters/ExternalFilter.h
+   A /branches/pinot/filters/Filter.h
+   A /branches/pinot/filters/FilterFactory.cc
+   A /branches/pinot/filters/FilterFactory.h
+   A /branches/pinot/filters/HtmlFilter.cc
+   A /branches/pinot/filters/HtmlFilter.h
+   A /branches/pinot/filters/MboxFilter.cc
+   A /branches/pinot/filters/MboxFilter.h
+   A /branches/pinot/filters/TagLibFilter.cc
+   A /branches/pinot/filters/TagLibFilter.h
+   A /branches/pinot/filters/TextFilter.cc
+   A /branches/pinot/filters/TextFilter.h
+   A /branches/pinot/filters/XmlFilter.cc
+   A /branches/pinot/filters/XmlFilter.h
+   A /branches/pinot/filters/filter-test.cc
+
+First shot at importing filters from Pinot 0.65's Tokenize directory.
+Most classes, and the included test program, have dependencies on Pinot's code
+base that will eventually be removed.
+
+------------------------------------------------------------------------
+r3 | fabricecolin | 2007-01-27 11:59:01 +0800 (Sat, 27 Jan 2007) | 2 lines
+Changed paths:
+   A /branches/pinot
+
+Import of Pinot's filters.
+
+------------------------------------------------------------------------
