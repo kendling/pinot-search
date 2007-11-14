@@ -311,11 +311,11 @@ bool OnDiskHandler::fileCreated(const string &fileName)
 		// ...and therefore may exist in the history database
 		if (m_history.hasItem(location, status, itemDate) == true)
 		{
-			m_history.updateItem(location, CrawlHistory::CRAWLED, sourceId, time(NULL));
+			m_history.updateItem(location, CrawlHistory::CRAWLED, time(NULL));
 		}
 		else
 		{
-			m_history.insertItem(location, CrawlHistory::CRAWLED, time(NULL));
+			m_history.insertItem(location, CrawlHistory::CRAWLED, sourceId, time(NULL));
 		}
 	}
 	pthread_mutex_unlock(&m_mutex);
