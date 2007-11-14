@@ -50,9 +50,10 @@ class PinotFileMatch(deskbar.interfaces.Match):
 		print "Action: ", self.result["caption"], " ", self.result["url"]
 
 		if url_scheme == "file":
-			print "File hit: ", file_path
+			print "File hit"
 			self.add_action(OpenFileAction(self.result["caption"], self.result["url"]))
 		else:
+			print "Other hit"
 			self.add_all_actions(get_actions_for_uri(self.result["url"]))
 
 	def get_hash(self, text=None):
