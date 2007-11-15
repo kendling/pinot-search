@@ -12,12 +12,13 @@ http://pinot.berlios.de/
 7. Viewing cached results
 8. File formats
 9. File patterns
-10. More Like This
+10. Digging deeper
 11. Saving results
 12. D-Bus service
-13. Deskbar Applet plugin
-14. How to reset indexes
-15. Dependencies
+13. Deskbar Applet plugins
+14. Environment variables
+15. How to reset indexes
+16. Dependencies
 
 
 1. What is Pinot
@@ -275,68 +276,72 @@ http://pinot.berlios.de/
   common picture and video types such as JPG, GIF, ZIP and MPG.
 
 
-10. More Like This
+10. Digging deeper
 
 
-   The More Like This feature is enabled when at least one of the results
-   currently selected is indexed, ie if the result was previously manually
-   indexed in My Web Pages, or if it's a local file indexed in My Documents.
-   Its role is to expand queries.
+  Pinot offers two ways you can dig deeper in your documents : More Like This
+  suggests terms specific to documents that may help in finding related
+  documents, and Search This For allows to search in results.
+  Both features are enabled if one or more of the results currently selected
+  is indexed, and only operate on those.
 
-   When activated, it will suggest other terms from the selected results
-   and create a new Stored Query prefixed with "More Like". For instance,
-   if you run a Stored Query with name "Me", the expanded query's name will be
-   "More Like Me".
+  When activated, More Like This will create a new Stored Query prefixed with
+  "More Like". For instance, if you run a Stored Query with name "Me", the
+  expanded query's name will be "More Like Me".
+
+  Search For This will search those results for the Stored Query selected in
+  the sub-menu and will present results in a new tab. For instance, running
+  the Stored Query "Me" on a set of results will open a "Me In Results" tab.
 
 
 11. Saving results
 
 
-   Starting with version 0.72, lists of results can be saved to disk by
-   selecting the Save As menuitem under Results. Two output formats are
-   available to choose from in the file selector opened by Save As :
-     * CSV, a text format
-       The semi-colon character (';') is used to delimit fields.
-     * OpenSearch response, a XML/RSS format
-       See http://www.opensearch.org/Specifications/OpenSearch/1.1#OpenSearch_response_elements
-       for details.
+  Starting with version 0.72, lists of results can be saved to disk by
+  selecting the Save As menuitem under Results. Two output formats are
+  available to choose from in the file selector opened by Save As :
+    * CSV, a text format
+      The semi-colon character (';') is used to delimit fields.
+    * OpenSearch response, a XML/RSS format
+      See http://www.opensearch.org/Specifications/OpenSearch/1.1#OpenSearch_response_elements
+      for details.
 
 
 12. D-Bus service
 
 
-   D-Bus activation makes sure the service is running whenever one of its
-   methods is invoked by any consumer application. For instance, clicking
-   OK on the Preferences box will call the service's Reload method, thus
-   ensuring the service is running. This also causes the service to reload
-   the configuration file.
+  D-Bus activation makes sure the service is running whenever one of its
+  methods is invoked by any consumer application. For instance, clicking
+  OK on the Preferences box will call the service's Reload method, thus
+  ensuring the service is running. This also causes the service to reload
+  the configuration file.
 
-   Starting with 0.63, the service is auto-started. The file that enables
-   this is located at /etc/xdg/autostart/pinot-dbus-daemon.desktop.
-   For older versions, if you want the service to be started with your X
-   session, add pinot-dbus-daemon to your desktop environment's startup
-   programs list.
+  Starting with 0.63, the service is auto-started. The file that enables
+  this is located at /etc/xdg/autostart/pinot-dbus-daemon.desktop.
+  For older versions, if you want the service to be started with your X
+  session, add pinot-dbus-daemon to your desktop environment's startup
+  programs list.
 
-   A few things to keep in mind :
-     * in version 0.75 and older, the service didn't reload its configuration
-       while running, so any change (for instance, adding or removing an
-       indexable directory) only took effect when the service was restarted.
-     * when starting, the service will first crawl all configured locations
-       and (re)index new and modified files. Starting with 0.64, the daemon's
-       scheduling priority is set very low (15, can be adjusted with --priority)
-       so that you can do stuff while it is indexing !
-     * when finished crawling, the service will monitor these locations
-       for changes and should consume little resources, unless a huge
-       quantity of files needs its attention.
-     * any change detected by the monitor is immediately queued and acted upon
-       as soon as possible, eg reindex a file that was modified. This and low
-       priority should make the daemon not very intrusive.
-     * operations that involve communicating with the daemon, such as editing
-       documents metadata, may timeout if the system is under heavy load and/or
-       the daemon is busy. In most cases, the message will have been received
-       by the daemon, but the reply may take longer than expected. The Pinot
-       UI may report that the operation failed, even though it was queued for
-       processing and will be acted upon by the daemon as soon as possible.
+  A few things to keep in mind :
+    * in version 0.75 and older, the service didn't reload its configuration
+      while running, so any change (for instance, adding or removing an
+      indexable directory) only took effect when the service was restarted.
+    * when starting, the service will first crawl all configured locations
+      and (re)index new and modified files. Starting with 0.64, the daemon's
+      scheduling priority is set very low (15, can be adjusted with --priority)
+      so that you can do stuff while it is indexing !
+    * when finished crawling, the service will monitor these locations
+      for changes and should consume little resources, unless a huge
+      quantity of files needs its attention.
+    * any change detected by the monitor is immediately queued and acted upon
+      as soon as possible, eg reindex a file that was modified. This and low
+      priority should make the daemon not very intrusive.
+    * operations that involve communicating with the daemon, such as editing
+      documents metadata, may timeout if the system is under heavy load and/or
+      the daemon is busy. In most cases, the message will have been received
+      by the daemon, but the reply may take longer than expected. The Pinot
+      UI may report that the operation failed, even though it was queued for
+      processing and will be acted upon by the daemon as soon as possible.
 
   If you have dbus-send installed, you can start the daemon manually by calling
   the GetStatistics method with
@@ -350,23 +355,60 @@ http://pinot.berlios.de/
   For a list of available D-Bus methods, see the file pinot-dbus-daemon.xml.
 
 
-13. Deskbar Applet plugin
+13. Deskbar Applet plugins
 
 
   Deskbar Applet provides an omnipresent versatile search interface for Gnome.
-  Searching documents indexed by Pinot with the applet is possible. Users
-  of RPM-based systems may install the pinot-desbar RPM. Otherwise, the
-  file scripts/python/pinot-live.py can simply be copied into
-  $PREFIX/lib/deskbar-applet/handlers (or, on 64 bit systems,
-  $PREFIX/lib64/deskbar-applet/handlers) for use by all users, or into
-  ~/.gnome2/deskbar-applet/handlers for use only by the current user.
-  Once enabled, the plugin will rely on the D-Bus service to query the My
-  Documents index.
+  Searching documents indexed by Pinot with the applet is possible.
+
+  Starting with Pinot 0.81, two plugins are available : a "module" for Deskbar
+  2.20 or newer, and a "handler" for older versions. Both plugins rely on the
+  D-Bus service to query the My Documents index.
+
+  The module is at scripts/python/pinot-module.py, while the handler is at
+  scripts/python/pinot-live.py. The module should be copied into
+  $LIBS/deskbar-applet/modules-2.20-compatible and the handler in
+  $LIBS/deskbar-applet/handlers for use by all users.
+  For use only by the current user, the directories to copy to are
+  ~/.gnome2/deskbar-applet/modules-2.20-compatible and
+  ~/.gnome2/deskbar-applet/handlers respectively.
+
   Deskbar Applet appears to sort results by names, so it may not present
-  results in the same order as the Pinot UI.
+  results in the same order as the Pinot UI. Additionally, searches run through
+  the D-Bus interface are treated a bit differently, as terms are OR'ed
+  together if no exact match is found.
 
 
-14. How to reset indexes
+14. Environment variables
+
+
+  Pinot tries to provide reasonable defaults for most systems, but there may be
+  situations where you want to tweak these values through environment variables :
+    * PINOT_SPELLING_DB
+      By default, Pinot builds indexes with a spelling database. This spelling
+      database may make up as much as a third of the size of the index.
+      If your system is low on disk space, you can disable this with
+      $ export PINOT_SPELLING_DB=NO
+      Make sure this is set for your login session, ie whenever the daemon is
+      auto-started. You will also have to reset indexes, as described in
+      section "15. How to reset indexes".
+    * PINOT_MINIMUM_DISK_SPACE
+      The daemon will stop crawling and indexing files when the partition on
+      which the index resides runs out of free space. By default, this means
+      less than 50 Mb. To change this value to 100 Mb for instance, use 
+      $ export PINOT_MINIMUM_DISK_SPACE=100
+
+  Another environment variable that you may want to tweak comes from Xapian.
+  XAPIAN_FLUSH_THRESHOLD can be set to the number of documents after which
+  Xapian is to flush changes to the index. The default value is set to 10000
+  at the time of writing this.
+  Lowering this value should decrease the amount of memory used to cache
+  changes to the index. Note that pinot-dbus-daemon explicitely flushes the
+  index once it has crawled a directory (directory configured in Preferences,
+  Indexing).
+
+
+15. How to reset indexes
 
 
   You may wish to reset one of the index and start from scratch. There
@@ -391,7 +433,7 @@ http://pinot.berlios.de/
   $ pinot-dbus-daemon --reindex
 
 
-15. Dependencies
+16. Dependencies
 
 
   The version numbers indicate the minimum version Pinot has been tested
@@ -405,6 +447,9 @@ http://www.sqlite.org/
 
 xapian-core						1.0.3
 http://www.xapian.org/
+
+ zlib							1.2.0
+ http://www.gzip.org/zlib/
 
 curl (1)						7.13.1
 http://curl.haxx.se/
