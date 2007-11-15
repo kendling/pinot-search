@@ -36,6 +36,7 @@ TYPES = {
 class PinotFileMatch(deskbar.interfaces.Match):
 	def __init__(self, fields, **args):
 		deskbar.interfaces.Match.__init__ (self)
+		self._category = "documents"
 		self.result = fields
 		self.url = fields["url"]
 		url_scheme = self.url[:self.url.index("://")]
@@ -104,22 +105,34 @@ class PinotFileSearchModule(deskbar.interfaces.Module):
 		self.query_string = ""
 		self.matches = []
 		self.matches_count = 10
-		# The dbus connection will be set in query()
+		# Connect to dbus in initialize() and if need be, query()
 		self.bus = self.proxy_obj = self.pinot_iface = None
+
+	def initialize(self):
+		try:
+			import dbus
+			print 'First time connection'
+			self.bus = dbus.SessionBus()
+			self.proxy_obj = self.bus.get_object('de.berlios.Pinot', '/de/berlios/Pinot')
+			self.pinot_iface = dbus.Interface(self.proxy_obj, 'de.berlios.Pinot')
+		except Exception, msg:
+			print 'Caught exception: ', msg
+		except:
+			print 'Caught unexpected exception'
 
 	def query (self, qstring):
 		print "SimpleQuery: ", qstring
 		doc_ids = []
 		max = 10
 		# Do we need to set up the dbus connection ?
-		if self.proxy_obj:
+		if self.pinot_iface:
 			try:
 				print 'Getting statistics'
-				self.proxy_obj.GetStatistics()
+				self.pinot_iface.GetStatistics()
 			except:
 				print 'GetStatistics failed'
-				self.proxy_obj = None
-		if not self.proxy_obj:
+				self.pinot_iface = None
+		if not self.pinot_iface:
 			try:
 				import dbus
 				print 'Connecting'
