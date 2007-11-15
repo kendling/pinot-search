@@ -478,6 +478,14 @@ string MIMEScanner::scanFileType(const string &fileName)
 		return "";
 	}
 
+	// Quick and dirty fix to work-around shared-mime-info mistakenly identifying
+	// HTML files as Mozilla bookmarks
+	if ((fileName.find(".htm") != string::npos) &&
+		(strncasecmp(pType, "application/x-mozilla-bookmarks", strlen(pType)) == 0))
+	{
+		return "text/html";
+	}
+
 	return pType;
 }
 
