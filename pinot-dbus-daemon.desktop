@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Pinot
-Comment=Search the Web and your documents
+Comment=Search your documents
 Exec=pinot-dbus-daemon
 Icon=pinot
 Terminal=false
