@@ -36,7 +36,6 @@ TYPES = {
 class PinotFileMatch(deskbar.interfaces.Match):
 	def __init__(self, fields, **args):
 		deskbar.interfaces.Match.__init__ (self)
-		self._category = "documents"
 		self.result = fields
 		self.url = fields["url"]
 		url_scheme = self.url[:self.url.index("://")]
@@ -59,6 +58,12 @@ class PinotFileMatch(deskbar.interfaces.Match):
 
 	def get_hash(self, text=None):
 		return self.result["url"]
+
+	def get_category (self):
+		try:
+			return TYPES["Documents"]["category"]
+		except:
+			return 'files'
 
 	def get_name(self, text = None):
 		return self.result["caption"]
