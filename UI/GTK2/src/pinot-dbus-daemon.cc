@@ -136,6 +136,52 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 		cout << "filterHandler: received NameOwnerChanged" << endl;
 #endif
 	}
+	// The first two signals are specified by the freedesktop.org Power Management spec v0.1 and v0.2
+	else if ((dbus_message_is_signal(pMessage, "org.freedesktop.PowerManagement", "BatteryStateChanged") == TRUE) ||
+		(dbus_message_is_signal(pMessage, "org.freedesktop.PowerManagement", "OnBatteryChanged") == TRUE) ||
+		(dbus_message_is_signal(pMessage, "org.gnome.PowerManager", "OnAcChanged") == TRUE))
+	{
+		DBusError error;
+		gboolean onBattery = FALSE;
+
+#ifdef DEBUG
+		cout << "filterHandler: received OnBatteryChanged" << endl;
+#endif
+		dbus_error_init(&error);
+		if ((dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_BOOLEAN, &onBattery,
+			DBUS_TYPE_INVALID) == TRUE) &&
+			(pData != NULL))
+		{
+			DaemonState *pServer = (DaemonState *)pData;
+
+			if (dbus_message_is_signal(pMessage, "org.gnome.PowerManager", "OnAcChanged") == TRUE)
+			{
+				// This tells us if we are on AC, not on battery
+				if (onBattery == true)
+				{
+					onBattery = false;
+				}
+				else
+				{
+					onBattery = true;
+				}
+			}
+
+			if (onBattery == true)
+			{
+				// We are now on battery
+				pServer->set_flag(DaemonState::ON_BATTERY);
+				pServer->stop_crawling();
+			}
+			else
+			{
+				// Back on-line
+				pServer->reset_flag(DaemonState::ON_BATTERY);
+			}
+		}
+		dbus_error_free(&error);
+	}
 
 	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
@@ -431,6 +477,12 @@ int main(int argc, char **argv)
 		dbus_bus_request_name(pConnection, g_pinotDBusService, 0, &error);
 		if (dbus_error_is_set(&error) == FALSE)
 		{
+			// See power management signals
+			dbus_bus_add_match(pConnection,
+				"type='signal',interface='org.freedesktop.PowerManagement'", &error);
+			dbus_bus_add_match(pConnection,
+				"type='signal',interface='org.gnome.PowerManager'", &error);
+
 			dbus_connection_add_filter(pConnection,
 				(DBusHandleMessageFunction)filterHandler, &server, NULL);
 		}

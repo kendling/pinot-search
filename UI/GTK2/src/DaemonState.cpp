@@ -32,7 +32,12 @@
 #define CHECK_DISK_SPACE 1
 #endif
 #endif
-#include <fstream>
+#ifdef __FreeBSD__
+#ifdef HAVE_SYSCTLBYNAME
+#include <sys/sysctl.h>
+#define CHECK_BATTERY_SYSCTL 1
+#endif
+#endif
 #include <iostream>
 #include <glibmm/ustring.h>
 #include <glibmm/stringutils.h>
@@ -91,110 +96,6 @@ static double getFSFreeSpace(const string &path)
 	return availableMbSize;
 }
 
-class BatteryHandler : public MonitorHandler
-{
-	public:
-		BatteryHandler(DaemonState *pServer) : MonitorHandler(), m_pServer(pServer)
-		{		
-			// Scan /proc/acpi/ac_adapter for battery states, eg AC/state
-			DIR *pDir = opendir("/proc/acpi/ac_adapter");
-			if (pDir != NULL)
-			{
-				// Iterate through this directory's entries
-				struct dirent *pDirEntry = readdir(pDir);
-				while ((pDirEntry != NULL) &&
-					(m_fileNames.empty() == true))
-				{
-					char *pEntryName = pDirEntry->d_name;
-
-					// Skip . .. and dotfiles
-					if ((pEntryName != NULL) &&
-						(pEntryName[0] != '.'))
-					{
-						string subEntryName("/proc/acpi/ac_adapter/");
-						struct stat fileStat;
-
-						subEntryName += pEntryName;
-#ifdef DEBUG
-						cout << "BatteryHandler: found " << subEntryName << endl;
-#endif
-
-						// Is this a directory ?
-						int entryStatus = stat(subEntryName.c_str(), &fileStat);
-						if ((entryStatus == 0) &&
-							(S_ISDIR(fileStat.st_mode)))
-						{
-							string stateFile(subEntryName);
-
-							stateFile += "/state";
-							// Does it contain a state file ?
-							if (access(stateFile.c_str(), R_OK) == 0)
-							{
-								// Check the current state
-								fileModified(stateFile);
-								// ...and add it for monitoring
-								m_fileNames.insert(stateFile);
-#ifdef DEBUG
-								cout << "BatteryHandler: monitoring " << stateFile << endl;
-#endif
-							}
-						}
-					}
-
-					// Next entry
-					pDirEntry = readdir(pDir);
-				}
-
-				// Close the directory
-				closedir(pDir);
-			}
-		}
-		virtual ~BatteryHandler() {}
-
-		/// Handles file modified events.
-		virtual bool fileModified(const std::string &fileName)
-		{
-			ifstream stateFile;
-			string battState;
-
-			if (m_pServer == NULL)
-			{
-				return false;
-			}
-
-			// What's the new state
-			stateFile.open(fileName.c_str());
-			if (stateFile.is_open() == true)
-			{
-				stateFile >> battState;
-
-				if (strncasecmp(battState.c_str(), "off-line", 8) == 0)
-				{
-					// We are now on battery
-					m_pServer->set_flag(DaemonState::ON_BATTERY);
-					m_pServer->stop_crawling();
-				}
-				else
-				{
-					// Back on-line
-					m_pServer->reset_flag(DaemonState::ON_BATTERY);
-				}
-
-				stateFile.close();
-			}
-
-			return true;
-		}
-
-	protected:
-		DaemonState *m_pServer;
-
-	private:
-		BatteryHandler(const BatteryHandler &other);
-		BatteryHandler &operator=(const BatteryHandler &other);
-
-};
-
 // A function object to stop DirectoryScanner threads with for_each()
 struct StopScannerThreadFunc
 {
@@ -217,20 +118,17 @@ DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 20),
 	m_fullScan(false),
 	m_reload(false),
-	m_pBatteryMonitor(MonitorFactory::getMonitor()),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
-	m_pDiskHandler(NULL),
-	m_pBatteryHandler(NULL)
+	m_pDiskHandler(NULL)
 {
 	FD_ZERO(&m_flagsSet);
 
-#ifdef CHECK_DISK_SPACE
-	// Check every minute
+	// Check disk usage every minute
 	m_timeoutConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
 		&DaemonState::on_activity_timeout), 60000);
 	// Check right now before doing anything else
 	DaemonState::on_activity_timeout();
-#endif
+
 	m_onThreadEndSignal.connect(sigc::mem_fun(*this, &DaemonState::on_thread_end));
 }
 
@@ -242,20 +140,13 @@ DaemonState::~DaemonState()
 	}
 	// Don't delete m_pDiskHandler, threads may need it
 	// Since DaemonState is destroyed when the program exits, it's okay
-	if (m_pBatteryMonitor != NULL)
-	{
-		delete m_pBatteryMonitor;
-	}
-	if (m_pBatteryHandler != NULL)
-	{
-		delete m_pBatteryHandler;
-	}
 }
 
 bool DaemonState::on_activity_timeout(void)
 {
 	if (m_timeoutConnection.blocked() == false)
 	{
+#ifdef CHECK_DISK_SPACE
 		double availableMbSize = getFSFreeSpace(PinotSettings::getInstance().m_daemonIndexLocation);
 		if (availableMbSize >= 0)
 		{
@@ -282,9 +173,51 @@ bool DaemonState::on_activity_timeout(void)
 				cerr << "Resumed indexing following low disk space condition" << endl;
 			}
 		}
+#endif
+#ifdef CHECK_BATTERY_SYSCTL
+		// Check the battery state too
+		check_battery_state();
+#endif
 	}
 
 	return true;
+}
+
+void DaemonState::check_battery_state(void)
+{
+#ifdef CHECK_BATTERY_SYSCTL
+	int acline = 1;
+	size_t len = sizeof(acline);
+	bool onBattery = false;
+
+	// Are we on battery power ?
+	if (sysctlbyname("hw.acpi.acline", &acline, &len, NULL, 0) == 0)
+	{
+#ifdef DEBUG
+		cout << "DaemonState::check_battery_state: acline " << acline << endl;
+#endif
+		if (acline == 0)
+		{
+			onBattery = true;
+		}
+
+		bool wasOnBattery = is_flag_set(DaemonState::ON_BATTERY);
+		if (onBattery != wasOnBattery)
+		{
+			if (onBattery == true)
+			{
+				// We are now on battery
+				set_flag(DaemonState::ON_BATTERY);
+				stop_crawling();
+			}
+			else
+			{
+				// Back on-line
+				reset_flag(DaemonState::ON_BATTERY);
+			}
+		}
+	}
+#endif
 }
 
 bool DaemonState::crawl_location(const string &locationToCrawl, bool isSource, bool doMonitoring)
@@ -346,23 +279,6 @@ void DaemonState::start(bool forceFullScan)
 #ifdef DEBUG
 		cout << "DaemonState::start: picked " << randomNum << endl;
 #endif
-	}
-
-	// Monitor battery state
-	if (m_pBatteryHandler == NULL)
-	{
-		m_pBatteryHandler = new BatteryHandler(this);
-	}
-	if (m_pBatteryHandler->getFileNames().empty() == false)
-	{
-		MonitorThread *pBatteryMonitorThread = new MonitorThread(m_pBatteryMonitor, m_pBatteryHandler);
-		start_thread(pBatteryMonitorThread, true);
-
-		cout << "Monitoring battery state" << endl;
-	}
-	else
-	{
-		cout << "Not monitoring battery state" << endl;
 	}
 
 	// Fire up the disk monitor thread

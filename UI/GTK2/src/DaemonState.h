@@ -60,14 +60,14 @@ class DaemonState : public ThreadsManager
 		bool m_fullScan;
 		bool m_reload;
 		fd_set m_flagsSet;
-		MonitorInterface *m_pBatteryMonitor;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pDiskHandler;
-		MonitorHandler *m_pBatteryHandler;
 		sigc::connection m_timeoutConnection;
 		sigc::signal1<void, int> m_signalQuit;
 
 		bool on_activity_timeout(void);
+
+		void check_battery_state(void);
 
 		bool crawl_location(const std::string &locationToCrawl, bool isSource, bool doMonitoring);
 
