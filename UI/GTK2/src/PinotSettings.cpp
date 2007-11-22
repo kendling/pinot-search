@@ -1823,13 +1823,15 @@ bool PinotSettings::TimestampedItem::operator==(const TimestampedItem &other) co
 }
 
 PinotSettings::IndexableLocation::IndexableLocation() :
-	m_monitor(false)
+	m_monitor(false),
+	m_isSource(true)
 {
 }
 
 PinotSettings::IndexableLocation::IndexableLocation(const IndexableLocation &other) :
 	m_monitor(other.m_monitor),
-	m_name(other.m_name)
+	m_name(other.m_name),
+	m_isSource(other.m_isSource)
 {
 }
 
@@ -1843,6 +1845,7 @@ PinotSettings::IndexableLocation &PinotSettings::IndexableLocation::operator=(co
 	{
 		m_monitor = other.m_monitor;
 		m_name = other.m_name;
+		m_isSource = other.m_isSource;
 	}
 
 	return *this;

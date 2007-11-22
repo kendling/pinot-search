@@ -158,26 +158,31 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 			if (dbus_message_is_signal(pMessage, "org.gnome.PowerManager", "OnAcChanged") == TRUE)
 			{
 				// This tells us if we are on AC, not on battery
-				if (onBattery == true)
+				if (onBattery == TRUE)
 				{
-					onBattery = false;
+					onBattery = FALSE;
 				}
 				else
 				{
-					onBattery = true;
+					onBattery = TRUE;
 				}
 			}
 
-			if (onBattery == true)
+			if (onBattery == TRUE)
 			{
 				// We are now on battery
 				pServer->set_flag(DaemonState::ON_BATTERY);
 				pServer->stop_crawling();
+
+				cout << "System is now on battery" << endl;
 			}
 			else
 			{
 				// Back on-line
 				pServer->reset_flag(DaemonState::ON_BATTERY);
+				pServer->start_crawling();
+
+				cout << "System is now on AC" << endl;
 			}
 		}
 		dbus_error_free(&error);
@@ -212,6 +217,46 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 	}
 
 	return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+static bool getBatteryState(DBusGConnection *pBus, const string &name, const string &path,
+	const string &method, gboolean &result)
+{
+	bool callSuccess = true;
+
+	if ((pBus == NULL) ||
+		(name.empty() == true) ||
+		(path.empty() == true) ||
+		(method.empty() == true))
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = dbus_g_proxy_new_for_name(pBus, name.c_str(),
+		path.c_str(), name.c_str());
+	if (pBusProxy == NULL)
+	{
+		return false;
+	}
+
+	GError *pError = NULL;
+	if (dbus_g_proxy_call(pBusProxy, method.c_str(), &pError,
+		G_TYPE_INVALID,
+		G_TYPE_BOOLEAN, &result,
+		G_TYPE_INVALID) == FALSE)
+	{
+		if (pError != NULL)
+		{
+			cerr << "Couldn't get battery state: " << pError->message << endl;
+			g_error_free(pError);
+		}
+
+		callSuccess = false;
+	}
+
+	g_object_unref(pBusProxy);
+
+	return callSuccess;
 }
 
 int main(int argc, char **argv)
@@ -501,6 +546,7 @@ int main(int argc, char **argv)
 			set<string> labels;
 			string indexVersion(index.getVersion());
 			bool gotLabels = index.getLabels(labels);
+			bool onBattery = false;
 
 			// What version is the index at ?
 			if (indexVersion < PINOT_INDEX_MIN_VERSION)
@@ -559,6 +605,35 @@ int main(int argc, char **argv)
 
 			// Connect to threads' finished signal
 			server.connect();
+
+			// Try and get the battery state
+			gboolean result = FALSE;
+			if ((getBatteryState(pBus, "org.freedesktop.PowerManagement",
+				"/org/freedesktop/PowerManagement", "GetOnBattery", result) == true) ||
+				(getBatteryState(pBus, "org.freedesktop.PowerManagement",
+				"/org/freedesktop/PowerManagement", "GetBatteryState", result) == true))
+			{
+				if (result == TRUE)
+				{
+					onBattery = true;
+				}
+			}
+			else if (getBatteryState(pBus, "org.gnome.PowerManager",
+				"/org/gnome/PowerManager", "GetOnAc", result) == true)
+			{
+				if (result == FALSE)
+				{
+					onBattery = true;
+				}
+			}
+			if (onBattery == true)
+			{
+				// We are on battery
+				server.set_flag(DaemonState::ON_BATTERY);
+				server.stop_crawling();
+
+				cout << "System is on battery" << endl;
+			}
 
 			server.start(fullScan);
 

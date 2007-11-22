@@ -164,6 +164,7 @@ class PinotSettings
 
 				bool m_monitor;
 				Glib::ustring m_name;
+				bool m_isSource;
 
 		};
 

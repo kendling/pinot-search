@@ -27,6 +27,7 @@
 
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
+#include "PinotSettings.h"
 #include "WorkerThreads.h"
 
 class DaemonState : public ThreadsManager
@@ -40,6 +41,8 @@ class DaemonState : public ThreadsManager
 		void start(bool forceFullScan);
 
 		void reload(void);
+
+		void start_crawling(void);
 
 		void stop_crawling(void);
 
@@ -64,12 +67,14 @@ class DaemonState : public ThreadsManager
 		MonitorHandler *m_pDiskHandler;
 		sigc::connection m_timeoutConnection;
 		sigc::signal1<void, int> m_signalQuit;
+		unsigned int m_crawlers;
+		std::queue<PinotSettings::IndexableLocation> m_crawlQueue;
 
 		bool on_activity_timeout(void);
 
 		void check_battery_state(void);
 
-		bool crawl_location(const std::string &locationToCrawl, bool isSource, bool doMonitoring);
+		bool crawl_location(const PinotSettings::IndexableLocation &location);
 
 };
 

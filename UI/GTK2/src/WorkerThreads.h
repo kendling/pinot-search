@@ -70,6 +70,8 @@ class WorkerThread
 
 		virtual bool stop(void);
 
+		bool isStopped(void) const;
+
 		bool isDone(void) const;
 
 		int getErrorNum(void) const;
@@ -83,6 +85,7 @@ class WorkerThread
 		static bool m_immediateFlush;
 		unsigned int m_id;
 		bool m_background;
+		bool m_stopped;
 		bool m_done;
 		int m_errorNum;
 		std::string m_errorParam;

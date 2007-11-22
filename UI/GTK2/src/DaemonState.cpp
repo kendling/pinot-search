@@ -24,13 +24,25 @@
 #include <unistd.h>
 #include <stdlib.h>
 #ifdef HAVE_STATFS
-#include <sys/vfs.h>
-#define CHECK_DISK_SPACE 1
+  #ifdef HAVE_SYS_VFS_H
+  #include <sys/vfs.h>
+  #define CHECK_DISK_SPACE 1
+  #else
+    #ifdef HAVE_SYS_STATFS_H
+      #include <sys/statfs.h>
+      #define CHECK_DISK_SPACE 1
+    #else
+      #ifdef HAVE_SYS_MOUNT_H
+        #include <sys/mount.h>
+        #define CHECK_DISK_SPACE 1
+      #endif
+    #endif
+  #endif
 #else
-#ifdef HAVE_STATVFS
-#include <sys/statvfs.h>
-#define CHECK_DISK_SPACE 1
-#endif
+  #ifdef HAVE_STATVFS
+  #include <sys/statvfs.h>
+  #define CHECK_DISK_SPACE 1
+  #endif
 #endif
 #ifdef __FreeBSD__
 #ifdef HAVE_SYSCTLBYNAME
@@ -119,7 +131,8 @@ DaemonState::DaemonState() :
 	m_fullScan(false),
 	m_reload(false),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
-	m_pDiskHandler(NULL)
+	m_pDiskHandler(NULL),
+	m_crawlers(0)
 {
 	FD_ZERO(&m_flagsSet);
 
@@ -220,15 +233,19 @@ void DaemonState::check_battery_state(void)
 #endif
 }
 
-bool DaemonState::crawl_location(const string &locationToCrawl, bool isSource, bool doMonitoring)
+bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &location)
 {
+	string locationToCrawl(location.m_name);
+	bool doMonitoring = location.m_monitor;
+	bool isSource = location.m_isSource;
 	DirectoryScannerThread *pScannerThread = NULL;
 
+	// Can we go ahead and crawl ?
 	if ((is_flag_set(LOW_DISK_SPACE) == true) ||
 		(is_flag_set(ON_BATTERY) == true))
 	{
 #ifdef DEBUG
-		cout << "DaemonState::crawl_location: stopped crawling" << endl;
+		cout << "DaemonState::crawl_location: crawling was stopped" << endl;
 #endif
 		return true;
 	}
@@ -252,7 +269,14 @@ bool DaemonState::crawl_location(const string &locationToCrawl, bool isSource, b
 	}
 	pScannerThread->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 
-	return start_thread(pScannerThread);
+	if (start_thread(pScannerThread) == true)
+	{
+		++m_crawlers;
+
+		return true;
+	}
+
+	return false;
 }
 
 void DaemonState::start(bool forceFullScan)
@@ -291,11 +315,21 @@ void DaemonState::start(bool forceFullScan)
 	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, m_pDiskHandler);
 	start_thread(pDiskMonitorThread, true);
 
-	set<PinotSettings::IndexableLocation>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
-	if (locationIter != PinotSettings::getInstance().m_indexableLocations.end())
+	for (set<PinotSettings::IndexableLocation>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
+		locationIter != PinotSettings::getInstance().m_indexableLocations.end(); ++locationIter)
 	{
-		// Crawl this now
-		crawl_location(locationIter->m_name, true, locationIter->m_monitor);
+		m_crawlQueue.push(*locationIter);
+	}
+#ifdef DEBUG
+	cout << "DaemonState::start: " << m_crawlQueue.size() << " locations to crawl" << endl;
+#endif
+
+	// Initiate crawling
+	if (m_crawlQueue.empty() == false)
+	{
+		PinotSettings::IndexableLocation firstLocation(m_crawlQueue.front());
+
+		crawl_location(firstLocation);
 	}
 }
 
@@ -305,17 +339,39 @@ void DaemonState::reload(void)
 	m_reload = true;
 }
 
+void DaemonState::start_crawling(void)
+{
+	if (write_lock_lists() == true)
+	{
+#ifdef DEBUG
+		cout << "DaemonState::start_crawling: " << m_crawlQueue.size() << " locations to crawl, "
+			<< m_crawlers << " crawlers" << endl;
+#endif
+		// Get the next location, unless something is still being crawled
+		if ((m_crawlers == 0) &&
+			(m_crawlQueue.empty() == false))
+		{
+			PinotSettings::IndexableLocation nextLocation(m_crawlQueue.front());
+
+			crawl_location(nextLocation);
+		}
+
+		unlock_lists();
+	}
+
+}
+
 void DaemonState::stop_crawling(void)
 {
-	if (m_threads.empty() == false)
+	if (write_lock_threads() == true)
 	{
-		if (write_lock_threads() == true)
+		if (m_threads.empty() == false)
 		{
 			// Stop all DirectoryScanner threads
 			for_each(m_threads.begin(), m_threads.end(), StopScannerThreadFunc());
-
-			unlock_threads();
 		}
+
+		unlock_threads();
 	}
 }
 
@@ -341,41 +397,23 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			delete pThread;
 			return;
 		}
-
-		string crawledLocation(pScannerThread->getDirectory());
+		--m_crawlers;
+#ifdef DEBUG
+		cout << "DaemonState::on_thread_end: done crawling " << pScannerThread->getDirectory() << endl;
+#endif
 
 		// Explicitely flush the index once a directory has been crawled
 		XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
 		index.flush();
 
-#ifdef DEBUG
-		cout << "DaemonState::on_thread_end: done crawling " << crawledLocation << endl;
-#endif
-		// Another location to crawl ?
-		if (write_lock_lists() == true)
+		if (pScannerThread->isStopped() == false)
 		{
-			PinotSettings::IndexableLocation currentLocation;
-			currentLocation.m_name = crawledLocation;
-
-			set<PinotSettings::IndexableLocation>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.find(currentLocation);
-			if (locationIter != PinotSettings::getInstance().m_indexableLocations.end())
-			{
-				// Get the next location
-				++locationIter;
-				if (locationIter != PinotSettings::getInstance().m_indexableLocations.end())
-				{
-					crawl_location(locationIter->m_name, true, locationIter->m_monitor);
-				}
-			}
-#ifdef DEBUG
-			else cout << "DaemonState::on_thread_end: nothing else to crawl" << endl;
-#endif
-
-			unlock_lists();
+			// Pop the queue
+			m_crawlQueue.pop();
 		}
-#ifdef DEBUG
-		else cout << "DaemonState::on_thread_end: nothing else to crawl" << endl;
-#endif
+		// Else, the directory wasn't fully crawled so better leave it in the queue
+
+		start_crawling();
 	}
 	else if (type == "IndexingThread")
 	{
@@ -388,6 +426,17 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 
 		// Get the URL we have just indexed
 		indexedUrl = pIndexThread->getURL();
+
+		// Did it fail ?
+		int errorNum = pThread->getErrorNum();
+		if ((errorNum > 0) &&
+			(indexedUrl.empty() == false))
+		{
+			CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+
+			// An entry should already exist for this
+			history.updateItem(indexedUrl, CrawlHistory::ERROR, time(NULL), errorNum);
+		}
 	}
 	else if (type == "UnindexingThread")
 	{
@@ -416,17 +465,6 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			}
 			m_signalQuit(0);
 		}
-	}
-
-	// Did it fail ?
-	int errorNum = pThread->getErrorNum();
-	if ((errorNum > 0) &&
-		(indexedUrl.empty() == false))
-	{
-		CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
-
-		// An entry should already exist for this
-		history.updateItem(indexedUrl, CrawlHistory::ERROR, time(NULL), errorNum);
 	}
 
 	// Delete the thread
@@ -482,11 +520,16 @@ void DaemonState::on_message_filefound(const DocumentInfo &docInfo, const string
 	}
 	else
 	{
-		string location(docInfo.getLocation());
+		PinotSettings::IndexableLocation newLocation;
 
-		crawl_location(location.substr(7), false, true);
+		newLocation.m_monitor = true;
+		newLocation.m_name = docInfo.getLocation().substr(7);
+		newLocation.m_isSource = false;
+
+		// Queue for later crawling
+		m_crawlQueue.push(newLocation);
 #ifdef DEBUG
-		cout << "DaemonState::on_message_filefound: new directory " << location.substr(7) << endl;
+		cout << "DaemonState::on_message_filefound: new directory " << newLocation.m_name << endl;
 #endif
 	}
 }

@@ -137,6 +137,7 @@ void WorkerThread::immediateFlush(bool doFlush)
 WorkerThread::WorkerThread() :
 	m_id(0),
 	m_background(false),
+	m_stopped(false),
 	m_done(false),
 	m_errorNum(0)
 {
@@ -182,9 +183,14 @@ Glib::Thread *WorkerThread::start(void)
 
 bool WorkerThread::stop(void)
 {
-	m_done = true;
+	m_stopped = m_done = true;
 
 	return true;
+}
+
+bool WorkerThread::isStopped(void) const
+{
+	return m_stopped;
 }
 
 bool WorkerThread::isDone(void) const
