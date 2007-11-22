@@ -35,7 +35,9 @@
 #include "XapianEngine.h"
 #include "xesam/XapianQueryBuilder.h"
 #include "xesam/XesamQLParser.h"
+#ifdef HAVE_BOOST_SPIRIT
 #include "xesam/XesamULParser.h"
+#endif
 
 using std::string;
 using std::multimap;
@@ -251,10 +253,12 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		{
 			pParser = new XesamQLParser();
 		}
+#ifdef HAVE_BOOST_SPIRIT_CORE_HPP
 		else if (type == QueryProperties::XESAM_UL)
 		{
 			pParser = new XesamULParser();
 		}
+#endif
 
 		if (pParser != NULL)
 		{

@@ -41,11 +41,11 @@ libSearch_la_SOURCES = \
 	XapianEngine.cpp \
 	$(top_srcdir)/Search/xesam/XapianQueryBuilder.cc \
 	$(top_srcdir)/Search/xesam/XesamQLParser.cc \
-	$(top_srcdir)/Search/xesam/XesamQueryBuilder.cc \
-	$(top_srcdir)/Search/xesam/XesamULParser.cc
+	$(top_srcdir)/Search/xesam/XesamQueryBuilder.cc
 
 if HAVE_BOOST_SPIRIT
-libSearch_la_SOURCES += SherlockParser.cpp
+libSearch_la_SOURCES += SherlockParser.cpp \
+	$(top_srcdir)/Search/xesam/XesamULParser.cc
 endif
 
 if HAVE_SOAP
