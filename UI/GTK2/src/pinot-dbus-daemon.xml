@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<node name="/de/berlios/Pinot">
+<node>
+  <interface name="org.freedesktop.DBus.Introspectable">
+    <method name="Introspect">
+      <arg type="s" name="data" direction="out"/>
+    </method>
+  </interface>
   <!--
 	This interface WILL change before 1.0 is released !
 	-->
