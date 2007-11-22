@@ -22,42 +22,41 @@ man_MANS = Index/pinot-index.1 Index/pinot-label.1 Search/pinot-search.1 \
 
 install-data-local:
 	@mkdir -p $(DESTDIR)$(sysconfdir)/pinot
-	$(INSTALL_DATA) \
-		$(top_srcdir)/Tokenize/filters/external-filters.xml $(DESTDIR)$(sysconfdir)/pinot/external-filters.xml
-	$(INSTALL_DATA) $(top_srcdir)/globalconfig.xml $(DESTDIR)$(sysconfdir)/pinot/globalconfig.xml
-	$(INSTALL_DATA) $(top_srcdir)/textcat_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat_conf.txt
-	$(INSTALL_DATA) $(top_srcdir)/textcat3_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat3_conf.txt
+	$(INSTALL_DATA) $(srcdir)/Tokenize/filters/external-filters.xml $(DESTDIR)$(sysconfdir)/pinot/external-filters.xml
+	$(INSTALL_DATA) $(srcdir)/globalconfig.xml $(DESTDIR)$(sysconfdir)/pinot/globalconfig.xml
+	$(INSTALL_DATA) $(srcdir)/textcat_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat_conf.txt
+	$(INSTALL_DATA) $(srcdir)/textcat3_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat3_conf.txt
 	@mkdir -p $(DESTDIR)$(datadir)/pinot $(DESTDIR)$(datadir)/dbus-1/services
-	$(INSTALL_DATA) $(top_srcdir)/UI/GTK2/xapian-powered.png $(DESTDIR)$(datadir)/pinot/xapian-powered.png
-	$(INSTALL_DATA) $(top_srcdir)/UI/GTK2/metase-gtk2.glade $(DESTDIR)$(datadir)/pinot/metase-gtk2.glade
-	$(INSTALL_DATA) $(top_srcdir)/UI/GTK2/metase-gtk2.gladep $(DESTDIR)$(datadir)/pinot/metase-gtk2.gladep
-	$(INSTALL_DATA) $(top_srcdir)/UI/GTK2/src/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml
-	$(INSTALL_DATA) $(top_builddir)/UI/GTK2/src/de.berlios.Pinot.service $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
+	$(INSTALL_DATA) $(srcdir)/UI/GTK2/xapian-powered.png $(DESTDIR)$(datadir)/pinot/xapian-powered.png
+	$(INSTALL_DATA) $(srcdir)/UI/GTK2/metase-gtk2.glade $(DESTDIR)$(datadir)/pinot/metase-gtk2.glade
+	$(INSTALL_DATA) $(srcdir)/UI/GTK2/metase-gtk2.gladep $(DESTDIR)$(datadir)/pinot/metase-gtk2.gladep
+	$(INSTALL_DATA) $(srcdir)/UI/GTK2/src/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml
+	$(INSTALL_DATA) $(builddir)/UI/GTK2/src/de.berlios.Pinot.service $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
 	@mkdir -p $(DESTDIR)$(datadir)/pinot/engines
-	$(INSTALL_DATA) $(top_srcdir)/Search/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
+	$(INSTALL_DATA) $(srcdir)/Search/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
 	@mv $(DESTDIR)$(datadir)/pinot/engines/AmazonAPI.src $(DESTDIR)$(datadir)/pinot/
-	$(INSTALL_DATA) $(top_srcdir)/Search/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
+	$(INSTALL_DATA) $(srcdir)/Search/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
 	@mkdir -p $(DESTDIR)$(libdir)/pinot/filters
 	@rm $(DESTDIR)$(libdir)/lib*filter.a $(DESTDIR)$(libdir)/lib*filter.la
 	@mv $(DESTDIR)$(libdir)/lib*filter* $(DESTDIR)$(libdir)/pinot/filters/
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
-	$(INSTALL_DATA) $(top_srcdir)/UI/icons/48x48/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
+	$(INSTALL_DATA) $(srcdir)/UI/icons/48x48/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/
-	$(INSTALL_DATA) $(top_srcdir)/UI/icons/32x32/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/pinot.png
+	$(INSTALL_DATA) $(srcdir)/UI/icons/32x32/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/pinot.png
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/24x24/apps/
-	$(INSTALL_DATA) $(top_srcdir)/UI/icons/24x24/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/24x24/apps/pinot.png
+	$(INSTALL_DATA) $(srcdir)/UI/icons/24x24/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/24x24/apps/pinot.png
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/22x22/apps/
-	$(INSTALL_DATA) $(top_srcdir)/UI/icons/22x22/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/22x22/apps/pinot.png
+	$(INSTALL_DATA) $(srcdir)/UI/icons/22x22/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/22x22/apps/pinot.png
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/16x16/apps/
-	$(INSTALL_DATA) $(top_srcdir)/UI/icons/16x16/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/16x16/apps/pinot.png
+	$(INSTALL_DATA) $(srcdir)/UI/icons/16x16/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/16x16/apps/pinot.png
 	@mkdir -p $(DESTDIR)$(datadir)/applications
-	@desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications $(top_srcdir)/pinot.desktop
+	@desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications $(srcdir)/pinot.desktop
 	@mkdir -p $(DESTDIR)${sysconfdir}/xdg/autostart
-	@desktop-file-install --vendor="" --dir=$(DESTDIR)${sysconfdir}/xdg/autostart $(top_srcdir)/pinot-dbus-daemon.desktop
+	@desktop-file-install --vendor="" --dir=$(DESTDIR)${sysconfdir}/xdg/autostart $(srcdir)/pinot-dbus-daemon.desktop
 	@mkdir -p $(DESTDIR)$(libdir)/deskbar-applet/handlers/
-	$(INSTALL_DATA) $(top_srcdir)/scripts/python/pinot-live.py $(DESTDIR)$(libdir)/deskbar-applet/handlers/
+	$(INSTALL_DATA) $(srcdir)/scripts/python/pinot-live.py $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 	@mkdir -p $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/
-	$(INSTALL_DATA) $(top_srcdir)/scripts/python/pinot-module.py $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/
+	$(INSTALL_DATA) $(srcdir)/scripts/python/pinot-module.py $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/
 
 uninstall-local:
 	@rm -rf $(DESTDIR)$(sysconfdir)/pinot
