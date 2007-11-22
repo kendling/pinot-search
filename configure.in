@@ -262,7 +262,7 @@ fi
 dnl Other libraries
 MISC_LIBS="-lcrypt $PTHREAD_LIBS"
 AC_SUBST(MISC_LIBS)
-AC_CHECK_HEADERS([netinet/in.h arpa/inet.h])
+AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h])
 PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
 SHARED_MIME_INFO_PREFIX=`pkg-config --variable=prefix shared-mime-info`
 AC_SUBST(SHARED_MIME_INFO_PREFIX)
@@ -314,6 +314,7 @@ AC_CHECK_FUNCS(fork)
 AC_CHECK_FUNCS(setrlimit)
 AC_CHECK_FUNCS(statvfs)
 AC_CHECK_FUNCS(statfs)
+AC_CHECK_FUNCS(sysctlbyname)
 
 AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile )
