@@ -1,3 +1,30 @@
+2007/11/24 version_0_8_1
+Build :
+ - Misc fixes
+General :
+ - updated FAQ and README
+ - fixed Icon field in desktop files
+Index :
+ - workaround for broken shared-mime-info rules that identify HTML files as
+  Mozilla bookmarks
+ - files whose name includes a question mark were not indexed correctly
+ - pinot-label would loop forever if the supplied file name wasn't in the index
+ - don't build the spelling table if the env var PINOT_SPELLING_DB is set to NO
+Deskbar :
+ - new plugin compatible with Deskbar 2.20
+Daemon :
+ - stop crawling and indexing if the partition on which the index resides is
+  getting full. By default, that means less than 50 Mb. This can be overriden
+  with the env var PINOT_MINIMUM_DISK_SPACE, eg PINOT_MINIMUM_DISK_SPACE=100
+  for 100 Mb
+ - stop crawling when the system goes on battery and restart when on AC. This
+  requires support for the freedesktop.org's Power Management spec, or pre-spec
+  gnome-power-manager.
+UI :
+ - fixed build against libsigc++ 2.1
+ - updated Portuguese translation by Tiago Silva
+ - updated Swedish translation by Daniel Nylander
+
 2007/11/01 version_0_8_0
 Build :
  - SMP builds, thanks to Gabriel C
