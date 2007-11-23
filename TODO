@@ -70,7 +70,6 @@ Index
 - After indexing or updating a document, a call to getDocumentInfo() shouldn't be necessary
 - Labels and the rest of DocumentInfo are handled separately, they shouldn't be
 - Indexes have no knowledge of indexId's
-- Allow disabling spelling
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -92,6 +91,7 @@ Daemon
 - Follow updates to Xesam specs
 - Suspend indexing on battery use (/proc/acpi/ac_adapter/AC/state, AC0/state,
  ADp1/state or ACAD/state)
+- Preserve user set metadata on reindexing
 
 UI
 - Show which threads are running, what they are doing, and allow to stop them
