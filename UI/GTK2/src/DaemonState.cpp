@@ -222,11 +222,16 @@ void DaemonState::check_battery_state(void)
 				// We are now on battery
 				set_flag(DaemonState::ON_BATTERY);
 				stop_crawling();
+
+				cout << "System is now on battery" << endl;
 			}
 			else
 			{
 				// Back on-line
 				reset_flag(DaemonState::ON_BATTERY);
+				start_crawling();
+
+				cout << "System is now on AC" << endl;
 			}
 		}
 	}
