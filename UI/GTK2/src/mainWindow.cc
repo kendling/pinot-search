@@ -32,6 +32,7 @@
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/clipboard.h>
+#include <gtkmm/recentmanager.h>
 #include <gtkmm/main.h>
 
 #include "CommandLine.h"
@@ -2105,25 +2106,19 @@ void mainWindow::on_indexresults_activate()
 //
 void mainWindow::on_import_activate()
 {
-	m_state.disconnect();
-
 	importDialog importBox;
+
 	importBox.show();
 	importBox.run();
 
-	m_state.connect();
-
-	// Was anything imported ?
-	if (importBox.getDocumentsCount() > 0)
+	// Anything to import ?
+	const DocumentInfo &docInfo = importBox.getDocumentInfo();
+	if (docInfo.getLocation().empty() == false)
 	{
-		ustring indexName(_("My Web Pages"));
-
-		// Is the index still being shown ?
-		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
-		if (pIndexPage != NULL)
+		ustring status = m_state.queue_index(docInfo);
+		if (status.empty() == false)
 		{
-			// Refresh
-			browse_index(indexName, pIndexPage->getQueryName(), 0);
+			set_status(status);
 		}
 	}
 }
@@ -3290,6 +3285,7 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 {
 	ViewHistory viewHistory(m_settings.getHistoryDatabaseName());
+	RefPtr<RecentManager> recentManager = RecentManager::get_default();
 	multimap<string, string> locationsByType;
 
 	for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
@@ -3444,6 +3440,21 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 		if (viewHistory.hasItem(url) == false)
 		{
 			viewHistory.insertItem(url);
+
+			// ...as well as in the recently used files list
+			RecentManager::Data itemData;
+			for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
+				docIter != documentsList.end(); ++docIter)
+			{
+				if (docIter->getLocation() == url)
+				{
+					itemData.display_name = docIter->getTitle();
+					break;
+				}
+			}
+			itemData.mime_type = type;
+			itemData.is_private = false;
+			recentManager->add_item(url, itemData);
 		}
 	}
 

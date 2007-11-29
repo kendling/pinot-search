@@ -26,8 +26,8 @@
 #include <gtkmm/liststore.h>
 #include <glibmm/ustring.h>
 
+#include "DocumentInfo.h"
 #include "ModelColumns.h"
-#include "WorkerThreads.h"
 #include "importDialog_glade.hh"
 
 class importDialog : public importDialog_glade
@@ -36,40 +36,19 @@ public:
 	importDialog();
 	virtual ~importDialog();
 
-	void setHeight(int maxHeight);
-
-	unsigned int getDocumentsCount(void);
+	const DocumentInfo &getDocumentInfo(void) const;
 
 protected:
-	void populate_comboboxes(void);
-
-	bool on_activity_timeout(void);
-	void import_url(const std::string &title, const std::string &location,
-		const std::string &labelName);
-	void on_thread_end(WorkerThread *pThread);
-
-private:
 	ComboModelColumns m_locationColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refLocationList;
 	Glib::RefPtr<Gtk::EntryCompletion> m_refLocationCompletion;
-	unsigned int m_docsCount;
-	// Activity timeout
-	sigc::connection m_timeoutConnection;
-	// Internal state
-	class InternalState : public ThreadsManager
-	{
-		public:
-			InternalState(unsigned int maxIndexThreads, importDialog *pWindow);
-			~InternalState();
+	unsigned int m_locationLength;
+	DocumentInfo m_docInfo;
 
-			unsigned int m_locationLength;
-			bool m_importing;
+	void populate_comboboxes(void);
 
-	} m_state;
-
-	virtual void on_locationEntry_changed();
 	virtual void on_importButton_clicked();
-	virtual void on_importDialog_response(int response_id);
+	virtual void on_locationEntry_changed();
 
 };
 

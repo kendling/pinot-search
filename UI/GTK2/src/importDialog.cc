@@ -38,22 +38,9 @@ using namespace std;
 using namespace Glib;
 using namespace Gtk;
 
-importDialog::InternalState::InternalState(unsigned int maxIndexThreads, importDialog *pWindow) :
-	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
-	m_locationLength(0),
-	m_importing(false)
-{
-	m_onThreadEndSignal.connect(sigc::mem_fun(*pWindow, &importDialog::on_thread_end));
-}
-
-importDialog::InternalState::~InternalState()
-{
-}
-
 importDialog::importDialog() :
 	importDialog_glade(),
-	m_docsCount(0),
-	m_state(10, this)
+	m_locationLength(0)
 {
 	// Enable completion on the location field
 	m_refLocationList = ListStore::create(m_locationColumns);
@@ -67,18 +54,18 @@ importDialog::importDialog() :
 	// Populate
 	populate_comboboxes();
 
-	// Connect to threads' finished signal
-	m_state.connect();
-
 	// Disable this button as long the location entry field is empty
 	// The title field may remain empty
 	importButton->set_sensitive(false);
-	importProgressbar->set_pulse_step(0.10);
 }
 
 importDialog::~importDialog()
 {
-	m_state.disconnect();
+}
+
+const DocumentInfo &importDialog::getDocumentInfo(void) const
+{
+	return m_docInfo;
 }
 
 void importDialog::populate_comboboxes(void)
@@ -95,18 +82,21 @@ void importDialog::populate_comboboxes(void)
 	}
 }
 
-bool importDialog::on_activity_timeout(void)
+void importDialog::on_importButton_clicked()
 {
-	importProgressbar->pulse();
+	string title(from_utf8(titleEntry->get_text()));
+	string location(from_utf8(locationEntry->get_text()));
+	string labelName;
 
-	return true;
-}
+	// Label
+	int chosenLabel = labelNameCombobox->get_active_row_number();
+	if (chosenLabel > 0)
+	{
+		labelName = from_utf8(labelNameCombobox->get_active_text());
+	}
 
-void importDialog::import_url(const string &title, const string &location,
-	const string &labelName)
-{
 	Url urlObj(location);
-	DocumentInfo docInfo(from_utf8(title), location, MIMEScanner::scanUrl(urlObj), "");
+	m_docInfo = DocumentInfo(title, location, MIMEScanner::scanUrl(urlObj), "");
 
 	// Any label ?
 	if (labelName.empty() == false)
@@ -114,89 +104,8 @@ void importDialog::import_url(const string &title, const string &location,
 		set<string> labels;
 
 		labels.insert(labelName);
-		docInfo.setLabels(labels);
+		m_docInfo.setLabels(labels);
 	}
-
-	// Was the document queued for indexing ?
-	ustring status = m_state.queue_index(docInfo);
-	if (status.empty() == true)
-	{
-		m_timeoutConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
-			&importDialog::on_activity_timeout), 1000);
-	}
-	else
-	{
-		importProgressbar->set_text(status);
-	}
-}
-
-void importDialog::on_thread_end(WorkerThread *pThread)
-{
-	ustring status;
-	bool success = true;
-
-	if (pThread == NULL)
-	{
-		return;
-	}
-
-	// Any thread still running ?
-	if (m_state.has_threads() == false)
-	{
-#ifdef DEBUG
-		cout << "importDialog::on_thread_end: imported all" << endl;
-#endif
-		m_state.m_importing = false;
-	}
-
-	// Did the thread fail ?
-	status = pThread->getStatus();
-	if (status.empty() == false)
-	{
-#ifdef DEBUG
-		cout << "importDialog::on_thread_end: " << status << endl;
-#endif
-		success = false;
-	}
-
-	// What type of thread was it ?
-	string type = pThread->getType();
-	if (type == "IndexingThread")
-	{
-		// Did it succeed ?
-		if (success == true)
-		{
-			// Yes, it did
-			++m_docsCount;
-		}
-	}
-
-	// Delete the thread
-	delete pThread;
-
-	// We might be able to run a queued action
-	m_state.pop_queue();
-
-	if (m_state.m_importing == false)
-	{
-		double fractionFilled = 1.0;
-
-		m_timeoutConnection.block();
-		m_timeoutConnection.disconnect();
-
-		if (success == false)
-		{
-			importProgressbar->set_text(status);
-			fractionFilled = 0.0;
-		}
-		importProgressbar->set_fraction(fractionFilled);
-		importButton->set_sensitive(true);
-	}
-}
-
-unsigned int importDialog::getDocumentsCount(void)
-{
-	return m_docsCount;
 }
 
 void importDialog::on_locationEntry_changed()
@@ -220,28 +129,26 @@ void importDialog::on_locationEntry_changed()
 		enableImport = false;
 	}
 
-	// Keep the button disabled as lon as we are importing
-	if (m_state.m_importing == true)
-	{
-		enableImport = false;
-	}
-	importButton->set_sensitive(enableImport);
-
 	unsigned int locationLength = fileName.length();
+	if (locationLength > 0)
+	{
+		// Enable the import button
+		importButton->set_sensitive(true);
+	}
 
 	// Reset the list
 	m_refLocationList->clear();
 
 	// If characters are being deleted or if the location is too short, don't
 	// attempt to offer suggestions
-	if ((m_state.m_locationLength > locationLength) ||
+	if ((m_locationLength > locationLength) ||
 		(fileName.empty() == true) ||
 		(m_refLocationCompletion->get_minimum_key_length() > fileName.length()))
 	{
-		m_state.m_locationLength = locationLength;
+		m_locationLength = locationLength;
 		return;
 	}
-	m_state.m_locationLength = locationLength;
+	m_locationLength = locationLength;
 
 	// Get 10 URLs like this one
 	QueryHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
@@ -258,43 +165,3 @@ void importDialog::on_locationEntry_changed()
 	}
 }
 
-void importDialog::on_importButton_clicked()
-{
-	string title(from_utf8(titleEntry->get_text()));
-	string location(from_utf8(locationEntry->get_text()));
-	string labelName;
-
-	// Rudimentary lock
-	if (m_state.m_importing == true)
-	{
-		return;
-	}
-	m_state.m_importing = true;
-
-	importProgressbar->set_text("");
-	importProgressbar->set_fraction(0.0);
-	// Disable the import button
-	importButton->set_sensitive(false);
-
-	// Label
-	int chosenLabel = labelNameCombobox->get_active_row_number();
-	if (chosenLabel > 0)
-	{
-		labelName = from_utf8(labelNameCombobox->get_active_text());
-	}
-
-	import_url(title, location, labelName);
-}
-
-void importDialog::on_importDialog_response(int response_id)
-{
-	if (m_timeoutConnection.connected() == true)
-	{
-		m_timeoutConnection.block();
-		m_timeoutConnection.disconnect();
-	}
-
-	// Closing the window should stop everything
-	m_state.disconnect();
-	m_state.stop_threads();
-}
