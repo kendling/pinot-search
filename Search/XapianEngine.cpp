@@ -236,6 +236,24 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 #endif
 	}
 
+	// Date range
+	Xapian::DateValueRangeProcessor dateProcessor(0);
+	parser.add_valuerangeprocessor(&dateProcessor);
+
+	// Size with a "b" suffix, ie 1024..10240b
+#if XAPIAN_NUM_VERSION >= 1001000
+	Xapian::NumberValueRangeProcessor sizeProcessor(2, "b", false);
+	parser.add_valuerangeprocessor(&sizeProcessor);
+#elif XAPIAN_NUM_VERSION >= 1000002
+	// Xapian 1.02 is the bare minimum
+	Xapian::v102::NumberValueRangeProcessor sizeProcessor(2, "b", false);
+	parser.add_valuerangeprocessor(&sizeProcessor);
+#endif
+
+	// Time range
+	TimeValueRangeProcessor timeProcessor(3);
+	parser.add_valuerangeprocessor(&timeProcessor);
+
 	// What type of query is this ?
 	QueryProperties::QueryType type = queryProps.getType();
 	if (type != QueryProperties::XAPIAN_QP)
@@ -328,24 +346,6 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		// Next
 		escapedFilterStart = freeQuery.find(":\"", escapedFilterEnd);
 	}
-
-	// Date range
-	Xapian::DateValueRangeProcessor dateProcessor(0);
-	parser.add_valuerangeprocessor(&dateProcessor);
-
-	// Size with a "b" suffix, ie 1024..10240b
-#if XAPIAN_NUM_VERSION >= 1001000
-	Xapian::NumberValueRangeProcessor sizeProcessor(2, "b", false);
-	parser.add_valuerangeprocessor(&sizeProcessor);
-#elif XAPIAN_NUM_VERSION >= 1000002
-	// Xapian 1.02 is the bare minimum
-	Xapian::v102::NumberValueRangeProcessor sizeProcessor(2, "b", false);
-	parser.add_valuerangeprocessor(&sizeProcessor);
-#endif
-
-	// Time range
-	TimeValueRangeProcessor timeProcessor(3);
-	parser.add_valuerangeprocessor(&timeProcessor);
 
 	// Parse the query string with all necessary options
 	unsigned int flags = Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|
