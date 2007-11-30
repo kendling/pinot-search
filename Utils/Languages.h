@@ -43,11 +43,11 @@ class Languages
 		/// Returns a language code.
 		static std::string toCode(const std::string &language);
 
-		static unsigned int m_count;
-		static char *m_names[];
+		static const unsigned int m_count;
+		static const char *m_names[];
 
 	protected:
-		static char *m_codes[];
+		static const char *m_codes[];
 		static std::map<unsigned int, std::string> m_intlNames;
 
 		Languages();
