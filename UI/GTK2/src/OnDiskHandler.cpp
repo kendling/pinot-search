@@ -29,7 +29,6 @@
 #include "StringManip.h"
 #include "Url.h"
 #include "FilterWrapper.h"
-#include "XapianDatabase.h"
 #include "PinotSettings.h"
 #include "OnDiskHandler.h"
 

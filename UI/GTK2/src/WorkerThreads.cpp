@@ -40,7 +40,6 @@
 #include "FilterUtils.h"
 #include "FilterWrapper.h"
 #include "DBusXapianIndex.h"
-#include "XapianDatabase.h"
 #include "ActionQueue.h"
 #include "CrawlHistory.h"
 #include "QueryHistory.h"
@@ -1471,7 +1470,7 @@ void IndexingThread::doWork(void)
 			if (((pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_FILE_NAME) == true) &&
 				(thisUrl.getProtocol() == "file")) ||
 				((pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_URI) == true) &&
-				(thisUrl.getProtocol() == "http")))
+				(thisUrl.isLocal() == false)))
 			{
 				doDownload = false;
 			}
