@@ -28,6 +28,7 @@
 #include <glibmm/convert.h>
 #include <glibmm/thread.h>
 #include <gtkmm/aboutdialog.h>
+#include <gtkmm/checkbutton.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/scrolledwindow.h>
@@ -40,7 +41,6 @@
 #include "TimeConverter.h"
 #include "MIMEScanner.h"
 #include "Url.h"
-#include "XapianDatabase.h"
 #include "MonitorFactory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
@@ -239,6 +239,36 @@ mainWindow::mainWindow() :
 	if (m_settings.isFirstRun() == true)
 	{
 		on_configure_activate();
+	}
+	else if	(m_settings.m_warnAboutVersion == true)
+	{
+		ustring boxMsg(_("Updating all documents in My Web Pages is recommended"));
+		MessageDialog msgDialog(boxMsg, false);
+		CheckButton *warnCheckbutton = NULL;
+
+		// The index version is not as expected
+		VBox *pVbox = msgDialog.get_vbox();
+		if (pVbox != NULL)
+		{
+			warnCheckbutton = manage(new CheckButton(_("Don't warn me again")));
+			warnCheckbutton->set_flags(Gtk::CAN_FOCUS);
+			warnCheckbutton->set_relief(Gtk::RELIEF_NORMAL);
+			warnCheckbutton->set_mode(true);
+			warnCheckbutton->set_active(false);
+			pVbox->pack_end(*warnCheckbutton, Gtk::PACK_EXPAND_WIDGET);
+			warnCheckbutton->show();
+		}
+		msgDialog.set_title(_("Update"));
+		msgDialog.set_transient_for(*this);
+		msgDialog.show();
+		msgDialog.run();
+
+		// Silence the warning ?
+		if ((warnCheckbutton != NULL) &&
+			(warnCheckbutton->get_active() == true))
+		{
+			m_settings.m_warnAboutVersion = false;
+		}
 	}
 }
 
@@ -2320,7 +2350,7 @@ void mainWindow::on_showfromindex_activate()
 void mainWindow::on_unindex_activate()
 {
 	vector<DocumentInfo> documentsList;
-	ustring boxTitle = _("Remove this document from the index ?");
+	ustring boxMsg(_("Remove this document from the index ?"));
 
 	ResultsTree *pResultsTree = NULL;
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
@@ -2339,11 +2369,12 @@ void mainWindow::on_unindex_activate()
 
 	if (documentsList.size() > 1)
 	{
-		boxTitle = _("Remove these documents from the index ?");
+		boxMsg = _("Remove these documents from the index ?");
 	}
 
 	// Ask for confirmation
-	MessageDialog msgDialog(boxTitle, false, MESSAGE_QUESTION, BUTTONS_YES_NO);
+	MessageDialog msgDialog(boxMsg, false, MESSAGE_QUESTION, BUTTONS_YES_NO);
+	msgDialog.set_title(_("Unindex"));
 	msgDialog.set_transient_for(*this);
 	msgDialog.show();
 	int result = msgDialog.run();
@@ -2818,8 +2849,9 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 	// Any thread still running ?
 	if (m_state.get_threads_count() > 0)
 	{
-		ustring boxTitle = _("At least one task hasn't completed yet. Quit now ?");
-		MessageDialog msgDialog(boxTitle, false, MESSAGE_QUESTION, BUTTONS_YES_NO);
+		ustring boxMsg(_("At least one task hasn't completed yet. Quit now ?"));
+		MessageDialog msgDialog(boxMsg, false, MESSAGE_QUESTION, BUTTONS_YES_NO);
+		msgDialog.set_title(_("Quit"));
 		msgDialog.set_transient_for(*this);
 		msgDialog.show();
 		int result = msgDialog.run();

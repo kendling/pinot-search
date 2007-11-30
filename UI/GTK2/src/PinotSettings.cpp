@@ -90,6 +90,7 @@ PinotSettings PinotSettings::m_instance;
 bool PinotSettings::m_clientMode = false;
 
 PinotSettings::PinotSettings() :
+	m_warnAboutVersion(false),
 	m_minimumDiskSpace(50),
 	m_xPos(0),
 	m_yPos(0),
@@ -263,6 +264,7 @@ bool PinotSettings::isFirstRun(void) const
 void PinotSettings::clear(void)
 {
 	m_version.clear();
+	m_warnAboutVersion = false;
 	m_googleAPIKey.clear();
 	m_xPos = 0;
 	m_yPos = 0;
@@ -453,6 +455,17 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 				else if (nodeName == "version")
 				{
 					m_version = nodeContent;
+				}
+				else if (nodeName == "warnaboutversion")
+				{
+					if (nodeContent == "YES")
+					{
+						m_warnAboutVersion = true;
+					}
+					else
+					{
+						m_warnAboutVersion = false;
+					}
 				}
 				else if (nodeName == "googleapikey")
 				{
@@ -1273,6 +1286,7 @@ bool PinotSettings::save(void)
 		}
 		// ...with text children nodes
 		addChildElement(pRootElem, "version", VERSION);
+		addChildElement(pRootElem, "warnaboutversion", (m_warnAboutVersion ? "YES" : "NO"));
 		addChildElement(pRootElem, "googleapikey", m_googleAPIKey);
 		// User interface position and size
 		pElem = pRootElem->add_child("ui");

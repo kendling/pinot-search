@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 	Glib::ustring errorMsg;
 	struct sigaction newAction;
 	int longOptionIndex = 0;
-	bool warnAboutIndex = false;
+	bool warnAboutVersion = false;
 
 	// Look at the options
 	int optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
@@ -276,7 +276,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		warnAboutIndex = pFirstDb->wasObsoleteFormat();
+		warnAboutVersion = pFirstDb->wasObsoleteFormat();
 	}
 	// ...and the daemon index in read-only mode
 	// If it can't be open, it just means the daemon has not yet created it
@@ -319,15 +319,15 @@ int main(int argc, char **argv)
 	if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
 		(index.getDocumentsCount() > 0))
 	{
-		warnAboutIndex = true;
+		warnAboutVersion = true;
 	}
+#ifdef DEBUG
+	cout << "My Web Pages was set to version " << indexVersion << endl;
+#endif
 	index.setVersion(VERSION);
-
-	if ((warnAboutIndex == true) &&
-		(errorMsg.empty() == true))
+	if (warnAboutVersion == true)
 	{
-		// Warn the user
-		errorMsg = _("Updating all documents in My Web Pages is recommended");
+		settings.m_warnAboutVersion = warnAboutVersion;
 	}
 
 	try
@@ -339,7 +339,6 @@ int main(int argc, char **argv)
 		mainWindow mainBox;
 		if (errorMsg.empty() == false)
 		{
-			// FIXME: use a popup ! 
 			mainBox.set_status(errorMsg);
 		}
 		m.run(mainBox);
