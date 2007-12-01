@@ -130,6 +130,9 @@ class IndexInterface
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void) = 0;
 
+		/// Reopens the index.
+		virtual bool reopen(void) const = 0;
+
 		/// Resets the index.
 		virtual bool reset(void) = 0;
 

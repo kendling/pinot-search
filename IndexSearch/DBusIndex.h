@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2007 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _DBUS_XAPIAN_INDEX_H
-#define _DBUS_XAPIAN_INDEX_H
+#ifndef _DBUS_INDEX_H
+#define _DBUS_INDEX_H
 
 #include <string>
 #include <set>
@@ -33,17 +33,17 @@ extern "C"
 #include <dbus/dbus-glib-lowlevel.h>
 }
 
-#include "XapianIndex.h"
+#include "IndexInterface.h"
 
 /// Allows to write to the daemon index via D-Bus. 
-class DBusXapianIndex : public XapianIndex
+class DBusIndex : public IndexInterface
 {
 	public:
-		DBusXapianIndex(const std::string &indexName);
-		DBusXapianIndex(const DBusXapianIndex &other);
-		virtual ~DBusXapianIndex();
+		DBusIndex(IndexInterface *pROIndex);
+		DBusIndex(const DBusIndex &other);
+		virtual ~DBusIndex();
 
-		DBusXapianIndex &operator=(const DBusXapianIndex &other);
+		DBusIndex &operator=(const DBusIndex &other);
 
 		/// Extracts docId and docInfo from a dbus message.
 		static bool documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
@@ -56,8 +56,17 @@ class DBusXapianIndex : public XapianIndex
 		/// Asks the D-Bus service to reload its configuration.
 		static bool reload(void);
 
+		/// Returns false if the index couldn't be opened.
+		virtual bool isGood(void) const;
+
+		/// Gets the version number.
+		virtual std::string getVersion(void) const;
+
 		/// Sets the version number.
 		virtual bool setVersion(const std::string &version) const;
+
+		/// Gets the index location.
+		virtual std::string getLocation(void) const;
 
 		/// Returns a document's properties.
 		virtual bool getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const;
@@ -138,6 +147,9 @@ class DBusXapianIndex : public XapianIndex
 		/// Unindexes the given document.
 		virtual bool unindexDocument(unsigned int docId);
 
+		/// Unindexes the given document.
+		virtual bool unindexDocument(const std::string &location);
+
 		/// Unindexes documents.
 		virtual bool unindexDocuments(const std::string &name, NameType type);
 
@@ -147,12 +159,15 @@ class DBusXapianIndex : public XapianIndex
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void);
 
+		/// Reopens the index.
+		virtual bool reopen(void) const;
+
 		/// Resets the index.
 		virtual bool reset(void);
 
 	protected:
-		void reopen(void) const;
+		IndexInterface *m_pROIndex;
 
 };
 
-#endif // _DBUS_XAPIAN_INDEX_H
+#endif // _DBUS_INDEX_H

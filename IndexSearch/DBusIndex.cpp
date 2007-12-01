@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2007 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,8 +19,7 @@
 #include <iostream>
 
 #include "Languages.h"
-#include "XapianDatabaseFactory.h"
-#include "DBusXapianIndex.h"
+#include "DBusIndex.h"
 
 using std::cout;
 using std::cerr;
@@ -30,7 +29,7 @@ using std::set;
 using std::map;
 using std::min;
 
-const char *g_fieldNames[] = { "caption", "url", "type", "language", "modtime", "size", NULL };
+static const char *g_fieldNames[] = { "caption", "url", "type", "language", "modtime", "size", NULL };
 
 static DBusGConnection *getBusConnection(void)
 {
@@ -42,7 +41,7 @@ static DBusGConnection *getBusConnection(void)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex: couldn't connect to session bus: " << pError->message << endl;
+			cerr << "DBusIndex: couldn't connect to session bus: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -61,45 +60,37 @@ static DBusGProxy *getBusProxy(DBusGConnection *pBus)
 		"de.berlios.Pinot", "/de/berlios/Pinot", "de.berlios.Pinot");
 }
 
-DBusXapianIndex::DBusXapianIndex(const string &indexName) :
-	XapianIndex(indexName)
+DBusIndex::DBusIndex(IndexInterface *pROIndex) :
+	IndexInterface(),
+	m_pROIndex(pROIndex)
 {
 }
 
-DBusXapianIndex::DBusXapianIndex(const DBusXapianIndex &other) :
-	XapianIndex(other)
+DBusIndex::DBusIndex(const DBusIndex &other) :
+	IndexInterface(other),
+	m_pROIndex(other.m_pROIndex)
 {
 }
 
-DBusXapianIndex::~DBusXapianIndex()
+DBusIndex::~DBusIndex()
 {
+	// Noone else is going to delete this
+	delete m_pROIndex;
 }
 
-DBusXapianIndex &DBusXapianIndex::operator=(const DBusXapianIndex &other)
+DBusIndex &DBusIndex::operator=(const DBusIndex &other)
 {
 	if (this != &other)
 	{
-		XapianIndex::operator=(other);
+		IndexInterface::operator=(other);
+		m_pROIndex = other.m_pROIndex;
 	}
 
 	return *this;
 }
 
-void DBusXapianIndex::reopen(void) const
-{
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
-	if (pDatabase != NULL)
-	{
-		// Re-open the database to the latest available version
-		pDatabase->reopen();
-#ifdef DEBUG
-		cout << "DBusXapianIndex::reopen: done" << endl;
-#endif
-	}
-}
-
 /// Extracts docId and docInfo from a dbus message.
-bool DBusXapianIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
+bool DBusIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
 	DocumentInfo &docInfo)
 {
 	DBusMessageIter array_iter;
@@ -114,7 +105,7 @@ bool DBusXapianIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &
 	if (type != DBUS_TYPE_UINT32)
 	{
 #ifdef DEBUG
-		cout << "DBusXapianIndex::documentInfoFromDBus: expected unsigned integer, got " << type << endl;
+		cout << "DBusIndex::documentInfoFromDBus: expected unsigned integer, got " << type << endl;
 #endif
 		return false;
 	}
@@ -125,7 +116,7 @@ bool DBusXapianIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &
 	if (type != DBUS_TYPE_ARRAY)
 	{
 #ifdef DEBUG
-		cout << "DBusXapianIndex::documentInfoFromDBus: expected array, got " << type << endl;
+		cout << "DBusIndex::documentInfoFromDBus: expected array, got " << type << endl;
 #endif
 		return false;
 	}
@@ -140,7 +131,7 @@ bool DBusXapianIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &
 		if (type != DBUS_TYPE_STRUCT)
 		{
 #ifdef DEBUG
-			cout << "DBusXapianIndex::documentInfoFromDBus: expected struct, got " << type << endl;
+			cout << "DBusIndex::documentInfoFromDBus: expected struct, got " << type << endl;
 #endif
 			return false;
 		}
@@ -150,7 +141,7 @@ bool DBusXapianIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &
 		if (pName == NULL)
 		{
 #ifdef DEBUG
-			cout << "DBusXapianIndex::documentInfoFromDBus: invalid field name" << endl;
+			cout << "DBusIndex::documentInfoFromDBus: invalid field name" << endl;
 #endif
 		}
 
@@ -159,12 +150,12 @@ bool DBusXapianIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &
 		if (pValue == NULL)
 		{
 #ifdef DEBUG
-			cout << "DBusXapianIndex::documentInfoFromDBus: invalid field value" << endl;
+			cout << "DBusIndex::documentInfoFromDBus: invalid field value" << endl;
 #endif
 			continue;
 		}
 #ifdef DEBUG
-		cout << "DBusXapianIndex::documentInfoFromDBus: field " << pName << "=" << pValue << endl;
+		cout << "DBusIndex::documentInfoFromDBus: field " << pName << "=" << pValue << endl;
 #endif
 
 		// Populate docInfo
@@ -200,7 +191,7 @@ bool DBusXapianIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &
 }
 
 /// Converts docId and docInfo to a dbus message.
-bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
+bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 	const DocumentInfo &docInfo)
 {
         DBusMessageIter array_iter;
@@ -223,7 +214,7 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 		DBUS_STRUCT_END_CHAR_AS_STRING, &array_iter))
 	{
 #ifdef DEBUG
-		cout << "DBusXapianIndex::documentInfoToDBus: couldn't open array container" << endl;
+		cout << "DBusIndex::documentInfoToDBus: couldn't open array container" << endl;
 #endif
 		return false;
 	}
@@ -237,7 +228,7 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 			DBUS_TYPE_STRUCT, NULL, &struct_iter))
 		{
 #ifdef DEBUG
-			cout << "DBusXapianIndex::documentInfoToDBus: couldn't open struct container" << endl;
+			cout << "DBusIndex::documentInfoToDBus: couldn't open struct container" << endl;
 #endif
 			return false;
 		}
@@ -268,13 +259,13 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 		}
 		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &pValue);
 #ifdef DEBUG
-		cout << "DBusXapianIndex::documentInfoToDBus: field " << g_fieldNames[fieldNum] << "=" << pValue << endl;
+		cout << "DBusIndex::documentInfoToDBus: field " << g_fieldNames[fieldNum] << "=" << pValue << endl;
 #endif
 
 		if (!dbus_message_iter_close_container(&array_iter, &struct_iter))
 		{
 #ifdef DEBUG
-			cout << "DBusXapianIndex::documentInfoToDBus: couldn't close struct container" << endl;
+			cout << "DBusIndex::documentInfoToDBus: couldn't close struct container" << endl;
 #endif
 			return false;
 		}
@@ -283,7 +274,7 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 	if (!dbus_message_iter_close_container(iter, &array_iter))
 	{
 #ifdef DEBUG
-		cout << "DBusXapianIndex::documentInfoToDBus: couldn't close array container" << endl;
+		cout << "DBusIndex::documentInfoToDBus: couldn't close array container" << endl;
 #endif
 		return false;
 	}
@@ -292,7 +283,7 @@ bool DBusXapianIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int doc
 }
 
 /// Asks the D-Bus service to reload its configuration.
-bool DBusXapianIndex::reload(void)
+bool DBusIndex::reload(void)
 {
 	gboolean reloading = FALSE;
 
@@ -305,7 +296,7 @@ bool DBusXapianIndex::reload(void)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::reload: couldn't get bus proxy" << endl;
+		cerr << "DBusIndex::reload: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -317,7 +308,7 @@ bool DBusXapianIndex::reload(void)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::reload: " << pError->message << endl;
+			cerr << "DBusIndex::reload: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -338,55 +329,73 @@ bool DBusXapianIndex::reload(void)
 // Implementation of IndexInterface
 //
 
-/// Sets the version number.
-bool DBusXapianIndex::setVersion(const string &version) const
+/// Returns false if the index couldn't be opened.
+bool DBusIndex::isGood(void) const
 {
-	cerr << "DBusXapianIndex::setVersion: not allowed" << endl;
+	return m_pROIndex->isGood();
+}
+
+/// Gets the version number.
+string DBusIndex::getVersion(void) const
+{
+	return m_pROIndex->getVersion();
+}
+
+/// Sets the version number.
+bool DBusIndex::setVersion(const string &version) const
+{
+	cerr << "DBusIndex::setVersion: not allowed" << endl;
 	return false;
 }
 
+/// Gets the index location.
+string DBusIndex::getLocation(void) const
+{
+	return m_pROIndex->getLocation();
+}
+
 /// Returns a document's properties.
-bool DBusXapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const
+bool DBusIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const
 {
 	reopen();
 
-	return XapianIndex::getDocumentInfo(docId, docInfo);
+	return m_pROIndex->getDocumentInfo(docId, docInfo);
 }
 
 /// Returns a document's terms count.
-unsigned int DBusXapianIndex::getDocumentTermsCount(unsigned int docId) const
+unsigned int DBusIndex::getDocumentTermsCount(unsigned int docId) const
 {
 	reopen();
 
-	return XapianIndex::getDocumentTermsCount(docId);
+	return m_pROIndex->getDocumentTermsCount(docId);
 }
 
 /// Returns a document's terms.
-bool DBusXapianIndex::getDocumentTerms(unsigned int docId,
+bool DBusIndex::getDocumentTerms(unsigned int docId,
 	map<unsigned int, string> &wordsBuffer) const
 {
 	reopen();
 
-	return XapianIndex::getDocumentTerms(docId, wordsBuffer);
+	return m_pROIndex->getDocumentTerms(docId, wordsBuffer);
 }
 
 /// Sets the list of known labels.
-bool DBusXapianIndex::setLabels(const set<string> &labels)
+bool DBusIndex::setLabels(const set<string> &labels)
 {
 	// Not allowed here
 	return false;
 }
 
 /// Gets the list of known labels.
-bool DBusXapianIndex::getLabels(set<string> &labels) const
+bool DBusIndex::getLabels(set<string> &labels) const
 {
 	reopen();
 
-	return XapianIndex::getLabels(labels);
+	return m_pROIndex->getLabels(labels);
 }
 
 /// Gets the list of known labels.
-bool DBusXapianIndex::getLabels(set<string> &labels, bool forceDBus) const
+bool DBusIndex::getLabels(set<string> &labels, bool forceDBus) const
 {
 	bool gotLabels = false;
 
@@ -405,7 +414,7 @@ bool DBusXapianIndex::getLabels(set<string> &labels, bool forceDBus) const
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::getLabels: couldn't get bus proxy" << endl;
+		cerr << "DBusIndex::getLabels: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -432,7 +441,7 @@ bool DBusXapianIndex::getLabels(set<string> &labels, bool forceDBus) const
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::getLabels: " << pError->message << endl;
+			cerr << "DBusIndex::getLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -444,7 +453,7 @@ bool DBusXapianIndex::getLabels(set<string> &labels, bool forceDBus) const
 }
 
 /// Adds a label.
-bool DBusXapianIndex::addLabel(const string &name)
+bool DBusIndex::addLabel(const string &name)
 {
 	bool addedLabel = false;
 
@@ -457,7 +466,7 @@ bool DBusXapianIndex::addLabel(const string &name)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::addLabel: couldn't get bus proxy" << endl;
+		cerr << "DBusIndex::addLabel: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -476,7 +485,7 @@ bool DBusXapianIndex::addLabel(const string &name)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::addLabel: " << pError->message << endl;
+			cerr << "DBusIndex::addLabel: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -488,7 +497,7 @@ bool DBusXapianIndex::addLabel(const string &name)
 }
 
 /// Renames a label.
-bool DBusXapianIndex::renameLabel(const string &name, const string &newName)
+bool DBusIndex::renameLabel(const string &name, const string &newName)
 {
 	bool renamedLabel = false;
 
@@ -501,7 +510,7 @@ bool DBusXapianIndex::renameLabel(const string &name, const string &newName)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::renameLabel: couldn't get bus proxy" << endl;
+		cerr << "DBusIndex::renameLabel: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -522,7 +531,7 @@ bool DBusXapianIndex::renameLabel(const string &name, const string &newName)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::renameLabel: " << pError->message << endl;
+			cerr << "DBusIndex::renameLabel: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -534,7 +543,7 @@ bool DBusXapianIndex::renameLabel(const string &name, const string &newName)
 }
 
 /// Deletes all references to a label.
-bool DBusXapianIndex::deleteLabel(const string &name)
+bool DBusIndex::deleteLabel(const string &name)
 {
 	bool deletedLabel = false;
 
@@ -547,7 +556,7 @@ bool DBusXapianIndex::deleteLabel(const string &name)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::deleteLabel: couldn't get bus proxy" << endl;
+		cerr << "DBusIndex::deleteLabel: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -566,7 +575,7 @@ bool DBusXapianIndex::deleteLabel(const string &name)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::deleteLabel: " << pError->message << endl;
+			cerr << "DBusIndex::deleteLabel: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -578,23 +587,23 @@ bool DBusXapianIndex::deleteLabel(const string &name)
 }
 
 /// Determines whether a document has a label.
-bool DBusXapianIndex::hasLabel(unsigned int docId, const string &name) const
+bool DBusIndex::hasLabel(unsigned int docId, const string &name) const
 {
 	reopen();
 
-	return XapianIndex::hasLabel(docId, name);
+	return m_pROIndex->hasLabel(docId, name);
 }
 
 /// Returns a document's labels.
-bool DBusXapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) const
+bool DBusIndex::getDocumentLabels(unsigned int docId, set<string> &labels) const
 {
 	reopen();
 
-	return XapianIndex::getDocumentLabels(docId, labels);
+	return m_pROIndex->getDocumentLabels(docId, labels);
 }
 
 /// Returns a document's labels.
-bool DBusXapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels, bool forceDBus) const
+bool DBusIndex::getDocumentLabels(unsigned int docId, set<string> &labels, bool forceDBus) const
 {
 	bool gotLabels = false;
 
@@ -613,7 +622,7 @@ bool DBusXapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels,
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::getDocumentLabels: couldn't get bus proxy" << endl;
+		cerr << "DBusIndex::getDocumentLabels: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -641,7 +650,7 @@ bool DBusXapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels,
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::getDocumentLabels: " << pError->message << endl;
+			cerr << "DBusIndex::getDocumentLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -653,7 +662,7 @@ bool DBusXapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels,
 }
 
 /// Sets a document's labels.
-bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
+bool DBusIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
 	bool resetLabels)
 {
 	bool updatedLabels = false;
@@ -667,7 +676,7 @@ bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &l
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::setDocumentLabels: couldn't get bus proxy" << endl;
+		cerr << "DBusIndex::setDocumentLabels: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -700,7 +709,7 @@ bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &l
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::setDocumentLabels: " << pError->message << endl;
+			cerr << "DBusIndex::setDocumentLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -715,7 +724,7 @@ bool DBusXapianIndex::setDocumentLabels(unsigned int docId, const set<string> &l
 }
 
 /// Sets documents' labels.
-bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
+bool DBusIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	const set<string> &labels, bool resetLabels)
 {
 	gboolean updatedLabels = FALSE;
@@ -729,7 +738,7 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::setDocumentsLabels: couldn't get bus proxy" << endl;
+		cerr << "DBusIndex::setDocumentsLabels: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -747,7 +756,7 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	{
 		pDocIds[idIndex] = g_strdup_printf("%u", *idIter); 
 #ifdef DEBUG
-		cout << "DBusXapianIndex::setDocumentsLabels: document " << pDocIds[idIndex] << endl;
+		cout << "DBusIndex::setDocumentsLabels: document " << pDocIds[idIndex] << endl;
 #endif
 		++idIndex;
 	}
@@ -757,7 +766,7 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	{
 		pLabels[labelIndex] = g_strdup(labelIter->c_str());
 #ifdef DEBUG
-		cout << "DBusXapianIndex::setDocumentsLabels: label " << pLabels[labelIndex] << endl;
+		cout << "DBusIndex::setDocumentsLabels: label " << pLabels[labelIndex] << endl;
 #endif
 		++labelIndex;
 	}
@@ -774,7 +783,7 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::setDocumentsLabels: " << pError->message << endl;
+			cerr << "DBusIndex::setDocumentsLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
 		updatedLabels = FALSE;
@@ -796,65 +805,65 @@ bool DBusXapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 }
 
 /// Checks whether the given URL is in the index.
-unsigned int DBusXapianIndex::hasDocument(const string &url) const
+unsigned int DBusIndex::hasDocument(const string &url) const
 {
 	reopen();
 
-	return XapianIndex::hasDocument(url);
+	return m_pROIndex->hasDocument(url);
 }
 
 /// Gets terms with the same root.
-unsigned int DBusXapianIndex::getCloseTerms(const string &term, set<string> &suggestions)
+unsigned int DBusIndex::getCloseTerms(const string &term, set<string> &suggestions)
 {
 	reopen();
 
-	return XapianIndex::getCloseTerms(term, suggestions);
+	return m_pROIndex->getCloseTerms(term, suggestions);
 }
 
 /// Returns the ID of the last document.
-unsigned int DBusXapianIndex::getLastDocumentID(void) const
+unsigned int DBusIndex::getLastDocumentID(void) const
 {
 	reopen();
 
-	return XapianIndex::getLastDocumentID();
+	return m_pROIndex->getLastDocumentID();
 }
 
 /// Returns the number of documents.
-unsigned int DBusXapianIndex::getDocumentsCount(const string &labelName) const
+unsigned int DBusIndex::getDocumentsCount(const string &labelName) const
 {
 	reopen();
 
-	return XapianIndex::getDocumentsCount(labelName);
+	return m_pROIndex->getDocumentsCount(labelName);
 }
 
 /// Lists documents.
-unsigned int DBusXapianIndex::listDocuments(set<unsigned int> &docIds,
+unsigned int DBusIndex::listDocuments(set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
 	reopen();
 
-	return XapianIndex::listDocuments(docIds, maxDocsCount, startDoc);
+	return m_pROIndex->listDocuments(docIds, maxDocsCount, startDoc);
 }
 
 /// Lists documents.
-bool DBusXapianIndex::listDocuments(const string &name, set<unsigned int> &docIds,
+bool DBusIndex::listDocuments(const string &name, set<unsigned int> &docIds,
 	NameType type, unsigned int maxDocsCount, unsigned int startDoc) const
 {
 	reopen();
 
-	return XapianIndex::listDocuments(name, docIds, type, maxDocsCount, startDoc);
+	return m_pROIndex->listDocuments(name, docIds, type, maxDocsCount, startDoc);
 }
 
 /// Indexes the given data.
-bool DBusXapianIndex::indexDocument(const Document &doc, const set<string> &labels,
+bool DBusIndex::indexDocument(const Document &doc, const set<string> &labels,
 	unsigned int &docId)
 {
-	cerr << "DBusXapianIndex::indexDocument: not allowed" << endl;
+	cerr << "DBusIndex::indexDocument: not allowed" << endl;
 	return false;
 }
 
 /// Updates the given document; true if success.
-bool DBusXapianIndex::updateDocument(unsigned int docId, const Document &doc)
+bool DBusIndex::updateDocument(unsigned int docId, const Document &doc)
 {
 	bool updated = false;
 
@@ -867,7 +876,7 @@ bool DBusXapianIndex::updateDocument(unsigned int docId, const Document &doc)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusXapianIndex::updateDocument: couldn't get bus proxy" << endl;
+		cerr << "DBusIndex::updateDocument: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -884,7 +893,7 @@ bool DBusXapianIndex::updateDocument(unsigned int docId, const Document &doc)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusXapianIndex::updateDocument: " << pError->message << endl;
+			cerr << "DBusIndex::updateDocument: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -896,7 +905,7 @@ bool DBusXapianIndex::updateDocument(unsigned int docId, const Document &doc)
 }
 
 /// Updates a document's properties.
-bool DBusXapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo)
+bool DBusIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo)
 {
 	DBusMessageIter iter;
 	bool updated = false;
@@ -912,12 +921,12 @@ bool DBusXapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo 
 		"/de/berlios/Pinot", "de.berlios.Pinot", "SetDocumentInfo");
 	if (pMsg == NULL)
 	{
-		cerr << "DBusXapianIndex::updateDocumentInfo: couldn't call method" << endl;
+		cerr << "DBusIndex::updateDocumentInfo: couldn't call method" << endl;
 		return false;
 	}
 
 	dbus_message_iter_init_append(pMsg, &iter);
-	if (DBusXapianIndex::documentInfoToDBus(&iter, docId, docInfo) == false)
+	if (DBusIndex::documentInfoToDBus(&iter, docId, docInfo) == false)
 	{
 		dbus_message_unref(pMsg);
 	}
@@ -932,7 +941,7 @@ bool DBusXapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo 
 
 		if (dbus_error_is_set(&err))
 		{
-			cerr << "DBusXapianIndex::updateDocumentInfo: " << err.message << endl;
+			cerr << "DBusIndex::updateDocumentInfo: " << err.message << endl;
 			dbus_error_free(&err);
 			return false;
 		}
@@ -954,35 +963,48 @@ bool DBusXapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo 
 }
 
 /// Unindexes the given document; true if success.
-bool DBusXapianIndex::unindexDocument(unsigned int docId)
+bool DBusIndex::unindexDocument(unsigned int docId)
 {
-	cerr << "DBusXapianIndex::unindexDocument: not allowed" << endl;
+	cerr << "DBusIndex::unindexDocument: not allowed" << endl;
+	return false;
+}
+
+/// Unindexes the given document.
+bool DBusIndex::unindexDocument(const string &location)
+{
+	cerr << "DBusIndex::unindexDocument: not allowed" << endl;
 	return false;
 }
 
 /// Unindexes documents.
-bool DBusXapianIndex::unindexDocuments(const string &name, NameType type)
+bool DBusIndex::unindexDocuments(const string &name, NameType type)
 {
-	cerr << "DBusXapianIndex::unindexDocuments: not allowed" << endl;
+	cerr << "DBusIndex::unindexDocuments: not allowed" << endl;
 	return false;
 }
 
 /// Unindexes all documents.
-bool DBusXapianIndex::unindexAllDocuments(void)
+bool DBusIndex::unindexAllDocuments(void)
 {
-	cerr << "DBusXapianIndex::unindexDocuments: not allowed" << endl;
+	cerr << "DBusIndex::unindexDocuments: not allowed" << endl;
 	return false;
 }
 
 /// Flushes recent changes to the disk.
-bool DBusXapianIndex::flush(void)
+bool DBusIndex::flush(void)
 {
 	// The daemon knows best when to flush
 	return true;
 }
 
+/// Reopens the index.
+bool DBusIndex::reopen(void) const
+{
+	return m_pROIndex->reopen();
+}
+
 /// Resets the index.
-bool DBusXapianIndex::reset(void)
+bool DBusIndex::reset(void)
 {
 	// This can't be done here
 	return false;

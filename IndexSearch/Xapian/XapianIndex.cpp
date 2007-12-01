@@ -1941,6 +1941,20 @@ bool XapianIndex::flush(void)
 	return flushed;
 }
 
+/// Reopens the index.
+bool XapianIndex::reopen(void) const
+{
+	// Reopen
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	if (pDatabase == NULL)
+	{
+		cerr << "Bad index " << m_databaseName << endl;
+		return false;
+	}
+
+	return true;
+}
+
 /// Resets the index.
 bool XapianIndex::reset(void)
 {

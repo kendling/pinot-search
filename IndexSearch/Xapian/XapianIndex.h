@@ -142,6 +142,9 @@ class XapianIndex : public IndexInterface
 		/// Flushes recent changes to the disk.
 		virtual bool flush(void);
 
+		/// Reopens the index.
+		virtual bool reopen(void) const;
+
 		/// Resets the index.
 		virtual bool reset(void);
 

@@ -36,7 +36,8 @@ extern "C"
 #include "StringManip.h"
 #include "MIMEScanner.h"
 #include "Url.h"
-#include "DBusXapianIndex.h"
+#include "DBusIndex.h"
+#include "IndexFactory.h"
 #include "XapianDatabaseFactory.h"
 
 using namespace std;
@@ -183,8 +184,9 @@ int main(int argc, char **argv)
 
 	MIMEScanner::initialize("", "");
 
+	// We need a DBusIndex object
 	string indexLocation(getHomeDirectory() + "/.pinot/daemon");
-	DBusXapianIndex index(indexLocation);
+	DBusIndex index(IndexFactory::getIndex("xapian", indexLocation));
 	if (index.isGood() == false)
 	{
 		cerr << "Couldn't obtain index for " << indexLocation << endl;

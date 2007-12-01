@@ -17,7 +17,7 @@
  */
 
 #include "XapianIndex.h"
-#include "DBusXapianIndex.h"
+#include "DBusIndex.h"
 #include "IndexFactory.h"
 
 using std::string;
@@ -36,11 +36,12 @@ IndexInterface *IndexFactory::getIndex(const string &type, const string &option)
 	IndexInterface *pIndex = NULL;
 
 	// Choice by type
-	if (type == "dbus")
+	if (type == "dbus-xapiam")
 	{
-		pIndex = new DBusXapianIndex(option);
+		pIndex = new DBusIndex(new XapianIndex(option));
 	}
-	else if (type == "xapian")
+	else if ((type == "xapian") ||
+		(type.empty() == true))
 	{
 		pIndex = new XapianIndex(option);
 	}

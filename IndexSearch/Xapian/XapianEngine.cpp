@@ -25,6 +25,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include "config.h"
 #include "Languages.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
