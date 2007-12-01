@@ -93,8 +93,6 @@ AC_ARG_ENABLE(soap,
 if test "x$enable_soap" != "xyes"; then
    SOAP_CFLAGS=""
    SOAP_LIBS=""
-   SOAP_SUBDIRS=""
-   SEARCH_LIBS="-lSearch"
    enable_soap=no
 fi
 AC_MSG_RESULT($enable_soap)
@@ -103,14 +101,10 @@ if test "x$enable_soap" = "xyes"; then
    PKG_CHECK_MODULES(SOAP, gsoap)
    SOAP_CFLAGS="-DHAVE_GOOGLEAPI $SOAP_CFLAGS"
    AM_CONDITIONAL(HAVE_SOAP, true)
-   SOAP_LIBS="$SOAP_LIBS -lSearchSOAP"
-   SOAP_SUBDIRS="Search/Google"
-   SEARCH_LIBS="-lSearch -lSearchGoogle"
+   SOAP_LIBS="$SOAP_LIBS -lSearchSOAP -lSearchGoogle"
 fi
 AC_SUBST(SOAP_CFLAGS)
 AC_SUBST(SOAP_LIBS)
-AC_SUBST(SOAP_SUBDIRS)
-AC_SUBST(SEARCH_LIBS)
 
 dnl Neon or Curl ?
 AC_MSG_CHECKING(which HTTP library to use)
@@ -300,7 +294,7 @@ AC_SUBST(SIGCPP_LIBS)
 PKG_CHECK_MODULES(GLIBMM, glibmm-2.4 >= 2.6 )
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
-PKG_CHECK_MODULES(UI, gtkmm-2.4 >= 2.6 )
+PKG_CHECK_MODULES(UI, gtkmm-2.4 >= 2.10 )
 AC_SUBST(UI_CFLAGS)
 AC_SUBST(UI_LIBS)
 
@@ -317,9 +311,7 @@ AC_CHECK_FUNCS(statfs)
 AC_CHECK_FUNCS(sysctlbyname)
 
 AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
-	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile )
-if test "$SOAP_SUBDIRS" != "" ; then
-AC_OUTPUT( Search/Google/Makefile )
-fi
-AC_OUTPUT( Search/Makefile Index/Makefile Monitor/Makefile UI/GTK2/src/Makefile )
+	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile \
+	IndexSearch/Google/Makefile IndexSearch/Xapian/Makefile IndexSearch/Makefile \
+	Monitor/Makefile UI/GTK2/src/Makefile )
 

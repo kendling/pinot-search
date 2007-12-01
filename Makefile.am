@@ -1,15 +1,16 @@
 
-SUBDIRS = po Utils Tokenize SQL Collect Index @SOAP_SUBDIRS@ Search Monitor UI/GTK2/src
+SUBDIRS = po Utils Tokenize SQL Collect IndexSearch/Google IndexSearch/Xapian IndexSearch Monitor UI/GTK2/src
 
 # TODO: Fix that when cleaning up for distcheck! - crazy -
 EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	Tokenize/filters/external-filters.xml globalconfig.xml \
 	textcat_conf.txt textcat3_conf.txt \
 	pinot.desktop pinot-dbus-daemon.desktop pinot.spec \
-	Search/Plugins/*src Search/Plugins/*.xml \
-	Index/pinot-index.1 Index/pinot-label.1 Search/pinot-search.1 \
-	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1 \
-	UI/GTK2/src/pinot-dbus-daemon.xml UI/GTK2/src/de.berlios.Pinot.service \
+	IndexSearch/Plugins/*src IndexSearch/Plugins/*.xml \
+	IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
+	IndexSearch/pinot-search.1 UI/GTK2/src/pinot.1 \
+	UI/GTK2/src/pinot-dbus-daemon.1 UI/GTK2/src/pinot-dbus-daemon.xml \
+	UI/GTK2/src/de.berlios.Pinot.service \
 	UI/GTK2/xapian-powered.png UI/icons/48x48/pinot.png \
 	UI/icons/32x32/pinot.png UI/icons/24x24/pinot.png \
 	UI/icons/22x22/pinot.png UI/icons/16x16/pinot.png \
@@ -17,8 +18,8 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	scripts/bash/pinot-enum-index.sh \
 	scripts/python/pinot-live.py scripts/python/pinot-module.py
 
-man_MANS = Index/pinot-index.1 Index/pinot-label.1 Search/pinot-search.1 \
-	UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
+man_MANS = IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
+	IndexSearch/pinot-search.1 UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
 
 install-data-local:
 	@mkdir -p $(DESTDIR)$(sysconfdir)/pinot
@@ -33,9 +34,9 @@ install-data-local:
 	$(INSTALL_DATA) $(srcdir)/UI/GTK2/src/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml
 	$(INSTALL_DATA) $(builddir)/UI/GTK2/src/de.berlios.Pinot.service $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
 	@mkdir -p $(DESTDIR)$(datadir)/pinot/engines
-	$(INSTALL_DATA) $(srcdir)/Search/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
+	$(INSTALL_DATA) $(srcdir)/IndexSearch/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
 	@mv $(DESTDIR)$(datadir)/pinot/engines/AmazonAPI.src $(DESTDIR)$(datadir)/pinot/
-	$(INSTALL_DATA) $(srcdir)/Search/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
+	$(INSTALL_DATA) $(srcdir)/IndexSearch/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
 	@mkdir -p $(DESTDIR)$(libdir)/pinot/filters
 	@rm $(DESTDIR)$(libdir)/lib*filter.a $(DESTDIR)$(libdir)/lib*filter.la
 	@mv $(DESTDIR)$(libdir)/lib*filter* $(DESTDIR)$(libdir)/pinot/filters/

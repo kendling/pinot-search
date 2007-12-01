@@ -8,6 +8,7 @@ noinst_HEADERS = \
 	GoogleAPIEngine.h \
 	GoogleSearch.h
 
+if HAVE_SOAP
 noinst_LTLIBRARIES = libSearchGoogle.la
 
 libSearchGoogle_la_SOURCES = \
@@ -23,12 +24,12 @@ GAPIClientLib.cpp : GoogleSearch.h
 	soapcpp2 -n -pGAPI -I /usr/include/gsoap/import GoogleSearch.h
 
 libSearchGoogle_la_CXXFLAGS = \
-	-I$(top_srcdir)/Search \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \
 	-I$(top_srcdir)/Collect \
-	-I$(top_srcdir)/Index \
+	-I$(top_srcdir)/IndexSearch \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ \
 	@INDEX_CFLAGS@ @GMIME_CFLAGS@
+endif
 
