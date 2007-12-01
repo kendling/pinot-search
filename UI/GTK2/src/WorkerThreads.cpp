@@ -39,7 +39,7 @@
 #include "FilterFactory.h"
 #include "FilterUtils.h"
 #include "FilterWrapper.h"
-#include "DBusXapianIndex.h"
+#include "DBusIndex.h"
 #include "ActionQueue.h"
 #include "CrawlHistory.h"
 #include "QueryHistory.h"
@@ -1865,7 +1865,7 @@ void StartDaemonThread::doWork(void)
 {
 	// Ask the daemon to reload its configuration
 	// Let D-Bus activate the service if necessary
-	DBusXapianIndex::reload();
+	DBusIndex::reload();
 }
 
 MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler,

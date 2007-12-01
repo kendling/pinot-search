@@ -60,7 +60,6 @@
 #include "Url.h"
 #include "MonitorFactory.h"
 #include "CrawlHistory.h"
-#include "XapianIndex.h"
 #include "DaemonState.h"
 #include "OnDiskHandler.h"
 #include "PinotSettings.h"
@@ -408,8 +407,13 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 #endif
 
 		// Explicitely flush the index once a directory has been crawled
-		XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
-		index.flush();
+		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+		if (pIndex != NULL)
+		{
+			pIndex->flush();
+
+			delete pIndex;
+		}
 
 		if (pScannerThread->isStopped() == false)
 		{

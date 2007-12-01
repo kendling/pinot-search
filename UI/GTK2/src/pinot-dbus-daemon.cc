@@ -45,7 +45,6 @@
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
-#include "XapianIndex.h"
 #include "config.h"
 #include "NLS.h"
 #include "DaemonState.h"
@@ -542,29 +541,33 @@ int main(int argc, char **argv)
 
 		try
 		{
-			XapianIndex index(settings.m_daemonIndexLocation);
 			set<string> labels;
-			string indexVersion(index.getVersion());
-			bool gotLabels = index.getLabels(labels);
+			bool gotLabels = false;
 			bool onBattery = false;
 
-			// What version is the index at ?
-			if (indexVersion < PINOT_INDEX_MIN_VERSION)
+			IndexInterface *pIndex = settings.getIndex(settings.m_daemonIndexLocation);
+			if (pIndex != NULL)
 			{
-				cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
+				string indexVersion(pIndex->getVersion());
+				gotLabels = pIndex->getLabels(labels);
+				// What version is the index at ?
+				if (indexVersion < PINOT_INDEX_MIN_VERSION)
+				{
+					cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
 
-				reindex = true;
+					reindex = true;
+				}
+				if (reindex == true)
+				{
+					// Reset the index so that all documents are reindexed
+					pIndex->reset();
+
+					cout << "Reset index" << endl;
+
+					resetHistory = resetLabels = true;
+				}
+				pIndex->setVersion(VERSION);
 			}
-			if (reindex == true)
-			{
-				// Reset the index so that all documents are reindexed
-				index.reset();
-
-				cout << "Reset index" << endl;
-
-				resetHistory = resetLabels = true;
-			}
-			index.setVersion(VERSION);
 
 			if (resetHistory == true)
 			{
@@ -583,21 +586,27 @@ int main(int argc, char **argv)
 				cout << "Reset crawler history" << endl;
 			}
 
-			if (resetLabels == true)
+			if ((resetLabels == true) &&
+				(pIndex != NULL))
 			{
 				// Re-apply the labels list
 				if (gotLabels == false)
 				{
 					// If this is an upgrade from a version < 0.80, the labels list
 					// needs to be pulled from the configuration file
-					index.setLabels(settings.m_labels);
+					pIndex->setLabels(settings.m_labels);
 
 					cout << "Set labels as per the configuration file" << endl;
 				}
 				else
 				{
-					index.setLabels(labels);
+					pIndex->setLabels(labels);
 				}
+			}
+
+			if (pIndex != NULL)
+			{
+				delete pIndex;
 			}
 
 			// Connect to the quit signal

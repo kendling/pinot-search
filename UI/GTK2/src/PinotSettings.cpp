@@ -1572,7 +1572,7 @@ IndexInterface *PinotSettings::getIndex(const string &location)
 	else if ((m_clientMode == true) &&
 		(location == m_daemonIndexLocation))
 	{
-		return IndexFactory::getIndex("dbus", m_daemonIndexLocation);
+		return IndexFactory::getIndex("dbus-xapian", m_daemonIndexLocation);
 	}
 
 	return IndexFactory::getIndex("xapian", location);

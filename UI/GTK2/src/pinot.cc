@@ -50,7 +50,6 @@ extern "C"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
-#include "XapianIndex.h"
 #include "NLS.h"
 #include "PinotSettings.h"
 #include "mainWindow.hh"
@@ -311,20 +310,25 @@ int main(int argc, char **argv)
 
 	atexit(closeAll);
 
-	XapianIndex index(settings.m_docsIndexLocation);
-	string indexVersion(index.getVersion());
-
-	// What version is the index at ?
-	// Is an upgrade necessary ?
-	if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
-		(index.getDocumentsCount() > 0))
+	IndexInterface *pIndex = settings.getIndex(settings.m_docsIndexLocation);
+	if (pIndex != NULL)
 	{
-		warnAboutVersion = true;
-	}
+		string indexVersion(pIndex->getVersion());
+
+		// What version is the index at ?
+		// Is an upgrade necessary ?
+		if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
+			(pIndex->getDocumentsCount() > 0))
+		{
+			warnAboutVersion = true;
+		}
 #ifdef DEBUG
-	cout << "My Web Pages was set to version " << indexVersion << endl;
+		cout << "My Web Pages was set to version " << indexVersion << endl;
 #endif
-	index.setVersion(VERSION);
+		pIndex->setVersion(VERSION);
+
+		delete pIndex;
+	}
 	if (warnAboutVersion == true)
 	{
 		settings.m_warnAboutVersion = warnAboutVersion;

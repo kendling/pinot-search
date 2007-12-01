@@ -35,8 +35,7 @@
 #include "TimeConverter.h"
 #include "Timer.h"
 #include "Url.h"
-#include "DBusXapianIndex.h"
-#include "XapianIndex.h"
+#include "DBusIndex.h"
 #include "SearchEngineFactory.h"
 #include "config.h"
 #include "NLS.h"
@@ -618,13 +617,14 @@ bool DBusServletThread::runQuery(QueryProperties &queryProps, vector<string> &do
 
 void DBusServletThread::doWork(void)
 {
-	XapianIndex index(PinotSettings::getInstance().m_daemonIndexLocation);
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
 	DBusError error;
 	bool processedMessage = true, updateLabelsCache = false, flushIndex = false;
 
 	if ((m_pServer == NULL) ||
 		(m_pConnection == NULL) ||
-		(m_pRequest == NULL))
+		(m_pRequest == NULL) ||
+		(pIndex == NULL))
 	{
 		return;
 	}
@@ -635,7 +635,7 @@ void DBusServletThread::doWork(void)
 	set<string> &labelsCache = PinotSettings::getInstance().m_labels;
 	if (labelsCache.empty() == true)
 	{
-		index.getLabels(labelsCache);
+		pIndex->getLabels(labelsCache);
 	}
 
 #ifdef DEBUG
@@ -654,7 +654,7 @@ void DBusServletThread::doWork(void)
 	{
 		CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
 		unsigned int crawledFilesCount = history.getItemsCount(CrawlHistory::CRAWLED);
-		unsigned int docsCount = index.getDocumentsCount();
+		unsigned int docsCount = pIndex->getDocumentsCount();
 
 #ifdef DEBUG
 		cout << "DBusServletThread::doWork: received GetStatistics" << endl;
@@ -757,7 +757,7 @@ void DBusServletThread::doWork(void)
 				string labelName(pLabel);
 
 				// Add the label
-				flushIndex = index.addLabel(labelName);
+				flushIndex = pIndex->addLabel(labelName);
 				// Is this a known label ?
 				if (labelsCache.find(labelName) == labelsCache.end())
 				{
@@ -795,7 +795,7 @@ void DBusServletThread::doWork(void)
 				(pNewLabel != NULL))
 			{
 				// Rename the label
-				flushIndex = index.renameLabel(pOldLabel, pNewLabel);
+				flushIndex = pIndex->renameLabel(pOldLabel, pNewLabel);
 				// Update the labels list
 				set<string>::const_iterator oldLabelIter = labelsCache.find(pOldLabel);
 				if (oldLabelIter != labelsCache.end())
@@ -830,7 +830,7 @@ void DBusServletThread::doWork(void)
 			if (pLabel != NULL)
 			{
 				// Delete the label
-				flushIndex = index.deleteLabel(pLabel);
+				flushIndex = pIndex->deleteLabel(pLabel);
 				// Update the labels list
 				set<string>::const_iterator labelIter = labelsCache.find(pLabel);
 				if (labelIter != labelsCache.end())
@@ -863,7 +863,7 @@ void DBusServletThread::doWork(void)
 #ifdef DEBUG
 			cout << "DBusServletThread::doWork: received GetDocumentLabels " << docId << endl;
 #endif
-			if (index.getDocumentLabels(docId, labels) == true)
+			if (pIndex->getDocumentLabels(docId, labels) == true)
 			{
 				m_pArray = g_ptr_array_new();
 
@@ -932,7 +932,7 @@ void DBusServletThread::doWork(void)
 				<< ", " << labelsCount << " labels" << ", " << resetLabels << endl;
 #endif
 			// Set labels
-			flushIndex = index.setDocumentLabels(docId, labels, ((resetLabels == TRUE) ? true : false));
+			flushIndex = pIndex->setDocumentLabels(docId, labels, ((resetLabels == TRUE) ? true : false));
 
 			// Free container types
 			g_strfreev(ppLabels);
@@ -994,7 +994,7 @@ void DBusServletThread::doWork(void)
 				<< " IDs, " << labelsCount << " labels" << ", " << resetLabels << endl;
 #endif
 			// Set labels
-			if (index.setDocumentsLabels(docIds, labels, ((resetLabels == TRUE) ? true : false)) == true)
+			if (pIndex->setDocumentsLabels(docIds, labels, ((resetLabels == TRUE) ? true : false)) == true)
 			{
 				resetLabels = TRUE;
 				flushIndex = true;
@@ -1027,7 +1027,7 @@ void DBusServletThread::doWork(void)
 #ifdef DEBUG
 			cout << "DBusServletThread::doWork: received GetDocumentInfo on " << docId << endl;
 #endif
-			if (index.getDocumentInfo(docId, docInfo) == true)
+			if (pIndex->getDocumentInfo(docId, docInfo) == true)
 			{
 				// Prepare the reply
 				m_pReply = newDBusReply(m_pRequest);
@@ -1036,7 +1036,7 @@ void DBusServletThread::doWork(void)
 					DBusMessageIter iter;
 
 					dbus_message_iter_init_append(m_pReply, &iter);
-					if (DBusXapianIndex::documentInfoToDBus(&iter, 0, docInfo) == false)
+					if (DBusIndex::documentInfoToDBus(&iter, 0, docInfo) == false)
 					{
 						dbus_message_unref(m_pReply);
 						m_pReply = dbus_message_new_error(m_pRequest,
@@ -1060,7 +1060,7 @@ void DBusServletThread::doWork(void)
 		unsigned int docId = 0;
 
 		dbus_message_iter_init(m_pRequest, &iter);
-		if (DBusXapianIndex::documentInfoFromDBus(&iter, docId, docInfo) == false)
+		if (DBusIndex::documentInfoFromDBus(&iter, docId, docInfo) == false)
 		{
 			m_pReply = dbus_message_new_error(m_pRequest,
 				"de.berlios.Pinot.SetDocumentInfo",
@@ -1073,7 +1073,7 @@ void DBusServletThread::doWork(void)
 #endif
 
 			// Update the document info
-			flushIndex = index.updateDocumentInfo(docId, docInfo);
+			flushIndex = pIndex->updateDocumentInfo(docId, docInfo);
 
 			// Prepare the reply
 			m_pReply = newDBusReply(m_pRequest);
@@ -1155,7 +1155,7 @@ void DBusServletThread::doWork(void)
 #ifdef DEBUG
 			cout << "DBusServletThread::doWork: received UpdateDocument " << docId << endl;
 #endif
-			if (index.getDocumentInfo(docId, docInfo) == true)
+			if (pIndex->getDocumentInfo(docId, docInfo) == true)
 			{
 				// Update document
 				m_pServer->queue_index(docInfo);
@@ -1213,11 +1213,11 @@ void DBusServletThread::doWork(void)
 
 	// Set labels ?
 	if ((updateLabelsCache == true) &&
-		(index.setLabels(labelsCache) == false))
+		(pIndex->setLabels(labelsCache) == false))
 	{
 		// Updating failed... reset the cache
 		labelsCache.clear();
-		index.getLabels(labelsCache);
+		pIndex->getLabels(labelsCache);
 #ifdef DEBUG
 		cout << "DBusServletThread::doWork: failed to update labels" << endl;
 #endif
@@ -1239,7 +1239,9 @@ void DBusServletThread::doWork(void)
 	if (flushIndex == true)
 	{
 		// Flush now for the sake of the client application
-		index.flush();
+		pIndex->flush();
 	}
+
+	delete pIndex;
 }
 
