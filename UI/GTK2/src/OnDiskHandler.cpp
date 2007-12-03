@@ -37,7 +37,7 @@ using namespace std;
 OnDiskHandler::OnDiskHandler() :
 	MonitorHandler(),
 	m_history(PinotSettings::getInstance().getHistoryDatabaseName()),
-	m_index(PinotSettings::getInstance().m_daemonIndexLocation)
+	m_pIndex(PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation))
 {
 	pthread_mutex_init(&m_mutex, NULL);
 }
@@ -57,6 +57,11 @@ OnDiskHandler::~OnDiskHandler()
 			slotIter->disconnect();
 		}
 	}
+
+	if (m_pIndex != NULL)
+	{
+		delete m_pIndex;
+	}
 }
 
 bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFileName,
@@ -68,18 +73,23 @@ bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFile
 #ifdef DEBUG
 	cout << "OnDiskHandler::fileMoved: " << fileName << endl;
 #endif
+	if (m_pIndex == NULL)
+	{
+		return false;
+	}
+
 	pthread_mutex_lock(&m_mutex);
 	// Get a list of documents in that directory/file
 	if (type == IndexInterface::BY_FILE)
 	{
-		m_index.listDocuments(string("file://") + previousFileName, docIdList, type);
+		m_pIndex->listDocuments(string("file://") + previousFileName, docIdList, type);
 	}
 	else
 	{
-		m_index.listDocuments(previousFileName, docIdList, type);
+		m_pIndex->listDocuments(previousFileName, docIdList, type);
 	}
 	// ...and the directory/file itself
-	unsigned int baseDocId = m_index.hasDocument(string("file://") + previousFileName);
+	unsigned int baseDocId = m_pIndex->hasDocument(string("file://") + previousFileName);
 	if (baseDocId > 0)
 	{
 		docIdList.insert(baseDocId);
@@ -94,7 +104,7 @@ bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFile
 #ifdef DEBUG
 			cout << "OnDiskHandler::fileMoved: moving " << *iter << endl;
 #endif
-			if (m_index.getDocumentInfo(*iter, docInfo) == true)
+			if (m_pIndex->getDocumentInfo(*iter, docInfo) == true)
 			{
 				string newLocation(docInfo.getLocation());
 
@@ -145,20 +155,25 @@ bool OnDiskHandler::fileDeleted(const string &fileName, IndexInterface::NameType
 #ifdef DEBUG
 	cout << "OnDiskHandler::fileDeleted: " << fileName << endl;
 #endif
+	if (m_pIndex == NULL)
+	{
+		return false;
+	}
+
 	pthread_mutex_lock(&m_mutex);
 	// Unindex all of the directory/file's documents
 	if (type == IndexInterface::BY_FILE)
 	{
-		unindexedDocs = m_index.unindexDocuments(location, type);
+		unindexedDocs = m_pIndex->unindexDocuments(location, type);
 	}
 	else
 	{
-		unindexedDocs = m_index.unindexDocuments(fileName, type);
+		unindexedDocs = m_pIndex->unindexDocuments(fileName, type);
 	}
 	if (unindexedDocs == true)
 	{
 		// ...as well as the actual directory/file
-		m_index.unindexDocument(location);
+		m_pIndex->unindexDocument(location);
 
 		m_history.deleteItems(location);
 		handledEvent = true;
@@ -215,13 +230,17 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 
 bool OnDiskHandler::replaceFile(unsigned int docId, DocumentInfo &docInfo)
 {
-	FilterWrapper wrapFilter(&m_index);
+	if (m_pIndex == NULL)
+	{
+		return false;
+	}
 
 	// Unindex the destination file
+	FilterWrapper wrapFilter(m_pIndex);
 	wrapFilter.unindexDocument(docInfo.getLocation());
 
 	// Update the document info
-	return m_index.updateDocumentInfo(docId, docInfo);
+	return m_pIndex->updateDocumentInfo(docId, docInfo);
 }
 
 void OnDiskHandler::initialize(void)
@@ -262,7 +281,8 @@ void OnDiskHandler::initialize(void)
 					<< ", source " << sourceId << " was removed" << endl;
 #endif
 				// All documents with this label will be unindexed
-				if (m_index.unindexDocuments(labelStr, IndexInterface::BY_LABEL) == true)
+				if ((m_pIndex != NULL) &&
+					(m_pIndex->unindexDocuments(labelStr, IndexInterface::BY_LABEL) == true))
 				{
 					// Delete the source itself and all its items
 					m_history.deleteSource(sourceId);
@@ -280,7 +300,10 @@ void OnDiskHandler::initialize(void)
 void OnDiskHandler::flushIndex(void)
 {
 	pthread_mutex_lock(&m_mutex);
-	m_index.flush();
+	if (m_pIndex != NULL)
+	{
+		m_pIndex->flush();
+	}
 	pthread_mutex_unlock(&m_mutex);
 }
 

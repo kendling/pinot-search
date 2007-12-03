@@ -25,7 +25,6 @@
 #include "Languages.h"
 #include "StringManip.h"
 #include "NLS.h"
-#include "XapianIndex.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "propertiesDialog.hh"

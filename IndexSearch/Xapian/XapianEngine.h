@@ -27,7 +27,6 @@
 
 #include "config.h"
 #include "SearchEngineInterface.h"
-#include "DownloaderFactory.h"
 
 #if !ENABLE_XAPIAN_SPELLING_CORRECTION
 // Spelling correction in Xapian 1.0.2 may cause a crash

@@ -36,6 +36,8 @@
 #include <gtkmm/recentmanager.h>
 #include <gtkmm/main.h>
 
+#include "config.h"
+#include "NLS.h"
 #include "CommandLine.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
@@ -44,10 +46,6 @@
 #include "MonitorFactory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
-#include "DownloaderFactory.h"
-#include "SearchEngineFactory.h"
-#include "config.h"
-#include "NLS.h"
 #include "PinotUtils.h"
 #include "mainWindow.hh"
 #include "importDialog.hh"

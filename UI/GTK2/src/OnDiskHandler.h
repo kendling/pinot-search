@@ -26,8 +26,8 @@
 #include <sigc++/sigc++.h>
 
 #include "CrawlHistory.h"
+#include "IndexInterface.h"
 #include "MonitorHandler.h"
-#include "XapianIndex.h"
 #include "PinotSettings.h"
 
 class OnDiskHandler : public MonitorHandler
@@ -75,7 +75,7 @@ class OnDiskHandler : public MonitorHandler
 		sigc::signal3<void, const DocumentInfo&, const std::string&, bool> m_signalFileFound;
 		std::map<unsigned int, std::string> m_fileSources;
 		CrawlHistory m_history;
-		XapianIndex m_index;
+		IndexInterface *m_pIndex;
 
 		bool fileMoved(const std::string &fileName,
 			const std::string &previousFileName,
