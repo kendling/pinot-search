@@ -22,7 +22,6 @@
 #include <gtkmm/menu.h>
 
 #include "config.h"
-#include "Languages.h"
 #include "NLS.h"
 #include "TimeConverter.h"
 #include "PinotUtils.h"
