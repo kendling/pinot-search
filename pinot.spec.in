@@ -44,7 +44,6 @@ Pinot is a D-Bus service that crawls, indexes your documents and monitors them
 for changes, as well as a GTK-based user interface that enables to query
 the index built by the service and your favourite Web engines, and display and
 analyze the results.
-A plugin for DeskbarApplet is included.
 
 %package deskbar
 Summary: Pinot plugin for DeskbarApplet
@@ -94,6 +93,7 @@ fi
 %{_libdir}/pinot/filters/libexternalfilter.so*
 %{_libdir}/pinot/filters/libmboxfilter.so*
 %{_libdir}/pinot/filters/libtaglibfilter.so*
+%{_libdir}/pinot/modules/libxapianmodule.so*
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png

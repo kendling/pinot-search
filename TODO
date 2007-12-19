@@ -13,7 +13,6 @@ General
 - Advertise service via Rendezvous
 - Extend metadata beyond title,location,language,type,timestamp,size
 - Don't package gmo files, they are platform dependent
-- Check for http_proxy and such in the environment and initialize Network params
 
 Deskbar
 - Update to a module
@@ -23,6 +22,7 @@ Tokenize
 - PDF filter with poppler
 - WordPerfect filter with libwpd
 - Office filter with libgst
+- TeX filter
 - Check whether pdftotext flattens text in PDF documents that have columns
 - HtmlFilter should skip htdig_noindex blocks (http://www.htdig.org/attrs.html#noindex_start)
 - HtmlFilter to look for META tags Author, Creator, Publisher and CreationDate
@@ -70,6 +70,7 @@ Index
 - After indexing or updating a document, a call to getDocumentInfo() shouldn't be necessary
 - Labels and the rest of DocumentInfo are handled separately, they shouldn't be
 - Indexes have no knowledge of indexId's
+- Classify files (images, videos, etc...)
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -89,9 +90,8 @@ Daemon
 - Export term suggestion over D-Bus
 - There's currently no easy way to get a document's ID without running a search
 - Follow updates to Xesam specs
-- Suspend indexing on battery use (/proc/acpi/ac_adapter/AC/state, AC0/state,
- ADp1/state or ACAD/state)
 - Preserve user set metadata on reindexing
+- Generate warning if we run out of inotify watch
 
 UI
 - Show which threads are running, what they are doing, and allow to stop them
@@ -115,6 +115,5 @@ UI
 - Let queries index only new results
 - Query expansion should be interactive
 - Default cache provider should be configurable
-- Keep warning about the old index version until silenced by the user, or until
- documents are updated
+- Reload documents info after importing them into the My Web Pages index
 

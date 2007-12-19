@@ -462,7 +462,7 @@ Google SOAP API (2)	Search/Google/googleapi		beta2
  gSOAP (2)						2.7.9e
  http://www.cs.fsu.edu/~engelen/soap.html
 
-gtkmm							2.6.2
+gtkmm							2.10
 http://www.gtkmm.org/
 
 libxml++						2.12.0
