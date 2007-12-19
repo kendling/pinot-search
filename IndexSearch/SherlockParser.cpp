@@ -612,14 +612,19 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 		{
 			if (userInput.empty() == false)
 			{
+				string lowUserInput(StringManip::toLowerCase(userInput));
+
 				// Remove the user input tag from the input tags map
-				mapIter = lowInputItems.find(userInput);
+				mapIter = lowInputItems.find(lowUserInput);
 				if (mapIter != lowInputItems.end())
 				{
 					lowInputItems.erase(mapIter);
 				}
+#ifdef DEBUG
+				else cout << "SherlockParser::parse: couldn't remove user input item" << endl;
+#endif
 
-				properties.m_parameters[SearchPluginProperties::SEARCH_TERMS_PARAM] = userInput;
+				properties.m_parameters[SearchPluginProperties::SEARCH_TERMS_PARAM] = lowUserInput;
 			}
 			for (map<string, string>::iterator iter = lowInputItems.begin();
 				iter != lowInputItems.end(); ++iter)
@@ -632,6 +637,9 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 				properties.m_parametersRemainder += iter->first;
 				properties.m_parametersRemainder += "=";
 				properties.m_parametersRemainder += iter->second;
+#ifdef DEBUG
+				cout << "SherlockParser::parse: input item " << iter->first << endl;
+#endif
 			}
 
 			// URL
