@@ -74,8 +74,11 @@ DBusIndex::DBusIndex(const DBusIndex &other) :
 
 DBusIndex::~DBusIndex()
 {
-	// Noone else is going to delete this
-	delete m_pROIndex;
+	if (m_pROIndex != NULL)
+	{
+		// Noone else is going to delete this
+		delete m_pROIndex;
+	}
 }
 
 DBusIndex &DBusIndex::operator=(const DBusIndex &other)
@@ -332,12 +335,22 @@ bool DBusIndex::reload(void)
 /// Returns false if the index couldn't be opened.
 bool DBusIndex::isGood(void) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	return m_pROIndex->isGood();
 }
 
 /// Gets the version number.
 string DBusIndex::getVersion(void) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return "";
+	}
+
 	return m_pROIndex->getVersion();
 }
 
@@ -351,12 +364,22 @@ bool DBusIndex::setVersion(const string &version) const
 /// Gets the index location.
 string DBusIndex::getLocation(void) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return "";
+	}
+
 	return m_pROIndex->getLocation();
 }
 
 /// Returns a document's properties.
 bool DBusIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->getDocumentInfo(docId, docInfo);
@@ -365,6 +388,11 @@ bool DBusIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const
 /// Returns a document's terms count.
 unsigned int DBusIndex::getDocumentTermsCount(unsigned int docId) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->getDocumentTermsCount(docId);
@@ -374,6 +402,11 @@ unsigned int DBusIndex::getDocumentTermsCount(unsigned int docId) const
 bool DBusIndex::getDocumentTerms(unsigned int docId,
 	map<unsigned int, string> &wordsBuffer) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->getDocumentTerms(docId, wordsBuffer);
@@ -389,20 +422,13 @@ bool DBusIndex::setLabels(const set<string> &labels)
 /// Gets the list of known labels.
 bool DBusIndex::getLabels(set<string> &labels) const
 {
-	reopen();
-
-	return m_pROIndex->getLabels(labels);
-}
-
-/// Gets the list of known labels.
-bool DBusIndex::getLabels(set<string> &labels, bool forceDBus) const
-{
 	bool gotLabels = false;
 
-	if (forceDBus == false)
+	if (m_pROIndex != NULL)
 	{
-		// Call overload
-		return getLabels(labels);
+		reopen();
+
+		return m_pROIndex->getLabels(labels);
 	}
 
 	DBusGConnection *pBus = getBusConnection();
@@ -589,6 +615,11 @@ bool DBusIndex::deleteLabel(const string &name)
 /// Determines whether a document has a label.
 bool DBusIndex::hasLabel(unsigned int docId, const string &name) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->hasLabel(docId, name);
@@ -597,20 +628,13 @@ bool DBusIndex::hasLabel(unsigned int docId, const string &name) const
 /// Returns a document's labels.
 bool DBusIndex::getDocumentLabels(unsigned int docId, set<string> &labels) const
 {
-	reopen();
-
-	return m_pROIndex->getDocumentLabels(docId, labels);
-}
-
-/// Returns a document's labels.
-bool DBusIndex::getDocumentLabels(unsigned int docId, set<string> &labels, bool forceDBus) const
-{
 	bool gotLabels = false;
 
-	if (forceDBus == false)
+	if (m_pROIndex != NULL)
 	{
-		// Call overload
-		return getDocumentLabels(docId, labels);
+		reopen();
+
+		return m_pROIndex->getDocumentLabels(docId, labels);
 	}
 
 	DBusGConnection *pBus = getBusConnection();
@@ -807,6 +831,11 @@ bool DBusIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 /// Checks whether the given URL is in the index.
 unsigned int DBusIndex::hasDocument(const string &url) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->hasDocument(url);
@@ -815,6 +844,11 @@ unsigned int DBusIndex::hasDocument(const string &url) const
 /// Gets terms with the same root.
 unsigned int DBusIndex::getCloseTerms(const string &term, set<string> &suggestions)
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->getCloseTerms(term, suggestions);
@@ -823,6 +857,11 @@ unsigned int DBusIndex::getCloseTerms(const string &term, set<string> &suggestio
 /// Returns the ID of the last document.
 unsigned int DBusIndex::getLastDocumentID(void) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->getLastDocumentID();
@@ -831,6 +870,11 @@ unsigned int DBusIndex::getLastDocumentID(void) const
 /// Returns the number of documents.
 unsigned int DBusIndex::getDocumentsCount(const string &labelName) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->getDocumentsCount(labelName);
@@ -840,6 +884,11 @@ unsigned int DBusIndex::getDocumentsCount(const string &labelName) const
 unsigned int DBusIndex::listDocuments(set<unsigned int> &docIds,
 	unsigned int maxDocsCount, unsigned int startDoc) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->listDocuments(docIds, maxDocsCount, startDoc);
@@ -849,6 +898,11 @@ unsigned int DBusIndex::listDocuments(set<unsigned int> &docIds,
 bool DBusIndex::listDocuments(const string &name, set<unsigned int> &docIds,
 	NameType type, unsigned int maxDocsCount, unsigned int startDoc) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	reopen();
 
 	return m_pROIndex->listDocuments(name, docIds, type, maxDocsCount, startDoc);
@@ -1000,6 +1054,11 @@ bool DBusIndex::flush(void)
 /// Reopens the index.
 bool DBusIndex::reopen(void) const
 {
+	if (m_pROIndex == NULL)
+	{
+		return false;
+	}
+
 	return m_pROIndex->reopen();
 }
 

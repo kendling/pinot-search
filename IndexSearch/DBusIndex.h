@@ -84,9 +84,6 @@ class DBusIndex : public IndexInterface
 		/// Gets the list of known labels.
 		virtual bool getLabels(std::set<std::string> &labels) const;
 
-		/// Gets the list of known labels.
-		bool getLabels(std::set<std::string> &labels, bool forceDBus) const;
-
 		/// Adds a label.
 		virtual bool addLabel(const std::string &name);
 
@@ -101,10 +98,6 @@ class DBusIndex : public IndexInterface
 
 		/// Returns a document's labels.
 		virtual bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels) const;
-
-		/// Returns a document's labels.
-		bool getDocumentLabels(unsigned int docId, std::set<std::string> &labels,
-			bool forceDBus) const;
 
 		/// Sets a document's labels.
 		virtual bool setDocumentLabels(unsigned int docId, const std::set<std::string> &labels,
