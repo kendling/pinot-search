@@ -29,7 +29,8 @@ QueryProperties::QueryProperties() :
 	m_type(XAPIAN_QP),
 	m_order(RELEVANCE),
 	m_resultsCount(10),
-	m_indexResults(false)
+	m_indexResults(false),
+	m_modified(false)
 {
 }
 
@@ -40,7 +41,8 @@ QueryProperties::QueryProperties(const string &name, const string &freeQuery,
 	m_order(RELEVANCE),
 	m_freeQuery(freeQuery),
 	m_resultsCount(10),
-	m_indexResults(false)
+	m_indexResults(false),
+	m_modified(false)
 {
 	removeFilters();
 }
@@ -53,7 +55,8 @@ QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_freeQueryWithoutFilters(other.m_freeQueryWithoutFilters),
 	m_resultsCount(other.m_resultsCount),
 	m_indexResults(other.m_indexResults),
-	m_labelName(other.m_labelName)
+	m_labelName(other.m_labelName),
+	m_modified(other.m_modified)
 {
 }
 
@@ -73,6 +76,7 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 		m_resultsCount = other.m_resultsCount;
 		m_indexResults = other.m_indexResults;
 		m_labelName = other.m_labelName;
+		m_modified = other.m_modified;
 	}
 
 	return *this;
@@ -261,6 +265,18 @@ void QueryProperties::setLabelName(const string &labelName)
 string QueryProperties::getLabelName(void) const
 {
 	return m_labelName;
+}
+
+/// Sets whether the query was modified in some way.
+void QueryProperties::setModified(bool isModified)
+{
+	m_modified = isModified;
+}
+
+/// Gets whether the query was modified in some way.
+bool QueryProperties::getModified(void) const
+{
+	return m_modified;
 }
 
 /// Returns the query's terms.

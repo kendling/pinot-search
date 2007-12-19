@@ -56,12 +56,6 @@ bool SearchEngineInterface::setExpandSet(const set<string> &docsSet)
 	return false;
 }
 
-/// Returns the downloader used if any.
-DownloaderInterface *SearchEngineInterface::getDownloader(void)
-{
-	return NULL;
-}
-
 /// Returns the results for the previous query.
 const vector<DocumentInfo> &SearchEngineInterface::getResults(void) const
 {

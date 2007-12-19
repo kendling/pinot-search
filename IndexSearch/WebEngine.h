@@ -23,6 +23,7 @@
 #include <set>
 
 #include "Document.h"
+#include "DownloaderInterface.h"
 #include "QueryProperties.h"
 #include "SearchEngineInterface.h"
 
@@ -34,7 +35,7 @@ class WebEngine : public SearchEngineInterface
 		virtual ~WebEngine();
 
 		/// Returns the downloader used if any.
-		virtual DownloaderInterface *getDownloader(void);
+		DownloaderInterface *getDownloader(void);
 
 	protected:
 		DownloaderInterface *m_pDownloader;

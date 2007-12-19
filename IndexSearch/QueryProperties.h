@@ -79,6 +79,11 @@ class QueryProperties
 		/// Gets the name of the label to use for indexed documents.
 		string getLabelName(void) const;
 
+		/// Sets whether the query was modified in some way.
+		void setModified(bool isModified);
+		/// Gets whether the query was modified in some way.
+		bool getModified(void) const;
+
 		/// Returns the query's terms.
 		void getTerms(set<string> &terms) const;
 
@@ -94,6 +99,7 @@ class QueryProperties
 		unsigned int m_resultsCount;
 		bool m_indexResults;
 		string m_labelName;
+		bool m_modified;
 
 		void removeFilters(void);
 

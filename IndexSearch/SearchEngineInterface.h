@@ -24,7 +24,6 @@
 #include <set>
 #include <vector>
 
-#include "DownloaderInterface.h"
 #include "QueryProperties.h"
 #include "DocumentInfo.h"
 
@@ -46,9 +45,6 @@ class SearchEngineInterface
 
 		/// Sets the set of documents to expand from.
 		virtual bool setExpandSet(const set<string> &docsSet);
-
-		/// Returns the downloader used if any.
-		virtual DownloaderInterface *getDownloader(void);
 
 		/// Runs a query; true if success.
 		virtual bool runQuery(QueryProperties& queryProps,
