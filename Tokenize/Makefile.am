@@ -20,7 +20,7 @@ libexternalfilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/ExternalFilter.cc
 
-libexternalfilter_la_LDFLAGS = -module @XML_CFLAGS@
+libexternalfilter_la_LDFLAGS = -module @XML_LIBS@
 
 libexternalfilter_la_LIBADD =
 
@@ -28,7 +28,7 @@ libmboxfilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/GMimeMboxFilter.cc
 
-libmboxfilter_la_LDFLAGS = -module @GMIME_CFLAGS@
+libmboxfilter_la_LDFLAGS = -module @GMIME_LIBS@
 
 libmboxfilter_la_LIBADD =
 

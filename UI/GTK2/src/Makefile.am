@@ -75,9 +75,11 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/IndexSearch \
 	-I$(top_srcdir)/IndexSearch/Google \
-	-I$(top_srcdir)/IndexSearch/Xapian \
-	@SQL_CFLAGS@ @HTTP_CFLAGS@ @GMIME_CFLAGS@ @XML_CFLAGS@ \
-	@SOAP_CFLAGS@ @DBUS_CFLAGS@ @INDEX_CFLAGS@ @UI_CFLAGS@
+	@SQL_CFLAGS@ @HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ \
+	@DBUS_CFLAGS@ @INDEX_CFLAGS@ @GTHREAD_CFLAGS@ @GTKMM_CFLAGS@
+
+pinot_LDFLAGS = \
+	-rdynamic
 
 pinot_LDADD = \
 	-L$(top_builddir)/Utils \
@@ -87,11 +89,13 @@ pinot_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
 	-L$(top_builddir)/IndexSearch/Google \
-	-L$(top_builddir)/IndexSearch/Xapian \
-	-lIndexSearch -lIndexSearchXapian -lMonitor -lCollect -lSQL \
-	-lTokenize -lUtils -lBasicUtils @LIBS@ @UI_LIBS@ \
-	@INDEX_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ @XML_LIBS@ \
-	@GMIME_LIBS@ @HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
+	-lIndexSearch -lMonitor -lCollect -lSQL \
+	-lTokenize -lUtils -lBasicUtils @LIBS@ \
+	@GTKMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @SOAP_LIBS@ @XML_LIBS@ \
+	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
+
+pinot_dbus_daemon_LDFLAGS = \
+	-rdynamic
 
 pinot_dbus_daemon_LDADD = \
 	-L$(top_builddir)/Utils \
@@ -101,9 +105,8 @@ pinot_dbus_daemon_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
 	-L$(top_builddir)/IndexSearch/Google \
-	-L$(top_builddir)/IndexSearch/Xapian \
-	-lIndexSearch -lIndexSearchXapian -lMonitor -lCollect -lSQL \
-	-lTokenize -lUtils -lBasicUtils @LIBS@ @GLIBMM_LIBS@ \
-	@INDEX_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ @XML_LIBS@ @GMIME_LIBS@ \
+	-lIndexSearch -lMonitor -lCollect -lSQL \
+	-lTokenize -lUtils -lBasicUtils @LIBS@ \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @SOAP_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 

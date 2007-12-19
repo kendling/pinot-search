@@ -30,6 +30,6 @@ libSearchGoogle_la_CXXFLAGS = \
 	-I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/IndexSearch \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ \
-	@INDEX_CFLAGS@ @GMIME_CFLAGS@
+	@INDEX_CFLAGS@
 endif
 

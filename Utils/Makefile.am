@@ -27,12 +27,12 @@ libBasicUtils_la_SOURCES = \
 	DocumentInfo.cpp \
 	StringManip.cpp \
 	TimeConverter.cpp \
+	Timer.cpp \
 	Url.cpp
 
 libUtils_la_SOURCES = \
 	Languages.cpp \
 	MIMEScanner.cpp \
-	Timer.cpp \
 	$(top_srcdir)/Utils/xdgmime/xdgmimealias.c \
 	$(top_srcdir)/Utils/xdgmime/xdgmime.c \
 	$(top_srcdir)/Utils/xdgmime/xdgmimecache.c \
@@ -42,5 +42,5 @@ libUtils_la_SOURCES = \
 	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.c
 
 AM_CFLAGS = -fPIC -DXDG_PREFIX=pinot_xdg
-AM_CXXFLAGS = -fPIC @HTTP_CFLAGS@ @INDEX_CFLAGS@ @GMIME_CFLAGS@ @GLIBMM_CFLAGS@ -DXDG_PREFIX=pinot_xdg
+AM_CXXFLAGS = -fPIC @HTTP_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@ -DXDG_PREFIX=pinot_xdg
 

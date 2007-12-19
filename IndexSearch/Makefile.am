@@ -3,14 +3,13 @@
 noinst_HEADERS = \
 	DBusIndex.h \
 	FilterWrapper.h \
-	IndexFactory.h \
 	IndexInterface.h \
+	ModuleFactory.h \
 	OpenSearchParser.h \
 	PluginParsers.h \
 	PluginWebEngine.h \
 	QueryProperties.h \
 	ResultsExporter.h \
-	SearchEngineFactory.h \
 	SearchEngineInterface.h \
 	SearchPluginProperties.h \
 	SherlockParser.h \
@@ -28,12 +27,11 @@ endif
 libIndexSearch_la_SOURCES = \
 	DBusIndex.cpp \
 	FilterWrapper.cpp \
-	IndexFactory.cpp \
+	ModuleFactory.cpp \
 	OpenSearchParser.cpp \
 	PluginWebEngine.cpp \
 	QueryProperties.cpp \
 	ResultsExporter.cpp \
-	SearchEngineFactory.cpp \
 	SearchEngineInterface.cpp \
 	SearchPluginProperties.cpp \
 	WebEngine.cpp
@@ -48,41 +46,48 @@ endif
 
 bin_PROGRAMS = pinot-index pinot-label pinot-search
 
+pinot_index_LDFLAGS = \
+	-rdynamic
+
 pinot_index_LDADD = \
 	-L$(top_builddir)/Utils \
 	-L$(top_builddir)/Tokenize \
 	-L$(top_builddir)/Collect \
-	-L$(top_builddir)/IndexSearch/Xapian \
-	-lIndexSearch -lIndexSearchXapian -lCollect -lTokenize -lBasicUtils -lUtils \
-	@GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @XML_LIBS@ \
-	@GMIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+	-lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ @XML_LIBS@ \
+	@HTTP_LIBS@ @MISC_LIBS@
 
 pinot_index_SOURCES = pinot-index.cpp
 
 pinot_index_DEPENDENCIES = libIndexSearch.la
 
+pinot_label_LDFLAGS = \
+	-rdynamic
+
 pinot_label_LDADD = \
 	-L$(top_builddir)/Utils \
 	-L$(top_builddir)/Tokenize \
-	-L$(top_builddir)/IndexSearch/Xapian \
-	-lIndexSearch -lIndexSearchXapian -lTokenize -lBasicUtils -lUtils \
-	@GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ \
-	@XML_LIBS@ @GMIME_LIBS@ @MISC_LIBS@
+	-L$(top_builddir)/Collect \
+	-lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ @XML_LIBS@ \
+	@HTTP_LIBS@ @MISC_LIBS@
 
 pinot_label_SOURCES = pinot-label.cpp
 
 pinot_label_DEPENDENCIES = libIndexSearch.la
+
+pinot_search_LDFLAGS = \
+	-rdynamic
 
 pinot_search_LDADD = \
 	-L$(top_builddir)/Utils \
 	-L$(top_builddir)/Tokenize \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch/Google \
-	-L$(top_builddir)/IndexSearch/Xapian \
 	-L$(top_builddir)/IndexSearch/xesam \
-	-lIndexSearch -lIndexSearchXapian -lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @INDEX_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ \
-	@XML_LIBS@ @GMIME_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+	-lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ \
+	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 pinot_search_SOURCES = \
 	pinot-search.cpp
@@ -104,9 +109,8 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/Tokenize/filters \
 	-I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/IndexSearch/Google \
-	-I$(top_srcdir)/IndexSearch/Xapian \
 	-I$(top_srcdir)/IndexSearch/xesam \
-	@HTTP_CFLAGS@ @GMIME_CFLAGS@ @XML_CFLAGS@ \
+	@HTTP_CFLAGS@ @XML_CFLAGS@ \
 	@DBUS_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@
 
 if HAVE_BOOST_SPIRIT
