@@ -23,14 +23,14 @@
 #include <string>
 #include <fstream>
 
+#include "config.h"
 #include "Languages.h"
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "FilterFactory.h"
-#include "XapianDatabaseFactory.h"
 #include "DownloaderFactory.h"
 #include "FilterWrapper.h"
-#include "IndexFactory.h"
+#include "ModuleFactory.h"
 #include "config.h"
 
 using namespace std;
@@ -160,29 +160,31 @@ int main(int argc, char **argv)
 
 	MIMEScanner::initialize("", "");
 	DownloaderInterface::initialize();
-	// Localize language names
-	Languages::setIntlName(0, "Unknown");
-	Languages::setIntlName(1, "Danish");
-	Languages::setIntlName(2, "Dutch");
-	Languages::setIntlName(3, "English");
-	Languages::setIntlName(4, "Finnish");
-	Languages::setIntlName(5, "French");
-	Languages::setIntlName(6, "German");
-	Languages::setIntlName(7, "Hungarian");
-	Languages::setIntlName(8, "Italian");
-	Languages::setIntlName(9, "Norwegian");
-	Languages::setIntlName(10, "Portuguese");
-	Languages::setIntlName(11, "Romanian");
-	Languages::setIntlName(12, "Russian");
-	Languages::setIntlName(13, "Spanish");
-	Languages::setIntlName(14, "Swedish");
-	Languages::setIntlName(15, "Turkish");
 	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + string("/pinot/filters"));
+	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/modules"));
+
+	// Localize language names
+	Languages::setIntlName (0, "Unknown");
+	Languages::setIntlName (1, "Danish");
+	Languages::setIntlName (2, "Dutch");
+	Languages::setIntlName (3, "English");
+	Languages::setIntlName (4, "Finnish");
+	Languages::setIntlName (5, "French");
+	Languages::setIntlName (6, "German");
+	Languages::setIntlName (7, "Hungarian");
+	Languages::setIntlName (8, "Italian");
+	Languages::setIntlName (9, "Norwegian");
+	Languages::setIntlName (10, "Portuguese");
+	Languages::setIntlName (11, "Romanian");
+	Languages::setIntlName (12, "Russian");
+	Languages::setIntlName (13, "Spanish");
+	Languages::setIntlName (14, "Swedish");
+	Languages::setIntlName (15, "Turkish");
 
 	// Make sure the index is open in the correct mode
-	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(databaseName, (indexDocument ? false : true));
-	if (pDb == NULL)
+	bool wasObsoleteFormat = false;
+	if (ModuleFactory::openOrCreateIndex("xapian", databaseName, wasObsoleteFormat, (indexDocument ? false : true)) == false)
 	{
 		cerr << "Couldn't open index " << databaseName << endl;
 
@@ -195,12 +197,12 @@ int main(int argc, char **argv)
 	}
 
 	// Get a read-write index of the given type
-	IndexInterface *pIndex = IndexFactory::getIndex("xapian", databaseName);
+	IndexInterface *pIndex = ModuleFactory::getIndex("xapian", databaseName);
 	if (pIndex == NULL)
 	{
 		cerr << "Couldn't obtain index for " << databaseName << endl;
 
-		XapianDatabaseFactory::closeAll();
+		ModuleFactory::unloadModules();
 		Dijon::FilterFactory::unloadFilters();
 		Dijon::HtmlFilter::shutdown();
 		DownloaderInterface::shutdown();
@@ -322,7 +324,7 @@ int main(int argc, char **argv)
 	}
 	delete pIndex;
 
-	XapianDatabaseFactory::closeAll();
+	ModuleFactory::unloadModules();
 	Dijon::FilterFactory::unloadFilters();
 	Dijon::HtmlFilter::shutdown();
 	DownloaderInterface::shutdown();

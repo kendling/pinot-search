@@ -28,7 +28,7 @@
 #include "config.h"
 #include "NLS.h"
 #include "StringManip.h"
-#include "SearchEngineFactory.h"
+#include "ModuleFactory.h"
 #include "PinotUtils.h"
 #include "prefsDialog.hh"
 
@@ -103,7 +103,7 @@ prefsDialog::prefsDialog() :
 	populate_patternsTreeview();
 
 	// Hide the Google API entry field ?
-	if (SearchEngineFactory::isSupported("googleapi") == false)
+	if (ModuleFactory::isSupported("googleapi") == false)
 	{
 		apiKeyLabel->hide();
 		apiKeyEntry->hide();

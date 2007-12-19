@@ -23,14 +23,14 @@
 #include <fstream>
 #include <string>
 
+#include "config.h"
 #include "Languages.h"
 #include "MIMEScanner.h"
 #include "Url.h"
-#include "XapianDatabaseFactory.h"
-#include "SearchEngineFactory.h"
-#include "ResultsExporter.h"
 #include "DownloaderFactory.h"
-#include "config.h"
+#include "ModuleFactory.h"
+#include "ResultsExporter.h"
+#include "WebEngine.h"
 
 using namespace std;
 
@@ -81,7 +81,9 @@ static void printHelp(void)
 	set<string> engines;
 
 	// Help
-	SearchEngineFactory::getSupportedEngines(engines);
+	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/modules"));
+	ModuleFactory::getSupportedEngines(engines);
+	ModuleFactory::unloadModules();
 	cout << "pinot-search - Query search engines from the command-line\n\n"
 		<< "Usage: pinot-search [OPTIONS] SEARCHENGINETYPE SEARCHENGINENAME|SEARCHENGINEOPTION QUERYINPUT\n\n"
 		<< "Options:\n"
@@ -106,7 +108,7 @@ static void printHelp(void)
 #endif
 		<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\"\n\n"
 		<< "pinot-search --max 20 sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
-		<< "pinot-search --max 10 xapian ~/.pinot/index \"clowns\"\n\n"
+		<< "pinot-search xapian ~/.pinot/index \"label:Clowns\"\n\n"
 		<< "pinot-search xapian somehostname:12345 \"clowns\"\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }
@@ -201,6 +203,8 @@ int main(int argc, char **argv)
 
 	MIMEScanner::initialize("", "");
 	DownloaderInterface::initialize();
+	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/modules"));
+
 	// Localize language names
 	Languages::setIntlName(0, "Unknown");
 	Languages::setIntlName(1, "Danish");
@@ -224,7 +228,7 @@ int main(int argc, char **argv)
 	char *pQueryInput = argv[optind + 2];
 
 	// Which SearchEngine ?
-	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(engineType, option);
+	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine(engineType, option);
 	if (pEngine == NULL)
 	{
 		cerr << "Couldn't obtain search engine instance" << endl;
@@ -236,14 +240,18 @@ int main(int argc, char **argv)
 	}
 
 	// Set up the proxy
-	DownloaderInterface *pDownloader = pEngine->getDownloader();
-	if ((pDownloader != NULL) &&
-		(proxyAddress.empty() == false) &&
-		(proxyPort.empty() == false))
+	WebEngine *pWebEngine = dynamic_cast<WebEngine *>(pEngine);
+	if (pWebEngine != NULL)
 	{
-		pDownloader->setSetting("proxyaddress", proxyAddress);
-		pDownloader->setSetting("proxyport", proxyPort);
-		pDownloader->setSetting("proxytype", proxyType);
+		DownloaderInterface *pDownloader = pWebEngine->getDownloader();
+		if ((pDownloader != NULL) &&
+			(proxyAddress.empty() == false) &&
+			(proxyPort.empty() == false))
+		{
+			pDownloader->setSetting("proxyaddress", proxyAddress);
+			pDownloader->setSetting("proxyport", proxyPort);
+			pDownloader->setSetting("proxytype", proxyType);
+		}
 	}
 
 	// Set the query
@@ -307,7 +315,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				string engineName(SearchEngineFactory::getSearchEngineName(engineType, option));
+				string engineName(ModuleFactory::getSearchEngineName(engineType, option));
 
 				if (csvExport.empty() == false)
 				{
@@ -336,7 +344,7 @@ int main(int argc, char **argv)
 
 	delete pEngine;
 
-	XapianDatabaseFactory::closeAll();
+	ModuleFactory::unloadModules();
 	DownloaderInterface::shutdown();
 	MIMEScanner::shutdown();
 

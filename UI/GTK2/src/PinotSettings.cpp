@@ -34,11 +34,10 @@
 #include <libxml++/nodes/textnode.h>
 
 #include "config.h"
-#include "CommandLine.h"
-#include "Languages.h"
 #include "NLS.h"
+#include "CommandLine.h"
 #include "StringManip.h"
-#include "IndexFactory.h"
+#include "ModuleFactory.h"
 #include "PluginWebEngine.h"
 #include "PinotSettings.h"
 
@@ -329,21 +328,26 @@ bool PinotSettings::load(void)
 		m_labels.insert(_("New"));
 		m_labels.insert(_("Personal"));
 		// Skip common image, video and archive types
+		m_filePatternsList.insert("*~");
 		m_filePatternsList.insert("*.Z");
+		m_filePatternsList.insert("*.a");
 		m_filePatternsList.insert("*.avi");
 		m_filePatternsList.insert("*.asf");
 		m_filePatternsList.insert("*.gif");
 		m_filePatternsList.insert("*.iso");
 		m_filePatternsList.insert("*.jpeg");
 		m_filePatternsList.insert("*.jpg");
+		m_filePatternsList.insert("*.la");
 		m_filePatternsList.insert("*.lha");
 		m_filePatternsList.insert("*.mov");
 		m_filePatternsList.insert("*.msf");
 		m_filePatternsList.insert("*.mpeg");
 		m_filePatternsList.insert("*.mpg");
+		m_filePatternsList.insert("*.o");
 		m_filePatternsList.insert("*.png");
 		m_filePatternsList.insert("*.rar");
 		m_filePatternsList.insert("*.sh");
+		m_filePatternsList.insert("*.so");
 		m_filePatternsList.insert("*.tiff");
 		m_filePatternsList.insert("*.wmv");
 		m_filePatternsList.insert("*.xbm");
@@ -1567,15 +1571,15 @@ IndexInterface *PinotSettings::getIndex(const string &location)
 {
 	if (location == m_docsIndexLocation)
 	{
-		return IndexFactory::getIndex("xapian", m_docsIndexLocation);
+		return ModuleFactory::getIndex("xapian", m_docsIndexLocation);
 	}
 	else if ((m_clientMode == true) &&
 		(location == m_daemonIndexLocation))
 	{
-		return IndexFactory::getIndex("dbus-xapian", m_daemonIndexLocation);
+		return ModuleFactory::getIndex("dbus-xapian", m_daemonIndexLocation);
 	}
 
-	return IndexFactory::getIndex("xapian", location);
+	return ModuleFactory::getIndex("xapian", location);
 }
 
 /// Returns the search engines set.

@@ -30,15 +30,14 @@
 #include <fstream>
 #include <glibmm/miscutils.h>
 
-#include "Languages.h"
+#include "config.h"
+#include "NLS.h"
 #include "MIMEScanner.h"
 #include "TimeConverter.h"
 #include "Timer.h"
 #include "Url.h"
 #include "DBusIndex.h"
-#include "SearchEngineFactory.h"
-#include "config.h"
-#include "NLS.h"
+#include "ModuleFactory.h"
 #include "DaemonState.h"
 #include "PinotSettings.h"
 #include "ServerThreads.h"
@@ -314,7 +313,12 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 				if (m_pMonitor != NULL)
 				{
 					// Monitor first so that we don't miss events
-					m_pMonitor->addLocation(entryName, true);
+					// If monitoring is not possible, record the first case
+					if ((m_pMonitor->addLocation(entryName, true) == false) &&
+						(entryStatus != MONITORING_FAILED))
+					{
+						entryStatus = MONITORING_FAILED;
+					}
 				}
 
 				// Iterate through this directory's entries
@@ -377,27 +381,14 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 		scanSuccess = false;
 	}
 
-	// Did an error occur ?
-	if (scanSuccess == false)
-	{
-		time_t timeNow = time(NULL);
-
-		// Record this error
-		if (itemExists == false)
-		{
-			history.insertItem(location, CrawlHistory::ERROR, m_sourceId, timeNow, entryStatus);
-		}
-		else
-		{
-			history.updateItem(location, CrawlHistory::ERROR, timeNow, entryStatus);
-		}
-	}
-	else if (reportFile == true)
+	// If a major error occured, this won't be true
+	if (reportFile == true)
 	{
 		if (itemExists == false)
 		{
 			// Record it
 			history.insertItem(location, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
+			itemExists = true;
 #ifdef DEBUG
 			cout << "DirectoryScannerThread::scanEntry: reporting new file " << entryName << endl;
 #endif
@@ -442,6 +433,22 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 			docInfo.setSize(fileStat.st_size);
 
 			foundFile(docInfo);
+		}
+	}
+
+	// Did an error occur ?
+	if (entryStatus != 0)
+	{
+		time_t timeNow = time(NULL);
+
+		// Record this error
+		if (itemExists == false)
+		{
+			history.insertItem(location, CrawlHistory::ERROR, m_sourceId, timeNow, entryStatus);
+		}
+		else
+		{
+			history.updateItem(location, CrawlHistory::ERROR, timeNow, entryStatus);
 		}
 	}
 
@@ -562,7 +569,7 @@ bool DBusServletThread::runQuery(QueryProperties &queryProps, vector<string> &do
 {
 	docIds.clear();
 
-	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine("xapian",
+	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine("xapian",
 		PinotSettings::getInstance().m_daemonIndexLocation);
 	if (pEngine == NULL)
 	{

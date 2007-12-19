@@ -35,18 +35,17 @@
 #include <glibmm/object.h>
 #include <glibmm/main.h>
 
+#include "config.h"
+#include "NLS.h"
 #include "FilterFactory.h"
 #include "Languages.h"
 #include "MIMEScanner.h"
-#include "XapianDatabase.h"
-#include "XapianDatabaseFactory.h"
+#include "ModuleFactory.h"
 #include "ActionQueue.h"
 #include "CrawlHistory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
-#include "config.h"
-#include "NLS.h"
 #include "DaemonState.h"
 #include "PinotSettings.h"
 #include "ServerThreads.h"
@@ -80,10 +79,8 @@ static void closeAll(void)
 {
 	cout << "Exiting..." << endl;
 
-	// Close all indexes we may have opened
-	XapianDatabaseFactory::closeAll();
-
-	// Close the tokenizer libraries
+	// Close everything
+	ModuleFactory::unloadModules();
 	Dijon::FilterFactory::unloadFilters();
 	Dijon::HtmlFilter::shutdown();
 
@@ -398,6 +395,13 @@ int main(int argc, char **argv)
 		cerr << "Couldn't load MIME settings" << endl;
 	}
 	DownloaderInterface::initialize();
+	// Load tokenizer libraries, if any
+	Dijon::HtmlFilter::initialize();
+	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
+	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
+	// Load modules, if any
+	ModuleFactory::loadModules(string(LIBDIR) + "/pinot/modules");
+	ModuleFactory::loadModules(confDirectory + "/modules");
 
 	// Localize language names
 	Languages::setIntlName(0, _("Unknown"));
@@ -417,10 +421,6 @@ int main(int argc, char **argv)
 	Languages::setIntlName(14, _("Swedish"));
 	Languages::setIntlName(15, _("Turkish"));
 
-	// Load tokenizer libraries, if any
-	Dijon::HtmlFilter::initialize();
-	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
-	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
 	// Load the settings
 	settings.loadGlobal(string(SYSCONFDIR) + "/pinot/globalconfig.xml");
 	settings.load();
@@ -434,14 +434,13 @@ int main(int argc, char **argv)
 	sigaction(SIGQUIT, &newAction, NULL);
 
 	// Open the daemon index in read-write mode 
-	XapianDatabase *pDb = XapianDatabaseFactory::getDatabase(settings.m_daemonIndexLocation, false);
-	if ((pDb == NULL) ||
-		(pDb->isOpen() == false))
+	bool wasObsoleteFormat = false;
+	if (ModuleFactory::openOrCreateIndex("xapian", settings.m_daemonIndexLocation, wasObsoleteFormat, false) == false)
 	{
 		cerr << "Couldn't open index " << settings.m_daemonIndexLocation << endl;
 		return EXIT_FAILURE;
 	}
-	if (pDb->wasObsoleteFormat() == true)
+	if (wasObsoleteFormat == true)
 	{
 		resetHistory = resetLabels = true;
 	}

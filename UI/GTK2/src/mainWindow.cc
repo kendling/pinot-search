@@ -1284,6 +1284,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				correctedQueryName += queryName;
 			}
 			queryProps.setName(correctedQueryName);
+			queryProps.setModified(true);
 
 			add_query(queryProps, true);
 		}
@@ -1391,6 +1392,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			moreLike += *termIter;
 		}
 		queryProps.setFreeQuery(queryProps.getFreeQuery() + moreLike);
+		queryProps.setModified(true);
 
 		add_query(queryProps, false);
 	}

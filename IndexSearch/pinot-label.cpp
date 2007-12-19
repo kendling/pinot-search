@@ -22,23 +22,12 @@
 #include <iostream>
 #include <string>
 #include <set>
-#include "config.h"
-extern "C"
-{
-#if DBUS_NUM_VERSION < 1000000
-#define DBUS_API_SUBJECT_TO_CHANGE
-#endif
-#include <dbus/dbus.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-}
 
+#include "config.h"
 #include "StringManip.h"
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "DBusIndex.h"
-#include "IndexFactory.h"
-#include "XapianDatabaseFactory.h"
 
 using namespace std;
 
@@ -184,22 +173,12 @@ int main(int argc, char **argv)
 
 	MIMEScanner::initialize("", "");
 
-	// We need a DBusIndex object
-	string indexLocation(getHomeDirectory() + "/.pinot/daemon");
-	DBusIndex index(IndexFactory::getIndex("xapian", indexLocation));
-	if (index.isGood() == false)
-	{
-		cerr << "Couldn't obtain index for " << indexLocation << endl;
-
-		XapianDatabaseFactory::closeAll();
-		MIMEScanner::shutdown();
-
-		return EXIT_FAILURE;
-	}
+	// We need a pure DBusIndex object
+	DBusIndex index(NULL);
 
 	if (getLabels == true)
 	{
-		if (index.getLabels(labels, true) == true)
+		if (index.getLabels(labels) == true)
 		{
 			printLabels(labels, "");
 
@@ -230,7 +209,7 @@ int main(int argc, char **argv)
 		{
 			labels.clear();
 
-			if (index.getDocumentLabels(docId, labels, true) == true)
+			if (index.getDocumentLabels(docId, labels) == true)
 			{
 				printLabels(labels, fileParam);
 
@@ -267,7 +246,6 @@ int main(int argc, char **argv)
 		++optind;
 	}
 
-	XapianDatabaseFactory::closeAll();
 	MIMEScanner::shutdown();
 
 	// Did whatever operation we carried out succeed ?

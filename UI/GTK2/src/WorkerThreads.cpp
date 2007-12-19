@@ -31,22 +31,22 @@
 #include <glibmm/miscutils.h>
 #include <glibmm/exception.h>
 
+#include "config.h"
+#include "NLS.h"
 #include "MIMEScanner.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
 #include "HtmlFilter.h"
-#include "FilterFactory.h"
 #include "FilterUtils.h"
-#include "FilterWrapper.h"
-#include "DBusIndex.h"
 #include "ActionQueue.h"
 #include "CrawlHistory.h"
 #include "QueryHistory.h"
 #include "DownloaderFactory.h"
-#include "SearchEngineFactory.h"
-#include "config.h"
-#include "NLS.h"
+#include "FilterWrapper.h"
+#include "DBusIndex.h"
+#include "ModuleFactory.h"
+#include "WebEngine.h"
 #include "PinotSettings.h"
 #include "WorkerThreads.h"
 
@@ -101,7 +101,7 @@ string WorkerThread::errorToString(int errorNum)
 		case DOWNLOAD_FAILED:
 			return _("Couldn't retrieve document");
 		case MONITORING_FAILED:
-			return _("Couldn't initialize file monitor");
+			return _("File monitor error");
 		case OPENDIR_FAILED:
 			return _("Couldn't open directory");
 		case UNKNOWN_INDEX:
@@ -1040,7 +1040,7 @@ void EngineQueryThread::doWork(void)
 	PinotSettings &settings = PinotSettings::getInstance();
 
 	// Get the SearchEngine
-	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine(m_engineName, m_engineOption);
+	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine(m_engineName, m_engineOption);
 	if (pEngine == NULL)
 	{
 		m_errorNum = UNKNOWN_ENGINE;
@@ -1049,17 +1049,21 @@ void EngineQueryThread::doWork(void)
 	}
 
 	// Set up the proxy
-	DownloaderInterface *pDownloader = pEngine->getDownloader();
-	if ((pDownloader != NULL) &&
-		(settings.m_proxyEnabled == true) &&
-		(settings.m_proxyAddress.empty() == false))
+	WebEngine *pWebEngine = dynamic_cast<WebEngine *>(pEngine);
+	if (pWebEngine != NULL)
 	{
-		char portStr[64];
+		DownloaderInterface *pDownloader = pWebEngine->getDownloader();
+		if ((pDownloader != NULL) &&
+			(settings.m_proxyEnabled == true) &&
+			(settings.m_proxyAddress.empty() == false))
+		{
+			char portStr[64];
 
-		pDownloader->setSetting("proxyaddress", settings.m_proxyAddress);
-		snprintf(portStr, 64, "%u", settings.m_proxyPort);
-		pDownloader->setSetting("proxyport", portStr);
-		pDownloader->setSetting("proxytype", settings.m_proxyType);
+			pDownloader->setSetting("proxyaddress", settings.m_proxyAddress);
+			snprintf(portStr, 64, "%u", settings.m_proxyPort);
+			pDownloader->setSetting("proxyport", portStr);
+			pDownloader->setSetting("proxytype", settings.m_proxyType);
+		}
 	}
 
 	if (m_listingIndex == false)
@@ -1097,12 +1101,17 @@ void EngineQueryThread::doWork(void)
 				PinotSettings::getInstance().getIndexIdByName(m_engineDisplayableName));
 		}
 
-		// Any spelling correction ?
-		string correctedFreeQuery(pEngine->getSpellingCorrection());
-		if (correctedFreeQuery.empty() == false)
+		// Don't spellcheck if the query was modified in any way
+		if (m_queryProps.getModified() == false)
 		{
-			m_correctedSpelling = true;
-			m_queryProps.setFreeQuery(correctedFreeQuery);
+			string correctedFreeQuery(pEngine->getSpellingCorrection());
+
+			// Any spelling correction ?
+			if (correctedFreeQuery.empty() == false)
+			{
+				m_correctedSpelling = true;
+				m_queryProps.setFreeQuery(correctedFreeQuery);
+			}
 		}
 	}
 
@@ -1173,7 +1182,7 @@ const set<string> &ExpandQueryThread::getExpandTerms(void) const
 void ExpandQueryThread::doWork(void)
 {
 	// Get the SearchEngine
-	SearchEngineInterface *pEngine = SearchEngineFactory::getSearchEngine("xapian", "MERGED");
+	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine("xapian", "MERGED");
 	if (pEngine == NULL)
 	{
 		m_errorNum = UNKNOWN_ENGINE;
