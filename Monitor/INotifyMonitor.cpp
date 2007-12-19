@@ -44,7 +44,8 @@ using std::cerr;
 using std::endl;
 
 INotifyMonitor::INotifyMonitor() :
-	MonitorInterface()
+	MonitorInterface(),
+	m_noWatchesLeft(false)
 {
 	pthread_mutex_init(&m_mutex, NULL);
 	m_monitorFd = inotify_init();
@@ -72,6 +73,8 @@ bool INotifyMonitor::removeWatch(const string &location)
 	if (locationIter != m_locations.end())
 	{
 		inotify_rm_watch(m_monitorFd, locationIter->second);
+		m_noWatchesLeft = false;
+
 		map<int, string>::iterator watchIter = m_watches.find(locationIter->second);
 		if (watchIter != m_watches.end())
 		{
@@ -97,7 +100,8 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 
 	if ((location.empty() == true) ||
 		(location == "/") ||
-		(m_monitorFd < 0))
+		(m_monitorFd < 0) ||
+		(m_noWatchesLeft == true))
 	{
 		return false;
 	}
@@ -140,6 +144,10 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 		}
 		else
 		{
+			if (errno == ENOSPC)
+			{
+				m_noWatchesLeft = true;
+			}
 			cerr << "Couldn't monitor " << location << endl;
 		}
 	}

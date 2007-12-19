@@ -47,6 +47,7 @@ class INotifyMonitor : public MonitorInterface
 		std::queue<MonitorEvent> m_internalEvents;
 		std::map<std::string, int> m_locations;
 		std::map<uint32_t, MonitorEvent> m_movedFrom;
+		bool m_noWatchesLeft;
 
 		bool removeWatch(const std::string &location);
 
