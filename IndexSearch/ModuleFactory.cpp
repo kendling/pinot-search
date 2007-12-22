@@ -329,7 +329,10 @@ SearchEngineInterface *ModuleFactory::getSearchEngine(const string &type, const 
 	SearchEngineInterface *pEngine = NULL;
 
 	// Choice by type
-	if ((type == "sherlock") ||
+	if (
+#ifdef HAVE_BOOST_SPIRIT
+		(type == "sherlock") ||
+#endif
 		(type == "opensearch"))
 	{
 		pEngine = new PluginWebEngine(option);
@@ -351,7 +354,10 @@ SearchEngineInterface *ModuleFactory::getSearchEngine(const string &type, const 
 
 string ModuleFactory::getSearchEngineName(const string &type, const string &option)
 {
-	if ((type == "sherlock") ||
+	if (
+#ifdef HAVE_BOOST_SPIRIT
+		(type == "sherlock") ||
+#endif
 		(type == "opensearch"))
 	{
 		string name, channel;
@@ -376,7 +382,9 @@ void ModuleFactory::getSupportedEngines(set<string> &engines)
 	engines.clear();
 
 	// Built-in engines
+#ifdef HAVE_BOOST_SPIRIT
 	engines.insert("sherlock");
+#endif
 	engines.insert("opensearch");
 #ifdef HAVE_GOOGLEAPI
 	engines.insert("googleapi");
@@ -395,7 +403,10 @@ bool ModuleFactory::isSupported(const string &type)
 #ifdef HAVE_GOOGLEAPI
 		(type == "googleapi") ||
 #endif
+#ifdef HAVE_BOOST_SPIRIT
 		(type == "sherlock") ||
+#endif
+		(type == "opensearch") ||
 		(m_types.find(type) != m_types.end()))
 	{
 		return true;
