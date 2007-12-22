@@ -29,6 +29,7 @@
 #include "Url.h"
 #include "CrawlHistory.h"
 #include "ViewHistory.h"
+#include "ModuleFactory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "WorkerThreads.h"
@@ -69,33 +70,50 @@ void statisticsDialog::populate(void)
 {
 	TreeModel::iterator folderIter = m_refStore->append();
 	TreeModel::Row row = *folderIter;
-	row[m_statsColumns.m_name] = _("Indexes");
-	statisticsTreeview->get_selection()->select(folderIter);
+	set<string> engines;
 
+	// Indexes
+	statisticsTreeview->get_selection()->select(folderIter);
+	row[m_statsColumns.m_name] = _("Indexes");
 	TreeModel::iterator statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
 	row[m_statsColumns.m_name] = _("My Web Pages");
 	m_myWebPagesIter = m_refStore->append(statIter->children());
-
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
 	row[m_statsColumns.m_name] = _("My Documents");
 	m_myDocumentsIter = m_refStore->append(statIter->children());
 
+	// Search engines
+	TreeModel::iterator enginesIter = m_refStore->append();
+	row = *enginesIter;
+	row[m_statsColumns.m_name] = _("Search Engines");
+	ModuleFactory::getSupportedEngines(engines);
+	for (set<string>::const_iterator engineIter = engines.begin();
+		engineIter != engines.end(); ++engineIter)
+	{
+		TreeModel::iterator statIter = m_refStore->append(enginesIter->children());
+		row = *statIter;
+		row[m_statsColumns.m_name] = *engineIter;
+	}
+
+	// History
 	folderIter = m_refStore->append();
 	row = *folderIter;
 	row[m_statsColumns.m_name] = _("History");
 	m_viewStatIter = m_refStore->append(folderIter->children());
+	m_crawledStatIter = m_refStore->append(folderIter->children());
 
+	// Daemon
 	m_daemonIter = m_refStore->append();
 	row = *m_daemonIter;
 	row[m_statsColumns.m_name] = _("Daemon");
-	m_daemonStatIter = m_refStore->append(m_daemonIter->children());
-
-	m_crawledStatIter = m_refStore->append(folderIter->children());
+	m_daemonProcIter = m_refStore->append(m_daemonIter->children());
 
 	// Expand everything
 	statisticsTreeview->expand_all();
+	TreeModel::Path enginesPath = m_refStore->get_path(enginesIter);
+	statisticsTreeview->collapse_row(enginesPath);
 
 	Adjustment *pAdjustement = statisticsScrolledwindow->get_hadjustment();
 #ifdef DEBUG
@@ -155,6 +173,12 @@ bool statisticsDialog::on_activity_timeout(void)
 	row = *m_viewStatIter;
 	row[m_statsColumns.m_name] = ustring(_("Viewed")) + " " + countStr + " " + _("results");
 
+	// Show crawler statistics
+	unsigned int crawledFilesCount = crawlerHistory.getItemsCount(CrawlHistory::CRAWLED);
+	snprintf(countStr, 64, "%u", crawledFilesCount);
+	row = *m_crawledStatIter;
+	row[m_statsColumns.m_name] = ustring(_("Crawled")) + " " + countStr + " " + _("files");
+
 	// Is the daemon still running ?
 	string pidFileName(PinotSettings::getInstance().getConfigurationDirectory() + "/pinot-dbus-daemon.pid");
 	pid_t daemonPID = 0;
@@ -166,7 +190,7 @@ bool statisticsDialog::on_activity_timeout(void)
 		pidFile.close();
 	}
 	snprintf(countStr, 64, "%u", daemonPID);
-	row = *m_daemonStatIter;
+	row = *m_daemonProcIter;
 	if (daemonPID > 0)
 	{
 		// FIXME: check whether it's actually running !
@@ -176,12 +200,6 @@ bool statisticsDialog::on_activity_timeout(void)
 	{
 		row[m_statsColumns.m_name] = ustring(_("Currently not running"));
 	}
-
-	// Show crawler statistics
-	unsigned int crawledFilesCount = crawlerHistory.getItemsCount(CrawlHistory::CRAWLED);
-	snprintf(countStr, 64, "%u", crawledFilesCount);
-	row = *m_crawledStatIter;
-	row[m_statsColumns.m_name] = ustring(_("Crawled")) + " " + countStr + " " + _("files");
 
 	// Show errors
 	crawlerHistory.getSources(sources);

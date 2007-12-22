@@ -873,6 +873,13 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		{
 			queryProps.setLabelName(nodeContent);
 		}
+		else if (nodeName == "modified")
+		{
+			if (nodeContent == "YES")
+			{
+				queryProps.setModified(true);
+			}
+		}
 	}
 
 	// Are pre-0.80 dates specified ?
@@ -1360,6 +1367,7 @@ bool PinotSettings::save(void)
 			addChildElement(pElem, "maxresults", numStr);
 			addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
 			addChildElement(pElem, "label", queryIter->second.getLabelName());
+			addChildElement(pElem, "modified", (queryIter->second.getModified() ? "YES" : "NO"));
 		}
 		// Labels
 		for (set<string>::iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)

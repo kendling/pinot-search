@@ -269,11 +269,11 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 
 	if (entryStatus == -1)
 	{
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: stat failed with error " << errno << endl;
-#endif
 		entryStatus = errno;
 		scanSuccess = false;
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::scanEntry: stat failed with error " << entryStatus << endl;
+#endif
 	}
 	// Is it a file or a directory ?
 	else if (S_ISLNK(fileStat.st_mode))
@@ -364,11 +364,11 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 			}
 			else
 			{
-#ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: opendir failed with error " << errno << endl;
-#endif
 				entryStatus = errno;
 				scanSuccess = false;
+#ifdef DEBUG
+				cout << "DirectoryScannerThread::scanEntry: opendir failed with error " << entryStatus << endl;
+#endif
 			}
 		}
 	}
