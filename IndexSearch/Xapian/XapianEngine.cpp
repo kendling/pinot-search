@@ -179,10 +179,19 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	unsigned int minDay, minMonth, minYear = 0;
 	unsigned int maxDay, maxMonth, maxYear = 0;
 
+	if (pIndex != NULL)
+	{
+		// The database is required for wildcards and spelling
+		parser.set_database(*pIndex);
+	}
+
 	// Set things up
 	if ((minimal == false) &&
 		(stemLanguage.empty() == false))
 	{
+#ifdef DEBUG
+		cout << "XapianEngine::parseQuery: " << stemLanguage << " stemming" << endl;
+#endif
 		try
 		{
 			stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
@@ -191,11 +200,14 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		{
 			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
 		}
-		parser.set_stemming_strategy(Xapian::QueryParser::STEM_ALL);
 		parser.set_stemmer(stemmer);
+		parser.set_stemming_strategy(Xapian::QueryParser::STEM_SOME);
 	}
 	else
 	{
+#ifdef DEBUG
+		cout << "XapianEngine::parseQuery: no stemming" << endl;
+#endif
 		parser.set_stemming_strategy(Xapian::QueryParser::STEM_NONE);
 	}
 	// What's the default operator ?
@@ -206,11 +218,6 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	else
 	{
 		parser.set_default_op(Xapian::Query::OP_OR);
-	}
-	if (pIndex != NULL)
-	{
-		// The database is required for wildcards and spelling
-		parser.set_database(*pIndex);
 	}
 	// X prefixes should always include a colon
 	parser.add_boolean_prefix("site", "H");
@@ -364,6 +371,9 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	{
 		return parsedQuery;
 	}
+#ifdef DEBUG
+	cout << "XapianEngine::parseQuery: " << parsedQuery.get_description() << endl;
+#endif
 
 #if ENABLE_XAPIAN_SPELLING_CORRECTION>0
 	// Any correction ?
@@ -401,9 +411,6 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		vector<string> seedTerms;
 
 		// Give the query object to the enquire session
-#ifdef DEBUG
-		cout << "XapianEngine::queryDatabase: enquiring about " << query.get_description() << endl;
-#endif
 		enquire.set_query(query);
 		// How should results be sorted ?
 		if (queryProps.getSortOrder() == QueryProperties::RELEVANCE)
@@ -446,7 +453,15 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 				for (Xapian::TermIterator termIter = enquire.get_matching_terms_begin(docId);
 					termIter != enquire.get_matching_terms_end(docId); ++termIter)
 				{
-					seedTerms.push_back(*termIter);
+					char firstChar = (*termIter)[0];
+
+					if (isupper(((int)firstChar)) == 0)
+					{
+						seedTerms.push_back(*termIter);
+#ifdef DEBUG
+						cout << "XapianEngine::queryDatabase: matched term " << *termIter << endl;
+#endif
+					}
 				}
 
 				DocumentInfo thisResult;
@@ -511,7 +526,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 #endif
 
 			// Get 10 non-prefixed terms
-			string allowedPrefixes("RSZ");
+			string allowedPrefixes("RS");
 			PrefixDecider expandDecider(allowedPrefixes);
 			Xapian::ESet expandTerms = enquire.get_eset(20, expandDocs, &expandDecider);
 #ifdef DEBUG
@@ -634,7 +649,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	Xapian::Database *pIndex = pDatabase->readLock();
 	try
 	{
-		string stemLanguage(queryProps.getFilter("lang"));
+		string stemLanguage(Languages::toEnglish(queryProps.getStemmingLanguage()));
 		unsigned int searchStep = 1;
 
 		// Searches are run in this order :
@@ -650,18 +665,25 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 				break;
 			}
 
-			// The search did succeed but didn't return anything
-			if ((m_resultsList.empty() == true) &&
-				(searchStep == 1) &&
-				(stemLanguage.empty() == false))
+			if (m_resultsList.empty() == true)
 			{
+				// The search did succeed but didn't return anything
+				if ((searchStep == 1) &&
+					(stemLanguage.empty() == false))
+				{
 #ifdef DEBUG
-				cout << "XapianEngine::runQuery: trying again with stemming" << endl;
+					cout << "XapianEngine::runQuery: trying again with stemming" << endl;
 #endif
-				fullQuery = parseQuery(pIndex, queryProps, Languages::toEnglish(stemLanguage),
-					m_defaultOperator, m_limitQuery, m_correctedFreeQuery);
-				++searchStep;
-				continue;
+					fullQuery = parseQuery(pIndex, queryProps, stemLanguage,
+						m_defaultOperator, m_limitQuery, m_correctedFreeQuery);
+					++searchStep;
+					continue;
+				}
+			}
+			else
+			{
+				// We have results, don't bother about correcting the query
+				m_correctedFreeQuery.clear();
 			}
 
 			pDatabase->unlock();

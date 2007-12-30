@@ -71,8 +71,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	unsigned int seedTermsCount = 0, bestWeight = 0;
 	bool topTerm = true;
 
-	if ((m_pIndex == NULL) ||
-		(seedTerms.empty() == true))
+	if (m_pIndex == NULL)
 	{
 		return "";
 	}
