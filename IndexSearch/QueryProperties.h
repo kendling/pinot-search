@@ -56,6 +56,11 @@ class QueryProperties
 		/// Gets the sort order.
 		SortOrder getSortOrder(void) const;
 
+		/// Sets the language to use for stemming.
+		void setStemmingLanguage(const string &language);
+		/// Gets the language to use for stemming.
+		string getStemmingLanguage(void) const;
+
 		/// Sets the query string.
 		void setFreeQuery(const string &freeQuery);
 		/// Gets the query string.
@@ -94,6 +99,7 @@ class QueryProperties
 		string m_name;
 		QueryType m_type;
 		SortOrder m_order;
+		string m_language;
 		string m_freeQuery;
 		string m_freeQueryWithoutFilters;
 		unsigned int m_resultsCount;

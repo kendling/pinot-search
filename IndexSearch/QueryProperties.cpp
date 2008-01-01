@@ -51,6 +51,7 @@ QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_name(other.m_name),
 	m_type(other.m_type),
 	m_order(other.m_order),
+	m_language(other.m_language),
 	m_freeQuery(other.m_freeQuery),
 	m_freeQueryWithoutFilters(other.m_freeQueryWithoutFilters),
 	m_resultsCount(other.m_resultsCount),
@@ -71,6 +72,7 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 		m_name = other.m_name;
 		m_type = other.m_type;
 		m_order = other.m_order;
+		m_language = other.m_language;
 		m_freeQuery = other.m_freeQuery;
 		m_freeQueryWithoutFilters = other.m_freeQueryWithoutFilters;
 		m_resultsCount = other.m_resultsCount;
@@ -176,6 +178,18 @@ QueryProperties::SortOrder QueryProperties::getSortOrder(void) const
 	return m_order;
 }
 
+/// Sets the language to use for stemming.
+void QueryProperties::setStemmingLanguage(const string &language)
+{
+	m_language = language;
+}
+
+/// Gets the language to use for stemming.
+string QueryProperties::getStemmingLanguage(void) const
+{
+	return m_language;
+}
+
 /// Sets the query string.
 void QueryProperties::setFreeQuery(const string &freeQuery)
 {
@@ -207,7 +221,6 @@ string QueryProperties::getFilter(const string &filterStr)
 	}
 
 	Document doc;
-
 	doc.setData(m_freeQuery.c_str(), m_freeQuery.length());
 	Tokenizer tokens(&doc, true);
 
@@ -216,7 +229,7 @@ string QueryProperties::getFilter(const string &filterStr)
 	{
 		string::size_type langPos = token.find(filterStr + ":");
 
-		// Is it the language filter ?
+		// Is it the filter we are looking for ?
 		if (langPos != string::npos)
 		{
 			string filterValue(token.substr(langPos + filterStr.length() + 1));
