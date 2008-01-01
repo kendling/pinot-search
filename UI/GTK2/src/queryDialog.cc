@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include "NLS.h"
+#include "Languages.h"
 #include "TimeConverter.h"
 #include "PinotUtils.h"
 #include "queryDialog.hh"
@@ -118,6 +119,22 @@ void queryDialog::populate_comboboxes()
 		sortOrderCombobox->set_active(0);
 	}
 
+	// Stemming language
+	stemmingCombobox->append_text(_("None"));
+	stemmingCombobox->set_active(0);
+	string language(m_properties.getStemmingLanguage());
+	for (unsigned int languageNum = 1; languageNum < Languages::m_count; ++languageNum)
+	{
+		string languageName(Languages::getIntlName(languageNum));
+
+		stemmingCombobox->append_text(to_utf8(languageName));
+		// Is this the language we are looking for ?
+		if (language == languageName)
+		{
+			stemmingCombobox->set_active(languageNum);
+		}
+	}
+
 	// Labels
 	labelNameCombobox->append_text(_("None"));
 	labelNameCombobox->set_active(0);
@@ -183,6 +200,14 @@ void queryDialog::on_queryOkbutton_clicked()
 	{
 		m_properties.setSortOrder(QueryProperties::RELEVANCE);
 	}
+	// Stemming language
+	string languageName(from_utf8(stemmingCombobox->get_active_text()));
+	int chosenLanguagePos = stemmingCombobox->get_active_row_number();
+	if (chosenLanguagePos == 0)
+	{
+		languageName.clear();
+	}
+	m_properties.setStemmingLanguage(languageName);
 	// Index all results
 	m_properties.setIndexResults(indexCheckbutton->get_active());
 	// Index label

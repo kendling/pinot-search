@@ -960,6 +960,10 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 		if (language.empty() == true)
 		{
 			language = m_queryProps.getFilter("lang");
+			if (language.empty() == true)
+			{
+				language = m_queryProps.getStemmingLanguage();
+			}
 		}
 		currentDoc.setLanguage(language);
 
