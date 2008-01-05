@@ -20,7 +20,6 @@
 #define _QUERYDIALOG_HH
 
 #include <string>
-#include <glibmm/date.h>
 #include <glibmm/ustring.h>
 
 #include "QueryProperties.h"
@@ -37,9 +36,7 @@ public:
 
 protected:
 	Glib::ustring m_name;
-	QueryProperties& m_properties;
-	Glib::Date m_fromDate;
-	Glib::Date m_toDate;
+	QueryProperties &m_properties;
 	bool m_badName;
 
 	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
