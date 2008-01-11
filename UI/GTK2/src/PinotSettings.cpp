@@ -794,6 +794,16 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		else if ((nodeName == "language") &&
 			(nodeContent.empty() == false))
 		{
+			if (freeQuery.empty() == false)
+			{
+				freeQuery += " ";
+			}
+			freeQuery += "lang:";
+			freeQuery += nodeContent;
+		}
+		else if ((nodeName == "stemlanguage") &&
+			(nodeContent.empty() == false))
+		{
 			queryProps.setStemmingLanguage(nodeContent);
 		}
 		else if ((nodeName == "hostfilter") &&
@@ -1358,7 +1368,7 @@ bool PinotSettings::save(void)
 			addChildElement(pElem, "name", queryIter->first);
 			addChildElement(pElem, "sortorder", (queryIter->second.getSortOrder() == QueryProperties::DATE ? "DATE" : "RELEVANCE"));
 			addChildElement(pElem, "text", queryIter->second.getFreeQuery());
-			addChildElement(pElem, "language", queryIter->second.getStemmingLanguage());
+			addChildElement(pElem, "stemlanguage", queryIter->second.getStemmingLanguage());
 			sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
 			addChildElement(pElem, "maxresults", numStr);
 			addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
