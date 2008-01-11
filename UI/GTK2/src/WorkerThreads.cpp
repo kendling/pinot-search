@@ -134,6 +134,7 @@ void WorkerThread::immediateFlush(bool doFlush)
 }
 
 WorkerThread::WorkerThread() :
+	m_startTime(time(NULL)),
 	m_id(0),
 	m_background(false),
 	m_stopped(false),
@@ -146,12 +147,17 @@ WorkerThread::~WorkerThread()
 {
 }
 
+time_t WorkerThread::getStartTime(void) const
+{
+	return m_startTime;
+}
+
 void WorkerThread::setId(unsigned int id)
 {
 	m_id = id;
 }
 
-unsigned int WorkerThread::getId(void)
+unsigned int WorkerThread::getId(void) const
 {
 	return m_id;
 }
@@ -161,7 +167,7 @@ void WorkerThread::inBackground(void)
 	m_background = true;
 }
 
-bool WorkerThread::isBackground(void)
+bool WorkerThread::isBackground(void) const
 {
 	return m_background;
 }
@@ -336,6 +342,7 @@ void ThreadsManager::unlock_lists(void)
 
 WorkerThread *ThreadsManager::get_thread(void)
 {
+	time_t timeNow = time(NULL);
 	WorkerThread *pWorkerThread = NULL;
 
 	// Get the first thread that's finished
@@ -344,18 +351,37 @@ WorkerThread *ThreadsManager::get_thread(void)
 		for (map<WorkerThread *, Thread *>::iterator threadIter = m_threads.begin();
 			threadIter != m_threads.end(); ++threadIter)
 		{
-			if (threadIter->first->isDone() == true)
+			unsigned int threadId = threadIter->first->getId();
+
+			if (threadIter->first->isDone() == false)
+			{
+#ifdef DEBUG
+				cout << "ThreadsManager::get_thread: thread "
+					<< threadId << " is not done" << endl;
+#endif
+
+				// Foreground threads ought not to run very long
+				if ((threadIter->first->isBackground() == false) &&
+					(threadIter->first->getStartTime() + 300 < timeNow))
+				{
+					// This thread has been running for more than 5 minutes already !
+					threadIter->first->stop();
+
+					cerr << "Stopped long-running thread " << threadId << endl;
+				}
+			}
+			else
 			{
 				// This one will do...
 				pWorkerThread = threadIter->first;
 				// Remove it
 				m_threads.erase(threadIter);
+#ifdef DEBUG
+				cout << "ThreadsManager::get_thread: thread " << threadId
+					<< " is done, " << m_threads.size() << " left" << endl;
+#endif
 				break;
 			}
-#ifdef DEBUG
-			cout << "ThreadsManager::get_thread: thread "
-				<< threadIter->first->getId() << " is not done" << endl;
-#endif
 		}
 
 		unlock_threads();
@@ -473,6 +499,10 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 		pWorkerThread->inBackground();
 		++m_backgroundThreadsCount;
 	}
+#ifdef DEBUG
+	else cout << "ThreadsManager::start_thread: thread " << pWorkerThread->getId()
+			<< " will run in the foreground" << endl;
+#endif
 
 	// Start the thread
 	Thread *pThread = pWorkerThread->start();

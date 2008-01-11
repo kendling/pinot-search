@@ -54,13 +54,15 @@ class WorkerThread
 
 		static void immediateFlush(bool doFlush);
 
+		time_t getStartTime(void) const;
+
 		void setId(unsigned int id);
 
-		unsigned int getId(void);
+		unsigned int getId(void) const;
 
 		void inBackground(void);
 
-		bool isBackground(void);
+		bool isBackground(void) const;
 
 		bool operator<(const WorkerThread &other) const;
 
@@ -83,6 +85,7 @@ class WorkerThread
 		static Glib::Dispatcher m_dispatcher;
 		static pthread_mutex_t m_dispatcherMutex;
 		static bool m_immediateFlush;
+		time_t m_startTime;
 		unsigned int m_id;
 		bool m_background;
 		bool m_stopped;
