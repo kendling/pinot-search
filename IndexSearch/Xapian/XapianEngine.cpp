@@ -228,6 +228,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_boolean_prefix("dir", "XDIR:");
 	parser.add_boolean_prefix("lang", "L");
 	parser.add_boolean_prefix("type", "T");
+	parser.add_boolean_prefix("class", "XCLASS:");
 	parser.add_boolean_prefix("label", "XLABEL:");
 
 	// Any limit on what documents should be searched ?

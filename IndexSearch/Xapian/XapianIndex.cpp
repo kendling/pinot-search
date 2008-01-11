@@ -241,7 +241,7 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 }
 
 void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
-	const string &prefix, const string &language, bool noStemming) const
+	const Xapian::WritableDatabase &db, const string &prefix, const string &language, bool noStemming) const
 {
 	Xapian::Document termsDoc;
 	Xapian::TermGenerator generator;
@@ -326,6 +326,12 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 			try
 			{
 				doc.remove_term(*termListIter);
+
+				// Decrease this term's frequency in the spelling dictionary
+				if (m_doSpelling == true)
+				{
+					db.remove_spelling(*termListIter);
+				}
 			}
 			catch (const Xapian::Error &error)
 			{
@@ -373,6 +379,7 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 {
 	string title(info.getTitle());
 	string location(info.getLocation());
+	string type(info.getType());
 	Url urlObj(location);
 
 	// Add a magic term :-)
@@ -456,10 +463,15 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	// Finally, add the language code with prefix L
 	doc.add_term(string("L") + Languages::toCode(m_stemLanguage));
 	// ...and the MIME type with prefix T
-	doc.add_term(string("T") + info.getType());
+	doc.add_term(string("T") + type);
+	string::size_type slashPos = type.find('/');
+	if (slashPos != string::npos)
+	{
+		doc.add_term(string("XCLASS:") + type.substr(0, slashPos));
+	}
 }
 
-void XapianIndex::removeCommonTerms(Xapian::Document &doc)
+void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::WritableDatabase &db)
 {
 	DocumentInfo docInfo;
 	set<string> commonTerms;
@@ -497,8 +509,8 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	string title(docInfo.getTitle());
 	if (title.empty() == false)
 	{
-		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, "S", language, true);
-		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, "", language, false);
+		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, db, "S", language, true);
+		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, db, "", language, false);
 	}
 
 	// Location 
@@ -574,7 +586,13 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc)
 	// Language code
 	commonTerms.insert(string("L") + Languages::toCode(language));
 	// MIME type
-	commonTerms.insert(string("T") + docInfo.getType());
+	string type(docInfo.getType());
+	commonTerms.insert(string("T") + type);
+	string::size_type slashPos = type.find('/');
+	if (slashPos != string::npos)
+	{
+		commonTerms.insert(string("XCLASS:") + type.substr(0, slashPos));
+	}
 
 	for (set<string>::const_iterator termIter = commonTerms.begin(); termIter != commonTerms.end(); ++termIter)
 	{
@@ -1810,7 +1828,7 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 
 			// Update the document data with the current language
 			m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
-			removeCommonTerms(doc);
+			removeCommonTerms(doc, *pIndex);
 			addCommonTerms(docInfo, doc, *pIndex);
 			setDocumentData(docInfo, doc, m_stemLanguage);
 
