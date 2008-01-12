@@ -76,7 +76,7 @@ bool queryDialog::is_separator(const RefPtr<TreeModel>& model, const TreeModel::
 
 		// FIXME: this is extremely hacky !
 		if ((sscanf(rowPath.c_str(), "%u", &rowPos) == 1) &&
-			(rowPos == 9))
+			(rowPos == 10))
 		{
 			return true;
 		}
@@ -99,6 +99,7 @@ void queryDialog::populate_comboboxes()
 	filterCombobox->append_text(_("Directory"));
 	filterCombobox->append_text(_("Language code"));
 	filterCombobox->append_text(_("MIME type"));
+	filterCombobox->append_text(_("MIME class"));
 	filterCombobox->append_text(_("Label"));
 	// And separate numerical ranges
 	filterCombobox->append_text("===");
@@ -268,20 +269,23 @@ void queryDialog::on_addFilterButton_clicked()
 			filter = "type:text/plain";
 			break;
 		case 8:
-			filter = "label:New";
+			filter = "class:text";
 			break;
 		case 9:
-			// Separator
+			filter = "label:New";
 			break;
 		case 10:
+			// Separator
+			break;
+		case 11:
 			filter = TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 			filter += "..20991231";
 			break;
-		case 11:
+		case 12:
 			filter = TimeConverter::toHHMMSSString(tm->tm_hour, tm->tm_min, tm->tm_sec);
 			filter += "..235959";
 			break;
-		case 12:
+		case 13:
 			filter += "0..10240b";
 			break;
 		default:
