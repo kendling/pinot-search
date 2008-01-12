@@ -19,10 +19,13 @@ noinst_HEADERS = \
 	WebEngine.h
 
 if HAVE_SOAP
-noinst_LTLIBRARIES = libIndexSearch.la libSearchSOAP.la
+noinst_LTLIBRARIES = libIndex.la libIndexSearch.la libSearchSOAP.la
 else
-noinst_LTLIBRARIES = libIndexSearch.la
+noinst_LTLIBRARIES = libIndex.la libIndexSearch.la
 endif
+
+libIndex_la_SOURCES = \
+	DBusIndex.cpp
 
 libIndexSearch_la_SOURCES = \
 	DBusIndex.cpp \
@@ -61,20 +64,14 @@ pinot_index_SOURCES = pinot-index.cpp
 
 pinot_index_DEPENDENCIES = libIndexSearch.la
 
-pinot_label_LDFLAGS = \
-	-rdynamic
-
 pinot_label_LDADD = \
 	-L$(top_builddir)/Utils \
-	-L$(top_builddir)/Tokenize \
-	-L$(top_builddir)/Collect \
-	-lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @DBUS_LIBS@ @XML_LIBS@ \
-	@HTTP_LIBS@ @MISC_LIBS@
+	-lIndex -lUtils -lBasicUtils \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ @XML_LIBS@
 
 pinot_label_SOURCES = pinot-label.cpp
 
-pinot_label_DEPENDENCIES = libIndexSearch.la
+pinot_label_DEPENDENCIES = libIndex.la
 
 pinot_search_LDFLAGS = \
 	-rdynamic

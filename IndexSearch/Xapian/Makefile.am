@@ -18,7 +18,7 @@ lib_LTLIBRARIES = libxapianmodule.la
 libxapianmodule_la_SOURCES = \
 	AbstractGenerator.cpp \
 	LanguageDetector.cpp \
-	ModuleExports.cc \
+	ModuleExports.cpp \
 	XapianDatabase.cpp \
 	XapianDatabaseFactory.cpp \
 	XapianIndex.cpp \
