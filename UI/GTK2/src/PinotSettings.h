@@ -186,6 +186,7 @@ class PinotSettings
 
 		Glib::ustring m_version;
 		bool m_warnAboutVersion;
+		Glib::ustring m_defaultBackend;
 		Glib::ustring m_googleAPIKey;
 		Glib::ustring m_docsIndexLocation;
 		Glib::ustring m_daemonIndexLocation;

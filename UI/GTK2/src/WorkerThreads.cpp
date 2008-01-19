@@ -33,6 +33,7 @@
 
 #include "config.h"
 #include "NLS.h"
+#include "Languages.h"
 #include "MIMEScanner.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
@@ -948,7 +949,7 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 	bool isIndexQuery = false;
 
 	// Are we querying an index ?
-	if (m_engineName == "xapian")
+	if (ModuleFactory::isSupported(m_engineName, true) == true)
 	{
 		// Internal index ?
 		if ((m_engineOption == settings.m_docsIndexLocation) ||
@@ -989,11 +990,7 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 		// Use the query's language if the result's is unknown
 		if (language.empty() == true)
 		{
-			language = m_queryProps.getFilter("lang");
-			if (language.empty() == true)
-			{
-				language = m_queryProps.getStemmingLanguage();
-			}
+			language = m_queryProps.getStemmingLanguage();
 		}
 		currentDoc.setLanguage(language);
 
@@ -1216,7 +1213,7 @@ const set<string> &ExpandQueryThread::getExpandTerms(void) const
 void ExpandQueryThread::doWork(void)
 {
 	// Get the SearchEngine
-	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine("xapian", "MERGED");
+	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine(PinotSettings::getInstance().m_defaultBackend, "MERGED");
 	if (pEngine == NULL)
 	{
 		m_errorNum = UNKNOWN_ENGINE;

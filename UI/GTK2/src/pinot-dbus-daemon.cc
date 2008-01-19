@@ -435,7 +435,7 @@ int main(int argc, char **argv)
 
 	// Open the daemon index in read-write mode 
 	bool wasObsoleteFormat = false;
-	if (ModuleFactory::openOrCreateIndex("xapian", settings.m_daemonIndexLocation, wasObsoleteFormat, false) == false)
+	if (ModuleFactory::openOrCreateIndex(settings.m_defaultBackend, settings.m_daemonIndexLocation, wasObsoleteFormat, false) == false)
 	{
 		cerr << "Couldn't open index " << settings.m_daemonIndexLocation << endl;
 		return EXIT_FAILURE;

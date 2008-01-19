@@ -266,7 +266,7 @@ int main(int argc, char **argv)
 
 	// Open this index read-write
 	bool wasObsoleteFormat = false;
-	if (ModuleFactory::openOrCreateIndex("xapian", settings.m_docsIndexLocation, wasObsoleteFormat, false) == false)
+	if (ModuleFactory::openOrCreateIndex(settings.m_defaultBackend, settings.m_docsIndexLocation, wasObsoleteFormat, false) == false)
 	{
 		errorMsg = _("Couldn't open index");
 		errorMsg += " ";
@@ -278,9 +278,9 @@ int main(int argc, char **argv)
 	}
 	// ...and the daemon index in read-only mode
 	// If it can't be open, it just means the daemon has not yet created it
-	ModuleFactory::openOrCreateIndex("xapian", settings.m_daemonIndexLocation, wasObsoleteFormat, true);
+	ModuleFactory::openOrCreateIndex(settings.m_defaultBackend, settings.m_daemonIndexLocation, wasObsoleteFormat, true);
 	// Merge these two, this will be useful later
-	ModuleFactory::mergeIndexes("xapian", "MERGED", settings.m_docsIndexLocation, settings.m_daemonIndexLocation);
+	ModuleFactory::mergeIndexes(settings.m_defaultBackend, "MERGED", settings.m_docsIndexLocation, settings.m_daemonIndexLocation);
 
 	// Do the same for the history database
 	string historyDatabase(settings.getHistoryDatabaseName());

@@ -46,6 +46,7 @@
 #include "MonitorFactory.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
+#include "ModuleFactory.h"
 #include "PinotUtils.h"
 #include "mainWindow.hh"
 #include "importDialog.hh"
@@ -503,7 +504,7 @@ void mainWindow::add_query(QueryProperties &queryProps, bool mergeQueries)
 
 				if (freeQuery != queryProps.getFreeQuery())
 				{
-					queryProps.setFreeQuery(freeQuery + " | " + queryProps.getFreeQuery());
+					queryProps.setFreeQuery("( " + freeQuery + " ) or ( " + queryProps.getFreeQuery() + " )");
 				}
 			}
 			m_settings.removeQuery(queryName);
@@ -703,8 +704,8 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 				firstResult = false;
 			}
 
-			// FIXME: there should be a way to know which protocols can be viewed/indexed
-			if (protocol == "xapian")
+			// Is this protocol specific to a backend ? This can't be viewed/indexed
+			if (ModuleFactory::isSupported(protocol, true) == true)
 			{
 				isViewable = isCached = isIndexed = isIndexable = false;
 				break;
@@ -982,13 +983,13 @@ void mainWindow::on_searchagain_changed(ustring queryName)
 		std::map<std::string, std::string>::const_iterator indexIter = indexes.find(_("My Documents"));
 		if (indexIter != indexes.end())
 		{
-			start_thread(new EngineQueryThread("xapian", indexIter->first,
+			start_thread(new EngineQueryThread(m_settings.m_defaultBackend, indexIter->first,
 				indexIter->second, queryProps, locations));
 		}
 		indexIter = indexes.find(_("My Web Pages"));
 		if (indexIter != indexes.end())
 		{
-			start_thread(new EngineQueryThread("xapian", indexIter->first,
+			start_thread(new EngineQueryThread(m_settings.m_defaultBackend, indexIter->first,
 				indexIter->second, queryProps, locations));
 		}
 	}
@@ -3298,7 +3299,7 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 			std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
 			if (mapIter != indexesMap.end())
 			{
-				start_thread(new EngineQueryThread("xapian", from_utf8(indexName),
+				start_thread(new EngineQueryThread(m_settings.m_defaultBackend, from_utf8(indexName),
 					mapIter->second, queryProps, startDoc, true));
 			}
 #ifdef DEBUG

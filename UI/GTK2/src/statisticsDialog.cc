@@ -70,7 +70,7 @@ void statisticsDialog::populate(void)
 {
 	TreeModel::iterator folderIter = m_refStore->append();
 	TreeModel::Row row = *folderIter;
-	set<string> engines;
+	std::map<string, bool> engines;
 
 	// Indexes
 	statisticsTreeview->get_selection()->select(folderIter);
@@ -89,12 +89,12 @@ void statisticsDialog::populate(void)
 	row = *enginesIter;
 	row[m_statsColumns.m_name] = _("Search Engines");
 	ModuleFactory::getSupportedEngines(engines);
-	for (set<string>::const_iterator engineIter = engines.begin();
+	for (std::map<string, bool>::const_iterator engineIter = engines.begin();
 		engineIter != engines.end(); ++engineIter)
 	{
 		TreeModel::iterator statIter = m_refStore->append(enginesIter->children());
 		row = *statIter;
-		row[m_statsColumns.m_name] = *engineIter;
+		row[m_statsColumns.m_name] = engineIter->first;
 	}
 
 	// History

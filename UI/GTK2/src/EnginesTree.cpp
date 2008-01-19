@@ -28,6 +28,7 @@
 #include "Url.h"
 #include "config.h"
 #include "NLS.h"
+#include "ModuleFactory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "EnginesTree.h"
@@ -280,12 +281,12 @@ void EnginesTree::populate(bool indexesOnly)
 		std::set<PinotSettings::Engine>::const_iterator engineIter = engines.begin();
 		for (; engineIter != engines.end(); ++engineIter)
 		{
-			string engineName = engineIter->m_name;
-			string engineType = engineIter->m_type;
+			string engineName(engineIter->m_name);
+			string engineType(engineIter->m_type);
 
-			if (engineType == "xapian")
+			if (ModuleFactory::isSupported(engineType, true) == true)
 			{
-				// Skip Xapian, it's only usable through a local engine
+				// Skip this, it's only usable through a local engine
 				continue;
 			}
 
@@ -342,7 +343,7 @@ void EnginesTree::populate(bool indexesOnly)
 		TreeModel::iterator iter = m_refStore->append(localIter->children());
 		TreeModel::Row childRow = *iter;
 		childRow[m_enginesColumns.m_name] = indexName;
-		childRow[m_enginesColumns.m_engineName] = "xapian";
+		childRow[m_enginesColumns.m_engineName] = m_settings.m_defaultBackend;
 		childRow[m_enginesColumns.m_option] = to_utf8(indexIter->second);
 		childRow[m_enginesColumns.m_type] = indexType;
 	}

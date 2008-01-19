@@ -567,10 +567,12 @@ bool DBusServletThread::mustQuit(void) const
 
 bool DBusServletThread::runQuery(QueryProperties &queryProps, vector<string> &docIds)
 {
+	PinotSettings &settings = PinotSettings::getInstance();
+
 	docIds.clear();
 
-	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine("xapian",
-		PinotSettings::getInstance().m_daemonIndexLocation);
+	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine(settings.m_defaultBackend,
+		settings.m_daemonIndexLocation);
 	if (pEngine == NULL)
 	{
 		return false;
@@ -624,7 +626,8 @@ bool DBusServletThread::runQuery(QueryProperties &queryProps, vector<string> &do
 
 void DBusServletThread::doWork(void)
 {
-	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+	PinotSettings &settings = PinotSettings::getInstance();
+	IndexInterface *pIndex = settings.getIndex(settings.m_daemonIndexLocation);
 	DBusError error;
 	bool processedMessage = true, updateLabelsCache = false, flushIndex = false;
 
@@ -639,7 +642,7 @@ void DBusServletThread::doWork(void)
 	dbus_error_init(&error);
 
 	// Access the settings' labels list directly
-	set<string> &labelsCache = PinotSettings::getInstance().m_labels;
+	set<string> &labelsCache = settings.m_labels;
 	if (labelsCache.empty() == true)
 	{
 		pIndex->getLabels(labelsCache);
@@ -659,7 +662,7 @@ void DBusServletThread::doWork(void)
 
 	if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetStatistics") == TRUE)
 	{
-		CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+		CrawlHistory history(settings.getHistoryDatabaseName());
 		unsigned int crawledFilesCount = history.getItemsCount(CrawlHistory::CRAWLED);
 		unsigned int docsCount = pIndex->getDocumentsCount();
 

@@ -36,6 +36,7 @@
 #include "config.h"
 #include "NLS.h"
 #include "CommandLine.h"
+#include "Languages.h"
 #include "StringManip.h"
 #include "ModuleFactory.h"
 #include "PluginWebEngine.h"
@@ -90,6 +91,7 @@ bool PinotSettings::m_clientMode = false;
 
 PinotSettings::PinotSettings() :
 	m_warnAboutVersion(false),
+	m_defaultBackend("xapian"),
 	m_minimumDiskSpace(50),
 	m_xPos(0),
 	m_yPos(0),
@@ -264,6 +266,7 @@ void PinotSettings::clear(void)
 {
 	m_version.clear();
 	m_warnAboutVersion = false;
+	m_defaultBackend = "xapian";
 	m_googleAPIKey.clear();
 	m_xPos = 0;
 	m_yPos = 0;
@@ -384,8 +387,18 @@ bool PinotSettings::load(void)
 	m_engines.insert(Engine("Google API", "googleapi", "", "The Web"));
 	m_engineChannels.insert(pair<string, bool>("The Web", true));
 #endif
-	m_engineIds[1 << m_engines.size()] = "Xapian";
-	m_engines.insert(Engine("Xapian", "xapian", "", ""));
+	// Others are available as back-ends
+	map<string, bool> engines;
+	ModuleFactory::getSupportedEngines(engines);
+	for (map<string, bool>::const_iterator engineIter = engines.begin();
+		engineIter != engines.end(); ++engineIter)
+	{
+		if (engineIter->second == true)
+		{
+			m_engineIds[1 << m_engines.size()] = engineIter->first;
+			m_engines.insert(Engine(engineIter->first, engineIter->first, "", ""));
+		}
+	}
 
 	return true;
 }
@@ -470,6 +483,10 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 					{
 						m_warnAboutVersion = false;
 					}
+				}
+				else if (nodeName == "backend")
+				{
+					m_defaultBackend = nodeContent;
 				}
 				else if (nodeName == "googleapikey")
 				{
@@ -804,7 +821,7 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		else if ((nodeName == "stemlanguage") &&
 			(nodeContent.empty() == false))
 		{
-			queryProps.setStemmingLanguage(nodeContent);
+			queryProps.setStemmingLanguage(Languages::toLocale(nodeContent));
 		}
 		else if ((nodeName == "hostfilter") &&
 			(nodeContent.empty() == false))
@@ -1303,6 +1320,7 @@ bool PinotSettings::save(void)
 		// ...with text children nodes
 		addChildElement(pRootElem, "version", VERSION);
 		addChildElement(pRootElem, "warnaboutversion", (m_warnAboutVersion ? "YES" : "NO"));
+		addChildElement(pRootElem, "backend", m_defaultBackend);
 		addChildElement(pRootElem, "googleapikey", m_googleAPIKey);
 		// User interface position and size
 		pElem = pRootElem->add_child("ui");
@@ -1368,7 +1386,7 @@ bool PinotSettings::save(void)
 			addChildElement(pElem, "name", queryIter->first);
 			addChildElement(pElem, "sortorder", (queryIter->second.getSortOrder() == QueryProperties::DATE ? "DATE" : "RELEVANCE"));
 			addChildElement(pElem, "text", queryIter->second.getFreeQuery());
-			addChildElement(pElem, "stemlanguage", queryIter->second.getStemmingLanguage());
+			addChildElement(pElem, "stemlanguage", Languages::toEnglish(queryIter->second.getStemmingLanguage()));
 			sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
 			addChildElement(pElem, "maxresults", numStr);
 			addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
@@ -1585,15 +1603,15 @@ IndexInterface *PinotSettings::getIndex(const string &location)
 {
 	if (location == m_docsIndexLocation)
 	{
-		return ModuleFactory::getIndex("xapian", m_docsIndexLocation);
+		return ModuleFactory::getIndex(m_defaultBackend, m_docsIndexLocation);
 	}
 	else if ((m_clientMode == true) &&
 		(location == m_daemonIndexLocation))
 	{
-		return ModuleFactory::getIndex("dbus-xapian", m_daemonIndexLocation);
+		return ModuleFactory::getIndex("dbus-" + m_defaultBackend, m_daemonIndexLocation);
 	}
 
-	return ModuleFactory::getIndex("xapian", location);
+	return ModuleFactory::getIndex(m_defaultBackend, location);
 }
 
 /// Returns the search engines set.
