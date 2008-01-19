@@ -40,7 +40,7 @@ extern "C"
 
 string getModuleType(void)
 {
-	return"xapian";
+	return "xapian";
 }
 
 bool openOrCreateIndex(const string &databaseName, bool &obsoleteFormat,

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007 Fabrice Colin
+ *  Copyright 2007,2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -377,29 +377,37 @@ string ModuleFactory::getSearchEngineName(const string &type, const string &opti
 	return type;
 }
 
-void ModuleFactory::getSupportedEngines(set<string> &engines)
+void ModuleFactory::getSupportedEngines(map<string, bool> &engines)
 {
 	engines.clear();
 
 	// Built-in engines
 #ifdef HAVE_BOOST_SPIRIT
-	engines.insert("sherlock");
+	engines["sherlock"] = false;
 #endif
-	engines.insert("opensearch");
+	engines["opensearch"] = false;
 #ifdef HAVE_GOOGLEAPI
-	engines.insert("googleapi");
+	engines["googleapi"] = false;
 #endif
 	// Library-handled engines
 	for (map<string, string>::iterator typeIter = m_types.begin();
 		typeIter != m_types.end(); ++typeIter)
 	{
-		engines.insert(typeIter->first);
+		engines[typeIter->first] = true;
 	}
 }
 
-bool ModuleFactory::isSupported(const string &type)
+bool ModuleFactory::isSupported(const string &type, bool asIndex)
 {
-	if (
+	if (asIndex == true)
+	{
+		// Only modules implement access to index
+		if (m_types.find(type) != m_types.end())
+		{
+			return true;
+		}
+	}
+	else if (
 #ifdef HAVE_GOOGLEAPI
 		(type == "googleapi") ||
 #endif

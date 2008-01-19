@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007 Fabrice Colin
+ *  Copyright 2007,2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 
 #include <string>
 #include <map>
-#include <set>
 
 #include "IndexInterface.h"
 #include "SearchEngineInterface.h"
@@ -53,10 +52,10 @@ class ModuleFactory
 		static string getSearchEngineName(const std::string &type, const std::string &option);
 
 		/// Returns all supported engines.
-		static void getSupportedEngines(std::set<string> &engines);
+		static void getSupportedEngines(std::map<std::string, bool> &engines);
 
-		/// Indicates whether a search engine is supported or not.
-		static bool isSupported(const std::string &type);
+		/// Indicates whether a search engine or index is supported or not.
+		static bool isSupported(const std::string &type, bool asIndex = false);
 
 		/// Unloads all libraries.
 		static void unloadModules(void);
