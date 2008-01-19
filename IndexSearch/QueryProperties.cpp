@@ -211,39 +211,6 @@ string QueryProperties::getFreeQuery(bool withoutFilters) const
 	return m_freeQueryWithoutFilters;
 }
 
-/// Gets the value of a specific filter.
-string QueryProperties::getFilter(const string &filterStr)
-{
-	if ((m_freeQuery.empty() == true) ||
-		(filterStr.empty() == true))
-	{
-		return "";
-	}
-
-	Document doc;
-	doc.setData(m_freeQuery.c_str(), m_freeQuery.length());
-	Tokenizer tokens(&doc, true);
-
-	string token;
-	while (tokens.nextToken(token) == true)
-	{
-		string::size_type langPos = token.find(filterStr + ":");
-
-		// Is it the filter we are looking for ?
-		if (langPos != string::npos)
-		{
-			string filterValue(token.substr(langPos + filterStr.length() + 1));
-
-#ifdef DEBUG
-			cout << "QueryProperties::getFilter: " << filterStr << "=" << filterValue << endl;
-#endif
-			return filterValue;
-		}
-	}
-
-	return "";
-}
-
 /// Sets the maximum number of results.
 void QueryProperties::setMaximumResultsCount(unsigned int count)
 {

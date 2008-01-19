@@ -66,9 +66,6 @@ class QueryProperties
 		/// Gets the query string.
 		string getFreeQuery(bool withoutFilters = false) const;
 
-		/// Gets the value of a specific filter.
-		string getFilter(const string &filterStr);
-
 		/// Sets the maximum number of results.
 		void setMaximumResultsCount(unsigned int count);
 		/// Gets the maximum number of results.
