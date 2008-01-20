@@ -36,6 +36,7 @@
 using namespace std;
 
 static struct option g_longOptions[] = {
+	{"backend", 1, 0, 'b'},
 	{"check", 0, 0, 'c'},
 	{"db", 1, 0, 'd'},
 	{"help", 0, 0, 'h'},
@@ -50,10 +51,16 @@ static struct option g_longOptions[] = {
 
 static void printHelp(void)
 {
+	map<string, bool> engines;
+
 	// Help
+	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/modules"));
+	ModuleFactory::getSupportedEngines(engines);
+	ModuleFactory::unloadModules();
 	cout << "pinot-index - Index documents from the command-line\n\n"
 		<< "Usage: pinot-index [OPTIONS] URLS\n\n"
 		<< "Options:\n"
+		<< "  -b, --backend             name of back-end to use (default xapian)\n"
 		<< "  -c, --check               check whether the given URL is in the index\n"
 		<< "  -d, --db                  path to index to use (mandatory)\n"
 		<< "  -h, --help                display this help and exit\n"
@@ -62,11 +69,17 @@ static void printHelp(void)
 		<< "  -p, --proxyport           proxy port\n"
 		<< "  -t, --proxytype           proxy type (default HTTP, SOCKS4, SOCKS5)\n"
 		<< "  -s, --showinfo            show information about the document\n"
-		<< "  -v, --version             output version information and exit\n\n";
-	// Don't mention type dbus here as it doesn't support indexing and
-	// is identical to xapian when checking for URLs
-	cout << "Examples:\n"
-		<< "pinot-index --check --showinfo --db ~/.pinot/daemon file:///home/fabrice/Documents/Bozo.txt\n\n"
+		<< "  -v, --version             output version information and exit\n\n"
+		<< "Supported back-ends are :";
+	for (map<string, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
+	{
+		if (engineIter->second == true)
+		{
+			cout << " " << engineIter->first;
+		}
+	}
+	cout << "\n\nExamples:\n"
+		<< "pinot-index --check --showinfo --backend xapian --db ~/.pinot/daemon file:///home/fabrice/Documents/Bozo.txt\n\n"
 		<< "pinot-index --index --db ~/.pinot/index http://pinot.berlios.de/\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }
@@ -74,13 +87,14 @@ static void printHelp(void)
 int main(int argc, char **argv)
 {
 	string type, option;
-	string databaseName, proxyAddress, proxyPort, proxyType;
+	// Use back-end xapian by default for backward compatibility
+	string backendType("xapian"), databaseName, proxyAddress, proxyPort, proxyType;
 	int longOptionIndex = 0;
 	unsigned int docId = 0;
 	bool checkDocument = false, indexDocument = false, showInfo = false, success = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "cd:hia:p:t:sv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "b:cd:hia:p:t:sv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		set<string> engines;
@@ -91,6 +105,12 @@ int main(int argc, char **argv)
 				if (optarg != NULL)
 				{
 					proxyAddress = optarg;
+				}
+				break;
+			case 'b':
+				if (optarg != NULL)
+				{
+					backendType = optarg;
 				}
 				break;
 			case 'c':
@@ -134,7 +154,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "cd:hia:p:t:sv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "b:cd:hia:p:t:sv", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -152,6 +172,7 @@ int main(int argc, char **argv)
 
 	if (((indexDocument == false) &&
 		(checkDocument == false)) ||
+		(backendType.empty() == true) ||
 		(databaseName.empty() == true))
 	{
 		cerr << "Incorrect parameters" << endl;
@@ -184,7 +205,7 @@ int main(int argc, char **argv)
 
 	// Make sure the index is open in the correct mode
 	bool wasObsoleteFormat = false;
-	if (ModuleFactory::openOrCreateIndex("xapian", databaseName, wasObsoleteFormat, (indexDocument ? false : true)) == false)
+	if (ModuleFactory::openOrCreateIndex(backendType, databaseName, wasObsoleteFormat, (indexDocument ? false : true)) == false)
 	{
 		cerr << "Couldn't open index " << databaseName << endl;
 
@@ -197,7 +218,7 @@ int main(int argc, char **argv)
 	}
 
 	// Get a read-write index of the given type
-	IndexInterface *pIndex = ModuleFactory::getIndex("xapian", databaseName);
+	IndexInterface *pIndex = ModuleFactory::getIndex(backendType, databaseName);
 	if (pIndex == NULL)
 	{
 		cerr << "Couldn't obtain index for " << databaseName << endl;

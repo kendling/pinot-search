@@ -723,6 +723,36 @@ void DBusServletThread::doWork(void)
 			m_mustQuit = true;
 		}
 	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "HasDocument") == TRUE)
+	{
+		char *pUrl = NULL;
+		unsigned int docId = 0;
+
+		if (dbus_message_get_args(m_pRequest, &error,
+			DBUS_TYPE_STRING, &pUrl,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received HasDocument " << pUrl << endl;
+#endif
+			if (pUrl != NULL)
+			{
+				string url(pUrl);
+
+				// Check the index
+				docId = pIndex->hasDocument(url);
+			}
+
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_UINT32, &docId,
+					DBUS_TYPE_INVALID);
+			}
+		}
+	}
 	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetLabels") == TRUE)
 	{
 #ifdef DEBUG

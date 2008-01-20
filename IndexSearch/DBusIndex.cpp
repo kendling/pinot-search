@@ -831,14 +831,47 @@ bool DBusIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 /// Checks whether the given URL is in the index.
 unsigned int DBusIndex::hasDocument(const string &url) const
 {
-	if (m_pROIndex == NULL)
+	if (m_pROIndex != NULL)
+	{
+		reopen();
+
+		return m_pROIndex->hasDocument(url);
+	}
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
 	{
 		return false;
 	}
 
-	reopen();
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusIndex::hasDocument: couldn't get bus proxy" << endl;
+		return false;
+	}
 
-	return m_pROIndex->hasDocument(url);
+	GError *pError = NULL;
+	const char *pUrl = url.c_str();
+	unsigned int docId = 0;
+
+	if (dbus_g_proxy_call(pBusProxy, "HasDocument", &pError,
+		G_TYPE_STRING, pUrl,
+		G_TYPE_INVALID,
+		G_TYPE_UINT, &docId,
+		G_TYPE_INVALID) == FALSE)
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusIndex::hasDocument: " << pError->message << endl;
+			g_error_free(pError);
+		}
+	}
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	return docId;
 }
 
 /// Gets terms with the same root.

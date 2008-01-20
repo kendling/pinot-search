@@ -78,7 +78,7 @@ static bool loadFile(const string &xesamFile, string &fileContents)
 
 static void printHelp(void)
 {
-	set<string> engines;
+	map<string, bool> engines;
 
 	// Help
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/modules"));
@@ -97,10 +97,10 @@ static void printHelp(void)
 		<< "  -v, --version             output version information and exit\n"
 		<< "  -q, --xesamql             query input is a file containing Xesam QL\n"
 		<< "  -u, --xesamul             query input is a file containing Xesam UL\n\n"
-		<< "Supported search engine types are";
-	for (set<string>::iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
+		<< "Supported search engine types are :";
+	for (map<string, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
 	{
-		cout << " " << *engineIter;
+		cout << " " << engineIter->first;
 	}
 	cout << "\n\nExamples:\n"
 #ifdef HAVE_GOOGLEAPI

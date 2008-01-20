@@ -36,6 +36,15 @@
       <arg type="i" name="exitStatus" direction="out" />
     </method>
     <!--
+	Checks if a URL is indexed.
+	 docId: the document's ID
+	-->
+    <method name="HasDocument">
+      <annotation name="de.berlios.Pinot.HasDocument" value="pinotDBus"/>
+      <arg type="s" name="url" direction="in"/>
+      <arg type="u" name="docId" direction="out"/>
+    </method>
+    <!--
 	Gets the list of known labels.
 	 labels: array of labels
 	-->
