@@ -336,6 +336,7 @@ bool PinotSettings::load(void)
 		m_filePatternsList.insert("*.a");
 		m_filePatternsList.insert("*.avi");
 		m_filePatternsList.insert("*.asf");
+		m_filePatternsList.insert("*.cap");
 		m_filePatternsList.insert("*.gif");
 		m_filePatternsList.insert("*.iso");
 		m_filePatternsList.insert("*.jpeg");
