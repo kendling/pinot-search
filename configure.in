@@ -101,7 +101,7 @@ if test "x$enable_soap" = "xyes"; then
    PKG_CHECK_MODULES(SOAP, gsoap)
    SOAP_CFLAGS="-DHAVE_GOOGLEAPI $SOAP_CFLAGS"
    AM_CONDITIONAL(HAVE_SOAP, true)
-   SOAP_LIBS="$SOAP_LIBS -lSearchSOAP -lSearchGoogle"
+   SOAP_LIBS="-lSearchGoogle $SOAP_LIBS -lSearchSOAP"
 fi
 AC_SUBST(SOAP_CFLAGS)
 AC_SUBST(SOAP_LIBS)

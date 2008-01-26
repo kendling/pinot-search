@@ -56,9 +56,10 @@ pinot_index_LDADD = \
 	-L$(top_builddir)/Utils \
 	-L$(top_builddir)/Tokenize \
 	-L$(top_builddir)/Collect \
+	-L$(top_builddir)/IndexSearch/Google \
 	-lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @DBUS_LIBS@ @XML_LIBS@ \
-	@HTTP_LIBS@ @MISC_LIBS@
+	@GLIBMM_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ \
+	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 pinot_index_SOURCES = pinot-index.cpp
 
@@ -107,7 +108,7 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/IndexSearch/Google \
 	-I$(top_srcdir)/IndexSearch/xesam \
-	@HTTP_CFLAGS@ @XML_CFLAGS@ \
+	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ \
 	@DBUS_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@
 
 if HAVE_BOOST_SPIRIT
