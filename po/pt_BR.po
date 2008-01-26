@@ -6,14 +6,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.82\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-01 08:50+0800\n"
-"PO-Revision-Date: 2007-10-25 17:18+0000\n"
+"POT-Creation-Date: 2008-01-12 13:26+0800\n"
+"PO-Revision-Date: 2008-01-15 00:15+0000\n"
 "Last-Translator: Leonardo Melo <leonardovazmelo@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <pt_BR@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2007-12-31 19:48+0000\n"
+"X-Launchpad-Export-Date: 2008-01-26 03:04+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:67 UI/GTK2/src/statisticsDialog.cc:90
@@ -31,9 +31,9 @@ msgstr "Usuário atual"
 #: UI/GTK2/src/mainWindow.cc:988 UI/GTK2/src/mainWindow.cc:1326
 #: UI/GTK2/src/mainWindow.cc:1482 UI/GTK2/src/mainWindow.cc:1524
 #: UI/GTK2/src/mainWindow.cc:1546 UI/GTK2/src/mainWindow.cc:2254
-#: UI/GTK2/src/PinotSettings.cpp:321 UI/GTK2/src/PinotSettings.cpp:1452
-#: UI/GTK2/src/PinotSettings.cpp:1508 UI/GTK2/src/statisticsDialog.cc:80
-#: UI/GTK2/src/WorkerThreads.cpp:985
+#: UI/GTK2/src/PinotSettings.cpp:321 UI/GTK2/src/PinotSettings.cpp:1462
+#: UI/GTK2/src/PinotSettings.cpp:1518 UI/GTK2/src/statisticsDialog.cc:80
+#: UI/GTK2/src/WorkerThreads.cpp:1015
 msgid "My Web Pages"
 msgstr "Minhas Páginas Web"
 
@@ -41,8 +41,8 @@ msgstr "Minhas Páginas Web"
 #: UI/GTK2/src/EnginesTree.cpp:337 UI/GTK2/src/mainWindow.cc:770
 #: UI/GTK2/src/mainWindow.cc:982 UI/GTK2/src/mainWindow.cc:1333
 #: UI/GTK2/src/mainWindow.cc:2258 UI/GTK2/src/PinotSettings.cpp:322
-#: UI/GTK2/src/PinotSettings.cpp:1453 UI/GTK2/src/PinotSettings.cpp:1509
-#: UI/GTK2/src/statisticsDialog.cc:84 UI/GTK2/src/WorkerThreads.cpp:995
+#: UI/GTK2/src/PinotSettings.cpp:1463 UI/GTK2/src/PinotSettings.cpp:1519
+#: UI/GTK2/src/statisticsDialog.cc:84 UI/GTK2/src/WorkerThreads.cpp:1025
 msgid "My Documents"
 msgstr "Meus Documentos"
 
@@ -89,8 +89,8 @@ msgstr "Índice externo"
 
 #. Stemming language
 #. Labels
-#: UI/GTK2/src/importDialog.cc:73 UI/GTK2/src/queryDialog.cc:123
-#: UI/GTK2/src/queryDialog.cc:139
+#: UI/GTK2/src/importDialog.cc:73 UI/GTK2/src/queryDialog.cc:124
+#: UI/GTK2/src/queryDialog.cc:140
 msgid "None"
 msgstr "Nenhum"
 
@@ -586,7 +586,7 @@ msgstr "Pessoal"
 msgid "Me"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:1261
+#: UI/GTK2/src/PinotSettings.cpp:1271
 msgid "Unclassified"
 msgstr "Não classificado"
 
@@ -765,30 +765,34 @@ msgid "MIME type"
 msgstr "Tipo MIME"
 
 #: UI/GTK2/src/queryDialog.cc:102
+msgid "MIME class"
+msgstr ""
+
+#: UI/GTK2/src/queryDialog.cc:103
 msgid "Label"
 msgstr "Título"
 
 #. The last column is for the timestamp
-#: UI/GTK2/src/queryDialog.cc:105 UI/GTK2/src/ResultsTree.cpp:150
+#: UI/GTK2/src/queryDialog.cc:106 UI/GTK2/src/ResultsTree.cpp:150
 #, fuzzy
 msgid "Date"
 msgstr "no"
 
-#: UI/GTK2/src/queryDialog.cc:106
+#: UI/GTK2/src/queryDialog.cc:107
 #, fuzzy
 msgid "Time"
 msgstr "Título"
 
-#: UI/GTK2/src/queryDialog.cc:107
+#: UI/GTK2/src/queryDialog.cc:108
 msgid "Size"
 msgstr ""
 
 #. Sort order
-#: UI/GTK2/src/queryDialog.cc:111
+#: UI/GTK2/src/queryDialog.cc:112
 msgid "By relevance"
 msgstr ""
 
-#: UI/GTK2/src/queryDialog.cc:112
+#: UI/GTK2/src/queryDialog.cc:113
 #, fuzzy
 msgid "By date"
 msgstr "Atualizar"
@@ -949,22 +953,22 @@ msgstr "Robots META tag não são permitidos no índice"
 msgid "No monitoring handler"
 msgstr "Nenhum manipulador de monitoramento"
 
-#: UI/GTK2/src/WorkerThreads.cpp:390
+#: UI/GTK2/src/WorkerThreads.cpp:416
 msgid "Indexing was stopped"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:403
+#: UI/GTK2/src/WorkerThreads.cpp:429
 msgid "Can't index mail here"
 msgstr "Não foi possível indexar mail aqui"
 
-#: UI/GTK2/src/WorkerThreads.cpp:424 UI/GTK2/src/WorkerThreads.cpp:675
+#: UI/GTK2/src/WorkerThreads.cpp:450 UI/GTK2/src/WorkerThreads.cpp:705
 msgid "is already being indexed"
 msgstr "já está sendo indexado"
 
-#: UI/GTK2/src/WorkerThreads.cpp:434
+#: UI/GTK2/src/WorkerThreads.cpp:460
 msgid "is blacklisted"
 msgstr "está na lista negra"
 
-#: UI/GTK2/src/WorkerThreads.cpp:944
+#: UI/GTK2/src/WorkerThreads.cpp:974
 msgid "No title"
 msgstr "Sem título"

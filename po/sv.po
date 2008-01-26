@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.82\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-01 08:50+0800\n"
-"PO-Revision-Date: 2008-01-09 12:59+0000\n"
+"POT-Creation-Date: 2008-01-12 13:26+0800\n"
+"PO-Revision-Date: 2008-01-15 00:10+0000\n"
 "Last-Translator: Daniel Nylander <yeager@ubuntu.com>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-01-11 15:08+0000\n"
+"X-Launchpad-Export-Date: 2008-01-26 03:04+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:67 UI/GTK2/src/statisticsDialog.cc:90
@@ -32,9 +32,9 @@ msgstr "Aktuell användare"
 #: UI/GTK2/src/mainWindow.cc:988 UI/GTK2/src/mainWindow.cc:1326
 #: UI/GTK2/src/mainWindow.cc:1482 UI/GTK2/src/mainWindow.cc:1524
 #: UI/GTK2/src/mainWindow.cc:1546 UI/GTK2/src/mainWindow.cc:2254
-#: UI/GTK2/src/PinotSettings.cpp:321 UI/GTK2/src/PinotSettings.cpp:1452
-#: UI/GTK2/src/PinotSettings.cpp:1508 UI/GTK2/src/statisticsDialog.cc:80
-#: UI/GTK2/src/WorkerThreads.cpp:985
+#: UI/GTK2/src/PinotSettings.cpp:321 UI/GTK2/src/PinotSettings.cpp:1462
+#: UI/GTK2/src/PinotSettings.cpp:1518 UI/GTK2/src/statisticsDialog.cc:80
+#: UI/GTK2/src/WorkerThreads.cpp:1015
 msgid "My Web Pages"
 msgstr "Mina webbsidor"
 
@@ -42,8 +42,8 @@ msgstr "Mina webbsidor"
 #: UI/GTK2/src/EnginesTree.cpp:337 UI/GTK2/src/mainWindow.cc:770
 #: UI/GTK2/src/mainWindow.cc:982 UI/GTK2/src/mainWindow.cc:1333
 #: UI/GTK2/src/mainWindow.cc:2258 UI/GTK2/src/PinotSettings.cpp:322
-#: UI/GTK2/src/PinotSettings.cpp:1453 UI/GTK2/src/PinotSettings.cpp:1509
-#: UI/GTK2/src/statisticsDialog.cc:84 UI/GTK2/src/WorkerThreads.cpp:995
+#: UI/GTK2/src/PinotSettings.cpp:1463 UI/GTK2/src/PinotSettings.cpp:1519
+#: UI/GTK2/src/statisticsDialog.cc:84 UI/GTK2/src/WorkerThreads.cpp:1025
 msgid "My Documents"
 msgstr "Mina dokument"
 
@@ -89,8 +89,8 @@ msgstr "Externt index"
 
 #. Stemming language
 #. Labels
-#: UI/GTK2/src/importDialog.cc:73 UI/GTK2/src/queryDialog.cc:123
-#: UI/GTK2/src/queryDialog.cc:139
+#: UI/GTK2/src/importDialog.cc:73 UI/GTK2/src/queryDialog.cc:124
+#: UI/GTK2/src/queryDialog.cc:140
 msgid "None"
 msgstr "Ingen"
 
@@ -578,7 +578,7 @@ msgstr "Personlig"
 msgid "Me"
 msgstr "Jag"
 
-#: UI/GTK2/src/PinotSettings.cpp:1261
+#: UI/GTK2/src/PinotSettings.cpp:1271
 msgid "Unclassified"
 msgstr "Oklassificerad"
 
@@ -672,8 +672,7 @@ msgid "Labels"
 msgstr "Etiketter"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:113
-msgid ""
-"These directories will be indexed and optionally monitored for changes:"
+msgid "These directories will be indexed and optionally monitored for changes:"
 msgstr ""
 "Dessa kataloger kommer att bli indexerade och övervakade för ändringar "
 "(valfritt):"
@@ -753,28 +752,32 @@ msgid "MIME type"
 msgstr "MIME-typ"
 
 #: UI/GTK2/src/queryDialog.cc:102
+msgid "MIME class"
+msgstr ""
+
+#: UI/GTK2/src/queryDialog.cc:103
 msgid "Label"
 msgstr "Etikett"
 
 #. The last column is for the timestamp
-#: UI/GTK2/src/queryDialog.cc:105 UI/GTK2/src/ResultsTree.cpp:150
+#: UI/GTK2/src/queryDialog.cc:106 UI/GTK2/src/ResultsTree.cpp:150
 msgid "Date"
 msgstr "Datum"
 
-#: UI/GTK2/src/queryDialog.cc:106
+#: UI/GTK2/src/queryDialog.cc:107
 msgid "Time"
 msgstr "Tid"
 
-#: UI/GTK2/src/queryDialog.cc:107
+#: UI/GTK2/src/queryDialog.cc:108
 msgid "Size"
 msgstr "Storlek"
 
 #. Sort order
-#: UI/GTK2/src/queryDialog.cc:111
+#: UI/GTK2/src/queryDialog.cc:112
 msgid "By relevance"
 msgstr "Efter relevans"
 
-#: UI/GTK2/src/queryDialog.cc:112
+#: UI/GTK2/src/queryDialog.cc:113
 msgid "By date"
 msgstr "Efter datum"
 
@@ -921,22 +924,22 @@ msgstr "Robots META-tagg förbjuder indexering"
 msgid "No monitoring handler"
 msgstr "Ingen övervakningshanterare"
 
-#: UI/GTK2/src/WorkerThreads.cpp:390
+#: UI/GTK2/src/WorkerThreads.cpp:416
 msgid "Indexing was stopped"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:403
+#: UI/GTK2/src/WorkerThreads.cpp:429
 msgid "Can't index mail here"
 msgstr "Kan inte indexera post här"
 
-#: UI/GTK2/src/WorkerThreads.cpp:424 UI/GTK2/src/WorkerThreads.cpp:675
+#: UI/GTK2/src/WorkerThreads.cpp:450 UI/GTK2/src/WorkerThreads.cpp:705
 msgid "is already being indexed"
 msgstr "håller redan på att bli indexerad"
 
-#: UI/GTK2/src/WorkerThreads.cpp:434
+#: UI/GTK2/src/WorkerThreads.cpp:460
 msgid "is blacklisted"
 msgstr "är svartlistad"
 
-#: UI/GTK2/src/WorkerThreads.cpp:944
+#: UI/GTK2/src/WorkerThreads.cpp:974
 msgid "No title"
 msgstr "Ingen titel"
