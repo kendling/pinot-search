@@ -13,9 +13,9 @@ noinst_HEADERS = \
 	$(top_srcdir)/IndexSearch/xesam/XesamQueryBuilder.h \
 	$(top_srcdir)/IndexSearch/xesam/XesamULParser.h
 
-lib_LTLIBRARIES = libxapianmodule.la
+lib_LTLIBRARIES = libxapianbackend.la
 
-libxapianmodule_la_SOURCES = \
+libxapianbackend_la_SOURCES = \
 	AbstractGenerator.cpp \
 	LanguageDetector.cpp \
 	ModuleExports.cpp \
@@ -28,19 +28,15 @@ libxapianmodule_la_SOURCES = \
 	$(top_srcdir)/IndexSearch/xesam/XesamQueryBuilder.cc
 
 if HAVE_BOOST_SPIRIT
-libxapianmodule_la_SOURCES += $(top_srcdir)/IndexSearch/xesam/XesamULParser.cc
+libxapianbackend_la_SOURCES += $(top_srcdir)/IndexSearch/xesam/XesamULParser.cc
 endif
 
-libxapianmodule_la_LDFLAGS = -module -shared -nostartfiles @XML_CFLAGS@
+libxapianbackend_la_LDFLAGS = -module -shared -nostartfiles @XML_CFLAGS@
 
-libxapianmodule_la_LIBADD = \
+libxapianbackend_la_LIBADD = \
 	@INDEX_LIBS@ \
 	-L$(top_builddir)/Utils \
 	-lBasicUtils 
-#-L$(top_srcdir)/Tokenize 
-#-L$(top_builddir)/IndexSearch 
-#-lTokenize -lUtils
-## @GLIBMM_LIBS@ @INDEX_LIBS@ @XML_LIBS@ @MISC_LIBS@
 
 AM_CXXFLAGS = \
 	-fPIC \

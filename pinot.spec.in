@@ -93,7 +93,7 @@ fi
 %{_libdir}/pinot/filters/libexternalfilter.so*
 %{_libdir}/pinot/filters/libmboxfilter.so*
 %{_libdir}/pinot/filters/libtaglibfilter.so*
-%{_libdir}/pinot/modules/libxapianmodule.so*
+%{_libdir}/pinot/backends/libxapianbackend.so*
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png

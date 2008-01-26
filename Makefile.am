@@ -40,9 +40,9 @@ install-data-local:
 	@mkdir -p $(DESTDIR)$(libdir)/pinot/filters
 	@rm $(DESTDIR)$(libdir)/lib*filter.a $(DESTDIR)$(libdir)/lib*filter.la
 	@mv $(DESTDIR)$(libdir)/lib*filter* $(DESTDIR)$(libdir)/pinot/filters/
-	@mkdir -p $(DESTDIR)$(libdir)/pinot/modules
-	@rm $(DESTDIR)$(libdir)/lib*module.a $(DESTDIR)$(libdir)/lib*module.la
-	@mv $(DESTDIR)$(libdir)/lib*module* $(DESTDIR)$(libdir)/pinot/modules/
+	@mkdir -p $(DESTDIR)$(libdir)/pinot/backends
+	@rm $(DESTDIR)$(libdir)/lib*.a $(DESTDIR)$(libdir)/lib*.la
+	@mv $(DESTDIR)$(libdir)/lib* $(DESTDIR)$(libdir)/pinot/backends/
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
 	$(INSTALL_DATA) $(srcdir)/UI/icons/48x48/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/

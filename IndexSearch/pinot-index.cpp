@@ -54,7 +54,7 @@ static void printHelp(void)
 	map<string, bool> engines;
 
 	// Help
-	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/modules"));
+	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
 	ModuleFactory::getSupportedEngines(engines);
 	ModuleFactory::unloadModules();
 	cout << "pinot-index - Index documents from the command-line\n\n"
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 	DownloaderInterface::initialize();
 	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + string("/pinot/filters"));
-	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/modules"));
+	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
 
 	// Localize language names
 	Languages::setIntlName (0, "Unknown");

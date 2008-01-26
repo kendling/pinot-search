@@ -399,9 +399,9 @@ int main(int argc, char **argv)
 	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
 	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
-	// Load modules, if any
-	ModuleFactory::loadModules(string(LIBDIR) + "/pinot/modules");
-	ModuleFactory::loadModules(confDirectory + "/modules");
+	// Load backends, if any
+	ModuleFactory::loadModules(string(LIBDIR) + "/pinot/backends");
+	ModuleFactory::loadModules(confDirectory + "/backends");
 
 	// Localize language names
 	Languages::setIntlName(0, _("Unknown"));

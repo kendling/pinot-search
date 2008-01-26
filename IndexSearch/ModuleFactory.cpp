@@ -401,7 +401,7 @@ bool ModuleFactory::isSupported(const string &type, bool asIndex)
 {
 	if (asIndex == true)
 	{
-		// Only modules implement access to index
+		// Only backends implement access to index
 		if (m_types.find(type) != m_types.end())
 		{
 			return true;
