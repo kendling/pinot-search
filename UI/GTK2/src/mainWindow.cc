@@ -978,6 +978,7 @@ void mainWindow::on_searchagain_changed(ustring queryName)
 		ustring queryName(queryProps.getName());
 
 		queryProps.setName(queryName + " " + _("In Results"));
+		queryProps.setModified(true);
 
 		// Spawn new threads
 		std::map<std::string, std::string>::const_iterator indexIter = indexes.find(_("My Documents"));
