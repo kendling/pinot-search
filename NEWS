@@ -1,6 +1,37 @@
+2008/01/26 version_0_8_2
+Build :
+ - don't link to unnecessary libraries
+Search :
+ - removed the WiseNut plugin
+ - fixed the Sherlock plugin parser's handling of input items, thanks to
+  Claudio Bustos Navarrete
+ - support for Xesam RC1
+ - don't build the Xesam UL parser if Spirit is not available, thanks to
+  Reuben Thomas
+Xapian :
+ - back-end moved into a dynamic library
+ - fixed several issues with query stemming
+ - generate terms for the MIME class
+Daemon :
+ - log an error when there's no inotify watch left
+ - export HasDocument over D-Bus
+UI :
+ - when the index needs updating, tell the user on every run until he clicks
+  the "Don't warn me again" checkbox
+ - stemming is now configured separately and not driven by the "lang" filter
+ - don't correct spelling of auto-generated and previously corrected queries
+ - defer importing to the main window
+ - Status window shows which engines are available
+ - larger default blacklist
+ - viewed documents are added to the list of recently used files. Requires
+  gtkmm >= 2.10
+ - updated Dutch translation by JW
+ - updated Spanish translation by Jesus Tramullas
+ - updated Swedish translation by Zirro
+
 2007/11/24 version_0_8_1
 Build :
- - Misc fixes
+ - misc fixes
 General :
  - updated FAQ and README
  - fixed Icon field in desktop files

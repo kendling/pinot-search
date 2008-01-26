@@ -13,9 +13,7 @@ General
 - Advertise service via Rendezvous
 - Extend metadata beyond title,location,language,type,timestamp,size
 - Don't package gmo files, they are platform dependent
-
-Deskbar
-- Update to a module
+- CLI programs to use tty highlighting if available
 
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
@@ -51,7 +49,6 @@ Search
 - Make sure Description files' SyndicationRight is not private or closed
 - Get hold of stopwords lists for the languages supported by Xapian's stemmers
  and remove stopwords from queries as first step of search
-- Isolate dependencies on Xapian so that they can eventually be moved into a .so
 - getCloseTerms() should be a search engine method so that WebEngine can use plugins'
  suggestions Url field (http://developer.mozilla.org/en/docs/Supporting_search_suggestions_in_search_plugins)
 - pinot-search should be able to run stored queries, as found in the configuration file
@@ -92,7 +89,7 @@ Daemon
 - Follow updates to Xesam specs
 - Preserve user set metadata on reindexing
 - Generate warning if we run out of inotify watch
-
+ 
 UI
 - Show which threads are running, what they are doing, and allow to stop them
  selectively
@@ -107,8 +104,6 @@ UI
 - UI doesn't show documents indexed by the daemon the very first time it's run,
  at least until it's restarted
 - Unknown exceptions in IndexingThread or elsewhere should be logged as errors
-- Show whether Pinot was built with boost Spirit and how many plugins of each
- type there are
 - Delete all temporary files when exiting
 - Show which stored queries are fully, partially or not at all Web friendly
 - List viewed URLs
