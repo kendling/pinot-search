@@ -20,6 +20,7 @@ libMonitor_la_SOURCES += INotifyMonitor.cpp
 endif
 
 libMonitor_la_CXXFLAGS = \
+	-fPIC \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \

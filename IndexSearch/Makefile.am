@@ -102,6 +102,7 @@ SOAPEnvC.cpp : SOAPEnv.h
 endif
 
 AM_CXXFLAGS = \
+	-fPIC \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \

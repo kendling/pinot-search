@@ -67,6 +67,7 @@ pinot_dbus_daemon_SOURCES = \
 bin_PROGRAMS = pinot pinot-dbus-daemon
 
 AM_CXXFLAGS = \
+	-fPIC \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \

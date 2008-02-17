@@ -21,9 +21,10 @@ GoogleSearch.h :
 	wsdl2h -n gapi -o GoogleSearch.h googleapi/GoogleSearch.wsdl
 
 GAPIClientLib.cpp : GoogleSearch.h
-	soapcpp2 -n -pGAPI -I /usr/include/gsoap/import GoogleSearch.h
+	soapcpp2 -n -pGAPI -I/usr/include/gsoap/import GoogleSearch.h
 
 libSearchGoogle_la_CXXFLAGS = \
+	-fPIC \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \
