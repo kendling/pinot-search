@@ -2,6 +2,7 @@
 
 noinst_HEADERS = \
 	FilterUtils.h \
+	TextConverter.h \
 	Tokenizer.h \
 	$(top_srcdir)/Tokenize/filters/ExternalFilter.h \
 	$(top_srcdir)/Tokenize/filters/Filter.h \
@@ -42,6 +43,7 @@ libtaglibfilter_la_LIBADD =
 
 libTokenize_la_SOURCES = \
 	FilterUtils.cpp \
+	TextConverter.cpp \
 	Tokenizer.cpp \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/FilterFactory.cc \

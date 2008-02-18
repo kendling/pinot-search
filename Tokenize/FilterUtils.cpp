@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007 Fabrice Colin
+ *  Copyright 2007,2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
+#include "TextConverter.h"
 #include "filters/FilterFactory.h"
 #include "FilterUtils.h"
 
@@ -249,24 +250,21 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 
 bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 {
-	string uri, ipath;
+	string charset, uri, ipath;
 
 	if (pFilter == NULL)
 	{
 		return false;
 	}
 
+	// Go through the whole thing
 	const map<string, string> &metaData = pFilter->get_meta_data();
 	for (map<string, string>::const_iterator metaIter = metaData.begin();
 		metaIter != metaData.end(); ++metaIter)
 	{
-		if (metaIter->first == "content")
+		if (metaIter->first == "charset")
 		{
-			doc.setData(metaIter->second.c_str(), metaIter->second.length());
-#ifdef DEBUG
-			cout << "FilterUtils::populateDocument: set " << metaIter->second.length()
-				<< " characters of data" << endl;
-#endif
+			charset = metaIter->second;
 		}
 		else if (metaIter->first == "date")
 		{
@@ -296,10 +294,6 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 			else cout << "FilterUtils::populateDocument: ignoring size zero" << endl;
 #endif
 		}
-		else if (metaIter->first == "title")
-		{
-			doc.setTitle(metaIter->second);
-		}
 		else if (metaIter->first == "uri")
 		{
 			uri = metaIter->second;
@@ -320,6 +314,34 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 	if (ipath.empty() == false)
 	{
 		doc.setLocation(doc.getLocation() + "?" + ipath);
+	}
+
+	TextConverter converter(20);
+
+	// Content and title may have to be converted
+	map<string, string>::const_iterator contentIter = metaData.find("content");
+	if (contentIter != metaData.end())
+	{
+		string utf8Data(converter.toUTF8(contentIter->second, charset));
+
+#ifdef DEBUG
+		cout << "FilterUtils::populateDocument: converting " << doc.getLocation()
+			<< " from " << charset << endl;
+#endif
+		if (converter.getErrorsCount() > 0)
+		{
+			cerr << doc.getLocation() << " may not have been fully converted to UTF-8" << endl;
+		}
+		doc.setData(utf8Data.c_str(), utf8Data.length());
+#ifdef DEBUG
+		cout << "FilterUtils::populateDocument: set " << utf8Data.length()
+			<< " characters of data" << endl;
+#endif
+	}
+	contentIter = metaData.find("title");
+	if (contentIter != metaData.end())
+	{
+		doc.setTitle(converter.toUTF8(contentIter->second, charset));
 	}
 
 	return true;
