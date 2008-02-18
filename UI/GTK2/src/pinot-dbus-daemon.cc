@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,8 +32,6 @@
 #include <glibmm/ustring.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/convert.h>
-#include <glibmm/object.h>
-#include <glibmm/main.h>
 
 #include "config.h"
 #include "NLS.h"
@@ -338,6 +336,8 @@ int main(int argc, char **argv)
 	// This should make Xapian use Flint rather than Quartz
 	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
 
+	// Make the locale follow the environment variables
+	setlocale(LC_ALL, "");
 	char *pLocale = setlocale(LC_ALL, NULL);
 	if (pLocale != NULL)
 	{
@@ -345,19 +345,28 @@ int main(int argc, char **argv)
 
 		if (locale != "C")
 		{
+			bool appendUTF8 = false;
+
 			string::size_type pos = locale.find_last_of(".");
-			if (pos != string::npos)
+			if ((pos != string::npos) &&
+				((strcasecmp(locale.substr(pos).c_str(), ".utf8") != 0) &&
+				(strcasecmp(locale.substr(pos).c_str(), ".utf-8") != 0)))
 			{
 				locale.resize(pos);
+				appendUTF8 = true;
 			}
-			locale += ".UTF-8";
 
-			pLocale = setlocale(LC_ALL, locale.c_str());
-			if (pLocale != NULL)
+			if (appendUTF8 == true)
 			{
+				locale += ".UTF-8";
+
+				pLocale = setlocale(LC_ALL, locale.c_str());
+				if (pLocale != NULL)
+				{
 #ifdef DEBUG
-				cout << "Changed locale to " << pLocale << endl;
+					cout << "Changed locale to " << pLocale << endl;
 #endif
+				}
 			}
 		}
 	}
@@ -430,7 +439,6 @@ int main(int argc, char **argv)
 	newAction.sa_flags = 0;
 	newAction.sa_handler = quitAll;
 	sigaction(SIGINT, &newAction, NULL);
-	sigaction(SIGKILL, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
 
 	// Open the daemon index in read-write mode 
