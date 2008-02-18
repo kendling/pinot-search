@@ -486,9 +486,9 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		{
 			// Yes, it is
 			indexId = m_settings.getIndexIdByName(engineName);
-			engineId = m_settings.getEngineId("Xapian");
+			engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
 #ifdef DEBUG
-			cout << "ResultsTree::addResults: engine is index " << engineName << " " << indexId << endl;
+			cout << "ResultsTree::addResults: engine is index " << engineName << " " << indexId << " " << engineId << endl;
 #endif
 		}
 #ifdef DEBUG
@@ -496,7 +496,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 #endif
 	}
 #ifdef DEBUG
-	cout << "ResultsTree::addResults: ID for engine " << engineName << " is " << engineId <<  endl;
+	else cout << "ResultsTree::addResults: ID for engine " << engineName << " is " << engineId <<  endl;
 #endif
 
 	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
@@ -762,12 +762,12 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 					cout << "ResultsTree::setGroupMode: row is for " << engineNames.size() << " engine(s)" << endl;
 #endif
 					// Are there indexes in the list ?
-					set<string>::iterator xapianIter = engineNames.find("Xapian");
-					if ((xapianIter != engineNames.end()) &&
+					set<string>::iterator backendIter = engineNames.find(m_settings.m_defaultBackend);
+					if ((backendIter != engineNames.end()) &&
 						(indexIds > 0))
 					{
 						// Erase this
-						engineNames.erase(xapianIter);
+						engineNames.erase(backendIter);
 #ifdef DEBUG
 						cout << "ResultsTree::setGroupMode: row is for index(es)" << indexIds << endl;
 #endif
@@ -799,7 +799,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 							indexId = m_settings.getIndexIdByName(engineName);
 							if (indexId > 0)
 							{
-								engineId = m_settings.getEngineId("Xapian");
+								engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
 							}
 #ifdef DEBUG
 							cout << "ResultsTree::setGroupMode: index " << indexId << endl;
@@ -1091,7 +1091,7 @@ bool ResultsTree::deleteResults(const string &engineName)
 		{
 			// Yes, it is
 			indexId = m_settings.getIndexIdByName(engineName);
-			engineId = m_settings.getEngineId("Xapian");
+			engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
 		}
 	}
 
@@ -1295,7 +1295,7 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 			{
 				// Get the first engine this result was obtained from
 				engineName = *engineNames.begin();
-				if (engineName == "Xapian")
+				if (engineName == m_settings.m_defaultBackend)
 				{
 					m_settings.getIndexNames(indexIds, indexNames);
 					if (indexNames.empty() == false)
@@ -1538,7 +1538,7 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 	{
 		// Get the first engine this result was obtained from
 		string engineName(*engineNames.begin());
-		if (engineName == "Xapian")
+		if (engineName == m_settings.m_defaultBackend)
 		{
 			m_settings.getIndexNames(indexIds, indexNames);
 			if (indexNames.empty() == false)

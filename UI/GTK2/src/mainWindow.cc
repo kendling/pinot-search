@@ -188,7 +188,7 @@ mainWindow::mainWindow() :
 	m_pNotebook->set_show_tabs(true);
 	m_pNotebook->set_show_border(true);
 	m_pNotebook->set_tab_pos(Gtk::POS_TOP);
-	m_pNotebook->set_scrollable(false);
+	m_pNotebook->set_scrollable(true);
 	rightVbox->pack_start(*m_pNotebook, Gtk::PACK_EXPAND_WIDGET, 4);
 	m_pageSwitchConnection = m_pNotebook->signal_switch_page().connect(
 		sigc::mem_fun(*this, &mainWindow::on_switch_page), false);
@@ -853,9 +853,11 @@ void mainWindow::on_index_changed(ustring indexName)
 		if (m_state.write_lock_lists() == true)
 		{
 			int pageNum = m_pNotebook->append_page(*pIndexPage, *pTab);
-			m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
 			if (pageNum >= 0)
 			{
+				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+				// Allow reordering
+				m_pNotebook->set_tab_reorderable(*pIndexPage);
 				foundPage = true;
 			}
 
@@ -1254,9 +1256,14 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			if (m_state.write_lock_lists() == true)
 			{
 				pageNum = m_pNotebook->append_page(*pResultsPage, *pTab);
-				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
-				// Switch to this new page
-				m_pNotebook->set_current_page(pageNum);
+				if (pageNum >= 0)
+				{
+					m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+					// Allow reordering
+					m_pNotebook->set_tab_reorderable(*pResultsPage);
+					// Switch to this new page
+					m_pNotebook->set_current_page(pageNum);
+				}
 
 				m_state.unlock_lists();
 			}
@@ -3070,6 +3077,9 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 			set_status(statusText);
 			return;
 		}
+
+		// User edits reset the automatically modified flag
+		queryProps.setModified(false);
 
 		set_status(_("Edited query"));
 	}
