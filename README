@@ -190,12 +190,13 @@ http://pinot.berlios.de/
       "class" for MIME type classification, eg "class:text"
       "label" for label, eg "label:Important"
 
+  The directory filter is recursive, ie it applies to sub-directories.
   Allowed language codes are "da", "nl", "en", "fi", "fr", "de", "it", "nn", "pt",
   "ru", "es" and "sv".
 
   Stemming is available to queries for which a stemming language is defined.
-  If no results are found for such a query, the terms are stemmed and the query
-  is run again.
+  If such a query doesn't return any exact match, the query terms are stemmed
+  and the query is run again.
 
   The values of "file", "url", "dir" and "label" may be double-quoted. It's also
   worth pointing out that the query "dir:/X/Y" will return files and directories

@@ -463,6 +463,33 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 						cout << "XapianEngine::queryDatabase: matched term " << *termIter << endl;
 #endif
 					}
+					else if (firstChar == 'Z')
+					{
+						string stemmed((*termIter).substr(1));
+						string::size_type stemmedLen = stemmed.length();
+
+						// Which of this document's terms stem to this ?
+						Xapian::TermIterator docTermIter = pIndex->termlist_begin(docId);
+						if (docTermIter != pIndex->termlist_end(docId))
+						{
+							for (docTermIter.skip_to(stemmed);
+								docTermIter != pIndex->termlist_end(docId); ++docTermIter)
+							{
+								// Is this a potential unstem ?
+								if (strncasecmp((*docTermIter).c_str(), stemmed.c_str(), stemmedLen) != 0)
+								{
+									// No, no point looking at the next terms
+									break;
+								}
+#ifdef DEBUG
+								cout << "XapianEngine::queryDatabase: matched unstem " << *docTermIter << endl;
+#endif
+
+								// FIXME: check this term stems to stemmed !
+								seedTerms.push_back(*docTermIter); 
+							}
+						}
+					}
 				}
 
 				DocumentInfo thisResult;
