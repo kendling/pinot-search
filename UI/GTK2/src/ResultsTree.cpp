@@ -372,8 +372,6 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 	const TreeModel::iterator iter = model->get_iter(node_path);
 	const TreeModel::Row row = *iter;
 
-	m_indexNames.clear();
-
 	if (path_currently_selected == false)
 	{
 		// Clear the extract
@@ -578,7 +576,9 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 
 		++count;
 
-		unsigned int docId = resultIter->getIsIndexed(indexId);
+		// We already got indexId from PinotSettings::getIndexIdByName()
+		unsigned int docIndexId = 0;
+		unsigned int docId = resultIter->getIsIndexed(docIndexId);
 		bool isIndexed = false;
 
 		if (docId > 0)
@@ -597,8 +597,8 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		{
 #ifdef DEBUG
 			cout << "ResultsTree::addResults: added row for result " << count
-				<< ", " << currentScore << ", " << isIndexed << " " << indexId
-				<< " " << resultIter->getTimestamp() << endl;
+				<< ", " << currentScore << ", " << isIndexed << " " << docId
+				<< " " << indexId << " " << resultIter->getTimestamp() << endl;
 #endif
 
 			if (groupIter)
@@ -1531,37 +1531,42 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 	unsigned int indexIds = row[m_resultsColumns.m_indexes];
 
 #ifdef DEBUG
-	cout << "ResultsTree::findResultsExtract: engines " << engineIds << ", indexes " << indexIds << endl;
+	cout << "ResultsTree::findResultsExtract: " << url << " has engines " << engineIds << ", indexes " << indexIds << endl;
 #endif
 	m_settings.getEngineNames(engineIds, engineNames);
-	if (engineNames.empty() == false)
+	for (set<string>::const_iterator engineIter = engineNames.begin();
+		engineIter != engineNames.end(); ++engineIter)
 	{
-		// Get the first engine this result was obtained from
-		string engineName(*engineNames.begin());
+		string engineName(*engineIter);
+
+		indexNames.clear();
 		if (engineName == m_settings.m_defaultBackend)
 		{
 			m_settings.getIndexNames(indexIds, indexNames);
-			if (indexNames.empty() == false)
-			{
-				// Use the name of the first index as engine name
-				engineName = (*indexNames.begin());
-
-				// Any internal index in there ?
-				for (set<string>::iterator indexIter = indexNames.begin(); indexIter != indexNames.end(); ++indexIter)
-				{
-					if  (m_settings.isInternalIndex(*indexIter) == true)
-					{
-						m_indexNames.insert(*indexIter);
-					}
-				}
-			}
+		}
+		else
+		{
+			// That's not an index but pretend it is
+			indexNames.insert(engineName);
 		}
 
+		for (set<string>::const_iterator indexIter = indexNames.begin();
+			indexIter != indexNames.end(); ++indexIter)
+		{
+			// Use the name of this index as engine name
+			engineName = (*indexNames.begin());
+
 #ifdef DEBUG
-		cout << "ResultsTree::findResultsExtract: first engine for " << url << " was " << engineName << endl;
+			cout << "ResultsTree::findResultsExtract: engine or index " << engineName << endl;
 #endif
-		extract = queryHistory.getItemExtract(from_utf8(m_treeName), engineName, url, charset);
+			extract = queryHistory.getItemExtract(from_utf8(m_treeName), engineName, url, charset);
+			if (extract.empty() == false)
+			{
+				// Stop here
+				return to_utf8(extract, charset);
+			}
+		}
 	}
 
-	return to_utf8(extract, charset);
+	return "";
 }

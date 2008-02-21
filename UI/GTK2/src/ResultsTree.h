@@ -129,7 +129,6 @@ class ResultsTree : public Gtk::TreeView
 		Gtk::TreeView *m_extractTreeView;
 		Glib::RefPtr<Gtk::ListStore> m_refExtractStore;
 		ComboModelColumns m_extractColumns;
-		std::set<std::string> m_indexNames;
 		bool m_showExtract;
 		GroupByMode m_groupMode;
 
