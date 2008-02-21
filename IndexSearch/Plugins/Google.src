@@ -22,9 +22,9 @@
 <interpret 
     browserResultType="result" 
     charset = "UTF-8"
-    resultListStart="<!--a-->" 
-    resultListEnd="<!--z-->" 
-    resultItemStart="<!--m-->" 
-    resultItemEnd="<!--n-->"
+    resultListStart="<div id=res" 
+    resultListEnd="<div id=navbar" 
+    resultItemStart="<div class=g>" 
+    resultItemEnd="</div>"
 >
 </search>
