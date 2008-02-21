@@ -68,8 +68,8 @@ class CrawlHistory : public SQLiteBase
 		/// Updates the status of items en masse.
 		bool updateItemsStatus(unsigned int sourceId, CrawlStatus currentStatus, CrawlStatus newStatus);
 
-		/// Gets the error number for a URL.
-		int getErrorNum(const string &url);
+		/// Gets the error number and date for a URL.
+		int getErrorDetails(const string &url, time_t &date);
 
 		/// Returns items that belong to a source.
 		unsigned int getSourceItems(unsigned int sourceId, CrawlStatus status,

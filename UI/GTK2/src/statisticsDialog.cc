@@ -41,8 +41,7 @@ using namespace Gtk;
 
 statisticsDialog::statisticsDialog() :
 	statisticsDialog_glade(),
-	m_hasErrors(false),
-	m_lastErrorDate(0)
+	m_hasErrors(false)
 {
 	// Associate the columns model to the engines tree
 	m_refStore = TreeStore::create(m_statsColumns);
@@ -206,12 +205,19 @@ bool statisticsDialog::on_activity_timeout(void)
 	for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
 		sourceIter != sources.end(); ++sourceIter)
 	{
+		unsigned int sourceNum(sourceIter->first);
 		set<string> errors;
+		time_t latestErrorDate = 0;
+
+		std::map<unsigned int, time_t>::const_iterator dateIter = m_latestErrorDates.find(sourceNum);
+		if (dateIter != m_latestErrorDates.end())
+		{
+			latestErrorDate = dateIter->second;
+		}
 
 		// Did any error occur on this source ?
-		unsigned int errorCount = crawlerHistory.getSourceItems(sourceIter->first,
-			CrawlHistory::ERROR, errors, m_lastErrorDate);
-		m_lastErrorDate = time(NULL);
+		unsigned int errorCount = crawlerHistory.getSourceItems(sourceNum,
+			CrawlHistory::ERROR, errors, latestErrorDate);
 		if ((errorCount > 0) &&
 			(errors.empty() == false))
 		{
@@ -231,7 +237,13 @@ bool statisticsDialog::on_activity_timeout(void)
 			{
 				string locationWithError(*errorIter);
 				TreeModel::iterator errIter;
-				int errorNum = crawlerHistory.getErrorNum(locationWithError);
+				time_t errorDate;
+				int errorNum = crawlerHistory.getErrorDetails(locationWithError, errorDate);
+
+				if (errorDate > latestErrorDate)
+				{
+					latestErrorDate = errorDate;
+				}
 
 				// Find or create the iterator for this particular kind of error
 				std::map<int, TreeModel::iterator>::const_iterator errorTreeIter = m_errorsIters.find(errorNum);
@@ -260,6 +272,9 @@ bool statisticsDialog::on_activity_timeout(void)
 			TreeModel::Path errPath = m_refStore->get_path(m_errorsTopIter);
 			statisticsTreeview->expand_to_path(errPath);
 		}
+
+		// The next check will ignore errors older than this
+		m_latestErrorDates[sourceNum] = latestErrorDate;
 	}
 
 	return true;

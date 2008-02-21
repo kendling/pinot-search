@@ -45,8 +45,8 @@ protected:
 	Gtk::TreeModel::iterator m_crawledStatIter;
 	Gtk::TreeModel::iterator m_errorsTopIter;
 	std::map<int, Gtk::TreeModel::iterator> m_errorsIters;
+	std::map<unsigned int, time_t> m_latestErrorDates;
 	bool m_hasErrors;
-	time_t m_lastErrorDate;
 	sigc::connection m_idleConnection;
 
 	void populate(void);

@@ -336,12 +336,12 @@ bool CrawlHistory::updateItemsStatus(unsigned int sourceId, CrawlStatus currentS
 	return success;
 }
 
-/// Gets the error number for a URL.
-int CrawlHistory::getErrorNum(const string &url)
+/// Gets the error number and date for a URL.
+int CrawlHistory::getErrorDetails(const string &url, time_t &date)
 {
 	int errNum = 0;
 
-	SQLiteResults *results = executeStatement("SELECT ErrorNum FROM CrawlHistory WHERE Url='%q';",
+	SQLiteResults *results = executeStatement("SELECT ErrorNum, Date FROM CrawlHistory WHERE Url='%q';",
 		Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
@@ -349,6 +349,7 @@ int CrawlHistory::getErrorNum(const string &url)
 		if (row != NULL)
 		{
 			errNum = atoi(row->getColumn(0).c_str());
+			date = (time_t)atoi(row->getColumn(1).c_str());
 
 			delete row;
 		}
