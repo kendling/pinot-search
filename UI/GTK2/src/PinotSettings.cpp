@@ -250,9 +250,6 @@ string PinotSettings::getHistoryDatabaseName(bool needToQueryDaemonHistory)
 	{
 		historyDatabase += "/history";
 	}
-#ifdef DEBUG
-	cout << "PinotSettings::getHistoryDatabaseName: " << historyDatabase << endl;
-#endif
 
 	return historyDatabase;
 }
@@ -337,6 +334,7 @@ bool PinotSettings::load(void)
 		m_filePatternsList.insert("*.avi");
 		m_filePatternsList.insert("*.asf");
 		m_filePatternsList.insert("*.cap");
+		m_filePatternsList.insert("*.flv");
 		m_filePatternsList.insert("*.gif");
 		m_filePatternsList.insert("*.iso");
 		m_filePatternsList.insert("*.jpeg");

@@ -55,7 +55,7 @@ static string g_pidFileName;
 static streambuf *g_coutBuf = NULL;
 static streambuf *g_cerrBuf = NULL;
 static struct option g_longOptions[] = {
-	{"fullscan", 1, 0, 'f'},
+	{"fullscan", 0, 0, 'f'},
 	{"help", 0, 0, 'h'},
 	{"priority", 1, 0, 'p'},
 	{"reindex", 0, 0, 'r'},
