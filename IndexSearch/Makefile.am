@@ -16,7 +16,8 @@ noinst_HEADERS = \
 	SOAPEnv.h \
 	SOAPEnvH.h \
 	SOAPEnvStub.h \
-	WebEngine.h
+	WebEngine.h \
+	XesamLog.h
 
 if HAVE_SOAP
 noinst_LTLIBRARIES = libIndex.la libIndexSearch.la libSearchSOAP.la
