@@ -135,6 +135,11 @@ void importDialog::on_locationEntry_changed()
 		// Enable the import button
 		importButton->set_sensitive(true);
 	}
+	else
+	{
+		// Disable the import button
+		importButton->set_sensitive(false);
+	}
 
 	// Reset the list
 	m_refLocationList->clear();

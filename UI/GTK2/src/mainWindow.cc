@@ -1323,8 +1323,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 				if (docId == 0)
 				{
-					DocumentInfo docInfo(resultIter->getTitle(), resultIter->getLocation(),
-						resultIter->getType(), resultIter->getLanguage());
+					DocumentInfo docInfo(*resultIter);
 
 					// Set/reset labels
 					docInfo.setLabels(labels);
@@ -1524,19 +1523,13 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 					(rowsCount < m_maxDocsCount))
 				{
 					// Add a row to the index tree
-					DocumentInfo indexedDoc(docInfo.getTitle(),
-						docInfo.getLocation(), docInfo.getType(),
-						docInfo.getLanguage());
-					indexedDoc.setTimestamp(docInfo.getTimestamp());
-					indexedDoc.setSize(docInfo.getSize());
-
-					append_document(pIndexPage, _("My Web Pages"), indexedDoc);
+					append_document(pIndexPage, _("My Web Pages"), docInfo);
 				}
 				pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
 				pIndexPage->updateButtonsState(m_maxDocsCount);
 			}
 
-			// FIXME: update the result's indexed status in the results list !
+			// FIXME: update the result's indexed status in results lists !
 		}
 
 		set_status(status);
@@ -2148,12 +2141,18 @@ void mainWindow::on_import_activate()
 	importDialog importBox;
 
 	importBox.show();
-	importBox.run();
+	if (importBox.run() != RESPONSE_OK)
+	{
+		return;
+	}
 
 	// Anything to import ?
 	const DocumentInfo &docInfo = importBox.getDocumentInfo();
 	if (docInfo.getLocation().empty() == false)
 	{
+#ifdef DEBUG
+		cout << "mainWindow::on_import_activate: URL is " << docInfo.getLocation() << endl;
+#endif
 		ustring status = m_state.queue_index(docInfo);
 		if (status.empty() == false)
 		{
@@ -2223,10 +2222,7 @@ void mainWindow::on_refreshindex_activate()
 #endif
 
 		// Add this action to the queue
-		DocumentInfo docInfo(docIter->getTitle(), docIter->getLocation(), 
-			docIter->getType(), docIter->getLanguage());
-		docInfo.setTimestamp(docIter->getTimestamp());
-		docInfo.setSize(docIter->getSize());
+		DocumentInfo docInfo(*docIter);
 
 		ustring status = m_state.queue_index(docInfo);
 		if (status.empty() == false)

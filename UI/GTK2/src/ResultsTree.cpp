@@ -372,7 +372,9 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 	const TreeModel::iterator iter = model->get_iter(node_path);
 	const TreeModel::Row row = *iter;
 
-	if (path_currently_selected == false)
+	// In flat mode, don't bother about the extract
+	if ((path_currently_selected == false) &&
+		(m_groupMode != FLAT))
 	{
 		// Clear the extract
 		m_extractTreeView->get_selection()->unselect_all();
