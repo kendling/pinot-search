@@ -31,6 +31,7 @@
 #include "TimeConverter.h"
 #include "Timer.h"
 #include "Url.h"
+#include "CJKVTokenizer.h"
 #include "XapianDatabaseFactory.h"
 #include "AbstractGenerator.h"
 #include "XapianEngine.h"
@@ -175,9 +176,34 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 {
 	Xapian::QueryParser parser;
 	Xapian::Stem stemmer;
+	CJKVTokenizer tokenizer;
 	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
 	unsigned int minDay, minMonth, minYear = 0;
 	unsigned int maxDay, maxMonth, maxYear = 0;
+
+	if (tokenizer.has_cjkv_only(freeQuery) == true)
+	{
+		vector<string> tokens;
+		string cjkvQuery;
+
+		tokenizer.tokenize(freeQuery, tokens);
+
+		// Get the terms
+		for (vector<string>::const_iterator tokenIter = tokens.begin();
+			tokenIter != tokens.end(); ++tokenIter)
+		{
+			cjkvQuery += *tokenIter;
+			cjkvQuery += " ";
+		}
+#ifdef DEBUG
+		cout << "XapianEngine::parseQuery: CJKV query is " << cjkvQuery << endl;
+#endif
+
+		// Do as if the user had given this as input
+		freeQuery = cjkvQuery;
+		// We can disable stemming and spelling correction
+		minimal = true;
+	}
 
 	if (pIndex != NULL)
 	{
@@ -230,6 +256,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_boolean_prefix("type", "T");
 	parser.add_boolean_prefix("class", "XCLASS:");
 	parser.add_boolean_prefix("label", "XLABEL:");
+	parser.add_boolean_prefix("tokens", "XTOK:");
 
 	// Any limit on what documents should be searched ?
 	if (limitQuery.empty() == false)
@@ -368,24 +395,24 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 #endif
 	}
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
-	if (minimal == true)
-	{
-		return parsedQuery;
-	}
 #ifdef DEBUG
 	cout << "XapianEngine::parseQuery: " << parsedQuery.get_description() << endl;
 #endif
 
-#if ENABLE_XAPIAN_SPELLING_CORRECTION>0
-	// Any correction ?
-	correctedFreeQuery = parser.get_corrected_query_string();
-#ifdef DEBUG
-	if (correctedFreeQuery.empty() == false)
+	if (minimal == false)
 	{
-		cout << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
+
+#if ENABLE_XAPIAN_SPELLING_CORRECTION>0
+		// Any correction ?
+		correctedFreeQuery = parser.get_corrected_query_string();
+#ifdef DEBUG
+		if (correctedFreeQuery.empty() == false)
+		{
+			cout << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
+		}
+#endif
+#endif
 	}
-#endif
-#endif
 
 	return parsedQuery;
 }

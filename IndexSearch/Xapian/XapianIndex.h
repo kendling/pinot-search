@@ -24,6 +24,7 @@
 #include <map>
 
 #include "config.h"
+#include "CJKVTokenizer.h"
 #include "XapianDatabase.h"
 #include "IndexInterface.h"
 
@@ -149,7 +150,6 @@ class XapianIndex : public IndexInterface
 		virtual bool reset(void);
 
 	protected:
-		static const std::string MAGIC_TERM;
 		std::string m_databaseName;
 		bool m_goodIndex;
 		bool m_doSpelling;
@@ -159,14 +159,19 @@ class XapianIndex : public IndexInterface
 			unsigned int maxDocsCount = 0, unsigned int startDoc = 0) const;
 
 		void addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
-			const Xapian::WritableDatabase &db, const std::string &prefix, bool noStemming);
+			const Xapian::WritableDatabase &db, const std::string &prefix,
+			bool noStemming, bool &doSpelling,  Xapian::termcount &termPos) const;
+
+		void addPostingsToDocument(Dijon::CJKVTokenizer &tokenizer, Xapian::Stem *pStemmer,
+			const std::string &text, Xapian::Document &doc, const std::string &prefix,
+			Xapian::termcount &termPos) const;
 
 		void removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
 			const Xapian::WritableDatabase &db, const std::string &prefix,
-			const std::string &language, bool noStemming) const;
+			const std::string &language, bool noStemming, bool &doSpelling) const;
 
 		void addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
-			const Xapian::WritableDatabase &db);
+			const Xapian::WritableDatabase &db, Xapian::termcount &termPos);
 
 		void removeCommonTerms(Xapian::Document &doc, const Xapian::WritableDatabase &db);
 
