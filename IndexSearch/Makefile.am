@@ -66,6 +66,9 @@ pinot_index_SOURCES = pinot-index.cpp
 
 pinot_index_DEPENDENCIES = libIndexSearch.la
 
+pinot_label_LDFLAGS = \
+	-rdynamic
+
 pinot_label_LDADD = \
 	-L$(top_builddir)/Utils \
 	-lIndex -lUtils -lBasicUtils \
