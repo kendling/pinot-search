@@ -166,6 +166,9 @@ class XapianIndex : public IndexInterface
 			const std::string &text, Xapian::Document &doc, const std::string &prefix,
 			Xapian::termcount &termPos) const;
 
+		static void addLabelsToDocument(Xapian::Document &doc,
+			const std::set<std::string> &labels, bool skipInternals);
+
 		void removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
 			const Xapian::WritableDatabase &db, const std::string &prefix,
 			const std::string &language, bool noStemming, bool &doSpelling) const;

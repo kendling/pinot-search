@@ -316,16 +316,43 @@ void XapianIndex::addPostingsToDocument(Dijon::CJKVTokenizer &tokenizer, Xapian:
 			}
 			++nGramCount;
 		}
-#ifdef DEBUG
-		cout << "XapianIndex::addPostingsToDocument: \"" << term << "\" at position " << termPos << endl;
-#endif
 	}
 #ifdef DEBUG
-	cout << "XapianIndex::addPostingsToDocument: " << nGramCount << " CJKV terms to position " << termPos << endl;
+	cout << "XapianIndex::addPostingsToDocument: CJKV terms to position " << termPos << endl;
 #endif
 
 	// This will help identify which documents were processed here
 	doc.add_term("XTOK:CJKV");
+}
+
+void XapianIndex::addLabelsToDocument(Xapian::Document &doc, const set<string> &labels,
+	bool skipInternals)
+{
+	if (labels.empty() == true)
+	{
+		return;
+	}
+#ifdef DEBUG
+	cout << "XapianIndex::addLabelsToDocument: " << labels.size() << " labels" << endl;
+#endif
+
+	for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
+			++labelIter)
+	{
+		string labelName(*labelIter);
+
+		// Prevent from setting internal labels ?
+		if ((labelName.empty() == true) ||
+			((skipInternals == true) && (labelName.substr(0, 2) == "X-")))
+		{
+			continue;
+		}
+
+#ifdef DEBUG
+		cout << "XapianIndex::addLabelsToDocument: label \"" << labelName << "\"" << endl;
+#endif
+		doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(labelName)));
+	}
 }
 
 void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
@@ -1481,16 +1508,7 @@ bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 			}
 
 			// Set new labels
-			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
-				++labelIter)
-			{
-				// Prevent from setting internal labels
-				if ((labelIter->empty() == false) &&
-					(labelIter->substr(0, 2) != "X-"))
-				{
-					doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
-				}
-			}
+			addLabelsToDocument(doc, labels, true);
 
 			pIndex->replace_document(docId, doc);
 			updatedLabels = true;
@@ -1740,6 +1758,9 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	docInfo.setTimestamp(document.getTimestamp());
 	docInfo.setSize(document.getSize());
 	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
+#ifdef DEBUG
+	cout << "XapianIndex::indexDocument: URL " << docInfo.getLocation() << endl;
+#endif
 
 	unsigned int dataLength = 0;
 	const char *pData = document.getData(dataLength);
@@ -1769,14 +1790,7 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 			}
 
 			// Add labels
-			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
-				++labelIter)
-			{
-				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
-			}
-#ifdef DEBUG
-			cout << "XapianIndex::indexDocument: " << labels.size() << " labels" << endl;
-#endif
+			addLabelsToDocument(doc, labels, false);
 
 			// Set data
 			setDocumentData(docInfo, doc, m_stemLanguage);
@@ -1858,11 +1872,7 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 			}
 
 			// Add labels
-			for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
-				++labelIter)
-			{
-				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(*labelIter)));
-			}
+			addLabelsToDocument(doc, labels, false);
 
 			// Set data
 			setDocumentData(docInfo, doc, m_stemLanguage);
