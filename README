@@ -16,9 +16,10 @@ http://pinot.berlios.de/
 11. Saving results
 12. D-Bus service
 13. Deskbar Applet plugins
-14. Environment variables
-15. How to reset indexes
-16. Dependencies
+14. CJKV support
+15. Environment variables
+16. How to reset indexes
+17. Dependencies
 
 
 1. What is Pinot
@@ -381,7 +382,26 @@ http://pinot.berlios.de/
   together if no exact match is found.
 
 
-14. Environment variables
+14. CJKV support
+
+
+  Starting with v0.83, Pinot supports indexing and searching CJKV text.
+  If you would like to try this out, you will have to reset the My Documents
+  index, as described in section "16. How to reset indexes".
+
+  At search time, queries that consist exclusively of CJKV characters are
+  processed in a manner compatible with the CJKV indexing scheme. There is no
+  need to format the query in a specific format, ie no need to separate
+  characters with spaces.
+  Please note that mixed queries, queries that also contain non-CJKV characters,
+  are processed as per normal. This means that operators or filters shouldn't be
+  used in CJKV queries. This limitation will be removed in future versions.
+
+  You can get a list of documents in which CJKV characters were detected
+  by the indexer with the special filter "tokens:CJKV".
+
+
+15. Environment variables
 
 
   Pinot tries to provide reasonable defaults for most systems, but there may be
@@ -393,7 +413,7 @@ http://pinot.berlios.de/
       $ export PINOT_SPELLING_DB=NO
       Make sure this is set for your login session, ie whenever the daemon is
       auto-started. You will also have to reset indexes, as described in
-      section "15. How to reset indexes".
+      section "16. How to reset indexes".
     * PINOT_MINIMUM_DISK_SPACE
       The daemon will stop crawling and indexing files when the partition on
       which the index resides runs out of free space. By default, this means
@@ -410,7 +430,7 @@ http://pinot.berlios.de/
   Indexing).
 
 
-15. How to reset indexes
+16. How to reset indexes
 
 
   You may wish to reset one of the index and start from scratch. There
@@ -435,7 +455,7 @@ http://pinot.berlios.de/
   $ pinot-dbus-daemon --reindex
 
 
-16. Dependencies
+17. Dependencies
 
 
   The version numbers indicate the minimum version Pinot has been tested
