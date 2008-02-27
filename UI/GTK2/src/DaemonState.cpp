@@ -273,7 +273,7 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 	}
 	pScannerThread->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 
-	if (start_thread(pScannerThread) == true)
+	if (start_thread(pScannerThread, true) == true)
 	{
 		++m_crawlers;
 
@@ -299,7 +299,7 @@ void DaemonState::start(bool forceFullScan)
 		guint32 randomArray[5];
 
 		randomStuff.set_seed(randomArray[2]);
-		int randomNum = randomStuff.get_int_range(0, 10);
+		gint32 randomNum = randomStuff.get_int_range(0, 10);
 		if (randomNum >= 7)
 		{
 			m_fullScan = true;

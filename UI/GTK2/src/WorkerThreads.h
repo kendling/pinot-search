@@ -70,7 +70,7 @@ class WorkerThread
 
 		virtual std::string getType(void) const = 0;
 
-		virtual bool stop(void);
+		virtual void stop(void);
 
 		bool isStopped(void) const;
 
@@ -495,7 +495,7 @@ class MonitorThread : public WorkerThread
 
 		virtual std::string getType(void) const;
 
-		virtual bool stop(void);
+		virtual void stop(void);
 
 	protected:
 		int m_ctrlReadPipe;

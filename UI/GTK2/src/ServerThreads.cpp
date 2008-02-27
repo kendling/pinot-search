@@ -167,7 +167,7 @@ string DirectoryScannerThread::getDirectory(void) const
 	return m_dirName;
 }
 
-bool DirectoryScannerThread::stop(void)
+void DirectoryScannerThread::stop(void)
 {
 	// Disconnect the signal
 	sigc::signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
@@ -180,9 +180,7 @@ bool DirectoryScannerThread::stop(void)
 			slotIter->disconnect();
 		}
 	}
-	m_done = true;
-
-	return true;
+	WorkerThread::stop();
 }
 
 sigc::signal3<void, const DocumentInfo&, const string&, bool>& DirectoryScannerThread::getFileFoundSignal(void)

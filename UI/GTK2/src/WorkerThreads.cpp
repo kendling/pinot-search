@@ -187,11 +187,9 @@ Glib::Thread *WorkerThread::start(void)
 	return Thread::create(sigc::mem_fun(*this, &WorkerThread::threadHandler), false);
 }
 
-bool WorkerThread::stop(void)
+void WorkerThread::stop(void)
 {
 	m_stopped = m_done = true;
-
-	return true;
 }
 
 bool WorkerThread::isStopped(void) const
@@ -1938,12 +1936,10 @@ string MonitorThread::getType(void) const
 	return "MonitorThread";
 }
 
-bool MonitorThread::stop(void)
+void MonitorThread::stop(void)
 {
-	m_done = true;
 	write(m_ctrlWritePipe, "X", 1);
-
-	return true;
+	WorkerThread::stop();
 }
 
 void MonitorThread::processEvents(void)
