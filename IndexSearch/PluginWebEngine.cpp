@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 #include "config.h"
 #include "Document.h"

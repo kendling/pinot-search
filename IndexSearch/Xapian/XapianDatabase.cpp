@@ -25,6 +25,7 @@
 #include <regex.h>
 #include <stdio.h>
 #include <iostream>
+#include <cstring>
 
 #include "StringManip.h"
 #include "TimeConverter.h"

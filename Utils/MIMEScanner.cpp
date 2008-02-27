@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <glib.h>
 #include <iostream>
+#include <cstring>
 
 #include "xdgmime/xdgmime.h"
 

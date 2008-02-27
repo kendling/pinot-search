@@ -26,6 +26,7 @@
 #include <fnmatch.h>
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 
 #include <glibmm/convert.h>
 #include <glibmm/date.h>

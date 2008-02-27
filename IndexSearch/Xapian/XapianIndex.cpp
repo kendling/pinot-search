@@ -29,6 +29,7 @@
 #include <fstream>
 #include <algorithm>
 #include <utility>
+#include <cstring>
 #include <xapian.h>
 
 #include "Languages.h"

@@ -21,6 +21,7 @@
 #include <strings.h>
 #include <stdarg.h>
 #include <iostream>
+#include <cstdlib>
 
 #include <curl/curl.h>
 

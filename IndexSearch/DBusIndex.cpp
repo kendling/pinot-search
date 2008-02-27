@@ -17,6 +17,7 @@
  */
 
 #include <iostream>
+#include <cstdlib>
 
 #include "Languages.h"
 #include "DBusIndex.h"

@@ -20,6 +20,7 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <cstring>
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
 #include <boost/spirit/actor/insert_at_actor.hpp>

@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <iostream>
+#include <cstdlib>
 #include <string>
 #include <set>
 

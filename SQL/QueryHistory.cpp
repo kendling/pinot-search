@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <iostream>
+#include <cstdlib>
 
 #include "Url.h"
 #include "TimeConverter.h"

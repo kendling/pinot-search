@@ -20,6 +20,7 @@
 #include <iostream>
 #include <fstream>
 #include <utility>
+#include <cstring>
 
 #include "config.h"
 #include "Languages.h"

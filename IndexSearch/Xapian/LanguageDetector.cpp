@@ -20,6 +20,7 @@
 #include <sys/time.h>
 #include <iostream>
 #include <utility>
+#include <cstring>
 
 #include "config.h"
 extern "C"
