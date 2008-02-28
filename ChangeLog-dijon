@@ -1,4 +1,85 @@
 ------------------------------------------------------------------------
+r86 | fabricecolin | 2008-02-27 23:17:16 +0800 (Wed, 27 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/HtmlFilter.cc
+
+Added missing includes for gcc 4.3. Patch by Adel Gadllah.
+
+------------------------------------------------------------------------
+r85 | fabricecolin | 2008-02-26 21:18:39 +0800 (Tue, 26 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+
+Break non-CJKV tokens on all spaces and punctuations.
+
+------------------------------------------------------------------------
+r84 | fabricecolin | 2008-02-24 19:09:01 +0800 (Sun, 24 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/HtmlFilter.cc
+   M /trunk/filters/HtmlFilter.h
+
+Do without hashing.
+
+------------------------------------------------------------------------
+r83 | fabricecolin | 2008-02-24 19:07:55 +0800 (Sun, 24 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+   M /trunk/cjkv/test.cc
+
+Don't fail on spaces in has_cjkv_only().
+
+------------------------------------------------------------------------
+r82 | fabricecolin | 2008-02-22 22:12:23 +0800 (Fri, 22 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+
+Cosmetic fix.
+
+------------------------------------------------------------------------
+r81 | fabricecolin | 2008-02-22 22:11:12 +0800 (Fri, 22 Feb 2008) | 4 lines
+Changed paths:
+   M /trunk/xesam/XapianQueryBuilder.cc
+   M /trunk/xesam/XapianQueryBuilder.h
+   M /trunk/xesam/XesamParser.h
+   M /trunk/xesam/XesamQLParser.cc
+   M /trunk/xesam/XesamQLParser.h
+   M /trunk/xesam/XesamQueryBuilder.cc
+   M /trunk/xesam/XesamQueryBuilder.h
+   M /trunk/xesam/XesamULParser.cc
+   M /trunk/xesam/XesamULParser.h
+
+Made XesamQueryBuilder::on_user_query() pure virtual, moved XesamULParser-based
+implementation to XapianQueryBuilder.
+Log stuff with XESAM_LOG macros, which we expect apps to define in XesamLog.h.
+
+------------------------------------------------------------------------
+r80 | fabricecolin | 2008-02-18 19:28:29 +0800 (Mon, 18 Feb 2008) | 3 lines
+Changed paths:
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/ExternalFilter.h
+   M /trunk/filters/external-filters.xml
+
+Each filter block can specify a charset element if the output of the program is
+in a known charset.
+
+------------------------------------------------------------------------
+r79 | fabricecolin | 2008-02-18 19:25:07 +0800 (Mon, 18 Feb 2008) | 6 lines
+Changed paths:
+   A /trunk/cjkv/CJKVTokenizer.cc (from /trunk/cjkv/cjkv-tokenizer.cc:77)
+   A /trunk/cjkv/CJKVTokenizer.h (from /trunk/cjkv/cjkv-tokenizer.hh:77)
+   D /trunk/cjkv/cjkv-tokenizer.cc
+   D /trunk/cjkv/cjkv-tokenizer.hh
+   M /trunk/cjkv/makefile
+   M /trunk/cjkv/test.cc
+
+Added wrapper functions around gunicode API, enabled when HAVE_UNICODE_H isn't
+defined. This variable should be defined only if libunicode 0.4 is available.
+Renamed the main class, made several mostly cosmetic changes to make it look
+like code from xesam/ and filters/ and added copyright and licensing headers.
+Thanks to Yung-Chung Lin for agreeing on licensing this under the LGPL.
+
+------------------------------------------------------------------------
 r77 | fabricecolin | 2008-01-14 22:35:44 +0800 (Mon, 14 Jan 2008) | 6 lines
 Changed paths:
    M /trunk/xesam/XapianQueryBuilder.cc

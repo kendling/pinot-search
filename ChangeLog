@@ -1,4 +1,269 @@
 ------------------------------------------------------------------------
+r1197 | fabricecolin | 2008-02-28 18:58:50 +0800 (Thu, 28 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/it.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_TW.po
+
+NEWS describes changes made since 0.82. Updated TODO and synced po's.
+
+------------------------------------------------------------------------
+r1196 | fabricecolin | 2008-02-27 23:12:26 +0800 (Wed, 27 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/Collect/CurlDownloader.cpp
+   M /trunk/IndexSearch/DBusIndex.cpp
+   M /trunk/IndexSearch/PluginWebEngine.cpp
+   M /trunk/IndexSearch/SherlockParser.cpp
+   M /trunk/IndexSearch/Xapian/LanguageDetector.cpp
+   M /trunk/IndexSearch/Xapian/XapianDatabase.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/pinot-label.cpp
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/QueryHistory.cpp
+   M /trunk/SQL/ViewHistory.cpp
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+   M /trunk/UI/GTK2/src/propertiesDialog.cc
+   M /trunk/Utils/MIMEScanner.cpp
+
+A patch by Adel Gadllah to compile with gcc 4.3.
+
+------------------------------------------------------------------------
+r1195 | fabricecolin | 2008-02-27 23:09:26 +0800 (Wed, 27 Feb 2008) | 4 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+   M /trunk/UI/GTK2/src/ServerThreads.cpp
+   M /trunk/UI/GTK2/src/ServerThreads.h
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.h
+
+The scanner thread should run in the background because we don't want to stop
+it after 5 minutes !
+Threads that override stop() better call the base class method.
+
+------------------------------------------------------------------------
+r1194 | fabricecolin | 2008-02-26 22:17:42 +0800 (Tue, 26 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-index.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/IndexSearch/pinot-search.1
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.1
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Increased version number.
+
+------------------------------------------------------------------------
+r1193 | fabricecolin | 2008-02-26 20:17:17 +0800 (Tue, 26 Feb 2008) | 4 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/README
+
+Mention contributions of Yung-chung Lin (Dijon's CJKV tokenizer) and David
+Paleino (.desktop files).
+README describes to what extent CJKV is supported.
+
+------------------------------------------------------------------------
+r1192 | fabricecolin | 2008-02-25 23:54:15 +0800 (Mon, 25 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.h
+
+Mostly cosmetic changes.
+
+------------------------------------------------------------------------
+r1191 | fabricecolin | 2008-02-25 21:50:45 +0800 (Mon, 25 Feb 2008) | 3 lines
+Changed paths:
+   M /trunk
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/it.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_TW.po
+
+Added IndexSearch/cjkv to externals list.
+Updated translations, including latest es.po pulled from Rosetta.
+
+------------------------------------------------------------------------
+r1190 | fabricecolin | 2008-02-25 21:48:25 +0800 (Mon, 25 Feb 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/Google/Makefile.am
+   M /trunk/IndexSearch/Makefile.am
+   M /trunk/IndexSearch/Xapian/Makefile.am
+
+Build IndexSearch/cjkv/CJKVTokenizer, link libxapianbackend against MISC_LIBS.
+Get soapcpp2 to look for includes in /usr/share/gsoap/import.
+Link pinot-label with -rdynamic.
+
+------------------------------------------------------------------------
+r1189 | fabricecolin | 2008-02-25 19:30:55 +0800 (Mon, 25 Feb 2008) | 3 lines
+Changed paths:
+   M /trunk/pinot-dbus-daemon.desktop
+   M /trunk/pinot.desktop
+
+David Paleino points out that the Encoding key is deprecated. See
+http://standards.freedesktop.org/desktop-entry-spec/latest/apc.html
+
+------------------------------------------------------------------------
+r1188 | fabricecolin | 2008-02-24 19:15:56 +0800 (Sun, 24 Feb 2008) | 7 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.h
+
+First shot at CJKV support. Documents that have CJKV are processed with Dijon's
+CJKVTokenizer and indexed in a manner compatible with TermGenerator's. Queries
+that are exclusively CJKV are pre-processed by CJKVTokenizer, then fed to the
+QueryParser.
+Changed XapianIndex::removePostingsFromDocument() to reuse the term generation
+code of addPostingsToDocument().
+
+------------------------------------------------------------------------
+r1187 | fabricecolin | 2008-02-22 22:22:26 +0800 (Fri, 22 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Makefile.am
+   A /trunk/IndexSearch/XesamLog.h
+
+Provide XesamLog.h, required by the latest code in xesam/.
+
+------------------------------------------------------------------------
+r1186 | fabricecolin | 2008-02-22 21:43:26 +0800 (Fri, 22 Feb 2008) | 7 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/ResultsTree.cpp
+   M /trunk/UI/GTK2/src/importDialog.cc
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Avoid rebuilding DocumentInfo objects, at least use the copy constructor to
+avoid losing properties, for instance after importing a document into My Web
+Pages.
+The import dialog's OK button should alway be disabled if no URL is provided.
+In ResultsTree, don't bother getting the extract in flat mode, ie when the tree
+is embedded in an IndexPage.
+
+------------------------------------------------------------------------
+r1185 | fabricecolin | 2008-02-21 22:37:36 +0800 (Thu, 21 Feb 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+
+Option --fullscan doesn't need a parameter !
+Added flv to default blacklist, removed far too frequent DEBUG message.
+
+------------------------------------------------------------------------
+r1184 | fabricecolin | 2008-02-21 22:36:02 +0800 (Thu, 21 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Plugins/Google.src
+
+Fixed parsing.
+
+------------------------------------------------------------------------
+r1183 | fabricecolin | 2008-02-21 22:35:29 +0800 (Thu, 21 Feb 2008) | 4 lines
+Changed paths:
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/CrawlHistory.h
+   M /trunk/UI/GTK2/src/statisticsDialog.cc
+   M /trunk/UI/GTK2/src/statisticsDialog.hh
+
+Modified CrawlHistory to provide errors' dates.
+statisticsDialog could previously miss errors starting with the second source
+because it didn't keep track of the latest error date for each source.
+
+------------------------------------------------------------------------
+r1182 | fabricecolin | 2008-02-21 22:32:49 +0800 (Thu, 21 Feb 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/ResultsTree.cpp
+   M /trunk/UI/GTK2/src/ResultsTree.h
+
+findResultsExtract() tries all engines the result belongs to until a proper
+extract is found.
+
+------------------------------------------------------------------------
+r1181 | fabricecolin | 2008-02-20 22:40:56 +0800 (Wed, 20 Feb 2008) | 9 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+   M /trunk/IndexSearch/pinot-search.1
+   M /trunk/IndexSearch/pinot-search.cpp
+   M /trunk/README
+
+In XapianEngine, if the query matched a Z-prefixed term (ie a stem, because
+stemming is enabled), find terms in each document that are potential unstems
+and use those as seed terms to generate the abstract. This may throw false
+positives as the matched stem isn't compared against those termss stemmed form.
+The pinot-search program now has a "--stemming/-s" parameter to specify a
+stemming language, in English not in the locale !
+The README emphasizes that stemming is applied only if there is no exact match,
+and that the directory filter is recursive.
+
+------------------------------------------------------------------------
+r1180 | fabricecolin | 2008-02-18 19:38:52 +0800 (Mon, 18 Feb 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+
+Set the locale according to the environment variables.
+Don't be silly and don't attempt to catch SIGKILL :-)
+
+------------------------------------------------------------------------
+r1179 | fabricecolin | 2008-02-18 19:35:17 +0800 (Mon, 18 Feb 2008) | 4 lines
+Changed paths:
+   M /trunk/Tokenize/FilterUtils.cpp
+   M /trunk/Tokenize/Makefile.am
+   A /trunk/Tokenize/TextConverter.cpp
+   A /trunk/Tokenize/TextConverter.h
+
+In FilterUtils::populateDocument(), look out for a charset in the filter's
+output, and convert both title and content to UTF-8 using the new TextConverter
+class.
+
+------------------------------------------------------------------------
+r1178 | fabricecolin | 2008-02-18 19:17:58 +0800 (Mon, 18 Feb 2008) | 5 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/ResultsTree.cpp
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Make tabs reorderable. There's also no good reason why the notebook shouldn't
+be scrollable...
+ResultsTree expected a "Xapian" engine -not available since the move to
+separate back-ends- and this broke the display of results extracts.
+
+------------------------------------------------------------------------
+r1177 | fabricecolin | 2008-02-17 13:53:55 +0800 (Sun, 17 Feb 2008) | 3 lines
+Changed paths:
+   M /trunk/Collect/Makefile.am
+   M /trunk/IndexSearch/Google/Makefile.am
+   M /trunk/IndexSearch/Makefile.am
+   M /trunk/IndexSearch/Xapian/Makefile.am
+   M /trunk/Makefile.am
+   M /trunk/Monitor/Makefile.am
+   M /trunk/SQL/Makefile.am
+   M /trunk/UI/GTK2/src/Makefile.am
+
+Build everything with fPIC ! Not doing that may cause nasty surprises.
+In the top-level Makefile.am, only move libxapianbackend* not lib* !
+
+------------------------------------------------------------------------
+r1175 | fabricecolin | 2008-01-26 16:58:03 +0800 (Sat, 26 Jan 2008) | 3 lines
+Changed paths:
+   M /trunk
+   M /trunk/ChangeLog
+   M /trunk/ChangeLog-dijon
+
+ChangeLogs are nice to have, they are up to date.
+Set externals to point to Dijon's trunk.
+
+------------------------------------------------------------------------
 r1174 | fabricecolin | 2008-01-26 14:54:13 +0800 (Sat, 26 Jan 2008) | 2 lines
 Changed paths:
    M /trunk/IndexSearch/pinot-index.1
