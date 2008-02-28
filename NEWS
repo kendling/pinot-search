@@ -1,3 +1,29 @@
+2008/02/28 version_0_8_3
+Build :
+ - fixed build errors with gcc 4.3, thanks to Adel Gadllah
+ - fixed backend and non-backend flags mismatch
+General :
+ - dropped deprecated Encoding keys in .desktop files, as pointed out by
+  David Paleino
+Tokenize :
+ - filters definition in external-filters.xml can specify what charset
+  the text output is in
+ - convert documents into UTF-8 prior to indexing
+Search :
+ - pinot-search supports option "--stemming LANGUAGE_NAME"
+ - updated results parsing in Google.src
+Xapian :
+ - initial support for CJKV. See README for details
+ - consider stemmed terms when building extracts
+Daemon :
+ - fixed options parsing
+ - don't stop the directory crawler thread after 5 minutes
+UI :
+ - fixed extract display, broken in the previous release
+ - tabs can be reordered, notebook is scrollable
+ - make sure the Status window doesn't miss crawler errors
+ - updated Spanish translation by Jesus Tramullas
+
 2008/01/26 version_0_8_2
 Build :
  - don't link to unnecessary libraries

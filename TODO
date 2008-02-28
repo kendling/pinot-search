@@ -26,7 +26,7 @@ Tokenize
 - HtmlFilter to look for META tags Author, Creator, Publisher and CreationDate
 - Filters should have a version number so that new versions force reindexing documents of the
  given type
-- XmLFilter is slow-ish, rewrite file parsing with the TextReader interface
+- XmlFilter is slow-ish, rewrite file parsing with the TextReader interface
 - Filters should at least return errno when they fail
 
 SQL
@@ -85,10 +85,8 @@ Daemon
 - Queue unindexing too
 - Don't link against SOAP stuff, it's not needed here
 - Export term suggestion over D-Bus
-- There's currently no easy way to get a document's ID without running a search
 - Follow updates to Xesam specs
 - Preserve user set metadata on reindexing
-- Generate warning if we run out of inotify watch
  
 UI
 - Show which threads are running, what they are doing, and allow to stop them
@@ -110,5 +108,4 @@ UI
 - Let queries index only new results
 - Query expansion should be interactive
 - Default cache provider should be configurable
-- Reload documents info after importing them into the My Web Pages index
 

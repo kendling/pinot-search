@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.82\n"
+"Project-Id-Version: pinot 0.83\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-02-23 21:52+0800\n"
+"POT-Creation-Date: 2008-02-27 23:50+0800\n"
 "PO-Revision-Date: 2008-02-17 13:04+0000\n"
 "Last-Translator: Gar Bage <garbage@openfutura.com>\n"
 "Language-Team: es <fabricecolin@users.berlios.de>\n"
@@ -33,18 +33,18 @@ msgstr "Usuario"
 #: UI/GTK2/src/mainWindow.cc:992 UI/GTK2/src/mainWindow.cc:1334
 #: UI/GTK2/src/mainWindow.cc:1490 UI/GTK2/src/mainWindow.cc:1526
 #: UI/GTK2/src/mainWindow.cc:1548 UI/GTK2/src/mainWindow.cc:2259
-#: UI/GTK2/src/PinotSettings.cpp:321 UI/GTK2/src/PinotSettings.cpp:1479
-#: UI/GTK2/src/PinotSettings.cpp:1535 UI/GTK2/src/statisticsDialog.cc:79
-#: UI/GTK2/src/WorkerThreads.cpp:1012
+#: UI/GTK2/src/PinotSettings.cpp:322 UI/GTK2/src/PinotSettings.cpp:1480
+#: UI/GTK2/src/PinotSettings.cpp:1536 UI/GTK2/src/statisticsDialog.cc:79
+#: UI/GTK2/src/WorkerThreads.cpp:1010
 msgid "My Web Pages"
 msgstr "Mis Paginas Web"
 
 #. Spawn new threads
 #: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:771
 #: UI/GTK2/src/mainWindow.cc:986 UI/GTK2/src/mainWindow.cc:1341
-#: UI/GTK2/src/mainWindow.cc:2263 UI/GTK2/src/PinotSettings.cpp:322
-#: UI/GTK2/src/PinotSettings.cpp:1480 UI/GTK2/src/PinotSettings.cpp:1536
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1022
+#: UI/GTK2/src/mainWindow.cc:2263 UI/GTK2/src/PinotSettings.cpp:323
+#: UI/GTK2/src/PinotSettings.cpp:1481 UI/GTK2/src/PinotSettings.cpp:1537
+#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1020
 msgid "My Documents"
 msgstr "Mis documentos"
 
@@ -563,23 +563,23 @@ msgid "Couldn't create history database"
 msgstr "No se pudo crear la base de datos del histórico"
 
 #. Add default labels
-#: UI/GTK2/src/PinotSettings.cpp:327
+#: UI/GTK2/src/PinotSettings.cpp:328
 msgid "Important"
 msgstr "Importante"
 
-#: UI/GTK2/src/PinotSettings.cpp:328
+#: UI/GTK2/src/PinotSettings.cpp:329
 msgid "New"
 msgstr "Nuevo"
 
-#: UI/GTK2/src/PinotSettings.cpp:329
+#: UI/GTK2/src/PinotSettings.cpp:330
 msgid "Personal"
 msgstr "Personal"
 
-#: UI/GTK2/src/PinotSettings.cpp:375
+#: UI/GTK2/src/PinotSettings.cpp:376
 msgid "Me"
 msgstr "Yo"
 
-#: UI/GTK2/src/PinotSettings.cpp:1287
+#: UI/GTK2/src/PinotSettings.cpp:1288
 msgid "Unclassified"
 msgstr "No clasificado"
 
@@ -668,7 +668,7 @@ msgstr "Añadir"
 msgid "Remove"
 msgstr "Borrar"
 
-#: UI/GTK2/src/prefsDialog_glade.cc:112 UI/GTK2/src/propertiesDialog.cc:55
+#: UI/GTK2/src/prefsDialog_glade.cc:112 UI/GTK2/src/propertiesDialog.cc:56
 msgid "Labels"
 msgstr "Etiquetas"
 
@@ -688,11 +688,11 @@ msgstr "Índices"
 msgid "Preferences"
 msgstr "Preferencias"
 
-#: UI/GTK2/src/propertiesDialog.cc:104
+#: UI/GTK2/src/propertiesDialog.cc:105
 msgid "Per document"
 msgstr "Documento"
 
-#: UI/GTK2/src/propertiesDialog.cc:364
+#: UI/GTK2/src/propertiesDialog.cc:365
 msgid "Export Terms"
 msgstr "Exportar términos"
 
@@ -923,22 +923,22 @@ msgstr "La etiqueta META Robots prohíbe la indización"
 msgid "No monitoring handler"
 msgstr "No hay monitorización"
 
-#: UI/GTK2/src/WorkerThreads.cpp:417
+#: UI/GTK2/src/WorkerThreads.cpp:415
 msgid "Indexing was stopped"
 msgstr "La indización se ha detenido"
 
-#: UI/GTK2/src/WorkerThreads.cpp:430
+#: UI/GTK2/src/WorkerThreads.cpp:428
 msgid "Can't index mail here"
 msgstr "No se pudo indizar el buzon de correo"
 
-#: UI/GTK2/src/WorkerThreads.cpp:451 UI/GTK2/src/WorkerThreads.cpp:706
+#: UI/GTK2/src/WorkerThreads.cpp:449 UI/GTK2/src/WorkerThreads.cpp:704
 msgid "is already being indexed"
 msgstr "ya está indizado"
 
-#: UI/GTK2/src/WorkerThreads.cpp:461
+#: UI/GTK2/src/WorkerThreads.cpp:459
 msgid "is blacklisted"
 msgstr "ya excluido"
 
-#: UI/GTK2/src/WorkerThreads.cpp:975
+#: UI/GTK2/src/WorkerThreads.cpp:973
 msgid "No title"
 msgstr "Sin título"

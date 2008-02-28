@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.82\n"
+"Project-Id-Version: pinot 0.83\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-02-23 21:52+0800\n"
+"POT-Creation-Date: 2008-02-27 23:50+0800\n"
 "PO-Revision-Date: 2008-01-15 00:13+0000\n"
 "Last-Translator: Yung-chung Lin <henearkrxern@gmail.com>\n"
 "Language-Team: Traditional Chinese <zh_TW@li.org>\n"
@@ -33,18 +33,18 @@ msgstr "目前的使用者"
 #: UI/GTK2/src/mainWindow.cc:992 UI/GTK2/src/mainWindow.cc:1334
 #: UI/GTK2/src/mainWindow.cc:1490 UI/GTK2/src/mainWindow.cc:1526
 #: UI/GTK2/src/mainWindow.cc:1548 UI/GTK2/src/mainWindow.cc:2259
-#: UI/GTK2/src/PinotSettings.cpp:321 UI/GTK2/src/PinotSettings.cpp:1479
-#: UI/GTK2/src/PinotSettings.cpp:1535 UI/GTK2/src/statisticsDialog.cc:79
-#: UI/GTK2/src/WorkerThreads.cpp:1012
+#: UI/GTK2/src/PinotSettings.cpp:322 UI/GTK2/src/PinotSettings.cpp:1480
+#: UI/GTK2/src/PinotSettings.cpp:1536 UI/GTK2/src/statisticsDialog.cc:79
+#: UI/GTK2/src/WorkerThreads.cpp:1010
 msgid "My Web Pages"
 msgstr "我的網頁"
 
 #. Spawn new threads
 #: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:771
 #: UI/GTK2/src/mainWindow.cc:986 UI/GTK2/src/mainWindow.cc:1341
-#: UI/GTK2/src/mainWindow.cc:2263 UI/GTK2/src/PinotSettings.cpp:322
-#: UI/GTK2/src/PinotSettings.cpp:1480 UI/GTK2/src/PinotSettings.cpp:1536
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1022
+#: UI/GTK2/src/mainWindow.cc:2263 UI/GTK2/src/PinotSettings.cpp:323
+#: UI/GTK2/src/PinotSettings.cpp:1481 UI/GTK2/src/PinotSettings.cpp:1537
+#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1020
 msgid "My Documents"
 msgstr "我的文件"
 
@@ -569,23 +569,23 @@ msgid "Couldn't create history database"
 msgstr "無法開啟歷史資料庫"
 
 #. Add default labels
-#: UI/GTK2/src/PinotSettings.cpp:327
+#: UI/GTK2/src/PinotSettings.cpp:328
 msgid "Important"
 msgstr "重要的"
 
-#: UI/GTK2/src/PinotSettings.cpp:328
+#: UI/GTK2/src/PinotSettings.cpp:329
 msgid "New"
 msgstr "新增"
 
-#: UI/GTK2/src/PinotSettings.cpp:329
+#: UI/GTK2/src/PinotSettings.cpp:330
 msgid "Personal"
 msgstr "個人資料"
 
-#: UI/GTK2/src/PinotSettings.cpp:375
+#: UI/GTK2/src/PinotSettings.cpp:376
 msgid "Me"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:1287
+#: UI/GTK2/src/PinotSettings.cpp:1288
 msgid "Unclassified"
 msgstr "未分類的"
 
@@ -674,7 +674,7 @@ msgstr "加入"
 msgid "Remove"
 msgstr "移除"
 
-#: UI/GTK2/src/prefsDialog_glade.cc:112 UI/GTK2/src/propertiesDialog.cc:55
+#: UI/GTK2/src/prefsDialog_glade.cc:112 UI/GTK2/src/propertiesDialog.cc:56
 msgid "Labels"
 msgstr "標記"
 
@@ -695,11 +695,11 @@ msgstr "索引"
 msgid "Preferences"
 msgstr "喜好設定"
 
-#: UI/GTK2/src/propertiesDialog.cc:104
+#: UI/GTK2/src/propertiesDialog.cc:105
 msgid "Per document"
 msgstr "每個文件"
 
-#: UI/GTK2/src/propertiesDialog.cc:364
+#: UI/GTK2/src/propertiesDialog.cc:365
 #, fuzzy
 msgid "Export Terms"
 msgstr "匯出結果"
@@ -941,22 +941,22 @@ msgstr "Robots的meta標記不允許索引"
 msgid "No monitoring handler"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:417
+#: UI/GTK2/src/WorkerThreads.cpp:415
 msgid "Indexing was stopped"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:430
+#: UI/GTK2/src/WorkerThreads.cpp:428
 msgid "Can't index mail here"
 msgstr "無法索引郵件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:451 UI/GTK2/src/WorkerThreads.cpp:706
+#: UI/GTK2/src/WorkerThreads.cpp:449 UI/GTK2/src/WorkerThreads.cpp:704
 msgid "is already being indexed"
 msgstr "已經被索引了"
 
-#: UI/GTK2/src/WorkerThreads.cpp:461
+#: UI/GTK2/src/WorkerThreads.cpp:459
 msgid "is blacklisted"
 msgstr "列入黑名單"
 
-#: UI/GTK2/src/WorkerThreads.cpp:975
+#: UI/GTK2/src/WorkerThreads.cpp:973
 msgid "No title"
 msgstr "無標題"
