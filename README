@@ -273,8 +273,12 @@ http://pinot.berlios.de/
   glob(3) patterns. These patterns are configured in the Indexing tab of the
   Preferences box, and can be used as a blacklist or a whitelist (as of 0.75).
 
-  Patterns also to files and directories. For instance "*/Desktop*" will skip
-  "~/Desktop" and not crawl nor monitor this directory's contents.
+  Patterns apply to files and directories. For instance, blacklisting
+  "*/Desktop*" will skip "~/Desktop" and not crawl nor monitor this directory's
+  contents. Similarly, a blacklist entry for "*.avi" means that Pinot will not
+  attempt indexing the content of AVI files, and will ignore all monitor events
+  related to these files.
+
   If you have never run Pinot before, the list will be pre-configured to skip
   common picture and video types such as JPG, GIF, ZIP and MPG.
 
