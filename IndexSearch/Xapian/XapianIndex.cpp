@@ -892,7 +892,7 @@ bool XapianIndex::setVersion(const string &version) const
 	bool setVer = false;
 
 #if ENABLE_XAPIAN_DB_METADATA>0
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
 		cerr << "Bad index " << m_databaseName << endl;
@@ -1129,7 +1129,7 @@ bool XapianIndex::setLabels(const set<string> &labels)
 #if ENABLE_XAPIAN_DB_METADATA>0
 	string labelString;
 
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
+	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
 		cerr << "Bad index " << m_databaseName << endl;
