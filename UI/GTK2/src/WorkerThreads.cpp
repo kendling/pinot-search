@@ -1415,7 +1415,6 @@ void DownloadingThread::doWork(void)
 IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &indexLocation,
 	bool allowAllMIMETypes) :
 	DownloadingThread(docInfo),
-	m_docInfo(docInfo),
 	m_docId(0),
 	m_indexLocation(indexLocation),
 	m_allowAllMIMETypes(allowAllMIMETypes),
@@ -1635,11 +1634,14 @@ void IndexingThread::doWork(void)
 			}
 			else
 			{
-				const set<string> &labels = m_docInfo.getLabels();
 				unsigned int docId = 0;
+#ifdef DEBUG
+				cout << "IndexingThread::doWork: " << m_docInfo.getLabels().size()
+					<< " labels for URL " << m_pDoc->getLocation() << endl;
+#endif
 
 				// Index the document
-				success = wrapFilter.indexDocument(*m_pDoc, labels, docId);
+				success = wrapFilter.indexDocument(*m_pDoc, m_docInfo.getLabels(), docId);
 				if (success == true)
 				{
 					m_docId = docId;

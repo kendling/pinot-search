@@ -187,7 +187,6 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 {
 	string location(string("file://") + fileName);
 	Url urlObj(location);
-	char labelStr[64];
 
 	if (fileName.empty() == true)
 	{
@@ -199,6 +198,8 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 	{
 		return false;
 	}
+
+	DocumentInfo docInfo("", location, MIMEScanner::scanUrl(urlObj), "");
 
 	// What source does it belong to ?
 	for(map<unsigned int, string>::const_iterator sourceIter = m_fileSources.begin();
@@ -214,16 +215,22 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 
 		if (sourceIter->second.substr(0, location.length()) == location)
 		{
+			char labelStr[64];
 
 			// That's the one
 			snprintf(labelStr, 64, "X-SOURCE%u", sourceIter->first);
-			break;
+#ifdef DEBUG
+			cout << "OnDiskHandler::indexFile: source label for " << location << " is " << labelStr << endl;
+#endif
+			m_signalFileFound(docInfo, labelStr, isDirectory);
+			return true;
 		}
 	}
+#ifdef DEBUG
+	cout << "OnDiskHandler::indexFile: no source label for " << location << endl;
+#endif
 
-	DocumentInfo docInfo("", location, MIMEScanner::scanUrl(urlObj), "");
-
-	m_signalFileFound(docInfo, labelStr, isDirectory);
+	m_signalFileFound(docInfo, "", isDirectory);
 
 	return true;
 }

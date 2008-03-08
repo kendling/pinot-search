@@ -521,9 +521,18 @@ void DaemonState::on_message_filefound(const DocumentInfo &docInfo, const string
 		DocumentInfo docCopy(docInfo);
 		set<string> labels;
 
-		// Insert a label that identifies the source
-		labels.insert(sourceLabel);
-		docCopy.setLabels(labels);
+		if (sourceLabel.empty() == false)
+		{
+			// Insert a label that identifies the source
+			labels.insert(sourceLabel);
+			docCopy.setLabels(labels);
+#ifdef DEBUG
+			cout << "DaemonState::on_message_filefound: source label for " << docCopy.getLocation() << " is " << sourceLabel << endl;
+#endif
+		}
+#ifdef DEBUG
+		else cout << "DaemonState::on_message_filefound: no source label for " << docCopy.getLocation() << endl;
+#endif
 
 		queue_index(docCopy);
 	}

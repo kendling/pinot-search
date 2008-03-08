@@ -397,7 +397,6 @@ class IndexingThread : public DownloadingThread
 		bool isNewDocument(void) const;
 
 	protected:
-		DocumentInfo m_docInfo;
 		unsigned int m_docId;
 		std::string m_indexLocation;
 		bool m_allowAllMIMETypes;

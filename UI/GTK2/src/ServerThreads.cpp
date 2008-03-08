@@ -222,6 +222,9 @@ void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 
 	// This identifies the source
 	snprintf(labelStr, 64, "X-SOURCE%u", m_sourceId);
+#ifdef DEBUG
+	cout << "DirectoryScannerThread::foundFile: source label for " << docInfo.getLocation() << " is " << labelStr << endl;
+#endif
 	m_signalFileFound(docInfo, labelStr, false);
 }
 
