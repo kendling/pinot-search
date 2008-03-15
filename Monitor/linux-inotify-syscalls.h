@@ -65,6 +65,32 @@
 # define __NR_inotify_init  318
 # define __NR_inotify_add_watch 319
 # define __NR_inotify_rm_watch  320
+#elif defined (__mc68000__)
+# define __NR_inotify_init     284
+# define __NR_inotify_add_watch        285
+# define __NR_inotify_rm_watch 286
+#elif defined (__hppa__)
+# define __NR_inotify_init      269
+# define __NR_inotify_add_watch 270
+# define __NR_inotify_rm_watch  271
+#elif defined (__mips__)
+# include <sgidefs.h>
+# if _MIPS_SIM == _MIPS_SIM_ABI32
+#  define __NR_Linux             4000
+#  define __NR_inotify_init      (__NR_Linux + 284)
+#  define __NR_inotify_add_watch (__NR_Linux + 285)
+#  define __NR_inotify_rm_watch  (__NR_Linux + 286)
+# elif _MIPS_SIM == _MIPS_SIM_ABI64
+#  define __NR_Linux             5000
+#  define __NR_inotify_init      (__NR_Linux + 243)
+#  define __NR_inotify_add_watch (__NR_Linux + 244)
+#  define __NR_inotify_rm_watch  (__NR_Linux + 245)
+# elif _MIPS_SIM == _MIPS_SIM_NABI32
+#  define __NR_Linux             6000
+#  define __NR_inotify_init      (__NR_Linux + 247)
+#  define __NR_inotify_add_watch (__NR_Linux + 248)
+#  define __NR_inotify_rm_watch  (__NR_Linux + 249)
+# endif
 #else
 # error "Unsupported architecture"
 #endif
