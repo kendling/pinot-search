@@ -88,6 +88,110 @@ static string getVersionFromFile(const string &databaseName)
 	return version;
 }
 
+class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
+{
+	public:
+		TokensIndexer(Xapian::Stem *pStemmer, Xapian::Document &doc,
+			const Xapian::WritableDatabase &db,
+			const string &prefix, unsigned int nGramSize,
+			bool &doSpelling, Xapian::termcount &termPos) :
+			Dijon::CJKVTokenizer::TokensHandler(),
+			m_pStemmer(pStemmer),
+			m_doc(doc),
+			m_db(db),
+			m_prefix(prefix),
+			m_nGramSize(nGramSize),
+			m_nGramCount(0),
+			m_doSpelling(doSpelling),
+			m_termPos(termPos)
+		{
+		}
+
+		virtual ~TokensIndexer()
+		{
+		}
+
+		virtual bool handle_token(const string &tok, bool is_cjkv)
+		{
+			bool addSpelling = false;
+
+			if (tok.empty() == true)
+			{
+				return false;
+			}
+
+			// Lower case the term and trim spaces
+			string term(StringManip::toLowerCase(tok));
+			StringManip::trimSpaces(term);
+
+			if (term.empty() == true)
+			{
+				return true;
+			}
+
+			m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(term), m_termPos);
+#ifdef DEBUG
+			cout << "TokensIndexer::handle_token: added posting " << term << endl;
+#endif
+
+			// Is this CJKV ?
+			if (is_cjkv == false)
+			{
+				// Don't stem if the term starts with a digit
+				if ((m_pStemmer != NULL) &&
+					(isdigit((int)term[0]) == 0))
+				{
+					string stemmedTerm((*m_pStemmer)(term));
+
+					m_doc.add_term("Z" + XapianDatabase::limitTermLength(stemmedTerm));
+				}
+
+				addSpelling = m_doSpelling;
+				++m_termPos;
+				m_nGramCount = 0;
+			}
+			else
+			{
+				if (m_nGramCount % m_nGramSize == 0)
+				{
+					++m_termPos;
+				}
+				else if ((m_nGramCount + 1) % m_nGramSize == 0)
+				{
+					addSpelling = m_doSpelling;
+				}
+				++m_nGramCount;
+			}
+
+			if (addSpelling == true)
+			{
+				try
+				{
+					m_db.add_spelling(XapianDatabase::limitTermLength(term));
+				}
+				catch (const Xapian::UnimplementedError &error)
+				{
+					cerr << "Couldn't index with spelling correction: " << error.get_type() << ": " << error.get_msg() << endl;
+
+					m_doSpelling = false;
+				}
+			}
+
+			return true;
+		}
+
+	protected:
+		Xapian::Stem *m_pStemmer;
+		Xapian::Document &m_doc;
+		const Xapian::WritableDatabase &m_db;
+		string m_prefix;
+		unsigned int m_nGramSize;
+		unsigned int m_nGramCount;
+		bool &m_doSpelling;
+		Xapian::termcount &m_termPos;
+
+};
+
 XapianIndex::XapianIndex(const string &indexName) :
 	IndexInterface(),
 	m_databaseName(indexName),
@@ -212,7 +316,8 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 		if (tokenizer.has_cjkv(text) == true)
 		{
 			// Use overload
-			addPostingsToDocument(tokenizer, pStemmer, text, doc, prefix, termPos);
+			addPostingsToDocument(tokenizer, pStemmer, text, doc, db,
+				prefix, doSpelling, termPos);
 			isCJKV = true;
 		}
 	}
@@ -265,59 +370,15 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 }
 
 void XapianIndex::addPostingsToDocument(Dijon::CJKVTokenizer &tokenizer, Xapian::Stem *pStemmer,
-	const string &text, Xapian::Document &doc, const string &prefix, Xapian::termcount &termPos) const
+	const string &text, Xapian::Document &doc, const Xapian::WritableDatabase &db,
+	const string &prefix, bool &doSpelling, Xapian::termcount &termPos) const
 {
-	vector<string> tokens;
-	string stemPrefix("Z");
-	unsigned int nGramSize = tokenizer.get_ngram_size();
-	unsigned int nGramCount = 0;
-
-	tokenizer.tokenize(text, tokens);
+	TokensIndexer handler(pStemmer, doc, db, prefix, tokenizer.get_ngram_size(),
+		doSpelling, termPos);
 
 	// Get the terms
-	for (vector<string>::const_iterator tokenIter = tokens.begin();
-		tokenIter != tokens.end(); ++tokenIter)
-	{
-		if (tokenIter->empty() == true)
-		{
-			continue;
-		}
+	tokenizer.tokenize(text, handler);
 
-		// Lower case the term and trim spaces
-		string term(StringManip::toLowerCase(*tokenIter));
-		StringManip::trimSpaces(term);
-
-		if (term.empty() == true)
-		{
-			continue;
-		}
-
-		doc.add_posting(prefix + XapianDatabase::limitTermLength(term), termPos);
-
-		// Is this CJKV ?
-		if (tokenizer.has_cjkv(term) == false)
-		{
-			// Don't stem if the term starts with a digit
-			if ((pStemmer != NULL) &&
-				(isdigit((int)term[0]) == 0))
-			{
-				string stemmedTerm((*pStemmer)(term));
-
-				doc.add_term(stemPrefix + XapianDatabase::limitTermLength(stemmedTerm));
-			}
-
-			++termPos;
-			nGramCount = 0;
-		}
-		else
-		{
-			if (nGramCount % nGramSize == 0)
-			{
-				++termPos;
-			}
-			++nGramCount;
-		}
-	}
 #ifdef DEBUG
 	cout << "XapianIndex::addPostingsToDocument: CJKV terms to position " << termPos << endl;
 #endif
@@ -333,12 +394,9 @@ void XapianIndex::addLabelsToDocument(Xapian::Document &doc, const set<string> &
 	{
 		return;
 	}
-#ifdef DEBUG
-	cout << "XapianIndex::addLabelsToDocument: " << labels.size() << " labels" << endl;
-#endif
 
 	for (set<string>::const_iterator labelIter = labels.begin(); labelIter != labels.end();
-			++labelIter)
+		++labelIter)
 	{
 		string labelName(*labelIter);
 
@@ -1759,9 +1817,6 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	docInfo.setTimestamp(document.getTimestamp());
 	docInfo.setSize(document.getSize());
 	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
-#ifdef DEBUG
-	cout << "XapianIndex::indexDocument: URL " << docInfo.getLocation() << endl;
-#endif
 
 	unsigned int dataLength = 0;
 	const char *pData = document.getData(dataLength);
@@ -1789,6 +1844,9 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 				addPostingsToDocument(itor, doc, *pIndex, "",
 					false, m_doSpelling, termPos);
 			}
+#ifdef DEBUG
+			cout << "XapianIndex::indexDocument: " << labels.size() << " labels for URL " << docInfo.getLocation() << endl;
+#endif
 
 			// Add labels
 			addLabelsToDocument(doc, labels, false);

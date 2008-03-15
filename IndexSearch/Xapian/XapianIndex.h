@@ -163,8 +163,9 @@ class XapianIndex : public IndexInterface
 			bool noStemming, bool &doSpelling,  Xapian::termcount &termPos) const;
 
 		void addPostingsToDocument(Dijon::CJKVTokenizer &tokenizer, Xapian::Stem *pStemmer,
-			const std::string &text, Xapian::Document &doc, const std::string &prefix,
-			Xapian::termcount &termPos) const;
+			const std::string &text, Xapian::Document &doc,
+			const Xapian::WritableDatabase &db, const std::string &prefix,
+			bool &doSpelling, Xapian::termcount &termPos) const;
 
 		static void addLabelsToDocument(Xapian::Document &doc,
 			const std::set<std::string> &labels, bool skipInternals);
