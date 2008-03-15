@@ -313,7 +313,11 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 	}
 	if (ipath.empty() == false)
 	{
-		doc.setLocation(doc.getLocation() + "?" + ipath);
+		string location(doc.getLocation());
+
+		location += "?";
+		location += ipath;
+		doc.setLocation(location);
 	}
 
 	TextConverter converter(20);
@@ -334,7 +338,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		}
 		doc.setData(utf8Data.c_str(), utf8Data.length());
 #ifdef DEBUG
-		cout << "FilterUtils::populateDocument: set " << utf8Data.length()
+		cout << "FilterUtils::populateDocument: set " << utf8Data.length() << "/" << contentIter->second.size()
 			<< " characters of data" << endl;
 #endif
 	}
