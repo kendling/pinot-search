@@ -226,7 +226,7 @@ bool OpenSearchExporter::exportStart(const string &engineName, unsigned int maxR
 		description += engineName;
 	}
 	addChildElement(m_pChannelElem, "description", description);
-	sprintf(numStr, "%d", maxResultsCount);
+	snprintf(numStr, 64, "%d", maxResultsCount);
 	addChildElement(m_pChannelElem, "opensearch:totalResults", numStr);
 	addChildElement(m_pChannelElem, "opensearch:itemsPerPage", numStr);
 	if (m_queryDetails.empty() == false)

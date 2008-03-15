@@ -1328,15 +1328,15 @@ bool PinotSettings::save(void)
 		{
 			return false;
 		}
-		sprintf(numStr, "%d", m_xPos);
+		snprintf(numStr, 64, "%d", m_xPos);
 		addChildElement(pElem, "xpos", numStr);
-		sprintf(numStr, "%d", m_yPos);
+		snprintf(numStr, 64, "%d", m_yPos);
 		addChildElement(pElem, "ypos", numStr);
-		sprintf(numStr, "%d", m_width);
+		snprintf(numStr, 64, "%d", m_width);
 		addChildElement(pElem, "width", numStr);
-		sprintf(numStr, "%d", m_height);
+		snprintf(numStr, 64, "%d", m_height);
 		addChildElement(pElem, "height", numStr);
-		sprintf(numStr, "%d", m_panePos);
+		snprintf(numStr, 64, "%d", m_panePos);
 		addChildElement(pElem, "panepos", numStr);
 		addChildElement(pElem, "expandqueries", (m_expandQueries ? "YES" : "NO"));
 		addChildElement(pElem, "showengines", (m_showEngines ? "YES" : "NO"));
@@ -1387,7 +1387,7 @@ bool PinotSettings::save(void)
 			addChildElement(pElem, "sortorder", (queryIter->second.getSortOrder() == QueryProperties::DATE ? "DATE" : "RELEVANCE"));
 			addChildElement(pElem, "text", queryIter->second.getFreeQuery());
 			addChildElement(pElem, "stemlanguage", Languages::toEnglish(queryIter->second.getStemmingLanguage()));
-			sprintf(numStr, "%u", queryIter->second.getMaximumResultsCount());
+			snprintf(numStr, 64, "%u", queryIter->second.getMaximumResultsCount());
 			addChildElement(pElem, "maxresults", numStr);
 			addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
 			addChildElement(pElem, "label", queryIter->second.getLabelName());
@@ -1413,11 +1413,11 @@ bool PinotSettings::save(void)
 		{
 			return false;
 		}
-		sprintf(numStr, "%u", m_newResultsColourRed);
+		snprintf(numStr, 64, "%u", m_newResultsColourRed);
 		addChildElement(pElem, "red", numStr);
-		sprintf(numStr, "%u", m_newResultsColourGreen);
+		snprintf(numStr, 64, "%u", m_newResultsColourGreen);
 		addChildElement(pElem, "green", numStr);
-		sprintf(numStr, "%u", m_newResultsColourBlue);
+		snprintf(numStr, 64, "%u", m_newResultsColourBlue);
 		addChildElement(pElem, "blue", numStr);
 		// Proxy
 		pElem = pRootElem->add_child("proxy");
@@ -1426,7 +1426,7 @@ bool PinotSettings::save(void)
 			return false;
 		}
 		addChildElement(pElem, "address", m_proxyAddress);
-		sprintf(numStr, "%u", m_proxyPort);
+		snprintf(numStr, 64, "%u", m_proxyPort);
 		addChildElement(pElem, "port", numStr);
 		addChildElement(pElem, "type", m_proxyType);
 		addChildElement(pElem, "enable", (m_proxyEnabled ? "YES" : "NO"));
