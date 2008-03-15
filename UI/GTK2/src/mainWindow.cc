@@ -3322,13 +3322,13 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 //
 // View documents
 //
-void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
+void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 {
 	ViewHistory viewHistory(m_settings.getHistoryDatabaseName());
 	RefPtr<RecentManager> recentManager = RecentManager::get_default();
 	multimap<string, string> locationsByType;
 
-	for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
+	for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
 	{
 		string url(docIter->getLocation());
@@ -3483,7 +3483,7 @@ void mainWindow::view_documents(vector<DocumentInfo> &documentsList)
 
 			// ...as well as in the recently used files list
 			RecentManager::Data itemData;
-			for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
+			for (vector<DocumentInfo>::const_iterator docIter = documentsList.begin();
 				docIter != documentsList.end(); ++docIter)
 			{
 				if (docIter->getLocation() == url)

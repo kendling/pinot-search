@@ -138,7 +138,7 @@ protected:
 	void run_search(const QueryProperties &queryProps);
 	void browse_index(const Glib::ustring &indexName, const Glib::ustring &labelName,
 		unsigned int startDoc, bool changePage = true);
-	void view_documents(std::vector<DocumentInfo> &documentsList);
+	void view_documents(const std::vector<DocumentInfo> &documentsList);
 	bool append_document(IndexPage *pIndexPage, const Glib::ustring &indexName,
 		const DocumentInfo &docInfo);
 	bool start_thread(WorkerThread *pNewThread, bool inBackground = false);
