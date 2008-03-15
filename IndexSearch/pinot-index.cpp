@@ -84,6 +84,16 @@ static void printHelp(void)
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }
 
+static void closeAll(void)
+{
+	// Close everything
+	ModuleFactory::unloadModules();
+	Dijon::FilterFactory::unloadFilters();
+	Dijon::HtmlFilter::shutdown();
+	DownloaderInterface::shutdown();
+	MIMEScanner::shutdown();
+}
+
 int main(int argc, char **argv)
 {
 	string type, option;
@@ -202,6 +212,8 @@ int main(int argc, char **argv)
 	Languages::setIntlName (13, "Spanish");
 	Languages::setIntlName (14, "Swedish");
 	Languages::setIntlName (15, "Turkish");
+
+	atexit(closeAll);
 
 	// Make sure the index is open in the correct mode
 	bool wasObsoleteFormat = false;
@@ -344,12 +356,6 @@ int main(int argc, char **argv)
 		++optind;
 	}
 	delete pIndex;
-
-	ModuleFactory::unloadModules();
-	Dijon::FilterFactory::unloadFilters();
-	Dijon::HtmlFilter::shutdown();
-	DownloaderInterface::shutdown();
-	MIMEScanner::shutdown();
 
 	// Did whatever operation we carried out succeed ?
 	if (success == true)
