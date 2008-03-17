@@ -24,6 +24,7 @@
 #include <strings.h>
 #include <regex.h>
 #include <stdio.h>
+#include <sstream>
 #include <iostream>
 #include <cstring>
 
@@ -36,6 +37,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+using std::stringstream;
 
 // This puts a limit to terms length.
 const unsigned int XapianDatabase::m_maxTermLength = 230;
@@ -536,7 +538,6 @@ string XapianDatabase::propsToRecord(DocumentInfo *pDoc)
 	string title(pDoc->getTitle());
 	string timestamp(pDoc->getTimestamp());
 	time_t timeT = TimeConverter::fromTimestamp(timestamp);
-	char tmpStr[64];
 
 	// Set the document data omindex-style
 	record += pDoc->getLocation();
@@ -561,15 +562,17 @@ string XapianDatabase::propsToRecord(DocumentInfo *pDoc)
 	record += pDoc->getType();
 	// Append a timestamp, in a format compatible with Omega
 	record += "\nmodtime=";
-	snprintf(tmpStr, 64, "%ld", timeT);
-	record += tmpStr;
+	stringstream timeStream;
+	timeStream << timeT;
+	record += timeStream.str();
 	// ...and the language
 	record += "\nlanguage=";
 	record += pDoc->getLanguage();
 	// ...and the file size
 	record += "\nsize=";
-	snprintf(tmpStr, 64, "%ld", pDoc->getSize());
-	record += tmpStr;
+	stringstream sizeStream;
+	sizeStream << pDoc->getSize();
+	record += sizeStream.str();
 #ifdef DEBUG
 	cout << "XapianDatabase::propsToRecord: document data is " << record << endl;
 #endif
@@ -615,13 +618,14 @@ void XapianDatabase::recordToProps(const string &record, DocumentInfo *pDoc)
 /// Returns the URL for the given document in the given index.
 string XapianDatabase::buildUrl(const string &database, unsigned int docId)
 {
+	stringstream docIdStream;
+
 	// Make up a pseudo URL
-	char docIdStr[64];
-	sprintf(docIdStr, "%u", docId);
+	docIdStream << docId;
 	string url = "xapian://localhost/";
 	url += database;
 	url += "/";
-	url += docIdStr;
+	url += docIdStream.str();
 
 	return url;
 }
