@@ -327,6 +327,8 @@ int main(int argc, char **argv)
 			DocumentInfo docInfo;
 			set<string> labels;
 
+			cout << "Index version       : " << pIndex->getMetadata("version") << endl;
+
 			if (pIndex->getDocumentInfo(docId, docInfo) == true)
 			{
 				cout << "Location : '" << docInfo.getLocation() << "'" << endl;

@@ -37,11 +37,11 @@ class IndexInterface
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const = 0;
 
-		/// Gets the version number.
-		virtual std::string getVersion(void) const = 0;
+		/// Gets metadata.
+		virtual std::string getMetadata(const std::string &name) const = 0;
 
-		/// Sets the version number.
-		virtual bool setVersion(const std::string &version) const = 0;
+		/// Sets metadata.
+		virtual bool setMetadata(const std::string &name, const std::string &value) const = 0;
 
 		/// Gets the index location.
 		virtual std::string getLocation(void) const = 0;

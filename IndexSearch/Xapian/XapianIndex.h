@@ -50,11 +50,11 @@ class XapianIndex : public IndexInterface
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const;
 
-		/// Gets the version number.
-		virtual std::string getVersion(void) const;
+		/// Gets metadata.
+		virtual std::string getMetadata(const std::string &name) const;
 
-		/// Sets the version number.
-		virtual bool setVersion(const std::string &version) const;
+		/// Sets metadata.
+		virtual bool setMetadata(const std::string &name, const std::string &value) const;
 
 		/// Gets the index location.
 		virtual std::string getLocation(void) const;

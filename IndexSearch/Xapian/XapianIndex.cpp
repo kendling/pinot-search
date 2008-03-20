@@ -130,9 +130,6 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 			}
 
 			m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(term), m_termPos);
-#ifdef DEBUG
-			cout << "TokensIndexer::handle_token: added posting " << term << endl;
-#endif
 
 			// Is this CJKV ?
 			if (is_cjkv == false)
@@ -896,12 +893,12 @@ bool XapianIndex::isGood(void) const
 	return m_goodIndex;
 }
 
-/// Gets the version number.
-string XapianIndex::getVersion(void) const
+/// Gets metadata.
+string XapianIndex::getMetadata(const string &name) const
 {
-	string version("0.00");
-
 #if ENABLE_XAPIAN_DB_METADATA>0
+	string metadataValue;
+
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
@@ -916,40 +913,31 @@ string XapianIndex::getVersion(void) const
 		{
 			// If this index type doesn't support metadata, no exception will be thrown
 			// We will just get an empty string
-			version = pIndex->get_metadata("version");
-			if (version.empty() == true)
-			{
-				// Is there a pre-0.80 version file ?
-				version = getVersionFromFile(m_databaseName);
-				if (version.empty() == true)
-				{
-					version = "0.00";
-				}
-			}
+			metadataValue = pIndex->get_metadata(name);
 		}
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get database version: " << error.get_type() << ": " << error.get_msg() << endl;
+		cerr << "Couldn't get metadata: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't get database version, unknown exception occured" << endl;
+		cerr << "Couldn't get metadata, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
-#else
-	version = getVersionFromFile(m_databaseName);
-#endif
 
-	return version;
+	return metadataValue;
+#else
+	return "";
+#endif
 }
 
-/// Sets the version number.
-bool XapianIndex::setVersion(const string &version) const
+/// Sets metadata.
+bool XapianIndex::setMetadata(const string &name, const string &value) const
 {
-	bool setVer = false;
-
 #if ENABLE_XAPIAN_DB_METADATA>0
+	bool setMetadata = false;
+
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
@@ -962,44 +950,28 @@ bool XapianIndex::setVersion(const string &version) const
 		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
 		if (pIndex != NULL)
 		{
-			pIndex->set_metadata("version", version);
-			setVer = true;
+			pIndex->set_metadata(name, value);
+			setMetadata = true;
 		}
 	}
 	catch (const Xapian::UnimplementedError &error)
 	{
-		cerr << "Couldn't set database version, no support for metadata: " << error.get_type() << ": " << error.get_msg() << endl;
-		// Revert to a version file
-		setVer = setVersionFile(m_databaseName, version);
+		cerr << "Couldn't set metadata: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't set database version: " << error.get_type() << ": " << error.get_msg() << endl;
+		cerr << "Couldn't set metadata: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't set database version, unknown exception occured" << endl;
+		cerr << "Couldn't set metadata, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
+
+	return setMetadata;
 #else
-	setVer = setVersionFile(m_databaseName, version);
+	return false;
 #endif
-
-	// While we are at it, create a CACHEDIR.TAG file
-	// See the spec at http://www.brynosaurus.com/cachedir/
-	string cacheDirFileName(m_databaseName + "/CACHEDIR.TAG");
-	ofstream cacheDirFile;
-	cacheDirFile.open(cacheDirFileName.c_str(), ios::trunc);
-	if (cacheDirFile.good() == true)
-	{
-		cacheDirFile << "Signature: 8a477f597d28d172789f06886806bc55" << endl;
-		cacheDirFile << "# This file is a cache directory tag created by Pinot." << endl;
-		cacheDirFile << "# For information about cache directory tags, see:" << endl;
-		cacheDirFile << "# http://www.brynosaurus.com/cachedir/" << endl;
-	}
-	cacheDirFile.close();
-
-	return setVer;
 }
 
 /// Gets the index location.

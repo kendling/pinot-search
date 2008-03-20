@@ -344,21 +344,21 @@ bool DBusIndex::isGood(void) const
 	return m_pROIndex->isGood();
 }
 
-/// Gets the version number.
-string DBusIndex::getVersion(void) const
+/// Gets metadata.
+string DBusIndex::getMetadata(const string &name) const
 {
 	if (m_pROIndex == NULL)
 	{
 		return "";
 	}
 
-	return m_pROIndex->getVersion();
+	return m_pROIndex->getMetadata(name);
 }
 
-/// Sets the version number.
-bool DBusIndex::setVersion(const string &version) const
+/// Sets metadata.
+bool DBusIndex::setMetadata(const string &name, const string &value) const
 {
-	cerr << "DBusIndex::setVersion: not allowed" << endl;
+	cerr << "DBusIndex::setMetadata: not allowed" << endl;
 	return false;
 }
 
