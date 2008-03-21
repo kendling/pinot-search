@@ -28,6 +28,7 @@
 #include <exception>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <glibmm/miscutils.h>
 
 #include "config.h"
@@ -170,8 +171,8 @@ string DirectoryScannerThread::getDirectory(void) const
 void DirectoryScannerThread::stop(void)
 {
 	// Disconnect the signal
-	sigc::signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
-	sigc::signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	sigc::signal3<void, DocumentInfo, string, bool>::slot_list_type slotsList = m_signalFileFound.slots();
+	sigc::signal3<void, DocumentInfo, string, bool>::slot_list_type::iterator slotIter = slotsList.begin();
 	if (slotIter != slotsList.end())
 	{
 		if (slotIter->empty() == false)
@@ -183,7 +184,7 @@ void DirectoryScannerThread::stop(void)
 	WorkerThread::stop();
 }
 
-sigc::signal3<void, const DocumentInfo&, const string&, bool>& DirectoryScannerThread::getFileFoundSignal(void)
+sigc::signal3<void, DocumentInfo, string, bool>& DirectoryScannerThread::getFileFoundSignal(void)
 {
 	return m_signalFileFound;
 }
@@ -212,20 +213,20 @@ void DirectoryScannerThread::flushUpdates(CrawlHistory &history)
 
 void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 {
-	char labelStr[64];
-
 	if ((docInfo.getLocation().empty() == true) ||
 		(m_done == true))
 	{
 		return;
 	}
 
+	stringstream labelStream;
+
 	// This identifies the source
-	snprintf(labelStr, 64, "X-SOURCE%u", m_sourceId);
+	labelStream << "X-SOURCE" << m_sourceId;
 #ifdef DEBUG
-	cout << "DirectoryScannerThread::foundFile: source label for " << docInfo.getLocation() << " is " << labelStr << endl;
+	cout << "DirectoryScannerThread::foundFile: source label for " << docInfo.getLocation() << " is " << labelStream.str() << endl;
 #endif
-	m_signalFileFound(docInfo, labelStr, false);
+	m_signalFileFound(docInfo, labelStream.str(), false);
 }
 
 bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &history)
@@ -712,6 +713,8 @@ void DBusServletThread::doWork(void)
 #ifdef DEBUG
 			cout << "DBusServletThread::doWork: received Stop" << endl;
 #endif
+			m_pServer->set_flag(DaemonState::STOPPED);
+
 			// Prepare the reply
 			m_pReply = newDBusReply(m_pRequest);
 			if (m_pReply != NULL)

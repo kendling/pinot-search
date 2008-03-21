@@ -22,6 +22,7 @@
 #include <set>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "config.h"
 #include "NLS.h"
@@ -47,8 +48,8 @@ OnDiskHandler::~OnDiskHandler()
 	pthread_mutex_destroy(&m_mutex);
 
 	// Disconnect the signal
-	sigc::signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type slotsList = m_signalFileFound.slots();
-	sigc::signal3<void, const DocumentInfo&, const string&, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	sigc::signal3<void, DocumentInfo, string, bool>::slot_list_type slotsList = m_signalFileFound.slots();
+	sigc::signal3<void, DocumentInfo, string, bool>::slot_list_type::iterator slotIter = slotsList.begin();
 	if (slotIter != slotsList.end())
 	{
 		if (slotIter->empty() == false)
@@ -215,14 +216,14 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 
 		if (sourceIter->second.substr(0, location.length()) == location)
 		{
-			char labelStr[64];
+			stringstream labelStream;
 
 			// That's the one
-			snprintf(labelStr, 64, "X-SOURCE%u", sourceIter->first);
+			labelStream << "X-SOURCE" << sourceIter->first;
 #ifdef DEBUG
-			cout << "OnDiskHandler::indexFile: source label for " << location << " is " << labelStr << endl;
+			cout << "OnDiskHandler::indexFile: source label for " << location << " is " << labelStream.str() << endl;
 #endif
-			m_signalFileFound(docInfo, labelStr, isDirectory);
+			m_signalFileFound(docInfo, labelStream.str(), isDirectory);
 			return true;
 		}
 	}
@@ -279,9 +280,9 @@ void OnDiskHandler::initialize(void)
 			// Is this an indexable location ?
 			if (directories.find(sourceIter->second.substr(7)) == directories.end())
 			{
-				char labelStr[64];
+				stringstream labelStream;
 
-				snprintf(labelStr, 64, "X-SOURCE%u", sourceId);
+				labelStream << "X-SOURCE" << sourceId;
 
 #ifdef DEBUG
 				cout << "OnDiskHandler::initialize: " << sourceIter->second
@@ -289,7 +290,7 @@ void OnDiskHandler::initialize(void)
 #endif
 				// All documents with this label will be unindexed
 				if ((m_pIndex != NULL) &&
-					(m_pIndex->unindexDocuments(labelStr, IndexInterface::BY_LABEL) == true))
+					(m_pIndex->unindexDocuments(labelStream.str(), IndexInterface::BY_LABEL) == true))
 				{
 					// Delete the source itself and all its items
 					m_history.deleteSource(sourceId);
@@ -409,7 +410,7 @@ bool OnDiskHandler::directoryDeleted(const string &dirName)
 	return fileDeleted(dirName, IndexInterface::BY_DIRECTORY);
 }
 
-sigc::signal3<void, const DocumentInfo&, const string&, bool>& OnDiskHandler::getFileFoundSignal(void)
+sigc::signal3<void, DocumentInfo, string, bool>& OnDiskHandler::getFileFoundSignal(void)
 {
 	return m_signalFileFound;
 }

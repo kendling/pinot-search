@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 #include <sigc++/sigc++.h>
 #include <glibmm.h>
 #include <glibmm/thread.h>
@@ -113,6 +114,8 @@ static void quitAll(int sigNum)
 
 static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
+	DaemonState *pServer = (DaemonState *)pData;
+
 #ifdef DEBUG
 	cout << "filterHandler: called" << endl;
 #endif
@@ -122,6 +125,10 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 #ifdef DEBUG
 		cout << "filterHandler: received Disconnected" << endl;
 #endif
+		if (pServer != NULL)
+		{
+			pServer->set_flag(DaemonState::DISCONNECTED);
+		}
 		quitAll(0);
 	}
 	else if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_DBUS, "NameOwnerChanged") == TRUE)
@@ -147,8 +154,6 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 			DBUS_TYPE_INVALID) == TRUE) &&
 			(pData != NULL))
 		{
-			DaemonState *pServer = (DaemonState *)pData;
-
 			if (dbus_message_is_signal(pMessage, "org.gnome.PowerManager", "OnAcChanged") == TRUE)
 			{
 				// This tells us if we are on AC, not on battery
@@ -165,16 +170,22 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 			if (onBattery == TRUE)
 			{
 				// We are now on battery
-				pServer->set_flag(DaemonState::ON_BATTERY);
-				pServer->stop_crawling();
+				if (pServer != NULL)
+				{
+					pServer->set_flag(DaemonState::ON_BATTERY);
+					pServer->stop_crawling();
+				}
 
 				cout << "System is now on battery" << endl;
 			}
 			else
 			{
 				// Back on-line
-				pServer->reset_flag(DaemonState::ON_BATTERY);
-				pServer->start_crawling();
+				if (pServer != NULL)
+				{
+					pServer->reset_flag(DaemonState::ON_BATTERY);
+					pServer->start_crawling();
+				}
 
 				cout << "System is now on AC" << endl;
 			}
@@ -194,12 +205,7 @@ static void unregisteredHandler(DBusConnection *pConnection, void *pData)
 
 static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
-	DaemonState *pServer = NULL;
-
-	if (pData != NULL)
-	{
-		pServer = (DaemonState *)pData;
-	}
+	DaemonState *pServer = (DaemonState *)pData;
 
 	if ((pConnection != NULL) &&
 		(pMessage != NULL))
@@ -207,7 +213,10 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 		dbus_connection_ref(pConnection);
 		dbus_message_ref(pMessage);
 
-		pServer->start_thread(new DBusServletThread(pServer, pConnection, pMessage));
+		if (pServer != NULL)
+		{
+			pServer->start_thread(new DBusServletThread(pServer, pConnection, pMessage));
+		}
 	}
 
 	return DBUS_HANDLER_RESULT_HANDLED;
@@ -515,13 +524,14 @@ int main(int argc, char **argv)
 
 	DBusError error;
 	DaemonState server;
+	IndexInterface *pIndex = NULL;
 
 	dbus_error_init(&error);
 	dbus_connection_set_exit_on_disconnect(pConnection, FALSE);
 	dbus_connection_setup_with_g_main(pConnection, NULL);
 
 	if (dbus_connection_register_object_path(pConnection, g_pinotDBusObjectPath,
-			&g_callVTable, &server) == TRUE)
+		&g_callVTable, &server) == TRUE)
 	{
 		// Request to be identified by this name
 		// FIXME: flags are currently broken ?
@@ -552,12 +562,18 @@ int main(int argc, char **argv)
 			bool gotLabels = false;
 			bool onBattery = false;
 
-			IndexInterface *pIndex = settings.getIndex(settings.m_daemonIndexLocation);
+			pIndex = settings.getIndex(settings.m_daemonIndexLocation);
 			if (pIndex != NULL)
 			{
-				string indexVersion(pIndex->getVersion());
+				string indexVersion(pIndex->getMetadata("version"));
+
 				gotLabels = pIndex->getLabels(labels);
+
 				// What version is the index at ?
+				if (indexVersion.empty() == true)
+				{
+					indexVersion = "0.0";
+				}
 				if (indexVersion < PINOT_INDEX_MIN_VERSION)
 				{
 					cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
@@ -573,7 +589,7 @@ int main(int argc, char **argv)
 
 					resetHistory = resetLabels = true;
 				}
-				pIndex->setVersion(VERSION);
+				pIndex->setMetadata("version", VERSION);
 			}
 
 			if (resetHistory == true)
@@ -609,11 +625,6 @@ int main(int argc, char **argv)
 				{
 					pIndex->setLabels(labels);
 				}
-			}
-
-			if (pIndex != NULL)
-			{
-				delete pIndex;
 			}
 
 			// Connect to the quit signal
@@ -678,6 +689,23 @@ int main(int argc, char **argv)
 		cerr << "Couldn't register object path" << endl;
 	}
 	dbus_error_free(&error);
+
+	if (pIndex != NULL)
+	{
+		if (server.is_flag_set(DaemonState::DISCONNECTED) == true)
+		{
+			pIndex->setMetadata("dbus-status", "Disconnected");
+		}
+		else if (server.is_flag_set(DaemonState::STOPPED) == true)
+		{
+			pIndex->setMetadata("dbus-status", "Stopped");
+		}
+		else
+		{
+			pIndex->setMetadata("dbus-status", "");
+		}
+		delete pIndex;
+	}
 
 	// Stop everything
 	server.disconnect();

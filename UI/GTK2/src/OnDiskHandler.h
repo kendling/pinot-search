@@ -68,11 +68,11 @@ class OnDiskHandler : public MonitorHandler
 		/// Handles directory deleted events.
 		virtual bool directoryDeleted(const std::string &dirName);
 
-		sigc::signal3<void, const DocumentInfo&, const std::string&, bool>& getFileFoundSignal(void);
+		sigc::signal3<void, DocumentInfo, std::string, bool>& getFileFoundSignal(void);
 
 	protected:
 		pthread_mutex_t m_mutex;
-		sigc::signal3<void, const DocumentInfo&, const std::string&, bool> m_signalFileFound;
+		sigc::signal3<void, DocumentInfo, std::string, bool> m_signalFileFound;
 		std::map<unsigned int, std::string> m_fileSources;
 		CrawlHistory m_history;
 		IndexInterface *m_pIndex;

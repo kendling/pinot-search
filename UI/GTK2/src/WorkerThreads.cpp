@@ -722,18 +722,6 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 	return foundItem;
 }
 
-void ThreadsManager::get_statistics(unsigned int &queueSize)
-{
-	if (read_lock_lists() == true)
-	{
-		// We want the number of documents being indexed,
-		// not the number of document waiting in the queue
-		queueSize = m_beingIndexed.size();
-
-		unlock_lists();
-	}
-}
-
 ListerThread::ListerThread(const string &indexName, unsigned int startDoc) :
 	WorkerThread(),
 	m_indexName(indexName),

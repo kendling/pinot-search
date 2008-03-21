@@ -126,7 +126,7 @@ public:
 };
 
 DaemonState::DaemonState() :
-	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 20),
+	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 10),
 	m_fullScan(false),
 	m_reload(false),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
@@ -146,12 +146,8 @@ DaemonState::DaemonState() :
 
 DaemonState::~DaemonState()
 {
-	if (m_pDiskMonitor != NULL)
-	{
-		delete m_pDiskMonitor;
-	}
-	// Don't delete m_pDiskHandler, threads may need it
-	// Since DaemonState is destroyed when the program exits, it's okay
+	// Don't delete m_pDiskMonitor and m_pDiskHandler, threads may need them
+	// Since DaemonState is destroyed when the program exits, it's a leak we can live with
 }
 
 bool DaemonState::on_activity_timeout(void)
@@ -213,13 +209,13 @@ void DaemonState::check_battery_state(void)
 			onBattery = true;
 		}
 
-		bool wasOnBattery = is_flag_set(DaemonState::ON_BATTERY);
+		bool wasOnBattery = is_flag_set(ON_BATTERY);
 		if (onBattery != wasOnBattery)
 		{
 			if (onBattery == true)
 			{
 				// We are now on battery
-				set_flag(DaemonState::ON_BATTERY);
+				set_flag(ON_BATTERY);
 				stop_crawling();
 
 				cout << "System is now on battery" << endl;
@@ -227,7 +223,7 @@ void DaemonState::check_battery_state(void)
 			else
 			{
 				// Back on-line
-				reset_flag(DaemonState::ON_BATTERY);
+				reset_flag(ON_BATTERY);
 				start_crawling();
 
 				cout << "System is now on AC" << endl;
@@ -514,7 +510,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	pop_queue(indexedUrl);
 }
 
-void DaemonState::on_message_filefound(const DocumentInfo &docInfo, const string &sourceLabel, bool isDirectory)
+void DaemonState::on_message_filefound(DocumentInfo docInfo, string sourceLabel, bool isDirectory)
 {
 	if (isDirectory == false)
 	{

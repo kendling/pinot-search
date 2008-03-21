@@ -36,7 +36,7 @@ class DaemonState : public ThreadsManager
 		DaemonState();
 		virtual ~DaemonState();
 
-		typedef enum { LOW_DISK_SPACE = 0, ON_BATTERY } StatusFlag;
+		typedef enum { LOW_DISK_SPACE = 0, ON_BATTERY, STOPPED, DISCONNECTED } StatusFlag;
 
 		void start(bool forceFullScan);
 
@@ -48,7 +48,7 @@ class DaemonState : public ThreadsManager
 
 		void on_thread_end(WorkerThread *pThread);
 
-		void on_message_filefound(const DocumentInfo &docInfo, const std::string &sourceLabel,
+		void on_message_filefound(DocumentInfo docInfo, std::string sourceLabel,
 			bool isDirectory);
 
 		sigc::signal1<void, int>& getQuitSignal(void);

@@ -312,9 +312,13 @@ int main(int argc, char **argv)
 	IndexInterface *pIndex = settings.getIndex(settings.m_docsIndexLocation);
 	if (pIndex != NULL)
 	{
-		string indexVersion(pIndex->getVersion());
+		string indexVersion(pIndex->getMetadata("version"));
 
 		// What version is the index at ?
+		if (indexVersion.empty() == true)
+		{
+			indexVersion = "0.0";
+		}
 		// Is an upgrade necessary ?
 		if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
 			(pIndex->getDocumentsCount() > 0))
@@ -324,7 +328,7 @@ int main(int argc, char **argv)
 #ifdef DEBUG
 		cout << "My Web Pages was set to version " << indexVersion << endl;
 #endif
-		pIndex->setVersion(VERSION);
+		pIndex->setMetadata("version", VERSION);
 
 		delete pIndex;
 	}

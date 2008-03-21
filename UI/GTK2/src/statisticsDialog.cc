@@ -132,6 +132,7 @@ bool statisticsDialog::on_activity_timeout(void)
 	ViewHistory viewHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 	TreeModel::Row row;
 	std::map<unsigned int, string> sources;
+	string daemonDBusStatus;
 	char countStr[64];
 
 	row = *m_myWebPagesIter;
@@ -158,6 +159,8 @@ bool statisticsDialog::on_activity_timeout(void)
 
 		snprintf(countStr, 64, "%u", docsCount);
 		row[m_statsColumns.m_name] = ustring(countStr) + " " + _("documents");
+
+		daemonDBusStatus = pIndex->getMetadata("dbus-status");
 
 		delete pIndex;
 	}
@@ -197,7 +200,18 @@ bool statisticsDialog::on_activity_timeout(void)
 	}
 	else
 	{
-		row[m_statsColumns.m_name] = ustring(_("Currently not running"));
+		if (daemonDBusStatus == "Disconnected")
+		{
+			row[m_statsColumns.m_name] = ustring(_("Disconnected from D-Bus"));
+		}
+		else if (daemonDBusStatus == "Stopped")
+		{
+			row[m_statsColumns.m_name] = ustring(_("Stopped"));
+		}
+		else
+		{
+			row[m_statsColumns.m_name] = ustring(_("Currently not running"));
+		}
 	}
 
 	// Show errors

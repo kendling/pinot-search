@@ -136,8 +136,6 @@ class ThreadsManager : virtual public sigc::trackable
 
 		bool pop_queue(const std::string &urlWasIndexed = "");
 
-		void get_statistics(unsigned int &queueSize);
-
 	protected:
 		sigc::connection m_threadsEndConnection;
 		pthread_rwlock_t m_threadsLock;

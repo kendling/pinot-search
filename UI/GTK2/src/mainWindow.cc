@@ -276,16 +276,8 @@ mainWindow::mainWindow() :
 //
 mainWindow::~mainWindow()
 {
-	// FIXME: delete all "ignored" threads when exiting !!!
-
-	if (m_pSettingsMonitor != NULL)
-	{
-		delete m_pSettingsMonitor;
-	}
-	if (m_pSettingsHandler != NULL)
-	{
-		delete m_pSettingsHandler;
-	}
+	// Don't delete m_pSettingsMonitor and m_pSettingsHandler, threads may need them
+	// Since mainWindow is destroyed when the program exits, it's a leak we can live with
 
 	// Save engines
 	m_pEnginesTree->save();
