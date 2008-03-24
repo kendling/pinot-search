@@ -271,7 +271,8 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		if (m_properties.m_scrolling == SearchPluginProperties::PER_INDEX)
 		{
 			paramIter = m_properties.m_parameters.find(SearchPluginProperties::COUNT_PARAM);
-			if (paramIter != m_properties.m_parameters.end())
+			if ((paramIter != m_properties.m_parameters.end()) &&
+				(paramIter->second.empty() == false))
 			{
 				// Number of results requested
 				pageQuery += "&";
@@ -282,7 +283,8 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 			}
 
 			paramIter = m_properties.m_parameters.find(SearchPluginProperties::START_INDEX_PARAM);
-			if (paramIter != m_properties.m_parameters.end())
+			if ((paramIter != m_properties.m_parameters.end()) &&
+				(paramIter->second.empty() == false))
 			{
 				// The offset of the first result (typically 1 or 0)
 				pageQuery += "&";
@@ -295,7 +297,8 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		else
 		{
 			paramIter = m_properties.m_parameters.find(SearchPluginProperties::START_PAGE_PARAM);
-			if (paramIter != m_properties.m_parameters.end())
+			if ((paramIter != m_properties.m_parameters.end()) &&
+				(paramIter->second.empty() == false))
 			{
 				// The offset of the page
 				pageQuery += "&";
