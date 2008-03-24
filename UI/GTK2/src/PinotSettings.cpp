@@ -284,7 +284,7 @@ void PinotSettings::clear(void)
 	m_proxyEnabled = false;
 	m_indexableLocations.clear();
 	m_filePatternsList.clear();
-	m_isBlackList = false;
+	m_isBlackList = true;
 	m_cacheProviders.clear();
 	m_cacheProtocols.clear();
 
@@ -328,33 +328,7 @@ bool PinotSettings::load(void)
 		m_labels.insert(_("Important"));
 		m_labels.insert(_("New"));
 		m_labels.insert(_("Personal"));
-		// Skip common image, video and archive types
-		m_filePatternsList.insert("*~");
-		m_filePatternsList.insert("*.Z");
-		m_filePatternsList.insert("*.a");
-		m_filePatternsList.insert("*.avi");
-		m_filePatternsList.insert("*.asf");
-		m_filePatternsList.insert("*.cap");
-		m_filePatternsList.insert("*.flv");
-		m_filePatternsList.insert("*.gif");
-		m_filePatternsList.insert("*.iso");
-		m_filePatternsList.insert("*.jpeg");
-		m_filePatternsList.insert("*.jpg");
-		m_filePatternsList.insert("*.la");
-		m_filePatternsList.insert("*.lha");
-		m_filePatternsList.insert("*.mov");
-		m_filePatternsList.insert("*.msf");
-		m_filePatternsList.insert("*.mpeg");
-		m_filePatternsList.insert("*.mpg");
-		m_filePatternsList.insert("*.o");
-		m_filePatternsList.insert("*.png");
-		m_filePatternsList.insert("*.rar");
-		m_filePatternsList.insert("*.sh");
-		m_filePatternsList.insert("*.so");
-		m_filePatternsList.insert("*.tiff");
-		m_filePatternsList.insert("*.wmv");
-		m_filePatternsList.insert("*.xbm");
-		m_filePatternsList.insert("*.xpm");
+		m_isBlackList = getDefaultPatterns(m_filePatternsList);
 		// Create default queries
 		struct passwd *pPasswd = getpwuid(geteuid());
 		if (pPasswd != NULL)
@@ -1736,6 +1710,44 @@ bool PinotSettings::removeQuery(const string &name)
 void PinotSettings::clearQueries(void)
 {
 	m_queries.clear();
+}
+
+/// Gets default patterns.
+bool PinotSettings::getDefaultPatterns(set<ustring> &defaultPatterns)
+{
+	defaultPatterns.clear();
+
+	// Skip common image, video and archive types
+	defaultPatterns.insert("*~");
+	defaultPatterns.insert("*.Z");
+	defaultPatterns.insert("*.a");
+	defaultPatterns.insert("*.asf");
+	defaultPatterns.insert("*.avi");
+	defaultPatterns.insert("*.cap");
+	defaultPatterns.insert("*.divx");
+	defaultPatterns.insert("*.flv");
+	defaultPatterns.insert("*.gif");
+	defaultPatterns.insert("*.iso");
+	defaultPatterns.insert("*.jpeg");
+	defaultPatterns.insert("*.jpg");
+	defaultPatterns.insert("*.la");
+	defaultPatterns.insert("*.lha");
+	defaultPatterns.insert("*.mov");
+	defaultPatterns.insert("*.msf");
+	defaultPatterns.insert("*.mpeg");
+	defaultPatterns.insert("*.mpg");
+	defaultPatterns.insert("*.mo");
+	defaultPatterns.insert("*.o");
+	defaultPatterns.insert("*.png");
+	defaultPatterns.insert("*.rar");
+	defaultPatterns.insert("*.sh");
+	defaultPatterns.insert("*.so");
+	defaultPatterns.insert("*.tiff");
+	defaultPatterns.insert("*.wmv");
+	defaultPatterns.insert("*.xbm");
+	defaultPatterns.insert("*.xpm");
+
+	return true;
 }
 
 /// Determines if a file matches the blacklist.

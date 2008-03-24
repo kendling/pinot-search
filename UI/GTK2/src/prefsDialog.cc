@@ -100,7 +100,8 @@ prefsDialog::prefsDialog() :
 	patternsTreeview->append_column_editable(_("Pattern"), m_patternsColumns.m_location);
 	// Allow only single selection
 	patternsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
-	populate_patternsTreeview();
+	populate_patternsCombobox();
+	populate_patternsTreeview(m_settings.m_filePatternsList, m_settings.m_isBlackList);
 
 	// Hide the Google API entry field ?
 	if (ModuleFactory::isSupported("googleapi") == false)
@@ -327,13 +328,19 @@ bool prefsDialog::save_directoriesTreeview()
 	return false;
 }
 
-void prefsDialog::populate_patternsTreeview()
+void prefsDialog::populate_patternsCombobox()
+{
+	patternsCombobox->append_text(_("Exclude these patterns from indexing"));
+	patternsCombobox->append_text(_("Only index these patterns"));
+}
+
+void prefsDialog::populate_patternsTreeview(const set<ustring> &patternsList, bool isBlackList)
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
 	ustring patternsString;
 
-	if (m_settings.m_filePatternsList.empty() == true)
+	if (patternsList.empty() == true)
 	{
 		// This button will stay disabled until a ppatern is added to the list
 		removePatternButton->set_sensitive(false);
@@ -341,8 +348,8 @@ void prefsDialog::populate_patternsTreeview()
 	}
 
 	// Populate the tree
-	for (set<ustring>::iterator patternIter = m_settings.m_filePatternsList.begin();
-		patternIter != m_settings.m_filePatternsList.end();
+	for (set<ustring>::iterator patternIter = patternsList.begin();
+		patternIter != patternsList.end();
 		++patternIter)
 	{
 		ustring pattern(*patternIter);
@@ -354,13 +361,11 @@ void prefsDialog::populate_patternsTreeview()
 		row[m_patternsColumns.m_location] = pattern;
 		patternsString += pattern + "|";
 	}
-	patternsCombobox->append_text(_("Exclude these patterns from indexing"));
-	patternsCombobox->append_text(_("Only index these patterns"));
 
 	removePatternButton->set_sensitive(true);
 
 	// Is it a black or white list ?
-	if (m_settings.m_isBlackList == true)
+	if (isBlackList == true)
 	{
 		patternsCombobox->set_active(0);
 		patternsString += "0";
@@ -567,7 +572,7 @@ void prefsDialog::on_removeDirectoryButton_clicked()
 	}
 }
 
-void prefsDialog::on_patternsCombobox_changed ()
+void prefsDialog::on_patternsCombobox_changed()
 {
 	int activeRow = patternsCombobox->get_active_row_number();
 
@@ -578,7 +583,7 @@ void prefsDialog::on_patternsCombobox_changed ()
 		return;
 	}
 
-	// Unselect results
+	// Unselect
 	patternsTreeview->get_selection()->unselect_all();
 	// Remove all patterns in order to make sure the user enters a new bunch
 	m_refPatternsTree->clear();
@@ -635,5 +640,19 @@ void prefsDialog::on_removePatternButton_clicked()
 			removePatternButton->set_sensitive(false);
 		}
 	}
+}
+
+void prefsDialog::on_resetPatternsButton_clicked()
+{
+	set<ustring> defaultPatterns;
+	bool isBlackList = m_settings.getDefaultPatterns(defaultPatterns);
+
+	// Unselect
+	patternsTreeview->get_selection()->unselect_all();
+	// Remove all patterns
+	m_refPatternsTree->clear();
+
+	// Repopulate with defaults
+	populate_patternsTreeview(defaultPatterns, isBlackList);
 }
 

@@ -2140,6 +2140,21 @@
 			  <signal name="clicked" handler="on_removePatternButton_clicked" last_modification_time="Tue, 31 Oct 2006 14:48:32 GMT"/>
 			</widget>
 		      </child>
+
+		      <child>
+			<widget class="GtkButton" id="resetPatternsButton">
+			  <property name="border_width">4</property>
+			  <property agent="glademm" name="cxx_visibility">protected</property>
+			  <property name="visible">True</property>
+			  <property name="can_default">True</property>
+			  <property name="can_focus">True</property>
+			  <property name="label" translatable="yes">Reset</property>
+			  <property name="use_underline">True</property>
+			  <property name="relief">GTK_RELIEF_NORMAL</property>
+			  <property name="focus_on_click">True</property>
+			  <signal name="clicked" handler="on_resetPatternsButton_clicked" last_modification_time="Mon, 24 Mar 2008 04:59:59 GMT"/>
+			</widget>
+		      </child>
 		    </widget>
 		    <packing>
 		      <property name="padding">0</property>

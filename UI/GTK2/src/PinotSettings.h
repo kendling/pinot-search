@@ -133,6 +133,9 @@ class PinotSettings
 		/// Clears the queries map.
 		void clearQueries(void);
 
+		/// Gets default patterns.
+		bool getDefaultPatterns(std::set<Glib::ustring> &defaultPatterns);
+
 		/// Determines if a file matches the blacklist.
 		bool isBlackListed(const std::string &fileName);
 

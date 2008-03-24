@@ -71,13 +71,15 @@ protected:
 	virtual void on_patternsCombobox_changed();
 	virtual void on_addPatternButton_clicked();
 	virtual void on_removePatternButton_clicked();
+	virtual void on_resetPatternsButton_clicked();
 
 	void populate_proxyTypeCombobox();
 	void populate_labelsTreeview();
 	void save_labelsTreeview();
 	void populate_directoriesTreeview();
 	bool save_directoriesTreeview();
-	void populate_patternsTreeview();
+	void populate_patternsCombobox();
+	void populate_patternsTreeview(const std::set<Glib::ustring> &patternsList, bool isBlackList);
 	bool save_patternsTreeview();
 
 };
