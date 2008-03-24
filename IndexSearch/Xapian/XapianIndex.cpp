@@ -774,8 +774,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 	}
 }
 
-string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
-	DocumentInfo &info)
+string XapianIndex::scanDocument(const char *pData, unsigned int dataLength)
 {
 	vector<string> candidates;
 	string language;
@@ -808,9 +807,6 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength,
 #ifdef DEBUG
 	cout << "XapianIndex::scanDocument: language " << language << endl;
 #endif
-
-	// Update the document's properties
-	info.setLanguage(language);
 
 	return language;
 }
@@ -1793,10 +1789,16 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	unsigned int dataLength = 0;
 	const char *pData = document.getData(dataLength);
 
-	if ((pData != NULL) &&
-		(dataLength > 0))
+	// Don't scan the document if a language is specified
+	m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
+	if (m_stemLanguage.empty() == true)
 	{
-		m_stemLanguage = scanDocument(pData, dataLength, docInfo);
+		if ((pData != NULL) &&
+			(dataLength > 0))
+		{
+			m_stemLanguage = scanDocument(pData, dataLength);
+			docInfo.setLanguage(Languages::toLocale(m_stemLanguage));
+		}
 	}
 
 	try
@@ -1873,7 +1875,8 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 		if ((pData != NULL) &&
 			(dataLength > 0))
 		{
-			m_stemLanguage = scanDocument(pData, dataLength, docInfo);
+			m_stemLanguage = scanDocument(pData, dataLength);
+			docInfo.setLanguage(Languages::toLocale(m_stemLanguage));
 		}
 	}
 
