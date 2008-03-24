@@ -589,7 +589,9 @@ int main(int argc, char **argv)
 
 					resetHistory = resetLabels = true;
 				}
+
 				pIndex->setMetadata("version", VERSION);
+				pIndex->setMetadata("dbus-status", "Running");
 			}
 
 			if (resetHistory == true)
