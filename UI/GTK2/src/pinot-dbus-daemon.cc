@@ -58,6 +58,7 @@ static streambuf *g_cerrBuf = NULL;
 static struct option g_longOptions[] = {
 	{"fullscan", 0, 0, 'f'},
 	{"help", 0, 0, 'h'},
+	{"ignore-version", 0, 0, 'i'},
 	{"priority", 1, 0, 'p'},
 	{"reindex", 0, 0, 'r'},
 	{"version", 0, 0, 'v'},
@@ -271,9 +272,10 @@ int main(int argc, char **argv)
 	bool resetLabels = false;
 	bool fullScan = false;
 	bool reindex = false;
+	bool ignoreVersion = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "fhp:rv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "fhip:rv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -288,11 +290,15 @@ int main(int argc, char **argv)
 					<< "Options:\n"
 					<< "  -f, --fullscan	force a full scan\n"
 					<< "  -h, --help		display this help and exit\n"
+					<< "  -i, --ignore-version	ignore the index version number\n"
 					<< "  -p, --priority	set the daemon's priority (default 15)\n"
 					<< "  -r, --reindex		force a reindex\n"
 					<< "  -v, --version		output version information and exit\n"
 					<< "\nReport bugs to " << PACKAGE_BUGREPORT << endl;
 				return EXIT_SUCCESS;
+			case 'i':
+				ignoreVersion = true;
+				break;
 			case 'p':
 				if (optarg != NULL)
 				{
@@ -318,7 +324,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "fhp:rv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "fhip:rv", g_longOptions, &longOptionIndex);
 	}
 
 #if defined(ENABLE_NLS)
@@ -574,7 +580,8 @@ int main(int argc, char **argv)
 				{
 					indexVersion = "0.0";
 				}
-				if (indexVersion < PINOT_INDEX_MIN_VERSION)
+				if ((ignoreVersion == false) &&
+					(indexVersion < PINOT_INDEX_MIN_VERSION))
 				{
 					cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
 
