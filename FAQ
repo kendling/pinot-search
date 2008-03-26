@@ -1,3 +1,18 @@
+  * The index is huuuuge ! How can I make it smaller ?
+    The format of Xapian indexes is optimized for writing. Once all documents
+    have been indexed, compacting the index may reduce its size quite
+    significantly. If you have Xapian >= 1.0.6, xapian-compact will let you do
+    that. Stop the daemon and run the following commands :
+     $ mv ~/.pinot/daemon ~/.pinot/backup-daemon
+     $ xapian-compact ~/.pinot/backup-daemon ~/.pinot/daemon
+    This may take a little while. Once xapian-compact has completed, restart
+    the daemon with :
+     $ pinot-dbus-daemon -i
+    The -i parameter instructs the daemon to ignore the index version number,
+    which may not have been set in the compacted index.
+    You may also want to disable support for spelling. See the README for more
+    details.
+
   * At startup, when listing an index or indexing documents, Pinot complains
     of an "index error"
     This is likely because a previous instance didn't exit properly and one
