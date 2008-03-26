@@ -55,8 +55,24 @@ queryDialog::queryDialog(QueryProperties &properties) :
 	}
 	// Maximum number of results
 	resultsCountSpinbutton->set_value((double)m_properties.getMaximumResultsCount());
-	// Index all results
-	indexCheckbutton->set_active(m_properties.getIndexResults());
+	// Index results
+	QueryProperties::IndexWhat indexResults = m_properties.getIndexResults();
+	if (indexResults == QueryProperties::NEW_RESULTS)
+	{
+		indexCheckbutton->set_active(true);
+		indexNewCheckbutton->set_active(true);
+	}
+	else if (indexResults == QueryProperties::ALL_RESULTS)
+	{
+		indexCheckbutton->set_active(true);
+		indexNewCheckbutton->set_active(false);
+	}
+	else
+	{
+		indexCheckbutton->set_active(false);
+		indexNewCheckbutton->set_active(false);
+		indexNewCheckbutton->set_sensitive(false);
+	}
 
 	// Populate
 	populate_comboboxes();
@@ -209,8 +225,24 @@ void queryDialog::on_queryOkbutton_clicked()
 		languageName.clear();
 	}
 	m_properties.setStemmingLanguage(languageName);
-	// Index all results
-	m_properties.setIndexResults(indexCheckbutton->get_active());
+	// Index results
+	bool indexResults = indexCheckbutton->get_active();
+	bool indexNewResults = indexNewCheckbutton->get_active();
+	if ((indexResults == true) &&
+		(indexNewResults == true))
+	{
+		m_properties.setIndexResults(QueryProperties::NEW_RESULTS);
+	}
+	else if ((indexResults == true) &&
+		(indexNewResults == false))
+	{
+		m_properties.setIndexResults(QueryProperties::ALL_RESULTS);
+	}
+	else
+	{
+		m_properties.setIndexResults(QueryProperties::NOTHING);
+	}
+
 	// Index label
 	m_properties.setLabelName("");
 	int chosenLabel = labelNameCombobox->get_active_row_number();
@@ -299,6 +331,19 @@ void queryDialog::on_addFilterButton_clicked()
 		queryText += " ";
 		queryText += filter;
 		refBuffer->set_text(queryText);
+	}
+}
+
+void queryDialog::on_indexCheckbutton_toggled()
+{
+	if (indexCheckbutton->get_active() == false)
+	{
+		indexNewCheckbutton->set_active(false);
+		indexNewCheckbutton->set_sensitive(false);
+	}
+	else
+	{
+		indexNewCheckbutton->set_sensitive(true);
 	}
 }
 

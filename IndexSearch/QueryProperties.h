@@ -30,6 +30,7 @@ class QueryProperties
 	public:
 		typedef enum { XAPIAN_QP = 0, XESAM_QL, XESAM_UL } QueryType;
 		typedef enum { RELEVANCE = 0, DATE } SortOrder;
+		typedef enum { NOTHING = 0, ALL_RESULTS, NEW_RESULTS } IndexWhat;
 
 		QueryProperties();
 		QueryProperties(const string &name, const string &freeQuery,
@@ -72,9 +73,9 @@ class QueryProperties
 		unsigned int getMaximumResultsCount(void) const;
 
 		/// Sets whether results should be indexed.
-		void setIndexResults(bool index);
+		void setIndexResults(IndexWhat indexResults);
 		/// Gets whether results should be indexed
-		bool getIndexResults(void) const;
+		IndexWhat getIndexResults(void) const;
 
 		/// Sets the name of the label to use for indexed documents.
 		void setLabelName(const string &labelName);
@@ -100,7 +101,7 @@ class QueryProperties
 		string m_freeQuery;
 		string m_freeQueryWithoutFilters;
 		unsigned int m_resultsCount;
-		bool m_indexResults;
+		IndexWhat m_indexResults;
 		string m_labelName;
 		bool m_modified;
 

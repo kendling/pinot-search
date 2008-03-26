@@ -29,7 +29,7 @@ QueryProperties::QueryProperties() :
 	m_type(XAPIAN_QP),
 	m_order(RELEVANCE),
 	m_resultsCount(10),
-	m_indexResults(false),
+	m_indexResults(NOTHING),
 	m_modified(false)
 {
 }
@@ -41,7 +41,7 @@ QueryProperties::QueryProperties(const string &name, const string &freeQuery,
 	m_order(RELEVANCE),
 	m_freeQuery(freeQuery),
 	m_resultsCount(10),
-	m_indexResults(false),
+	m_indexResults(NOTHING),
 	m_modified(false)
 {
 	removeFilters();
@@ -224,13 +224,13 @@ unsigned int QueryProperties::getMaximumResultsCount(void) const
 }
 
 /// Sets whether results should be indexed.
-void QueryProperties::setIndexResults(bool index)
+void QueryProperties::setIndexResults(IndexWhat indexResults)
 {
-	m_indexResults = index;
+	m_indexResults = indexResults;
 }
 
 /// Gets whether results should be indexed
-bool QueryProperties::getIndexResults(void) const
+QueryProperties::IndexWhat QueryProperties::getIndexResults(void) const
 {
 	return m_indexResults;
 }

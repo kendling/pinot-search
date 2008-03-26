@@ -47,6 +47,7 @@ protected:
 	virtual void on_queryOkbutton_clicked();
 	virtual void on_nameEntry_changed();
 	virtual void on_addFilterButton_clicked();
+	virtual void on_indexCheckbutton_toggled();
 
 };
 #endif

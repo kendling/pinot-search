@@ -1122,6 +1122,15 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		{
 			m_state.m_browsingIndex = false;
 		}
+		else if (type == "IndexingThread")
+		{
+			IndexingThread *pIndexThread = dynamic_cast<IndexingThread *>(pThread);
+			if (pIndexThread != NULL)
+			{
+				// Get the URL we failed to index
+				indexedUrl = pIndexThread->getURL();
+			}
+		}
 	}
 	// Based on type, take the appropriate action...
 	else if (type == "ListerThread")
@@ -1182,7 +1191,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 	}
 	else if (type == "QueryingThread")
 	{
-		std::map<string, TreeModel::iterator> updatedGroups;
+		set<DocumentInfo> docsToIndex;
 		int pageNum = -1;
 
 		QueryingThread *pQueryThread = dynamic_cast<QueryingThread *>(pThread);
@@ -1192,12 +1201,20 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		bool wasCorrected;
+		bool wasCorrected = false;
 		QueryProperties queryProps(pQueryThread->getQuery(wasCorrected));
 		ustring queryName(queryProps.getName());
+		string labelName(queryProps.getLabelName());
 		ustring engineName(to_utf8(pQueryThread->getEngineName()));
 		string resultsCharset(pQueryThread->getCharset());
+		set<string> labels;
 		const vector<DocumentInfo> &resultsList = pQueryThread->getDocuments();
+
+		// These are the labels that need to be applied to results
+		if (labelName.empty() == false)
+		{
+			labels.insert(labelName);
+		}
 
 		status = _("Query");
 		status += " ";
@@ -1209,6 +1226,78 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		status += " ";
 		status += _("ended");
 		set_status(status);
+
+		// Suggest the correction to the user
+		if (wasCorrected == true)
+		{
+			ustring correctedQueryName(_("Corrected"));
+
+			if (queryName.empty() == true)
+			{
+				correctedQueryName += "...";
+			}
+			else
+			{
+				correctedQueryName += " ";
+				correctedQueryName += queryName;
+			}
+			queryProps.setName(correctedQueryName);
+			queryProps.setModified(true);
+
+			add_query(queryProps, true);
+		}
+
+		// Index results ?
+		QueryProperties::IndexWhat indexResults = queryProps.getIndexResults();
+		if ((indexResults != QueryProperties::NOTHING) &&
+			(resultsList.empty() == false))
+		{
+			QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
+			set<unsigned int> docsIds, daemonIds;
+
+			for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
+				resultIter != resultsList.end(); ++resultIter)
+			{
+				unsigned int indexId = 0;
+				unsigned int docId = resultIter->getIsIndexed(indexId);
+				float oldestScore = 0;
+				bool isNewResult = false;
+
+				// Is this a new result or a new query's result ?
+				if (queryHistory.hasItem(queryName, engineName, resultIter->getLocation(), oldestScore) <= 0)
+				{
+#ifdef DEBUG
+					cout << "mainWindow::on_thread_end: new result " << resultIter->getLocation() << endl;
+#endif
+					isNewResult = true;
+				}
+				
+				if ((docId == 0) &&
+					((indexResults == QueryProperties::ALL_RESULTS) || (isNewResult == true)))
+				{
+					// This document is not in either index
+					docsToIndex.insert(*resultIter);
+				}
+				else if (labels.empty() == false)
+				{
+					if (indexId == m_settings.getIndexIdByName(_("My Web Pages")))
+					{
+						docsIds.insert(docId);
+					}
+					else if (indexId == m_settings.getIndexIdByName(_("My Documents")))
+					{
+						daemonIds.insert(docId);
+					}
+				}
+			}
+
+			if ((docsIds.empty() == false) ||
+				(daemonIds.empty() == false))
+			{
+				// Apply the new label to existing documents
+				start_thread(new LabelUpdateThread(labels, docsIds, daemonIds, false));
+			}
+		}
 
 		// Find the page for this query
 		ResultsTree *pResultsTree = NULL;
@@ -1270,85 +1359,18 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				resultsCharset, pQueryThread->isLive());
 		}
 
-		// Suggest the correction to the user
-		if (wasCorrected == true)
+		// Now that results are displayed, go ahead and index documents
+		for (set<DocumentInfo>::const_iterator docIter = docsToIndex.begin();
+			docIter != docsToIndex.end(); ++docIter)
 		{
-			ustring correctedQueryName(_("Corrected"));
+			DocumentInfo docInfo(*docIter);
 
-			if (queryName.empty() == true)
-			{
-				correctedQueryName += "...";
-			}
-			else
-			{
-				correctedQueryName += " ";
-				correctedQueryName += queryName;
-			}
-			queryProps.setName(correctedQueryName);
-			queryProps.setModified(true);
-
-			add_query(queryProps, true);
-		}
-
-		// Index results ?
-		if ((queryProps.getIndexResults() == true) &&
-			(resultsList.empty() == false))
-		{
-			set<string> labels;
-			set<unsigned int> docsIds, daemonIds;
-			string labelName(queryProps.getLabelName());
-
-			// Set the list of labels
-			if (labelName.empty() == false)
-			{
-				labels.insert(labelName);
-			}
-
+			// Set/reset labels
+			docInfo.setLabels(labels);
 #ifdef DEBUG
-			cout << "mainWindow::on_thread_end: indexing results, with label " << labelName << endl;
+			cout << "mainWindow::on_thread_end: indexing results with label " << labelName << endl;
 #endif
-			for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
-				resultIter != resultsList.end(); ++resultIter)
-			{
-				unsigned int indexId;
-				unsigned int docId = resultIter->getIsIndexed(indexId);
-
-				if (docId == 0)
-				{
-					DocumentInfo docInfo(*resultIter);
-
-					// Set/reset labels
-					docInfo.setLabels(labels);
-
-					// This document is not in either index
-					m_state.queue_index(docInfo);
-				}
-				else if (indexId == m_settings.getIndexIdByName(_("My Web Pages")))
-				{
-					if (labelName.empty() == false)
-					{
-						docsIds.insert(docId);
-					}
-				}
-				else if (indexId == m_settings.getIndexIdByName(_("My Documents")))
-				{
-					if (labelName.empty() == false)
-					{
-						daemonIds.insert(docId);
-					}
-				}
-			}
-
-			if ((labelName.empty() == false) &&
-				((docsIds.empty() == false) ||
-				(daemonIds.empty() == false)))
-			{
-				set<string> labels;
-
-				// Apply the new label to existing documents
-				labels.insert(labelName);
-				start_thread(new LabelUpdateThread(labels, docsIds, daemonIds, false));
-			}
+			m_state.queue_index(docInfo);
 		}
 	}
 	else if (type == "ExpandQueryThread")

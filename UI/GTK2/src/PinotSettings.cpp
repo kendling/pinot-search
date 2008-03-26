@@ -856,13 +856,17 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		}
 		else if (nodeName == "index")
 		{
-			if (nodeContent == "ALL")
+			if (nodeContent == "NEW")
 			{
-				queryProps.setIndexResults(true);
+				queryProps.setIndexResults(QueryProperties::NEW_RESULTS);
+			}
+			else if (nodeContent == "ALL")
+			{
+				queryProps.setIndexResults(QueryProperties::ALL_RESULTS);
 			}
 			else
 			{
-				queryProps.setIndexResults(false);
+				queryProps.setIndexResults(QueryProperties::NOTHING);
 			}
 		}
 		else if (nodeName == "label")
@@ -1363,7 +1367,19 @@ bool PinotSettings::save(void)
 			addChildElement(pElem, "stemlanguage", Languages::toEnglish(queryIter->second.getStemmingLanguage()));
 			snprintf(numStr, 64, "%u", queryIter->second.getMaximumResultsCount());
 			addChildElement(pElem, "maxresults", numStr);
-			addChildElement(pElem, "index", (queryIter->second.getIndexResults() ? "ALL" : "NONE"));
+			QueryProperties::IndexWhat indexResults = queryIter->second.getIndexResults();
+			if (indexResults == QueryProperties::NEW_RESULTS)
+			{
+				addChildElement(pElem, "index", "NEW");
+			}
+			else if (indexResults == QueryProperties::ALL_RESULTS)
+			{
+				addChildElement(pElem, "index", "ALL");
+			}
+			else
+			{
+				addChildElement(pElem, "index", "NONE");
+			}
 			addChildElement(pElem, "label", queryIter->second.getLabelName());
 			addChildElement(pElem, "modified", (queryIter->second.getModified() ? "YES" : "NO"));
 		}
