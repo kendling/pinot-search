@@ -33,7 +33,7 @@ if HAVE_BOOST_SPIRIT
 libxapianbackend_la_SOURCES += $(top_srcdir)/IndexSearch/xesam/XesamULParser.cc
 endif
 
-libxapianbackend_la_LDFLAGS = -module -shared
+libxapianbackend_la_LDFLAGS = -module -shared -nostartfiles
 
 libxapianbackend_la_LIBADD = \
 	@INDEX_LIBS@ @MISC_LIBS@ \
