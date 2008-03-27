@@ -1,3 +1,27 @@
+2008/03/27 version_0_8_4
+Build :
+ - patch by Adel Gadllah to fix gcc 4.3 build errors
+General :
+ - updated FAQ with how to compact the index
+Monitor :
+ - patch by Michael Biebl for inotify on m68k, mips, mipsel and hppa
+Index :
+ - fixed possible crash when pinot-index exits
+Xapian :
+ - faster CJKV indexing
+ - the spelling database is populated with CJKV terms too
+Daemon :
+ - fixed possible crash when pinot-dbus-daemon exits
+ - added option --ignore-version to deal with compacted indexes
+UI :
+ - fixed possible crash when pinot exits
+ - fixed issue with signaling between crawler and indexer
+ - stored queries can index all, or only new, results
+ - in Preferences, patterns can be reset to default values
+ - the Status window shows whether the daemon was stopped by, or
+  disconnected from D-Bus
+ - new simplified Chinese translation by Ashlee Ma
+
 2008/02/28 version_0_8_3
 Build :
  - fixed build errors with gcc 4.3, thanks to Adel Gadllah
