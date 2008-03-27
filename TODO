@@ -56,7 +56,6 @@ Search
 Index
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
 - MD5 hash to determine on updates whether documents have changed, as done by omindex
-- Reopen connection to remote indexes when necessary; does Xapian throw a RemoteError ?
 - Allow to access remote Xapian indexes tunneled through ssh with xapian-progsrv,
   and make sure ssh will ask passwords with /usr/libexec/openssh/ssh-askpass
 - Index xattrs if any
@@ -67,7 +66,7 @@ Index
 - After indexing or updating a document, a call to getDocumentInfo() shouldn't be necessary
 - Labels and the rest of DocumentInfo are handled separately, they shouldn't be
 - Indexes have no knowledge of indexId's
-- Classify files (images, videos, etc...)
+- Send a signal when crawling is done so that the UI can reopen the index
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -105,7 +104,6 @@ UI
 - Delete all temporary files when exiting
 - Show which stored queries are fully, partially or not at all Web friendly
 - List viewed URLs
-- Let queries index only new results
 - Query expansion should be interactive
 - Default cache provider should be configurable
 
