@@ -1,4 +1,28 @@
 ------------------------------------------------------------------------
+r90 | fabricecolin | 2008-03-24 13:11:29 +0800 (Mon, 24 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/HtmlFilter.cc
+
+Minor modifications.
+
+------------------------------------------------------------------------
+r89 | fabricecolin | 2008-03-10 19:06:19 +0800 (Mon, 10 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+
+Includes fix for gcc 4.3 by Adel Gadllah.
+
+------------------------------------------------------------------------
+r88 | fabricecolin | 2008-03-09 01:38:56 +0800 (Sun, 09 Mar 2008) | 3 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+   M /trunk/cjkv/CJKVTokenizer.h
+
+Merging in upstream changes, ie new segment() mthod and and an overload of
+tokenize() that works with a TokensHandler object.
+
+------------------------------------------------------------------------
 r86 | fabricecolin | 2008-02-27 23:17:16 +0800 (Wed, 27 Feb 2008) | 2 lines
 Changed paths:
    M /trunk/filters/ExternalFilter.cc

@@ -1,4 +1,266 @@
 ------------------------------------------------------------------------
+r1225 | fabricecolin | 2008-03-27 16:28:56 +0800 (Thu, 27 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+Forgot to mention the new plugin for UNdata.
+
+------------------------------------------------------------------------
+r1224 | fabricecolin | 2008-03-27 14:25:09 +0800 (Thu, 27 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+List of changes since 0.83.
+
+------------------------------------------------------------------------
+r1223 | fabricecolin | 2008-03-27 10:09:44 +0800 (Thu, 27 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-index.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/IndexSearch/pinot-search.1
+   M /trunk/TODO
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.1
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Preparing for 0.84 release.
+
+------------------------------------------------------------------------
+r1222 | fabricecolin | 2008-03-27 10:08:00 +0800 (Thu, 27 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/Makefile.am
+
+Don't use -nostartfiles.
+
+------------------------------------------------------------------------
+r1221 | fabricecolin | 2008-03-27 10:00:36 +0800 (Thu, 27 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/it.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Translations updates.
+
+------------------------------------------------------------------------
+r1220 | fabricecolin | 2008-03-26 14:24:03 +0800 (Wed, 26 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/FAQ
+
+New FAQ entry about how to compact the index.
+
+------------------------------------------------------------------------
+r1219 | fabricecolin | 2008-03-26 14:11:14 +0800 (Wed, 26 Mar 2008) | 6 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+
+Ignore the index version number, i.e. don't force an upgrade if it's lower than
+what was expected, if -i/--ignore-version is passed as parameter.
+This is useful when ~/.pinot/daemon was compacted with xapian-compact 1.0.6,
+which unlike previous releases, doesn't bail out on index metadata, but fails
+to carry metadata over to the compacted database.
+
+------------------------------------------------------------------------
+r1218 | fabricecolin | 2008-03-26 11:05:37 +0800 (Wed, 26 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/QueryProperties.cpp
+   M /trunk/IndexSearch/QueryProperties.h
+   M /trunk/UI/GTK2/metase-gtk2.glade
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/queryDialog.cc
+   M /trunk/UI/GTK2/src/queryDialog.hh
+   M /trunk/UI/GTK2/src/queryDialog_glade.cc
+   M /trunk/UI/GTK2/src/queryDialog_glade.hh
+
+Queries can now index only new results.
+
+------------------------------------------------------------------------
+r1217 | fabricecolin | 2008-03-24 16:08:36 +0800 (Mon, 24 Mar 2008) | 2 lines
+Changed paths:
+   A /trunk/IndexSearch/Plugins/UNData.src
+
+A plugin for UNdata.
+
+------------------------------------------------------------------------
+r1216 | fabricecolin | 2008-03-24 16:07:50 +0800 (Mon, 24 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/PluginWebEngine.cpp
+
+Ensure scroll-by parameters are not empty before appending them to the URL.
+
+------------------------------------------------------------------------
+r1215 | fabricecolin | 2008-03-24 15:19:54 +0800 (Mon, 24 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/configure.in
+   A /trunk/po/zh_CN.po
+
+Simplified Chinese po by Ashlee Ma.
+
+------------------------------------------------------------------------
+r1214 | fabricecolin | 2008-03-24 14:42:58 +0800 (Mon, 24 Mar 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.h
+
+Don't scan the document to index for its language if it's already known. As
+things stand, it never is when indexDocument() is invoked.
+
+------------------------------------------------------------------------
+r1213 | fabricecolin | 2008-03-24 14:26:15 +0800 (Mon, 24 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/metase-gtk2.glade
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+   M /trunk/UI/GTK2/src/PinotSettings.h
+   M /trunk/UI/GTK2/src/prefsDialog.cc
+   M /trunk/UI/GTK2/src/prefsDialog.hh
+   M /trunk/UI/GTK2/src/prefsDialog_glade.cc
+   M /trunk/UI/GTK2/src/prefsDialog_glade.hh
+
+In Preferences, patterns can be reset to default values.
+
+------------------------------------------------------------------------
+r1212 | fabricecolin | 2008-03-24 13:13:17 +0800 (Mon, 24 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+
+Initialize the dbus-status metadata.
+
+------------------------------------------------------------------------
+r1211 | fabricecolin | 2008-03-22 00:18:50 +0800 (Sat, 22 Mar 2008) | 7 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+   M /trunk/UI/GTK2/src/DaemonState.h
+   M /trunk/UI/GTK2/src/OnDiskHandler.cpp
+   M /trunk/UI/GTK2/src/OnDiskHandler.h
+   M /trunk/UI/GTK2/src/ServerThreads.cpp
+   M /trunk/UI/GTK2/src/ServerThreads.h
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.h
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+   M /trunk/UI/GTK2/src/pinot.cc
+   M /trunk/UI/GTK2/src/statisticsDialog.cc
+
+Pass parameters to the file_found signal by value, not reference.
+DaemonState and mainWindow don't delete the monitor and handler objects when
+destroyed because the Monitor thread might still be running.
+Added flags for when the daemon receives Stop or Disconnected. This is saved
+as database metadata, and shown by the Status window.
+Some other minor mods.
+
+------------------------------------------------------------------------
+r1210 | fabricecolin | 2008-03-20 19:06:31 +0800 (Thu, 20 Mar 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/DBusIndex.cpp
+   M /trunk/IndexSearch/DBusIndex.h
+   M /trunk/IndexSearch/IndexInterface.h
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.h
+   M /trunk/IndexSearch/pinot-index.cpp
+
+Replaced get|setVersion() with get|setMetadata().
+In showinfo mode, pinot-index shows the index version string.
+
+------------------------------------------------------------------------
+r1209 | fabricecolin | 2008-03-17 09:58:43 +0800 (Mon, 17 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianDatabase.cpp
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+
+Missing header, minor mod.
+
+------------------------------------------------------------------------
+r1208 | fabricecolin | 2008-03-15 21:16:04 +0800 (Sat, 15 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/mainWindow.hh
+
+Const'ified parameter to view_documents().
+
+------------------------------------------------------------------------
+r1207 | fabricecolin | 2008-03-15 21:15:02 +0800 (Sat, 15 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/FilterUtils.cpp
+
+Cosmetic changes.
+
+------------------------------------------------------------------------
+r1206 | fabricecolin | 2008-03-15 21:14:22 +0800 (Sat, 15 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/Monitor/linux-inotify-syscalls.h
+
+A patch by Michael Biebl for m68k, mips, mipsel and hppa.
+
+------------------------------------------------------------------------
+r1205 | fabricecolin | 2008-03-15 21:12:46 +0800 (Sat, 15 Mar 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.h
+
+Use the new CJKVTokenizer::TokensHandler class to tokenize CJKV. The spelling
+database is populated.
+
+------------------------------------------------------------------------
+r1204 | fabricecolin | 2008-03-15 21:09:09 +0800 (Sat, 15 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/ResultsExporter.cpp
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+
+Prefer snprintf() to sprintf().
+
+------------------------------------------------------------------------
+r1203 | fabricecolin | 2008-03-15 21:06:27 +0800 (Sat, 15 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-index.cpp
+
+Close stuff at exit.
+
+------------------------------------------------------------------------
+r1202 | fabricecolin | 2008-03-08 17:18:12 +0800 (Sat, 08 Mar 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+   M /trunk/UI/GTK2/src/OnDiskHandler.cpp
+   M /trunk/UI/GTK2/src/ServerThreads.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.h
+
+Be careful when applying source labels.
+IndexingThread redefined m_docInfo needlessly.
+
+------------------------------------------------------------------------
+r1201 | fabricecolin | 2008-03-04 19:55:08 +0800 (Tue, 04 Mar 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+Prior to asking for a write lock, always request for a read/write database.
+In practice, no harm is done since the database is open read/write at startup.
+
+------------------------------------------------------------------------
+r1200 | fabricecolin | 2008-03-03 19:45:01 +0800 (Mon, 03 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/README
+
+Examples of what blacklisting does.
+
+------------------------------------------------------------------------
+r1198 | fabricecolin | 2008-02-28 19:02:07 +0800 (Thu, 28 Feb 2008) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/ChangeLog-dijon
+
+Updated logs.
+
+------------------------------------------------------------------------
 r1197 | fabricecolin | 2008-02-28 18:58:50 +0800 (Thu, 28 Feb 2008) | 2 lines
 Changed paths:
    M /trunk/NEWS
