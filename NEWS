@@ -5,6 +5,8 @@ General :
  - updated FAQ with how to compact the index
 Monitor :
  - patch by Michael Biebl for inotify on m68k, mips, mipsel and hppa
+Search :
+ - new plugin for UNdata
 Index :
  - fixed possible crash when pinot-index exits
 Xapian :
