@@ -24,6 +24,7 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
 #include <iostream>
 #include <fstream>
 #include <cstring>
@@ -394,7 +395,7 @@ int main(int argc, char **argv)
 	string confDirectory = PinotSettings::getConfigurationDirectory();
 	if (chdir(confDirectory.c_str()) == 0)
 	{
-		ofstream pidFile;
+		fstream pidFile;
 		string fileName(confDirectory);
 
 		// Redirect cout and cerr to a file
@@ -405,11 +406,40 @@ int main(int argc, char **argv)
 		cout.rdbuf(g_outputFile.rdbuf());
 		cerr.rdbuf(g_outputFile.rdbuf());
 
-		// Save the PID to file
+		// Open the PID file
 		g_pidFileName = confDirectory + "/pinot-dbus-daemon.pid";
-		pidFile.open(g_pidFileName.c_str());
-		pidFile << getpid() << endl;
-		pidFile.close();
+		pidFile.open(g_pidFileName.c_str(), std::ios::in);
+		if (pidFile.is_open() == true)
+		{
+			pid_t daemonPID = 0;
+
+			pidFile >> daemonPID;
+			pidFile.close();
+
+			// Is another daemon running ?
+			if (daemonPID > 0)
+			{
+				if (kill(daemonPID, 0) == 0)
+				{
+					// It's still running
+					cout << "Daemon instance " << daemonPID << " is still running" << endl;
+					return EXIT_SUCCESS;
+				}
+				else if (errno == ESRCH)
+				{
+					// This PID doesn't exist
+					cerr << "Previous daemon instance " << daemonPID << " died prematurely" << endl;
+				}
+			}
+		}
+
+		// Now save our PID
+		pidFile.open(g_pidFileName.c_str(), std::ios::out);
+		if (pidFile.is_open() == true)
+		{
+			pidFile << getpid() << endl;
+			pidFile.close();
+		}
 	}
 
 	// Initialize utility classes
