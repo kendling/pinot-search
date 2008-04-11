@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,21 +24,19 @@
 
 #include <sqlite3.h>
 
-using namespace std;
-
 /// A row in a SQLite table.
 class SQLiteRow
 {
 	public:
-		SQLiteRow(const vector<string> &rowColumns, int nColumns);
+		SQLiteRow(const std::vector<std::string> &rowColumns, int nColumns);
 		virtual ~SQLiteRow();
 
 		int getColumnsCount(void) const;
 
-		string getColumn(int nColumn) const;
+		std::string getColumn(int nColumn) const;
 
 	protected:
-		vector<string> m_columns;
+		std::vector<std::string> m_columns;
 		int m_nColumns;
 
 };
@@ -52,7 +50,7 @@ class SQLiteResults
 
 		bool hasMoreRows(void) const;
 
-		string getColumnName(int nColumn) const;
+		std::string getColumnName(int nColumn) const;
 
 		SQLiteRow *nextRow(void);
 
@@ -74,20 +72,20 @@ class SQLiteResults
 class SQLiteBase
 {
 	public:
-		SQLiteBase(const string &database, bool onDemand = true);
+		SQLiteBase(const std::string &databaseName, bool onDemand = true);
 		virtual ~SQLiteBase();
 
-		static bool check(const string &database);
+		static bool check(const std::string &databaseName);
 
-		bool executeSimpleStatement(const string &sql);
+		bool executeSimpleStatement(const std::string &sql);
 		SQLiteResults *executeStatement(const char *sqlFormat, ...);
 
 	protected:
-		string m_databaseName;
+		std::string m_databaseName;
 		bool m_onDemand;
 		sqlite3 *m_pDatabase;
 
-		void open(const string &database);
+		void open(void);
 		void close(void);
 
 	private:

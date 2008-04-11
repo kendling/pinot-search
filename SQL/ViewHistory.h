@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,29 +24,27 @@
 
 #include "SQLiteBase.h"
 
-using namespace std;
-
 /// Manages view history.
 class ViewHistory : public SQLiteBase
 {
 	public:
-		ViewHistory(const string &database);
+		ViewHistory(const std::string &database);
 		virtual ~ViewHistory();
 
 		/// Creates the ViewHistory table in the database.
-		static bool create(const string &database);
+		static bool create(const std::string &database);
 
 		/// Inserts an URL.
-		bool insertItem(const string &url);
+		bool insertItem(const std::string &url);
 
 		/// Checks if an URL is in the history.
-		bool hasItem(const string &url);
+		bool hasItem(const std::string &url);
 
 		/// Returns the number of items.
 		unsigned int getItemsCount(void);
 
 		/// Deletes an URL.
-		bool deleteItem(const string &url);
+		bool deleteItem(const std::string &url);
 
 		/// Expires items older than the given date.
 		bool expireItems(time_t expiryDate);

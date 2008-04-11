@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,57 +26,55 @@
 #include "DocumentInfo.h"
 #include "SQLiteBase.h"
 
-using namespace std;
-
 /// Manages query history.
 class QueryHistory : public SQLiteBase
 {
 	public:
-		QueryHistory(const string &database);
+		QueryHistory(const std::string &database);
 		virtual ~QueryHistory();
 
 		/// Creates the QueryHistory table in the database.
-		static bool create(const string &database);
+		static bool create(const std::string &database);
 
 		/// Inserts an URL.
-		bool insertItem(const string &queryName, const string &engineName, const string &url,
-			const string &title, const string &extract, const string &charset, float score);
+		bool insertItem(const std::string &queryName, const std::string &engineName, const std::string &url,
+			const std::string &title, const std::string &extract, const std::string &charset, float score);
 
 		/**
 		  * Checks if an URL is in the query's history.
 		  * If it is, it returns the current and previous scores; returns 0 if not found.
 		  */
-		float hasItem(const string &queryName, const string &engineName, const string &url,
+		float hasItem(const std::string &queryName, const std::string &engineName, const std::string &url,
 			float &previousScore);
 
 		/// Updates an URL's details.
-		bool updateItem(const string &queryName, const string &engineName, const string &url,
-			const string &title, const string &extract, const string &charset, float score);
+		bool updateItem(const std::string &queryName, const std::string &engineName, const std::string &url,
+			const std::string &title, const std::string &extract, const std::string &charset, float score);
 
 		/// Gets the list of engines the query was run on.
-		bool getEngines(const string &queryName, set<string> &enginesList);
+		bool getEngines(const std::string &queryName, std::set<std::string> &enginesList);
 
 		/// Gets the first max items for the given query, engine pair.
-		bool getItems(const string &queryName, const string &engineName,
-			unsigned int max, vector<DocumentInfo> &resultsList);
+		bool getItems(const std::string &queryName, const std::string &engineName,
+			unsigned int max, std::vector<DocumentInfo> &resultsList);
 
 		/// Gets an item's extract.
-		string getItemExtract(const string &queryName, const string &engineName,
-			const string &url, string &charset);
+		std::string getItemExtract(const std::string &queryName, const std::string &engineName,
+			const std::string &url, std::string &charset);
 
 		/// Finds URLs.
-		bool findUrlsLike(const string &url, unsigned int count,
-			set<string> &urls);
+		bool findUrlsLike(const std::string &url, unsigned int count,
+			std::set<std::string> &urls);
 
 		/// Gets a query's last run time.
-		string getLastRun(const string &queryName, const string &engineName = "");
+		std::string getLastRun(const std::string &queryName, const std::string &engineName = "");
 
 		/// Deletes items at least as old as the given date.
-		bool deleteItems(const string &queryName, const string &engineName,
+		bool deleteItems(const std::string &queryName, const std::string &engineName,
 			time_t cutOffDate);
 
 		/// Deletes items.
-		bool deleteItems(const string &name, bool isQueryName);
+		bool deleteItems(const std::string &name, bool isQueryName);
 
 		/// Expires items older than the given date.
 		bool expireItems(time_t expiryDate);

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,10 @@
 #include "SQLiteBase.h"
 
 using std::cout;
+using std::cerr;
 using std::endl;
+using std::string;
+using std::vector;
 
 static int busyHandler(void *pData, int lockNum)
 {
@@ -160,14 +163,14 @@ bool SQLiteResults::reset(void)
 	return true;
 }
 
-SQLiteBase::SQLiteBase(const string &database, bool onDemand) :
-	m_databaseName(database),
+SQLiteBase::SQLiteBase(const string &databaseName, bool onDemand) :
+	m_databaseName(databaseName),
 	m_onDemand(onDemand),
 	m_pDatabase(NULL)
 {
 	if (m_onDemand == false)
 	{
-		open(m_databaseName);
+		open();
 	}
 }
 
@@ -179,38 +182,38 @@ SQLiteBase::~SQLiteBase()
 	}
 }
 
-bool SQLiteBase::check(const string &database)
+bool SQLiteBase::check(const string &databaseName)
 {
 	struct stat dbStat;
 
 	// The specified path must be a file
-	if ((stat(database.c_str(), &dbStat) != -1) &&
+	if ((stat(databaseName.c_str(), &dbStat) != -1) &&
 		(!S_ISREG(dbStat.st_mode)))
 	{
 		// It exists, but it's not a file as expected
-		cerr << "SQLiteBase::check: " << database << " is not a file" << endl;
+		cerr << databaseName << " is not a file" << endl;
 		return false;
 	}
 
 	return true;
 }
 
-void SQLiteBase::open(const string &database)
+void SQLiteBase::open(void)
 {
 	// Open the new database
-	if (sqlite3_open(database.c_str(), &m_pDatabase) != SQLITE_OK)
+	if (sqlite3_open(m_databaseName.c_str(), &m_pDatabase) != SQLITE_OK)
 	{
 		// An handle is returned even when an error occurs !
 		if (m_pDatabase != NULL)
 		{
-			cerr << "SQLiteBase::open: " << sqlite3_errmsg(m_pDatabase) << endl;
+			cerr << sqlite3_errmsg(m_pDatabase) << endl;
 			close();
 			m_pDatabase = NULL;
 		}
 	}
 	else if (m_pDatabase == NULL)
 	{
-		cerr << "SQLiteBase::open: couldn't open " << database << endl;
+		cerr << "Couldn't open " << m_databaseName << endl;
 	}
 	else
 	{
@@ -239,7 +242,7 @@ bool SQLiteBase::executeSimpleStatement(const string &sql)
 
 	if (m_onDemand == true)
 	{
-		open(m_databaseName);
+		open();
 	}
 	if (m_pDatabase == NULL)
 	{
@@ -253,7 +256,7 @@ bool SQLiteBase::executeSimpleStatement(const string &sql)
 	{
 		if (errMsg != NULL)
 		{
-			cerr << "SQLiteBase::executeSimpleStatement: statement <" << sql << "> failed: " << errMsg << endl;
+			cerr << "Statement <" << sql << "> failed: " << errMsg << endl;
 
 			sqlite3_free(errMsg);
 		}
@@ -283,7 +286,7 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 
 	if (m_onDemand == true)
 	{
-		open(m_databaseName);
+		open();
 	}
 	if (m_pDatabase == NULL)
 	{
@@ -344,7 +347,7 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	{
 		if (errMsg != NULL)
 		{
-			cerr << "SQLiteBase::executeStatement: statement <" << stringBuff << "> failed: " << errMsg << endl;
+			cerr << "Statement <" << stringBuff << "> failed: " << errMsg << endl;
 
 			sqlite3_free(errMsg);
 		}

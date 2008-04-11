@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,63 +26,61 @@
 
 #include "SQLiteBase.h"
 
-using namespace std;
-
 /// Manages crawl history.
 class CrawlHistory : public SQLiteBase
 {
 	public:
-		CrawlHistory(const string &database);
+		CrawlHistory(const std::string &database);
 		virtual ~CrawlHistory();
 
 		typedef enum { UNKNOWN, CRAWLING, CRAWLED, ERROR } CrawlStatus;
 
 		/// Creates the CrawlHistory table in the database.
-		static bool create(const string &database);
+		static bool create(const std::string &database);
 
 		/// Inserts a source.
-		unsigned int insertSource(const string &url);
+		unsigned int insertSource(const std::string &url);
 
 		/// Checks if the source exists.
-		bool hasSource(const string &url, unsigned int &sourceId);
+		bool hasSource(const std::string &url, unsigned int &sourceId);
 
 		/// Returns sources.
-		unsigned int getSources(map<unsigned int, string> &sources);
+		unsigned int getSources(std::map<unsigned int, std::string> &sources);
 
 		/// Deletes a source.
 		bool deleteSource(unsigned int sourceId);
 
 		/// Inserts an URL.
-		bool insertItem(const string &url, CrawlStatus status, unsigned int sourceId,
+		bool insertItem(const std::string &url, CrawlStatus status, unsigned int sourceId,
 			time_t date, int errNum = 0);
 
 		/// Checks if an URL is in the history.
-		bool hasItem(const string &url, CrawlStatus &status, time_t &date);
+		bool hasItem(const std::string &url, CrawlStatus &status, time_t &date);
 
 		/// Updates an URL.
-		bool updateItem(const string &url, CrawlStatus status, time_t date, int errNum = 0);
+		bool updateItem(const std::string &url, CrawlStatus status, time_t date, int errNum = 0);
 
 		/// Updates URLs.
-		bool updateItems(const map<string, time_t> urls, CrawlStatus status);
+		bool updateItems(const std::map<std::string, time_t> urls, CrawlStatus status);
 
 		/// Updates the status of items en masse.
 		bool updateItemsStatus(unsigned int sourceId, CrawlStatus currentStatus, CrawlStatus newStatus);
 
 		/// Gets the error number and date for a URL.
-		int getErrorDetails(const string &url, time_t &date);
+		int getErrorDetails(const std::string &url, time_t &date);
 
 		/// Returns items that belong to a source.
 		unsigned int getSourceItems(unsigned int sourceId, CrawlStatus status,
-			set<string> &urls, time_t minDate = 0);
+			std::set<std::string> &urls, time_t minDate = 0);
 
 		/// Returns the number of URLs.
 		unsigned int getItemsCount(CrawlStatus status);
 
 		/// Deletes an URL.
-		bool deleteItem(const string &url);
+		bool deleteItem(const std::string &url);
 
 		/// Deletes all items under a given URL.
-		bool deleteItems(const string &url);
+		bool deleteItems(const std::string &url);
 
 		/// Deletes URLs belonging to a source.
 		bool deleteItems(unsigned int sourceId, CrawlStatus status = UNKNOWN);
@@ -91,8 +89,8 @@ class CrawlHistory : public SQLiteBase
 		bool expireItems(time_t expiryDate);
 
 	protected:
-		static string statusToText(CrawlStatus status);
-		static CrawlStatus textToStatus(const string &text);
+		static std::string statusToText(CrawlStatus status);
+		static CrawlStatus textToStatus(const std::string &text);
 
 	private:
 		CrawlHistory(const CrawlHistory &other);
