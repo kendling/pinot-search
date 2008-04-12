@@ -4,6 +4,7 @@ noinst_HEADERS = \
 	ActionQueue.h \
 	CrawlHistory.h \
 	QueryHistory.h \
+	SQLDB.h \
 	SQLiteBase.h \
 	ViewHistory.h
 
@@ -13,6 +14,7 @@ libSQL_la_SOURCES = \
 	ActionQueue.cpp \
 	CrawlHistory.cpp \
 	QueryHistory.cpp \
+	SQLDB.cpp \
 	SQLiteBase.cpp \
 	ViewHistory.cpp
 

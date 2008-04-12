@@ -24,43 +24,35 @@
 
 #include <sqlite3.h>
 
+#include "SQLDB.h"
+
 /// A row in a SQLite table.
-class SQLiteRow
+class SQLiteRow : public SQLRow
 {
 	public:
-		SQLiteRow(const std::vector<std::string> &rowColumns, int nColumns);
+		SQLiteRow(const std::vector<std::string> &rowColumns, unsigned int nColumns);
 		virtual ~SQLiteRow();
 
-		int getColumnsCount(void) const;
-
-		std::string getColumn(int nColumn) const;
+		virtual std::string getColumn(unsigned int nColumn) const;
 
 	protected:
 		std::vector<std::string> m_columns;
-		int m_nColumns;
 
 };
 
-/// Results extracted from a SQLite table.
-class SQLiteResults
+/// Results extracted from a SQLite database.
+class SQLiteResults : public SQLResults
 {
 	public:
-		SQLiteResults(char **results, int nRows, int nColumns);
+		SQLiteResults(char **results, unsigned long nRows, unsigned int nColumns);
 		virtual ~SQLiteResults();
 
-		bool hasMoreRows(void) const;
+		virtual std::string getColumnName(unsigned int nColumn) const;
 
-		std::string getColumnName(int nColumn) const;
-
-		SQLiteRow *nextRow(void);
-
-		bool reset(void);
+		virtual SQLRow *nextRow(void);
 
 	protected:
 		char **m_results;
-		int m_nRows;
-		int m_nColumns;
-		int m_nCurrentRow;
 
 	private:
 		SQLiteResults(const SQLiteResults &other);
@@ -69,7 +61,7 @@ class SQLiteResults
 };
 
 /// Simple C++ wrapper around the SQLite API.
-class SQLiteBase
+class SQLiteBase : public SQLDB
 {
 	public:
 		SQLiteBase(const std::string &databaseName, bool onDemand = true);
@@ -77,11 +69,13 @@ class SQLiteBase
 
 		static bool check(const std::string &databaseName);
 
-		bool executeSimpleStatement(const std::string &sql);
-		SQLiteResults *executeStatement(const char *sqlFormat, ...);
+		virtual bool isOpen(void) const;
+
+		virtual bool executeSimpleStatement(const std::string &sql);
+
+		virtual SQLResults *executeStatement(const char *sqlFormat, ...);
 
 	protected:
-		std::string m_databaseName;
 		bool m_onDemand;
 		sqlite3 *m_pDatabase;
 

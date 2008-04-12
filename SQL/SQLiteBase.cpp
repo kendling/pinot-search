@@ -37,14 +37,10 @@ static int busyHandler(void *pData, int lockNum)
 	return 1;
 }
 
-SQLiteRow::SQLiteRow(const vector<string> &rowColumns, int nColumns) :
-	m_nColumns(nColumns)
+SQLiteRow::SQLiteRow(const vector<string> &rowColumns, unsigned int nColumns) :
+	SQLRow(nColumns)
 {
-	if (rowColumns.empty() == true)
-	{
-		m_nColumns = 0;
-	}
-	else
+	if (rowColumns.empty() == false)
 	{
 		m_columns.reserve(rowColumns.size());
 #if 0
@@ -63,12 +59,7 @@ SQLiteRow::~SQLiteRow()
 {
 }
 
-int SQLiteRow::getColumnsCount(void) const
-{
-	return m_nColumns;
-}
-
-string SQLiteRow::getColumn(int nColumn) const
+string SQLiteRow::getColumn(unsigned int nColumn) const
 {
 	if (nColumn < m_nColumns)
 	{
@@ -77,7 +68,8 @@ string SQLiteRow::getColumn(int nColumn) const
 		{
 			if (i == nColumn)
 			{
-				string column = *colIter;
+				string column(*colIter);
+
 				return column;
 			}
 			++colIter;
@@ -87,17 +79,16 @@ string SQLiteRow::getColumn(int nColumn) const
 	return "";
 }
 
-SQLiteResults::SQLiteResults(char **results, int nRows, int nColumns) :
-	m_results(results),
-	m_nRows(nRows),
-	m_nColumns(nColumns),
-	m_nCurrentRow(0)
+SQLiteResults::SQLiteResults(char **results, unsigned long nRows, unsigned int nColumns) :
+	SQLResults(nRows, nColumns),
+	m_results(results)
 {
 	// Check we actually have results
 	if ((m_results == NULL) ||
 		(m_nRows <= 0))
 	{
-		m_nRows = m_nColumns = m_nCurrentRow = 0;
+		m_nRows = m_nCurrentRow = 0;
+		m_nColumns = 0;
 	}
 }
 
@@ -106,18 +97,7 @@ SQLiteResults::~SQLiteResults()
 	sqlite3_free_table(m_results);
 }
 
-bool SQLiteResults::hasMoreRows(void) const
-{
-	if ((m_nCurrentRow >= 0) &&
-		(m_nCurrentRow < m_nRows))
-	{
-		return true;
-	}
-
-	return false;
-}
-
-string SQLiteResults::getColumnName(int nColumn) const
+string SQLiteResults::getColumnName(unsigned int nColumn) const
 {
 	if (nColumn < m_nColumns)
 	{
@@ -127,7 +107,7 @@ string SQLiteResults::getColumnName(int nColumn) const
 	return "";
 }
 
-SQLiteRow *SQLiteResults::nextRow(void)
+SQLRow *SQLiteResults::nextRow(void)
 {
 	if ((m_nCurrentRow < 0) ||
 		(m_nCurrentRow >= m_nRows))
@@ -136,11 +116,11 @@ SQLiteRow *SQLiteResults::nextRow(void)
 	}
 
 	// The very first row holds the column names
-	unsigned int firstIndex = (m_nCurrentRow  + 1) * m_nColumns;
-	unsigned int lastIndex = firstIndex + m_nColumns - 1;
+	unsigned long firstIndex = (m_nCurrentRow  + 1) * m_nColumns;
+	unsigned long lastIndex = firstIndex + m_nColumns - 1;
 	vector<string> rowColumns;
 
-	for (unsigned int i = firstIndex; i <= lastIndex; ++i)
+	for (unsigned long i = firstIndex; i <= lastIndex; ++i)
 	{
 		if (m_results[i] == NULL)
 		{
@@ -156,15 +136,8 @@ SQLiteRow *SQLiteResults::nextRow(void)
 	return new SQLiteRow(rowColumns, m_nColumns);
 }
 
-bool SQLiteResults::reset(void)
-{
-	m_nCurrentRow = 0;
-
-	return true;
-}
-
 SQLiteBase::SQLiteBase(const string &databaseName, bool onDemand) :
-	m_databaseName(databaseName),
+	SQLDB(databaseName),
 	m_onDemand(onDemand),
 	m_pDatabase(NULL)
 {
@@ -230,6 +203,16 @@ void SQLiteBase::close(void)
 	}
 }
 
+bool SQLiteBase::isOpen(void) const
+{
+	if (m_pDatabase == NULL)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 bool SQLiteBase::executeSimpleStatement(const string &sql)
 {
 	char *errMsg = NULL;
@@ -271,7 +254,7 @@ bool SQLiteBase::executeSimpleStatement(const string &sql)
 	return success;
 }
 
-SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
+SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 {
 	SQLiteResults *pResults = NULL;
 #ifdef _USE_VSNPRINTF
@@ -354,7 +337,7 @@ SQLiteResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	}
 	else
 	{
-		pResults = new SQLiteResults(results, nRows, nColumns);
+		pResults = new SQLiteResults(results, (unsigned long)nRows, (unsigned int)nColumns);
 	}
 	va_end(ap);
 #ifndef _USE_VSNPRINTF

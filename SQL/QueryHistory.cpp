@@ -81,7 +81,7 @@ bool QueryHistory::insertItem(const string &queryName, const string &engineName,
 	string hostName(urlObj.getHost());
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("INSERT INTO QueryHistory \
+	SQLResults *results = executeStatement("INSERT INTO QueryHistory \
 		VALUES('%q', '%q', '%q', '%q', '%q', '%q', '%q', '%f', '0.0', '%d');",
 		queryName.c_str(), engineName.c_str(), hostName.c_str(),
 		Url::escapeUrl(url).c_str(), title.c_str(), extract.c_str(), charset.c_str(),
@@ -101,12 +101,12 @@ float QueryHistory::hasItem(const string &queryName, const string &engineName, c
 {
 	float score = 0;
 
-	SQLiteResults *results = executeStatement("SELECT Score, PrevScore FROM QueryHistory \
+	SQLResults *results = executeStatement("SELECT Score, PrevScore FROM QueryHistory \
 		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q';",
 		queryName.c_str(), engineName.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			score = (float)atof(row->getColumn(0).c_str());
@@ -127,7 +127,7 @@ bool QueryHistory::updateItem(const string &queryName, const string &engineName,
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("UPDATE QueryHistory SET PrevScore=Score, \
+	SQLResults *results = executeStatement("UPDATE QueryHistory SET PrevScore=Score, \
 		Score=%f, Date='%d', Title='%q', Extract='%q', Language='%q' \
 		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q';",
 		score, time(NULL), title.c_str(), extract.c_str(), charset.c_str(),
@@ -146,14 +146,14 @@ bool QueryHistory::getEngines(const string &queryName, set<string> &enginesList)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("SELECT EngineName FROM QueryHistory \
+	SQLResults *results = executeStatement("SELECT EngineName FROM QueryHistory \
 		WHERE QueryName='%q' GROUP BY EngineName",
 		queryName.c_str());
 	if (results != NULL)
 	{
 		while (results->hasMoreRows() == true)
 		{
-			SQLiteRow *row = results->nextRow();
+			SQLRow *row = results->nextRow();
 			if (row == NULL)
 			{
 				break;
@@ -177,14 +177,14 @@ bool QueryHistory::getItems(const string &queryName, const string &engineName,
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("SELECT Title, Url, Language, Extract, Score \
+	SQLResults *results = executeStatement("SELECT Title, Url, Language, Extract, Score \
 		FROM QueryHistory WHERE QueryName='%q' AND EngineName='%q' ORDER BY Score DESC \
 		LIMIT %u;", queryName.c_str(), engineName.c_str(), max);
 	if (results != NULL)
 	{
 		while (results->hasMoreRows() == true)
 		{
-			SQLiteRow *row = results->nextRow();
+			SQLRow *row = results->nextRow();
 			if (row == NULL)
 			{
 				break;
@@ -214,12 +214,12 @@ string QueryHistory::getItemExtract(const string &queryName, const string &engin
 {
 	string extract;
 
-	SQLiteResults *results = executeStatement("SELECT Extract, Language FROM QueryHistory \
+	SQLResults *results = executeStatement("SELECT Extract, Language FROM QueryHistory \
 		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q';",
 		queryName.c_str(), engineName.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			extract = row->getColumn(0);
@@ -244,14 +244,14 @@ bool QueryHistory::findUrlsLike(const string &url, unsigned int count, set<strin
 		return false; 
 	}
 
-	SQLiteResults *results = executeStatement("SELECT Url FROM QueryHistory \
+	SQLResults *results = executeStatement("SELECT Url FROM QueryHistory \
 		WHERE Url LIKE '%q%%' ORDER BY Url LIMIT %u",
 		Url::escapeUrl(url).c_str(), count);
 	if (results != NULL)
 	{
 		while (results->hasMoreRows() == true)
 		{
-			SQLiteRow *row = results->nextRow();
+			SQLRow *row = results->nextRow();
 			if (row == NULL)
 			{
 				break;
@@ -272,7 +272,7 @@ bool QueryHistory::findUrlsLike(const string &url, unsigned int count, set<strin
 /// Gets a query's last run time.
 string QueryHistory::getLastRun(const string &queryName, const string &engineName)
 {
-	SQLiteResults *results = NULL;
+	SQLResults *results = NULL;
 	string lastRun;
 
 	if (queryName.empty() == true)
@@ -294,7 +294,7 @@ string QueryHistory::getLastRun(const string &queryName, const string &engineNam
 
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			int latestDate = atoi(row->getColumn(0).c_str());
@@ -316,7 +316,7 @@ string QueryHistory::getLastRun(const string &queryName, const string &engineNam
 bool QueryHistory::deleteItems(const string &queryName, const string &engineName,
 	time_t cutOffDate)
 {
-	SQLiteResults *results = executeStatement("DELETE FROM QueryHistory \
+	SQLResults *results = executeStatement("DELETE FROM QueryHistory \
 		WHERE QueryName='%q' AND EngineName='%q' AND Date<='%d';",
 		queryName.c_str(), engineName.c_str(), cutOffDate);
 	if (results != NULL)
@@ -332,7 +332,7 @@ bool QueryHistory::deleteItems(const string &queryName, const string &engineName
 /// Deletes items.
 bool QueryHistory::deleteItems(const string &name, bool isQueryName)
 {
-	SQLiteResults *results = NULL;
+	SQLResults *results = NULL;
 
 	if (isQueryName == true)
 	{
@@ -358,7 +358,7 @@ bool QueryHistory::deleteItems(const string &name, bool isQueryName)
 /// Expires items older than the given date.
 bool QueryHistory::expireItems(time_t expiryDate)
 {
-	SQLiteResults *results = executeStatement("DELETE FROM QueryHistory \
+	SQLResults *results = executeStatement("DELETE FROM QueryHistory \
 		WHERE Date<'%d';", expiryDate);
 	if (results != NULL)
 	{

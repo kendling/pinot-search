@@ -93,7 +93,7 @@ bool ViewHistory::insertItem(const string &url)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("INSERT INTO ViewHistory \
+	SQLResults *results = executeStatement("INSERT INTO ViewHistory \
 		VALUES('%q', '1', '%d');", Url::escapeUrl(url).c_str(), time(NULL));
 	if (results != NULL)
 	{
@@ -109,11 +109,11 @@ bool ViewHistory::hasItem(const string &url)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("SELECT Url FROM ViewHistory \
+	SQLResults *results = executeStatement("SELECT Url FROM ViewHistory \
 		WHERE Url='%q';", Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			// If this returns anything, it's the URL we are looking for
@@ -136,10 +136,10 @@ unsigned int ViewHistory::getItemsCount(void)
 {
 	unsigned int count = 0;
 
-	SQLiteResults *results = executeStatement("SELECT COUNT(*) FROM ViewHistory;");
+	SQLResults *results = executeStatement("SELECT COUNT(*) FROM ViewHistory;");
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			count = atoi(row->getColumn(0).c_str());
@@ -158,7 +158,7 @@ bool ViewHistory::deleteItem(const string &url)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("DELETE FROM ViewHistory \
+	SQLResults *results = executeStatement("DELETE FROM ViewHistory \
 		WHERE Url='%q';", Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
@@ -174,7 +174,7 @@ bool ViewHistory::expireItems(time_t expiryDate)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("DELETE FROM ViewHistory \
+	SQLResults *results = executeStatement("DELETE FROM ViewHistory \
 		WHERE Date<'%d';", expiryDate);
 	if (results != NULL)
 	{

@@ -146,10 +146,10 @@ unsigned int CrawlHistory::insertSource(const string &url)
 {
 	unsigned int sourceId = 0;
 
-	SQLiteResults *results = executeStatement("SELECT MAX(SourceID) FROM CrawlSources;");
+	SQLResults *results = executeStatement("SELECT MAX(SourceID) FROM CrawlSources;");
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			sourceId = atoi(row->getColumn(0).c_str());
@@ -177,11 +177,11 @@ bool CrawlHistory::hasSource(const string &url, unsigned int &sourceId)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("SELECT SourceID FROM CrawlSources \
+	SQLResults *results = executeStatement("SELECT SourceID FROM CrawlSources \
 		WHERE Url='%q';", Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			sourceId = atoi(row->getColumn(0).c_str());
@@ -201,12 +201,12 @@ unsigned int CrawlHistory::getSources(map<unsigned int, string> &sources)
 {
 	unsigned int count = 0;
 
-	SQLiteResults *results = executeStatement("SELECT SourceID, Url FROM CrawlSources;");
+	SQLResults *results = executeStatement("SELECT SourceID, Url FROM CrawlSources;");
 	if (results != NULL)
 	{
 		while (results->hasMoreRows() == true)
 		{
-			SQLiteRow *row = results->nextRow();
+			SQLRow *row = results->nextRow();
 			if (row == NULL)
 			{
 				break;
@@ -229,7 +229,7 @@ bool CrawlHistory::deleteSource(unsigned int sourceId)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("DELETE FROM CrawlSources \
+	SQLResults *results = executeStatement("DELETE FROM CrawlSources \
 		WHERE SourceID='%u';", sourceId);
 	if (results != NULL)
 	{
@@ -246,7 +246,7 @@ bool CrawlHistory::insertItem(const string &url, CrawlStatus status, unsigned in
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("INSERT INTO CrawlHistory \
+	SQLResults *results = executeStatement("INSERT INTO CrawlHistory \
 		VALUES('%q', '%q', '%u', '%d', '%d');",
 		Url::escapeUrl(url).c_str(), statusToText(status).c_str(), sourceId,
 		(date == 0 ? time(NULL) : date), errNum);
@@ -264,11 +264,11 @@ bool CrawlHistory::hasItem(const string &url, CrawlStatus &status, time_t &date)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("SELECT Status, Date FROM CrawlHistory \
+	SQLResults *results = executeStatement("SELECT Status, Date FROM CrawlHistory \
 		WHERE Url='%q';", Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			status = textToStatus(row->getColumn(0));
@@ -289,7 +289,7 @@ bool CrawlHistory::updateItem(const string &url, CrawlStatus status, time_t date
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("UPDATE CrawlHistory \
+	SQLResults *results = executeStatement("UPDATE CrawlHistory \
 		SET Status='%q', Date='%d', ErrorNum='%d' WHERE Url='%q';",
 		statusToText(status).c_str(), (date == 0 ? time(NULL) : date), errNum,
 		Url::escapeUrl(url).c_str());
@@ -311,7 +311,7 @@ bool CrawlHistory::updateItems(const map<string, time_t> urls, CrawlStatus statu
 	for (map<string, time_t>::const_iterator updateIter = urls.begin();
 		updateIter != urls.end(); ++updateIter)
 	{
-		SQLiteResults *results = executeStatement("UPDATE CrawlHistory \
+		SQLResults *results = executeStatement("UPDATE CrawlHistory \
 			SET Status='%q', Date='%d' WHERE Url='%q';",
 			statusText.c_str(), (updateIter->second == 0 ? time(NULL) : updateIter->second),
 			Url::escapeUrl(updateIter->first).c_str());
@@ -330,7 +330,7 @@ bool CrawlHistory::updateItemsStatus(unsigned int sourceId, CrawlStatus currentS
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("UPDATE CrawlHistory \
+	SQLResults *results = executeStatement("UPDATE CrawlHistory \
 		SET Status='%q' WHERE SourceId='%u' AND Status='%q';",
 		statusToText(newStatus).c_str(), sourceId,
 		statusToText(currentStatus).c_str());
@@ -348,11 +348,11 @@ int CrawlHistory::getErrorDetails(const string &url, time_t &date)
 {
 	int errNum = 0;
 
-	SQLiteResults *results = executeStatement("SELECT ErrorNum, Date FROM CrawlHistory WHERE Url='%q';",
+	SQLResults *results = executeStatement("SELECT ErrorNum, Date FROM CrawlHistory WHERE Url='%q';",
 		Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			errNum = atoi(row->getColumn(0).c_str());
@@ -371,7 +371,7 @@ int CrawlHistory::getErrorDetails(const string &url, time_t &date)
 unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus status,
 	set<string> &urls, time_t minDate)
 {
-	SQLiteResults *results = NULL;
+	SQLResults *results = NULL;
 	unsigned int count = 0;
 
 	if (minDate > 0)
@@ -392,7 +392,7 @@ unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus sta
 	{
 		while (results->hasMoreRows() == true)
 		{
-			SQLiteRow *row = results->nextRow();
+			SQLRow *row = results->nextRow();
 			if (row == NULL)
 			{
 				break;
@@ -415,11 +415,11 @@ unsigned int CrawlHistory::getItemsCount(CrawlStatus status)
 {
 	unsigned int count = 0;
 
-	SQLiteResults *results = executeStatement("SELECT COUNT(*) FROM CrawlHistory WHERE Status='%q';",
+	SQLResults *results = executeStatement("SELECT COUNT(*) FROM CrawlHistory WHERE Status='%q';",
 		statusToText(status).c_str());
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			count = atoi(row->getColumn(0).c_str());
@@ -438,7 +438,7 @@ bool CrawlHistory::deleteItem(const string &url)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("DELETE FROM CrawlHistory \
+	SQLResults *results = executeStatement("DELETE FROM CrawlHistory \
 		WHERE Url='%q';", Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
@@ -454,7 +454,7 @@ bool CrawlHistory::deleteItems(const string &url)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("DELETE FROM CrawlHistory \
+	SQLResults *results = executeStatement("DELETE FROM CrawlHistory \
 		WHERE Url LIKE '%q%%';", Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
@@ -468,7 +468,7 @@ bool CrawlHistory::deleteItems(const string &url)
 /// Deletes URLs belonging to a source.
 bool CrawlHistory::deleteItems(unsigned int sourceId, CrawlStatus status)
 {
-	SQLiteResults *results = NULL;
+	SQLResults *results = NULL;
 	bool success = false;
 
 	if (status == UNKNOWN)
@@ -497,7 +497,7 @@ bool CrawlHistory::expireItems(time_t expiryDate)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("DELETE FROM CrawlHistory \
+	SQLResults *results = executeStatement("DELETE FROM CrawlHistory \
 		WHERE Date<'%d';", expiryDate);
 	if (results != NULL)
 	{

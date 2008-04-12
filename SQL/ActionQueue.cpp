@@ -114,12 +114,12 @@ bool ActionQueue::pushItem(ActionType type, const DocumentInfo &docInfo)
 	bool update = false, success = false;
 
 	// Is there already an item for this URL ?
-	SQLiteResults *results = executeStatement("SELECT Url FROM ActionQueue \
+	SQLResults *results = executeStatement("SELECT Url FROM ActionQueue \
 		WHERE QueueId='%q' AND Url='%q'",
 		m_queueId.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 #ifdef DEBUG
@@ -180,7 +180,7 @@ bool ActionQueue::popItem(ActionType &type, DocumentInfo &docInfo)
 #endif
 
 	// Delete from ActionQueue
-	SQLiteResults *results = executeStatement("DELETE FROM ActionQueue \
+	SQLResults *results = executeStatement("DELETE FROM ActionQueue \
 		WHERE QueueId='%q' AND Url='%q';",
 		m_queueId.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
@@ -196,12 +196,12 @@ bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("SELECT Type, Info FROM ActionQueue \
+	SQLResults *results = executeStatement("SELECT Type, Info FROM ActionQueue \
 		WHERE QueueId='%q' ORDER BY Date DESC LIMIT 1",
 		m_queueId.c_str());
 	if (results != NULL)
 	{
-		SQLiteRow *row = results->nextRow();
+		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			type = textToType(row->getColumn(0));
@@ -224,7 +224,7 @@ bool ActionQueue::expireItems(time_t expiryDate)
 {
 	bool success = false;
 
-	SQLiteResults *results = executeStatement("DELETE FROM ActionQueue \
+	SQLResults *results = executeStatement("DELETE FROM ActionQueue \
 		WHERE QueueId='%q' AND Date<'%d';",
 		m_queueId.c_str(), expiryDate);
 	if (results != NULL)
