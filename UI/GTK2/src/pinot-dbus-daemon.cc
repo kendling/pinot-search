@@ -17,15 +17,16 @@
  */
 
 #include <stdlib.h>
-#include <signal.h>
 #include <libintl.h>
 #include <getopt.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/types.h>
+#include <signal.h>
 #include <unistd.h>
 #include <errno.h>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <cstring>
 #include <sigc++/sigc++.h>
@@ -412,6 +413,7 @@ int main(int argc, char **argv)
 		if (pidFile.is_open() == true)
 		{
 			pid_t daemonPID = 0;
+			bool checkProcess = true, daemonDied = false;
 
 			pidFile >> daemonPID;
 			pidFile.close();
@@ -419,15 +421,44 @@ int main(int argc, char **argv)
 			// Is another daemon running ?
 			if (daemonPID > 0)
 			{
-				if (kill(daemonPID, 0) == 0)
+				fstream cmdLineFile;
+				stringstream cmdLineFileName;
+
+				// FIXME: check for existence of /proc
+				cmdLineFileName << "/proc/" << daemonPID << "/cmdline";
+				cmdLineFile.open(cmdLineFileName.str().c_str(), std::ios::in);
+				if (cmdLineFile.is_open() == true)
 				{
-					// It's still running
-					cout << "Daemon instance " << daemonPID << " is still running" << endl;
-					return EXIT_SUCCESS;
+					string cmdLine;
+
+					cmdLineFile >> cmdLine;
+					cmdLineFile.close();
+
+					if (cmdLine.find("pinot-dbus-daemon") == string::npos)
+					{
+						// It's another process
+						checkProcess = false;
+						daemonDied = true;
+					}
 				}
-				else if (errno == ESRCH)
+
+				if (checkProcess == true)
 				{
-					// This PID doesn't exist
+					if (kill(daemonPID, 0) == 0)
+					{
+						// It's still running
+						cout << "Daemon instance " << daemonPID << " is still running" << endl;
+						return EXIT_SUCCESS;
+					}
+					else if (errno == ESRCH)
+					{
+						// This PID doesn't exist
+						daemonDied = true;
+					}
+				}
+
+				if (daemonDied == true)
+				{
 					cerr << "Previous daemon instance " << daemonPID << " died prematurely" << endl;
 				}
 			}
