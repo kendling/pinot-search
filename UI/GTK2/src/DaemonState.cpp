@@ -325,12 +325,7 @@ void DaemonState::start(bool forceFullScan)
 #endif
 
 	// Initiate crawling
-	if (m_crawlQueue.empty() == false)
-	{
-		PinotSettings::IndexableLocation firstLocation(m_crawlQueue.front());
-
-		crawl_location(firstLocation);
-	}
+	start_crawling();
 }
 
 void DaemonState::reload(void)
@@ -539,12 +534,13 @@ void DaemonState::on_message_filefound(DocumentInfo docInfo, string sourceLabel,
 		newLocation.m_monitor = true;
 		newLocation.m_name = docInfo.getLocation().substr(7);
 		newLocation.m_isSource = false;
-
-		// Queue for later crawling
-		m_crawlQueue.push(newLocation);
 #ifdef DEBUG
 		cout << "DaemonState::on_message_filefound: new directory " << newLocation.m_name << endl;
 #endif
+
+		// Queue this directory for crawling
+		m_crawlQueue.push(newLocation);
+		start_crawling();
 	}
 }
 

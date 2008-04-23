@@ -208,13 +208,13 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 	{
 		sourceId = sourceIter->first;
 
-		if (sourceIter->second.length() < location.length())
+		if (sourceIter->second.length() > location.length())
 		{
 			// Skip
 			continue;
 		}
 
-		if (sourceIter->second.substr(0, location.length()) == location)
+		if (location.substr(0, sourceIter->second.length()) == sourceIter->second)
 		{
 			stringstream labelStream;
 
@@ -226,6 +226,9 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 			m_signalFileFound(docInfo, labelStream.str(), isDirectory);
 			return true;
 		}
+#ifdef DEBUG
+		else cout << "OnDiskHandler::indexFile: not " << sourceIter->second << endl;
+#endif
 	}
 #ifdef DEBUG
 	cout << "OnDiskHandler::indexFile: no source label for " << location << endl;
