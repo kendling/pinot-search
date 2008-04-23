@@ -774,20 +774,34 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 	}
 }
 
-string XapianIndex::scanDocument(const char *pData, unsigned int dataLength)
+string XapianIndex::scanDocument(const string &suggestedLanguage,
+	const char *pData, unsigned int dataLength)
 {
+	LanguageDetector lang;
 	vector<string> candidates;
 	string language;
+	bool scannedDocument = false;
 
-	// Try to determine the document's language
-	LanguageDetector lang;
-	lang.guessLanguage(pData, max(dataLength, (unsigned int)2048), candidates);
+	if (suggestedLanguage.empty() == false)
+	{
+		// See first if this is suitable
+		candidates.push_back(suggestedLanguage);
+	}
+	else
+	{
+		// Try to determine the document's language right away
+		lang.guessLanguage(pData, max(dataLength, (unsigned int)2048), candidates);
+
+		scannedDocument = true;
+	}
 
 	// See which of these languages is suitable for stemming
-	for (vector<string>::iterator langIter = candidates.begin(); langIter != candidates.end(); ++langIter)
+	vector<string>::iterator langIter = candidates.begin();
+	while (langIter != candidates.end())
 	{
 		if (*langIter == "unknown")
 		{
+			++langIter;
 			continue;
 		}
 
@@ -797,7 +811,21 @@ string XapianIndex::scanDocument(const char *pData, unsigned int dataLength)
 		}
 		catch (const Xapian::Error &error)
 		{
-			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
+			cerr << "Invalid language: " << error.get_type() << ": " << error.get_msg() << endl;
+
+			if (scannedDocument == false)
+			{
+				// The suggested language is not suitable
+				candidates.clear();
+				lang.guessLanguage(pData, max(dataLength, (unsigned int)2048), candidates);
+
+				langIter = candidates.begin();
+				scannedDocument = true;
+			}
+			else
+			{
+				++langIter;
+			}
 			continue;
 		}
 
@@ -1791,14 +1819,11 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 
 	// Don't scan the document if a language is specified
 	m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
-	if (m_stemLanguage.empty() == true)
+	if ((pData != NULL) &&
+		(dataLength > 0))
 	{
-		if ((pData != NULL) &&
-			(dataLength > 0))
-		{
-			m_stemLanguage = scanDocument(pData, dataLength);
-			docInfo.setLanguage(Languages::toLocale(m_stemLanguage));
-		}
+		m_stemLanguage = scanDocument(m_stemLanguage, pData, dataLength);
+		docInfo.setLanguage(Languages::toLocale(m_stemLanguage));
 	}
 
 	try
@@ -1870,14 +1895,11 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 
 	// Don't scan the document if a language is specified
 	m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
-	if (m_stemLanguage.empty() == true)
+	if ((pData != NULL) &&
+		(dataLength > 0))
 	{
-		if ((pData != NULL) &&
-			(dataLength > 0))
-		{
-			m_stemLanguage = scanDocument(pData, dataLength);
-			docInfo.setLanguage(Languages::toLocale(m_stemLanguage));
-		}
+		m_stemLanguage = scanDocument(m_stemLanguage, pData, dataLength);
+		docInfo.setLanguage(Languages::toLocale(m_stemLanguage));
 	}
 
 	Xapian::WritableDatabase *pIndex = NULL;
