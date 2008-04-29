@@ -140,7 +140,7 @@ class ThreadsManager : virtual public sigc::trackable
 		sigc::connection m_threadsEndConnection;
 		pthread_rwlock_t m_threadsLock;
 		pthread_rwlock_t m_listsLock;
-		std::map<WorkerThread *, Glib::Thread *> m_threads;
+		std::map<unsigned int, WorkerThread *> m_threads;
 		std::string m_defaultIndexLocation;
 		unsigned int m_maxIndexThreads;
 		unsigned int m_nextThreadId;

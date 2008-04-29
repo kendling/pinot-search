@@ -111,15 +111,15 @@ static double getFSFreeSpace(const string &path)
 struct StopScannerThreadFunc
 {
 public:
-	void operator()(map<WorkerThread *, Thread *>::value_type &p)
+	void operator()(map<unsigned int, WorkerThread *>::value_type &p)
 	{
-		string type(p.first->getType());
+		string type(p.second->getType());
 
 		if (type == "DirectoryScannerThread")
 		{
-			p.first->stop();
+			p.second->stop();
 #ifdef DEBUG
-			cout << "StopScannerThreadFunc: stopped thread " << p.first->getId() << endl;
+			cout << "StopScannerThreadFunc: stopped thread " << p.second->getId() << endl;
 #endif
 		}
 	}

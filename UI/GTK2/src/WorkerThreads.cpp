@@ -58,11 +58,11 @@ using namespace std;
 struct StopThreadFunc
 {
 public:
-	void operator()(map<WorkerThread *, Thread *>::value_type &p)
+	void operator()(map<unsigned int, WorkerThread *>::value_type &p)
 	{
-		p.first->stop();
+		p.second->stop();
 #ifdef DEBUG
-		cout << "StopThreadFunc: stopped thread " << p.first->getId() << endl;
+		cout << "StopThreadFunc: stopped thread " << p.second->getId() << endl;
 #endif
 		Thread::yield();
 	}
@@ -345,14 +345,14 @@ WorkerThread *ThreadsManager::get_thread(void)
 	WorkerThread *pWorkerThread = NULL;
 
 	// Get the first thread that's finished
-	if (read_lock_threads() == true)
+	if (write_lock_threads() == true)
 	{
-		for (map<WorkerThread *, Thread *>::iterator threadIter = m_threads.begin();
+		for (map<unsigned int, WorkerThread *>::iterator threadIter = m_threads.begin();
 			threadIter != m_threads.end(); ++threadIter)
 		{
-			unsigned int threadId = threadIter->first->getId();
+			unsigned int threadId = threadIter->first;
 
-			if (threadIter->first->isDone() == false)
+			if (threadIter->second->isDone() == false)
 			{
 #ifdef DEBUG
 				cout << "ThreadsManager::get_thread: thread "
@@ -360,11 +360,11 @@ WorkerThread *ThreadsManager::get_thread(void)
 #endif
 
 				// Foreground threads ought not to run very long
-				if ((threadIter->first->isBackground() == false) &&
-					(threadIter->first->getStartTime() + 300 < timeNow))
+				if ((threadIter->second->isBackground() == false) &&
+					(threadIter->second->getStartTime() + 300 < timeNow))
 				{
 					// This thread has been running for more than 5 minutes already !
-					threadIter->first->stop();
+					threadIter->second->stop();
 
 					cerr << "Stopped long-running thread " << threadId << endl;
 				}
@@ -372,7 +372,7 @@ WorkerThread *ThreadsManager::get_thread(void)
 			else
 			{
 				// This one will do...
-				pWorkerThread = threadIter->first;
+				pWorkerThread = threadIter->second;
 				// Remove it
 				m_threads.erase(threadIter);
 #ifdef DEBUG
@@ -483,6 +483,8 @@ void ThreadsManager::clear_queues(void)
 
 bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground)
 {
+	bool createdThread = false;
+
 	if (pWorkerThread == NULL)
 	{
 		return false;
@@ -503,25 +505,44 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 			<< " will run in the foreground" << endl;
 #endif
 
-	// Start the thread
-	Thread *pThread = pWorkerThread->start();
-	if (pThread == NULL)
-	{
-		delete pWorkerThread;
-
-		return false;
-	}
-
 	// Insert
+	pair<map<unsigned int, WorkerThread *>::iterator, bool> threadPair;
 	if (write_lock_threads() == true)
 	{
-		m_threads[pWorkerThread] = pThread;
+		threadPair = m_threads.insert(pair<unsigned int, WorkerThread *>(pWorkerThread->getId(), pWorkerThread));
+		if (threadPair.second == false)
+		{
+			delete pWorkerThread;
+			pWorkerThread = NULL;
+		}
 
 		unlock_threads();
 	}
+
+	// Start the thread
+	if (pWorkerThread != NULL)
+	{
+		Thread *pThread = pWorkerThread->start();
+		if (pThread != NULL)
+		{
+			createdThread = true;
+		}
+		else
+		{
+			// Erase
+			if (write_lock_threads() == true)
+			{
+				m_threads.erase(threadPair.first);
+
+				unlock_threads();
+			}
+			delete pWorkerThread;
+		}
+	}
+
 	++m_nextThreadId;
 
-	return true;
+	return createdThread;
 }
 
 unsigned int ThreadsManager::get_threads_count(void)
