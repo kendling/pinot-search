@@ -77,5 +77,3 @@ uninstall-local:
 	@rm -rf $(DESTDIR)$(libdir)/deskbar-applet/handlers/pinot-live.py*
 	@rm -rf $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/pinot-module.py*
 
-ACLOCAL_AMFLAGS = -I m4
-
