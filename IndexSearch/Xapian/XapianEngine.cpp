@@ -153,6 +153,172 @@ class PrefixDecider : public Xapian::ExpandDecider
 
 };
 
+class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
+{
+	public:
+		typedef enum { NONE = 0, BRACKETS } CJKVWrap;
+
+		QueryModifier(const string &query, unsigned int nGramSize) :
+			m_query(query),
+			m_pos(0),
+			m_wrap(BRACKETS),
+			m_nGramCount(0),
+			m_nGramSize(nGramSize)
+		{
+		}
+
+		virtual ~QueryModifier()
+		{
+		}
+
+		virtual bool handle_token(const string &tok, bool is_cjkv)
+		{
+			if (tok.empty() == true)
+			{
+				return false;
+			}
+#ifdef DEBUG
+			cout << "QueryModifier::handle_token: " << tok << endl;
+#endif
+
+			// Where is this token in the original query ?
+			string::size_type tokPos = m_query.find(tok, m_pos);
+
+			// Is this CJKV ?
+			if (is_cjkv == false)
+			{
+				char lastChar = tok[tok.length() - 1];
+
+				if (tokPos == string::npos)
+				{
+					// This should have been found
+					return false;
+				}
+
+				if (m_nGramCount > 0)
+				{
+					wrapClose();
+
+					m_nGramCount = 0;
+					m_pos = tokPos;
+				}
+
+				m_currentFilter.clear();
+				if (lastChar == '"')
+				{
+					// It's a quoted string
+					m_wrap = NONE;
+				}
+				else if (lastChar == ':')
+				{
+					// It's a filter
+					m_wrap = NONE;
+					m_currentFilter = tok;
+#ifdef DEBUG
+					cout << "QueryModifier::handle_token: in filter" << endl;
+#endif
+				}
+				else
+				{
+#ifdef DEBUG
+					cout << "QueryModifier::handle_token: in brackets" << endl;
+#endif
+					m_wrap = BRACKETS;
+				}
+
+				// Return right away
+				return true;
+			}
+
+			// First n-gram ?
+#ifdef DEBUG
+			cout << "QueryModifier::handle_token: " << m_nGramCount << " n-gram" << endl;
+#endif
+			if (m_nGramCount == 0)
+			{
+				if (tokPos == string::npos)
+				{
+					// That's definitely not right
+					return false;
+				}
+
+				// Append non-CJKV text that precedes and start wrapping CJKV tokens
+				if (tokPos > m_pos)
+				{
+					m_modifiedQuery += " " + m_query.substr(m_pos, tokPos - m_pos);
+				}
+				switch (m_wrap)
+				{
+					case BRACKETS:
+						m_modifiedQuery += " (";
+						break;
+					case NONE:
+					default:
+						break;
+				}
+			}
+			else
+			{
+				m_modifiedQuery += " ";
+				if (m_currentFilter.empty() == false)
+				{
+					m_modifiedQuery += m_currentFilter;
+				}
+			}
+			m_modifiedQuery += tok;
+#ifdef DEBUG
+			cout << "QueryModifier::handle_token: " << m_modifiedQuery << endl;
+#endif
+
+			++m_nGramCount;
+			if ((m_nGramCount % m_nGramSize == 0) &&
+				(tokPos != string::npos))
+			{
+				m_pos = tokPos + tok.length();
+			}
+
+			return true;
+		}
+
+		string get_modified_query(void)
+		{
+			if (m_pos < m_query.length())
+			{
+				m_modifiedQuery += " " + m_query.substr(m_pos);
+			}
+			wrapClose();
+#ifdef DEBUG
+			cout << "QueryModifier::get_modified_query: " << m_modifiedQuery << endl;
+#endif
+
+			return m_modifiedQuery;
+		}
+
+	protected:
+		string m_query;
+		string m_modifiedQuery;
+		string::size_type m_pos;
+		CJKVWrap m_wrap;
+		string m_currentFilter;
+		unsigned int m_nGramCount;
+		unsigned int m_nGramSize;
+
+		void wrapClose(void)
+		{
+			// Finish wrapping CJKV tokens
+			switch (m_wrap)
+			{
+				case BRACKETS:
+					m_modifiedQuery += ')';
+					break;
+				case NONE:
+				default:
+					break;
+			}
+		}
+
+};
+
 XapianEngine::XapianEngine(const string &database) :
 	SearchEngineInterface()
 {
@@ -182,20 +348,13 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	unsigned int minDay, minMonth, minYear = 0;
 	unsigned int maxDay, maxMonth, maxYear = 0;
 
-	if (tokenizer.has_cjkv_only(freeQuery) == true)
+	if (tokenizer.has_cjkv(freeQuery) == true)
 	{
-		vector<string> tokens;
-		string cjkvQuery;
+		QueryModifier handler(freeQuery, tokenizer.get_ngram_size());
 
-		tokenizer.tokenize(freeQuery, tokens);
+		tokenizer.tokenize(freeQuery, handler, true);
 
-		// Get the terms
-		for (vector<string>::const_iterator tokenIter = tokens.begin();
-			tokenIter != tokens.end(); ++tokenIter)
-		{
-			cjkvQuery += *tokenIter;
-			cjkvQuery += " ";
-		}
+		string cjkvQuery(handler.get_modified_query());
 #ifdef DEBUG
 		cout << "XapianEngine::parseQuery: CJKV query is " << cjkvQuery << endl;
 #endif

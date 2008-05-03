@@ -22,8 +22,102 @@
 #include <algorithm>
 #include <utility>
 
-#include "Tokenizer.h"
+#include "Document.h"
+#include "CJKVTokenizer.h"
 #include "QueryProperties.h"
+
+class FilterRemover : public Dijon::CJKVTokenizer::TokensHandler
+{
+        public:
+                FilterRemover(string &freeQueryWithoutFilters,
+			unsigned int nGramSize) :
+			Dijon::CJKVTokenizer::TokensHandler(),
+			m_freeQueryWithoutFilters(freeQueryWithoutFilters),
+			m_nGramSize(nGramSize),
+			m_nGramCount(0)
+		{
+		}
+
+		virtual ~FilterRemover()
+		{
+		}
+
+		virtual bool handle_token(const string &tok, bool is_cjkv)
+		{
+			if (tok.empty() == true)
+			{
+				return false;
+			}
+
+			// Is this CJKV ?
+			if (is_cjkv == false)
+			{
+				m_nGramCount = 0;
+
+				if ((tok.find(':') != string::npos) ||
+					(tok.find("..") != string::npos))
+				{
+					// It's a filter or a range
+#ifdef DEBUG
+					cout << "QueryProperties::getFreeQuery: ignoring filter '" << tok << "'" << endl;
+#endif
+					return true;
+				}
+			}
+			else
+			{
+				++m_nGramCount;
+				if (m_nGramCount % m_nGramSize != 0)
+				{
+#ifdef DEBUG
+					cout << "QueryProperties::getFreeQuery: ignoring " << m_nGramCount << " '" << tok << "'" << endl;
+#endif
+					return true;
+				}
+			}
+#ifdef DEBUG
+			cout << "QueryProperties::getFreeQuery: keeping '" << tok << "'" << endl;
+#endif
+
+			if (m_freeQueryWithoutFilters.empty() == false)
+			{
+				m_freeQueryWithoutFilters += " ";
+			}
+			m_freeQueryWithoutFilters += tok;
+
+			return true;
+		}
+
+	protected:
+		string &m_freeQueryWithoutFilters;
+		unsigned int m_nGramSize;
+		unsigned int m_nGramCount;
+
+};
+
+class SetTokensHandler : public Dijon::CJKVTokenizer::TokensHandler
+{
+	public:
+		SetTokensHandler(set<string> &tokens) :
+			Dijon::CJKVTokenizer::TokensHandler(),
+			m_tokens(tokens)
+		{
+		}
+
+		virtual ~SetTokensHandler()
+		{
+		}
+
+		virtual bool handle_token(const string &tok, bool is_cjkv)
+		{
+			m_tokens.insert(tok);
+			return true;
+		}
+
+	protected:
+		set<string> &m_tokens;
+
+};
 
 QueryProperties::QueryProperties() :
 	m_type(XAPIAN_QP),
@@ -119,27 +213,10 @@ void QueryProperties::removeFilters(void)
 		return;
 	}
 
-	Document doc;
+	Dijon::CJKVTokenizer tokenizer;
+	FilterRemover handler(m_freeQueryWithoutFilters, tokenizer.get_ngram_size());
 
-	doc.setData(m_freeQuery.c_str(), m_freeQuery.length());
-	Tokenizer tokens(&doc);
-
-	string token;
-	while (tokens.nextToken(token) == true)
-	{
-		if ((token.find(':') != string::npos) ||
-			(token.find("..") != string::npos))
-		{
-			// It's a filter or a range
-			continue;
-		}
-
-		if (m_freeQueryWithoutFilters.empty() == false)
-		{
-			m_freeQueryWithoutFilters += " ";
-		}
-		m_freeQueryWithoutFilters += token;
-	}
+	tokenizer.tokenize(m_freeQuery, handler, true);
 }
 
 /// Sets the name.
@@ -262,18 +339,11 @@ bool QueryProperties::getModified(void) const
 /// Returns the query's terms.
 void QueryProperties::getTerms(set<string> &terms) const
 {
-	Document doc;
-
-	doc.setData(m_freeQueryWithoutFilters.c_str(), m_freeQueryWithoutFilters.length());
-	Tokenizer tokens(&doc);
+	Dijon::CJKVTokenizer tokenizer;
+	SetTokensHandler handler(terms);
 
 	terms.clear();
-
-	string token;
-	while (tokens.nextToken(token) == true)
-	{
-		terms.insert(token);
-	}
+	tokenizer.tokenize(m_freeQueryWithoutFilters, handler);
 }
 
 /// Returns whether the query is empty.

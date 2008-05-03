@@ -28,7 +28,7 @@
 #include "HtmlFilter.h"
 #include "DownloaderFactory.h"
 #include "FilterUtils.h"
-#include "Tokenizer.h"
+#include "CJKVTokenizer.h"
 #include "WebEngine.h"
 
 using std::cout;
@@ -37,6 +37,65 @@ using std::endl;
 using std::string;
 using std::set;
 using std::vector;
+
+class TermHighlighter : public Dijon::CJKVTokenizer::TokensHandler
+{
+        public:
+                TermHighlighter(string &extract, set<string> &queryTerms) :
+			Dijon::CJKVTokenizer::TokensHandler(),
+			m_extract(extract),
+			m_queryTerms(queryTerms)
+		{
+		}
+
+		virtual ~TermHighlighter()
+		{
+		}
+
+		virtual bool handle_token(const string &tok, bool is_cjkv)
+		{
+			gchar *pEscToken = NULL;
+			gchar *pUTF8Token = NULL;
+			gsize bytesWritten = 0;
+
+			if (tok.empty() == true)
+			{
+				return false;
+			}
+
+			pUTF8Token = g_locale_to_utf8(tok.c_str(), tok.length(),
+				NULL, &bytesWritten, NULL);
+			if (pUTF8Token != NULL)
+			{
+				pEscToken = g_markup_escape_text(pUTF8Token, -1);
+				g_free(pUTF8Token);
+			}
+			if (pEscToken == NULL)
+			{
+				return true;
+			}
+
+			// Is this a query term ?
+			if (m_queryTerms.find(StringManip::toLowerCase(tok)) == m_queryTerms.end())
+			{
+				m_extract += pEscToken;
+			}
+			else
+			{
+				m_extract += "<b>";
+				m_extract += pEscToken;
+				m_extract += "</b>";
+			}
+			m_extract += " ";
+
+			g_free(pEscToken);
+		}
+
+	protected:
+		string &m_extract;
+		set<string> &m_queryTerms;
+
+};
 
 WebEngine::WebEngine() :
 	SearchEngineInterface(),
@@ -182,48 +241,13 @@ bool WebEngine::processResult(const string &queryUrl, DocumentInfo &result)
 		return true;
 	}
 
-	Document doc;
-	doc.setData(extract.c_str(), extract.length());
-	Tokenizer tokens(&doc);
+	Dijon::CJKVTokenizer tokenizer;
+	TermHighlighter handler(extract, m_queryTerms);
 
+	// Highlight query terms in the extract
 	extract.clear();
-
-	string token;
-	while (tokens.nextToken(token) == true)
-	{
-		gchar *pEscToken = NULL;
-		gchar *pUTF8Token = NULL;
-		gsize bytesWritten = 0;
-
-		pUTF8Token = g_locale_to_utf8(token.c_str(), token.length(),
-			NULL, &bytesWritten, NULL);
-		if (pUTF8Token != NULL)
-		{
-			pEscToken = g_markup_escape_text(pUTF8Token, -1);
-			g_free(pUTF8Token);
-		}
-		if (pEscToken == NULL)
-		{
-			continue;
-		}
-
-		// Is this a query term ?
-		if (m_queryTerms.find(StringManip::toLowerCase(token)) == m_queryTerms.end())
-		{
-			extract += pEscToken;
-		}
-		else
-		{
-			extract += "<b>";
-			extract += pEscToken;
-			extract += "</b>";
-		}
-		extract += " ";
-
-		g_free(pEscToken);
-
-		result.setExtract(extract);
-	}
+	tokenizer.tokenize(result.getExtract(), handler);
+	result.setExtract(extract);
 
 	return true;
 }
