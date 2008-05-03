@@ -111,6 +111,7 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \
 	-I$(top_srcdir)/Collect \
+	-I$(top_srcdir)/IndexSearch/cjkv \
 	-I$(top_srcdir)/IndexSearch/Google \
 	-I$(top_srcdir)/IndexSearch/xesam \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ \

@@ -26,7 +26,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
 		[the gettext domain])
 
 dnl Add the languages which your application supports here.
-ALL_LINGUAS="de es fr it nl pt pt_BR ru sv zh_CN zh_TW"
+ALL_LINGUAS="de es fr it ja nl pt pt_BR ru sv zh_CN zh_TW"
 #AM_GNU_GETTEXT([external]) 
 AM_GLIB_GNU_GETTEXT
 
@@ -262,6 +262,9 @@ SHARED_MIME_INFO_PREFIX=`pkg-config --variable=prefix shared-mime-info`
 AC_SUBST(SHARED_MIME_INFO_PREFIX)
 AC_DEFINE_UNQUOTED(SHARED_MIME_INFO_PREFIX,"$SHARED_MIME_INFO_PREFIX",
     [the shared-mime-info prefix])
+PKG_CHECK_MODULES(EXIF, libexif >= 0.6 )
+AC_SUBST(EXIF_CFLAGS)
+AC_SUBST(EXIF_LIBS)
 PKG_CHECK_MODULES(TAGLIB, taglib >= 1.4 )
 AC_SUBST(TAGLIB_CFLAGS)
 AC_SUBST(TAGLIB_LIBS)

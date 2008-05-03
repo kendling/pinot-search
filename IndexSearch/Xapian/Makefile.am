@@ -7,7 +7,6 @@ noinst_HEADERS = \
 	XapianDatabaseFactory.h \
 	XapianIndex.h \
 	XapianEngine.h \
-	$(top_srcdir)/IndexSearch/cjkv/CJKVTokenizer.h \
 	$(top_srcdir)/IndexSearch/xesam/XapianQueryBuilder.h \
 	$(top_srcdir)/IndexSearch/xesam/XesamParser.h \
 	$(top_srcdir)/IndexSearch/xesam/XesamQLParser.h \
@@ -24,7 +23,6 @@ libxapianbackend_la_SOURCES = \
 	XapianDatabaseFactory.cpp \
 	XapianIndex.cpp \
 	XapianEngine.cpp \
-	$(top_srcdir)/IndexSearch/cjkv/CJKVTokenizer.cc \
 	$(top_srcdir)/IndexSearch/xesam/XapianQueryBuilder.cc \
 	$(top_srcdir)/IndexSearch/xesam/XesamQLParser.cc \
 	$(top_srcdir)/IndexSearch/xesam/XesamQueryBuilder.cc
