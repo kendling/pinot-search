@@ -515,6 +515,9 @@ http://www.freedesktop.org/software/desktop-file-utils
 TagLib							1.4
 http://ktown.kde.org/~wheeler/taglib/
 
+libexif							0.6
+http://libexif.sourceforge.net/
+
 openssh-askpass (4)					4.3
 http://www.openssh.com/portable.html
 
