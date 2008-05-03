@@ -393,13 +393,15 @@ http://pinot.berlios.de/
   If you would like to try this out, you will have to reset the My Documents
   index, as described in section "16. How to reset indexes".
 
-  At search time, queries that consist exclusively of CJKV characters are
-  processed in a manner compatible with the CJKV indexing scheme. There is no
-  need to format the query in a specific format, ie no need to separate
-  characters with spaces.
-  Please note that mixed queries, queries that also contain non-CJKV characters,
-  are processed as per normal. This means that operators or filters shouldn't be
-  used in CJKV queries. This limitation will be removed in future versions.
+  At search time, queries that include CJKV characters are processed in a manner
+  compatible with the CJKV indexing scheme. There is no need to format the query
+  in a specific format, ie no need to separate characters with spaces.
+  For example, the query :
+      Fabrice 你好 title:身体好吗
+  will be modified internally to :
+      Fabrice  (你 你好 好) title:身 title:身体 title:体 title:体好 title:好 title:好吗 title:吗
+
+  Prior to v0.85, this processing only applied to pure CJKV queries.
 
   You can get a list of documents in which CJKV characters were detected
   by the indexer with the special filter "tokens:CJKV".
