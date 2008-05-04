@@ -24,6 +24,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
+#include <time.h>
 #include <errno.h>
 #include <exception>
 #include <iostream>
@@ -565,16 +566,6 @@ unsigned int ThreadsManager::get_threads_count(void)
 	return (unsigned int)max(count , 0);
 }
 
-bool ThreadsManager::has_threads(void)
-{
-	if (m_threads.empty() == true)
-	{
-		return false;
-	}
-
-	return true;
-}
-
 void ThreadsManager::stop_threads(void)
 {
 	if (m_threads.empty() == false)
@@ -583,7 +574,6 @@ void ThreadsManager::stop_threads(void)
 		{
 			// Stop threads
 			for_each(m_threads.begin(), m_threads.end(), StopThreadFunc());
-			m_threads.clear();
 
 			unlock_threads();
 		}
@@ -1949,8 +1939,8 @@ string MonitorThread::getType(void) const
 
 void MonitorThread::stop(void)
 {
-	write(m_ctrlWritePipe, "X", 1);
 	WorkerThread::stop();
+	write(m_ctrlWritePipe, "X", 1);
 }
 
 void MonitorThread::processEvents(void)

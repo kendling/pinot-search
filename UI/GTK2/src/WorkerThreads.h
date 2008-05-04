@@ -116,8 +116,6 @@ class ThreadsManager : virtual public sigc::trackable
 
 		unsigned int get_threads_count(void);
 
-		bool has_threads(void);
-
 		void stop_threads(void);
 
 		virtual void connect(void);
