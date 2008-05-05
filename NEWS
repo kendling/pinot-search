@@ -1,3 +1,24 @@
+2008/05/05 version_0_8_5
+Build :
+ - removed reference to m4 directory
+Tokenize :
+ - new libexif-based filter to extract image metadata
+ - the mbox filter attempts to convert non UTF-8 text
+ - tweaks to the CJKV tokenizer
+SQL :
+ - somewhat more abstract interface to databases
+Search :
+ - fixed CJKV queries on Web engines
+Xapian :
+ - mixed CJKV queries should be processed correctly. See README.
+ - if the document specifies a language, double check it's valid
+Daemon :
+ - check whether there's already a daemon process running and exit if there is
+ - fixed concurrency issues
+ - fixed crawling and monitoring of new directories
+UI :
+ - new Japanese translation by Takeo Mizuki
+
 2008/03/27 version_0_8_4
 Build :
  - patch by Adel Gadllah to fix gcc 4.3 build errors

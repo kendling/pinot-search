@@ -4,9 +4,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.83\n"
+"Project-Id-Version: pinot 0.85\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-26 14:43+0800\n"
+"POT-Creation-Date: 2008-05-04 22:14+0800\n"
 "PO-Revision-Date: 2008-03-24 14:32+0800\n"
 "Last-Translator: Ashlee Ma <ashlee8310@hotmail.com>\n"
 "MIME-Version: 1.0\n"
@@ -31,7 +31,7 @@ msgstr "目前的使用者"
 #: UI/GTK2/src/mainWindow.cc:1562 UI/GTK2/src/mainWindow.cc:2273
 #: UI/GTK2/src/PinotSettings.cpp:322 UI/GTK2/src/PinotSettings.cpp:1470
 #: UI/GTK2/src/PinotSettings.cpp:1526 UI/GTK2/src/statisticsDialog.cc:79
-#: UI/GTK2/src/WorkerThreads.cpp:998
+#: UI/GTK2/src/WorkerThreads.cpp:1009
 msgid "My Web Pages"
 msgstr "我的网页"
 
@@ -40,7 +40,7 @@ msgstr "我的网页"
 #: UI/GTK2/src/mainWindow.cc:978 UI/GTK2/src/mainWindow.cc:1287
 #: UI/GTK2/src/mainWindow.cc:2277 UI/GTK2/src/PinotSettings.cpp:323
 #: UI/GTK2/src/PinotSettings.cpp:1471 UI/GTK2/src/PinotSettings.cpp:1527
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1008
+#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1019
 msgid "My Documents"
 msgstr "我的文件"
 
@@ -492,67 +492,67 @@ msgid "Pinot"
 msgstr "Pinot"
 
 #. Localize language names
-#: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:431
+#: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:492
 msgid "Unknown"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:237 UI/GTK2/src/pinot-dbus-daemon.cc:432
+#: UI/GTK2/src/pinot.cc:237 UI/GTK2/src/pinot-dbus-daemon.cc:493
 msgid "Danish"
 msgstr "丹麦语"
 
-#: UI/GTK2/src/pinot.cc:238 UI/GTK2/src/pinot-dbus-daemon.cc:433
+#: UI/GTK2/src/pinot.cc:238 UI/GTK2/src/pinot-dbus-daemon.cc:494
 msgid "Dutch"
 msgstr "荷兰语"
 
-#: UI/GTK2/src/pinot.cc:239 UI/GTK2/src/pinot-dbus-daemon.cc:434
+#: UI/GTK2/src/pinot.cc:239 UI/GTK2/src/pinot-dbus-daemon.cc:495
 msgid "English"
 msgstr "英语"
 
-#: UI/GTK2/src/pinot.cc:240 UI/GTK2/src/pinot-dbus-daemon.cc:435
+#: UI/GTK2/src/pinot.cc:240 UI/GTK2/src/pinot-dbus-daemon.cc:496
 msgid "Finnish"
 msgstr "芬兰语"
 
-#: UI/GTK2/src/pinot.cc:241 UI/GTK2/src/pinot-dbus-daemon.cc:436
+#: UI/GTK2/src/pinot.cc:241 UI/GTK2/src/pinot-dbus-daemon.cc:497
 msgid "French"
 msgstr "法语"
 
-#: UI/GTK2/src/pinot.cc:242 UI/GTK2/src/pinot-dbus-daemon.cc:437
+#: UI/GTK2/src/pinot.cc:242 UI/GTK2/src/pinot-dbus-daemon.cc:498
 msgid "German"
 msgstr "德语"
 
-#: UI/GTK2/src/pinot.cc:243 UI/GTK2/src/pinot-dbus-daemon.cc:438
+#: UI/GTK2/src/pinot.cc:243 UI/GTK2/src/pinot-dbus-daemon.cc:499
 msgid "Hungarian"
 msgstr "匈牙利语"
 
-#: UI/GTK2/src/pinot.cc:244 UI/GTK2/src/pinot-dbus-daemon.cc:439
+#: UI/GTK2/src/pinot.cc:244 UI/GTK2/src/pinot-dbus-daemon.cc:500
 msgid "Italian"
 msgstr "意大利语"
 
-#: UI/GTK2/src/pinot.cc:245 UI/GTK2/src/pinot-dbus-daemon.cc:440
+#: UI/GTK2/src/pinot.cc:245 UI/GTK2/src/pinot-dbus-daemon.cc:501
 msgid "Norwegian"
 msgstr "挪威语"
 
-#: UI/GTK2/src/pinot.cc:246 UI/GTK2/src/pinot-dbus-daemon.cc:441
+#: UI/GTK2/src/pinot.cc:246 UI/GTK2/src/pinot-dbus-daemon.cc:502
 msgid "Portuguese"
 msgstr "葡萄牙语"
 
-#: UI/GTK2/src/pinot.cc:247 UI/GTK2/src/pinot-dbus-daemon.cc:442
+#: UI/GTK2/src/pinot.cc:247 UI/GTK2/src/pinot-dbus-daemon.cc:503
 msgid "Romanian"
 msgstr "罗马尼亚语"
 
-#: UI/GTK2/src/pinot.cc:248 UI/GTK2/src/pinot-dbus-daemon.cc:443
+#: UI/GTK2/src/pinot.cc:248 UI/GTK2/src/pinot-dbus-daemon.cc:504
 msgid "Russian"
 msgstr "俄语"
 
-#: UI/GTK2/src/pinot.cc:249 UI/GTK2/src/pinot-dbus-daemon.cc:444
+#: UI/GTK2/src/pinot.cc:249 UI/GTK2/src/pinot-dbus-daemon.cc:505
 msgid "Spanish"
 msgstr "西班牙语"
 
-#: UI/GTK2/src/pinot.cc:250 UI/GTK2/src/pinot-dbus-daemon.cc:445
+#: UI/GTK2/src/pinot.cc:250 UI/GTK2/src/pinot-dbus-daemon.cc:506
 msgid "Swedish"
 msgstr "瑞典语"
 
-#: UI/GTK2/src/pinot.cc:251 UI/GTK2/src/pinot-dbus-daemon.cc:446
+#: UI/GTK2/src/pinot.cc:251 UI/GTK2/src/pinot-dbus-daemon.cc:507
 msgid "Turkish"
 msgstr "土耳其语"
 
@@ -848,7 +848,7 @@ msgid "documents"
 msgstr "文件"
 
 #: UI/GTK2/src/statisticsDialog.cc:151 UI/GTK2/src/statisticsDialog.cc:169
-#: UI/GTK2/src/WorkerThreads.cpp:124
+#: UI/GTK2/src/WorkerThreads.cpp:125
 msgid "Unknown error"
 msgstr "原因不明的错误"
 
@@ -889,88 +889,88 @@ msgstr "目前没有执行"
 msgid "Errors"
 msgstr "错误"
 
-#: UI/GTK2/src/WorkerThreads.cpp:91
+#: UI/GTK2/src/WorkerThreads.cpp:92
 #, fuzzy
 msgid "Index error"
 msgstr "索引错误："
 
-#: UI/GTK2/src/WorkerThreads.cpp:93
+#: UI/GTK2/src/WorkerThreads.cpp:94
 #, fuzzy
 msgid "Couldn't index document"
 msgstr "无法解除文件的索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:95
+#: UI/GTK2/src/WorkerThreads.cpp:96
 msgid "Couldn't update document"
 msgstr "无法更新文件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:97
+#: UI/GTK2/src/WorkerThreads.cpp:98
 msgid "Couldn't unindex document(s)"
 msgstr "无法解除文件的索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:99
+#: UI/GTK2/src/WorkerThreads.cpp:100
 msgid "Couldn't run query on search engine"
 msgstr "搜寻引擎无法执行查询"
 
-#: UI/GTK2/src/WorkerThreads.cpp:101
+#: UI/GTK2/src/WorkerThreads.cpp:102
 #, fuzzy
 msgid "Couldn't get history for search engine"
 msgstr "搜寻引擎无法执行查询"
 
-#: UI/GTK2/src/WorkerThreads.cpp:103
+#: UI/GTK2/src/WorkerThreads.cpp:104
 #, fuzzy
 msgid "Couldn't retrieve document"
 msgstr "无法更新文件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:105
+#: UI/GTK2/src/WorkerThreads.cpp:106
 msgid "File monitor error"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:107
+#: UI/GTK2/src/WorkerThreads.cpp:108
 #, fuzzy
 msgid "Couldn't open directory"
 msgstr "无法开启索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:109
+#: UI/GTK2/src/WorkerThreads.cpp:110
 #, fuzzy
 msgid "Index doesn't exist"
 msgstr "不存在"
 
-#: UI/GTK2/src/WorkerThreads.cpp:111
+#: UI/GTK2/src/WorkerThreads.cpp:112
 msgid "Couldn't create search engine"
 msgstr "无法建立搜寻引擎"
 
-#: UI/GTK2/src/WorkerThreads.cpp:113
+#: UI/GTK2/src/WorkerThreads.cpp:114
 msgid "Cannot index document type"
 msgstr "无法索引档案类别"
 
-#: UI/GTK2/src/WorkerThreads.cpp:115
+#: UI/GTK2/src/WorkerThreads.cpp:116
 msgid "No downloader for this protocol"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:117
+#: UI/GTK2/src/WorkerThreads.cpp:118
 msgid "Robots META tag forbids indexing"
 msgstr "Robots的meta标记不允许索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:119
+#: UI/GTK2/src/WorkerThreads.cpp:120
 msgid "No monitoring handler"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:415
+#: UI/GTK2/src/WorkerThreads.cpp:416
 msgid "Indexing was stopped"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:428
+#: UI/GTK2/src/WorkerThreads.cpp:429
 msgid "Can't index mail here"
 msgstr "无法索引邮件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:449 UI/GTK2/src/WorkerThreads.cpp:704
+#: UI/GTK2/src/WorkerThreads.cpp:450 UI/GTK2/src/WorkerThreads.cpp:715
 msgid "is already being indexed"
 msgstr "已经被索引了"
 
-#: UI/GTK2/src/WorkerThreads.cpp:459
+#: UI/GTK2/src/WorkerThreads.cpp:460
 msgid "is blacklisted"
 msgstr "列入黑名单"
 
-#: UI/GTK2/src/WorkerThreads.cpp:961
+#: UI/GTK2/src/WorkerThreads.cpp:972
 msgid "No title"
 msgstr "无标题"

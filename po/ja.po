@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot\n"
+"Project-Id-Version: pinot 0.85\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-04-26 09:55+0800\n"
+"POT-Creation-Date: 2008-05-04 22:14+0800\n"
 "PO-Revision-Date: 2008-04-14 04:25+0000\n"
 "Last-Translator: Takeo Mizuki <Unknown>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -35,7 +35,7 @@ msgstr "カレントユーザ"
 #: UI/GTK2/src/mainWindow.cc:1562 UI/GTK2/src/mainWindow.cc:2273
 #: UI/GTK2/src/PinotSettings.cpp:322 UI/GTK2/src/PinotSettings.cpp:1470
 #: UI/GTK2/src/PinotSettings.cpp:1526 UI/GTK2/src/statisticsDialog.cc:79
-#: UI/GTK2/src/WorkerThreads.cpp:1019
+#: UI/GTK2/src/WorkerThreads.cpp:1009
 msgid "My Web Pages"
 msgstr "マイウェブページ"
 
@@ -44,7 +44,7 @@ msgstr "マイウェブページ"
 #: UI/GTK2/src/mainWindow.cc:978 UI/GTK2/src/mainWindow.cc:1287
 #: UI/GTK2/src/mainWindow.cc:2277 UI/GTK2/src/PinotSettings.cpp:323
 #: UI/GTK2/src/PinotSettings.cpp:1471 UI/GTK2/src/PinotSettings.cpp:1527
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1029
+#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1019
 msgid "My Documents"
 msgstr "マイドキュメント"
 
@@ -862,7 +862,7 @@ msgid "documents"
 msgstr "文書"
 
 #: UI/GTK2/src/statisticsDialog.cc:151 UI/GTK2/src/statisticsDialog.cc:169
-#: UI/GTK2/src/WorkerThreads.cpp:124
+#: UI/GTK2/src/WorkerThreads.cpp:125
 msgid "Unknown error"
 msgstr "不明なエラー"
 
@@ -903,86 +903,86 @@ msgstr ""
 msgid "Errors"
 msgstr "エラー"
 
-#: UI/GTK2/src/WorkerThreads.cpp:91
+#: UI/GTK2/src/WorkerThreads.cpp:92
 msgid "Index error"
 msgstr "インデックスエラー"
 
-#: UI/GTK2/src/WorkerThreads.cpp:93
+#: UI/GTK2/src/WorkerThreads.cpp:94
 msgid "Couldn't index document"
 msgstr "文書にインデックスをつけられません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:95
+#: UI/GTK2/src/WorkerThreads.cpp:96
 msgid "Couldn't update document"
 msgstr "文書を更新できません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:97
+#: UI/GTK2/src/WorkerThreads.cpp:98
 msgid "Couldn't unindex document(s)"
 msgstr "文書からインデックスを解除できません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:99
+#: UI/GTK2/src/WorkerThreads.cpp:100
 msgid "Couldn't run query on search engine"
 msgstr "検索エンジンでクエリーを実行できません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:101
+#: UI/GTK2/src/WorkerThreads.cpp:102
 msgid "Couldn't get history for search engine"
 msgstr "検索エンジンから履歴を取得できません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:103
+#: UI/GTK2/src/WorkerThreads.cpp:104
 msgid "Couldn't retrieve document"
 msgstr "文書を取得できません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:105
+#: UI/GTK2/src/WorkerThreads.cpp:106
 msgid "File monitor error"
 msgstr "ファイルモニターエラー"
 
-#: UI/GTK2/src/WorkerThreads.cpp:107
+#: UI/GTK2/src/WorkerThreads.cpp:108
 msgid "Couldn't open directory"
 msgstr "ディレクトリを開けません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:109
+#: UI/GTK2/src/WorkerThreads.cpp:110
 #, fuzzy
 msgid "Index doesn't exist"
 msgstr "インデックスが存在しません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:111
+#: UI/GTK2/src/WorkerThreads.cpp:112
 msgid "Couldn't create search engine"
 msgstr "検索エンジンを作成できません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:113
+#: UI/GTK2/src/WorkerThreads.cpp:114
 msgid "Cannot index document type"
 msgstr "文書タイプにインデックスをつけられません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:115
+#: UI/GTK2/src/WorkerThreads.cpp:116
 msgid "No downloader for this protocol"
 msgstr "このプロトコルに対するダウンローダーがありません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:117
+#: UI/GTK2/src/WorkerThreads.cpp:118
 msgid "Robots META tag forbids indexing"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:119
+#: UI/GTK2/src/WorkerThreads.cpp:120
 msgid "No monitoring handler"
 msgstr "モニタリングハンドラーがありません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:415
+#: UI/GTK2/src/WorkerThreads.cpp:416
 #, fuzzy
 msgid "Indexing was stopped"
 msgstr "インデックス作業を停止しました"
 
-#: UI/GTK2/src/WorkerThreads.cpp:428
+#: UI/GTK2/src/WorkerThreads.cpp:429
 msgid "Can't index mail here"
 msgstr "メールにインデックスをつけられません"
 
-#: UI/GTK2/src/WorkerThreads.cpp:449 UI/GTK2/src/WorkerThreads.cpp:725
+#: UI/GTK2/src/WorkerThreads.cpp:450 UI/GTK2/src/WorkerThreads.cpp:715
 #, fuzzy
 msgid "is already being indexed"
 msgstr "は既にインデックスがつけられています"
 
-#: UI/GTK2/src/WorkerThreads.cpp:459
+#: UI/GTK2/src/WorkerThreads.cpp:460
 #, fuzzy
 msgid "is blacklisted"
 msgstr "はブラックリストに登録されています"
 
-#: UI/GTK2/src/WorkerThreads.cpp:982
+#: UI/GTK2/src/WorkerThreads.cpp:972
 msgid "No title"
 msgstr "タイトルなし"
