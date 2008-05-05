@@ -1744,8 +1744,6 @@ bool PinotSettings::getDefaultPatterns(set<ustring> &defaultPatterns)
 	defaultPatterns.insert("*.flv");
 	defaultPatterns.insert("*.gif");
 	defaultPatterns.insert("*.iso");
-	defaultPatterns.insert("*.jpeg");
-	defaultPatterns.insert("*.jpg");
 	defaultPatterns.insert("*.la");
 	defaultPatterns.insert("*.lha");
 	defaultPatterns.insert("*.mov");

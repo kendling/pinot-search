@@ -21,7 +21,7 @@
     </method>
     <!--
 	Instructs the daemon program to reload the configuration file.
-	 loadStatus: TRUE if the configuration is being reloaded
+	 reloading: TRUE if the configuration is being reloaded
 	-->
     <method name="Reload">
       <annotation name="de.berlios.Pinot.Reload" value="pinotDBus"/>
@@ -29,7 +29,7 @@
     </method>
     <!--
 	Stops the daemon program.
-	 exitStatus: the daemon's exit status.
+	 exitStatus: the daemon's exit status
 	-->
     <method name="Stop">
       <annotation name="de.berlios.Pinot.Stop" value="pinotDBus"/>
