@@ -120,6 +120,7 @@ PinotSettings::PinotSettings() :
 		// No, create it then
 		if (mkdir(directoryName.c_str(), (mode_t)S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IXOTH) == 0)
 		{
+			cerr << "Created directory " << directoryName << endl;
 			m_firstRun = true;
 		}
 		else
@@ -386,7 +387,10 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 		(!S_ISREG(fileStat.st_mode)))
 	{
 		cerr << "Couldn't open configuration file " << fileName << endl;
-		m_firstRun = true;
+		if (isGlobal == false)
+		{
+			m_firstRun = true;
+		}
 		return false;
 	}
 
