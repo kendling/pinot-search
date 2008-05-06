@@ -20,7 +20,6 @@
 #define _TEXT_CONVERTER_H
 
 #include <string>
-#include <glibmm/ustring.h>
 
 class TextConverter
 {
@@ -29,13 +28,16 @@ class TextConverter
 		virtual ~TextConverter();
 
 		/// Converts to UTF-8.
-		Glib::ustring toUTF8(const std::string &text, const std::string &charset);
+		std::string toUTF8(const std::string &text, const std::string &charset);
+
+		/// Converts to UTF-8.
+		std::string toUTF8(const char *pText, unsigned int textLen, const std::string &charset);
 
 		/// Gets the number of conversion errors for the previous toUTF8() call.
 		unsigned int getErrorsCount(void) const;
 
 		/// Converts from UTF-8.
-		std::string fromUTF8(const Glib::ustring &text);
+		std::string fromUTF8(const std::string &text);
 
 	protected:
 		std::string m_localeCharset;

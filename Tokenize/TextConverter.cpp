@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <iostream>
 #include <glibmm/convert.h>
+#include <glibmm/ustring.h>
 
 #include "StringManip.h"
 #include "TextConverter.h"
@@ -27,9 +28,6 @@ using std::cout;
 using std::endl;
 using std::string;
 using namespace Glib;
-
-#define USE_GLIBMM_ICONV 1
-//#define USE_GLIBMM_FUNCS 1
 
 TextConverter::TextConverter(unsigned int maxErrors) :
 	m_utf8Locale(false),
@@ -44,19 +42,28 @@ TextConverter::~TextConverter()
 {
 }
 
-ustring TextConverter::toUTF8(const string &text, const string &charset)
+string TextConverter::toUTF8(const string &text, const string &charset)
+{
+	unsigned int textLen = (unsigned int)text.length();
+
+	// Call overload
+	return toUTF8(text.c_str(), textLen, charset);
+}
+
+string TextConverter::toUTF8(const char *pText, unsigned int textLen, const string &charset)
 {
 	string textCharset(StringManip::toLowerCase(charset));
 	char outputBuffer[8192];
-	char *pInput = const_cast<char *>(text.c_str());
+	char *pInput = const_cast<char *>(pText);
 
 	m_conversionErrors = 0;
 
-	if ((text.empty() == true) ||
+	if ((pText == NULL) ||
+		(textLen == 0) ||
 		(textCharset == "utf-8"))
 	{
 		// No conversion necessary
-		return text;
+		return string(pText, textLen);
 	}
 
 	if (textCharset.empty() == true)
@@ -64,16 +71,15 @@ ustring TextConverter::toUTF8(const string &text, const string &charset)
 		if (m_utf8Locale == true)
 		{
 			// The current locale uses UTF-8
-			return text;
+			return string(pText, textLen);
 		}
 
 		textCharset = m_localeCharset;
 	}
 
-#ifdef USE_GLIBMM_ICONV
 	IConv converter("UTF-8", textCharset);
 	string outputText;
-	gsize inputSize = text.length();
+	gsize inputSize = (gsize)textLen;
 	bool invalidSequence = false;
 
 	while (inputSize > 0)
@@ -90,13 +96,14 @@ ustring TextConverter::toUTF8(const string &text, const string &charset)
 				// Conversion was only partially successful
 				++m_conversionErrors;
 #ifdef DEBUG
-				cout << "TextConverter::toUTF8: invalid sequence at " << pInput - text.c_str() << endl;
+				cout << "TextConverter::toUTF8: invalid sequence at " << pInput - pText << endl;
 #endif
 				if (m_conversionErrors >= m_maxErrors)
 				{
 					// Give up
-					return text; 
+					return string(pText, textLen);
 				}
+				converter.reset();
 
 				outputText.append(outputBuffer, 8192 - outputSize);
 				if (invalidSequence == false)
@@ -115,7 +122,7 @@ ustring TextConverter::toUTF8(const string &text, const string &charset)
 #ifdef DEBUG
 				cout << "TextConverter::toUTF8: unknown error " << errorCode << endl;
 #endif
-				return text;
+				return string(pText, textLen);
 			}
 		}
 		else
@@ -131,38 +138,6 @@ ustring TextConverter::toUTF8(const string &text, const string &charset)
 #endif
 
 	return outputText;
-#else
-#ifdef USE_GLIBMM_FUNCS
-	try
-	{
-		if (textCharset.empty() == false)
-		{
-			return convert_with_fallback(text, "UTF-8", textCharset, " ");
-		}
-		else
-		{
-			return locale_to_utf8(text);
-		}
-	}
-	catch (ConvertError &ce)
-	{
-#ifdef DEBUG
-		cout << "TextConverter::toUTF8: cannot convert from " << textCharset << ": " << ce.what() << endl;
-#endif
-		if (textCharset.empty() == false)
-		{
-#ifdef DEBUG
-			cout << "TextConverter::toUTF8: trying again" << endl;
-#endif
-			return TextConverter::toUTF8(text, "");
-		}
-	}
-
-	return "";
-#else
-	return text;
-#endif
-#endif
 }
 
 unsigned int TextConverter::getErrorsCount(void) const
@@ -170,7 +145,7 @@ unsigned int TextConverter::getErrorsCount(void) const
 	return m_conversionErrors;
 }
 
-string TextConverter::fromUTF8(const ustring &text)
+string TextConverter::fromUTF8(const string &text)
 {
 	try
 	{

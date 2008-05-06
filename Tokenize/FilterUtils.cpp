@@ -164,9 +164,6 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 	if (((dataLength > 0) && (pData != NULL)) &&
 		(pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_DATA) == true))
 	{
-#ifdef DEBUG
-		cout << "FilterUtils::feedFilter: feeding " << dataLength << " bytes of data from " << location << endl;
-#endif
 		fedInput = pFilter->set_document_data(pData, dataLength);
 	}
 	// ... to feeding the file
@@ -328,18 +325,14 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 	{
 		string utf8Data(converter.toUTF8(contentIter->second, charset));
 
-#ifdef DEBUG
-		cout << "FilterUtils::populateDocument: converting " << doc.getLocation()
-			<< " from " << charset << endl;
-#endif
 		if (converter.getErrorsCount() > 0)
 		{
 			cerr << doc.getLocation() << " may not have been fully converted to UTF-8" << endl;
 		}
 		doc.setData(utf8Data.c_str(), utf8Data.length());
 #ifdef DEBUG
-		cout << "FilterUtils::populateDocument: set " << utf8Data.length() << "/" << contentIter->second.size()
-			<< " characters of data" << endl;
+		cout << "FilterUtils::populateDocument: set " << utf8Data.length() << "/" << contentIter->second.length()
+			<< " bytes, converted from charset " << charset << endl;
 #endif
 	}
 	contentIter = metaData.find("title");

@@ -23,6 +23,7 @@
 #include "FilterFactory.h"
 #include "TextFilter.h"
 #include "FilterUtils.h"
+#include "TextConverter.h"
 #include "FilterWrapper.h"
 
 using std::cout;
@@ -30,6 +31,16 @@ using std::endl;
 using std::string;
 using std::set;
 using namespace Dijon;
+
+static string convertToUTF8(const char *pData, unsigned int dataLen, const string &charset)
+{
+	TextConverter converter(20);
+
+#ifdef DEBUG
+	cout << "FilterWrapper::filterDocument: filter requested conversion from " << charset << endl;
+#endif
+	return converter.toUTF8(pData, dataLen, charset);
+}
 
 FilterWrapper::FilterWrapper(IndexInterface *pIndex) :
 	m_pIndex(pIndex)
@@ -89,6 +100,9 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 
 	if (pFilter != NULL)
 	{
+		// The filter may have to convert the content to UTF-8 itself
+    		pFilter->set_utf8_converter(convertToUTF8);
+
 		fedFilter = FilterUtils::feedFilter(doc, pFilter);
 	}
 	else
