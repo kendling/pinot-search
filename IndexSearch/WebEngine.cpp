@@ -41,9 +41,12 @@ using std::vector;
 class TermHighlighter : public Dijon::CJKVTokenizer::TokensHandler
 {
         public:
-                TermHighlighter(string &extract, set<string> &queryTerms) :
+                TermHighlighter(string &extract, set<string> &queryTerms,
+			unsigned int nGramSize) :
 			Dijon::CJKVTokenizer::TokensHandler(),
 			m_extract(extract),
+			m_nGramSize(nGramSize),
+			m_nGramCount(0),
 			m_queryTerms(queryTerms)
 		{
 		}
@@ -63,6 +66,23 @@ class TermHighlighter : public Dijon::CJKVTokenizer::TokensHandler
 				return false;
 			}
 
+			if (is_cjkv == false)
+			{
+				m_nGramCount = 0;
+			}
+			else
+			{
+				++m_nGramCount;
+				if (tok.length() > 4)
+				{
+					// Ignore multi-character tokens
+#ifdef DEBUG
+					cout << "WebEngine::processResult: ignoring " << tok << endl;
+#endif
+					return true;
+				}
+			}
+
 			pUTF8Token = g_locale_to_utf8(tok.c_str(), tok.length(),
 				NULL, &bytesWritten, NULL);
 			if (pUTF8Token != NULL)
@@ -75,6 +95,11 @@ class TermHighlighter : public Dijon::CJKVTokenizer::TokensHandler
 				return true;
 			}
 
+			if ((m_extract.empty() == false) &&
+				(m_nGramCount <= 1))
+			{
+				m_extract += " ";
+			}
 			// Is this a query term ?
 			if (m_queryTerms.find(StringManip::toLowerCase(tok)) == m_queryTerms.end())
 			{
@@ -86,13 +111,14 @@ class TermHighlighter : public Dijon::CJKVTokenizer::TokensHandler
 				m_extract += pEscToken;
 				m_extract += "</b>";
 			}
-			m_extract += " ";
 
 			g_free(pEscToken);
 		}
 
 	protected:
 		string &m_extract;
+		unsigned int m_nGramSize;
+		unsigned int m_nGramCount;
 		set<string> &m_queryTerms;
 
 };
@@ -242,7 +268,7 @@ bool WebEngine::processResult(const string &queryUrl, DocumentInfo &result)
 	}
 
 	Dijon::CJKVTokenizer tokenizer;
-	TermHighlighter handler(extract, m_queryTerms);
+	TermHighlighter handler(extract, m_queryTerms, tokenizer.get_ngram_size());
 
 	// Highlight query terms in the extract
 	extract.clear();

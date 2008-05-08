@@ -27,6 +27,7 @@
 
 #include "Timer.h"
 #include "AbstractGenerator.h"
+#include "CJKVTokenizer.h"
 
 using std::cout;
 using std::cerr;
@@ -35,6 +36,7 @@ using std::string;
 using std::vector;
 using std::map;
 using std::find;
+using namespace Dijon;
 
 unsigned int AbstractGenerator::m_maxSeedTerms = 5;
 unsigned int AbstractGenerator::m_minTermPositions = 10;
@@ -212,12 +214,29 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	}
 
 	// Generate the abstract
+	CJKVTokenizer tokenizer;
+	bool wasCJKV = false;
 	for (map<Xapian::termpos, string>::iterator wordIter = wordsBuffer.begin();
 		wordIter != wordsBuffer.end(); ++wordIter)
 	{
 		gchar *pEscToken = NULL;
 		gchar *pUTF8Token = NULL;
 		gsize bytesWritten = 0;
+		bool isCJKV = false;
+
+		// Skip multi-character CJKV terms
+		if (tokenizer.has_cjkv(wordIter->second) == true)
+		{
+			isCJKV = true;
+
+			if (wordIter->second.length() > 4)
+			{
+#ifdef DEBUG
+				cout << "AbstractGenerator::generateAbstract: skipping " << wordIter->second << endl;
+#endif
+				continue;
+			}
+		}
 
 		pUTF8Token = g_locale_to_utf8(wordIter->second.c_str(), wordIter->second.length(),
 			NULL, &bytesWritten, NULL);
@@ -231,6 +250,11 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 			continue;
 		}
 
+		if ((summary.empty() == false) &&
+			(wasCJKV != isCJKV))
+		{
+			summary += " ";
+		}
 		// Is this a seed term ?
 		if (find(seedTerms.begin(), seedTerms.end(), wordIter->second) != seedTerms.end())
 		{
@@ -242,8 +266,8 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		{
 			summary += pEscToken;
 		}
-		summary += " ";
 
+		wasCJKV = isCJKV;
 		g_free(pEscToken);
 	}
 #ifdef DEBUG

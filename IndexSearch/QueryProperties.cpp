@@ -29,12 +29,9 @@
 class FilterRemover : public Dijon::CJKVTokenizer::TokensHandler
 {
         public:
-                FilterRemover(string &freeQueryWithoutFilters,
-			unsigned int nGramSize) :
+                FilterRemover(const string &freeQuery) :
 			Dijon::CJKVTokenizer::TokensHandler(),
-			m_freeQueryWithoutFilters(freeQueryWithoutFilters),
-			m_nGramSize(nGramSize),
-			m_nGramCount(0)
+			m_freeQuery(freeQuery)
 		{
 		}
 
@@ -52,46 +49,36 @@ class FilterRemover : public Dijon::CJKVTokenizer::TokensHandler
 			// Is this CJKV ?
 			if (is_cjkv == false)
 			{
-				m_nGramCount = 0;
-
 				if ((tok.find(':') != string::npos) ||
 					(tok.find("..") != string::npos))
 				{
-					// It's a filter or a range
-#ifdef DEBUG
-					cout << "QueryProperties::getFreeQuery: ignoring filter '" << tok << "'" << endl;
-#endif
-					return true;
-				}
-			}
-			else
-			{
-				++m_nGramCount;
-				if (m_nGramCount % m_nGramSize != 0)
-				{
-#ifdef DEBUG
-					cout << "QueryProperties::getFreeQuery: ignoring " << m_nGramCount << " '" << tok << "'" << endl;
-#endif
-					return true;
-				}
-			}
-#ifdef DEBUG
-			cout << "QueryProperties::getFreeQuery: keeping '" << tok << "'" << endl;
-#endif
+					string::size_type tokPosStart = m_freeQuery.find(tok);
 
-			if (m_freeQueryWithoutFilters.empty() == false)
-			{
-				m_freeQueryWithoutFilters += " ";
+					// It's a filter or a range, remove it
+					if (tokPosStart != string::npos)
+					{
+						string::size_type tokPosEnd = m_freeQuery.find(" ", tokPosStart);
+
+						if (tokPosEnd != string::npos)
+						{
+							m_freeQuery.erase(tokPosStart, tokPosEnd - tokPosStart);
+						}
+						else
+						{
+							m_freeQuery.erase(tokPosStart);
+						}
+					}
+#ifdef DEBUG
+					cout << "QueryProperties::getFreeQuery: removed " << tok << "..." << endl;
+#endif
+					return true;
+				}
 			}
-			m_freeQueryWithoutFilters += tok;
 
 			return true;
 		}
 
-	protected:
-		string &m_freeQueryWithoutFilters;
-		unsigned int m_nGramSize;
-		unsigned int m_nGramCount;
+		string m_freeQuery;
 
 };
 
@@ -214,9 +201,10 @@ void QueryProperties::removeFilters(void)
 	}
 
 	Dijon::CJKVTokenizer tokenizer;
-	FilterRemover handler(m_freeQueryWithoutFilters, tokenizer.get_ngram_size());
+	FilterRemover handler(m_freeQuery);
 
 	tokenizer.tokenize(m_freeQuery, handler, true);
+	m_freeQueryWithoutFilters = handler.m_freeQuery;
 }
 
 /// Sets the name.
