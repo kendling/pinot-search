@@ -232,7 +232,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 
 			// First n-gram ?
 #ifdef DEBUG
-			cout << "QueryModifier::handle_token: " << m_nGramCount << " n-gram" << endl;
+			cout << "QueryModifier::handle_token: n-gram " << m_nGramCount << endl;
 #endif
 			if (m_nGramCount == 0)
 			{
@@ -247,6 +247,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 				{
 					m_modifiedQuery += " " + m_query.substr(m_pos, tokPos - m_pos);
 				}
+				m_pos += tok.length();
 				switch (m_wrap)
 				{
 					case BRACKETS:
@@ -282,9 +283,12 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 
 		string get_modified_query(void)
 		{
-			if (m_pos < m_query.length())
+#ifdef DEBUG
+			cout << "QueryModifier::get_modified_query: " << m_pos << "/" << m_query.length() << endl;
+#endif
+			if (m_pos + 1 < m_query.length())
 			{
-				m_modifiedQuery += " " + m_query.substr(m_pos);
+				m_modifiedQuery += " " + m_query.substr(m_pos + 1);
 			}
 			wrapClose();
 #ifdef DEBUG

@@ -66,12 +66,14 @@ AbstractGenerator::~AbstractGenerator()
 string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	const vector<string> &seedTerms)
 {
+	CJKVTokenizer tokenizer;
 	map<Xapian::termpos, PositionWindow> abstractWindows;
 	map<Xapian::termpos, string> wordsBuffer;
 	string summary;
 	Xapian::termpos bestPosition = 0, startPosition = 0;
 	unsigned int seedTermsCount = 0, bestWeight = 0;
 	bool topTerm = true;
+	bool wasCJKV = false;
 
 	if (m_pIndex == NULL)
 	{
@@ -190,6 +192,12 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 			{
 				continue;
 			}
+			// Skip multi-character CJKV terms
+			if ((tokenizer.has_cjkv(termName) == true) &&
+				(termName.length() > 4))
+			{
+				continue;
+			}
 
 			for (Xapian::PositionIterator positionIter = m_pIndex->positionlist_begin(docId, termName);
 				positionIter != m_pIndex->positionlist_end(docId, termName); ++positionIter)
@@ -214,29 +222,12 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	}
 
 	// Generate the abstract
-	CJKVTokenizer tokenizer;
-	bool wasCJKV = false;
 	for (map<Xapian::termpos, string>::iterator wordIter = wordsBuffer.begin();
 		wordIter != wordsBuffer.end(); ++wordIter)
 	{
 		gchar *pEscToken = NULL;
 		gchar *pUTF8Token = NULL;
 		gsize bytesWritten = 0;
-		bool isCJKV = false;
-
-		// Skip multi-character CJKV terms
-		if (tokenizer.has_cjkv(wordIter->second) == true)
-		{
-			isCJKV = true;
-
-			if (wordIter->second.length() > 4)
-			{
-#ifdef DEBUG
-				cout << "AbstractGenerator::generateAbstract: skipping " << wordIter->second << endl;
-#endif
-				continue;
-			}
-		}
 
 		pUTF8Token = g_locale_to_utf8(wordIter->second.c_str(), wordIter->second.length(),
 			NULL, &bytesWritten, NULL);
@@ -250,11 +241,13 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 			continue;
 		}
 
+		bool isCJKV = tokenizer.has_cjkv(wordIter->second);
 		if ((summary.empty() == false) &&
 			(wasCJKV != isCJKV))
 		{
 			summary += " ";
 		}
+
 		// Is this a seed term ?
 		if (find(seedTerms.begin(), seedTerms.end(), wordIter->second) != seedTerms.end())
 		{

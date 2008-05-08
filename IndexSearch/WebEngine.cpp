@@ -75,9 +75,9 @@ class TermHighlighter : public Dijon::CJKVTokenizer::TokensHandler
 				++m_nGramCount;
 				if (tok.length() > 4)
 				{
-					// Ignore multi-character tokens
+					// Skip multi-character tokens
 #ifdef DEBUG
-					cout << "WebEngine::processResult: ignoring " << tok << endl;
+					cout << "WebEngine::processResult: skipping " << tok << endl;
 #endif
 					return true;
 				}
