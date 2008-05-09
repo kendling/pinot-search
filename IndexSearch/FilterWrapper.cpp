@@ -133,6 +133,7 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 	{
 		string actualType(originalType);
 		bool isNested = false;
+		bool emptyTitle = false;
 
 		if (pFilter->next_document() == false)
 		{
@@ -170,19 +171,25 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 		}
 		else if (filteredDoc.getTitle().empty() == true)
 		{
-			Url urlObj(doc.getLocation());
-
-			// Default to the file name as title
-			filteredDoc.setTitle(urlObj.getFile());
-#ifdef DEBUG
-			cout << "FilterWrapper::filterDocument: set default title " << urlObj.getFile() << endl;
-#endif
+			emptyTitle = true;
 		}
 
 		// Pass it down to another filter ?
 		if ((filteredDoc.getType().length() >= 10) &&
 			(filteredDoc.getType().substr(0, 10) == "text/plain"))
 		{
+			// Do we need to set a default title ?
+			if (emptyTitle == true)
+			{
+				Url urlObj(doc.getLocation());
+
+				// Default to the file name as title
+				filteredDoc.setTitle(urlObj.getFile());
+#ifdef DEBUG
+				cout << "FilterWrapper::filterDocument: set default title " << urlObj.getFile() << endl;
+#endif
+			}
+
 			// No, it's been reduced to plain text
 			filteredDoc.setType(actualType);
 
