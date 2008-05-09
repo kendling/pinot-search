@@ -243,7 +243,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 
 		bool isCJKV = tokenizer.has_cjkv(wordIter->second);
 		if ((summary.empty() == false) &&
-			(wasCJKV != isCJKV))
+			((wasCJKV != isCJKV) || (isCJKV == false)))
 		{
 			summary += " ";
 		}
