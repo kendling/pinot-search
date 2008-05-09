@@ -32,9 +32,18 @@
 typedef struct _XdgMimeCache XdgMimeCache;
 
 #ifdef XDG_PREFIX
-#define _xdg_mime_cache_new_from_file        XDG_ENTRY(cache_new_from_file)
-#define _xdg_mime_cache_ref                  XDG_ENTRY(cache_ref)
-#define _xdg_mime_cache_unref                XDG_ENTRY(cache_unref)
+#define _xdg_mime_cache_new_from_file                 XDG_ENTRY(cache_new_from_file)
+#define _xdg_mime_cache_ref                           XDG_ENTRY(cache_ref)
+#define _xdg_mime_cache_unref                         XDG_ENTRY(cache_unref)
+#define _xdg_mime_cache_get_max_buffer_extents        XDG_ENTRY(cache_get_max_buffer_extents)
+#define _xdg_mime_cache_get_mime_type_for_data        XDG_ENTRY(cache_get_mime_type_for_data)
+#define _xdg_mime_cache_get_mime_type_for_file        XDG_ENTRY(cache_get_mime_type_for_file)
+#define _xdg_mime_cache_get_mime_type_from_file_name  XDG_ENTRY(cache_get_mime_type_from_file_name)
+#define _xdg_mime_cache_get_mime_types_from_file_name XDG_ENTRY(cache_get_mime_types_from_file_name)
+#define _xdg_mime_cache_list_mime_parents             XDG_ENTRY(cache_list_mime_parents)
+#define _xdg_mime_cache_mime_type_subclass            XDG_ENTRY(cache_mime_type_subclass)
+#define _xdg_mime_cache_unalias_mime_type             XDG_ENTRY(cache_unalias_mime_type)
+
 #endif
 
 extern XdgMimeCache **_caches;
@@ -45,9 +54,13 @@ void          _xdg_mime_cache_unref         (XdgMimeCache *cache);
 
 
 const char  *_xdg_mime_cache_get_mime_type_for_data       (const void *data,
-		 				           size_t      len);
+		 				           size_t      len,
+							   int        *result_prio);
 const char  *_xdg_mime_cache_get_mime_type_for_file       (const char  *file_name,
 							   struct stat *statbuf);
+int          _xdg_mime_cache_get_mime_types_from_file_name (const char *file_name,
+							    const char  *mime_types[],
+							    int          n_mime_types);
 const char  *_xdg_mime_cache_get_mime_type_from_file_name (const char *file_name);
 int          _xdg_mime_cache_is_valid_mime_type           (const char *mime_type);
 int          _xdg_mime_cache_mime_type_equal              (const char *mime_a,

@@ -1,3 +1,76 @@
+2008-04-16  Matthias Clasen  <mclasen@redhat.com>
+
+	* Sync xdgmime to the copy in gio.
+
+2008-04-16  Matthias Clasen  <mclasen@redhat.com>
+
+	Partically revert the last commit after realizing that
+	xdg_mime_media_type_equal doesn't have to init at all.
+
+	* xdgmime.h:
+	* xdgmime.c: Get rid of _xdg_mime_media_type_equal
+
+	* xdgmimecache.c: Use xdg_mime_media_type_equal
+
+2008-04-16  Matthias Clasen  <mclasen@redhat.com>
+
+	Avoid possible memory corruption in xdgmime, fd.o bug 12512,
+	reported by Joe Shaw and Federico Mena Quintero.
+
+	* xdgmime.c(_xdg_mime_media_type_equal): Implement.
+	(xdg_mime_media_type_equal): Turn into a wrapper around the
+	_-prefixed version.
+
+	* xdgmimecache.c: Use the _-prefixed versions of
+	comparison functions throughout.
+
+2008-02-16  Matthias Clasen  <mclasen@redhat.com>
+
+	* === Released 2.13.0 ===
+
+2007-10-16  Matthias Clasen <mclasen@redhat.com>
+
+	* === Released 2.12.1 ===
+
+2007-09-13  Matthias Clasen  <mclasen@redhat.com>
+
+	* === Released 2.12.0 ===
+
+2007-07-25  Alexander Larsson  <alexl@redhat.com>
+
+        * xdgmimealias.h:
+        * xdgmimecache.h:
+        * xdgmimeparent.h:
+	Mark more internal symbols for prefixing
+
+2007-07-21  Matthias Clasen  <mclasen@redhat.com>
+
+	* === Released 2.11.6 ===
+
+2007-07-02  Matthias Clasen  <mclasen@redhat.com>
+
+	* === Released 2.11.5 ===
+
+2007-06-19  Matthias Clasen <mclasen@redhat.com>
+
+	* === Released 2.11.4 ===
+
+2007-06-15  Matthias Clasen  <mclasen@redhat.com>
+
+	* === Released 2.11.3 ===
+
+2007-06-06  Matthias Clasen  <mclasen@redhat.com>
+
+	* === Released 2.11.2 ===
+
+2007-06-04  Matthias Clasen  <mclasen@redhat.com>
+
+	* === Released 2.11.1 ===
+
+2007-05-24   Matthias Clasen  <mclasen@redhat.com>
+
+	* === Released 2.11.0 ===
+
 2007-04-09  Matthias Clasen  <mclasen@redhat.com>
 
 	* xdgmimeglob.c (_xdg_glob_hash_insert_text): Duplicate the
