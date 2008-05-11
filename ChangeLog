@@ -1,4 +1,281 @@
 ------------------------------------------------------------------------
+r1251 | fabricecolin | 2008-05-11 10:17:10 +0800 (Sun, 11 May 2008) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+List latest changes.
+
+------------------------------------------------------------------------
+r1250 | fabricecolin | 2008-05-11 10:16:14 +0800 (Sun, 11 May 2008) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Synced with latest changes.
+
+------------------------------------------------------------------------
+r1249 | fabricecolin | 2008-05-09 21:35:29 +0800 (Fri, 09 May 2008) | 2 lines
+Changed paths:
+   M /trunk/Utils/xdgmime/ChangeLog
+   M /trunk/Utils/xdgmime/xdgmime.c
+   M /trunk/Utils/xdgmime/xdgmime.h
+   M /trunk/Utils/xdgmime/xdgmimealias.h
+   M /trunk/Utils/xdgmime/xdgmimecache.c
+   M /trunk/Utils/xdgmime/xdgmimecache.h
+   M /trunk/Utils/xdgmime/xdgmimemagic.c
+   M /trunk/Utils/xdgmime/xdgmimemagic.h
+   M /trunk/Utils/xdgmime/xdgmimeparent.h
+
+Synced with current gtk+'s xdgmime.
+
+------------------------------------------------------------------------
+r1248 | fabricecolin | 2008-05-09 21:33:05 +0800 (Fri, 09 May 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/AbstractGenerator.cpp
+
+Fix for previous checkin.
+
+------------------------------------------------------------------------
+r1247 | fabricecolin | 2008-05-09 21:32:20 +0800 (Fri, 09 May 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/FilterWrapper.cpp
+
+Only set a default title if the document is not to passed to another filter.
+
+------------------------------------------------------------------------
+r1246 | fabricecolin | 2008-05-09 00:36:04 +0800 (Fri, 09 May 2008) | 5 lines
+Changed paths:
+   M /trunk/IndexSearch/WebEngine.cpp
+   M /trunk/IndexSearch/Xapian/AbstractGenerator.cpp
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+
+A fix for QueryModifier when the query is one CJKV character only.
+AbstractGenerator needs to skip long n-grams early on when populating the
+chosen window.
+Cosmetic changes here and there.
+
+------------------------------------------------------------------------
+r1245 | fabricecolin | 2008-05-08 20:20:55 +0800 (Thu, 08 May 2008) | 6 lines
+Changed paths:
+   M /trunk/IndexSearch/QueryProperties.cpp
+   M /trunk/IndexSearch/WebEngine.cpp
+   M /trunk/IndexSearch/Xapian/AbstractGenerator.cpp
+
+AbstractGenerator and WebEngine's TermHighlighter skip multi-character CJKV
+terms to avoid repetition in extracts.
+QueryProperties' FilterRemover does what the name implies and simply removes
+filters and ranges from a query instead of trying to rebuild it one token at a
+time.
+
+------------------------------------------------------------------------
+r1244 | fabricecolin | 2008-05-06 22:57:51 +0800 (Tue, 06 May 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+
+If the global configuration file couldn't be open, don't assume a first run.
+
+------------------------------------------------------------------------
+r1243 | fabricecolin | 2008-05-06 22:56:48 +0800 (Tue, 06 May 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/FilterWrapper.cpp
+   M /trunk/Tokenize/FilterUtils.cpp
+   M /trunk/Tokenize/TextConverter.cpp
+   M /trunk/Tokenize/TextConverter.h
+
+Overloaded TextConverter::toUTF8(). FilterWrapper uses the new method
+Filter::set_utf8_converter(). Some minor changes.
+
+------------------------------------------------------------------------
+r1242 | fabricecolin | 2008-05-05 20:36:21 +0800 (Mon, 05 May 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-index.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/IndexSearch/pinot-search.1
+   M /trunk/NEWS
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.1
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Bumped version number to 0.85.
+
+------------------------------------------------------------------------
+r1241 | fabricecolin | 2008-05-05 20:07:50 +0800 (Mon, 05 May 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.xml
+
+Removed JPEG from default blacklist.
+Cosmetic modifications to pinot-dbus-daemon.xml.
+
+------------------------------------------------------------------------
+r1240 | fabricecolin | 2008-05-04 22:09:28 +0800 (Sun, 04 May 2008) | 4 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.h
+
+In MonitorThread::stop(), write to the control pipe after the stop flag is set
+by the call to the parent's method.
+Removed unused method.
+
+------------------------------------------------------------------------
+r1239 | fabricecolin | 2008-05-03 14:25:58 +0800 (Sat, 03 May 2008) | 3 lines
+Changed paths:
+   M /trunk/README
+
+Mention the limitation of mixed queries doesn't apply to 0.85 and newer and give
+an example.
+
+------------------------------------------------------------------------
+r1238 | fabricecolin | 2008-05-03 14:17:10 +0800 (Sat, 03 May 2008) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/README
+   M /trunk/pinot.spec.in
+
+New dependency on libexif.
+Added Mizuki-san to the AUTHORS file.
+
+------------------------------------------------------------------------
+r1237 | fabricecolin | 2008-05-03 14:13:44 +0800 (Sat, 03 May 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/QueryProperties.cpp
+   M /trunk/IndexSearch/WebEngine.cpp
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+
+Rely on the CJKV TokensHandler interface to remove filters from queries and get
+sets of terms (QueryProperties), highlight terms (WebEngine) and tweak mixed
+CJKV queries (XapianEngine).
+
+------------------------------------------------------------------------
+r1236 | fabricecolin | 2008-05-03 14:10:08 +0800 (Sat, 03 May 2008) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+
+David Paleino suggests removing the dependency on the m4 directory.
+
+------------------------------------------------------------------------
+r1235 | fabricecolin | 2008-05-03 14:06:48 +0800 (Sat, 03 May 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/Makefile.am
+   M /trunk/IndexSearch/Xapian/Makefile.am
+   M /trunk/Tokenize/Makefile.am
+   M /trunk/configure.in
+   A /trunk/po/ja.po
+
+CJKVTokenizer is useful to code outside of the Xapian back-end and should be
+in libTokenize. The new Exif filter is also compiled.
+Adding Mizuki-san's Japanese translation.
+
+------------------------------------------------------------------------
+r1234 | fabricecolin | 2008-04-29 20:57:49 +0800 (Tue, 29 Apr 2008) | 7 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.h
+
+We don't need to keep the Glib::Thread pointer around since all threads detach.
+Therefore entries can be inserted in the threads list before the new thread
+is started, and we get rid of a possible race condition between list insertion
+and thread exit.
+In ThreadsManager::get_thread(), the list should be locked in write mode since
+entries are removed.
+
+------------------------------------------------------------------------
+r1233 | fabricecolin | 2008-04-23 22:42:02 +0800 (Wed, 23 Apr 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.h
+
+If a language is already specified, don't use it blindly but see if it has a
+stemmer. If it doesn't, then scan the document.
+
+------------------------------------------------------------------------
+r1232 | fabricecolin | 2008-04-23 22:40:21 +0800 (Wed, 23 Apr 2008) | 5 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+   M /trunk/UI/GTK2/src/OnDiskHandler.cpp
+
+In DaemonState, if new directories are queued for crawling, if there's no
+DirectoryScanner thread running, they won't be picked up. Call start_crawling()
+after an addition to the queue, this will start a new crawler if necessary.
+OnDiskHandler wasn't able to get the source label of files.
+
+------------------------------------------------------------------------
+r1231 | fabricecolin | 2008-04-23 22:04:22 +0800 (Wed, 23 Apr 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+
+If the PID file is still there, open /proc/daemon_pid/cmdline and see whether
+the given process is pinot-dbus-daemon.
+
+------------------------------------------------------------------------
+r1230 | fabricecolin | 2008-04-12 16:36:39 +0800 (Sat, 12 Apr 2008) | 3 lines
+Changed paths:
+   M /trunk/SQL/ActionQueue.cpp
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/Makefile.am
+   M /trunk/SQL/QueryHistory.cpp
+   A /trunk/SQL/SQLDB.cpp
+   A /trunk/SQL/SQLDB.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+   M /trunk/SQL/ViewHistory.cpp
+
+Moved generic code to SQLDB. This should allow implementing support for
+other databases, if there's ever a need to.
+
+------------------------------------------------------------------------
+r1229 | fabricecolin | 2008-04-11 23:40:10 +0800 (Fri, 11 Apr 2008) | 2 lines
+Changed paths:
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/CrawlHistory.h
+   M /trunk/SQL/QueryHistory.cpp
+   M /trunk/SQL/QueryHistory.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+   M /trunk/SQL/ViewHistory.cpp
+   M /trunk/SQL/ViewHistory.h
+
+Mostly namespace related cleanups.
+
+------------------------------------------------------------------------
+r1228 | fabricecolin | 2008-04-03 21:07:15 +0800 (Thu, 03 Apr 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+
+Open the PID file, exit if that process is still running.
+
+------------------------------------------------------------------------
+r1226 | fabricecolin | 2008-03-27 16:32:05 +0800 (Thu, 27 Mar 2008) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/ChangeLog-dijon
+
+Current ChangeLogs.
+
+------------------------------------------------------------------------
 r1225 | fabricecolin | 2008-03-27 16:28:56 +0800 (Thu, 27 Mar 2008) | 2 lines
 Changed paths:
    M /trunk/NEWS

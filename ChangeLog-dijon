@@ -1,4 +1,73 @@
 ------------------------------------------------------------------------
+r99 | fabricecolin | 2008-05-11 17:16:45 +0800 (Sun, 11 May 2008) | 3 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/GMimeMboxFilter.h
+
+Don't use charset filters but remember what the part's charset is and let the
+calling application handle conversion.
+
+------------------------------------------------------------------------
+r98 | fabricecolin | 2008-05-06 22:53:36 +0800 (Tue, 06 May 2008) | 5 lines
+Changed paths:
+   M /trunk/filters/Filter.cc
+   M /trunk/filters/Filter.h
+   M /trunk/filters/HtmlFilter.cc
+   M /trunk/filters/HtmlFilter.h
+
+Filters may need to convert text to UTF-8 before/while processing documents.
+For instance, libxml2 used by the HTML filter doesn't handle gb2312 (at least
+when built without iconv support ?) and yet produces UTF-8 output.
+Fixed confusion about what charset should be set to in the metadata map.
+
+------------------------------------------------------------------------
+r97 | fabricecolin | 2008-05-03 14:00:01 +0800 (Sat, 03 May 2008) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+
+When a switch from non-CJKV to CJKV is detected, don't consume the first byte.
+
+------------------------------------------------------------------------
+r96 | fabricecolin | 2008-04-29 20:27:41 +0800 (Tue, 29 Apr 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExifImageFilter.cc
+
+Grab all tags.
+
+------------------------------------------------------------------------
+r95 | fabricecolin | 2008-04-26 14:51:35 +0800 (Sat, 26 Apr 2008) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+   M /trunk/cjkv/CJKVTokenizer.h
+
+Allow to break ASCII tokens only on space.
+
+------------------------------------------------------------------------
+r94 | fabricecolin | 2008-04-26 13:05:55 +0800 (Sat, 26 Apr 2008) | 2 lines
+Changed paths:
+   A /trunk/filters/ExifImageFilter.cc
+   A /trunk/filters/ExifImageFilter.h
+
+Experimental EXIF filter.
+
+------------------------------------------------------------------------
+r93 | fabricecolin | 2008-04-20 18:24:11 +0800 (Sun, 20 Apr 2008) | 3 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+
+If a part has a charset specified, and it's not UTF-8, install a filter to
+convert to UTF-8.
+
+------------------------------------------------------------------------
+r92 | fabricecolin | 2008-04-11 23:47:33 +0800 (Fri, 11 Apr 2008) | 3 lines
+Changed paths:
+   M /trunk/filters/TagLibMusicFilter.cc
+   M /trunk/filters/TagLibMusicFilter.h
+
+TagLibMusicFilter only supports the input type DOCUMENT_FILE_NAME, contrary to
+what it advertised.
+
+------------------------------------------------------------------------
 r90 | fabricecolin | 2008-03-24 13:11:29 +0800 (Mon, 24 Mar 2008) | 2 lines
 Changed paths:
    M /trunk/filters/ExternalFilter.cc
