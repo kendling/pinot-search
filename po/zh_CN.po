@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.85\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-04 22:14+0800\n"
+"POT-Creation-Date: 2008-05-06 22:58+0800\n"
 "PO-Revision-Date: 2008-03-24 14:32+0800\n"
 "Last-Translator: Ashlee Ma <ashlee8310@hotmail.com>\n"
 "MIME-Version: 1.0\n"
@@ -29,8 +29,8 @@ msgstr "目前的使用者"
 #: UI/GTK2/src/mainWindow.cc:984 UI/GTK2/src/mainWindow.cc:1283
 #: UI/GTK2/src/mainWindow.cc:1504 UI/GTK2/src/mainWindow.cc:1540
 #: UI/GTK2/src/mainWindow.cc:1562 UI/GTK2/src/mainWindow.cc:2273
-#: UI/GTK2/src/PinotSettings.cpp:322 UI/GTK2/src/PinotSettings.cpp:1470
-#: UI/GTK2/src/PinotSettings.cpp:1526 UI/GTK2/src/statisticsDialog.cc:79
+#: UI/GTK2/src/PinotSettings.cpp:323 UI/GTK2/src/PinotSettings.cpp:1474
+#: UI/GTK2/src/PinotSettings.cpp:1530 UI/GTK2/src/statisticsDialog.cc:79
 #: UI/GTK2/src/WorkerThreads.cpp:1009
 msgid "My Web Pages"
 msgstr "我的网页"
@@ -38,8 +38,8 @@ msgstr "我的网页"
 #. Spawn new threads
 #: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:763
 #: UI/GTK2/src/mainWindow.cc:978 UI/GTK2/src/mainWindow.cc:1287
-#: UI/GTK2/src/mainWindow.cc:2277 UI/GTK2/src/PinotSettings.cpp:323
-#: UI/GTK2/src/PinotSettings.cpp:1471 UI/GTK2/src/PinotSettings.cpp:1527
+#: UI/GTK2/src/mainWindow.cc:2277 UI/GTK2/src/PinotSettings.cpp:324
+#: UI/GTK2/src/PinotSettings.cpp:1475 UI/GTK2/src/PinotSettings.cpp:1531
 #: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1019
 msgid "My Documents"
 msgstr "我的文件"
@@ -565,23 +565,23 @@ msgid "Couldn't create history database"
 msgstr "无法开启历史资料库"
 
 #. Add default labels
-#: UI/GTK2/src/PinotSettings.cpp:328
+#: UI/GTK2/src/PinotSettings.cpp:329
 msgid "Important"
 msgstr "重要的"
 
-#: UI/GTK2/src/PinotSettings.cpp:329
+#: UI/GTK2/src/PinotSettings.cpp:330
 msgid "New"
 msgstr "新增"
 
-#: UI/GTK2/src/PinotSettings.cpp:330
+#: UI/GTK2/src/PinotSettings.cpp:331
 msgid "Personal"
 msgstr "个人资料"
 
-#: UI/GTK2/src/PinotSettings.cpp:350
+#: UI/GTK2/src/PinotSettings.cpp:351
 msgid "Me"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:1266
+#: UI/GTK2/src/PinotSettings.cpp:1270
 msgid "Unclassified"
 msgstr "未分类的"
 

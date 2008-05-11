@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.85\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-05-04 22:14+0800\n"
+"POT-Creation-Date: 2008-05-06 22:58+0800\n"
 "PO-Revision-Date: 2008-04-05 23:03+0000\n"
 "Last-Translator: Jesus Tramullas <jesus@tramullas.com>\n"
 "Language-Team: es <fabricecolin@users.berlios.de>\n"
@@ -33,8 +33,8 @@ msgstr "Usuario"
 #: UI/GTK2/src/mainWindow.cc:984 UI/GTK2/src/mainWindow.cc:1283
 #: UI/GTK2/src/mainWindow.cc:1504 UI/GTK2/src/mainWindow.cc:1540
 #: UI/GTK2/src/mainWindow.cc:1562 UI/GTK2/src/mainWindow.cc:2273
-#: UI/GTK2/src/PinotSettings.cpp:322 UI/GTK2/src/PinotSettings.cpp:1470
-#: UI/GTK2/src/PinotSettings.cpp:1526 UI/GTK2/src/statisticsDialog.cc:79
+#: UI/GTK2/src/PinotSettings.cpp:323 UI/GTK2/src/PinotSettings.cpp:1474
+#: UI/GTK2/src/PinotSettings.cpp:1530 UI/GTK2/src/statisticsDialog.cc:79
 #: UI/GTK2/src/WorkerThreads.cpp:1009
 msgid "My Web Pages"
 msgstr "Mis Paginas Web"
@@ -42,8 +42,8 @@ msgstr "Mis Paginas Web"
 #. Spawn new threads
 #: UI/GTK2/src/EnginesTree.cpp:338 UI/GTK2/src/mainWindow.cc:763
 #: UI/GTK2/src/mainWindow.cc:978 UI/GTK2/src/mainWindow.cc:1287
-#: UI/GTK2/src/mainWindow.cc:2277 UI/GTK2/src/PinotSettings.cpp:323
-#: UI/GTK2/src/PinotSettings.cpp:1471 UI/GTK2/src/PinotSettings.cpp:1527
+#: UI/GTK2/src/mainWindow.cc:2277 UI/GTK2/src/PinotSettings.cpp:324
+#: UI/GTK2/src/PinotSettings.cpp:1475 UI/GTK2/src/PinotSettings.cpp:1531
 #: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1019
 msgid "My Documents"
 msgstr "Mis documentos"
@@ -563,23 +563,23 @@ msgid "Couldn't create history database"
 msgstr "No se pudo crear la base de datos del histórico"
 
 #. Add default labels
-#: UI/GTK2/src/PinotSettings.cpp:328
+#: UI/GTK2/src/PinotSettings.cpp:329
 msgid "Important"
 msgstr "Importante"
 
-#: UI/GTK2/src/PinotSettings.cpp:329
+#: UI/GTK2/src/PinotSettings.cpp:330
 msgid "New"
 msgstr "Nuevo"
 
-#: UI/GTK2/src/PinotSettings.cpp:330
+#: UI/GTK2/src/PinotSettings.cpp:331
 msgid "Personal"
 msgstr "Personal"
 
-#: UI/GTK2/src/PinotSettings.cpp:350
+#: UI/GTK2/src/PinotSettings.cpp:351
 msgid "Me"
 msgstr "Yo"
 
-#: UI/GTK2/src/PinotSettings.cpp:1266
+#: UI/GTK2/src/PinotSettings.cpp:1270
 msgid "Unclassified"
 msgstr "No clasificado"
 
