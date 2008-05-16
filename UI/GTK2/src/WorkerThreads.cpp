@@ -1274,6 +1274,16 @@ string LabelUpdateThread::getType(void) const
 	return "LabelUpdateThread";
 }
 
+bool LabelUpdateThread::modifiedDocsIndex(void) const
+{
+	return !m_docsIds.empty();
+}
+
+bool LabelUpdateThread::modifiedDaemonIndex(void) const
+{
+	return !m_daemonIds.empty();
+}
+
 void LabelUpdateThread::doWork(void)
 {
 	bool actOnDocuments = false;

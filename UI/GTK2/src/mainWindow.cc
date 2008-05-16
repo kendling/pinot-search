@@ -832,7 +832,7 @@ void mainWindow::on_index_changed(ustring indexName)
 		// Connect to the edit document signal
 		pResultsTree->getDoubleClickSignal().connect(
 			sigc::mem_fun(*this, &mainWindow::on_showfromindex_activate));
-		// Connect to the label changed signal
+		// Connect to the query changed signal
 		pIndexPage->getQueryChangedSignal().connect(
 			sigc::mem_fun(*this, &mainWindow::on_query_changed));
 		// ...and to the buttons clicked signals
@@ -1006,9 +1006,6 @@ void mainWindow::on_query_changed(ustring indexName, ustring queryName)
 		return;
 	}
 
-#ifdef DEBUG
-	cout << "mainWindow::on_query_changed: called on " << queryName << endl;
-#endif
 	browse_index(indexName, queryName, 0);
 }
 
@@ -1425,6 +1422,30 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		{
 			delete pThread;
 			return;
+		}
+
+		// Refresh index lists if necessary, as they may be filtered by labels
+		if (pLabelUpdateThread->modifiedDocsIndex() == true)
+		{
+			IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Web Pages"), NotebookPageBox::INDEX_PAGE));
+			if (pIndexPage != NULL)
+			{
+				browse_index(_("My Web Pages"), pIndexPage->getQueryName(), 0, false);
+#ifdef DEBUG
+				cout << "mainWindow::on_thread_end: refreshed My Web Pages" << endl;
+#endif
+			}
+		}
+		if (pLabelUpdateThread->modifiedDaemonIndex() == true)
+		{
+			IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(_("My Documents"), NotebookPageBox::INDEX_PAGE));
+			if (pIndexPage != NULL)
+			{
+				browse_index(_("My Documents"), pIndexPage->getQueryName(), 0, false);
+#ifdef DEBUG
+				cout << "mainWindow::on_thread_end: refreshed My Documents" << endl;
+#endif
+			}
 		}
 
 		status = _("Updated label(s)");
@@ -2317,7 +2338,7 @@ void mainWindow::on_showfromindex_activate()
 		return;
 	}
 
-	// Update all documents
+	// Update documents properties
 	for (vector<DocumentInfo>::iterator docIter = documentsList.begin();
 		docIter != documentsList.end(); ++docIter)
 	{
@@ -2333,7 +2354,7 @@ void mainWindow::on_showfromindex_activate()
 		docIds.insert(docId);
 	}
 
-	// Now apply these labels to all the documents
+	// Apply labels
 	if (propertiesBox.changedLabels() == true)
 	{
 		LabelUpdateThread *pThread = NULL;
@@ -2352,13 +2373,6 @@ void mainWindow::on_showfromindex_activate()
 		if (pThread != NULL)
 		{
 			start_thread(pThread);
-		}
-
-		// Is the index list filtered with a query ?
-		if (queryName.empty() == false)
-		{
-			// The query may filter on a label, so refresh the list
-			browse_index(indexName, queryName, 0, 0);
 		}
 	}
 }
@@ -2718,13 +2732,8 @@ void mainWindow::on_removeQueryButton_clicked()
 					if (pIndexPage != NULL)
 					{
 						// Synchronize the queries list with the new list 
+						// This will trigger a list refresh
 						pIndexPage->populateQueryCombobox("");
-
-						// The current query was removed, refresh the list
-						if (queryName == pIndexPage->getQueryName())
-						{
-							browse_index(pIndexPage->getTitle(), "", 0, false);
-						}
 					}
 				}
 			}
@@ -3123,13 +3132,8 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 				if (pIndexPage != NULL)
 				{
 					// Synchronize the queries list with the new list
+					// This will trigger a list refresh
 					pIndexPage->populateQueryCombobox(pIndexPage->getQueryName());
-
-					// The current query may have changed, refresh the list
-					if (queryName == pIndexPage->getQueryName())
-					{
-						browse_index(pIndexPage->getTitle(), queryName, 0, false);
-					}
 				}
 			}
 		}
@@ -3273,6 +3277,9 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 void mainWindow::browse_index(const ustring &indexName, const ustring &queryName,
 	unsigned int startDoc, bool changePage)
 {
+#ifdef DEBUG
+	cout << "mainWindow::browse_index: called on " << indexName << ", " << queryName << endl;
+#endif
 	// Rudimentary lock
 	if (m_state.m_browsingIndex == true)
 	{

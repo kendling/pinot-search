@@ -334,6 +334,10 @@ class LabelUpdateThread : public WorkerThread
 
 		virtual std::string getType(void) const;
 
+		bool modifiedDocsIndex(void) const;
+
+		bool modifiedDaemonIndex(void) const;
+
 	protected:
 		std::set<std::string> m_labelsToAdd;
 		std::set<std::string> m_labelsToDelete;
