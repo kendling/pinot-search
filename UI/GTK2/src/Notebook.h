@@ -88,7 +88,6 @@ class NotebookTabBox : public Gtk::HBox
 		Gtk::Label *m_tabLabel;
 		Gtk::Image *m_tabImage;
 #if _USE_BUTTON_TAB
-		Gtk::HBox *m_tabImageBox;
 		Gtk::Button *m_tabButton;
 #else
 		Gtk::EventBox *m_tabEventBox;
