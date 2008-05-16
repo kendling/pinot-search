@@ -30,7 +30,7 @@ using std::set;
 using std::map;
 using std::min;
 
-static const char *g_fieldNames[] = { "caption", "url", "type", "language", "modtime", "size", NULL };
+static const char *g_fieldNames[] = { "caption", "url", "type", "language", "modtime", "size", "extract", NULL };
 
 static DBusGConnection *getBusConnection(void)
 {
@@ -188,6 +188,10 @@ bool DBusIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
 		{
 			docInfo.setSize((off_t )atoi(pValue));
 		}
+		else if (fieldName == g_fieldNames[6])
+		{
+			docInfo.setExtract(pValue);
+		}
 	}
 	while (dbus_message_iter_next(&array_iter));
 
@@ -225,8 +229,41 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 
 	for (unsigned int fieldNum = 0; g_fieldNames[fieldNum] != NULL; ++fieldNum)
 	{
-		const char *pValue = NULL;
+		string value;
 		char sizeStr[64];
+
+		switch (fieldNum)
+		{
+			case 0:
+				value = docInfo.getTitle();
+				break;
+			case 1:
+				value = docInfo.getLocation();
+				break;
+			case 2:
+				value = docInfo.getType();
+				break;
+			case 3:
+				value = Languages::toEnglish(docInfo.getLanguage());
+				break;
+			case 4:
+				value = docInfo.getTimestamp();
+				break;
+			case 5:
+				snprintf(sizeStr, 64, "%u", docInfo.getSize());
+				value = sizeStr;
+				break;
+			case 6:
+				value = docInfo.getExtract();
+				break;
+			default:
+				break;
+		}
+
+		if (value.empty() == true)
+		{
+			continue;
+		}
 
 		if (!dbus_message_iter_open_container(&array_iter,
 			DBUS_TYPE_STRUCT, NULL, &struct_iter))
@@ -237,30 +274,8 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 			return false;
 		}
 
+		const char *pValue = value.c_str();
 		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &g_fieldNames[fieldNum]);
-		switch (fieldNum)
-		{
-			case 0:
-				pValue = docInfo.getTitle().c_str();
-				break;
-			case 1:
-				pValue = docInfo.getLocation().c_str();
-				break;
-			case 2:
-				pValue = docInfo.getType().c_str();
-				break;
-			case 3:
-				pValue = Languages::toEnglish(docInfo.getLanguage()).c_str();
-				break;
-			case 4:
-				pValue = docInfo.getTimestamp().c_str();
-				break;
-			case 5:
-			default:
-				snprintf(sizeStr, 64, "%u", docInfo.getSize());
-				pValue = sizeStr;
-				break;
-		}
 		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &pValue);
 #ifdef DEBUG
 		cout << "DBusIndex::documentInfoToDBus: field " << g_fieldNames[fieldNum] << "=" << pValue << endl;
@@ -424,13 +439,6 @@ bool DBusIndex::setLabels(const set<string> &labels)
 bool DBusIndex::getLabels(set<string> &labels) const
 {
 	bool gotLabels = false;
-
-	if (m_pROIndex != NULL)
-	{
-		reopen();
-
-		return m_pROIndex->getLabels(labels);
-	}
 
 	DBusGConnection *pBus = getBusConnection();
 	if (pBus == NULL)
@@ -630,13 +638,6 @@ bool DBusIndex::hasLabel(unsigned int docId, const string &name) const
 bool DBusIndex::getDocumentLabels(unsigned int docId, set<string> &labels) const
 {
 	bool gotLabels = false;
-
-	if (m_pROIndex != NULL)
-	{
-		reopen();
-
-		return m_pROIndex->getDocumentLabels(docId, labels);
-	}
 
 	DBusGConnection *pBus = getBusConnection();
 	if (pBus == NULL)
