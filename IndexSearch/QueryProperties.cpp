@@ -23,6 +23,7 @@
 #include <utility>
 
 #include "Document.h"
+#include "StringManip.h"
 #include "CJKVTokenizer.h"
 #include "QueryProperties.h"
 
@@ -68,9 +69,7 @@ class FilterRemover : public Dijon::CJKVTokenizer::TokensHandler
 							m_freeQuery.erase(tokPosStart);
 						}
 					}
-#ifdef DEBUG
-					cout << "QueryProperties::getFreeQuery: removed " << tok << "..." << endl;
-#endif
+
 					return true;
 				}
 			}
@@ -205,6 +204,7 @@ void QueryProperties::removeFilters(void)
 
 	tokenizer.tokenize(m_freeQuery, handler, true);
 	m_freeQueryWithoutFilters = handler.m_freeQuery;
+	StringManip::trimSpaces(m_freeQueryWithoutFilters);
 }
 
 /// Sets the name.
