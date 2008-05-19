@@ -124,7 +124,7 @@
 	Retrieves information about a document.
 	 docId: the document's ID
 	 fields : array of (s name, s value) structures with name one of
-	 "caption", "url", "type", "language", "modtime", "size"
+	 "caption", "url", "type", "language", "modtime", "size", "extract"
 	-->
     <method name="GetDocumentInfo">
       <annotation name="de.berlios.Pinot.GetDocumentInfo" value="pinotDBus"/>
@@ -135,7 +135,7 @@
 	Sets information about a document.
 	 docId: the document's ID
 	 fields : array of (s name, s value) structures with name one of
-	 "caption", "url", "type", "language", "modtime", "size"
+	 "caption", "url", "type", "language", "modtime", "size", "extract"
 	-->
     <method name="SetDocumentInfo">
       <annotation name="de.berlios.Pinot.SetDocumentInfo" value="pinotDBus"/>
