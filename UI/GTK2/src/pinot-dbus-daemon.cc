@@ -641,8 +641,12 @@ int main(int argc, char **argv)
 				{
 					indexVersion = "0.0";
 				}
-				if ((ignoreVersion == false) &&
-					(indexVersion < PINOT_INDEX_MIN_VERSION))
+				if (ignoreVersion == true)
+				{
+					// Better reset labels, they may have been lost too
+					resetLabels = true;
+				}
+				else if (indexVersion < PINOT_INDEX_MIN_VERSION)
 				{
 					cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
 
