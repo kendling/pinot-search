@@ -71,6 +71,10 @@ class SQLiteBase : public SQLDB
 
 		virtual bool isOpen(void) const;
 
+		virtual bool alterTable(const std::string &tableName,
+			const std::string &columns,
+			const std::string &newDefinition);
+
 		virtual bool executeSimpleStatement(const std::string &sql);
 
 		virtual SQLResults *executeStatement(const char *sqlFormat, ...);

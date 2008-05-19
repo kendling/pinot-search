@@ -73,6 +73,10 @@ class SQLDB
 
 		virtual bool isOpen(void) const = 0;
 
+		virtual bool alterTable(const std::string &tableName,
+			const std::string &columns,
+			const std::string &newDefinition) = 0;
+
 		virtual bool executeSimpleStatement(const std::string &sql) = 0;
 
 		virtual SQLResults *executeStatement(const char *sqlFormat, ...) = 0;

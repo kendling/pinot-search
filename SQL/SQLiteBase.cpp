@@ -213,6 +213,48 @@ bool SQLiteBase::isOpen(void) const
 	return true;
 }
 
+bool SQLiteBase::alterTable(const string &tableName,
+	const string &columns, const string &newDefinition)
+{
+	if ((tableName.empty() == true) ||
+		(columns.empty() == true) ||
+		(newDefinition.empty() == true))
+	{
+		return false;
+	}
+
+	string sql("BEGIN TRANSACTION; CREATE TEMPORARY TABLE ");
+	sql += tableName;
+	sql += "_backup (";
+	sql += columns;
+	sql += "); INSERT INTO ";
+	sql += tableName;
+	sql += "_backup SELECT ";
+	sql += columns;
+	sql += " FROM ";
+	sql += tableName;
+	sql += "; DROP TABLE ";
+	sql += tableName;
+	sql += "; CREATE TABLE ";
+	sql += tableName;
+	sql += " (";
+	sql += newDefinition;
+	sql += "); INSERT INTO ";
+	sql += tableName;
+	sql += " SELECT ";
+	sql += columns;
+	sql += " FROM ";
+	sql += tableName;
+	sql += "_backup; DROP TABLE ";
+	sql += tableName;
+	sql += "_backup; COMMIT;";
+#ifdef DEBUG
+	cout << "SQLiteBase::alterTable: " << sql << endl;
+#endif
+
+	return executeSimpleStatement(sql);
+}
+
 bool SQLiteBase::executeSimpleStatement(const string &sql)
 {
 	char *errMsg = NULL;
