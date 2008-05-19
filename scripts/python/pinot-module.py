@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 
+import cgi, re
 import gnome
 import deskbar
 from deskbar.handlers.actions.OpenFileAction import OpenFileAction
@@ -37,23 +38,38 @@ class PinotFileMatch(deskbar.interfaces.Match):
 	def __init__(self, fields, **args):
 		deskbar.interfaces.Match.__init__ (self)
 		self.result = fields
-		self.url = fields["url"]
+		if fields.has_key("url"):
+			self.url = fields["url"]
 		url_scheme = self.url[:self.url.index("://")]
 		# The mailbox scheme is specific to Pinot
 		if url_scheme == "mailbox":
 			mailbox_url = self.url
-			print "Mailbox hit: ", mailbox_url
+			print 'Mailbox hit: ', mailbox_url
 			self.url = "file://" + mailbox_url[len("mailbox://"):mailbox_url.index('?')]
 			url_scheme = "file"
 
 		self.result["url"] = self.url
-		print "Action: ", self.result["caption"], " ", self.result["url"]
+		print 'Action: ', self.result["caption"], " ", self.result["url"]
 
+		# Snippet
+		self.result["snippet"] = ""
+		if fields.has_key("extract"):
+			snippet = fields["extract"]
+			if snippet != None and snippet != "":
+				# Remove trailing whitespaces and escape '%'
+				snippet.strip().replace("%", "%%")
+				# Escape
+				tmp = re.sub(r"<.*?>", "", snippet)
+				tmp = re.sub(r"</.*?>", "", tmp)
+				print 'Extract ', tmp
+				self.result["snippet"] = "\n%s" % cgi.escape(tmp)
+        
 		if url_scheme == "file":
-			print "File hit"
+			print 'File hit'
+			#self.add_action(OpenFileAction(self.result["caption"] + self.result["snippet"], self.result["url"]))
 			self.add_action(OpenFileAction(self.result["caption"], self.result["url"]))
 		else:
-			print "Other hit"
+			print 'Other hit'
 			self.add_all_actions(get_actions_for_uri(self.result["url"]))
 
 	def get_hash(self, text=None):
@@ -163,7 +179,7 @@ class PinotFileSearchModule(deskbar.interfaces.Module):
 		try :
 			# Get the details of each hit
 			for doc_id in doc_ids:
-				print "Hit on document ", doc_id
+				print 'Hit on document ', doc_id
 				self.pinot_iface.GetDocumentInfo (dbus.UInt32(doc_id),
 					reply_handler=self.__receive_hits, error_handler=self.__receive_error)
 		except Exception, msg:
@@ -180,7 +196,7 @@ class PinotFileSearchModule(deskbar.interfaces.Module):
 			match_fields[field[0]] = field[1]
 
 		self.matches.append( PinotFileMatch(match_fields) )
-		print "Got hit ", len(self.matches)
+		print 'Got hit ', len(self.matches)
 		if len(self.matches) == self.matches_count:
 			self._emit_query_ready(self.query_string, self.matches)
 
