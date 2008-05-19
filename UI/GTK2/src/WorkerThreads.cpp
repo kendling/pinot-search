@@ -1163,9 +1163,9 @@ EngineHistoryThread::~EngineHistoryThread()
 
 void EngineHistoryThread::doWork(void)
 {
-	QueryHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+	QueryHistory queryHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 
-	if (history.getItems(m_queryProps.getName(), m_engineDisplayableName,
+	if (queryHistory.getItems(m_queryProps.getName(), m_engineDisplayableName,
 		m_maxDocsCount, m_documentsList) == false)
 	{
 		m_errorNum = HISTORY_FAILED;
@@ -1174,7 +1174,7 @@ void EngineHistoryThread::doWork(void)
 	else if (m_documentsList.empty() == false)
 	{
 		// Get the first result's charset
-		history.getItemExtract(m_queryProps.getName(), m_engineDisplayableName,
+		queryHistory.getItemExtract(m_queryProps.getName(), m_engineDisplayableName,
 			m_documentsList.front().getLocation(), m_resultsCharset);
 	}
 }
@@ -1955,7 +1955,7 @@ void MonitorThread::stop(void)
 
 void MonitorThread::processEvents(void)
 {
-	CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 	queue<MonitorEvent> events;
 
 #ifdef DEBUG
@@ -2031,7 +2031,7 @@ void MonitorThread::processEvents(void)
 				{
 					m_pHandler->fileModified(event.m_location);
 				}
-				else if (history.hasItem("file://" + event.m_location, status, itemDate) == true)
+				else if (crawlHistory.hasItem("file://" + event.m_location, status, itemDate) == true)
 				{
 					// Was the file actually modified ?
 					if ((stat(event.m_location.c_str(), &fileStat) == 0) &&

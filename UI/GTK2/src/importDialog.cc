@@ -156,9 +156,9 @@ void importDialog::on_locationEntry_changed()
 	m_locationLength = locationLength;
 
 	// Get 10 URLs like this one
-	QueryHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+	QueryHistory queryHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 	set<string> suggestedUrls;
-	history.findUrlsLike(fileName, 10, suggestedUrls);
+	queryHistory.findUrlsLike(fileName, 10, suggestedUrls);
 	// Populate the list
 	for (set<string>::iterator urlIter = suggestedUrls.begin();
 		urlIter != suggestedUrls.end(); ++urlIter)

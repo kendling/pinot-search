@@ -128,7 +128,7 @@ void statisticsDialog::populate(void)
 
 bool statisticsDialog::on_activity_timeout(void)
 {
-	CrawlHistory crawlerHistory(PinotSettings::getInstance().getHistoryDatabaseName(true));
+	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName(true));
 	ViewHistory viewHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 	TreeModel::Row row;
 	std::map<unsigned int, string> sources;
@@ -176,7 +176,7 @@ bool statisticsDialog::on_activity_timeout(void)
 	row[m_statsColumns.m_name] = ustring(_("Viewed")) + " " + countStr + " " + _("results");
 
 	// Show crawler statistics
-	unsigned int crawledFilesCount = crawlerHistory.getItemsCount(CrawlHistory::CRAWLED);
+	unsigned int crawledFilesCount = crawlHistory.getItemsCount(CrawlHistory::CRAWLED);
 	snprintf(countStr, 64, "%u", crawledFilesCount);
 	row = *m_crawledStatIter;
 	row[m_statsColumns.m_name] = ustring(_("Crawled")) + " " + countStr + " " + _("files");
@@ -215,7 +215,7 @@ bool statisticsDialog::on_activity_timeout(void)
 	}
 
 	// Show errors
-	crawlerHistory.getSources(sources);
+	crawlHistory.getSources(sources);
 	for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
 		sourceIter != sources.end(); ++sourceIter)
 	{
@@ -230,7 +230,7 @@ bool statisticsDialog::on_activity_timeout(void)
 		}
 
 		// Did any error occur on this source ?
-		unsigned int errorCount = crawlerHistory.getSourceItems(sourceNum,
+		unsigned int errorCount = crawlHistory.getSourceItems(sourceNum,
 			CrawlHistory::ERROR, errors, latestErrorDate);
 		if ((errorCount > 0) &&
 			(errors.empty() == false))
@@ -252,7 +252,7 @@ bool statisticsDialog::on_activity_timeout(void)
 				string locationWithError(*errorIter);
 				TreeModel::iterator errIter;
 				time_t errorDate;
-				int errorNum = crawlerHistory.getErrorDetails(locationWithError, errorDate);
+				int errorNum = crawlHistory.getErrorDetails(locationWithError, errorDate);
 
 				if (errorDate > latestErrorDate)
 				{

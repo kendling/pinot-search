@@ -69,10 +69,10 @@ class DirectoryScannerThread : public WorkerThread
 		sigc::signal3<void, DocumentInfo, std::string, bool> m_signalFileFound;
 		std::map<std::string, time_t> m_updateCache;
 
-		void cacheUpdate(const std::string &location, time_t mTime, CrawlHistory &history);
-		void flushUpdates(CrawlHistory &history);
+		void cacheUpdate(const std::string &location, time_t mTime, CrawlHistory &crawlHistory);
+		void flushUpdates(CrawlHistory &crawlHistory);
 		void foundFile(const DocumentInfo &docInfo);
-		bool scanEntry(const std::string &entryName, CrawlHistory &history);
+		bool scanEntry(const std::string &entryName, CrawlHistory &crawlHistory);
 		virtual void doWork(void);
 
 	private:

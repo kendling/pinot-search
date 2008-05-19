@@ -432,10 +432,10 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		if ((errorNum > 0) &&
 			(indexedUrl.empty() == false))
 		{
-			CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+			CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 
 			// An entry should already exist for this
-			history.updateItem(indexedUrl, CrawlHistory::ERROR, time(NULL), errorNum);
+			crawlHistory.updateItem(indexedUrl, CrawlHistory::ERROR, time(NULL), errorNum);
 		}
 	}
 	else if (type == "UnindexingThread")

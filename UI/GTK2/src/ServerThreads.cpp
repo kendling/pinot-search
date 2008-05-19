@@ -118,15 +118,15 @@ DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSou
 {
 	if (m_dirName.empty() == false)
 	{
-		CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+		CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 
 		if (isSource == true)
 		{
 			// Does this source exist ?
-			if (history.hasSource("file://" + m_dirName, m_sourceId) == false)
+			if (crawlHistory.hasSource("file://" + m_dirName, m_sourceId) == false)
 			{
 				// Create it
-				m_sourceId = history.insertSource("file://" + m_dirName);
+				m_sourceId = crawlHistory.insertSource("file://" + m_dirName);
 			}
 		}
 		else
@@ -190,20 +190,20 @@ sigc::signal3<void, DocumentInfo, string, bool>& DirectoryScannerThread::getFile
 }
 
 void DirectoryScannerThread::cacheUpdate(const string &location, time_t mTime,
-	CrawlHistory &history)
+	CrawlHistory &crawlHistory)
 {
 	m_updateCache[location] = mTime;
 
 	if (m_updateCache.size() > 500)
 	{
-		flushUpdates(history);
+		flushUpdates(crawlHistory);
 	}
 }
 
-void DirectoryScannerThread::flushUpdates(CrawlHistory &history)
+void DirectoryScannerThread::flushUpdates(CrawlHistory &crawlHistory)
 {
 	// Update these records
-	history.updateItems(m_updateCache, CrawlHistory::CRAWLED);
+	crawlHistory.updateItems(m_updateCache, CrawlHistory::CRAWLED);
 	m_updateCache.clear();
 
 #ifdef DEBUG
@@ -229,7 +229,7 @@ void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 	m_signalFileFound(docInfo, labelStream.str(), false);
 }
 
-bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &history)
+bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &crawlHistory)
 {
 	CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
 	string location("file://" + entryName);
@@ -257,7 +257,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 	}
 
 	// Is this item in the database already ?
-	itemExists = history.hasItem(location, status, itemDate);
+	itemExists = crawlHistory.hasItem(location, status, itemDate);
 
 	if (m_followSymLinks == false)
 	{
@@ -343,7 +343,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 						subEntryName += pEntryName;
 
 						// Scan this entry
-						if (scanEntry(subEntryName, history) == false)
+						if (scanEntry(subEntryName, crawlHistory) == false)
 						{
 #ifdef DEBUG
 							cout << "DirectoryScannerThread::scanEntry: failed to open "
@@ -389,7 +389,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 		if (itemExists == false)
 		{
 			// Record it
-			history.insertItem(location, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
+			crawlHistory.insertItem(location, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
 			itemExists = true;
 #ifdef DEBUG
 			cout << "DirectoryScannerThread::scanEntry: reporting new file " << entryName << endl;
@@ -413,7 +413,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 #ifdef DEBUG
 				cout << "DirectoryScannerThread::scanEntry: updating " << entryName << endl;
 #endif
-				cacheUpdate(location, fileStat.st_mtime, history);
+				cacheUpdate(location, fileStat.st_mtime, crawlHistory);
 			}
 
 		}
@@ -446,11 +446,11 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 		// Record this error
 		if (itemExists == false)
 		{
-			history.insertItem(location, CrawlHistory::ERROR, m_sourceId, timeNow, entryStatus);
+			crawlHistory.insertItem(location, CrawlHistory::ERROR, m_sourceId, timeNow, entryStatus);
 		}
 		else
 		{
-			history.updateItem(location, CrawlHistory::ERROR, timeNow, entryStatus);
+			crawlHistory.updateItem(location, CrawlHistory::ERROR, timeNow, entryStatus);
 		}
 	}
 
@@ -459,7 +459,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &hi
 
 void DirectoryScannerThread::doWork(void)
 {
-	CrawlHistory history(PinotSettings::getInstance().getHistoryDatabaseName());
+	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 	set<string> deletedFiles;
 	Timer scanTimer;
 
@@ -474,17 +474,17 @@ void DirectoryScannerThread::doWork(void)
 		cout << "Doing a full scan on " << m_dirName << endl;
 
 		// Update this source's items status so that we can detect files that have been deleted
-		history.updateItemsStatus(m_sourceId, CrawlHistory::CRAWLED, CrawlHistory::CRAWLING);
+		crawlHistory.updateItemsStatus(m_sourceId, CrawlHistory::CRAWLED, CrawlHistory::CRAWLING);
 	}
 	// Remove errors
-	history.deleteItems(m_sourceId, CrawlHistory::ERROR);
+	crawlHistory.deleteItems(m_sourceId, CrawlHistory::ERROR);
 
-	if (scanEntry(m_dirName, history) == false)
+	if (scanEntry(m_dirName, crawlHistory) == false)
 	{
 		m_errorNum = OPENDIR_FAILED;
 		m_errorParam = m_dirName;
 	}
-	flushUpdates(history);
+	flushUpdates(crawlHistory);
 
 	if (m_done == true)
 	{
@@ -499,7 +499,7 @@ void DirectoryScannerThread::doWork(void)
 		// All files with status set to CRAWLING were not found in this crawl
 		// Chances are they were removed after the last full scan
 		if ((m_pHandler != NULL) &&
-			(history.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, deletedFiles) > 0))
+			(crawlHistory.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, deletedFiles) > 0))
 		{
 #ifdef DEBUG
 			cout << "DirectoryScannerThread::doWork: " << deletedFiles.size() << " files were deleted" << endl;
@@ -511,7 +511,7 @@ void DirectoryScannerThread::doWork(void)
 				if (m_pHandler->fileDeleted(fileIter->substr(7)) == true)
 				{
 					// Delete this item
-					history.deleteItem(*fileIter);
+					crawlHistory.deleteItem(*fileIter);
 				}
 			}
 		}
@@ -664,8 +664,8 @@ void DBusServletThread::doWork(void)
 
 	if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "GetStatistics") == TRUE)
 	{
-		CrawlHistory history(settings.getHistoryDatabaseName());
-		unsigned int crawledFilesCount = history.getItemsCount(CrawlHistory::CRAWLED);
+		CrawlHistory crawlHistory(settings.getHistoryDatabaseName());
+		unsigned int crawledFilesCount = crawlHistory.getItemsCount(CrawlHistory::CRAWLED);
 		unsigned int docsCount = pIndex->getDocumentsCount();
 
 #ifdef DEBUG
