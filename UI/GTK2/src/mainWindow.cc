@@ -291,7 +291,7 @@ mainWindow::~mainWindow()
 //
 void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 {
-	QueryHistory history(m_settings.getHistoryDatabaseName());
+	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
 	const std::map<string, QueryProperties> &queries = m_settings.getQueries();
 
 	// Reset the whole tree
@@ -304,18 +304,25 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 	{
 		TreeModel::iterator iter = m_refQueryTree->append();
 		TreeModel::Row row = *iter;
-		string queryName = queryIter->first;
-		string lastRun = history.getLastRun(queryName);
+		set<time_t> latestRuns;
+		string queryName(queryIter->first);
+		string lastRun;
 		time_t lastRunTime = 0;
 
 		row[m_queryColumns.m_name] = to_utf8(queryName);
-		if (lastRun.empty() == true)
+		if ((queryHistory.getLatestRuns(queryName, "", 1, latestRuns) == false) ||
+			(latestRuns.empty() == true))
 		{
 			lastRun = _("N/A");
 		}
 		else
 		{
-			lastRunTime = TimeConverter::fromTimestamp(lastRun);
+			lastRunTime = *(latestRuns.begin());
+			lastRun = TimeConverter::toTimestamp(lastRunTime);
+#ifdef DEBUG
+			cout << "mainWindow::populate_queryTreeview: latest run of "
+				<< queryName << " is " << lastRun << "/" << lastRunTime << endl;
+#endif
 		}
 		row[m_queryColumns.m_lastRun] = to_utf8(lastRun);
 		row[m_queryColumns.m_lastRunTime] = lastRunTime;
@@ -2621,11 +2628,13 @@ void mainWindow::on_liveQueryEntry_changed()
 		term = liveQuery.substr(pos + 1);
 	}
 
-	// If characters are being deleted or if the term is too short, don't
-	// attempt to offer suggestions
+	// If characters are being deleted, if the term is too short or
+	// if it's a filter or a range, don't offer suggestions
 	if ((m_state.m_liveQueryLength > liveQueryLength) ||
 		(term.empty() == true) ||
-		(m_refLiveQueryCompletion->get_minimum_key_length() > term.length()))
+		(m_refLiveQueryCompletion->get_minimum_key_length() > term.length()) ||
+		(term.find(':') != string::npos) ||
+		(term.find("..") != string::npos))
 	{
 		m_state.m_liveQueryLength = liveQueryLength;
 		return;
@@ -2704,9 +2713,10 @@ void mainWindow::on_removeQueryButton_clicked()
 
 		if (m_settings.removeQuery(queryName) == true)
 		{
+			QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
+
 			// Remove records from QueryHistory
-			QueryHistory history(m_settings.getHistoryDatabaseName());
-			history.deleteItems(queryName, true);
+			queryHistory.deleteItems(queryName, true);
 
 			// Select another row
 			queryTreeview->get_selection()->unselect(iter);
@@ -2752,13 +2762,13 @@ void mainWindow::on_queryHistoryButton_clicked()
 	// Any query selected ?
 	if (queryIter)
 	{
-		QueryHistory history(m_settings.getHistoryDatabaseName());
+		QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
 		TreeModel::Row queryRow = *queryIter;
 		set<string> engineNames;
 		QueryProperties queryProps = queryRow[m_queryColumns.m_properties];
 		ustring queryName(queryRow[m_queryColumns.m_name]);
 
-		if ((history.getEngines(queryName, engineNames) == false) ||
+		if ((queryHistory.getEngines(queryName, engineNames) == false) ||
 			(engineNames.empty() == true))
 		{
 			ustring statusText = _("No history for");
@@ -3079,10 +3089,10 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 		ustring newQueryName(queryProps.getName());
 		if (newQueryName != queryName)
 		{
-			QueryHistory history(m_settings.getHistoryDatabaseName());
+			QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
 
 			// Remove records from QueryHistory
-			history.deleteItems(queryName, true);
+			queryHistory.deleteItems(queryName, true);
 		}
 
 		// Update the query properties
