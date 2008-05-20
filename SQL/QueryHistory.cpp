@@ -23,7 +23,6 @@
 #include <cstdlib>
 
 #include "Url.h"
-#include "TimeConverter.h"
 #include "QueryHistory.h"
 
 using std::cout;
@@ -44,8 +43,6 @@ QueryHistory::~QueryHistory()
 /// Creates the QueryHistory table in the database.
 bool QueryHistory::create(const string &database)
 {
-	bool success = true;
-
 	// The specified path must be a file
 	if (SQLiteBase::check(database) == false)
 	{
@@ -53,24 +50,34 @@ bool QueryHistory::create(const string &database)
 	}
 
 	SQLiteBase db(database);
+	string tableDefinition("QueryName VARCHAR(255), EngineName VARCHAR(255), HostName VARCHAR(255), \
+		Url VARCHAR(255), Title VARCHAR(255), Extract VARCHAR(255), Language VARCHAR(255), \
+		Score FLOAT, Date INTEGER, PRIMARY KEY(QueryName, EngineName, Url, Date)");
 
 	// Does QueryHistory exist ?
 	if (db.executeSimpleStatement("SELECT * FROM QueryHistory LIMIT 1;") == false)
 	{
-#ifdef DEBUG
-		cout << "QueryHistory::create: QueryHistory doesn't exist" << endl;
-#endif
 		// Create the table
-		if (db.executeSimpleStatement("CREATE TABLE QueryHistory (QueryName VARCHAR(255), \
-			EngineName VARCHAR(255), HostName VARCHAR(255), Url VARCHAR(255), Title VARCHAR(255), \
-			Extract VARCHAR(255), Language VARCHAR(255), Score FLOAT, PrevScore FLOAT, Date INTEGER, \
-			PRIMARY KEY(QueryName, EngineName, Url));") == false)
+		if (db.executeSimpleStatement("CREATE TABLE QueryHistory (" + tableDefinition + ");") == false)
 		{
-			success = false;
+			return false;
+		}
+	}
+	else
+	{
+		// Previous versions had a PrevScore field, so check for it
+		if (db.executeSimpleStatement("SELECT PrevScore FROM QueryHistory LIMIT 1;") == true)
+		{
+#ifdef DEBUG
+			cout << "QueryHistory::create: QueryHistory needs updating" << endl;
+#endif
+			db.alterTable("QueryHistory",
+				"QueryName, EngineName, HostName, Url, Title, Extract, Language, Score, Date",
+				tableDefinition);
 		}
 	}
 
-	return success;
+	return true;
 }
 
 /// Inserts an URL.
@@ -82,7 +89,7 @@ bool QueryHistory::insertItem(const string &queryName, const string &engineName,
 	bool success = false;
 
 	SQLResults *results = executeStatement("INSERT INTO QueryHistory \
-		VALUES('%q', '%q', '%q', '%q', '%q', '%q', '%q', '%f', '0.0', '%d');",
+		VALUES('%q', '%q', '%q', '%q', '%q', '%q', '%q', '%f', '%d');",
 		queryName.c_str(), engineName.c_str(), hostName.c_str(),
 		Url::escapeUrl(url).c_str(), title.c_str(), extract.c_str(), charset.c_str(),
 		score, time(NULL));
@@ -101,44 +108,34 @@ float QueryHistory::hasItem(const string &queryName, const string &engineName, c
 {
 	float score = 0;
 
-	SQLResults *results = executeStatement("SELECT Score, PrevScore FROM QueryHistory \
-		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q';",
+	SQLResults *results = executeStatement("SELECT Score FROM QueryHistory \
+		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q' ORDER BY Date DESC;",
 		queryName.c_str(), engineName.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
+		previousScore = 0;
+
 		SQLRow *row = results->nextRow();
 		if (row != NULL)
 		{
 			score = (float)atof(row->getColumn(0).c_str());
-			previousScore = (float)atof(row->getColumn(1).c_str());
 
 			delete row;
+
+			// Get the score of the second last run
+			SQLRow *row = results->nextRow();
+			if (row != NULL)
+			{
+				previousScore = (float)atof(row->getColumn(0).c_str());
+
+				delete row;
+			}
 		}
 
 		delete results;
 	}
 
 	return score;
-}
-
-/// Updates an URL's details.
-bool QueryHistory::updateItem(const string &queryName, const string &engineName, const string &url,
-	const string &title, const string &extract, const string &charset, float score)
-{
-	bool success = false;
-
-	SQLResults *results = executeStatement("UPDATE QueryHistory SET PrevScore=Score, \
-		Score=%f, Date='%d', Title='%q', Extract='%q', Language='%q' \
-		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q';",
-		score, time(NULL), title.c_str(), extract.c_str(), charset.c_str(),
-		queryName.c_str(), engineName.c_str(), Url::escapeUrl(url).c_str());
-	if (results != NULL)
-	{
-		success = true;
-		delete results;
-	}
-
-	return success;
 }
 
 /// Gets the list of engines the query was run on.
@@ -178,7 +175,7 @@ bool QueryHistory::getItems(const string &queryName, const string &engineName,
 	bool success = false;
 
 	SQLResults *results = executeStatement("SELECT Title, Url, Language, Extract, Score \
-		FROM QueryHistory WHERE QueryName='%q' AND EngineName='%q' ORDER BY Score DESC \
+		FROM QueryHistory WHERE QueryName='%q' AND EngineName='%q' ORDER BY Date, Score DESC \
 		LIMIT %u;", queryName.c_str(), engineName.c_str(), max);
 	if (results != NULL)
 	{
@@ -215,7 +212,7 @@ string QueryHistory::getItemExtract(const string &queryName, const string &engin
 	string extract;
 
 	SQLResults *results = executeStatement("SELECT Extract, Language FROM QueryHistory \
-		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q';",
+		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q' ORDER BY Date DESC;",
 		queryName.c_str(), engineName.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
@@ -269,39 +266,47 @@ bool QueryHistory::findUrlsLike(const string &url, unsigned int count, set<strin
 	return success;
 }
 
-/// Gets a query's last run time.
-string QueryHistory::getLastRun(const string &queryName, const string &engineName)
+/// Gets a query's latest run times.
+bool QueryHistory::getLatestRuns(const string &queryName, const string &engineName,
+	unsigned int runCount, set<time_t> &runTimes)
 {
 	SQLResults *results = NULL;
-	string lastRun;
+	bool success = false;
 
 	if (queryName.empty() == true)
 	{
-		return "";
+		return false;
 	}
 
 	if (engineName.empty() == true)
 	{
-		results = executeStatement("SELECT MAX(Date) FROM QueryHistory \
-			WHERE QueryName='%q';", queryName.c_str());
+		results = executeStatement("SELECT Date FROM QueryHistory \
+			WHERE QueryName='%q' GROUP BY EngineName ORDER By Date DESC LIMIT %u;",
+			queryName.c_str(), runCount);
 	}
 	else
 	{
-		results = executeStatement("SELECT MAX(Date) FROM QueryHistory \
-			WHERE QueryName='%q' AND EngineName='%q';",
-			queryName.c_str(), engineName.c_str());
+		results = executeStatement("SELECT Date FROM QueryHistory \
+			WHERE QueryName='%q' AND EngineName='%q' GROUP BY Date ORDER By Date DESC LIMIT %u;",
+			queryName.c_str(), engineName.c_str(), runCount);
 	}
 
 	if (results != NULL)
 	{
-		SQLRow *row = results->nextRow();
-		if (row != NULL)
+		while (results->hasMoreRows() == true)
 		{
-			int latestDate = atoi(row->getColumn(0).c_str());
-			if (latestDate > 0)
+			SQLRow *row = results->nextRow();
+			if (row == NULL)
 			{
-				lastRun = TimeConverter::toTimestamp((time_t)latestDate);
+				break;
 			}
+
+			int runDate = atoi(row->getColumn(0).c_str());
+			if (runDate > 0)
+			{
+				runTimes.insert((time_t)runDate);
+			}
+			success = true;
 
 			delete row;
 		}
@@ -309,15 +314,21 @@ string QueryHistory::getLastRun(const string &queryName, const string &engineNam
 		delete results;
 	}
 
-	return lastRun;
+	return success;
 }
 
 /// Deletes items at least as old as the given date.
 bool QueryHistory::deleteItems(const string &queryName, const string &engineName,
 	time_t cutOffDate)
 {
+	if (cutOffDate == 0)
+	{
+		// Nothing to delete
+		return true;
+	}
+
 	SQLResults *results = executeStatement("DELETE FROM QueryHistory \
-		WHERE QueryName='%q' AND EngineName='%q' AND Date<='%d';",
+		WHERE QueryName='%q' AND EngineName='%q' AND Date<'%d';",
 		queryName.c_str(), engineName.c_str(), cutOffDate);
 	if (results != NULL)
 	{
@@ -358,6 +369,12 @@ bool QueryHistory::deleteItems(const string &name, bool isQueryName)
 /// Expires items older than the given date.
 bool QueryHistory::expireItems(time_t expiryDate)
 {
+	if (expiryDate == 0)
+	{
+		// Nothing to delete
+		return true;
+	}
+
 	SQLResults *results = executeStatement("DELETE FROM QueryHistory \
 		WHERE Date<'%d';", expiryDate);
 	if (results != NULL)

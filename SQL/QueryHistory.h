@@ -47,10 +47,6 @@ class QueryHistory : public SQLiteBase
 		float hasItem(const std::string &queryName, const std::string &engineName, const std::string &url,
 			float &previousScore);
 
-		/// Updates an URL's details.
-		bool updateItem(const std::string &queryName, const std::string &engineName, const std::string &url,
-			const std::string &title, const std::string &extract, const std::string &charset, float score);
-
 		/// Gets the list of engines the query was run on.
 		bool getEngines(const std::string &queryName, std::set<std::string> &enginesList);
 
@@ -66,8 +62,9 @@ class QueryHistory : public SQLiteBase
 		bool findUrlsLike(const std::string &url, unsigned int count,
 			std::set<std::string> &urls);
 
-		/// Gets a query's last run time.
-		std::string getLastRun(const std::string &queryName, const std::string &engineName = "");
+		/// Gets a query's latest run times.
+		bool getLatestRuns(const std::string &queryName, const std::string &engineName,
+			unsigned int runCount, std::set<time_t> &runTimes);
 
 		/// Deletes items at least as old as the given date.
 		bool deleteItems(const std::string &queryName, const std::string &engineName,
