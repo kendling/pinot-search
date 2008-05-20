@@ -37,8 +37,9 @@ class QueryHistory : public SQLiteBase
 		static bool create(const std::string &database);
 
 		/// Inserts an URL.
-		bool insertItem(const std::string &queryName, const std::string &engineName, const std::string &url,
-			const std::string &title, const std::string &extract, const std::string &charset, float score);
+		bool insertItem(const std::string &queryName, const std::string &engineName,
+			const std::string &url, const std::string &title, const std::string &extract,
+			float score, const std::string &date);
 
 		/**
 		  * Checks if an URL is in the query's history.
@@ -56,7 +57,7 @@ class QueryHistory : public SQLiteBase
 
 		/// Gets an item's extract.
 		std::string getItemExtract(const std::string &queryName, const std::string &engineName,
-			const std::string &url, std::string &charset);
+			const std::string &url);
 
 		/// Finds URLs.
 		bool findUrlsLike(const std::string &url, unsigned int count,

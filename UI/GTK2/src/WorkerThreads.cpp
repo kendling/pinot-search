@@ -1154,6 +1154,8 @@ EngineHistoryThread::EngineHistoryThread(const string &engineDisplayableName,
 #ifdef DEBUG
 	cout << "EngineHistoryThread::EngineHistoryThread: engine " << m_engineDisplayableName << endl;
 #endif
+	// Results are converted to UTF-8 prior to insertion in the history database
+	m_resultsCharset = "UTF-8";
 	m_isLive = false;
 }
 
@@ -1175,7 +1177,7 @@ void EngineHistoryThread::doWork(void)
 	{
 		// Get the first result's charset
 		queryHistory.getItemExtract(m_queryProps.getName(), m_engineDisplayableName,
-			m_documentsList.front().getLocation(), m_resultsCharset);
+			m_documentsList.front().getLocation());
 	}
 }
 

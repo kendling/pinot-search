@@ -31,8 +31,8 @@
 #include "TimeConverter.h"
 #include "Url.h"
 #include "QueryHistory.h"
-#include "ResultsExporter.h"
 #include "ViewHistory.h"
+#include "ResultsExporter.h"
 #include "config.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -475,50 +475,66 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		rootType = ResultsModelColumns::ROW_HOST;
 	}
 
-	// Find out what the search engine ID is
 	unsigned int indexId = 0;
-	unsigned int engineId = m_settings.getEngineId(engineName);
-	if (engineId == 0)
+	unsigned int engineId = 0;
+
+	// Find out what the search engine ID is
+	if (engineName.empty() == false)
 	{
-		// Chances are this engine is an index
-		std::map<string, string>::const_iterator mapIter = m_settings.getIndexes().find(engineName);
-		if (mapIter != m_settings.getIndexes().end())
+		engineId = m_settings.getEngineId(engineName);
+		if (engineId == 0)
 		{
-			// Yes, it is
-			indexId = m_settings.getIndexIdByName(engineName);
-			engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
+			// Chances are this engine is an index
+			std::map<string, string>::const_iterator mapIter = m_settings.getIndexes().find(engineName);
+			if (mapIter != m_settings.getIndexes().end())
+			{
+				// Yes, it is
+				indexId = m_settings.getIndexIdByName(engineName);
+				engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
 #ifdef DEBUG
-			cout << "ResultsTree::addResults: engine is index " << engineName << " " << indexId << " " << engineId << endl;
+				cout << "ResultsTree::addResults: engine is index " << engineName << " " << indexId << " " << engineId << endl;
+#endif
+			}
+#ifdef DEBUG
+			else cout << "ResultsTree::addResults: " << engineName << " is not an index" <<  endl;
 #endif
 		}
 #ifdef DEBUG
-		else cout << "ResultsTree::addResults: " << engineName << " is not an index" <<  endl;
+		else cout << "ResultsTree::addResults: ID for engine " << engineName << " is " << engineId <<  endl;
 #endif
 	}
-#ifdef DEBUG
-	else cout << "ResultsTree::addResults: ID for engine " << engineName << " is " << engineId <<  endl;
-#endif
 
 	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
 	ViewHistory viewHistory(m_settings.getHistoryDatabaseName());
-	string lastRun(queryHistory.getLastRun(m_treeName, engineName));
-	time_t lastRunTime = 0;
+	set<time_t> latestRuns;
+	time_t secondLastRunTime = 0;
 	bool isNewQuery = false;
 
 	// Is this a new query ?
-	if (lastRun.empty() == true)
+	if ((queryHistory.getLatestRuns(m_treeName, engineName, 2, latestRuns) == false) ||
+		(latestRuns.empty() == true))
 	{
 		isNewQuery = true;
 	}
 	else
 	{
-		lastRunTime = TimeConverter::fromTimestamp(lastRun);
+		set<time_t>::const_iterator runIter = latestRuns.begin();
+
+		// We only need to keep the last two runs
+		if (runIter != latestRuns.end())
+		{
+			++runIter;
+			if (runIter != latestRuns.end())
+			{
+				secondLastRunTime = (*runIter);
+			}
+		}
 	}
+#ifdef DEBUG
+	cout << "ResultsTree::addResults: " << resultsList.size() << " results, second last run " << secondLastRunTime << endl;
+#endif
 
 	// Look at the results list
-#ifdef DEBUG
-	cout << "ResultsTree::addResults: " << resultsList.size() << " results, last run " << lastRun << endl;
-#endif
 	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 		resultIter != resultsList.end(); ++resultIter)
 	{
@@ -549,30 +565,29 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 			float oldestScore = 0;
 			float previousScore = queryHistory.hasItem(m_treeName, engineName,
 				location, oldestScore);
+#ifdef DEBUG
+			cout << "ResultsTree::addResults: " << location << " has scores "
+				<< previousScore << ", " << oldestScore << endl;
+#endif
 			if (previousScore > 0)
 			{
-				if (updateHistory == true)
-				{
-					// Update this result whatever the current and previous rankings were
-					queryHistory.updateItem(m_treeName, engineName, location,
-						title, extract, charset, currentScore);
-				}
+				// Yes, it has
 				rankDiff = (int)(currentScore - previousScore);
 			}
 			else
 			{
-				// No, this is a new result
-				if (updateHistory == true)
-				{
-					queryHistory.insertItem(m_treeName, engineName, location,
-						resultIter->getTitle(), extract, charset, currentScore);
-				}
 				// New results are displayed as such only if the query has already been run on the engine
 				if (isNewQuery == false)
 				{
 					// This is a magic value :-)
 					rankDiff = 666;
 				}
+			}
+
+			if (updateHistory == true)
+			{
+				queryHistory.insertItem(m_treeName, engineName, location,
+					title, extract, currentScore, resultIter->getTimestamp());
 			}
 		}
 
@@ -617,9 +632,9 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 	{
 #ifdef DEBUG
 		cout << "ResultsTree::addResults: removing items for " << m_treeName
-			<< ", " << engineName << " older than " << lastRunTime << endl;
+			<< ", " << engineName << " older than " << secondLastRunTime << endl;
 #endif
-		queryHistory.deleteItems(m_treeName, engineName, lastRunTime);
+		queryHistory.deleteItems(m_treeName, engineName, secondLastRunTime);
 	}
 
 	if (count > 0)
@@ -1284,7 +1299,7 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 			set<string> engineNames, indexNames;
 			TreeModel::Row childRow = *childIter;
 			DocumentInfo result;
-			string engineName, charset, serial(from_utf8(childRow[m_resultsColumns.m_serial]));
+			string engineName, serial(from_utf8(childRow[m_resultsColumns.m_serial]));
 			unsigned int engineIds = childRow[m_resultsColumns.m_engines];
 			unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
 
@@ -1310,7 +1325,7 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 			if (m_groupMode != FLAT)
 			{
 				result.setExtract(queryHistory.getItemExtract(from_utf8(m_treeName),
-					engineName, result.getLocation(), charset));
+					engineName, result.getLocation()));
 			}
 			result.setTimestamp(from_utf8(childRow[m_resultsColumns.m_timestamp]));
 
@@ -1528,7 +1543,7 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
 	set<string> engineNames, indexNames;
 	string url(from_utf8(row[m_resultsColumns.m_url]));
-	string extract, charset;
+	string extract;
 	unsigned int engineIds = row[m_resultsColumns.m_engines];
 	unsigned int indexIds = row[m_resultsColumns.m_indexes];
 
@@ -1561,11 +1576,11 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 #ifdef DEBUG
 			cout << "ResultsTree::findResultsExtract: engine or index " << engineName << endl;
 #endif
-			extract = queryHistory.getItemExtract(from_utf8(m_treeName), engineName, url, charset);
+			extract = queryHistory.getItemExtract(from_utf8(m_treeName), engineName, url);
 			if (extract.empty() == false)
 			{
 				// Stop here
-				return to_utf8(extract, charset);
+				return extract;
 			}
 		}
 	}

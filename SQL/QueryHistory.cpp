@@ -22,6 +22,7 @@
 #include <iostream>
 #include <cstdlib>
 
+#include "TimeConverter.h"
 #include "Url.h"
 #include "QueryHistory.h"
 
@@ -51,8 +52,8 @@ bool QueryHistory::create(const string &database)
 
 	SQLiteBase db(database);
 	string tableDefinition("QueryName VARCHAR(255), EngineName VARCHAR(255), HostName VARCHAR(255), \
-		Url VARCHAR(255), Title VARCHAR(255), Extract VARCHAR(255), Language VARCHAR(255), \
-		Score FLOAT, Date INTEGER, PRIMARY KEY(QueryName, EngineName, Url, Date)");
+		Url VARCHAR(255), Title VARCHAR(255), Extract VARCHAR(255), Score FLOAT, Date INTEGER, \
+		PRIMARY KEY(QueryName, EngineName, Url, Date)");
 
 	// Does QueryHistory exist ?
 	if (db.executeSimpleStatement("SELECT * FROM QueryHistory LIMIT 1;") == false)
@@ -65,14 +66,14 @@ bool QueryHistory::create(const string &database)
 	}
 	else
 	{
-		// Previous versions had a PrevScore field, so check for it
-		if (db.executeSimpleStatement("SELECT PrevScore FROM QueryHistory LIMIT 1;") == true)
+		// Previous versions had PrevScore and Language columns, so check for one of them
+		if (db.executeSimpleStatement("SELECT Language FROM QueryHistory LIMIT 1;") == true)
 		{
 #ifdef DEBUG
 			cout << "QueryHistory::create: QueryHistory needs updating" << endl;
 #endif
 			db.alterTable("QueryHistory",
-				"QueryName, EngineName, HostName, Url, Title, Extract, Language, Score, Date",
+				"QueryName, EngineName, HostName, Url, Title, Extract, Score, Date",
 				tableDefinition);
 		}
 	}
@@ -81,18 +82,19 @@ bool QueryHistory::create(const string &database)
 }
 
 /// Inserts an URL.
-bool QueryHistory::insertItem(const string &queryName, const string &engineName, const string &url,
-	const string &title, const string &extract, const string &charset, float score)
+bool QueryHistory::insertItem(const string &queryName, const string &engineName,
+	const string &url, const string &title, const string &extract,
+	float score, const string &date)
 {
 	Url urlObj(url);
 	string hostName(urlObj.getHost());
 	bool success = false;
 
 	SQLResults *results = executeStatement("INSERT INTO QueryHistory \
-		VALUES('%q', '%q', '%q', '%q', '%q', '%q', '%q', '%f', '%d');",
+		VALUES('%q', '%q', '%q', '%q', '%q', '%q', '%f', '%d');",
 		queryName.c_str(), engineName.c_str(), hostName.c_str(),
-		Url::escapeUrl(url).c_str(), title.c_str(), extract.c_str(), charset.c_str(),
-		score, time(NULL));
+		Url::escapeUrl(url).c_str(), title.c_str(), extract.c_str(),
+		score, TimeConverter::fromTimestamp(date));
 	if (results != NULL)
 	{
 		success = true;
@@ -144,7 +146,7 @@ bool QueryHistory::getEngines(const string &queryName, set<string> &enginesList)
 	bool success = false;
 
 	SQLResults *results = executeStatement("SELECT EngineName FROM QueryHistory \
-		WHERE QueryName='%q' GROUP BY EngineName",
+		WHERE QueryName='%q' GROUP BY EngineName;",
 		queryName.c_str());
 	if (results != NULL)
 	{
@@ -174,7 +176,7 @@ bool QueryHistory::getItems(const string &queryName, const string &engineName,
 {
 	bool success = false;
 
-	SQLResults *results = executeStatement("SELECT Title, Url, Language, Extract, Score \
+	SQLResults *results = executeStatement("SELECT Title, Url, Extract, Score, Date \
 		FROM QueryHistory WHERE QueryName='%q' AND EngineName='%q' ORDER BY Date, Score DESC \
 		LIMIT %u;", queryName.c_str(), engineName.c_str(), max);
 	if (results != NULL)
@@ -189,9 +191,11 @@ bool QueryHistory::getItems(const string &queryName, const string &engineName,
 
 			DocumentInfo result(row->getColumn(0),
 				Url::unescapeUrl(row->getColumn(1)).c_str(),
-				"", row->getColumn(2));
-			result.setExtract(row->getColumn(3));
-			result.setScore((float)atof(row->getColumn(4).c_str()));
+				"", "");
+			result.setExtract(row->getColumn(2));
+			result.setScore((float)atof(row->getColumn(3).c_str()));
+			int runDate = atoi(row->getColumn(4).c_str());
+			result.setTimestamp(TimeConverter::toTimestamp((time_t)runDate));
 
 			resultsList.push_back(result);
 			success = true;
@@ -207,11 +211,11 @@ bool QueryHistory::getItems(const string &queryName, const string &engineName,
 
 /// Gets an item's extract.
 string QueryHistory::getItemExtract(const string &queryName, const string &engineName,
-	const string &url, string &charset)
+	const string &url)
 {
 	string extract;
 
-	SQLResults *results = executeStatement("SELECT Extract, Language FROM QueryHistory \
+	SQLResults *results = executeStatement("SELECT Extract FROM QueryHistory \
 		WHERE QueryName='%q' AND EngineName='%q' AND Url='%q' ORDER BY Date DESC;",
 		queryName.c_str(), engineName.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
@@ -220,7 +224,6 @@ string QueryHistory::getItemExtract(const string &queryName, const string &engin
 		if (row != NULL)
 		{
 			extract = row->getColumn(0);
-			charset = row->getColumn(1);
 
 			delete row;
 		}
@@ -242,7 +245,7 @@ bool QueryHistory::findUrlsLike(const string &url, unsigned int count, set<strin
 	}
 
 	SQLResults *results = executeStatement("SELECT Url FROM QueryHistory \
-		WHERE Url LIKE '%q%%' ORDER BY Url LIMIT %u",
+		WHERE Url LIKE '%q%%' ORDER BY Url LIMIT %u;",
 		Url::escapeUrl(url).c_str(), count);
 	if (results != NULL)
 	{
