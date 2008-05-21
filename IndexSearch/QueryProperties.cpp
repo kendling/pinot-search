@@ -188,6 +188,7 @@ void QueryProperties::removeFilters(void)
 {
 	m_freeQueryWithoutFilters.clear();
 
+	StringManip::trimSpaces(m_freeQuery);
 	if (m_freeQuery.empty() == true)
 	{
 		return;
