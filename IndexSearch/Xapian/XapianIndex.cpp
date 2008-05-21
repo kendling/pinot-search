@@ -1632,6 +1632,14 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 /// Gets terms with the same root.
 unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggestions)
 {
+	Dijon::CJKVTokenizer tokenizer;
+
+	// Only offer suggestions for non CJKV terms
+	if (tokenizer.has_cjkv(term) == true)
+	{
+		return 0;
+	}
+
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
@@ -1658,12 +1666,9 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 				{
 					string suggestedTerm(*termIter);
 
+					// Does this term have the same root ?
 					if (suggestedTerm.find(baseTerm) != 0)
 					{
-						// This term doesn't have the same root
-#ifdef DEBUG
-						cout << "XapianIndex::getCloseTerms: not the same root" << endl;
-#endif
 						break;
 					}
 
