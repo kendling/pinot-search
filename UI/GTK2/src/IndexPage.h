@@ -90,6 +90,7 @@ class IndexPage : public NotebookPageBox
 		sigc::signal2<void, Glib::ustring, Glib::ustring> m_signalQueryChanged;
 		sigc::signal1<void, Glib::ustring> m_signalBackClicked;
 		sigc::signal1<void, Glib::ustring> m_signalForwardClicked;
+		sigc::connection m_queryChangedConnection;
 
 		void onQueryChanged(void);
 

@@ -106,8 +106,6 @@ IndexPage::IndexPage(const ustring &indexName, ResultsTree *pTree,
 	populateQueryCombobox("");
 
 	// Connect the signals
-	m_pQueryCombobox->signal_changed().connect(
-		sigc::mem_fun(*this, &IndexPage::onQueryChanged));
 	m_pBackButton->signal_clicked().connect(
 		sigc::mem_fun(*this, &IndexPage::onBackClicked));
 	m_pForwardButton->signal_clicked().connect(
@@ -179,7 +177,11 @@ ustring IndexPage::getQueryName(void) const
 //
 void IndexPage::populateQueryCombobox(const string &queryName)
 {
-	bool setActive = false;
+	// Disconnect the changed signal
+	if (m_queryChangedConnection.connected() == true)
+	{
+		m_queryChangedConnection.disconnect();
+	}
 
 	m_pQueryCombobox->clear_items();
 
@@ -190,17 +192,18 @@ void IndexPage::populateQueryCombobox(const string &queryName)
 		queryIter != queries.end(); ++queryIter)
 	{
 		m_pQueryCombobox->append_text(to_utf8(queryIter->first));
-
-		if ((setActive == false) &&
-			(queryIter->first == queryName))
-		{
-			m_pQueryCombobox->set_active_text(queryName);
-			m_queryName = queryName;
-			setActive = true;
-		}
 	}
 
-	if (setActive == false)
+	// Reconnect the signal
+	m_queryChangedConnection = m_pQueryCombobox->signal_changed().connect(
+		sigc::mem_fun(*this, &IndexPage::onQueryChanged));
+
+	if (queryName.empty() == false)
+	{
+		m_pQueryCombobox->set_active_text(queryName);
+		m_queryName = queryName;
+	}
+	else
 	{
 		m_pQueryCombobox->set_active(0);
 		m_queryName.clear();
