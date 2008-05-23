@@ -25,6 +25,7 @@
 #include <gtkmm/paned.h>
 #include <gtkmm/label.h>
 #include <gtkmm/image.h>
+#define _USE_BUTTON_TAB 1
 #if _USE_BUTTON_TAB
 #include <gtkmm/button.h>
 #else
@@ -83,6 +84,7 @@ class NotebookTabBox : public Gtk::HBox
 		sigc::signal2<void, Glib::ustring, NotebookPageBox::PageType>& getCloseSignal(void);
 
 	protected:
+		static bool m_initialized;
 		Glib::ustring m_title;
 		NotebookPageBox::PageType m_pageType;
 		Gtk::Label *m_tabLabel;

@@ -16,6 +16,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#if _USE_BUTTON_TAB
+#include <gtkmm/rc.h>
+#endif
+
+#include "config.h"
+#include "NLS.h"
 #include "Notebook.h"
 #include "PinotUtils.h"
 
@@ -86,6 +92,8 @@ ResultsTree *ResultsPage::getTree(void) const
 	return m_pTree;
 }
 
+bool NotebookTabBox::m_initialized = false;
+
 NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::PageType type) :
 	HBox(),
 	m_title(title),
@@ -98,6 +106,23 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 	m_tabEventBox(NULL)
 #endif
 {
+	if (m_initialized == false)
+	{
+		m_initialized = true;
+
+#if _USE_BUTTON_TAB
+		// This was lifted from gnome-terminal's terminal-window.c
+		RC::parse_string("style \"pinot-tab-close-button-style\"\n"
+			"{\n"
+			"GtkWidget::focus-padding = 0\n"
+			"GtkWidget::focus-line-width = 0\n"
+			"xthickness = 0\n"
+			"ythickness = 0\n"
+			"}\n"
+			"widget \"*.pinot-tab-close-button\" style \"pinot-tab-close-button-style\"");
+#endif
+	}
+
 	m_tabLabel = manage(new Label(title));
 	m_tabImage = manage(new Image(StockID("gtk-close"), IconSize(ICON_SIZE_MENU)));
 #if _USE_BUTTON_TAB
@@ -117,6 +142,8 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 #if _USE_BUTTON_TAB
 	m_tabButton->set_relief(RELIEF_NONE);
 	m_tabButton->set_border_width(0);
+	m_tabButton->set_name("pinot-tab-close-button");
+	m_tabButton->set_tooltip_text(_("Close"));
 	m_tabButton->set_alignment(0, 0);
 	m_tabButton->add(*m_tabImage);
 #else
