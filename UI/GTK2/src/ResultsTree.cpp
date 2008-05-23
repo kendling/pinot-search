@@ -587,7 +587,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 			if (updateHistory == true)
 			{
 				queryHistory.insertItem(m_treeName, engineName, location,
-					title, extract, currentScore, resultIter->getTimestamp());
+					title, extract, currentScore);
 			}
 		}
 

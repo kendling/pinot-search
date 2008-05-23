@@ -38,8 +38,7 @@ class QueryHistory : public SQLiteBase
 
 		/// Inserts an URL.
 		bool insertItem(const std::string &queryName, const std::string &engineName,
-			const std::string &url, const std::string &title, const std::string &extract,
-			float score, const std::string &date);
+			const std::string &url, const std::string &title, const std::string &extract, float score);
 
 		/**
 		  * Checks if an URL is in the query's history.

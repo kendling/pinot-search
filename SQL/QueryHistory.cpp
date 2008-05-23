@@ -83,8 +83,7 @@ bool QueryHistory::create(const string &database)
 
 /// Inserts an URL.
 bool QueryHistory::insertItem(const string &queryName, const string &engineName,
-	const string &url, const string &title, const string &extract,
-	float score, const string &date)
+	const string &url, const string &title, const string &extract, float score)
 {
 	Url urlObj(url);
 	string hostName(urlObj.getHost());
@@ -94,7 +93,7 @@ bool QueryHistory::insertItem(const string &queryName, const string &engineName,
 		VALUES('%q', '%q', '%q', '%q', '%q', '%q', '%f', '%d');",
 		queryName.c_str(), engineName.c_str(), hostName.c_str(),
 		Url::escapeUrl(url).c_str(), title.c_str(), extract.c_str(),
-		score, TimeConverter::fromTimestamp(date));
+		score, time(NULL));
 	if (results != NULL)
 	{
 		success = true;
@@ -177,8 +176,9 @@ bool QueryHistory::getItems(const string &queryName, const string &engineName,
 	bool success = false;
 
 	SQLResults *results = executeStatement("SELECT Title, Url, Extract, Score, Date \
-		FROM QueryHistory WHERE QueryName='%q' AND EngineName='%q' ORDER BY Date, Score DESC \
-		LIMIT %u;", queryName.c_str(), engineName.c_str(), max);
+		FROM QueryHistory WHERE QueryName='%q' AND EngineName='%q' \
+		ORDER BY Date DESC, Score DESC LIMIT %u;",
+		queryName.c_str(), engineName.c_str(), max);
 	if (results != NULL)
 	{
 		while (results->hasMoreRows() == true)
