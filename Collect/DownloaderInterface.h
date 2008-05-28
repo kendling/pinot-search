@@ -45,7 +45,7 @@ class DownloaderInterface
 		virtual bool setSetting(const std::string &name, const std::string &value);
 
 		/// Sets timeout.
-		virtual void setTimeout(unsigned int milliseconds);
+		virtual void setTimeout(unsigned int seconds);
 
 		/// Retrieves the specified document; NULL if error. Caller deletes.
 		virtual Document *retrieveUrl(const DocumentInfo &docInfo) = 0;

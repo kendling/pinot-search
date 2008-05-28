@@ -118,7 +118,7 @@ bool DownloaderInterface::setSetting(const string &name, const string &value)
 }
 
 /// Sets timeout.
-void DownloaderInterface::setTimeout(unsigned int milliseconds)
+void DownloaderInterface::setTimeout(unsigned int seconds)
 {
-	m_timeout = milliseconds;
+	m_timeout = seconds;
 }

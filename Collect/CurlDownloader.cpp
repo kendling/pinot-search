@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ struct ContentInfo
 {
 	char *m_pContent;
 	size_t m_contentLen;
+	string m_lastModified;
 };
 
 size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *pStream)
@@ -43,13 +44,10 @@ size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *p
 
 	if (pStream == NULL)
 	{
-#ifdef DEBUG
-		cout << "writeCallback: no stream" << endl;
-#endif
 		return 0;
 	}
-
 	pInfo = (ContentInfo *)pStream;
+
 	char *pNewContent = (char*)realloc(pInfo->m_pContent, pInfo->m_contentLen + totalSize + 1);
 	if (pNewContent == NULL)
 	{
@@ -79,6 +77,33 @@ size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *p
 		{
 			((char*)pBadChar)[0] = ' ';
 		}
+	}
+
+	return totalSize;
+}
+
+size_t headerCallback(void *pData, size_t dataSize, size_t elementsCount, void *pStream)
+{
+	ContentInfo *pInfo = NULL;
+	size_t totalSize = elementsCount * dataSize;
+
+	if ((pStream == NULL) ||
+		(pData == NULL) ||
+		(totalSize == 0))
+	{
+		return 0;
+	}
+	pInfo = (ContentInfo *)pStream;
+
+	string header((const char*)pData, totalSize);
+	string::size_type pos = header.find("Last-Modified: ");
+
+	if (pos != string::npos)
+	{
+		pInfo->m_lastModified = header.substr(15);
+#ifdef DEBUG
+		cout << "headerCallback: Last-Modified " << pInfo->m_lastModified << endl;
+#endif
 	}
 
 	return totalSize;
@@ -187,6 +212,8 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 #endif
 		curl_easy_setopt(pCurlHandler, CURLOPT_WRITEFUNCTION, writeCallback);
 		curl_easy_setopt(pCurlHandler, CURLOPT_WRITEDATA, pContentInfo);
+		curl_easy_setopt(pCurlHandler, CURLOPT_HEADERFUNCTION, headerCallback);
+		curl_easy_setopt(pCurlHandler, CURLOPT_HEADERDATA, pContentInfo);
 #ifdef DEBUG
 		cout << "CurlDownloader::retrieveUrl: URL is " << url << endl;
 #endif
@@ -237,10 +264,19 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 					pDocument->setType(pContentType);
 				}
 
-#ifdef DEBUG
-				cout << "CurlDownloader::retrieveUrl: document size is " << pContentInfo->m_contentLen << endl;
-#endif
+				// The Last-Modified date ?
+				if (pContentInfo->m_lastModified.empty() == false)
+				{
+					pDocument->setTimestamp(pContentInfo->m_lastModified);
+				}
 			}
+#ifdef DEBUG
+			else cout << "CurlDownloader::retrieveUrl: no content for " << url << endl;
+#endif
+		}
+		else
+		{
+			cerr << "Couldn't download " << url << ": " << curl_easy_strerror(res) << endl;
 		}
 
 		if (pContentInfo->m_pContent != NULL)

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -158,13 +158,12 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 		return NULL;
 	}
 	Url urlObj(url);
-	string protocol = urlObj.getProtocol();
-	string hostName = urlObj.getHost();
-	string location = urlObj.getLocation();
-	string file = urlObj.getFile();
-	string parameters = urlObj.getParameters();
-	string locationHeaderValue;
-	string contentTypeHeaderValue;
+	string protocol(urlObj.getProtocol());
+	string hostName(urlObj.getHost());
+	string location(urlObj.getLocation());
+	string file(urlObj.getFile());
+	string parameters(urlObj.getParameters());
+	string lastModifiedHeaderValue, locationHeaderValue, contentTypeHeaderValue;
 
 	// Create a session
 	ne_session *pSession = ne_session_create(protocol.c_str(), hostName.c_str(), 80); // urlObj.getPort());
@@ -223,6 +222,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	int requestStatus = NE_RETRY;
 	while (requestStatus == NE_RETRY)
 	{
+		lastModifiedHeaderValue.clear();
 		locationHeaderValue.clear();
 		contentTypeHeaderValue.clear();
 
@@ -261,6 +261,11 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 
 			// Get headers
 			const char *pValue = ne_get_response_header(pRequest, "Last-Modified");
+			if (pValue != NULL)
+			{
+				lastModifiedHeaderValue = pValue;
+			}
+			pValue = ne_get_response_header(pRequest, "Location");
 			if (pValue != NULL)
 			{
 				locationHeaderValue = pValue;
@@ -372,6 +377,10 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 			pDocument->setData(pContent, contentLen);
 			pDocument->setLocation(url);
 			pDocument->setType(contentTypeHeaderValue);
+			if (lastModifiedHeaderValue.empty() == false)
+			{
+				pDocument->setTimestamp(lastModifiedHeaderValue);
+			}
 #ifdef DEBUG
 			cout << "NeonDownloader::retrieveUrl: document size is " << contentLen << endl;
 #endif
@@ -385,3 +394,4 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 
 	return pDocument;
 }
+
