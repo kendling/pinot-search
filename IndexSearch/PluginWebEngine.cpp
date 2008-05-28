@@ -24,6 +24,7 @@
 #include "config.h"
 #include "Document.h"
 #include "StringManip.h"
+#include "Url.h"
 #include "OpenSearchParser.h"
 #ifdef HAVE_BOOST_SPIRIT
 #include "SherlockParser.h"
@@ -96,7 +97,10 @@ bool PluginWebEngine::getPage(const string &formattedQuery, unsigned int maxResu
 		return false;
 	}
 #ifdef DEBUG
-	ofstream pageBackup("PluginWebEngine.html");
+	Url urlObj(formattedQuery);
+	string fileName(urlObj.getHost() + "_PluginWebEngine.html");
+
+	ofstream pageBackup(fileName.c_str());
 	pageBackup.write(pContent, contentLen);
 	pageBackup.close();
 #endif
