@@ -29,7 +29,7 @@ class TimeConverter
 		static std::string toTimestamp(time_t aTime, bool inGMTime = false);
 
 		/// Converts from a RFC 822 timestamp.
-		static time_t fromTimestamp(const std::string &timestamp, bool inGMTime = false);
+		static time_t fromTimestamp(const std::string &timestamp);
 
 		/// Converts to a YYYYMMDD-formatted string.
 		static std::string toYYYYMMDDString(int year, int month, int day);

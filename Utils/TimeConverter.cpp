@@ -95,6 +95,14 @@ static time_t mktime_from_utc (struct tm *t)
 }
 #define timegm(T) mktime_from_utc(T)
 #endif
+#ifdef USE_NEON
+#include <neon/ne_dates.h>
+#else
+#ifdef USE_CURL
+#include <curl/curl.h>
+#endif
+#endif
+
 #include <iostream>
 
 #include "TimeConverter.h"
@@ -118,7 +126,7 @@ string TimeConverter::toTimestamp(time_t aTime, bool inGMTime)
 	{
 		char timeStr[64];
 
-		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %Z", &timeTm) > 0)
+		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %z", &timeTm) > 0)
 		{
 			return timeStr;
 		}
@@ -128,120 +136,22 @@ string TimeConverter::toTimestamp(time_t aTime, bool inGMTime)
 }
 
 /// Converts from a RFC 822 timestamp.
-time_t TimeConverter::fromTimestamp(const string &timestamp, bool inGMTime)
+time_t TimeConverter::fromTimestamp(const string &timestamp)
 {
-	struct tm timeTm;
-	string formatString;
-#ifndef _STRPTIME_COPES_WITH_TIMEZONE
-	bool fixTimezone = false;
-#endif
-
 	if (timestamp.empty() == true)
 	{
 		return 0;
 	}
 
-	// Initialize the structure
-	timeTm.tm_sec = timeTm.tm_min = timeTm.tm_hour = timeTm.tm_mday = 0;
-	timeTm.tm_mon = timeTm.tm_year = timeTm.tm_wday = timeTm.tm_yday = timeTm.tm_isdst = 0;
-
-	// Find out if the date has an RFC-822/ISO 8601 time zone specification
-	// or a time zone name
-	// FIXME: it looks like strptime() can't diffentiate between %Z and %z
-	// and that the value extracted with %z is ignored
-	char *remainder = strptime(timestamp.c_str(), "%a, %d %b %Y %H:%M:%S ", &timeTm);
-	if (remainder != NULL)
-	{
-		if ((remainder[0] == '+') ||
-			(remainder[0] == '-'))
-		{
-#ifdef _STRPTIME_COPES_WITH_TIMEZONE
-			formatString = "%a, %d %b %Y %H:%M:%S %z";
+#ifdef USE_NEON
+	return ne_rfc1123_parse(timestamp.c_str());
 #else
-			formatString = "%a, %d %b %Y %H:%M:%S ";
-			fixTimezone = true;
-#endif
-		}
-		else
-		{
-			formatString = "%a, %d %b %Y %H:%M:%S %Z";
-		}
-	}
-	else
-	{
-		remainder = strptime(timestamp.c_str(), "%Y %b %d %H:%M:%S ", &timeTm);
-		if (remainder == NULL)
-		{
-			// How is it formatted then ?
-			return 0;
-		}
-
-		if ((remainder[0] == '+') ||
-			(remainder[0] == '-'))
-		{
-#ifdef _STRPTIME_COPES_WITH_TIMEZONE
-			formatString = "%Y %b %d %H:%M:%S %z";
+#ifdef USE_CURL
+	return curl_getdate(timestamp.c_str(), NULL);
 #else
-			formatString = "%Y %b %d %H:%M:%S ";
-			fixTimezone = true;
+	return time(NULL);
 #endif
-		}
-		else
-		{
-			formatString = "%Y %b %d %H:%M:%S %Z";
-		}
-	}
-
-	if ((formatString.empty() == false) &&
-		(strptime(timestamp.c_str(), formatString.c_str(), &timeTm) != NULL))
-	{
-		time_t gmTime = 0;
-
-		if (inGMTime == true)
-		{
-			gmTime = timegm(&timeTm);
-		}
-		else
-		{
-			gmTime = mktime(&timeTm);
-#ifndef _STRPTIME_COPES_WITH_TIMEZONE
-			// No need to worry about the timezone here
-			fixTimezone = false;
 #endif
-		}
-
-#ifndef _STRPTIME_COPES_WITH_TIMEZONE
-		if ((fixTimezone == true) &&
-			(remainder != NULL))
-		{
-			unsigned int tzDiff = 0;
-
-			if ((sscanf(remainder + 1, "%u", &tzDiff) != 0) &&
-				(tzDiff < 1200))
-			{
-				unsigned int hourDiff = tzDiff / 100;
-				unsigned int minDiff = tzDiff % 100;
-
-#ifdef DEBUG
-				cout << "TimeConverter::fromTimestamp: diff is " << remainder[0] << hourDiff << ":" << minDiff << endl;
-#endif
-				if (remainder[0] == '+')
-				{
-					// Ahead of GMT
-					gmTime -= (hourDiff * 3600) + (minDiff * 60);
-				}
-				else
-				{
-					// Behind GMT
-					gmTime += (hourDiff * 3600) + (minDiff * 60);
-				}
-			}
-		}
-#endif
-		return gmTime;
-	}
-
-	return 0;
 }
 
 /// Converts to a YYYYMMDD-formatted string.
