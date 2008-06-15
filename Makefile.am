@@ -21,6 +21,13 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 man_MANS = IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
 	IndexSearch/pinot-search.1 UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
 
+manuals:
+	@help2man --no-info --name "Index documents from the command-line" IndexSearch/pinot-index       >IndexSearch/pinot-index.1
+	@help2man --no-info --name "Label files from the command-line" IndexSearch/pinot-label           >IndexSearch/pinot-label.1
+	@help2man --no-info --name "Query search engines from the command-line" IndexSearch/pinot-search >IndexSearch/pinot-search.1
+	@help2man --no-info --name "A metasearch tool for the Free Desktop" UI/GTK2/src/pinot            >UI/GTK2/src/pinot.1
+	@help2man --no-info --name "D-Bus search and index daemon" UI/GTK2/src/pinot-dbus-daemon         >UI/GTK2/src/pinot-dbus-daemon.1
+
 install-data-local:
 	@mkdir -p $(DESTDIR)$(sysconfdir)/pinot
 	$(INSTALL_DATA) $(srcdir)/Tokenize/filters/external-filters.xml $(DESTDIR)$(sysconfdir)/pinot/external-filters.xml
