@@ -324,6 +324,13 @@ void DaemonState::start(bool forceFullScan)
 	cout << "DaemonState::start: " << m_crawlQueue.size() << " locations to crawl" << endl;
 #endif
 
+	if (m_fullScan == true)
+	{
+		CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
+
+		// Update all items status so that we can get rid of files from deleted sources
+		crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::CRAWLING, 0, true);
+	}
 	// Initiate crawling
 	start_crawling();
 }
@@ -343,12 +350,38 @@ void DaemonState::start_crawling(void)
 			<< m_crawlers << " crawlers" << endl;
 #endif
 		// Get the next location, unless something is still being crawled
-		if ((m_crawlers == 0) &&
-			(m_crawlQueue.empty() == false))
+		if (m_crawlers == 0)
 		{
-			PinotSettings::IndexableLocation nextLocation(m_crawlQueue.front());
+			if (m_crawlQueue.empty() == false)
+			{
+				PinotSettings::IndexableLocation nextLocation(m_crawlQueue.front());
 
-			crawl_location(nextLocation);
+				crawl_location(nextLocation);
+			}
+			else if (m_fullScan == true)
+			{
+				CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
+				set<string> deletedFiles;
+
+				// All files left with status CRAWLING belong to deleted sources
+				if ((m_pDiskHandler != NULL) &&
+					(crawlHistory.getItems(CrawlHistory::CRAWLING, deletedFiles) > 0))
+				{
+#ifdef DEBUG
+					cout << "DaemonState::start_crawling: " << deletedFiles.size() << " orphaned files" << endl;
+#endif
+					for(set<string>::const_iterator fileIter = deletedFiles.begin();
+						fileIter != deletedFiles.end(); ++fileIter)
+					{
+						// Inform the MonitorHandler
+						if (m_pDiskHandler->fileDeleted(fileIter->substr(7)) == true)
+						{
+							// Delete this item
+							crawlHistory.deleteItem(*fileIter);
+						}
+					}
+				}
+			}
 		}
 
 		unlock_lists();
@@ -488,14 +521,13 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		settings.clear();
 		settings.loadGlobal(string(SYSCONFDIR) + "/pinot/globalconfig.xml");
 		settings.load();
-
-		// ...and restart everything 
-		start(false);
+		m_reload = false;
 #ifdef DEBUG
-		cout << "DaemonState::on_thread_end: reloaded" << endl;
+		cout << "DaemonState::on_thread_end: reloading" << endl;
 #endif
 
-		m_reload = false;
+		// ...and restart everything 
+		start(true);
 	}
 #ifdef DEBUG
 	cout << "DaemonState::on_thread_end: reload status " << m_reload << endl;

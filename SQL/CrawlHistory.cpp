@@ -326,14 +326,28 @@ bool CrawlHistory::updateItems(const map<string, time_t> urls, CrawlStatus statu
 }
 
 /// Updates the status of items en masse.
-bool CrawlHistory::updateItemsStatus(unsigned int sourceId, CrawlStatus currentStatus, CrawlStatus newStatus)
+bool CrawlHistory::updateItemsStatus(CrawlStatus currentStatus, CrawlStatus newStatus,
+	unsigned int sourceId, bool allSources)
 {
+	SQLResults *results = NULL;
 	bool success = false;
 
-	SQLResults *results = executeStatement("UPDATE CrawlHistory \
-		SET Status='%q' WHERE SourceId='%u' AND Status='%q';",
-		statusToText(newStatus).c_str(), sourceId,
-		statusToText(currentStatus).c_str());
+	if (allSources == false)
+	{
+		results = executeStatement("UPDATE CrawlHistory \
+			SET Status='%q' WHERE SourceId='%u' AND Status='%q';",
+			statusToText(newStatus).c_str(), sourceId,
+			statusToText(currentStatus).c_str());
+	}
+	else
+	{
+		// Ignore the source
+		results = executeStatement("UPDATE CrawlHistory \
+			SET Status='%q' WHERE Status='%q';",
+			statusToText(newStatus).c_str(),
+			statusToText(currentStatus).c_str());
+	}
+
 	if (results != NULL)
 	{
 		success = true;
@@ -365,6 +379,35 @@ int CrawlHistory::getErrorDetails(const string &url, time_t &date)
 	}
 
 	return errNum;
+}
+
+/// Returns items.
+unsigned int CrawlHistory::getItems(CrawlStatus status, set<string> &urls)
+{
+	unsigned int count = 0;
+
+	SQLResults *results = executeStatement("SELECT Url FROM CrawlHistory \
+		WHERE Status='%q';", statusToText(status).c_str());
+	if (results != NULL)
+	{
+		while (results->hasMoreRows() == true)
+		{
+			SQLRow *row = results->nextRow();
+			if (row == NULL)
+			{
+				break;
+			}
+
+			urls.insert(Url::unescapeUrl(row->getColumn(0)));
+			++count;
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return count;
 }
 
 /// Returns items that belong to a source.

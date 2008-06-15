@@ -474,7 +474,8 @@ void DirectoryScannerThread::doWork(void)
 		cout << "Doing a full scan on " << m_dirName << endl;
 
 		// Update this source's items status so that we can detect files that have been deleted
-		crawlHistory.updateItemsStatus(m_sourceId, CrawlHistory::CRAWLED, CrawlHistory::CRAWLING);
+		crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::CRAWLING,
+			m_sourceId);
 	}
 	// Remove errors
 	crawlHistory.deleteItems(m_sourceId, CrawlHistory::ERROR);
@@ -496,7 +497,7 @@ void DirectoryScannerThread::doWork(void)
 
 	if (m_fullScan == true)
 	{
-		// All files with status set to CRAWLING were not found in this crawl
+		// All files left with status CRAWLING were not found in this crawl
 		// Chances are they were removed after the last full scan
 		if ((m_pHandler != NULL) &&
 			(crawlHistory.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, deletedFiles) > 0))
