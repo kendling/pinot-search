@@ -516,6 +516,7 @@ int main(int argc, char **argv)
 	newAction.sa_handler = quitAll;
 	sigaction(SIGINT, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
+	sigaction(SIGTERM, &newAction, NULL);
 
 	// Open the daemon index in read-write mode 
 	bool wasObsoleteFormat = false;

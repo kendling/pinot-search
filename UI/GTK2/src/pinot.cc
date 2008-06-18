@@ -263,6 +263,7 @@ int main(int argc, char **argv)
 	newAction.sa_handler = quitAll;
 	sigaction(SIGINT, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
+	sigaction(SIGTERM, &newAction, NULL);
 
 	// Open this index read-write
 	bool wasObsoleteFormat = false;
