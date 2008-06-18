@@ -46,7 +46,7 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/IndexSearch \
 	-I$(top_srcdir)/IndexSearch/cjkv \
 	-I$(top_srcdir)/IndexSearch/xesam \
-	@XML_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@
+	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@
 
 if HAVE_BOOST_SPIRIT
 AM_CXXFLAGS += -DHAVE_BOOST_SPIRIT
