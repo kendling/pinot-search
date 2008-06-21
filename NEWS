@@ -11,6 +11,7 @@ Collect :
  - use Last-Modified header as document's date
 Search :
  - don't run queries consisting exclusively of spaces
+ - fixed A9 plugin, removed Accoona
 Xapian :
  - don't attempt offering suggestions for CJKV terms
 Daemon :
