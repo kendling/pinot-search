@@ -1,4 +1,27 @@
 ------------------------------------------------------------------------
+r1287 | fabricecolin | 2008-06-21 16:11:47 +0800 (Sat, 21 Jun 2008) | 2 lines
+Changed paths:
+   D /trunk/IndexSearch/Plugins/Accoona.src
+   M /trunk/NEWS
+
+Removing Accoona, it's now a B2B search engine.
+
+------------------------------------------------------------------------
+r1286 | fabricecolin | 2008-06-21 16:11:00 +0800 (Sat, 21 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Plugins/A9.src
+
+Fixed results extraction.
+
+------------------------------------------------------------------------
+r1283 | fabricecolin | 2008-06-21 12:14:51 +0800 (Sat, 21 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/ChangeLog-dijon
+
+Current logs.
+
+------------------------------------------------------------------------
 r1282 | fabricecolin | 2008-06-21 12:06:37 +0800 (Sat, 21 Jun 2008) | 2 lines
 Changed paths:
    M /trunk/po/de.po
