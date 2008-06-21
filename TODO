@@ -15,19 +15,21 @@ General
 - Don't package gmo files, they are platform dependent
 - CLI programs to use tty highlighting if available
 
+Barpanel
+- Write a plugin for barpanel http://www.igelle.org/barpanel/
+
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
 - PDF filter with poppler
 - WordPerfect filter with libwpd
 - Office filter with libgst
 - TeX filter
-- Check whether pdftotext flattens text in PDF documents that have columns
-- HtmlFilter should skip htdig_noindex blocks (http://www.htdig.org/attrs.html#noindex_start)
 - HtmlFilter to look for META tags Author, Creator, Publisher and CreationDate
 - Filters should have a version number so that new versions force reindexing documents of the
  given type
 - XmlFilter is slow-ish, rewrite file parsing with the TextReader interface
 - Filters should at least return errno when they fail
+- Write a PDF filter that handles columns correctly
 
 SQL
 - Move history files into the index directories
@@ -67,6 +69,7 @@ Index
 - Labels and the rest of DocumentInfo are handled separately, they shouldn't be
 - Indexes have no knowledge of indexId's
 - Send a signal when crawling is done so that the UI can reopen the index
+- Be ready to catch DatabaseModifiedError exceptions and reopen the index
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -75,6 +78,7 @@ Mail
 - Decypher and use Mozilla's mailbox scheme, eg
   mailbox://mbox_file_name?number=2164959&part=1.2&type=text/plain&filename=portability.txt
 - Keep track of attachments and avoid indexing the same file twice
+- Mailboxes where all messages are flagged by Mozilla/that are empty are not indexed at all
 
 Daemon
 - Allow building without the daemon
@@ -83,10 +87,9 @@ Daemon
 - Prefer ustring to string whenever possible
 - Queue unindexing too
 - Don't link against SOAP stuff, it's not needed here
-- Export term suggestion over D-Bus
 - Follow updates to Xesam specs
 - Preserve user set metadata on reindexing
- 
+
 UI
 - Show which threads are running, what they are doing, and allow to stop them
  selectively
@@ -102,8 +105,6 @@ UI
  at least until it's restarted
 - Unknown exceptions in IndexingThread or elsewhere should be logged as errors
 - Delete all temporary files when exiting
-- Show which stored queries are fully, partially or not at all Web friendly
-- List viewed URLs
 - Query expansion should be interactive
 - Default cache provider should be configurable
 

@@ -1,3 +1,32 @@
+2008/06/21 version_0_8_6
+General :
+ - make manuals generates the manuals with help2man
+ - dropped date parser for curl's/neon's
+Tokenize :
+ - decode emails subject lines properly
+ - the HTML filter skips HTDig's no_index block
+SQL :
+ - query history can keep more than one results set
+Collect :
+ - use Last-Modified header as document's date
+Search :
+ - don't run queries consisting exclusively of spaces
+Xapian :
+ - don't attempt offering suggestions for CJKV terms
+Daemon :
+ - in ignore-version mode, reapply labels too
+ - documents from directories removed from indexing/monitoring should now be
+  unindexed on full scans
+ - SIGTERM wasn't caught !
+UI :
+ - use buttons on notebook tabs
+ - the live query text field doesn't offer suggestions for filters and ranges
+ - after a query edit, lists of documents are refreshed correctly
+ - fixed date displayed when viewing query history
+ - query history keeps the last two sets
+ - .desktop file was missing Japanese and Simplified Chinese comments
+ - SIGTERM wasn't caught !
+
 2008/05/11 version_0_8_5
 Build :
  - removed reference to m4 directory
