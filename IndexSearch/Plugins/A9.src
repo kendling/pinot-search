@@ -18,7 +18,7 @@
 resultListStart=""
 resultListEnd=""
 resultItemStart='<div class="resBlock">'
-resultItemEnd='class="site-info">'
+resultItemEnd='class="site-info"'
 >
 
 </SEARCH>
