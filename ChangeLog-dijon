@@ -1,4 +1,65 @@
 ------------------------------------------------------------------------
+r105 | fabricecolin | 2008-06-21 11:55:16 +0800 (Sat, 21 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExifImageFilter.cc
+   M /trunk/filters/ExifImageFilter.h
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/ExternalFilter.h
+   M /trunk/filters/Filter.cc
+   M /trunk/filters/Filter.h
+   M /trunk/filters/FilterFactory.cc
+   M /trunk/filters/FilterFactory.h
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/GMimeMboxFilter.h
+   M /trunk/filters/HtmlFilter.cc
+   M /trunk/filters/HtmlFilter.h
+   M /trunk/filters/TagLibMusicFilter.cc
+   M /trunk/filters/TagLibMusicFilter.h
+   M /trunk/filters/TextFilter.cc
+   M /trunk/filters/TextFilter.h
+   M /trunk/filters/XmlFilter.cc
+   M /trunk/filters/XmlFilter.h
+
+Filters are under the GPL.
+
+------------------------------------------------------------------------
+r104 | fabricecolin | 2008-06-18 20:30:54 +0800 (Wed, 18 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExifImageFilter.cc
+
+Don't call TimeConverter here.
+
+------------------------------------------------------------------------
+r103 | fabricecolin | 2008-06-09 23:31:54 +0800 (Mon, 09 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+
+No need to reinvent the wheel when we can just use g_mime_message_get_subject().
+
+------------------------------------------------------------------------
+r102 | fabricecolin | 2008-05-28 22:29:18 +0800 (Wed, 28 May 2008) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+   M /trunk/cjkv/CJKVTokenizer.h
+   M /trunk/filters/HtmlFilter.cc
+
+Cosmetic changes.
+
+------------------------------------------------------------------------
+r101 | fabricecolin | 2008-05-23 21:42:32 +0800 (Fri, 23 May 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/HtmlFilter.cc
+
+Skip htdig_noindex blocks.
+
+------------------------------------------------------------------------
+r100 | fabricecolin | 2008-05-19 18:01:29 +0800 (Mon, 19 May 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+
+Decode base64-encoded ISO-2022-JP subject lines.
+
+------------------------------------------------------------------------
 r99 | fabricecolin | 2008-05-11 17:16:45 +0800 (Sun, 11 May 2008) | 3 lines
 Changed paths:
    M /trunk/filters/GMimeMboxFilter.cc

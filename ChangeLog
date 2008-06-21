@@ -1,4 +1,427 @@
 ------------------------------------------------------------------------
+r1282 | fabricecolin | 2008-06-21 12:06:37 +0800 (Sat, 21 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Current translations.
+
+------------------------------------------------------------------------
+r1281 | fabricecolin | 2008-06-21 12:04:55 +0800 (Sat, 21 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-index.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/IndexSearch/pinot-search.1
+   M /trunk/NEWS
+   M /trunk/TODO
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.1
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Preparing for v0.86 release.
+
+------------------------------------------------------------------------
+r1280 | fabricecolin | 2008-06-19 23:05:50 +0800 (Thu, 19 Jun 2008) | 3 lines
+Changed paths:
+   M /trunk/Collect/CurlDownloader.cpp
+   M /trunk/Collect/CurlDownloader.h
+   M /trunk/Collect/DownloaderFactory.cpp
+   M /trunk/Collect/DownloaderFactory.h
+   M /trunk/Collect/DownloaderInterface.cpp
+   M /trunk/Collect/DownloaderInterface.h
+   M /trunk/Collect/FileCollector.cpp
+   M /trunk/Collect/FileCollector.h
+   M /trunk/Collect/MboxCollector.cpp
+   M /trunk/Collect/MboxCollector.h
+   M /trunk/Collect/NeonDownloader.cpp
+   M /trunk/Collect/NeonDownloader.h
+   M /trunk/IndexSearch/DBusIndex.cpp
+   M /trunk/IndexSearch/DBusIndex.h
+   M /trunk/IndexSearch/FilterWrapper.cpp
+   M /trunk/IndexSearch/FilterWrapper.h
+   M /trunk/IndexSearch/Google/GoogleAPIEngine.cpp
+   M /trunk/IndexSearch/Google/GoogleAPIEngine.h
+   M /trunk/IndexSearch/IndexInterface.h
+   M /trunk/IndexSearch/ModuleFactory.cpp
+   M /trunk/IndexSearch/ModuleFactory.h
+   M /trunk/IndexSearch/OpenSearchParser.cpp
+   M /trunk/IndexSearch/OpenSearchParser.h
+   M /trunk/IndexSearch/PluginParsers.h
+   M /trunk/IndexSearch/PluginWebEngine.cpp
+   M /trunk/IndexSearch/PluginWebEngine.h
+   M /trunk/IndexSearch/QueryProperties.cpp
+   M /trunk/IndexSearch/QueryProperties.h
+   M /trunk/IndexSearch/ResultsExporter.cpp
+   M /trunk/IndexSearch/ResultsExporter.h
+   M /trunk/IndexSearch/SOAPEnvH.h
+   M /trunk/IndexSearch/SOAPEnvStub.h
+   M /trunk/IndexSearch/SearchEngineInterface.cpp
+   M /trunk/IndexSearch/SearchEngineInterface.h
+   M /trunk/IndexSearch/SearchPluginProperties.cpp
+   M /trunk/IndexSearch/SearchPluginProperties.h
+   M /trunk/IndexSearch/SherlockParser.cpp
+   M /trunk/IndexSearch/SherlockParser.h
+   M /trunk/IndexSearch/WebEngine.cpp
+   M /trunk/IndexSearch/WebEngine.h
+   M /trunk/IndexSearch/Xapian/AbstractGenerator.cpp
+   M /trunk/IndexSearch/Xapian/AbstractGenerator.h
+   M /trunk/IndexSearch/Xapian/LanguageDetector.cpp
+   M /trunk/IndexSearch/Xapian/LanguageDetector.h
+   M /trunk/IndexSearch/Xapian/ModuleExports.cpp
+   M /trunk/IndexSearch/Xapian/XapianDatabase.cpp
+   M /trunk/IndexSearch/Xapian/XapianDatabase.h
+   M /trunk/IndexSearch/Xapian/XapianDatabaseFactory.cpp
+   M /trunk/IndexSearch/Xapian/XapianDatabaseFactory.h
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+   M /trunk/IndexSearch/Xapian/XapianEngine.h
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.h
+   M /trunk/IndexSearch/XesamLog.h
+   M /trunk/IndexSearch/pinot-index.cpp
+   M /trunk/IndexSearch/pinot-label.cpp
+   M /trunk/IndexSearch/pinot-search.cpp
+   M /trunk/Monitor/INotifyMonitor.cpp
+   M /trunk/Monitor/INotifyMonitor.h
+   M /trunk/Monitor/MonitorEvent.cpp
+   M /trunk/Monitor/MonitorEvent.h
+   M /trunk/Monitor/MonitorFactory.cpp
+   M /trunk/Monitor/MonitorFactory.h
+   M /trunk/Monitor/MonitorHandler.cpp
+   M /trunk/Monitor/MonitorHandler.h
+   M /trunk/Monitor/MonitorInterface.h
+   M /trunk/SQL/ActionQueue.cpp
+   M /trunk/SQL/ActionQueue.h
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/CrawlHistory.h
+   M /trunk/SQL/QueryHistory.cpp
+   M /trunk/SQL/QueryHistory.h
+   M /trunk/SQL/SQLDB.cpp
+   M /trunk/SQL/SQLDB.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+   M /trunk/SQL/ViewHistory.cpp
+   M /trunk/SQL/ViewHistory.h
+   M /trunk/SQL/historytest.cpp
+   M /trunk/Tokenize/FilterUtils.cpp
+   M /trunk/Tokenize/FilterUtils.h
+   M /trunk/Tokenize/TextConverter.cpp
+   M /trunk/Tokenize/TextConverter.h
+   M /trunk/Tokenize/Tokenizer.cpp
+   M /trunk/Tokenize/Tokenizer.h
+   M /trunk/Tokenize/tokenizertest.cpp
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+   M /trunk/UI/GTK2/src/DaemonState.h
+   M /trunk/UI/GTK2/src/EnginesTree.cpp
+   M /trunk/UI/GTK2/src/EnginesTree.h
+   M /trunk/UI/GTK2/src/IndexPage.cpp
+   M /trunk/UI/GTK2/src/IndexPage.h
+   M /trunk/UI/GTK2/src/ModelColumns.cpp
+   M /trunk/UI/GTK2/src/ModelColumns.h
+   M /trunk/UI/GTK2/src/Notebook.cpp
+   M /trunk/UI/GTK2/src/Notebook.h
+   M /trunk/UI/GTK2/src/OnDiskHandler.h
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+   M /trunk/UI/GTK2/src/PinotSettings.h
+   M /trunk/UI/GTK2/src/PinotUtils.cpp
+   M /trunk/UI/GTK2/src/PinotUtils.h
+   M /trunk/UI/GTK2/src/ResultsTree.cpp
+   M /trunk/UI/GTK2/src/ResultsTree.h
+   M /trunk/UI/GTK2/src/ServerThreads.cpp
+   M /trunk/UI/GTK2/src/ServerThreads.h
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.h
+   M /trunk/UI/GTK2/src/importDialog.cc
+   M /trunk/UI/GTK2/src/importDialog.hh
+   M /trunk/UI/GTK2/src/indexDialog.cc
+   M /trunk/UI/GTK2/src/indexDialog.hh
+   M /trunk/UI/GTK2/src/launcherDialog.cc
+   M /trunk/UI/GTK2/src/launcherDialog.hh
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/mainWindow.hh
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+   M /trunk/UI/GTK2/src/pinot.cc
+   M /trunk/UI/GTK2/src/prefsDialog.cc
+   M /trunk/UI/GTK2/src/prefsDialog.hh
+   M /trunk/UI/GTK2/src/propertiesDialog.cc
+   M /trunk/UI/GTK2/src/propertiesDialog.hh
+   M /trunk/UI/GTK2/src/queryDialog.cc
+   M /trunk/UI/GTK2/src/queryDialog.hh
+   M /trunk/UI/GTK2/src/statisticsDialog.cc
+   M /trunk/UI/GTK2/src/statisticsDialog.hh
+   M /trunk/Utils/CommandLine.cpp
+   M /trunk/Utils/CommandLine.h
+   M /trunk/Utils/Document.cpp
+   M /trunk/Utils/Document.h
+   M /trunk/Utils/DocumentInfo.cpp
+   M /trunk/Utils/DocumentInfo.h
+   M /trunk/Utils/Languages.cpp
+   M /trunk/Utils/Languages.h
+   M /trunk/Utils/MIMEScanner.cpp
+   M /trunk/Utils/MIMEScanner.h
+   M /trunk/Utils/NLS.h
+   M /trunk/Utils/StringManip.cpp
+   M /trunk/Utils/StringManip.h
+   M /trunk/Utils/TimeConverter.cpp
+   M /trunk/Utils/TimeConverter.h
+   M /trunk/Utils/Timer.cpp
+   M /trunk/Utils/Timer.h
+   M /trunk/Utils/Url.cpp
+   M /trunk/Utils/Url.h
+
+Generated SOAP headers with gsoap 2.7.10, removed erroneous reference to the
+"Library General Public License" from all relevant files.
+
+------------------------------------------------------------------------
+r1279 | fabricecolin | 2008-06-18 20:29:58 +0800 (Wed, 18 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/Makefile.am
+
+Added HTTP_CFLAGS, following recent changes to TimeConverter.
+
+------------------------------------------------------------------------
+r1278 | fabricecolin | 2008-06-18 20:28:59 +0800 (Wed, 18 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+   M /trunk/UI/GTK2/src/pinot.cc
+
+Hmm I would have sworn SIGTERM was caught here.
+
+------------------------------------------------------------------------
+r1277 | fabricecolin | 2008-06-15 22:28:43 +0800 (Sun, 15 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+
+New target "manuals" to generate man pages with help2man.
+
+------------------------------------------------------------------------
+r1276 | fabricecolin | 2008-06-15 22:25:01 +0800 (Sun, 15 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/pinot.desktop
+
+Japanese and Simplified Chinese were missing in there.
+
+------------------------------------------------------------------------
+r1275 | fabricecolin | 2008-06-15 22:24:18 +0800 (Sun, 15 Jun 2008) | 6 lines
+Changed paths:
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/CrawlHistory.h
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+   M /trunk/UI/GTK2/src/ServerThreads.cpp
+
+On a full scan, change the status of all entries in CrawlHistory so that we can
+unindex orphaned documents at the end of the scan, ie documents that belong to
+deleted sources. Documents that have been deleted since the last full scan are
+still unindexed at the end of source scans.
+Do full scans on Reload.
+
+------------------------------------------------------------------------
+r1274 | fabricecolin | 2008-06-15 22:19:55 +0800 (Sun, 15 Jun 2008) | 4 lines
+Changed paths:
+   M /trunk/Utils/TimeConverter.cpp
+   M /trunk/Utils/TimeConverter.h
+
+The string generated by toTimestamp() has a time zone spec, not a name. Replaced
+fromTimestamp() with Neon's or Curl's date parsing function, depending on which
+is enabled, Curl being the preferred option.
+
+------------------------------------------------------------------------
+r1273 | fabricecolin | 2008-06-15 22:15:24 +0800 (Sun, 15 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk
+
+Edited externals to use http, since BerliOS decided to drop svn adn svn+ssh.
+
+------------------------------------------------------------------------
+r1272 | fabricecolin | 2008-05-28 22:28:35 +0800 (Wed, 28 May 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/PluginWebEngine.cpp
+
+In DEBUG mode, prefix the name of the file output is saved to with the engine's
+hostname.
+
+------------------------------------------------------------------------
+r1271 | fabricecolin | 2008-05-28 22:26:25 +0800 (Wed, 28 May 2008) | 4 lines
+Changed paths:
+   M /trunk/Collect/CurlDownloader.cpp
+   M /trunk/Collect/DownloaderInterface.cpp
+   M /trunk/Collect/DownloaderInterface.h
+   M /trunk/Collect/NeonDownloader.cpp
+
+Both Neon and CurlDownloader look for a Last-Modified header and use that as
+the document's timestamp.
+In DownloaderInterface, the timeout is in seconds.
+
+------------------------------------------------------------------------
+r1270 | fabricecolin | 2008-05-23 23:31:01 +0800 (Fri, 23 May 2008) | 2 lines
+Changed paths:
+   M /trunk/SQL/QueryHistory.cpp
+   M /trunk/SQL/QueryHistory.h
+   M /trunk/UI/GTK2/src/ResultsTree.cpp
+
+We are actually interested in the date results are found and stored.
+
+------------------------------------------------------------------------
+r1269 | fabricecolin | 2008-05-23 23:27:37 +0800 (Fri, 23 May 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/Notebook.cpp
+   M /trunk/UI/GTK2/src/Notebook.h
+
+Use a custom style for tab buttons, as used by gnome-terminal.
+
+------------------------------------------------------------------------
+r1268 | fabricecolin | 2008-05-22 20:47:17 +0800 (Thu, 22 May 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/IndexPage.cpp
+   M /trunk/UI/GTK2/src/IndexPage.h
+
+Disconnect the queries combobox's changed signal before populating it and
+reconnect when done.
+
+------------------------------------------------------------------------
+r1267 | fabricecolin | 2008-05-21 22:37:14 +0800 (Wed, 21 May 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/QueryProperties.cpp
+
+We might as well trim spaces off the user-supplied query too.
+
+------------------------------------------------------------------------
+r1266 | fabricecolin | 2008-05-21 22:36:25 +0800 (Wed, 21 May 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+Skip CJKV terms in getCloseTerms().
+
+------------------------------------------------------------------------
+r1265 | fabricecolin | 2008-05-20 22:47:50 +0800 (Tue, 20 May 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Synced with recent changes to QueryHistory.
+Don't offer suggestions if the current live query term is a filter or a range.
+
+------------------------------------------------------------------------
+r1264 | fabricecolin | 2008-05-20 22:45:08 +0800 (Tue, 20 May 2008) | 3 lines
+Changed paths:
+   M /trunk/SQL/QueryHistory.cpp
+   M /trunk/SQL/QueryHistory.h
+   M /trunk/UI/GTK2/src/ResultsTree.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+
+We might as well drop the Language column since it was used as charset and all
+the fields stored in this table are converted to UTF-8 prior to insertion.
+
+------------------------------------------------------------------------
+r1263 | fabricecolin | 2008-05-20 20:49:34 +0800 (Tue, 20 May 2008) | 3 lines
+Changed paths:
+   M /trunk/SQL/QueryHistory.cpp
+   M /trunk/SQL/QueryHistory.h
+
+Date is now part of the primary key so that we can have several snapshots of
+query results.
+
+------------------------------------------------------------------------
+r1262 | fabricecolin | 2008-05-19 18:05:32 +0800 (Mon, 19 May 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/QueryProperties.cpp
+
+Trim spaces off query strings after removing filters to make sure we don't pass
+strings consisting exclusively of spaces to Web engines.
+
+------------------------------------------------------------------------
+r1261 | fabricecolin | 2008-05-19 15:37:41 +0800 (Mon, 19 May 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+   M /trunk/UI/GTK2/src/IndexPage.cpp
+   M /trunk/UI/GTK2/src/ServerThreads.cpp
+   M /trunk/UI/GTK2/src/ServerThreads.h
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/importDialog.cc
+   M /trunk/UI/GTK2/src/statisticsDialog.cc
+
+Name *History objects in a uniform manner to facilitate grepping the source.
+
+------------------------------------------------------------------------
+r1260 | fabricecolin | 2008-05-19 11:45:29 +0800 (Mon, 19 May 2008) | 4 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+
+In ignore-version mode, we'd better reset the index labels list too as
+xapian-compact will <= 1.06 will have dropped it at the same time as the version
+number.
+
+------------------------------------------------------------------------
+r1259 | fabricecolin | 2008-05-19 11:40:27 +0800 (Mon, 19 May 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.xml
+
+The DocumentInfo methods also handle the "extract" field.
+
+------------------------------------------------------------------------
+r1258 | fabricecolin | 2008-05-19 11:33:01 +0800 (Mon, 19 May 2008) | 3 lines
+Changed paths:
+   M /trunk/scripts/python/pinot-module.py
+
+Support for snippets. I am not convinced this is useful considering the current
+Deskbar interface, so this is disabled for now.
+
+------------------------------------------------------------------------
+r1257 | fabricecolin | 2008-05-19 11:30:29 +0800 (Mon, 19 May 2008) | 3 lines
+Changed paths:
+   M /trunk/SQL/SQLDB.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Utility method alterTable() to work-around SQLite's limited implementation of
+ALTER TABLE.
+
+------------------------------------------------------------------------
+r1256 | fabricecolin | 2008-05-16 23:22:46 +0800 (Fri, 16 May 2008) | 4 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.h
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Refresh index lists with browse_index() when LabelUpdateThread returns, if
+necessary. When the query combox is updated, the change of selection will lead
+to a call to browse_index().
+
+------------------------------------------------------------------------
+r1255 | fabricecolin | 2008-05-16 23:08:07 +0800 (Fri, 16 May 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/DBusIndex.cpp
+
+Don't serialize to DBus empty fields. Added extract to the mix.
+Both getLabels() and getDocumentLabels() now always query the daemon and not
+the index.
+
+------------------------------------------------------------------------
+r1254 | fabricecolin | 2008-05-16 21:54:18 +0800 (Fri, 16 May 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/Notebook.cpp
+   M /trunk/UI/GTK2/src/Notebook.h
+
+Prettier, but still too big, buttons in notebook tabs when _USE_BUTTON_TAB is
+defined.
+
+------------------------------------------------------------------------
+r1252 | fabricecolin | 2008-05-11 17:27:37 +0800 (Sun, 11 May 2008) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/ChangeLog-dijon
+
+Current ChangeLogs.
+
+------------------------------------------------------------------------
 r1251 | fabricecolin | 2008-05-11 10:17:10 +0800 (Sun, 11 May 2008) | 2 lines
 Changed paths:
    M /trunk/NEWS
