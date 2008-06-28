@@ -1,5 +1,5 @@
 
-SUBDIRS = po Utils Tokenize SQL Collect IndexSearch/Google IndexSearch IndexSearch/Xapian Monitor UI/GTK2/src
+SUBDIRS = po Utils Tokenize SQL Collect IndexSearch/Google IndexSearch IndexSearch/Xapian IndexSearch/XesamGLib Monitor UI/GTK2/src
 
 # TODO: Fix that when cleaning up for distcheck! - crazy -
 EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
@@ -48,8 +48,8 @@ install-data-local:
 	@rm $(DESTDIR)$(libdir)/lib*filter.a $(DESTDIR)$(libdir)/lib*filter.la
 	@mv $(DESTDIR)$(libdir)/lib*filter* $(DESTDIR)$(libdir)/pinot/filters/
 	@mkdir -p $(DESTDIR)$(libdir)/pinot/backends
-	@rm $(DESTDIR)$(libdir)/libxapianbackend.a $(DESTDIR)$(libdir)/libxapianbackend.la
-	@mv $(DESTDIR)$(libdir)/libxapianbackend* $(DESTDIR)$(libdir)/pinot/backends/
+	@rm $(DESTDIR)$(libdir)/lib*backend.a $(DESTDIR)$(libdir)/lib*backend.la
+	@mv $(DESTDIR)$(libdir)/lib*backend* $(DESTDIR)$(libdir)/pinot/backends/
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
 	$(INSTALL_DATA) $(srcdir)/UI/icons/48x48/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/

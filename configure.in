@@ -106,6 +106,25 @@ fi
 AC_SUBST(SOAP_CFLAGS)
 AC_SUBST(SOAP_LIBS)
 
+dnl Xesam GLib
+AC_MSG_CHECKING(whether to enable Xesam GLib support)
+AC_ARG_ENABLE(xesam-glib,
+   [AS_HELP_STRING([--enable-xesam-glib], [enable Xesam GLib support [default=no]])],
+   ,[enable_xesam_glib=no])
+if test "x$enable_xesam_glib" != "xyes"; then
+   XESAMGLIB_CFLAGS=""
+   XESAMGLIB_LIBS=""
+   enable_xesam_glib=no
+fi
+AC_MSG_RESULT($enable_xesam_glib)
+AM_CONDITIONAL(HAVE_XESAM_GLIB, false)
+if test "x$enable_xesam_glib" = "xyes"; then
+   PKG_CHECK_MODULES(XESAMGLIB, xesam-glib)
+   AM_CONDITIONAL(HAVE_XESAM_GLIB, true)
+fi
+AC_SUBST(XESAMGLIB_CFLAGS)
+AC_SUBST(XESAMGLIB_LIBS)
+
 dnl Neon or Curl ?
 AC_MSG_CHECKING(which HTTP library to use)
 AC_ARG_WITH(http,
@@ -318,6 +337,6 @@ AC_CHECK_FUNCS(sysctlbyname)
 
 AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile \
-	IndexSearch/Google/Makefile IndexSearch/Xapian/Makefile IndexSearch/Makefile \
-	Monitor/Makefile UI/GTK2/src/Makefile )
+	IndexSearch/Google/Makefile IndexSearch/Xapian/Makefile IndexSearch/XesamGLib/Makefile \
+	IndexSearch/Makefile Monitor/Makefile UI/GTK2/src/Makefile )
 
