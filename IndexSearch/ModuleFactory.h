@@ -25,6 +25,25 @@
 #include "IndexInterface.h"
 #include "SearchEngineInterface.h"
 
+/// Loadable module.
+class LoadableModule
+{
+	public:
+		LoadableModule(const std::string &type, const std::string &location,
+			void *pHandle);
+		LoadableModule(const LoadableModule &other);
+		virtual ~LoadableModule();
+
+		LoadableModule &operator=(const LoadableModule &other);
+
+		std::string m_type;
+		std::string m_location;
+		bool m_canSearch;
+		bool m_canIndex;
+		void *m_pHandle;
+
+};
+
 /// Factory for search engines.
 class ModuleFactory
 {
@@ -61,8 +80,7 @@ class ModuleFactory
 		static void unloadModules(void);
 
 	protected:
-		static std::map<std::string, std::string> m_types;
-		static std::map<std::string, void *> m_handles;
+		static std::map<std::string, LoadableModule> m_types;
 
 		ModuleFactory();
 

@@ -60,9 +60,43 @@ using std::endl;
 using std::string;
 using std::map;
 using std::set;
+using std::pair;
 
-map<string, string> ModuleFactory::m_types;
-map<string, void *> ModuleFactory::m_handles;
+LoadableModule::LoadableModule(const string &type, const string &location,
+	void *pHandle) :
+	m_type(type),
+	m_location(location),
+	m_canSearch(false),
+	m_canIndex(false),
+	m_pHandle(pHandle)
+{
+}
+
+LoadableModule::LoadableModule(const LoadableModule &other) :
+	m_type(other.m_type),
+	m_location(other.m_location),
+	m_canSearch(other.m_canSearch),
+	m_canIndex(other.m_canIndex),
+	m_pHandle(other.m_pHandle)
+{
+}
+
+LoadableModule::~LoadableModule()
+{
+}
+
+LoadableModule &LoadableModule::operator=(const LoadableModule &other)
+{
+	m_type = other.m_type;
+	m_location = other.m_location;
+	m_canSearch = other.m_canSearch;
+	m_canIndex = other.m_canIndex;
+	m_pHandle = other.m_pHandle;
+
+	return *this;
+}
+
+map<string, LoadableModule> ModuleFactory::m_types;
 
 ModuleFactory::ModuleFactory()
 {
@@ -74,21 +108,15 @@ ModuleFactory::~ModuleFactory()
 
 IndexInterface *ModuleFactory::getLibraryIndex(const string &type, const string &option)
 {
-	void *pHandle = NULL;
+	map<string, LoadableModule>::iterator typeIter = m_types.find(type);
+	if ((typeIter == m_types.end()) ||
+		(typeIter->second.m_canIndex == false))
+	{
+		// We don't know about this type, or doesn't support indexes
+		return false;
+	}
 
-	map<string, string>::iterator typeIter = m_types.find(type);
-	if (typeIter == m_types.end())
-	{
-		// We don't know about this type
-		return NULL;
-	}
-	map<string, void *>::iterator handleIter = m_handles.find(typeIter->second);
-	if (handleIter == m_handles.end())
-	{
-		// We don't know about this library
-		return NULL;
-	}
-	pHandle = handleIter->second;
+	void *pHandle = typeIter->second.m_pHandle;
 	if (pHandle == NULL)
 	{
 		return NULL;
@@ -109,21 +137,14 @@ IndexInterface *ModuleFactory::getLibraryIndex(const string &type, const string 
 
 SearchEngineInterface *ModuleFactory::getLibrarySearchEngine(const string &type, const string &option)
 {
-	void *pHandle = NULL;
-
-	map<string, string>::iterator typeIter = m_types.find(type);
+	map<string, LoadableModule>::iterator typeIter = m_types.find(type);
 	if (typeIter == m_types.end())
 	{
 		// We don't know about this type
 		return NULL;
 	}
-	map<string, void *>::iterator handleIter = m_handles.find(typeIter->second);
-	if (handleIter == m_handles.end())
-	{
-		// We don't know about this library
-		return NULL;
-	}
-	pHandle = handleIter->second;
+
+	void *pHandle = typeIter->second.m_pHandle;
 	if (pHandle == NULL)
 	{
 		return NULL;
@@ -202,14 +223,30 @@ unsigned int ModuleFactory::loadModules(const string &directory)
 					if (pTypeFunc != NULL)
 					{
 						string moduleType((*pTypeFunc)());
+						LoadableModule module(moduleType, fileName, pHandle);
+
+						// Can it search ?
+						getSearchEngineFunc *pSearchFunc = (getSearchEngineFunc *)dlsym(pHandle,
+							GETSEARCHENGINEFUNC);
+						if (pSearchFunc != NULL)
+						{
+							module.m_canSearch = true;
+						}
+
+						// Can it index ?
+						getIndexFunc *pIndexFunc = (getIndexFunc *)dlsym(pHandle,
+							GETINDEXFUNC);
+						if (pIndexFunc != NULL)
+						{
+							module.m_canIndex = true;
+						}
 
 						// Add a record for this module
-						m_types[moduleType] = fileName;
+						m_types.insert(pair<string, LoadableModule>(moduleType, module));
 #ifdef DEBUG
 						cout << "ModuleFactory::loadModules: type " << moduleType
 							<< " is supported by " << pEntryName << endl;
 #endif
-						m_handles[fileName] = pHandle;
 					}
 					else cerr << "ModuleFactory::loadModules: " << dlerror() << endl;
 				}
@@ -232,21 +269,15 @@ unsigned int ModuleFactory::loadModules(const string &directory)
 bool ModuleFactory::openOrCreateIndex(const string &type, const string &option,
 	bool &obsoleteFormat, bool readOnly, bool overwrite)
 {
-	void *pHandle = NULL;
+	map<string, LoadableModule>::iterator typeIter = m_types.find(type);
+	if ((typeIter == m_types.end()) ||
+		(typeIter->second.m_canIndex == false))
+	{
+		// We don't know about this type, or doesn't support indexes
+		return false;
+	}
 
-	map<string, string>::iterator typeIter = m_types.find(type);
-	if (typeIter == m_types.end())
-	{
-		// We don't know about this type
-		return false;
-	}
-	map<string, void *>::iterator handleIter = m_handles.find(typeIter->second);
-	if (handleIter == m_handles.end())
-	{
-		// We don't know about this library
-		return false;
-	}
-	pHandle = handleIter->second;
+	void *pHandle = typeIter->second.m_pHandle;
 	if (pHandle == NULL)
 	{
 		return false;
@@ -268,21 +299,15 @@ bool ModuleFactory::openOrCreateIndex(const string &type, const string &option,
 bool ModuleFactory::mergeIndexes(const string &type, const string &option0,
 	const string &option1, const string &option2)
 {
-	void *pHandle = NULL;
+	map<string, LoadableModule>::iterator typeIter = m_types.find(type);
+	if ((typeIter == m_types.end()) ||
+		(typeIter->second.m_canIndex == false))
+	{
+		// We don't know about this type, or doesn't support indexes
+		return false;
+	}
 
-	map<string, string>::iterator typeIter = m_types.find(type);
-	if (typeIter == m_types.end())
-	{
-		// We don't know about this type
-		return false;
-	}
-	map<string, void *>::iterator handleIter = m_handles.find(typeIter->second);
-	if (handleIter == m_handles.end())
-	{
-		// We don't know about this library
-		return false;
-	}
-	pHandle = handleIter->second;
+	void *pHandle = typeIter->second.m_pHandle;
 	if (pHandle == NULL)
 	{
 		return false;
@@ -390,7 +415,7 @@ void ModuleFactory::getSupportedEngines(map<string, bool> &engines)
 	engines["googleapi"] = false;
 #endif
 	// Library-handled engines
-	for (map<string, string>::iterator typeIter = m_types.begin();
+	for (map<string, LoadableModule>::iterator typeIter = m_types.begin();
 		typeIter != m_types.end(); ++typeIter)
 	{
 		engines[typeIter->first] = true;
@@ -401,23 +426,35 @@ bool ModuleFactory::isSupported(const string &type, bool asIndex)
 {
 	if (asIndex == true)
 	{
-		// Only backends implement access to index
-		if (m_types.find(type) != m_types.end())
+		// Only backends implement index functionality
+		map<string, LoadableModule>::const_iterator typeIter = m_types.find(type);
+		if (typeIter != m_types.end())
 		{
-			return true;
+			return typeIter->second.m_canIndex;
 		}
+
+		return false;
 	}
-	else if (
+
+	if (
 #ifdef HAVE_GOOGLEAPI
 		(type == "googleapi") ||
 #endif
 #ifdef HAVE_BOOST_SPIRIT
 		(type == "sherlock") ||
 #endif
-		(type == "opensearch") ||
-		(m_types.find(type) != m_types.end()))
+		(type == "opensearch"))
 	{
 		return true;
+	}
+	else
+	{
+		// Does this backend implement search functionality ?
+		map<string, LoadableModule>::const_iterator typeIter = m_types.find(type);
+		if (typeIter != m_types.end())
+		{
+			return typeIter->second.m_canSearch;
+		}
 	}
 
 	return false;	
@@ -425,9 +462,13 @@ bool ModuleFactory::isSupported(const string &type, bool asIndex)
 
 void ModuleFactory::unloadModules(void)
 {
-	for (map<string, void*>::iterator iter = m_handles.begin(); iter != m_handles.end(); ++iter)
+	for (map<string, LoadableModule>::iterator typeIter = m_types.begin(); typeIter != m_types.end(); ++typeIter)
 	{
-		void *pHandle = iter->second;
+		void *pHandle = typeIter->second.m_pHandle;
+		if (pHandle == NULL)
+		{
+			continue;
+		}
 
 		closeAllFunc *pFunc = (closeAllFunc *)dlsym(pHandle, CLOSEALLFUNC);
 		if (pFunc != NULL)
@@ -441,12 +482,11 @@ void ModuleFactory::unloadModules(void)
 		if (dlclose(pHandle) != 0)
 		{
 #ifdef DEBUG
-			cout << "ModuleFactory::unloadModules: failed on " << iter->first << endl;
+			cout << "ModuleFactory::unloadModules: failed on " << typeIter->first << endl;
 #endif
 		}
 	}
 
 	m_types.clear();
-	m_handles.clear();
 }
 
