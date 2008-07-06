@@ -214,15 +214,9 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 					// It's a filter
 					m_wrap = NONE;
 					m_currentFilter = tok;
-#ifdef DEBUG
-					cout << "QueryModifier::handle_token: in filter" << endl;
-#endif
 				}
 				else
 				{
-#ifdef DEBUG
-					cout << "QueryModifier::handle_token: in brackets" << endl;
-#endif
 					m_wrap = BRACKETS;
 				}
 
@@ -231,9 +225,6 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 			}
 
 			// First n-gram ?
-#ifdef DEBUG
-			cout << "QueryModifier::handle_token: n-gram " << m_nGramCount << endl;
-#endif
 			if (m_nGramCount == 0)
 			{
 				if (tokPos == string::npos)
@@ -271,12 +262,11 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 			cout << "QueryModifier::handle_token: " << m_modifiedQuery << endl;
 #endif
 
-			++m_nGramCount;
-			if ((m_nGramCount % m_nGramSize == 0) &&
-				(tokPos != string::npos))
+			if (tokPos != string::npos)
 			{
 				m_pos = tokPos + tok.length();
 			}
+			++m_nGramCount;
 
 			return true;
 		}
@@ -286,9 +276,11 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 #ifdef DEBUG
 			cout << "QueryModifier::get_modified_query: " << m_pos << "/" << m_query.length() << endl;
 #endif
-			if (m_pos + 1 < m_query.length())
+
+			// Anything left ?
+			if (m_pos < m_query.length() - 1)
 			{
-				m_modifiedQuery += " " + m_query.substr(m_pos + 1);
+				m_modifiedQuery += " " + m_query.substr(m_pos);
 			}
 			wrapClose();
 #ifdef DEBUG
