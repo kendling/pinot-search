@@ -245,6 +245,7 @@ http://pinot.berlios.de/
     * XML
     * mbox
     * MP3 and Ogg Vorbis
+    * JPEG
 
   The following document types are supported through external programs :
     * PDF (pdftotext required)
@@ -280,7 +281,7 @@ http://pinot.berlios.de/
   related to these files.
 
   If you have never run Pinot before, the list will be pre-configured to skip
-  common picture and video types such as JPG, GIF, ZIP and MPG.
+  common picture, video and archive types such as GIF, MPG and ZIP.
 
 
 10. Digging deeper
@@ -485,7 +486,7 @@ http://curl.haxx.se/
 neon (1)						0.24.7
 http://www.webdav.org/neon/
 
-Google SOAP API (2)	Search/Google/googleapi		beta2
+Google SOAP API (2)	IndexSearch/Google/googleapi	beta2
 
  gSOAP (2)						2.7.9e
  http://www.cs.fsu.edu/~engelen/soap.html
