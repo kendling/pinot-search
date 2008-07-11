@@ -739,6 +739,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			// Get 10 non-prefixed terms
 			string allowedPrefixes("RS");
 			PrefixDecider expandDecider(allowedPrefixes);
+			CJKVTokenizer tokenizer;
 			Xapian::ESet expandTerms = enquire.get_eset(20, expandDocs, &expandDecider);
 #ifdef DEBUG
 			cout << "XapianEngine::queryDatabase: " << expandTerms.size() << " expand terms" << endl;
@@ -746,16 +747,23 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			for (Xapian::ESetIterator termIter = expandTerms.begin();
 				(termIter != expandTerms.end()) && (count < 10); ++termIter)
 			{
-				char firstChar = (*termIter)[0];
+				string expandTerm(*termIter);
+				char firstChar = expandTerm[0];
 
+				// Skip short terms
+				if ((tokenizer.has_cjkv(expandTerm) == false) &&
+					(expandTerm.length() < 3))
+				{
+					continue;
+				}
+
+				// Is this prefixed ?
 				if (allowedPrefixes.find(firstChar) != string::npos)
 				{
-					m_expandTerms.insert((*termIter).substr(1));
+					expandTerm.erase(0, 1);
 				}
-				else
-				{
-					m_expandTerms.insert(*termIter);
-				}
+
+				m_expandTerms.insert(expandTerm);
 				++count;
 			}
 		}
