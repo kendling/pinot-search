@@ -31,7 +31,7 @@
 #include <gtkmm/menu.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/treestore.h>
-#include <gtkmm/liststore.h>
+#include <gtkmm/textview.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/treeselection.h>
 
@@ -53,8 +53,8 @@ class ResultsTree : public Gtk::TreeView
 		/// Returns the extract scrolled window.
 		Gtk::ScrolledWindow *getExtractScrolledWindow(void) const;
 
-		/// Returns the extract tree.
-		Gtk::TreeView *getExtractTree(void) const;
+		/// Returns whether the extract text view has the focus.
+		bool focusOnExtract(void) const;
 
 		/// Returns the extract.
 		Glib::ustring getExtract(void) const;
@@ -126,8 +126,7 @@ class ResultsTree : public Gtk::TreeView
 		std::map<std::string, Gtk::TreeModel::iterator> m_resultsGroups;
 		ResultsModelColumns m_resultsColumns;
 		Gtk::ScrolledWindow *m_pExtractScrolledwindow;
-		Gtk::TreeView *m_extractTreeView;
-		Glib::RefPtr<Gtk::ListStore> m_refExtractStore;
+		Gtk::TextView *m_extractTextView;
 		ComboModelColumns m_extractColumns;
 		bool m_showExtract;
 		GroupByMode m_groupMode;

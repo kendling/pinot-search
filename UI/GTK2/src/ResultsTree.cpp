@@ -52,7 +52,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_pResultsScrolledwindow(NULL),
 	m_settings(settings),
 	m_pExtractScrolledwindow(NULL),
-	m_extractTreeView(NULL),
+	m_extractTextView(NULL),
 	m_showExtract(true),
 	m_groupMode(groupMode)
 {
@@ -60,7 +60,7 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 
 	m_pResultsScrolledwindow = manage(new ScrolledWindow());
 	m_pExtractScrolledwindow = manage(new ScrolledWindow());
-	m_extractTreeView = manage(new TreeView());
+	m_extractTextView = manage(new TextView());
 
 	// This is the actual results tree
 	set_events(Gdk::BUTTON_PRESS_MASK);
@@ -79,20 +79,30 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_pResultsScrolledwindow->add(*this);
 
 	// That's for the extract view
-	m_extractTreeView->set_events(Gdk::BUTTON_PRESS_MASK);
-	m_extractTreeView->set_flags(CAN_FOCUS);
-	m_extractTreeView->set_headers_clickable(false);
-	m_extractTreeView->set_headers_visible(false);
-	m_extractTreeView->set_rules_hint(true);
-	m_extractTreeView->set_reorderable(false);
-	m_extractTreeView->set_enable_search(true);
-	m_extractTreeView->get_selection()->set_mode(SELECTION_SINGLE);
+	m_extractTextView->set_flags(CAN_FOCUS);
+	m_extractTextView->set_editable(false);
+	m_extractTextView->set_cursor_visible(false);
+	m_extractTextView->set_pixels_above_lines(0);
+	m_extractTextView->set_pixels_below_lines(0);
+	m_extractTextView->set_pixels_inside_wrap(0);
+	m_extractTextView->set_left_margin(0);
+	m_extractTextView->set_right_margin(0);
+	m_extractTextView->set_indent(0);
+	m_extractTextView->set_wrap_mode(WRAP_WORD);
+	m_extractTextView->set_justification(JUSTIFY_LEFT);
+	RefPtr<TextTag> refBoldTag = TextBuffer::Tag::create("bold");
+	refBoldTag->property_weight() = 900;
+	RefPtr<TextBuffer> refBuffer = m_extractTextView->get_buffer();
+	if (refBuffer)
+	{
+		refBuffer->get_tag_table()->add(refBoldTag); 
+	}
 	m_pExtractScrolledwindow->set_flags(CAN_FOCUS);
 	m_pExtractScrolledwindow->set_border_width(4);
 	m_pExtractScrolledwindow->set_shadow_type(SHADOW_NONE);
 	m_pExtractScrolledwindow->set_policy(POLICY_AUTOMATIC, POLICY_AUTOMATIC);
 	m_pExtractScrolledwindow->property_window_placement().set_value(CORNER_TOP_LEFT);
-	m_pExtractScrolledwindow->add(*m_extractTreeView);
+	m_pExtractScrolledwindow->add(*m_extractTextView);
 
 	// Associate the columns model to the results tree
 	m_refStore = TreeStore::create(m_resultsColumns);
@@ -173,21 +183,10 @@ ResultsTree::ResultsTree(const ustring &queryName, Menu *pPopupMenu,
 	m_upIconPixbuf = render_icon(Stock::GO_UP, ICON_SIZE_MENU, "MetaSE-pinot");
 	m_downIconPixbuf = render_icon(Stock::GO_DOWN, ICON_SIZE_MENU, "MetaSE-pinot");
 
-	// Associate the columns model to the extract tree
-	m_refExtractStore = ListStore::create(m_extractColumns);
-	m_extractTreeView->set_model(m_refExtractStore);
-	pColumn = new TreeViewColumn(_("Extract"));
-	pTextRenderer = new CellRendererText();
-	pColumn->pack_start(*manage(pTextRenderer));
-	pColumn->set_cell_data_func(*pTextRenderer, sigc::mem_fun(*this, &ResultsTree::renderExtractColumn));
-	pColumn->add_attribute(pTextRenderer->property_text(), m_extractColumns.m_name);
-	pColumn->set_sizing(TREE_VIEW_COLUMN_AUTOSIZE);
-	m_extractTreeView->append_column(*manage(pColumn));
-
 	// Show all
 	show();
 	m_pResultsScrolledwindow->show();
-	m_extractTreeView->show();
+	m_extractTextView->show();
 	m_pExtractScrolledwindow->show();
 }
 
@@ -377,8 +376,11 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 		(m_groupMode != FLAT))
 	{
 		// Clear the extract
-		m_extractTreeView->get_selection()->unselect_all();
-		m_refExtractStore->clear();
+		RefPtr<TextBuffer> refBuffer = m_extractTextView->get_buffer();
+		if (refBuffer)
+		{
+			refBuffer->set_text("");
+		}
 
 		// Is this an actual result ?
 		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
@@ -387,10 +389,42 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 #ifdef DEBUG
 			cout << "ResultsTree::onSelectionSelect: extract for " << row[m_resultsColumns.m_text] << endl;
 #endif
+			RefPtr<TextBuffer> refBuffer = m_extractTextView->get_buffer();
+			if (refBuffer)
+			{
+				ustring extract(findResultsExtract(row));
+				TextBuffer::iterator bufferPos = refBuffer->begin();
+				ustring::size_type textPos = 0, boldPos = extract.find("<b>");
 
-			TreeModel::iterator extractIter = m_refExtractStore->append();
-			TreeModel::Row extractRow = *extractIter;
-			extractRow[m_extractColumns.m_name] = findResultsExtract(row);
+				if (boldPos == ustring::npos)
+				{
+					refBuffer->set_text(extract);
+				}
+				else
+				{
+					while (boldPos != ustring::npos)
+					{
+						bufferPos = refBuffer->insert(bufferPos, extract.substr(textPos, boldPos - textPos));
+
+						textPos = boldPos + 3;
+						boldPos = extract.find("</b>", textPos);
+						if (boldPos == ustring::npos)
+						{
+							continue;
+						}
+						bufferPos = refBuffer->insert_with_tag(bufferPos, extract.substr(textPos, boldPos - textPos), "bold");
+
+						// Next
+						textPos = boldPos + 4;
+						boldPos = extract.find("<b>", textPos);
+					}
+
+					if (textPos + 1 < extract.length())
+					{
+						bufferPos = refBuffer->insert(bufferPos, extract.substr(textPos, boldPos - textPos));
+					}
+				}
+			}
 		}
 	}
 
@@ -428,9 +462,9 @@ ScrolledWindow *ResultsTree::getExtractScrolledWindow(void) const
 //
 // Returns the extract tree.
 //
-TreeView *ResultsTree::getExtractTree(void) const
+bool ResultsTree::focusOnExtract(void) const
 {
-	return m_extractTreeView;
+	return m_extractTextView->is_focus();
 }
 
 //
@@ -440,13 +474,10 @@ ustring ResultsTree::getExtract(void) const
 {
 	ustring text;
 
-	TreeModel::Children children = m_refExtractStore->children();
-	for (TreeModel::Children::iterator iter = children.begin();
-		iter != children.end(); ++iter)
+	RefPtr<TextBuffer> refBuffer = m_extractTextView->get_buffer();
+	if (refBuffer)
 	{
-		TreeModel::Row row = *iter;
-
-		text += row[m_extractColumns.m_name];
+		text = refBuffer->get_text();
 	}
 
 	return text;
@@ -1208,8 +1239,11 @@ void ResultsTree::clear(void)
 		m_refStore->clear();
 
 		// Clear the extract
-		m_extractTreeView->get_selection()->unselect_all();
-		m_refExtractStore->clear();
+		RefPtr<TextBuffer> refBuffer = m_extractTextView->get_buffer();
+		if (refBuffer)
+		{
+			refBuffer->set_text("");
+		}
 
 		onSelectionChanged();
 	}
