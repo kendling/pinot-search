@@ -45,6 +45,8 @@ protected:
 	unsigned int m_locationLength;
 	DocumentInfo m_docInfo;
 
+	void on_data_received(const Glib::RefPtr<Gdk::DragContext> &context,
+		int x, int y, const Gtk::SelectionData &data, guint info, guint time);
 	void populate_comboboxes(void);
 
 	virtual void on_importButton_clicked();

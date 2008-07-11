@@ -23,6 +23,7 @@
 #include <utility>
 #include <glibmm/convert.h>
 #include <gtkmm/stock.h>
+#include <gtkmm/targetlist.h>
 
 #include "config.h"
 #include "DocumentInfo.h"
@@ -36,6 +37,7 @@
 
 using namespace std;
 using namespace Glib;
+using namespace Gdk;
 using namespace Gtk;
 
 importDialog::importDialog() :
@@ -50,6 +52,13 @@ importDialog::importDialog() :
 	m_refLocationCompletion->set_minimum_key_length(8);
 	m_refLocationCompletion->set_popup_completion(true);
 	locationEntry->set_completion(m_refLocationCompletion);
+
+	// Specify drop targets
+	locationEntry->drag_dest_set(Gtk::DEST_DEFAULT_ALL, DragAction(GDK_ACTION_COPY|GDK_ACTION_MOVE));
+	locationEntry->drag_dest_add_uri_targets();
+	// Connect to the drag data received signal
+	locationEntry->signal_drag_data_received().connect(
+		sigc::mem_fun(*this, &importDialog::on_data_received));
 
 	// Populate
 	populate_comboboxes();
@@ -66,6 +75,25 @@ importDialog::~importDialog()
 const DocumentInfo &importDialog::getDocumentInfo(void) const
 {
 	return m_docInfo;
+}
+
+void importDialog::on_data_received(const RefPtr<DragContext> &context,
+	int x, int y, const SelectionData &data, guint info, guint time)
+{
+	list<ustring> droppedUris = data.get_uris();
+	bool goodDrop = false;
+
+	cout << "importDialog::on_data_received: data type "
+		<< data.get_data_type() << " in format " << data.get_format() << endl;
+
+	if (droppedUris.empty() == false)
+	{
+		locationEntry->set_text(droppedUris.front());
+
+		goodDrop = true;
+	}
+
+	context->drag_finish(goodDrop, false, time);
 }
 
 void importDialog::populate_comboboxes(void)

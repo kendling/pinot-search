@@ -34,6 +34,7 @@
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/clipboard.h>
 #include <gtkmm/recentmanager.h>
+#include <gtkmm/targetlist.h>
 #include <gtkmm/main.h>
 
 #include "config.h"
@@ -179,6 +180,19 @@ mainWindow::mainWindow() :
 	// Connect to the "changed" signal
 	queryTreeview->get_selection()->signal_changed().connect(
 		sigc::mem_fun(*this, &mainWindow::on_queryTreeviewSelection_changed));
+
+	// Specify drop targets
+	queryTreeview->drag_dest_set(Gtk::DEST_DEFAULT_ALL, DragAction(GDK_ACTION_COPY|GDK_ACTION_MOVE));
+	// FIXME: this causes some text files to be received as text, others as URIs !
+	//queryTreeview->drag_dest_add_text_targets();
+	queryTreeview->drag_dest_add_uri_targets();
+	RefPtr<TargetList> targetList = queryTreeview->drag_dest_get_target_list();
+	targetList->add("UTF8_STRING", TargetFlags(0), 0);
+	targetList->add("text/plain", TargetFlags(0), 0);
+	// Connect to the drag data received signal
+	queryTreeview->signal_drag_data_received().connect(
+		sigc::mem_fun(*this, &mainWindow::on_data_received));
+
 	// Populate
 	populate_queryTreeview("");
 
@@ -599,23 +613,83 @@ bool mainWindow::get_results_page_details(const ustring &queryName,
 }
 
 //
-// Query list selection changed
+// Drag and drop
 //
-void mainWindow::on_queryTreeviewSelection_changed()
+void mainWindow::on_data_received(const RefPtr<DragContext> &context,
+	int x, int y, const SelectionData &data, guint info, guint time)
 {
-	bool enableButtons = false;
+	list<ustring> droppedUris = data.get_uris();
+	ustring droppedText(data.get_text());
+	bool goodDrop = false;
 
-	TreeModel::iterator iter = queryTreeview->get_selection()->get_selected();
-	// Anything selected ?
-	if (iter)
+	cout << "mainWindow::on_data_received: data type "
+		<< data.get_data_type() << " in format " << data.get_format() << endl;
+
+	if (droppedUris.empty() == false)
 	{
-		// Enable all buttons
-		enableButtons = true;
+		IndexInterface *pIndex = m_settings.getIndex("MERGED");
+		set<string> locationsToIndex;
+		bool isIndexing = true;
+
+		for (list<ustring>::iterator uriIter = droppedUris.begin();
+			uriIter != droppedUris.end(); ++uriIter)
+		{
+			string uri(*uriIter);
+
+			cout << "mainWindow::on_data_received: received URI \""
+				<< uri << "\"" << endl; 
+
+			// Query the merged index
+			if (pIndex != NULL)
+			{
+				// Has this been indexed ?
+				unsigned int docId = pIndex->hasDocument(uri);
+				if (docId == 0)
+				{
+					locationsToIndex.insert(uri);
+				}
+			}
+
+			m_expandLocations.insert(uri);
+			goodDrop = true;
+		}
+
+		if (pIndex != NULL)
+		{
+			delete pIndex;
+		}
+
+		if (goodDrop == true)
+		{
+			for (set<string>::iterator locationIter = locationsToIndex.begin();
+				locationIter != locationsToIndex.end(); ++locationIter)
+			{
+				DocumentInfo docInfo("", *locationIter, "", "");
+
+				// Add this to My Web Pages
+				m_state.queue_index(docInfo);
+			}
+
+			if (locationsToIndex.empty() == true)
+			{
+				// We can run a catch-all query and expand on these documents right away
+				expand_locations();
+			}
+			// Else, do it when indexing is completed
+		}
+	}
+	else if (droppedText.empty() == false)
+	{
+		QueryProperties queryProps("", from_utf8(droppedText));
+		edit_query(queryProps, true);
+
+		cout << "mainWindow::on_data_received: received text \""
+			<< droppedText << "\"" << endl;
+
+		goodDrop = true;
 	}
 
-	removeQueryButton->set_sensitive(enableButtons);
-	queryHistoryButton->set_sensitive(enableButtons);
-	findQueryButton->set_sensitive(enableButtons);
+	context->drag_finish(goodDrop, false, time);
 }
 
 //
@@ -654,6 +728,26 @@ void mainWindow::on_enginesTreeviewSelection_changed()
 		}
 	}
 	removeIndexButton->set_sensitive(enableRemoveIndex);
+}
+
+//
+// Query list selection changed
+//
+void mainWindow::on_queryTreeviewSelection_changed()
+{
+	bool enableButtons = false;
+
+	TreeModel::iterator iter = queryTreeview->get_selection()->get_selected();
+	// Anything selected ?
+	if (iter)
+	{
+		// Enable all buttons
+		enableButtons = true;
+	}
+
+	removeQueryButton->set_sensitive(enableButtons);
+	queryHistoryButton->set_sensitive(enableButtons);
+	findQueryButton->set_sensitive(enableButtons);
 }
 
 //
@@ -1646,7 +1740,10 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 	delete pThread;;
 
 	// We might be able to run a queued action
-	m_state.pop_queue(indexedUrl);
+	if (m_state.pop_queue(indexedUrl) == false)
+	{
+		expand_locations();
+	}
 
 	// Any threads left to return ?
 	if (m_state.get_threads_count() == 0)
@@ -1820,9 +1917,7 @@ void mainWindow::on_copy_activate()
 				ResultsTree *pResultsTree = pResultsPage->getTree();
 				if (pResultsTree != NULL)
 				{
-					TreeView *pTree = pResultsTree->getExtractTree();
-					if ((pTree != NULL) &&
-						(pTree->is_focus() == true))
+					if (pResultsTree->focusOnExtract() == true)
 					{
 						// Retrieve the extract
 						text = pResultsTree->getExtract();
@@ -1916,8 +2011,7 @@ void mainWindow::on_paste_activate()
 		cout << "mainWindow::on_paste_activate: query tree" << endl;
 #endif
 		// Use whatever text is in the clipboard as query name
-		// FIXME: look for \n as query fields separators ?
-		QueryProperties queryProps = QueryProperties(from_utf8(clipText), from_utf8(clipText));
+		QueryProperties queryProps("", from_utf8(clipText));
 		edit_query(queryProps, true);
 	}
 	else
@@ -2694,7 +2788,7 @@ void mainWindow::on_addQueryButton_clicked()
 {
 	// Even though live queries terms are now ANDed together,
 	// use them as OR terms when creating a new stored query
-	QueryProperties queryProps = QueryProperties("", liveQueryEntry->get_text());
+	QueryProperties queryProps("", liveQueryEntry->get_text());
 
 	edit_query(queryProps, true);
 }
@@ -2871,7 +2965,7 @@ bool mainWindow::on_queryTreeview_button_press_event(GdkEventButton *ev)
 #endif
 
 			// Edit this query's properties
-			QueryProperties queryProps = row[m_queryColumns.m_properties];
+			QueryProperties queryProps(row[m_queryColumns.m_properties]);
 			edit_query(queryProps, false);
 		}
 	}
@@ -3605,6 +3699,31 @@ bool mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 			&mainWindow::on_activity_timeout), 1000);
 		m_timeoutConnection.unblock();
 	}
+
+	return true;
+}
+
+bool mainWindow::expand_locations(void)
+{
+	// Was an expand operation delayed by indexing ?
+	if (m_expandLocations.empty() == true)
+	{
+		return false;
+	}
+
+	Url urlObj(*m_expandLocations.begin());
+	string queryName(urlObj.getFile());
+
+	if (m_expandLocations.size() > 1)
+	{
+		queryName += "...";
+	}
+	QueryProperties queryProps(queryName, "dir:/");
+
+	// Run a catch-all query and expand on these documents
+	ExpandQueryThread *pExpandQueryThread = new ExpandQueryThread(queryProps, m_expandLocations);
+	m_expandLocations.clear();
+	start_thread(pExpandQueryThread);
 
 	return true;
 }

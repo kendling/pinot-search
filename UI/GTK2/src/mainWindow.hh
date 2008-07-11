@@ -68,6 +68,8 @@ protected:
 		QueryProperties &queryProps, std::set<std::string> &locations);
 
 	// Handlers
+	void on_data_received(const Glib::RefPtr<Gdk::DragContext> &context,
+		int x, int y, const Gtk::SelectionData &data, guint info, guint time);
 	void on_enginesTreeviewSelection_changed();
 	void on_queryTreeviewSelection_changed();
 	void on_resultsTreeviewSelection_changed(Glib::ustring queryName);
@@ -142,6 +144,7 @@ protected:
 	bool append_document(IndexPage *pIndexPage, const Glib::ustring &indexName,
 		const DocumentInfo &docInfo);
 	bool start_thread(WorkerThread *pNewThread, bool inBackground = false);
+	bool expand_locations(void);
 
 	// Status methods
 	bool on_activity_timeout(void);
@@ -157,6 +160,7 @@ private:
 	Glib::RefPtr<Gtk::EntryCompletion> m_refLiveQueryCompletion;
 	QueryModelColumns m_queryColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refQueryTree;
+	std::set<std::string> m_expandLocations;
 	// Notebook
 	Gtk::Notebook *m_pNotebook;
 	// Menus
