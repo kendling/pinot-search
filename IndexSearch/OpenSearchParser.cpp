@@ -293,7 +293,7 @@ OpenSearchParser::~OpenSearchParser()
 }
 
 ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &properties,
-	bool extractSearchParams)
+	bool minimal)
 {
 	struct stat fileStat;
 	bool rssResponse = true, success = true;
@@ -447,7 +447,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 								{
 									string paramName(parameter.substr(0, equalPos));
 									string paramValue(parameter.substr(equalPos + 1));
-									SearchPluginProperties::Parameter param = SearchPluginProperties::UNKNOWN_PARAM;
+									SearchPluginProperties::ParameterVariable param = SearchPluginProperties::UNKNOWN_PARAM;
 
 									if (paramValue == "{searchTerms}")
 									{
@@ -480,18 +480,29 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 
 									if (param != SearchPluginProperties::UNKNOWN_PARAM)
 									{
-										properties.m_parameters[param] = paramName;
+										properties.m_variableParameters[param] = paramName;
 									}
 									else
 									{
-										// Append to the remainder
-										if (properties.m_parametersRemainder.empty() == false)
+#ifdef DEBUG
+										cout << "OpenSearchParser::parse: " << paramName << "=" << paramValue << endl;
+#endif
+										if (paramValue.substr(0, 5) == "EDIT:")
 										{
-											properties.m_parametersRemainder += "&";
+											// This is user editable
+											properties.m_editableParameters[paramName] = paramValue.substr(5);
 										}
-										properties.m_parametersRemainder += paramName;
-										properties.m_parametersRemainder += "=";
-										properties.m_parametersRemainder += paramValue;
+										else
+										{
+											// Append to the remainder
+											if (properties.m_remainder.empty() == false)
+											{
+												properties.m_remainder += "&";
+											}
+											properties.m_remainder += paramName;
+											properties.m_remainder += "=";
+											properties.m_remainder += paramValue;
+										}
 									}
 								}
 
@@ -524,14 +535,6 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 				{
 					properties.m_languages.insert(nodeContent);
 				}
-				else if (nodeName == "OutputEncoding")
-				{
-					properties.m_outputEncodings.insert(nodeContent);
-				}
-				else if (nodeName == "InputEncoding")
-				{
-					properties.m_inputEncodings.insert(nodeContent);
-				}
 			}
 		}
 	}
@@ -551,7 +554,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 	// Scrolling
 	properties.m_nextIncrement = 1;
 	properties.m_nextBase = 1;
-	if (properties.m_parameters.find(SearchPluginProperties::START_PAGE_PARAM) != properties.m_parameters.end())
+	if (properties.m_variableParameters.find(SearchPluginProperties::START_PAGE_PARAM) != properties.m_variableParameters.end())
 	{
 		properties.m_scrolling = SearchPluginProperties::PER_PAGE;
 	}

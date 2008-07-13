@@ -58,7 +58,7 @@ class OpenSearchParser : public PluginParserInterface
 
 		/// Parses the plugin and returns a response parser.
 		virtual ResponseParserInterface *parse(SearchPluginProperties &properties,
-			bool extractSearchParams = false);
+			bool minimal = false);
 
 	private:
 		OpenSearchParser(const OpenSearchParser &other);

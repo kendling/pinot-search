@@ -39,7 +39,7 @@ class SearchPluginProperties
 
 		typedef enum { UNKNOWN_PARAM = 0, SEARCH_TERMS_PARAM,
 			 COUNT_PARAM,START_INDEX_PARAM, START_PAGE_PARAM, LANGUAGE_PARAM,
-			OUTPUT_ENCODING_PARAM, INPUT_ENCODING_PARAM } Parameter;
+			OUTPUT_ENCODING_PARAM, INPUT_ENCODING_PARAM } ParameterVariable;
 
 		typedef enum { PER_PAGE = 0, PER_INDEX } Scrolling;
 
@@ -52,13 +52,12 @@ class SearchPluginProperties
 		std::string m_description;
 		std::string m_channel;
 		std::set<std::string> m_languages;
-		std::set<std::string> m_outputEncodings;
-		std::set<std::string> m_inputEncodings;
 		// Query
 		std::string m_baseUrl;
 		Method m_method;
-		std::map<Parameter, std::string> m_parameters;
-		std::string m_parametersRemainder;
+		std::map<ParameterVariable, std::string> m_variableParameters;
+		std::map<std::string, std::string> m_editableParameters;
+		std::string m_remainder;
 		std::string m_outputType;
 		// Scrolling
 		Scrolling m_scrolling;

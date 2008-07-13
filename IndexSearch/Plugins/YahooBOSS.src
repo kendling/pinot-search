@@ -1,0 +1,34 @@
+# Yahoo! REST API Search Plugin
+
+<SEARCH
+	version="1.0"
+	name="Yahoo! BOSS"
+	description="Yahoo! BOSS API"
+	method="GET"
+	action="http://boss.yahooapis.com/ysearch/web/v1/"
+	routeType="The Web"
+>
+
+# Edit this field's value to set to your application ID
+<INPUT NAME="appid" VALUE="EDIT:Yahoo! Boss ID">
+# Append query terms to the action URL <INPUT NAME="" USER>
+<INPUT NAME="count" VALUE="10">
+<INPUT NAME="format" VALUE="xml">
+
+<INTERPRET
+resultListStart="<resultset_web"
+resultListEnd="</resultset_web>"
+resultItemStart="<result>"
+resultItemEnd="</result>"
+# The following attributes are specific to Pinot
+resultTitleStart="<title>"
+resultTitleEnd="</title>"
+resultLinkStart="<url>"
+resultLinkEnd="</url>"
+resultExtractStart="<abstract>"
+resultExtractEnd="</abstract>"
+>
+
+</SEARCH>
+
+

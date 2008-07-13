@@ -283,3 +283,10 @@ DownloaderInterface *WebEngine::getDownloader(void)
 {
 	return m_pDownloader;
 }
+
+/// Specifies values for editable parameters.
+void WebEngine::setEditableValues(const std::map<std::string, std::string> &editableValues)
+{
+	m_editableValues = editableValues;
+}
+

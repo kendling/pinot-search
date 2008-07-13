@@ -21,6 +21,7 @@
 
 #include <string>
 #include <set>
+#include <map>
 
 #include "Document.h"
 #include "DownloaderInterface.h"
@@ -37,8 +38,12 @@ class WebEngine : public SearchEngineInterface
 		/// Returns the downloader used if any.
 		DownloaderInterface *getDownloader(void);
 
+		/// Specifies values for editable parameters.
+		void setEditableValues(const std::map<std::string, std::string> &editableValues);
+
 	protected:
 		DownloaderInterface *m_pDownloader;
+		std::map<std::string, std::string> m_editableValues;
 		std::set<std::string> m_queryTerms;
 
 		Document *downloadPage(const DocumentInfo &docInfo);

@@ -84,61 +84,6 @@ struct plugin_skip_grammar : public grammar<plugin_skip_grammar>
 };
 
 /**
-  * A minimal grammar for Sherlock plugins.
-  * This only checks for the existence of the SEARCH tag.
-  * It is used to quickly extract SEARCH attributes.
-  */
-struct plugin_min_grammar : public grammar<plugin_min_grammar>
-{
-	 plugin_min_grammar(map<string, string> &searchParams) :
-		m_searchParams(searchParams)
-	{
-	}
-
-	template <typename ScannerT>
-	struct definition
-	{
-		definition(plugin_min_grammar const &self)
-		{
-			// Start
-			search_plugin = search_header >> rest;
-
-			// All items have a name and an optionally-quoted value, separated by =
-			end_of_name = ch_p('=');
-			any_name = *(~ch_p('>') - end_of_name);
-			any_value_without_quotes = lexeme_d[*(~ch_p('>') - ch_p('\n'))];
-			any_value = ch_p('\'') >> (*(~ch_p('\'')))[assign_a(unquotedValue)] >> ch_p('\'') |
-				ch_p('"') >> (*(~ch_p('"')))[assign_a(unquotedValue)] >> ch_p('"') |
-				any_value_without_quotes[assign_a(unquotedValue)];
-
-			// SEARCH attributes are items
-			// There should be only one SEARCH tag
-			search_item = (any_name[assign_a(itemName)]
-				>> ch_p('=') >> any_value[assign_a(itemValue, unquotedValue)])
-				[insert_at_a(self.m_searchParams, itemName, itemValue)];
-
-			// SEARCH may have any number of attributes
-			search_header = ch_p('<') >> as_lower_d[str_p("search")] >> *search_item >> ch_p('>');
-
-			// Rest
-			rest = *anychar_p;
-		}
-
-		string unquotedValue, itemName, itemValue;		
-		rule<ScannerT> search_plugin, search_header, rest;
-		rule<ScannerT> end_of_name, any_name, any_value_without_quotes, any_value, search_item;
-
-		rule<ScannerT> const& start() const
-		{
-			return search_plugin;
-		}
-	};
-
-	map<string, string> &m_searchParams;
-
-};
-
-/**
   * A complete but lax grammar for Sherlock plugins.
   * For instance, it doesn't mind if INPUT has a NAME but no VALUE.
   * More importantly, it doesn't enforce types, eg FACTOR should be an integer.
@@ -496,7 +441,7 @@ SherlockParser::~SherlockParser()
 }
 
 ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &properties,
-	bool extractSearchParams)
+	bool minimal)
 {
 	FileCollector fileCollect;
 	DocumentInfo docInfo("Sherlock Source", string("file://") + m_fileName,
@@ -529,23 +474,12 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 	{
 		try
 		{
-			if (extractSearchParams == false)
-			{
-				plugin_skip_grammar skip;
-				plugin_grammar plugin(searchParams, interpretParams, inputItems,
-					userInput, nextInput, nextFactor, nextValue);
+			plugin_skip_grammar skip;
+			plugin_grammar plugin(searchParams, interpretParams, inputItems,
+				userInput, nextInput, nextFactor, nextValue);
 
-				parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
-				parsedPlugin = parseInfo.hit;
-			}
-			else
-			{
-				plugin_skip_grammar skip;
-				plugin_min_grammar plugin(searchParams);
-
-				parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
-				parsedPlugin = parseInfo.hit;
-			}
+			parse_info<> parseInfo = boost::spirit::parse(pData, plugin, skip);
+			parsedPlugin = parseInfo.hit;
 		}
 		catch (const exception &e)
 		{
@@ -609,40 +543,48 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 			properties.m_channel = mapIter->second;
 		}
 
-		if (extractSearchParams == false)
+		if (userInput.empty() == false)
 		{
-			if (userInput.empty() == false)
-			{
-				string lowUserInput(StringManip::toLowerCase(userInput));
+			string lowUserInput(StringManip::toLowerCase(userInput));
 
-				// Remove the user input tag from the input tags map
-				mapIter = lowInputItems.find(lowUserInput);
-				if (mapIter != lowInputItems.end())
-				{
-					lowInputItems.erase(mapIter);
-				}
+			// Remove the user input tag from the input tags map
+			mapIter = lowInputItems.find(lowUserInput);
+			if (mapIter != lowInputItems.end())
+			{
+				lowInputItems.erase(mapIter);
+			}
 #ifdef DEBUG
-				else cout << "SherlockParser::parse: couldn't remove user input item" << endl;
+			else cout << "SherlockParser::parse: couldn't remove user input item" << endl;
 #endif
 
-				properties.m_parameters[SearchPluginProperties::SEARCH_TERMS_PARAM] = lowUserInput;
+			properties.m_variableParameters[SearchPluginProperties::SEARCH_TERMS_PARAM] = lowUserInput;
+		}
+		for (map<string, string>::iterator iter = lowInputItems.begin();
+			iter != lowInputItems.end(); ++iter)
+		{
+#ifdef DEBUG
+			cout << "SherlockParser::parse: " << iter->first << "=" << iter->second << endl;
+#endif
+			if (iter->second.substr(0, 5) == "EDIT:")
+			{
+				// This is user editable
+				properties.m_editableParameters[iter->first] = iter->second.substr(5);
 			}
-			for (map<string, string>::iterator iter = lowInputItems.begin();
-				iter != lowInputItems.end(); ++iter)
+			else
 			{
 				// Append to the remainder
-				if (properties.m_parametersRemainder.empty() == false)
+				if (properties.m_remainder.empty() == false)
 				{
-					properties.m_parametersRemainder += "&";
+					properties.m_remainder += "&";
 				}
-				properties.m_parametersRemainder += iter->first;
-				properties.m_parametersRemainder += "=";
-				properties.m_parametersRemainder += iter->second;
-#ifdef DEBUG
-				cout << "SherlockParser::parse: input item " << iter->first << endl;
-#endif
+				properties.m_remainder += iter->first;
+				properties.m_remainder += "=";
+				properties.m_remainder += iter->second;
 			}
+		}
 
+		if (minimal == false)
+		{
 			// URL
 			mapIter = lowSearchParams.find("action");
 			if (mapIter != lowSearchParams.end())
@@ -725,7 +667,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 			// as the parameter's initial value
 			if (nextFactor.empty() == false)
 			{
-				properties.m_parameters[SearchPluginProperties::START_PAGE_PARAM] = nextInput;
+				properties.m_variableParameters[SearchPluginProperties::START_PAGE_PARAM] = nextInput;
 				properties.m_scrolling = SearchPluginProperties::PER_PAGE;
 				// What Sherlock calls a factor is actually an increment
 				properties.m_nextIncrement = (unsigned int)atoi(nextFactor.c_str());
@@ -734,7 +676,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 			{
 				// Assume INPUTNEXT allows to specify a number of results
 				// Not sure if this is how Sherlock/Mozilla interpret this
-				properties.m_parameters[SearchPluginProperties::COUNT_PARAM] = nextInput;
+				properties.m_variableParameters[SearchPluginProperties::COUNT_PARAM] = nextInput;
 				properties.m_scrolling = SearchPluginProperties::PER_INDEX;
 				properties.m_nextIncrement = 0;
 			}

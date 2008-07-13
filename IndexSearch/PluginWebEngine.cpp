@@ -169,7 +169,7 @@ PluginParserInterface *PluginWebEngine::getPluginParser(const string &fileName)
 	return NULL;
 }
 
-bool PluginWebEngine::getDetails(const string &fileName, string &name, string &channel)
+bool PluginWebEngine::getDetails(const string &fileName, SearchPluginProperties &properties)
 {
 	if (fileName.empty() == true)
 	{
@@ -182,7 +182,6 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 		return false;
 	}
 
-	SearchPluginProperties properties;
 	ResponseParserInterface *pResponseParser = pParser->parse(properties, true);
 	if (pResponseParser == NULL)
 	{
@@ -203,9 +202,6 @@ bool PluginWebEngine::getDetails(const string &fileName, string &name, string &c
 #endif
 		return false;
 	}
-
-	name = properties.m_name;
-	channel = properties.m_channel;
 
 	return true;
 }
@@ -240,32 +236,69 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		return false;
 	}
 
-	map<SearchPluginProperties::Parameter, string>::iterator paramIter = m_properties.m_parameters.find(SearchPluginProperties::SEARCH_TERMS_PARAM);
-	if (paramIter == m_properties.m_parameters.end())
-	{
-#ifdef DEBUG
-		cout << "PluginWebEngine::runQuery: no user input tag" << endl;
-#endif
-		return false;
-	}
-
-	string userInputTag(paramIter->second);
 	string formattedQuery = m_properties.m_baseUrl;
-	formattedQuery += "?";
-	formattedQuery += userInputTag;
-	formattedQuery += "=";
+
+	map<SearchPluginProperties::ParameterVariable, string>::iterator paramIter = m_properties.m_variableParameters.find(SearchPluginProperties::SEARCH_TERMS_PARAM);
+	if (paramIter != m_properties.m_variableParameters.end())
+	{
+		formattedQuery += "?";
+		formattedQuery += paramIter->second;
+		formattedQuery += "=";
+	}
+#ifdef DEBUG
+	else cout << "PluginWebEngine::runQuery: no user input tag" << endl;
+#endif
+
 	formattedQuery += queryString;
-	if (m_properties.m_parametersRemainder.empty() == false)
+	if (m_properties.m_remainder.empty() == false)
 	{
 		formattedQuery += "&";
-		formattedQuery += m_properties.m_parametersRemainder;
+		formattedQuery += m_properties.m_remainder;
+	}
+
+	// Encodings ?
+	paramIter = m_properties.m_variableParameters.find(SearchPluginProperties::OUTPUT_ENCODING_PARAM);
+	if ((paramIter != m_properties.m_variableParameters.end()) &&
+		(paramIter->second.empty() == false))
+	{
+		// Output encoding
+		formattedQuery += "&";
+		formattedQuery += paramIter->second;
+		formattedQuery += "=UTF-8";
+	}
+	paramIter = m_properties.m_variableParameters.find(SearchPluginProperties::INPUT_ENCODING_PARAM);
+	if ((paramIter != m_properties.m_variableParameters.end()) &&
+		(paramIter->second.empty() == false))
+	{
+		// Input encoding
+		formattedQuery += "&";
+		formattedQuery += paramIter->second;
+		formattedQuery += "=UTF-8";
+	}
+
+	// Editable parameters ?
+	for (map<string, string>::const_iterator editableIter = m_properties.m_editableParameters.begin();
+		editableIter != m_properties.m_editableParameters.end(); ++editableIter)
+	{
+		map<string, string>::const_iterator valueIter = m_editableValues.find(editableIter->second);
+		if (valueIter == m_editableValues.end())
+		{
+			continue;
+		}
+#ifdef DEBUG
+		cout << "PluginWebEngine::runQuery: editable " << valueIter->first << " set to " << valueIter->second << endl;
+#endif
+
+		formattedQuery += "&";
+		formattedQuery += editableIter->first;
+		formattedQuery += "=";
+		formattedQuery += valueIter->second;
 	}
 
 	setQuery(queryProps);
 
 #ifdef DEBUG
-	cout << "PluginWebEngine::runQuery: querying "
-		<< m_properties.m_name << endl;
+	cout << "PluginWebEngine::runQuery: querying " << m_properties.m_name << endl;
 #endif
 	while (count < maxResultsCount)
 	{
@@ -274,8 +307,8 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		// How do we scroll ?
 		if (m_properties.m_scrolling == SearchPluginProperties::PER_INDEX)
 		{
-			paramIter = m_properties.m_parameters.find(SearchPluginProperties::COUNT_PARAM);
-			if ((paramIter != m_properties.m_parameters.end()) &&
+			paramIter = m_properties.m_variableParameters.find(SearchPluginProperties::COUNT_PARAM);
+			if ((paramIter != m_properties.m_variableParameters.end()) &&
 				(paramIter->second.empty() == false))
 			{
 				// Number of results requested
@@ -286,8 +319,8 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 				pageQuery += countStr;
 			}
 
-			paramIter = m_properties.m_parameters.find(SearchPluginProperties::START_INDEX_PARAM);
-			if ((paramIter != m_properties.m_parameters.end()) &&
+			paramIter = m_properties.m_variableParameters.find(SearchPluginProperties::START_INDEX_PARAM);
+			if ((paramIter != m_properties.m_variableParameters.end()) &&
 				(paramIter->second.empty() == false))
 			{
 				// The offset of the first result (typically 1 or 0)
@@ -300,8 +333,8 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		}
 		else
 		{
-			paramIter = m_properties.m_parameters.find(SearchPluginProperties::START_PAGE_PARAM);
-			if ((paramIter != m_properties.m_parameters.end()) &&
+			paramIter = m_properties.m_variableParameters.find(SearchPluginProperties::START_PAGE_PARAM);
+			if ((paramIter != m_properties.m_variableParameters.end()) &&
 				(paramIter->second.empty() == false))
 			{
 				// The offset of the page
@@ -343,6 +376,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		}
 		count = m_resultsList.size();
 	}
+	m_resultsCountEstimate = m_resultsList.size();
 
 	return true;
 }

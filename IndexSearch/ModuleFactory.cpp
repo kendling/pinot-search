@@ -385,11 +385,11 @@ string ModuleFactory::getSearchEngineName(const string &type, const string &opti
 #endif
 		(type == "opensearch"))
 	{
-		string name, channel;
+		SearchPluginProperties properties;
 
-		if (PluginWebEngine::getDetails(option, name, channel) == true)
+		if (PluginWebEngine::getDetails(option, properties) == true)
 		{
-			return name;
+			return properties.m_name;
 		}
 
 		return "";

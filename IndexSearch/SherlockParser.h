@@ -67,7 +67,7 @@ class SherlockParser : public PluginParserInterface
 
 		/// Parses the plugin and returns a response parser.
 		virtual ResponseParserInterface *parse(SearchPluginProperties &properties,
-			bool extractSearchParams = false);
+			bool minimal = false);
 
 	protected:
 		static pthread_mutex_t m_mutex;

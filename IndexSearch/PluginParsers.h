@@ -54,7 +54,7 @@ class PluginParserInterface
 
 		/// Parses the plugin and returns a response parser.
 		virtual ResponseParserInterface *parse(SearchPluginProperties &properties,
-			bool extractSearchParams = false) = 0;
+			bool minimal = false) = 0;
 
 	protected:
 		std::string m_fileName;

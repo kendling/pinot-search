@@ -9,7 +9,7 @@
 	routeType="The Web"
 >
 
-<INPUT NAME="q" USER>
+# Append query terms to the action URL <INPUT NAME="" USER>
 <INPUT NAME="p" VALUE="0">
 # The next line sets pw to 1 + results_count/10
 <INPUTNEXT NAME="pw" FACTOR="1" VALUE="1">

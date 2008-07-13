@@ -16,8 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _XML_WEB_ENGINE_H
-#define _XML_WEB_ENGINE_H
+#ifndef _PLUGIN_WEB_ENGINE_H
+#define _PLUGIN_WEB_ENGINE_H
 
 #include <string>
 
@@ -33,7 +33,7 @@ class PluginWebEngine : public WebEngine
 		virtual ~PluginWebEngine();
 
 		/// Utility method that returns a search plugin's name and channel.
-		static bool getDetails(const std::string &fileName, std::string &name, std::string &channel);
+		static bool getDetails(const std::string &fileName, SearchPluginProperties &properties);
 
 		/// Runs a query; true if success.
 		virtual bool runQuery(QueryProperties& queryProps,
@@ -55,4 +55,4 @@ class PluginWebEngine : public WebEngine
 
 };
 
-#endif // _XML_WEB_ENGINE_H
+#endif // _PLUGIN_WEB_ENGINE_H
