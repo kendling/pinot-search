@@ -22,6 +22,8 @@
 #include <glibmm/convert.h>
 #include <gdkmm/color.h>
 #include <gtkmm/colorselection.h>
+#include <gtkmm/label.h>
+#include <gtkmm/entry.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/messagedialog.h>
 
@@ -60,6 +62,26 @@ prefsDialog::prefsDialog() :
 	newResultsColorbutton->set_color(newColour);
 	// Enable terms suggestion
 	enableCompletionCheckbutton->set_active(m_settings.m_suggestQueryTerms);
+
+	// Any plugin editable parameter ?
+	if (m_settings.m_editablePluginValues.empty() == false)
+	{
+		Glib::PropertyProxy<guint> columnsProp(generalTable->property_n_columns());
+		Glib::PropertyProxy<guint> rowsProp(generalTable->property_n_rows());
+		guint rowsCount = rowsProp.get_value();
+
+#ifdef DEBUG
+		cout << "prefsDialog: adding " << m_settings.m_editablePluginValues.size() << " more rows" << endl;
+#endif
+		generalTable->resize(rowsCount + m_settings.m_editablePluginValues.size(), columnsProp.get_value());
+
+		for (std::map<string, string>::const_iterator valueIter = m_settings.m_editablePluginValues.begin();
+			valueIter != m_settings.m_editablePluginValues.end(); ++valueIter)
+		{
+			++rowsCount;
+			attach_value_widgets(valueIter->first, valueIter->second, rowsCount);
+		}
+	}
 
 	populate_proxyTypeCombobox();
 	proxyRadiobutton->set_active(m_settings.m_proxyEnabled);
@@ -141,6 +163,41 @@ const map<string, string> &prefsDialog::getLabelsToRename(void) const
 bool prefsDialog::startDaemon(void) const
 {
 	return m_startDaemon;
+}
+
+void prefsDialog::attach_value_widgets(const string &name, const string &value, guint rowNumber)
+{
+	Label *valueLabel = manage(new Label(name + ":"));
+	Entry *valueEntry = manage(new Entry());
+
+	// These settings are what Glade-- would use
+	valueLabel->set_alignment(0,0.5); 
+	valueLabel->set_padding(4,4);
+	valueLabel->set_justify(Gtk::JUSTIFY_LEFT); 
+	valueLabel->set_line_wrap(false);
+	valueLabel->set_use_markup(false);
+	valueLabel->set_selectable(false);
+	valueLabel->set_ellipsize(Pango::ELLIPSIZE_NONE);
+	valueLabel->set_width_chars(-1);
+	valueLabel->set_angle(0);
+	valueLabel->set_single_line_mode(false);
+
+	valueEntry->set_flags(Gtk::CAN_FOCUS);
+	valueEntry->set_visibility(true);
+	valueEntry->set_editable(true);
+	valueEntry->set_max_length(0);
+	valueEntry->set_has_frame(true);
+	valueEntry->set_activates_default(false);
+
+	valueEntry->set_text(to_utf8(value));
+
+	generalTable->attach(*valueLabel, 0, 1, rowNumber, rowNumber + 1, Gtk::FILL, Gtk::FILL, 0, 0);
+	generalTable->attach(*valueEntry, 1, 2, rowNumber, rowNumber + 1, Gtk::EXPAND|Gtk::FILL, Gtk::FILL, 4, 4);
+
+	m_editableValueEntries.push_back(valueEntry);
+
+	valueLabel->show();
+	valueEntry->show();
 }
 
 void prefsDialog::populate_proxyTypeCombobox()
@@ -435,6 +492,23 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	m_settings.m_newResultsColourBlue = newColour.get_blue();
 	m_settings.m_suggestQueryTerms = enableCompletionCheckbutton->get_active();
 	m_settings.m_googleAPIKey = apiKeyEntry->get_text();
+	// Any plugin editable parameter ?
+	if (m_settings.m_editablePluginValues.empty() == false)
+	{
+		std::map<string, string>::iterator valueIter = m_settings.m_editablePluginValues.begin();
+		vector<Entry *>::const_iterator entryIter = m_editableValueEntries.begin();
+		while ((valueIter != m_settings.m_editablePluginValues.end()) &&
+			(entryIter != m_editableValueEntries.end()))
+		{
+			ustring value((*entryIter)->get_text());
+
+			valueIter->second = from_utf8(value);
+
+			// Next
+			++valueIter;
+			++entryIter;
+		}
+	}
 
 	m_settings.m_proxyEnabled = proxyRadiobutton->get_active();
 	m_settings.m_proxyAddress = proxyAddressEntry->get_text();

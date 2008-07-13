@@ -22,6 +22,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <vector>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/liststore.h>
@@ -54,6 +55,7 @@ protected:
 	TimestampedModelColumns m_mailColumns;
 	TimestampedModelColumns m_patternsColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refPatternsTree;
+	std::vector<Gtk::Entry *> m_editableValueEntries;
 	std::set<std::string> m_addedLabels;
 	std::set<std::string> m_deletedLabels;
 	std::map<std::string, std::string> m_renamedLabels;
@@ -73,6 +75,7 @@ protected:
 	virtual void on_removePatternButton_clicked();
 	virtual void on_resetPatternsButton_clicked();
 
+	void attach_value_widgets(const std::string &name, const std::string &value, guint rowNumber);
 	void populate_proxyTypeCombobox();
 	void populate_labelsTreeview();
 	void save_labelsTreeview();

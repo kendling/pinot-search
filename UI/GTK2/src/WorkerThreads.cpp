@@ -1092,6 +1092,8 @@ void EngineQueryThread::doWork(void)
 			pDownloader->setSetting("proxyport", portStr);
 			pDownloader->setSetting("proxytype", settings.m_proxyType);
 		}
+
+		pWebEngine->setEditableValues(settings.m_editablePluginValues);
 	}
 
 	if (m_listingIndex == false)

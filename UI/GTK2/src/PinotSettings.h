@@ -214,6 +214,7 @@ class PinotSettings
 		std::set<IndexableLocation> m_indexableLocations;
 		std::set<Glib::ustring> m_filePatternsList;
 		bool m_isBlackList;
+		std::map<std::string, std::string> m_editablePluginValues;
 		std::vector<CacheProvider> m_cacheProviders;
 		std::set<Glib::ustring> m_cacheProtocols;
 
@@ -239,6 +240,7 @@ class PinotSettings
 		bool loadProxy(const xmlpp::Element *pElem);
 		bool loadIndexableLocations(const xmlpp::Element *pElem);
 		bool loadFilePatterns(const xmlpp::Element *pElem);
+		bool loadPluginParameters(const xmlpp::Element *pElem);
 		bool loadCacheProviders(const xmlpp::Element *pElem);
 
 	private:

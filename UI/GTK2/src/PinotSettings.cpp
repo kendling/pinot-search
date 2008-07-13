@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -286,6 +287,7 @@ void PinotSettings::clear(void)
 	m_indexableLocations.clear();
 	m_filePatternsList.clear();
 	m_isBlackList = true;
+	m_editablePluginValues.clear();
 	m_cacheProviders.clear();
 	m_cacheProtocols.clear();
 
@@ -312,6 +314,40 @@ bool PinotSettings::loadGlobal(const string &fileName)
 
 bool PinotSettings::load(void)
 {
+	map<string, bool> engines;
+	bool hasBackends = false;
+
+	// Some search engines are hardcoded
+#ifdef HAVE_GOOGLEAPI
+	m_engineIds[1 << m_engines.size()] = "Google API";
+	m_engines.insert(Engine("Google API", "googleapi", "", "The Web"));
+	m_engineChannels.insert(pair<string, bool>("The Web", true));
+#endif
+	// Others are available as back-ends
+	ModuleFactory::getSupportedEngines(engines);
+	for (map<string, bool>::const_iterator engineIter = engines.begin();
+		engineIter != engines.end(); ++engineIter)
+	{
+		if (engineIter->second == true)
+		{
+			string engineName(engineIter->first);
+
+			if (isalpha(engineName[0]) != 0)
+			{
+				engineName = toupper(engineName[0]);
+				engineName += engineIter->first.substr(1);
+			}
+
+			m_engineIds[1 << m_engines.size()] = engineIter->first;
+			m_engines.insert(Engine(engineName, engineIter->first, "", "Backends"));
+			hasBackends = true;
+		}
+	}
+	if (hasBackends == true)
+	{
+		m_engineChannels.insert(pair<string, bool>("Backends", true));
+	}
+
 	// Load the configuration file
 	string fileName = getConfigurationFileName();
 	if (m_firstRun == false)
@@ -353,25 +389,6 @@ bool PinotSettings::load(void)
 				queryProps.setSortOrder(QueryProperties::DATE);
 				addQuery(queryProps);
 			}
-		}
-	}
-
-	// Some search engines are hardcoded
-#ifdef HAVE_GOOGLEAPI
-	m_engineIds[1 << m_engines.size()] = "Google API";
-	m_engines.insert(Engine("Google API", "googleapi", "", "The Web"));
-	m_engineChannels.insert(pair<string, bool>("The Web", true));
-#endif
-	// Others are available as back-ends
-	map<string, bool> engines;
-	ModuleFactory::getSupportedEngines(engines);
-	for (map<string, bool>::const_iterator engineIter = engines.begin();
-		engineIter != engines.end(); ++engineIter)
-	{
-		if (engineIter->second == true)
-		{
-			m_engineIds[1 << m_engines.size()] = engineIter->first;
-			m_engines.insert(Engine(engineIter->first, engineIter->first, "", ""));
 		}
 	}
 
@@ -528,6 +545,10 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 					(nodeName == "patterns"))
 				{
 					loadFilePatterns(pElem);
+				}
+				else if (nodeName == "pluginparameters")
+				{
+					loadPluginParameters(pElem);
 				}
 			}
 		}
@@ -1161,6 +1182,53 @@ bool PinotSettings::loadFilePatterns(const Element *pElem)
 	return true;
 }
 
+bool PinotSettings::loadPluginParameters(const Element *pElem)
+{
+	if (pElem == NULL)
+	{
+		return false;
+	}
+
+	Node::NodeList childNodes = pElem->get_children();
+	if (childNodes.empty() == true)
+	{
+		return false;
+	}
+
+	string name, value;
+
+	// Load the plugin parameters' values 
+	for (Node::NodeList::iterator iter = childNodes.begin(); iter != childNodes.end(); ++iter)
+	{
+		Node *pNode = (*iter);
+		Element *pChildElem = dynamic_cast<Element*>(pNode);
+		if (pChildElem == NULL)
+		{
+			continue;
+		}
+
+		string nodeName(pChildElem->get_name());
+		string nodeContent(getElementContent(pChildElem));
+
+		if (nodeName == "name")
+		{
+			name = nodeContent;
+		}
+		else if (nodeName == "value")
+		{
+			value = nodeContent;
+		}
+	}
+
+	map<string, string>::iterator valueIter = m_editablePluginValues.find(name);
+	if (valueIter != m_editablePluginValues.end())
+	{
+		valueIter->second = value;
+	}
+
+	return true;
+}
+
 bool PinotSettings::loadCacheProviders(const Element *pElem)
 {
 	if (pElem == NULL)
@@ -1259,18 +1327,29 @@ bool PinotSettings::loadSearchEngines(const string &directoryName)
 			if ((stat(location.c_str(), &fileStat) == 0) &&
 				(S_ISREG(fileStat.st_mode)))
 			{
-				string engineName, engineChannel;
+				SearchPluginProperties properties;
 
-				if ((PluginWebEngine::getDetails(location, engineName, engineChannel) == true) &&
-					(engineName.empty() == false))
+				if ((PluginWebEngine::getDetails(location, properties) == true) &&
+					(properties.m_name.empty() == false))
 				{
-					m_engineIds[1 << m_engines.size()] = engineName;
-					if (engineChannel.empty() == true)
+					m_engineIds[1 << m_engines.size()] = properties.m_name;
+					if (properties.m_channel.empty() == true)
 					{
-						engineChannel = _("Unclassified");
+						properties.m_channel = _("Unclassified");
 					}
-					m_engines.insert(Engine(engineName, "sherlock", location, engineChannel));
-					m_engineChannels.insert(pair<string, bool>(engineChannel, true));
+					m_engines.insert(Engine(properties.m_name, "sherlock", location, properties.m_channel));
+					m_engineChannels.insert(pair<string, bool>(properties.m_channel, true));
+
+					// Any editable parameters in this plugin ?
+					for (map<string, string>::const_iterator editableIter = properties.m_editableParameters.begin();
+						editableIter != properties.m_editableParameters.end(); ++editableIter)
+					{
+						m_editablePluginValues[editableIter->second] = "";
+					}
+#ifdef DEBUG
+					cout << "PinotSettings::loadSearchEngines: " << properties.m_name
+						<< " has " << properties.m_editableParameters.size() << " editable values" << endl;
+#endif
 				}
 			}
 		}
@@ -1448,6 +1527,23 @@ bool PinotSettings::save(void)
 			addChildElement(pElem, "pattern", *patternIter);
 		}
 		addChildElement(pElem, "forbid", (m_isBlackList ? "YES" : "NO"));
+		// Values of editable plugin parameters
+		for (map<string, string>::iterator editableIter = m_editablePluginValues.begin();
+			editableIter != m_editablePluginValues.end() ; ++editableIter)
+		{
+			if (editableIter->second.empty() == true)
+			{
+				continue;
+			}
+
+			pElem = pRootElem->add_child("pluginparameters");
+			if (pElem == NULL)
+			{
+				return false;
+			}
+			addChildElement(pElem, "name", editableIter->first);
+			addChildElement(pElem, "value", editableIter->second);
+		}
 
 		// Save to file
 		doc.write_to_file_formatted(getConfigurationFileName());
@@ -1624,7 +1720,7 @@ bool PinotSettings::getSearchEngines(set<PinotSettings::Engine> &engines, string
 			return false;
 		}
 
-		// Copy channels that belong to the given channel
+		// Copy engines that belong to the given channel
 		for (set<Engine>::iterator engineIter = m_engines.begin(); engineIter != m_engines.end(); ++engineIter)
 		{
 			if (engineIter->m_channel == channelName)

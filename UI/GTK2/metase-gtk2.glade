@@ -994,6 +994,7 @@
 
 	  <child>
 	    <widget class="GtkTable" id="generalTable">
+	      <property agent="glademm" name="cxx_visibility">protected</property>
 	      <property name="visible">True</property>
 	      <property name="n_rows">4</property>
 	      <property name="n_columns">2</property>
