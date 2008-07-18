@@ -283,11 +283,9 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		map<string, string>::const_iterator valueIter = m_editableValues.find(editableIter->second);
 		if (valueIter == m_editableValues.end())
 		{
+			cerr << "PluginWebEngine::runQuery: no value provided for plugin's editable parameter " << editableIter->second << endl;
 			continue;
 		}
-#ifdef DEBUG
-		cout << "PluginWebEngine::runQuery: editable " << valueIter->first << " set to " << valueIter->second << endl;
-#endif
 
 		formattedQuery += "&";
 		formattedQuery += editableIter->first;

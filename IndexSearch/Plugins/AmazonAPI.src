@@ -6,7 +6,7 @@
 	description="Amazon.com REST API"
 	method="GET"
 	action="http://webservices.amazon.com/onca/xml"
-	routeType="The Web"
+	routeType="Shopping"
 >
 
 <INPUT NAME="Service" VALUE="AWSECommerceService">

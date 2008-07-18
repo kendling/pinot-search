@@ -506,7 +506,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 
 	if (parsedPlugin == true)
 	{
-		map<string, string> lowSearchParams, lowInterpretParams, lowInputItems;
+		map<string, string> lowSearchParams, lowInterpretParams;
 
 		pResponseParser = new SherlockResponseParser();
 
@@ -514,8 +514,6 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 		for_each(searchParams.begin(), searchParams.end(), lowCopy1);
 		LowerAndCopy lowCopy2(lowInterpretParams);
 		for_each(interpretParams.begin(), interpretParams.end(), lowCopy2);
-		LowerAndCopy lowCopy3(lowInputItems);
-		for_each(inputItems.begin(), inputItems.end(), lowCopy3);
 
 		// Response
 		properties.m_response = SearchPluginProperties::HTML_RESPONSE;
@@ -545,22 +543,20 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 
 		if (userInput.empty() == false)
 		{
-			string lowUserInput(StringManip::toLowerCase(userInput));
-
 			// Remove the user input tag from the input tags map
-			mapIter = lowInputItems.find(lowUserInput);
-			if (mapIter != lowInputItems.end())
+			mapIter = inputItems.find(userInput);
+			if (mapIter != inputItems.end())
 			{
-				lowInputItems.erase(mapIter);
+				inputItems.erase(mapIter);
 			}
 #ifdef DEBUG
 			else cout << "SherlockParser::parse: couldn't remove user input item" << endl;
 #endif
 
-			properties.m_variableParameters[SearchPluginProperties::SEARCH_TERMS_PARAM] = lowUserInput;
+			properties.m_variableParameters[SearchPluginProperties::SEARCH_TERMS_PARAM] = userInput;
 		}
-		for (map<string, string>::iterator iter = lowInputItems.begin();
-			iter != lowInputItems.end(); ++iter)
+		for (map<string, string>::iterator iter = inputItems.begin();
+			iter != inputItems.end(); ++iter)
 		{
 #ifdef DEBUG
 			cout << "SherlockParser::parse: " << iter->first << "=" << iter->second << endl;

@@ -40,6 +40,7 @@ static struct option g_longOptions[] = {
 	{"proxyaddress", 1, 0, 'a'},
 	{"proxyport", 1, 0, 'p'},
 	{"proxytype", 1, 0, 't'},
+	{"seteditable", 1, 0, 'e'},
 	{"stemming", 1, 0, 's'},
 	{"tocsv", 1, 0, 'c'},
 	{"toxml", 1, 0, 'x'},
@@ -94,6 +95,7 @@ static void printHelp(void)
 		<< "  -p, --proxyport           proxy port\n"
 		<< "  -t, --proxytype           proxy type (default HTTP, SOCKS4, SOCKS5)\n"
 		<< "  -s, --stemming            stemming language (in English)\n"
+		<< "  -e, --seteditable         plugin editable parameter, name:value pair\n"
 		<< "  -c, --tocsv               file to export results in CSV format to\n"
 		<< "  -x, --toxml               file to export results in XML format to\n"
 		<< "  -v, --version             output version information and exit\n"
@@ -109,7 +111,7 @@ static void printHelp(void)
 		<< "pinot-search googleapi mygoogleapikey \"clowns\"\n\n"
 #endif
 		<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\"\n\n"
-		<< "pinot-search --max 20 sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
+		<< "pinot-search --max 20 sherlock --seteditable \"Bozo App ID:1234567890\" " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
 		<< "pinot-search xapian ~/.pinot/index \"label:Clowns\"\n\n"
 		<< "pinot-search --stemming english xapian somehostname:12345 \"clowning\"\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
@@ -118,13 +120,13 @@ static void printHelp(void)
 int main(int argc, char **argv)
 {
 	QueryProperties::QueryType queryType = QueryProperties::XAPIAN_QP;
-	string engineType, option, csvExport, xmlExport, proxyAddress, proxyPort, proxyType, stemLanguage;
+	string engineType, option, csvExport, xmlExport, proxyAddress, proxyPort, proxyType, editableParameter, stemLanguage;
 	unsigned int maxResultsCount = 10; 
 	int longOptionIndex = 0;
 	bool printResults = true;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "c:hm:a:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "c:hm:a:e:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -133,6 +135,12 @@ int main(int argc, char **argv)
 				if (optarg != NULL)
 				{
 					proxyAddress = optarg;
+				}
+				break;
+			case 'e':
+				if (optarg != NULL)
+				{
+					editableParameter = optarg;
 				}
 				break;
 			case 'c':
@@ -193,7 +201,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "c:hm:a:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "c:hm:a:e:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -259,6 +267,15 @@ int main(int argc, char **argv)
 			pDownloader->setSetting("proxyaddress", proxyAddress);
 			pDownloader->setSetting("proxyport", proxyPort);
 			pDownloader->setSetting("proxytype", proxyType);
+		}
+
+		string::size_type colonPos = editableParameter.find(':');
+		if (colonPos != string::npos)
+		{
+			map<string, string> editableValues;
+
+			editableValues[editableParameter.substr(0, colonPos)] = editableParameter.substr(colonPos + 1);
+			pWebEngine->setEditableValues(editableValues);
 		}
 	}
 
