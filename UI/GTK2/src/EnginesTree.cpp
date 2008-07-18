@@ -247,7 +247,10 @@ EnginesModelColumns &EnginesTree::getColumnRecord(void)
 void EnginesTree::populate(bool indexesOnly)
 {
 	set<PinotSettings::Engine> engines;
+	ustring currentUserChannel(_("Current User"));
 	TreeModel::Row row;
+	TreeModel::iterator folderIter, localIter;
+	bool createCurrentUserChannel = true;
 
 	// Reset the whole tree
 	get_selection()->unselect_all();
@@ -270,13 +273,25 @@ void EnginesTree::populate(bool indexesOnly)
 			continue;
 		}
 
-		TreeModel::iterator folderIter = m_refStore->append();
+		folderIter = m_refStore->append();
 		row = *folderIter;
 
 		row[m_enginesColumns.m_name] = to_utf8(channelName);
 		row[m_enginesColumns.m_engineName] = "internal-folder";
 		row[m_enginesColumns.m_option] = "";
 		row[m_enginesColumns.m_type] = EnginesModelColumns::ENGINE_FOLDER;
+
+		// Is this the current user channel ?
+		if (channelName == currentUserChannel)
+		{
+			localIter = folderIter;
+			createCurrentUserChannel = false;
+		}
+		else if (createCurrentUserChannel == false)
+		{
+			// The current user channel stays at the bottom
+			m_refStore->iter_swap(folderIter, localIter);
+		}
 
 		std::set<PinotSettings::Engine>::const_iterator engineIter = engines.begin();
 		for (; engineIter != engines.end(); ++engineIter)
@@ -320,14 +335,17 @@ void EnginesTree::populate(bool indexesOnly)
 		}
 	}
 
-	// Local engines
-	TreeModel::iterator localIter = m_refStore->append();
-	row = *localIter;
-	row[m_enginesColumns.m_name] = _("Current User");
-	row[m_enginesColumns.m_engineName] = "internal-folder";
-	row[m_enginesColumns.m_option] = "";
-	row[m_enginesColumns.m_type] = EnginesModelColumns::ENGINE_FOLDER;
+	if (createCurrentUserChannel == true)
+	{
+		localIter = m_refStore->append();
+		row = *localIter;
+		row[m_enginesColumns.m_name] = currentUserChannel;
+		row[m_enginesColumns.m_engineName] = "internal-folder";
+		row[m_enginesColumns.m_option] = "";
+		row[m_enginesColumns.m_type] = EnginesModelColumns::ENGINE_FOLDER;
+	}
 
+	// Local engines
 	std::map<std::string, std::string>::const_iterator indexIter = m_settings.getIndexes().begin();
 	for (; indexIter != m_settings.getIndexes().end(); ++indexIter)
 	{

@@ -339,13 +339,13 @@ bool PinotSettings::load(void)
 			}
 
 			m_engineIds[1 << m_engines.size()] = engineIter->first;
-			m_engines.insert(Engine(engineName, engineIter->first, "", "Backends"));
+			m_engines.insert(Engine(engineName, engineIter->first, "", _("Current User")));
 			hasBackends = true;
 		}
 	}
 	if (hasBackends == true)
 	{
-		m_engineChannels.insert(pair<string, bool>("Backends", true));
+		m_engineChannels.insert(pair<string, bool>(_("Current User"), true));
 	}
 
 	// Load the configuration file
