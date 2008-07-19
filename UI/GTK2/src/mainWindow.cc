@@ -93,7 +93,7 @@ unsigned int mainWindow::m_maxDocsCount = 100;
 unsigned int mainWindow::m_maxIndexThreads = 2;
 
 mainWindow::InternalState::InternalState(unsigned int maxIndexThreads, mainWindow *pWindow) :
-	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
+	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads, 60),
 	m_liveQueryLength(0),
 	m_currentPage(0),
 	m_browsingIndex(false)

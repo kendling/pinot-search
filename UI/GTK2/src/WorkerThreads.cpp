@@ -268,11 +268,12 @@ void WorkerThread::emitSignal(void)
 }
 
 ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
-	unsigned int maxIndexThreads) :
+	unsigned int maxIndexThreads, unsigned int maxThreadsTime) :
 	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(maxIndexThreads),
 	m_nextThreadId(1),
 	m_backgroundThreadsCount(0),
+	m_foregroundThreadsMaxTime(maxThreadsTime),
 	m_numCPUs(1),
 	m_stopIndexing(false)
 {
@@ -362,9 +363,9 @@ WorkerThread *ThreadsManager::get_thread(void)
 
 				// Foreground threads ought not to run very long
 				if ((threadIter->second->isBackground() == false) &&
-					(threadIter->second->getStartTime() + 300 < timeNow))
+					(threadIter->second->getStartTime() + m_foregroundThreadsMaxTime < timeNow))
 				{
-					// This thread has been running for more than 5 minutes already !
+					// This thread has been running for too long !
 					threadIter->second->stop();
 
 					cerr << "Stopped long-running thread " << threadId << endl;

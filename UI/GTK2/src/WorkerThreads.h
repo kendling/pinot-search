@@ -109,7 +109,8 @@ class ThreadsManager : virtual public sigc::trackable
 {
 	public:
 		ThreadsManager(const std::string &defaultIndexLocation,
-			unsigned int maxIndexThreads);
+			unsigned int maxIndexThreads,
+			unsigned int maxThreadsTime = 300);
 		virtual ~ThreadsManager();
 
 		bool start_thread(WorkerThread *pWorkerThread, bool inBackground = false);
@@ -143,6 +144,7 @@ class ThreadsManager : virtual public sigc::trackable
 		unsigned int m_maxIndexThreads;
 		unsigned int m_nextThreadId;
 		unsigned int m_backgroundThreadsCount;
+		unsigned int m_foregroundThreadsMaxTime;
 		long m_numCPUs;
 		sigc::signal1<void, WorkerThread *> m_onThreadEndSignal;
 		std::set<std::string> m_beingIndexed;
