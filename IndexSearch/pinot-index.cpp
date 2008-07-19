@@ -56,7 +56,6 @@ static void printHelp(void)
 	// Help
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
 	ModuleFactory::getSupportedEngines(engines);
-	ModuleFactory::unloadModules();
 	cout << "pinot-index - Index documents from the command-line\n\n"
 		<< "Usage: pinot-index [OPTIONS] URLS\n\n"
 		<< "Options:\n"
@@ -73,11 +72,13 @@ static void printHelp(void)
 		<< "Supported back-ends are :";
 	for (map<string, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
 	{
-		if (engineIter->second == true)
+		if ((engineIter->second == true) &&
+			(ModuleFactory::isSupported(engineIter->first, true) == true))
 		{
 			cout << " " << engineIter->first;
 		}
 	}
+	ModuleFactory::unloadModules();
 	cout << "\n\nExamples:\n"
 		<< "pinot-index --check --showinfo --backend xapian --db ~/.pinot/daemon file:///home/fabrice/Documents/Bozo.txt\n\n"
 		<< "pinot-index --index --db ~/.pinot/index http://pinot.berlios.de/\n\n"

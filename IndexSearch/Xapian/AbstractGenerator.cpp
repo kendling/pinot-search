@@ -21,6 +21,7 @@
 #include <sys/time.h>
 #include <glib.h>
 #include <map>
+#include <set>
 #include <algorithm>
 #include <iostream>
 #include <utility>
@@ -35,6 +36,7 @@ using std::endl;
 using std::string;
 using std::vector;
 using std::map;
+using std::set;
 using std::find;
 using namespace Dijon;
 
@@ -100,11 +102,15 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 #endif
 		try
 		{
+			set<Xapian::termpos> positions;
+
 			// Go through that term's position list in the document
 			for (Xapian::PositionIterator positionIter = m_pIndex->positionlist_begin(docId, termName);
 				positionIter != m_pIndex->positionlist_end(docId, termName); ++positionIter)
 			{
 				Xapian::termpos termPos = *positionIter;
+
+				positions.insert(termPos);
 
 				// Take all the top term's positions into account, and some of 
 				// the other terms' too if the minimum number is not reached
@@ -118,6 +124,12 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 				for (map<Xapian::termpos, PositionWindow>::iterator winIter = abstractWindows.begin();
 					winIter != abstractWindows.end(); ++winIter)
 				{
+					if (positions.find(winIter->first) != positions.end())
+					{
+						// This is for the same term at another position
+						continue;
+					}
+
 					// Is this within the number of words we are interested in ?
 					if (winIter->first > termPos)
 					{
@@ -126,12 +138,9 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 							++winIter->second.m_backWeight;
 						}
 					}
-					else
+					else if (termPos - winIter->first <= m_wordsCount)
 					{
-						if (termPos - winIter->first <= m_wordsCount)
-						{
-							++winIter->second.m_forwardWeight;
-						}
+						++winIter->second.m_forwardWeight;
 					}
 				}
 			}
