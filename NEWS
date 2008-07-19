@@ -1,3 +1,29 @@
+2008/07/20 version_0_8_7
+General :
+ - install the Amazon API plugin with other plugins
+Collect :
+ - obey META REFRESH if set
+Search :
+ - basic Xesam back-end based on xesam-glib. Enable with configure's option
+  --enable-xesam-glib
+ - in plugins, setting a value to "EDIT:description" makes it editable and
+  allows to assign it a value at search time
+ - pinot-search can set editable parameters with -e/--seteditable 
+Xapian :
+ - skip very short non-CJKV terms when expanding queries.
+ - fixed mangling of some CJKV queries
+ - abstract generation is less skewed towards common terms
+UI :
+ - support for drag-n-drop to the stored queries list. Dropping a file will
+  create a query to look for similar documents. Dropping text will create a new
+  query set to that text.
+ - preferences let the user edit all editable parameters defined in the plugins.
+  They are saved to the configuration file.
+ - extracts can be selected, copied and dropped onto the queries list to create
+  new queries
+ - let foreground threads run for a minute max
+ - search-only backends (such as Xesam) will appear in the Current User channel
+
 2008/06/21 version_0_8_6
 General :
  - make manuals generates the manuals with help2man

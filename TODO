@@ -54,6 +54,7 @@ Search
 - getCloseTerms() should be a search engine method so that WebEngine can use plugins'
  suggestions Url field (http://developer.mozilla.org/en/docs/Supporting_search_suggestions_in_search_plugins)
 - pinot-search should be able to run stored queries, as found in the configuration file
+- Move the Google API code into a search-only backend
 
 Index
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
@@ -70,6 +71,7 @@ Index
 - Indexes have no knowledge of indexId's
 - Send a signal when crawling is done so that the UI can reopen the index
 - Be ready to catch DatabaseModifiedError exceptions and reopen the index
+- Associate URIs or IDs to labels to avoid expensive find and replace operations when they are renamed
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -107,4 +109,6 @@ UI
 - Delete all temporary files when exiting
 - Query expansion should be interactive
 - Default cache provider should be configurable
+- Reorganize menus so that More Like This, Search This For etc... are available
+ on all documents, whether a result or from an index
 
