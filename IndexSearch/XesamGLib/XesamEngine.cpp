@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdlib.h>
 #include <glib.h>
 #include <xesam-glib/xesam-glib.h>
 #include <vector>
@@ -39,7 +40,7 @@ class CallbackData
 			m_pMainLoop(pMainLoop),
 			m_resultsList(resultsList),
 			m_resultsCountEstimate(resultsCountEstimate),
-			m_gettingHits(false)
+			m_gettingHits(0)
 		{
 		}
 		~CallbackData()
@@ -49,9 +50,64 @@ class CallbackData
 		GMainLoop *m_pMainLoop;
 		vector<DocumentInfo> &m_resultsList;
 		unsigned int &m_resultsCountEstimate;
-		bool m_gettingHits;
+		unsigned int m_gettingHits;
 
 };
+
+static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int resultNum)
+{
+	if (pHit == NULL)
+	{
+		return;
+	}
+#ifdef DEBUG
+	cout << "XesamEngine::pushHit: hit ID " << xesam_g_hit_get_id(pHit) << endl;
+#endif
+
+	DocumentInfo docInfo;
+
+	const gchar *pTitle = xesam_g_hit_get_string(pHit, "xesam:title");
+	if (pTitle != NULL)
+	{
+		docInfo.setTitle(pTitle);
+	}
+
+	const gchar *pUrl = xesam_g_hit_get_string(pHit, "xesam:url");
+	if (pUrl != NULL)
+	{
+		docInfo.setLocation(pUrl);
+	}
+
+	const gchar *pType = xesam_g_hit_get_string(pHit, "xesam:mimeType");
+	if (pType != NULL)
+	{
+		docInfo.setType(pType);
+	}
+	// FIXME: xesam_g_hit_get_string(pHit, "xesam:language");
+
+	const gchar *pTimestamp = xesam_g_hit_get_string(pHit, "xesam:contentModified");
+	if (pTimestamp != NULL)
+	{
+		docInfo.setTimestamp(pTimestamp);
+	}
+
+	const gchar *pSize = xesam_g_hit_get_string(pHit, "xesam:size");
+	if (pSize != NULL)
+	{
+		docInfo.setSize((off_t )atoi(pSize));
+	}
+
+	const gchar *pExtract = xesam_g_hit_get_string(pHit, "xesam:summary");
+	if (pExtract != NULL)
+	{
+		docInfo.setExtract(pExtract);
+	}
+	// FIXME: no score field ?
+	docInfo.setScore((float )(100 - resultNum));
+
+	// Push into the results list
+	resultsList.push_back(docInfo);
+}
 
 static void hitsReady(XesamGSearch *pSearch, XesamGHits *pHits, gpointer pUserData)
 {
@@ -60,30 +116,40 @@ static void hitsReady(XesamGSearch *pSearch, XesamGHits *pHits, gpointer pUserDa
 	{
 		return;
 	}
+#ifdef DEBUG
+	cout << "XesamEngine::hitsReady: called" << endl;
+#endif
 
 	CallbackData *pData = (CallbackData *)pUserData;
-	pData->m_gettingHits = true;
-
+	++pData->m_gettingHits;
 	for (guint i = 0; i < xesam_g_hits_get_count(pHits); ++i)
 	{
 		XesamGHit *pHit = xesam_g_hits_get(pHits, i);
 
-		if (pHit == NULL)
-		{
-			continue;
-		}
-#ifdef DEBUG
-		cout << "XesamEngine::runQuery: hit ID " << xesam_g_hit_get_id(pHit)
-			<< ", URL " << xesam_g_hit_get_string(pHit, "xesam:url") << endl;
-#endif
-
-		// FIXME: push into pData->m_resultsList
+		pushHit(pHit, pData->m_resultsList, i);
 	}
-
-	pData->m_gettingHits = false;
+	--pData->m_gettingHits;
 }
 
 static void searchDone(XesamGSearch *pSearch, gpointer pUserData)
+{
+	if ((pSearch == NULL) ||
+		(pUserData == NULL))
+	{
+		return;
+	}
+#ifdef DEBUG
+	cout << "XesamEngine::searchDone: called" << endl;
+#endif
+
+	CallbackData *pData = (CallbackData *)pUserData;
+
+	// Check we are not in the middle of retrieving stuff
+	while (pData->m_gettingHits > 0);
+	g_main_loop_quit(pData->m_pMainLoop);
+}
+
+void checkTimer(gpointer pUserData)
 {
 	if (pUserData == NULL)
 	{
@@ -92,8 +158,9 @@ static void searchDone(XesamGSearch *pSearch, gpointer pUserData)
 
 	CallbackData *pData = (CallbackData *)pUserData;
 
-	// Check we are not in the middle of retrieving stuff
-	while (pData->m_gettingHits == true);
+	cerr << "Aborting Xesam query" << endl;
+
+	// Stop
 	g_main_loop_quit(pData->m_pMainLoop);
 }
 
@@ -149,8 +216,9 @@ bool XesamEngine::runQuery(QueryProperties& queryProps,
 	{
 		pQuery = xesam_g_query_new_from_text(queryProps.getFreeQuery().c_str());
 	}
-	else if (type == QueryProperties::XESAM_UL)
+	else
 	{
+		// Assume it's in the User Language
 		pQuery = xesam_g_query_new_from_xml(queryProps.getFreeQuery().c_str());
 	}
 	if (pQuery == NULL)
@@ -159,6 +227,10 @@ bool XesamEngine::runQuery(QueryProperties& queryProps,
 		g_object_unref(pSearcher);
 		return false;
 	}
+
+	// Ensure live search is off
+	xesam_g_searcher_set_property(pSearcher, xesam_g_session_get_id(pSession),
+		"search.live", FALSE, NULL, NULL);
 
 	XesamGSearch *pSearch = xesam_g_session_new_search(pSession, pQuery);
 	if (pSearch == NULL)
@@ -169,13 +241,23 @@ bool XesamEngine::runQuery(QueryProperties& queryProps,
 		return false;
 	}
 
+	// Set the maximum number of results
+	xesam_g_search_set_max_batch_size(pSearch, (guint )queryProps.getMaximumResultsCount());
+
 	GMainLoop *pMainLoop = g_main_loop_new(NULL, FALSE);
 	if (pMainLoop != NULL)
 	{
-		CallbackData *pData = new CallbackData(pMainLoop, m_resultsList, m_resultsCountEstimate);
+		CallbackData *pData = new CallbackData(pMainLoop,
+			m_resultsList, m_resultsCountEstimate);
 
 		g_signal_connect(pSearch, "hits-ready", G_CALLBACK(hitsReady), pData);
 		g_signal_connect(pSearch, "done", G_CALLBACK(searchDone), pData);
+
+		// Don't let this run longer than necessary
+		g_timeout_add(15000, (GSourceFunc)checkTimer, pData);
+#ifdef DEBUG
+		cout << "XesamEngine::runQuery: starting the main loop" << endl;
+#endif
 
 		// Start
 		xesam_g_search_start(pSearch);
