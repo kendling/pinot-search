@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Pinot Metasearch Tool
-Name[es]=Herramienta metabuscador Pinot
 Name[de]=Pinot Werkzeug zur Metasuche
+Name[es]=Herramienta metabuscador Pinot
 Name[fr]=Pinot Outil De Recherche
 Name[it]=Pinot Tool di ricerca
 Name[ja]=Pinotメタサーチツール
@@ -21,6 +21,7 @@ Comment[ja]=ウェブとドキュメントを検索します
 Comment[nl]=Zoek het web en uw documenten
 Comment[pt]=Pesquise a Web e os seus documentos
 Comment[pt_BR]=Pesquise a Web e os seus documentos
+Comment[ru]=Search the Web and your documents
 Comment[sv]=Sök på webben och i dina dokument
 Comment[zh_CN]=搜寻网络路和你的文件
 Comment[zh_TW]=搜尋網際網路和你的文件
