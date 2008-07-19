@@ -36,10 +36,10 @@ class CallbackData
 	public:
 		CallbackData(GMainLoop *pMainLoop,
 			vector<DocumentInfo> &resultsList,
-			unsigned int &resultsCountEstimate) :
+			unsigned int requiredHitsCount) :
 			m_pMainLoop(pMainLoop),
 			m_resultsList(resultsList),
-			m_resultsCountEstimate(resultsCountEstimate),
+			m_requiredHitsCount(requiredHitsCount),
 			m_gettingHits(0)
 		{
 		}
@@ -49,12 +49,22 @@ class CallbackData
 
 		GMainLoop *m_pMainLoop;
 		vector<DocumentInfo> &m_resultsList;
-		unsigned int &m_resultsCountEstimate;
+		unsigned int m_requiredHitsCount;
 		unsigned int m_gettingHits;
 
 };
 
-static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int resultNum)
+static void stopSearch(GMainLoop *pMainLoop)
+{
+	if (pMainLoop = NULL)
+	{
+		return;
+	}
+
+	g_main_loop_quit(pMainLoop);
+}
+
+static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int hitNum)
 {
 	if (pHit == NULL)
 	{
@@ -103,7 +113,7 @@ static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int resu
 		docInfo.setExtract(pExtract);
 	}
 	// FIXME: no score field ?
-	docInfo.setScore((float )(100 - resultNum));
+	docInfo.setScore((float )(100 - hitNum));
 
 	// Push into the results list
 	resultsList.push_back(docInfo);
@@ -116,17 +126,19 @@ static void hitsReady(XesamGSearch *pSearch, XesamGHits *pHits, gpointer pUserDa
 	{
 		return;
 	}
-#ifdef DEBUG
-	cout << "XesamEngine::hitsReady: called" << endl;
-#endif
 
 	CallbackData *pData = (CallbackData *)pUserData;
-	++pData->m_gettingHits;
-	for (guint i = 0; i < xesam_g_hits_get_count(pHits); ++i)
-	{
-		XesamGHit *pHit = xesam_g_hits_get(pHits, i);
+#ifdef DEBUG
+	cout << "XesamEngine::hitsReady: needing " << pData->m_requiredHitsCount
+		<< " hits, got " << xesam_g_hits_get_count(pHits) << endl;
+#endif
 
-		pushHit(pHit, pData->m_resultsList, i);
+	++pData->m_gettingHits;
+	for (guint hitNum = 0; hitNum < xesam_g_hits_get_count(pHits); ++hitNum)
+	{
+		XesamGHit *pHit = xesam_g_hits_get(pHits, hitNum);
+
+		pushHit(pHit, pData->m_resultsList, hitNum);
 	}
 	--pData->m_gettingHits;
 }
@@ -146,10 +158,10 @@ static void searchDone(XesamGSearch *pSearch, gpointer pUserData)
 
 	// Check we are not in the middle of retrieving stuff
 	while (pData->m_gettingHits > 0);
-	g_main_loop_quit(pData->m_pMainLoop);
+	stopSearch(pData->m_pMainLoop);
 }
 
-void checkTimer(gpointer pUserData)
+void abortTimer(gpointer pUserData)
 {
 	if (pUserData == NULL)
 	{
@@ -161,7 +173,7 @@ void checkTimer(gpointer pUserData)
 	cerr << "Aborting Xesam query" << endl;
 
 	// Stop
-	g_main_loop_quit(pData->m_pMainLoop);
+	stopSearch(pData->m_pMainLoop);
 }
 
 XesamEngine::XesamEngine(const string &dbusObject) :
@@ -214,12 +226,12 @@ bool XesamEngine::runQuery(QueryProperties& queryProps,
 	XesamGQuery *pQuery = NULL;
 	if (type == QueryProperties::XESAM_QL)
 	{
-		pQuery = xesam_g_query_new_from_text(queryProps.getFreeQuery().c_str());
+		pQuery = xesam_g_query_new_from_xml(queryProps.getFreeQuery().c_str());
 	}
 	else
 	{
 		// Assume it's in the User Language
-		pQuery = xesam_g_query_new_from_xml(queryProps.getFreeQuery().c_str());
+		pQuery = xesam_g_query_new_from_text(queryProps.getFreeQuery().c_str());
 	}
 	if (pQuery == NULL)
 	{
@@ -247,25 +259,32 @@ bool XesamEngine::runQuery(QueryProperties& queryProps,
 	GMainLoop *pMainLoop = g_main_loop_new(NULL, FALSE);
 	if (pMainLoop != NULL)
 	{
-		CallbackData *pData = new CallbackData(pMainLoop,
-			m_resultsList, m_resultsCountEstimate);
+		CallbackData *pData = new CallbackData(pMainLoop, m_resultsList,
+			queryProps.getMaximumResultsCount());
 
 		g_signal_connect(pSearch, "hits-ready", G_CALLBACK(hitsReady), pData);
 		g_signal_connect(pSearch, "done", G_CALLBACK(searchDone), pData);
 
 		// Don't let this run longer than necessary
-		g_timeout_add(15000, (GSourceFunc)checkTimer, pData);
-#ifdef DEBUG
-		cout << "XesamEngine::runQuery: starting the main loop" << endl;
-#endif
+		g_timeout_add(60000, (GSourceFunc)abortTimer, pData);
 
 		// Start
 		xesam_g_search_start(pSearch);
+#ifdef DEBUG
+		cout << "XesamEngine::runQuery: main loop start" << endl;
+#endif
 		g_main_loop_run(pMainLoop);
+#ifdef DEBUG
+		cout << "XesamEngine::runQuery: main loop end" << endl;
+#endif
 
 		// Stop
 		xesam_g_search_close(pSearch);
 
+		if (m_resultsList.size() > pData->m_requiredHitsCount)
+		{
+			m_resultsList.resize(pData->m_requiredHitsCount);
+		}
 		m_resultsCountEstimate = m_resultsList.size();
 
 		delete pData;
