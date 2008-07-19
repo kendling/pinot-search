@@ -26,6 +26,8 @@
 #include <curl/curl.h>
 
 #include "Url.h"
+#include "HtmlFilter.h"
+#include "FilterUtils.h"
 #include "CurlDownloader.h"
 
 using namespace std;
@@ -37,7 +39,22 @@ struct ContentInfo
 	string m_lastModified;
 };
 
-size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *pStream)
+static void freeContentInfo(struct ContentInfo *pInfo)
+{
+	if (pInfo == NULL)
+	{
+		return;
+	}
+
+	if (pInfo->m_pContent != NULL)
+	{
+		free(pInfo->m_pContent);
+		pInfo->m_pContent = NULL;
+		pInfo->m_contentLen = 0;
+	}
+}
+
+static size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *pStream)
 {
 	ContentInfo *pInfo = NULL;
 	size_t totalSize = elementsCount * dataSize;
@@ -54,12 +71,7 @@ size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *p
 #ifdef DEBUG
 		cout << "writeCallback: failed to enlarge buffer" << endl;
 #endif
-		if (pInfo->m_pContent != NULL)
-		{
-			free(pInfo->m_pContent);
-			pInfo->m_pContent = NULL;
-			pInfo->m_contentLen = 0;
-		}
+		freeContentInfo(pInfo);
 		return 0;
 	}
 
@@ -82,7 +94,7 @@ size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, void *p
 	return totalSize;
 }
 
-size_t headerCallback(void *pData, size_t dataSize, size_t elementsCount, void *pStream)
+static size_t headerCallback(void *pData, size_t dataSize, size_t elementsCount, void *pStream)
 {
 	ContentInfo *pInfo = NULL;
 	size_t totalSize = elementsCount * dataSize;
@@ -96,8 +108,8 @@ size_t headerCallback(void *pData, size_t dataSize, size_t elementsCount, void *
 	pInfo = (ContentInfo *)pStream;
 
 	string header((const char*)pData, totalSize);
-	string::size_type pos = header.find("Last-Modified: ");
 
+	string::size_type pos = header.find("Last-Modified: ");
 	if (pos != string::npos)
 	{
 		pInfo->m_lastModified = header.substr(15);
@@ -182,7 +194,7 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 {
 	Document *pDocument = NULL;
 	string url(Url::escapeUrl(docInfo.getLocation()));
-	long maxRedirectionsCount = 10;
+	unsigned int redirectionsCount = 0;
 
 	if (url.empty() == true)
 	{
@@ -203,7 +215,7 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 
 		curl_easy_setopt(pCurlHandler, CURLOPT_AUTOREFERER, 1);
 		curl_easy_setopt(pCurlHandler, CURLOPT_FOLLOWLOCATION, 1);
-		curl_easy_setopt(pCurlHandler, CURLOPT_MAXREDIRS, maxRedirectionsCount);
+		curl_easy_setopt(pCurlHandler, CURLOPT_MAXREDIRS, 10);
 		curl_easy_setopt(pCurlHandler, CURLOPT_USERAGENT, m_userAgent.c_str());
 		curl_easy_setopt(pCurlHandler, CURLOPT_NOSIGNAL, (long)1);
 		curl_easy_setopt(pCurlHandler, CURLOPT_TIMEOUT, (long)m_timeout);
@@ -214,10 +226,7 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 		curl_easy_setopt(pCurlHandler, CURLOPT_WRITEDATA, pContentInfo);
 		curl_easy_setopt(pCurlHandler, CURLOPT_HEADERFUNCTION, headerCallback);
 		curl_easy_setopt(pCurlHandler, CURLOPT_HEADERDATA, pContentInfo);
-#ifdef DEBUG
-		cout << "CurlDownloader::retrieveUrl: URL is " << url << endl;
-#endif
-		curl_easy_setopt(pCurlHandler, CURLOPT_URL, url.c_str());
+
 		// Is a proxy defined ?
 		// Curl automatically checks and makes use of the *_proxy environment variables 
 		if ((m_proxyAddress.empty() == false) &&
@@ -242,10 +251,16 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 			curl_easy_setopt(pCurlHandler, CURLOPT_PROXYTYPE, proxyType);
 		}
 
-		CURLcode res = curl_easy_perform(pCurlHandler);
-		if (res == CURLE_OK)
+#ifdef DEBUG
+		cout << "CurlDownloader::retrieveUrl: URL is " << url << endl;
+#endif
+		while (redirectionsCount < 10)
 		{
-			if ((pContentInfo->m_pContent != NULL) &&
+			curl_easy_setopt(pCurlHandler, CURLOPT_URL, url.c_str());
+
+			CURLcode res = curl_easy_perform(pCurlHandler);
+			if ((res == CURLE_OK) &&
+				(pContentInfo->m_pContent != NULL) &&
 				(pContentInfo->m_contentLen > 0))
 			{
 				char *pContentType = NULL;
@@ -269,20 +284,45 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				{
 					pDocument->setTimestamp(pContentInfo->m_lastModified);
 				}
-			}
+
+				// Any REFRESH META tag ?
+				Dijon::HtmlFilter htmlFilter("text/html");
+				if ((FilterUtils::feedFilter(*pDocument, &htmlFilter) == true) &&
+					(htmlFilter.next_document() == true))
+				{
+					const map<string, string> &metaData = htmlFilter.get_meta_data();
+					map<string, string>::const_iterator refreshIter = metaData.find("refresh");
+					if (refreshIter != metaData.end())
+					{
+						// Try again
+						string::size_type urlPos = refreshIter->second.find("URL=");
+						if (urlPos != string::npos)
+						{
+							url = refreshIter->second.substr(urlPos + 4);
 #ifdef DEBUG
-			else cout << "CurlDownloader::retrieveUrl: no content for " << url << endl;
+							cout << "CurlDownloader::retrieveUrl: redirected to URL " << url << endl;
 #endif
-		}
-		else
-		{
-			cerr << "Couldn't download " << url << ": " << curl_easy_strerror(res) << endl;
+							delete pDocument;
+							pDocument = NULL;
+							freeContentInfo(pContentInfo);
+							++redirectionsCount;
+							continue;
+						}
+					}
+				}
+#ifdef DEBUG
+				else cout << "CurlDownloader::retrieveUrl: failed to parse HTML" << endl;
+#endif
+			}
+			else
+			{
+				cerr << "Couldn't download " << url << ": " << curl_easy_strerror(res) << endl;
+			}
+
+			break;
 		}
 
-		if (pContentInfo->m_pContent != NULL)
-		{
-			free(pContentInfo->m_pContent);
-		}
+		freeContentInfo(pContentInfo);
 		delete pContentInfo;
 
 		// Cleanup
