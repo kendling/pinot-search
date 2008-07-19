@@ -1,4 +1,237 @@
 ------------------------------------------------------------------------
+r1310 | fabricecolin | 2008-07-19 19:00:19 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+
+This release's details.
+
+------------------------------------------------------------------------
+r1309 | fabricecolin | 2008-07-19 18:58:19 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/pinot.desktop
+
+Provide a comment for ru... in English, because it's not been translated yet.
+
+------------------------------------------------------------------------
+r1308 | fabricecolin | 2008-07-19 18:56:13 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Current ranslations.
+
+------------------------------------------------------------------------
+r1307 | fabricecolin | 2008-07-19 18:49:20 +0800 (Sat, 19 Jul 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/AbstractGenerator.cpp
+   M /trunk/IndexSearch/pinot-index.cpp
+
+AbstractGenerator ignores the current term's other positions when weighting
+abstract windows.
+pinot-index only lists index-capable backends.
+
+------------------------------------------------------------------------
+r1306 | fabricecolin | 2008-07-19 18:47:28 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-index.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/IndexSearch/pinot-search.1
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.1
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Bumped version number to 0.87, updated manual pages.
+
+------------------------------------------------------------------------
+r1305 | fabricecolin | 2008-07-19 17:59:53 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+
+Don't move AmazonAPI out of the engines directory.
+
+------------------------------------------------------------------------
+r1304 | fabricecolin | 2008-07-19 17:58:39 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/Collect/CurlDownloader.cpp
+
+Follow META REFRESH if set.
+
+------------------------------------------------------------------------
+r1303 | fabricecolin | 2008-07-19 17:29:42 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/XesamGLib/XesamEngine.cpp
+
+Fixed UL/QL mixup.
+
+------------------------------------------------------------------------
+r1302 | fabricecolin | 2008-07-19 14:44:20 +0800 (Sat, 19 Jul 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/XesamGLib/XesamEngine.cpp
+
+Extract hits data, turn live search off, set the maximum number of results and
+abort the search after a few seconds.
+
+------------------------------------------------------------------------
+r1301 | fabricecolin | 2008-07-19 14:24:35 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/WorkerThreads.h
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+The UI will let foreground threads run for up to a minute.
+
+------------------------------------------------------------------------
+r1300 | fabricecolin | 2008-07-18 23:21:09 +0800 (Fri, 18 Jul 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/EnginesTree.cpp
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+
+Add search-only backends to the Current User channel and make sure it stays at
+the bottom of the engines tree.
+
+------------------------------------------------------------------------
+r1299 | fabricecolin | 2008-07-18 21:28:33 +0800 (Fri, 18 Jul 2008) | 6 lines
+Changed paths:
+   M /trunk/IndexSearch/PluginWebEngine.cpp
+   M /trunk/IndexSearch/Plugins/AmazonAPI.src
+   M /trunk/IndexSearch/SherlockParser.cpp
+   M /trunk/IndexSearch/pinot-search.cpp
+
+pinot-search can set a plugin editable parameter with -e/--seteditable.
+PluginWebEngine will output an error message if an editable parameter has no
+value.
+The Sherlock parser lower-cased input parameters for no specific reason.
+Moved the Amazon API plugin to the Shopping channel.
+
+------------------------------------------------------------------------
+r1298 | fabricecolin | 2008-07-13 21:51:08 +0800 (Sun, 13 Jul 2008) | 4 lines
+Changed paths:
+   M /trunk/UI/GTK2/metase-gtk2.glade
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+   M /trunk/UI/GTK2/src/PinotSettings.h
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/prefsDialog.cc
+   M /trunk/UI/GTK2/src/prefsDialog.hh
+   M /trunk/UI/GTK2/src/prefsDialog_glade.cc
+   M /trunk/UI/GTK2/src/prefsDialog_glade.hh
+
+Preferences let the user edit all editable parameters defined in the plugins.
+Values are saved to and loaded from the configuration file, and are passed to
+WebEngine-derived search engines.
+
+------------------------------------------------------------------------
+r1297 | fabricecolin | 2008-07-13 21:46:53 +0800 (Sun, 13 Jul 2008) | 8 lines
+Changed paths:
+   M /trunk/IndexSearch/ModuleFactory.cpp
+   M /trunk/IndexSearch/OpenSearchParser.cpp
+   M /trunk/IndexSearch/OpenSearchParser.h
+   M /trunk/IndexSearch/PluginParsers.h
+   M /trunk/IndexSearch/PluginWebEngine.cpp
+   M /trunk/IndexSearch/PluginWebEngine.h
+   M /trunk/IndexSearch/Plugins/A9.src
+   M /trunk/IndexSearch/Plugins/AmazonAPI.src
+   A /trunk/IndexSearch/Plugins/YahooBOSS.src
+   M /trunk/IndexSearch/SearchPluginProperties.cpp
+   M /trunk/IndexSearch/SearchPluginProperties.h
+   M /trunk/IndexSearch/SherlockParser.cpp
+   M /trunk/IndexSearch/SherlockParser.h
+   M /trunk/IndexSearch/WebEngine.cpp
+   M /trunk/IndexSearch/WebEngine.h
+
+Plugins may define user-editable parameters by setting values to
+EDIT:description. This is designed to let the user specify his/her own ID or
+key for the Amazon API or the new Yahoo! BOSS API without having to edit
+plugins.
+For Sherlock plugins that don't specify a USER INPUT, append the query terms to
+the action URL.
+Always set input and output encodings, if defined, to UTF-8.
+
+------------------------------------------------------------------------
+r1296 | fabricecolin | 2008-07-11 14:21:03 +0800 (Fri, 11 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/README
+
+Clarify some inaccuracies.
+
+------------------------------------------------------------------------
+r1295 | fabricecolin | 2008-07-11 14:17:47 +0800 (Fri, 11 Jul 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/ResultsTree.cpp
+   M /trunk/UI/GTK2/src/ResultsTree.h
+
+Use a TextView for extracts. This will allow dropping portions of the extract
+in the queries list. A bold tag is applied to words to highlight.
+
+------------------------------------------------------------------------
+r1294 | fabricecolin | 2008-07-11 12:47:39 +0800 (Fri, 11 Jul 2008) | 6 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/importDialog.cc
+   M /trunk/UI/GTK2/src/importDialog.hh
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/mainWindow.hh
+
+Support for drag-n-drop.
+Dropping text on the stored queries list will create a new query with this text,
+while dropping files will generate a query to find similar documents in the
+indexes. If necessary, these files are indexed in My Web Pages.
+Files can be dropped on the import dialog's location field too.
+
+------------------------------------------------------------------------
+r1293 | fabricecolin | 2008-07-11 12:41:53 +0800 (Fri, 11 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+
+Skip very short non-CJKV terms when expanding queries.
+
+------------------------------------------------------------------------
+r1292 | fabricecolin | 2008-07-06 21:07:46 +0800 (Sun, 06 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+
+The QueryModifier would sometimes append n-1 bytes of the last CJKV character.
+
+------------------------------------------------------------------------
+r1291 | fabricecolin | 2008-07-06 21:03:23 +0800 (Sun, 06 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/ModuleFactory.cpp
+   M /trunk/IndexSearch/ModuleFactory.h
+   A /trunk/IndexSearch/XesamGLib/ModuleExports.cpp
+
+Backends that are search-only don't need to export index-related functions.
+
+------------------------------------------------------------------------
+r1290 | fabricecolin | 2008-06-28 20:34:01 +0800 (Sat, 28 Jun 2008) | 3 lines
+Changed paths:
+   A /trunk/IndexSearch/XesamGLib
+   A /trunk/IndexSearch/XesamGLib/Makefile.am
+   A /trunk/IndexSearch/XesamGLib/XesamEngine.cpp
+   A /trunk/IndexSearch/XesamGLib/XesamEngine.h
+   M /trunk/Makefile.am
+   M /trunk/configure.in
+   M /trunk/pinot.spec.in
+
+Experimental backend based on xesam-glib to query Xesam servers. Pass
+"--enable-xesam-glib=yes" to configure and "--with xesam-glib" to rpmbuild.
+
+------------------------------------------------------------------------
+r1288 | fabricecolin | 2008-06-21 16:16:00 +0800 (Sat, 21 Jun 2008) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Update logs.
+
+------------------------------------------------------------------------
 r1287 | fabricecolin | 2008-06-21 16:11:47 +0800 (Sat, 21 Jun 2008) | 2 lines
 Changed paths:
    D /trunk/IndexSearch/Plugins/Accoona.src

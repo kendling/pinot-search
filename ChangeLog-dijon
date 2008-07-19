@@ -1,4 +1,18 @@
 ------------------------------------------------------------------------
+r109 | fabricecolin | 2008-07-19 15:37:59 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/HtmlFilter.cc
+
+Only check for META keywords, don't add them to the META tags map.
+
+------------------------------------------------------------------------
+r108 | fabricecolin | 2008-07-05 14:01:07 +0800 (Sat, 05 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/external-filters.xml
+
+Run pdftotext in raw mode, it helps with columns.
+
+------------------------------------------------------------------------
 r105 | fabricecolin | 2008-06-21 11:55:16 +0800 (Sat, 21 Jun 2008) | 2 lines
 Changed paths:
    M /trunk/filters/ExifImageFilter.cc
