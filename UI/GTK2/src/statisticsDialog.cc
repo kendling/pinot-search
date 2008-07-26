@@ -29,6 +29,7 @@
 #include "Url.h"
 #include "CrawlHistory.h"
 #include "ViewHistory.h"
+#include "DBusIndex.h"
 #include "ModuleFactory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
@@ -41,7 +42,8 @@ using namespace Gtk;
 
 statisticsDialog::statisticsDialog() :
 	statisticsDialog_glade(),
-	m_hasErrors(false)
+	m_hasErrors(false),
+	m_getStats(true)
 {
 	// Associate the columns model to the engines tree
 	m_refStore = TreeStore::create(m_statsColumns);
@@ -53,11 +55,14 @@ statisticsDialog::statisticsDialog() :
 		statisticsTreeview->append_column(*manage(pColumn));
 	}
 
+	// Resize the window
+	resize((int )(get_width() * 2), (int )(get_height() * 1.5));
+
 	// Populate
 	populate();
 	// ...and update regularly
 	m_idleConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
-		&statisticsDialog::on_activity_timeout), 5000);
+		&statisticsDialog::on_activity_timeout), 10000);
 }
 
 statisticsDialog::~statisticsDialog()
@@ -108,20 +113,14 @@ void statisticsDialog::populate(void)
 	row = *m_daemonIter;
 	row[m_statsColumns.m_name] = _("Daemon");
 	m_daemonProcIter = m_refStore->append(m_daemonIter->children());
+	m_diskSpaceIter = m_refStore->append(m_daemonIter->children());
+	m_batteryIter = m_refStore->append(m_daemonIter->children());
+	m_crawlIter = m_refStore->append(m_daemonIter->children());
 
 	// Expand everything
 	statisticsTreeview->expand_all();
 	TreeModel::Path enginesPath = m_refStore->get_path(enginesIter);
 	statisticsTreeview->collapse_row(enginesPath);
-
-	Adjustment *pAdjustement = statisticsScrolledwindow->get_hadjustment();
-#ifdef DEBUG
-	cout << "statisticsDialog: " << pAdjustement->get_value() << " "
-		<< pAdjustement->get_lower() << " " << pAdjustement->get_upper() << endl;
-#endif
-	pAdjustement->set_value(pAdjustement->get_upper());
-	statisticsScrolledwindow->set_hadjustment(pAdjustement);
-	resize((int )pAdjustement->get_upper() * 2, get_height());
 
 	on_activity_timeout();
 }
@@ -132,8 +131,10 @@ bool statisticsDialog::on_activity_timeout(void)
 	ViewHistory viewHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 	TreeModel::Row row;
 	std::map<unsigned int, string> sources;
+	ustring yes(_("Yes")), no(_("No"));
 	string daemonDBusStatus;
 	char countStr[64];
+	bool lowDiskSpace = false, onBattery = false, crawling = false;
 
 	row = *m_myWebPagesIter;
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_docsIndexLocation);
@@ -192,27 +193,51 @@ bool statisticsDialog::on_activity_timeout(void)
 		pidFile.close();
 	}
 	snprintf(countStr, 64, "%u", daemonPID);
+
 	row = *m_daemonProcIter;
 	if (daemonPID > 0)
 	{
 		// FIXME: check whether it's actually running !
 		row[m_statsColumns.m_name] = ustring(_("Running under PID")) + " " + countStr;
+
+		if (m_getStats == true)
+		{
+			unsigned int crawledCount = 0, docsCount = 0;
+
+			if (DBusIndex::getStatistics(crawledCount, docsCount, lowDiskSpace, onBattery, crawling) == false)
+			{
+#ifdef DEBUG
+				cout << "statisticsDialog::on_activity_timeout: failed to get statistics" << endl;
+#endif
+
+				// Don't try again
+				m_getStats = false;
+			}
+		}
 	}
 	else
 	{
 		if (daemonDBusStatus == "Disconnected")
 		{
-			row[m_statsColumns.m_name] = ustring(_("Disconnected from D-Bus"));
+			row[m_statsColumns.m_name] = _("Disconnected from D-Bus");
 		}
 		else if (daemonDBusStatus == "Stopped")
 		{
-			row[m_statsColumns.m_name] = ustring(_("Stopped"));
+			row[m_statsColumns.m_name] = _("Stopped");
 		}
 		else
 		{
-			row[m_statsColumns.m_name] = ustring(_("Currently not running"));
+			row[m_statsColumns.m_name] = _("Currently not running");
 		}
 	}
+
+	// Show status
+	row = *m_diskSpaceIter;
+	row[m_statsColumns.m_name] = ustring(_("Low disk space")) + ": " + (lowDiskSpace == true ? yes : no);
+	row = *m_batteryIter;
+	row[m_statsColumns.m_name] = ustring(_("On battery")) + ": " + (onBattery == true ? yes : no);
+	row = *m_crawlIter;
+	row[m_statsColumns.m_name] = ustring(_("Crawling")) + ": "+ (crawling == true ? yes : no);
 
 	// Show errors
 	crawlHistory.getSources(sources);

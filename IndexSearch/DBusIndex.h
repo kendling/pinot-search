@@ -56,6 +56,10 @@ class DBusIndex : public IndexInterface
 		/// Asks the D-Bus service to reload its configuration.
 		static bool reload(void);
 
+		/// Gets some statistics from the D-Bus service.
+		static bool getStatistics(unsigned int crawledCount, unsigned int docsCount,
+			bool &lowDiskSpace, bool &onBattery, bool &crawling);
+
 		/// Returns false if the index couldn't be opened.
 		virtual bool isGood(void) const;
 

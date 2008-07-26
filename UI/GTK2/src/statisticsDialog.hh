@@ -40,13 +40,17 @@ protected:
 	Gtk::TreeModel::iterator m_myWebPagesIter;
 	Gtk::TreeModel::iterator m_myDocumentsIter;
 	Gtk::TreeModel::iterator m_viewStatIter;
+	Gtk::TreeModel::iterator m_crawledStatIter;
 	Gtk::TreeModel::iterator m_daemonIter;
 	Gtk::TreeModel::iterator m_daemonProcIter;
-	Gtk::TreeModel::iterator m_crawledStatIter;
+	Gtk::TreeModel::iterator m_diskSpaceIter;
+	Gtk::TreeModel::iterator m_batteryIter;
+	Gtk::TreeModel::iterator m_crawlIter;
 	Gtk::TreeModel::iterator m_errorsTopIter;
 	std::map<int, Gtk::TreeModel::iterator> m_errorsIters;
 	std::map<unsigned int, time_t> m_latestErrorDates;
 	bool m_hasErrors;
+	bool m_getStats;
 	sigc::connection m_idleConnection;
 
 	void populate(void);

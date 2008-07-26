@@ -18,6 +18,9 @@
       <annotation name="de.berlios.Pinot.GetStatistics" value="pinotDBus"/>
       <arg type="u" name="crawledCount" direction="out"/>
       <arg type="u" name="docsCount" direction="out"/>
+      <arg type="b" name="lowDiskSpace" direction="out" />
+      <arg type="b" name="onBattery" direction="out" />
+      <arg type="b" name="crawling" direction="out" />
     </method>
     <!--
 	Instructs the daemon program to reload the configuration file.

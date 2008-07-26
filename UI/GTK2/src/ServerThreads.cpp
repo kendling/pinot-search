@@ -668,6 +668,7 @@ void DBusServletThread::doWork(void)
 		CrawlHistory crawlHistory(settings.getHistoryDatabaseName());
 		unsigned int crawledFilesCount = crawlHistory.getItemsCount(CrawlHistory::CRAWLED);
 		unsigned int docsCount = pIndex->getDocumentsCount();
+		gboolean lowDiskSpace = FALSE, onBattery = FALSE, crawling = FALSE;
 
 #ifdef DEBUG
 		cout << "DBusServletThread::doWork: received GetStatistics" << endl;
@@ -676,9 +677,29 @@ void DBusServletThread::doWork(void)
 		m_pReply = newDBusReply(m_pRequest);
 		if (m_pReply != NULL)
 		{
+			if (m_pServer->is_flag_set(DaemonState::LOW_DISK_SPACE) == true)
+			{
+				lowDiskSpace = TRUE;
+			}
+			if (m_pServer->is_flag_set(DaemonState::ON_BATTERY) == true)
+			{
+				onBattery = TRUE;
+			}
+			if (m_pServer->is_flag_set(DaemonState::CRAWLING) == true)
+			{
+				crawling = TRUE;
+			}
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: replying with " << crawledFilesCount
+				<< " " << docsCount << " " << lowDiskSpace << onBattery << crawling << endl;
+#endif
+
 			dbus_message_append_args(m_pReply,
 				DBUS_TYPE_UINT32, &crawledFilesCount,
 				DBUS_TYPE_UINT32, &docsCount,
+				DBUS_TYPE_BOOLEAN, &lowDiskSpace,
+				DBUS_TYPE_BOOLEAN, &onBattery,
+				DBUS_TYPE_BOOLEAN, &crawling,
 				DBUS_TYPE_INVALID);
 		}
 	}

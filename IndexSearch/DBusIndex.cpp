@@ -343,6 +343,66 @@ bool DBusIndex::reload(void)
 	return false;
 }
 
+/// Gets some statistics from the D-Bus service.
+bool DBusIndex::getStatistics(unsigned int crawledCount, unsigned int docsCount,
+	bool &lowDiskSpace, bool &onBattery, bool &crawling)
+{
+	gboolean lowDiskSpaceB = FALSE, onBatteryB = FALSE, crawlingB = FALSE;
+
+	DBusGConnection *pBus = getBusConnection();
+	if (pBus == NULL)
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = getBusProxy(pBus);
+	if (pBusProxy == NULL)
+	{
+		cerr << "DBusIndex::getStatistics: couldn't get bus proxy" << endl;
+		return false;
+	}
+
+	GError *pError = NULL;
+	if (dbus_g_proxy_call(pBusProxy, "GetStatistics", &pError,
+		G_TYPE_INVALID,
+		G_TYPE_UINT, &crawledCount,
+		G_TYPE_UINT, &docsCount,
+		G_TYPE_BOOLEAN, &lowDiskSpaceB,
+		G_TYPE_BOOLEAN, &onBatteryB,
+		G_TYPE_BOOLEAN, &crawlingB,
+		G_TYPE_INVALID) == FALSE)
+	{
+		if (pError != NULL)
+		{
+			cerr << "DBusIndex::getStatistics: " << pError->message << endl;
+			g_error_free(pError);
+		}
+	}
+	else
+	{
+#ifdef DEBUG
+		cout << "DBusIndex::getStatistics: got " << crawledCount << " " << docsCount
+			<< " " << lowDiskSpaceB << onBatteryB << crawlingB << endl;
+#endif
+		if (lowDiskSpaceB == TRUE)
+		{
+			lowDiskSpace = true;
+		}
+		if (onBatteryB == TRUE)
+		{
+			onBattery = true;
+		}
+		if (crawlingB == TRUE)
+		{
+			crawling = true;
+		}
+	}
+
+	g_object_unref(pBusProxy);
+	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
+
+	return true;
+}
 
 //
 // Implementation of IndexInterface

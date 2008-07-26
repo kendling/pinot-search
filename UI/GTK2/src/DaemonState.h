@@ -36,7 +36,7 @@ class DaemonState : public ThreadsManager
 		DaemonState();
 		virtual ~DaemonState();
 
-		typedef enum { LOW_DISK_SPACE = 0, ON_BATTERY, STOPPED, DISCONNECTED } StatusFlag;
+		typedef enum { LOW_DISK_SPACE = 0, ON_BATTERY, CRAWLING, STOPPED, DISCONNECTED } StatusFlag;
 
 		void start(bool forceFullScan);
 

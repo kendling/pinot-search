@@ -272,6 +272,7 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 	if (start_thread(pScannerThread, true) == true)
 	{
 		++m_crawlers;
+		set_flag(CRAWLING);
 
 		return true;
 	}
@@ -352,6 +353,8 @@ void DaemonState::start_crawling(void)
 		// Get the next location, unless something is still being crawled
 		if (m_crawlers == 0)
 		{
+			reset_flag(CRAWLING);
+
 			if (m_crawlQueue.empty() == false)
 			{
 				PinotSettings::IndexableLocation nextLocation(m_crawlQueue.front());
