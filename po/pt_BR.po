@@ -6,17 +6,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.87\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-19 16:20+0800\n"
-"PO-Revision-Date: 2008-01-15 00:15+0000\n"
-"Last-Translator: Leonardo Melo <leonardovazmelo@gmail.com>\n"
+"POT-Creation-Date: 2008-07-26 13:36+0800\n"
+"PO-Revision-Date: 2008-07-24 12:01+0000\n"
+"Last-Translator: Rafael Porto Rodrigues <rafporto@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <pt_BR@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-02-18 14:08+0000\n"
+"X-Launchpad-Export-Date: 2008-07-26 05:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:89
+#: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:94
 msgid "Search Engines"
 msgstr "Mecanismos de Pesquisa"
 
@@ -35,7 +35,7 @@ msgstr "Usuário atual"
 #: UI/GTK2/src/mainWindow.cc:1626 UI/GTK2/src/mainWindow.cc:1662
 #: UI/GTK2/src/mainWindow.cc:1684 UI/GTK2/src/mainWindow.cc:2395
 #: UI/GTK2/src/PinotSettings.cpp:359 UI/GTK2/src/PinotSettings.cpp:1570
-#: UI/GTK2/src/PinotSettings.cpp:1626 UI/GTK2/src/statisticsDialog.cc:79
+#: UI/GTK2/src/PinotSettings.cpp:1626 UI/GTK2/src/statisticsDialog.cc:84
 #: UI/GTK2/src/WorkerThreads.cpp:1010
 msgid "My Web Pages"
 msgstr "Minhas Páginas Web"
@@ -46,13 +46,13 @@ msgstr "Minhas Páginas Web"
 #: UI/GTK2/src/mainWindow.cc:1542 UI/GTK2/src/mainWindow.cc:1545
 #: UI/GTK2/src/mainWindow.cc:2399 UI/GTK2/src/PinotSettings.cpp:360
 #: UI/GTK2/src/PinotSettings.cpp:1571 UI/GTK2/src/PinotSettings.cpp:1627
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1020
+#: UI/GTK2/src/statisticsDialog.cc:88 UI/GTK2/src/WorkerThreads.cpp:1020
 msgid "My Documents"
 msgstr "Meus Documentos"
 
 #: UI/GTK2/src/indexDialog.cc:122
 msgid "Served by"
-msgstr ""
+msgstr "Servido por"
 
 #: UI/GTK2/src/indexDialog.cc:124
 #, fuzzy
@@ -85,7 +85,7 @@ msgstr "Porta:"
 
 #: UI/GTK2/src/indexDialog_glade.cc:78 UI/GTK2/src/prefsDialog_glade.cc:81
 msgid "Address:"
-msgstr ""
+msgstr "Endereço:"
 
 #: UI/GTK2/src/indexDialog_glade.cc:182
 msgid "External index"
@@ -121,7 +121,7 @@ msgstr "Mostrar próximo"
 
 #: UI/GTK2/src/IndexPage.cpp:188
 msgid "All"
-msgstr ""
+msgstr "Todos"
 
 #: UI/GTK2/src/launcherDialog_glade.cc:63
 msgid ""
@@ -131,7 +131,7 @@ msgstr ""
 
 #: UI/GTK2/src/launcherDialog_glade.cc:66
 msgid "Use this command for other documents of the same type."
-msgstr ""
+msgstr "Use este comando para outros documentos deste mesmo tipo"
 
 #: UI/GTK2/src/launcherDialog_glade.cc:98
 msgid "Helper application"
@@ -263,7 +263,7 @@ msgstr "finalizada"
 
 #: UI/GTK2/src/mainWindow.cc:1331
 msgid "Corrected"
-msgstr ""
+msgstr "Corrigido"
 
 #: UI/GTK2/src/mainWindow.cc:1485
 msgid "More Like"
@@ -334,7 +334,7 @@ msgstr "Um mecanismo de metabusca grátis para Desktop"
 
 #: UI/GTK2/src/mainWindow.cc:2554
 msgid "Search the Web and your documents !"
-msgstr ""
+msgstr "Procurar a Rede e seus documentos!"
 
 #: UI/GTK2/src/mainWindow.cc:2599
 msgid "Index name"
@@ -354,7 +354,7 @@ msgstr "Não foi possível remover índice"
 
 #: UI/GTK2/src/mainWindow.cc:2868
 msgid "No history for"
-msgstr ""
+msgstr "Nenhum histórico para"
 
 #: UI/GTK2/src/mainWindow.cc:2984
 msgid "At least one task hasn't completed yet. Quit now ?"
@@ -362,7 +362,7 @@ msgstr "Pelo menos uma tarefa não terminou ainda. Sair assim mesmo?"
 
 #: UI/GTK2/src/mainWindow.cc:2986
 msgid "Quit"
-msgstr ""
+msgstr "Sair"
 
 #: UI/GTK2/src/mainWindow.cc:3169
 msgid "Query name"
@@ -408,7 +408,7 @@ msgstr "Aplicação associada ao tipo não definida"
 msgid "Query:"
 msgstr "Consulta:"
 
-#: UI/GTK2/src/mainWindow_glade.cc:137 UI/GTK2/src/statisticsDialog.cc:102
+#: UI/GTK2/src/mainWindow_glade.cc:137 UI/GTK2/src/statisticsDialog.cc:107
 #, fuzzy
 msgid "History"
 msgstr "Diretório"
@@ -417,10 +417,10 @@ msgstr "Diretório"
 msgid "Stored queries"
 msgstr "Consultas armazenadas"
 
-#: UI/GTK2/src/mainWindow_glade.cc:155 UI/GTK2/src/statisticsDialog.cc:50
+#: UI/GTK2/src/mainWindow_glade.cc:155 UI/GTK2/src/statisticsDialog.cc:52
 #: UI/GTK2/src/statisticsDialog_glade.cc:86
 msgid "Status"
-msgstr ""
+msgstr "Estado"
 
 #: UI/GTK2/src/mainWindow_glade.cc:176
 msgid "Search Engine"
@@ -535,7 +535,7 @@ msgstr "German"
 
 #: UI/GTK2/src/pinot.cc:243 UI/GTK2/src/pinot-dbus-daemon.cc:499
 msgid "Hungarian"
-msgstr ""
+msgstr "Húngaro"
 
 #: UI/GTK2/src/pinot.cc:244 UI/GTK2/src/pinot-dbus-daemon.cc:500
 msgid "Italian"
@@ -551,7 +551,7 @@ msgstr "Português"
 
 #: UI/GTK2/src/pinot.cc:247 UI/GTK2/src/pinot-dbus-daemon.cc:503
 msgid "Romanian"
-msgstr ""
+msgstr "Romeno"
 
 #: UI/GTK2/src/pinot.cc:248 UI/GTK2/src/pinot-dbus-daemon.cc:504
 msgid "Russian"
@@ -567,7 +567,7 @@ msgstr "Swedish"
 
 #: UI/GTK2/src/pinot.cc:251 UI/GTK2/src/pinot-dbus-daemon.cc:507
 msgid "Turkish"
-msgstr ""
+msgstr "Turco"
 
 #: UI/GTK2/src/pinot.cc:272
 msgid "Couldn't open index"
@@ -592,7 +592,7 @@ msgstr "Pessoal"
 
 #: UI/GTK2/src/PinotSettings.cpp:387
 msgid "Me"
-msgstr ""
+msgstr "Eu"
 
 #: UI/GTK2/src/PinotSettings.cpp:1338
 msgid "Unclassified"
@@ -661,15 +661,15 @@ msgstr "Geral"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:78
 msgid "Direct connection to the Internet"
-msgstr ""
+msgstr "Conecção direta com a Internet"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:79
 msgid "Manual proxy configuration:"
-msgstr ""
+msgstr "Manual de configuração do proxy"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:92
 msgid "Network"
-msgstr ""
+msgstr "Rede"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:93
 #, fuzzy
@@ -733,15 +733,15 @@ msgstr "Tipo MIME:"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:66
 msgid "Size:"
-msgstr ""
+msgstr "Tamanho:"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:67
 msgid "Terms:"
-msgstr ""
+msgstr "Termos:"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:77
 msgid "bytes"
-msgstr ""
+msgstr "bytes"
 
 #: UI/GTK2/src/queryDialog.cc:110
 msgid "Host name"
@@ -779,7 +779,7 @@ msgstr "Tipo MIME"
 
 #: UI/GTK2/src/queryDialog.cc:118
 msgid "MIME class"
-msgstr ""
+msgstr "classe MIME"
 
 #: UI/GTK2/src/queryDialog.cc:119
 msgid "Label"
@@ -798,7 +798,7 @@ msgstr "Título"
 
 #: UI/GTK2/src/queryDialog.cc:124
 msgid "Size"
-msgstr ""
+msgstr "Tamanho"
 
 #. Sort order
 #: UI/GTK2/src/queryDialog.cc:128
@@ -830,7 +830,7 @@ msgstr "Número de resultados:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:89
 msgid "Sort order:"
-msgstr ""
+msgstr "Ordem de classificação:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:93
 msgid "Stemming:"
@@ -849,64 +849,86 @@ msgstr "Parâmetros da consulta"
 msgid "Score"
 msgstr "Pontuação"
 
-#: UI/GTK2/src/statisticsDialog.cc:76
+#: UI/GTK2/src/statisticsDialog.cc:81
 #, fuzzy
 msgid "Indexes"
 msgstr "Indexado"
 
-#: UI/GTK2/src/statisticsDialog.cc:109
+#: UI/GTK2/src/statisticsDialog.cc:114
 msgid "Daemon"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:145 UI/GTK2/src/statisticsDialog.cc:161
+#: UI/GTK2/src/statisticsDialog.cc:134
+msgid "Yes"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:134
+#, fuzzy
+msgid "No"
+msgstr "Nenhum"
+
+#: UI/GTK2/src/statisticsDialog.cc:146 UI/GTK2/src/statisticsDialog.cc:162
 #, fuzzy
 msgid "documents"
 msgstr "Meus Documentos"
 
-#: UI/GTK2/src/statisticsDialog.cc:151 UI/GTK2/src/statisticsDialog.cc:169
+#: UI/GTK2/src/statisticsDialog.cc:152 UI/GTK2/src/statisticsDialog.cc:170
 #: UI/GTK2/src/WorkerThreads.cpp:125
 msgid "Unknown error"
-msgstr ""
+msgstr "Erro desconhecido"
 
-#: UI/GTK2/src/statisticsDialog.cc:176
+#: UI/GTK2/src/statisticsDialog.cc:177
 #, fuzzy
 msgid "Viewed"
 msgstr "Visualizar"
 
-#: UI/GTK2/src/statisticsDialog.cc:176
+#: UI/GTK2/src/statisticsDialog.cc:177
 #, fuzzy
 msgid "results"
 msgstr "_Resultados"
 
-#: UI/GTK2/src/statisticsDialog.cc:182
+#: UI/GTK2/src/statisticsDialog.cc:183
 msgid "Crawled"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:182
+#: UI/GTK2/src/statisticsDialog.cc:183
 msgid "files"
-msgstr ""
+msgstr "arquivos"
 
 #. FIXME: check whether it's actually running !
-#: UI/GTK2/src/statisticsDialog.cc:199
+#: UI/GTK2/src/statisticsDialog.cc:201
 #, fuzzy
 msgid "Running under PID"
 msgstr "Executando consulta"
 
-#: UI/GTK2/src/statisticsDialog.cc:205
+#: UI/GTK2/src/statisticsDialog.cc:222
 msgid "Disconnected from D-Bus"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:209
+#: UI/GTK2/src/statisticsDialog.cc:226
 msgid "Stopped"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:213
+#: UI/GTK2/src/statisticsDialog.cc:230
 msgid "Currently not running"
+msgstr "Não executando atualmente"
+
+#: UI/GTK2/src/statisticsDialog.cc:236
+msgid "Low disk space"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:243
-msgid "Errors"
+#: UI/GTK2/src/statisticsDialog.cc:238
+msgid "On battery"
 msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:240
+#, fuzzy
+msgid "Crawling"
+msgstr "HTTP crawling:"
+
+#: UI/GTK2/src/statisticsDialog.cc:268
+msgid "Errors"
+msgstr "Erros"
 
 #: UI/GTK2/src/WorkerThreads.cpp:92
 #, fuzzy
@@ -942,7 +964,7 @@ msgstr "Não foi possível atualizar documento"
 
 #: UI/GTK2/src/WorkerThreads.cpp:106
 msgid "File monitor error"
-msgstr ""
+msgstr "Monitor de erros de arquivo"
 
 #: UI/GTK2/src/WorkerThreads.cpp:108
 msgid "Couldn't open directory"
@@ -976,7 +998,7 @@ msgstr "Nenhum manipulador de monitoramento"
 
 #: UI/GTK2/src/WorkerThreads.cpp:417
 msgid "Indexing was stopped"
-msgstr ""
+msgstr "Índice foi parado"
 
 #: UI/GTK2/src/WorkerThreads.cpp:430
 msgid "Can't index mail here"

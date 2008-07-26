@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.87\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-19 16:20+0800\n"
-"PO-Revision-Date: 2008-03-24 18:17+0800\n"
+"POT-Creation-Date: 2008-07-26 13:36+0800\n"
+"PO-Revision-Date: 2008-07-26 13:36+0800\n"
 "Last-Translator: Fabrice Colin <fabricecolin@users.berlios.de>\n"
 "Language-Team: fr <fabricecolin@users.berlios.de>\n"
 "MIME-Version: 1.0\n"
@@ -17,7 +17,7 @@ msgstr ""
 "X-Launchpad-Export-Date: 2008-02-18 14:08+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:89
+#: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:94
 msgid "Search Engines"
 msgstr "Moteurs"
 
@@ -36,7 +36,7 @@ msgstr "Utilisateur"
 #: UI/GTK2/src/mainWindow.cc:1626 UI/GTK2/src/mainWindow.cc:1662
 #: UI/GTK2/src/mainWindow.cc:1684 UI/GTK2/src/mainWindow.cc:2395
 #: UI/GTK2/src/PinotSettings.cpp:359 UI/GTK2/src/PinotSettings.cpp:1570
-#: UI/GTK2/src/PinotSettings.cpp:1626 UI/GTK2/src/statisticsDialog.cc:79
+#: UI/GTK2/src/PinotSettings.cpp:1626 UI/GTK2/src/statisticsDialog.cc:84
 #: UI/GTK2/src/WorkerThreads.cpp:1010
 msgid "My Web Pages"
 msgstr "Mes Pages Web"
@@ -47,7 +47,7 @@ msgstr "Mes Pages Web"
 #: UI/GTK2/src/mainWindow.cc:1542 UI/GTK2/src/mainWindow.cc:1545
 #: UI/GTK2/src/mainWindow.cc:2399 UI/GTK2/src/PinotSettings.cpp:360
 #: UI/GTK2/src/PinotSettings.cpp:1571 UI/GTK2/src/PinotSettings.cpp:1627
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1020
+#: UI/GTK2/src/statisticsDialog.cc:88 UI/GTK2/src/WorkerThreads.cpp:1020
 msgid "My Documents"
 msgstr "Mes Documents"
 
@@ -403,7 +403,7 @@ msgstr "Pas d'application definie pour le type"
 msgid "Query:"
 msgstr "Recherche:"
 
-#: UI/GTK2/src/mainWindow_glade.cc:137 UI/GTK2/src/statisticsDialog.cc:102
+#: UI/GTK2/src/mainWindow_glade.cc:137 UI/GTK2/src/statisticsDialog.cc:107
 msgid "History"
 msgstr "Historique"
 
@@ -411,7 +411,7 @@ msgstr "Historique"
 msgid "Stored queries"
 msgstr "Recherches sauvegardees"
 
-#: UI/GTK2/src/mainWindow_glade.cc:155 UI/GTK2/src/statisticsDialog.cc:50
+#: UI/GTK2/src/mainWindow_glade.cc:155 UI/GTK2/src/statisticsDialog.cc:52
 #: UI/GTK2/src/statisticsDialog_glade.cc:86
 msgid "Status"
 msgstr "Statistiques"
@@ -495,7 +495,7 @@ msgstr "Pinot"
 
 #: UI/GTK2/src/Notebook.cpp:146
 msgid "Close"
-msgstr ""
+msgstr "Fermer"
 
 #. Localize language names
 #: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:492
@@ -833,57 +833,80 @@ msgstr "Parametres de la recherche"
 msgid "Score"
 msgstr "Score"
 
-#: UI/GTK2/src/statisticsDialog.cc:76
+#: UI/GTK2/src/statisticsDialog.cc:81
 msgid "Indexes"
 msgstr "Indexes"
 
-#: UI/GTK2/src/statisticsDialog.cc:109
+#: UI/GTK2/src/statisticsDialog.cc:114
 msgid "Daemon"
 msgstr "Daemon"
 
-#: UI/GTK2/src/statisticsDialog.cc:145 UI/GTK2/src/statisticsDialog.cc:161
+#: UI/GTK2/src/statisticsDialog.cc:134
+msgid "Yes"
+msgstr "Oui"
+
+#: UI/GTK2/src/statisticsDialog.cc:134
+msgid "No"
+msgstr "Non"
+
+#: UI/GTK2/src/statisticsDialog.cc:146 UI/GTK2/src/statisticsDialog.cc:162
 msgid "documents"
 msgstr "documents"
 
-#: UI/GTK2/src/statisticsDialog.cc:151 UI/GTK2/src/statisticsDialog.cc:169
+#: UI/GTK2/src/statisticsDialog.cc:152 UI/GTK2/src/statisticsDialog.cc:170
 #: UI/GTK2/src/WorkerThreads.cpp:125
 msgid "Unknown error"
 msgstr "Erreur inconnue"
 
-#: UI/GTK2/src/statisticsDialog.cc:176
+#: UI/GTK2/src/statisticsDialog.cc:177
 msgid "Viewed"
 msgstr "Visualise"
 
-#: UI/GTK2/src/statisticsDialog.cc:176
+#: UI/GTK2/src/statisticsDialog.cc:177
 msgid "results"
 msgstr "resultats"
 
-#: UI/GTK2/src/statisticsDialog.cc:182
+#: UI/GTK2/src/statisticsDialog.cc:183
 msgid "Crawled"
 msgstr "Parcouru"
 
-#: UI/GTK2/src/statisticsDialog.cc:182
+#: UI/GTK2/src/statisticsDialog.cc:183
 msgid "files"
 msgstr "fichiers"
 
 #. FIXME: check whether it's actually running !
-#: UI/GTK2/src/statisticsDialog.cc:199
+#: UI/GTK2/src/statisticsDialog.cc:201
 msgid "Running under PID"
 msgstr "PID"
 
-#: UI/GTK2/src/statisticsDialog.cc:205
+#: UI/GTK2/src/statisticsDialog.cc:222
 msgid "Disconnected from D-Bus"
 msgstr "Deconnecte par D-Bus"
 
-#: UI/GTK2/src/statisticsDialog.cc:209
+#: UI/GTK2/src/statisticsDialog.cc:226
 msgid "Stopped"
 msgstr "Arrete"
 
-#: UI/GTK2/src/statisticsDialog.cc:213
+#: UI/GTK2/src/statisticsDialog.cc:230
 msgid "Currently not running"
 msgstr "Arrete"
 
-#: UI/GTK2/src/statisticsDialog.cc:243
+#: UI/GTK2/src/statisticsDialog.cc:236
+#, fuzzy
+msgid "Low disk space"
+msgstr "Espace disque bas"
+
+#: UI/GTK2/src/statisticsDialog.cc:238
+#, fuzzy
+msgid "On battery"
+msgstr "Sur batterie"
+
+#: UI/GTK2/src/statisticsDialog.cc:240
+#, fuzzy
+msgid "Crawling"
+msgstr "En train de brouter"
+
+#: UI/GTK2/src/statisticsDialog.cc:268
 msgid "Errors"
 msgstr "Erreurs"
 

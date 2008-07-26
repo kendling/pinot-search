@@ -7,17 +7,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.87\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-19 16:20+0800\n"
-"PO-Revision-Date: 2008-01-15 00:10+0000\n"
+"POT-Creation-Date: 2008-07-26 13:36+0800\n"
+"PO-Revision-Date: 2008-07-23 21:55+0000\n"
 "Last-Translator: Daniel Nylander <yeager@ubuntu.com>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-02-18 14:08+0000\n"
+"X-Launchpad-Export-Date: 2008-07-26 05:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:89
+#: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:94
 msgid "Search Engines"
 msgstr "Sökmotorer"
 
@@ -36,7 +36,7 @@ msgstr "Aktuell användare"
 #: UI/GTK2/src/mainWindow.cc:1626 UI/GTK2/src/mainWindow.cc:1662
 #: UI/GTK2/src/mainWindow.cc:1684 UI/GTK2/src/mainWindow.cc:2395
 #: UI/GTK2/src/PinotSettings.cpp:359 UI/GTK2/src/PinotSettings.cpp:1570
-#: UI/GTK2/src/PinotSettings.cpp:1626 UI/GTK2/src/statisticsDialog.cc:79
+#: UI/GTK2/src/PinotSettings.cpp:1626 UI/GTK2/src/statisticsDialog.cc:84
 #: UI/GTK2/src/WorkerThreads.cpp:1010
 msgid "My Web Pages"
 msgstr "Mina webbsidor"
@@ -47,7 +47,7 @@ msgstr "Mina webbsidor"
 #: UI/GTK2/src/mainWindow.cc:1542 UI/GTK2/src/mainWindow.cc:1545
 #: UI/GTK2/src/mainWindow.cc:2399 UI/GTK2/src/PinotSettings.cpp:360
 #: UI/GTK2/src/PinotSettings.cpp:1571 UI/GTK2/src/PinotSettings.cpp:1627
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1020
+#: UI/GTK2/src/statisticsDialog.cc:88 UI/GTK2/src/WorkerThreads.cpp:1020
 msgid "My Documents"
 msgstr "Mina dokument"
 
@@ -402,7 +402,7 @@ msgstr "Inget standardprogram definierat för typen"
 msgid "Query:"
 msgstr "Fråga:"
 
-#: UI/GTK2/src/mainWindow_glade.cc:137 UI/GTK2/src/statisticsDialog.cc:102
+#: UI/GTK2/src/mainWindow_glade.cc:137 UI/GTK2/src/statisticsDialog.cc:107
 msgid "History"
 msgstr "Historik"
 
@@ -410,7 +410,7 @@ msgstr "Historik"
 msgid "Stored queries"
 msgstr "Lagrade frågor"
 
-#: UI/GTK2/src/mainWindow_glade.cc:155 UI/GTK2/src/statisticsDialog.cc:50
+#: UI/GTK2/src/mainWindow_glade.cc:155 UI/GTK2/src/statisticsDialog.cc:52
 #: UI/GTK2/src/statisticsDialog_glade.cc:86
 msgid "Status"
 msgstr "Status"
@@ -832,57 +832,79 @@ msgstr "Frågeparametrar"
 msgid "Score"
 msgstr "Betyg"
 
-#: UI/GTK2/src/statisticsDialog.cc:76
+#: UI/GTK2/src/statisticsDialog.cc:81
 msgid "Indexes"
 msgstr "Index"
 
-#: UI/GTK2/src/statisticsDialog.cc:109
+#: UI/GTK2/src/statisticsDialog.cc:114
 msgid "Daemon"
 msgstr "Demon"
 
-#: UI/GTK2/src/statisticsDialog.cc:145 UI/GTK2/src/statisticsDialog.cc:161
+#: UI/GTK2/src/statisticsDialog.cc:134
+msgid "Yes"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:134
+#, fuzzy
+msgid "No"
+msgstr "Ingen"
+
+#: UI/GTK2/src/statisticsDialog.cc:146 UI/GTK2/src/statisticsDialog.cc:162
 msgid "documents"
 msgstr "dokument"
 
-#: UI/GTK2/src/statisticsDialog.cc:151 UI/GTK2/src/statisticsDialog.cc:169
+#: UI/GTK2/src/statisticsDialog.cc:152 UI/GTK2/src/statisticsDialog.cc:170
 #: UI/GTK2/src/WorkerThreads.cpp:125
 msgid "Unknown error"
 msgstr "Okänt fel"
 
-#: UI/GTK2/src/statisticsDialog.cc:176
+#: UI/GTK2/src/statisticsDialog.cc:177
 msgid "Viewed"
 msgstr "Visad"
 
-#: UI/GTK2/src/statisticsDialog.cc:176
+#: UI/GTK2/src/statisticsDialog.cc:177
 msgid "results"
 msgstr "resultat"
 
-#: UI/GTK2/src/statisticsDialog.cc:182
+#: UI/GTK2/src/statisticsDialog.cc:183
 msgid "Crawled"
 msgstr "Insamlad"
 
-#: UI/GTK2/src/statisticsDialog.cc:182
+#: UI/GTK2/src/statisticsDialog.cc:183
 msgid "files"
 msgstr "filer"
 
 #. FIXME: check whether it's actually running !
-#: UI/GTK2/src/statisticsDialog.cc:199
+#: UI/GTK2/src/statisticsDialog.cc:201
 msgid "Running under PID"
 msgstr "Kör under PID"
 
-#: UI/GTK2/src/statisticsDialog.cc:205
+#: UI/GTK2/src/statisticsDialog.cc:222
 msgid "Disconnected from D-Bus"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:209
+#: UI/GTK2/src/statisticsDialog.cc:226
 msgid "Stopped"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:213
+#: UI/GTK2/src/statisticsDialog.cc:230
 msgid "Currently not running"
 msgstr "Kör för tillfället inte"
 
-#: UI/GTK2/src/statisticsDialog.cc:243
+#: UI/GTK2/src/statisticsDialog.cc:236
+msgid "Low disk space"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:238
+msgid "On battery"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:240
+#, fuzzy
+msgid "Crawling"
+msgstr "Insamlad"
+
+#: UI/GTK2/src/statisticsDialog.cc:268
 msgid "Errors"
 msgstr "Fel"
 
