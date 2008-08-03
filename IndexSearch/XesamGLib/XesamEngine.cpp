@@ -93,7 +93,25 @@ static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int hitN
 	{
 		docInfo.setType(pType);
 	}
-	// FIXME: xesam_g_hit_get_string(pHit, "xesam:language");
+
+	const GValue *pValue = xesam_g_hit_get_field(pHit, "xesam:language");
+	if ((pValue != NULL) &&
+		(G_VALUE_TYPE(pValue) == G_TYPE_STRV))
+	{
+		gchar **pLanguages = (char **)g_value_get_boxed(pValue);
+
+		if ((pLanguages != NULL) &&
+			(pLanguages[0] != NULL))
+		{
+			string language(pLanguages[0]);
+
+			// Use the first language specified, assuming it's in the locale
+#ifdef DEBUG
+			cout << "XesamEngine::pushHit: language " << language << endl;
+#endif
+			docInfo.setLanguage(language);
+		}
+	}
 
 	const gchar *pTimestamp = xesam_g_hit_get_string(pHit, "xesam:contentModified");
 	if (pTimestamp != NULL)
@@ -112,8 +130,18 @@ static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int hitN
 	{
 		docInfo.setExtract(pExtract);
 	}
-	// FIXME: no score field ?
-	docInfo.setScore((float )(100 - hitNum));
+
+	pValue = xesam_g_hit_get_field(pHit, "xesam:relevancyRating");
+	if ((pValue != NULL) &&
+		(G_VALUE_TYPE(pValue) == G_TYPE_FLOAT))
+	{
+		docInfo.setScore((float )g_value_get_float(pValue));
+	}
+	else
+	{
+		// Assume hits are sorted by relevancy
+		docInfo.setScore((float )(100 - hitNum));
+	}
 
 	// Push into the results list
 	resultsList.push_back(docInfo);
