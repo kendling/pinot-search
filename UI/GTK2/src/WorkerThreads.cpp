@@ -38,6 +38,7 @@
 #include "MIMEScanner.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
+#include "Timer.h"
 #include "Url.h"
 #include "HtmlFilter.h"
 #include "FilterUtils.h"
@@ -1402,6 +1403,7 @@ void DownloadingThread::doWork(void)
 	}
 	else if (m_done == false)
 	{
+		Timer collectTimer;
 		PinotSettings &settings = PinotSettings::getInstance();
 
 		// Set up the proxy
@@ -1416,7 +1418,11 @@ void DownloadingThread::doWork(void)
 			m_pDownloader->setSetting("proxytype", settings.m_proxyType);
 		}
 
+		collectTimer.start();
+
 		m_pDoc = m_pDownloader->retrieveUrl(m_docInfo);
+
+		cout << "Retrieved " << m_docInfo.getLocation() << " in " << collectTimer.stop() << " ms" << endl;
 	}
 
 	if (m_pDoc == NULL)
