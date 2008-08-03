@@ -50,6 +50,7 @@
 #include "DaemonState.h"
 #include "PinotSettings.h"
 #include "ServerThreads.h"
+#include "UniqueApplication.h"
 
 using namespace std;
 
@@ -388,90 +389,39 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// This will create the necessary directories on the first run
-	PinotSettings &settings = PinotSettings::getInstance();
-	// This is the daemon so disable client-side code 
-	settings.enableClientMode(false);
-
+	// Make sure only one instance runs
+	UniqueApplication uniqueApp("de.berlios.PinotDBusDaemon");
 	string confDirectory = PinotSettings::getConfigurationDirectory();
+	g_pidFileName = confDirectory + "/pinot-dbus-daemon.pid";
 	if (chdir(confDirectory.c_str()) == 0)
 	{
-		fstream pidFile;
-		string fileName(confDirectory);
+		if (uniqueApp.isRunning(g_pidFileName, "pinot-dbus-daemon") == true)
+		{
+			return EXIT_SUCCESS;
+		}
 
 		// Redirect cout and cerr to a file
+		string fileName(confDirectory);
 		fileName += "/pinot-dbus-daemon.log";
 		g_outputFile.open(fileName.c_str());
 		g_coutBuf = cout.rdbuf();
 		g_cerrBuf = cerr.rdbuf();
 		cout.rdbuf(g_outputFile.rdbuf());
 		cerr.rdbuf(g_outputFile.rdbuf());
-
-		// Open the PID file
-		g_pidFileName = confDirectory + "/pinot-dbus-daemon.pid";
-		pidFile.open(g_pidFileName.c_str(), std::ios::in);
-		if (pidFile.is_open() == true)
+	}
+	else
+	{
+		// We can't rely on the PID file
+		if (uniqueApp.isRunning() == true)
 		{
-			pid_t daemonPID = 0;
-			bool checkProcess = true, daemonDied = false;
-
-			pidFile >> daemonPID;
-			pidFile.close();
-
-			// Is another daemon running ?
-			if (daemonPID > 0)
-			{
-				fstream cmdLineFile;
-				stringstream cmdLineFileName;
-
-				// FIXME: check for existence of /proc
-				cmdLineFileName << "/proc/" << daemonPID << "/cmdline";
-				cmdLineFile.open(cmdLineFileName.str().c_str(), std::ios::in);
-				if (cmdLineFile.is_open() == true)
-				{
-					string cmdLine;
-
-					cmdLineFile >> cmdLine;
-					cmdLineFile.close();
-
-					if (cmdLine.find("pinot-dbus-daemon") == string::npos)
-					{
-						// It's another process
-						checkProcess = false;
-						daemonDied = true;
-					}
-				}
-
-				if (checkProcess == true)
-				{
-					if (kill(daemonPID, 0) == 0)
-					{
-						// It's still running
-						cout << "Daemon instance " << daemonPID << " is still running" << endl;
-						return EXIT_SUCCESS;
-					}
-					else if (errno == ESRCH)
-					{
-						// This PID doesn't exist
-						daemonDied = true;
-					}
-				}
-
-				if (daemonDied == true)
-				{
-					cerr << "Previous daemon instance " << daemonPID << " died prematurely" << endl;
-				}
-			}
-		}
-
-		// Now save our PID
-		pidFile.open(g_pidFileName.c_str(), std::ios::out);
-		if (pidFile.is_open() == true)
-		{
-			pidFile << getpid() << endl;
-			pidFile.close();
+			return EXIT_SUCCESS;
 		}
 	}
+
+	// This will create the necessary directories on the first run
+	PinotSettings &settings = PinotSettings::getInstance();
+	// This is the daemon so disable client-side code 
+	settings.enableClientMode(false);
 
 	// Initialize utility classes
 	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
