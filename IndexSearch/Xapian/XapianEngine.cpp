@@ -541,8 +541,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 
 	// Parse the query string with all necessary options
 	unsigned int flags = Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_PHRASE|
-		Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE|
-		Xapian::QueryParser::FLAG_PURE_NOT;
+		Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_PURE_NOT;
 	if (minimal == false)
 	{
 		flags |= Xapian::QueryParser::FLAG_WILDCARD;
