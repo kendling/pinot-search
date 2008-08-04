@@ -3346,7 +3346,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 		if (engineType == EnginesModelColumns::WEB_ENGINE)
 		{
 			// There's a special case for the Google API...
-			if (engineName == "googleapi")
+			if (engineName == "Google API")
 			{
 				// Make sure this has been configured
 				if (m_settings.m_googleAPIKey.empty() == true)
