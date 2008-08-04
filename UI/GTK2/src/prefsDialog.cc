@@ -126,7 +126,7 @@ prefsDialog::prefsDialog() :
 	populate_patternsTreeview(m_settings.m_filePatternsList, m_settings.m_isBlackList);
 
 	// Hide the Google API entry field ?
-	if (ModuleFactory::isSupported("googleapi") == false)
+	if (ModuleFactory::isSupported("Google API") == false)
 	{
 		apiKeyLabel->hide();
 		apiKeyEntry->hide();

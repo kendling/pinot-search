@@ -317,12 +317,6 @@ bool PinotSettings::load(void)
 	map<string, bool> engines;
 	bool hasBackends = false;
 
-	// Some search engines are hardcoded
-#ifdef HAVE_GOOGLEAPI
-	m_engineIds[1 << m_engines.size()] = "Google API";
-	m_engines.insert(Engine("Google API", "googleapi", "", "The Web"));
-	m_engineChannels.insert(pair<string, bool>("The Web", true));
-#endif
 	// Others are available as back-ends
 	ModuleFactory::getSupportedEngines(engines);
 	for (map<string, bool>::const_iterator engineIter = engines.begin();
