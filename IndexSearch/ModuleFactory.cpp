@@ -23,9 +23,6 @@
 #include <iostream>
 
 #include "DBusIndex.h"
-#ifdef HAVE_GOOGLEAPI
-#include "GoogleAPIEngine.h"
-#endif
 #include "PluginWebEngine.h"
 #include "ModuleFactory.h"
 #if 0
@@ -362,12 +359,6 @@ SearchEngineInterface *ModuleFactory::getSearchEngine(const string &type, const 
 	{
 		pEngine = new PluginWebEngine(option);
 	}
-#ifdef HAVE_GOOGLEAPI
-	else if (type == "googleapi")
-	{
-		pEngine = new GoogleAPIEngine(option);
-	}
-#endif
 
 	if (pEngine != NULL)
 	{
@@ -411,9 +402,6 @@ void ModuleFactory::getSupportedEngines(map<string, bool> &engines)
 	engines["sherlock"] = false;
 #endif
 	engines["opensearch"] = false;
-#ifdef HAVE_GOOGLEAPI
-	engines["googleapi"] = false;
-#endif
 	// Library-handled engines
 	for (map<string, LoadableModule>::iterator typeIter = m_types.begin();
 		typeIter != m_types.end(); ++typeIter)
@@ -437,9 +425,6 @@ bool ModuleFactory::isSupported(const string &type, bool asIndex)
 	}
 
 	if (
-#ifdef HAVE_GOOGLEAPI
-		(type == "googleapi") ||
-#endif
 #ifdef HAVE_BOOST_SPIRIT
 		(type == "sherlock") ||
 #endif

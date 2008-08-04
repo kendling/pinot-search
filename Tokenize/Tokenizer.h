@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,11 +22,12 @@
 #include <string>
 
 #include "Document.h"
+#include "Visibility.h"
 
 /** Basic text-only tokenizer.
   * Its role it to split documents into individual tokens or terms.
   */
-class Tokenizer
+class PINOT_EXPORT Tokenizer
 {
 	public:
 		Tokenizer(const Document *pDocument,

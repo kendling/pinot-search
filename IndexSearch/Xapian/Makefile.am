@@ -34,12 +34,10 @@ endif
 libxapianbackend_la_LDFLAGS = -module -shared -nostartfiles
 
 libxapianbackend_la_LIBADD = \
-	@INDEX_LIBS@ @MISC_LIBS@ \
-	-L$(top_builddir)/Utils \
-	-lBasicUtils 
+	@INDEX_LIBS@ @MISC_LIBS@
 
 AM_CXXFLAGS = \
-	-fPIC \
+	@VISIB_CFLAGS@ \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \

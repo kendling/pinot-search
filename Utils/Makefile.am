@@ -11,6 +11,7 @@ noinst_HEADERS = \
 	TimeConverter.h \
 	Timer.h \
 	Url.h \
+	Visibility.h \
 	$(top_srcdir)/Utils/xdgmime/xdgmimealias.h \
 	$(top_srcdir)/Utils/xdgmime/xdgmimecache.h \
 	$(top_srcdir)/Utils/xdgmime/xdgmimeglob.h \
@@ -42,5 +43,7 @@ libUtils_la_SOURCES = \
 	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.c
 
 AM_CFLAGS = -fPIC -DXDG_PREFIX=pinot_xdg
-AM_CXXFLAGS = -fPIC @HTTP_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@ -DXDG_PREFIX=pinot_xdg
+AM_CXXFLAGS = \
+	@VISIB_CFLAGS@ \
+	@HTTP_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@ -DXDG_PREFIX=pinot_xdg
 

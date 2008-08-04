@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,8 +22,10 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include "Visibility.h"
+
 /// A timer with microseconds precision.
-class Timer
+class PINOT_EXPORT Timer
 {
 	public:
 		Timer();

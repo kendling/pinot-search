@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007 Fabrice Colin
+ *  Copyright 2007-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include <map>
 
 #include "config.h"
+#include "Visibility.h"
 #include "XapianDatabaseFactory.h"
 #include "XapianEngine.h"
 #include "XapianIndex.h"
@@ -28,14 +29,14 @@ using std::string;
 
 extern "C"
 {
-	string getModuleType(void);
-	bool openOrCreateIndex(const string &databaseName, bool &obsoleteFormat,
+	PINOT_EXPORT string getModuleType(void);
+	PINOT_EXPORT bool openOrCreateIndex(const string &databaseName, bool &obsoleteFormat,
 		bool readOnly, bool overwrite);
-	bool mergeIndexes(const string &mergedDatabaseName,
+	PINOT_EXPORT bool mergeIndexes(const string &mergedDatabaseName,
 		const string &firstDatabaseName, const string &secondDatabaseName);
-	IndexInterface *getIndex(const string &databaseName);
-	SearchEngineInterface *getSearchEngine(const string &databaseName);
-	void closeAll(void);
+	PINOT_EXPORT IndexInterface *getIndex(const string &databaseName);
+	PINOT_EXPORT SearchEngineInterface *getSearchEngine(const string &databaseName);
+	PINOT_EXPORT void closeAll(void);
 }
 
 string getModuleType(void)

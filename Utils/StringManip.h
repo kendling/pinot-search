@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,8 +21,10 @@
 
 #include <string>
 
+#include "Visibility.h"
+
 /// Utility class for string manipulation.
-class StringManip
+class PINOT_EXPORT StringManip
 {
 	public:
 		/// Converts to lowercase.

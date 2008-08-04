@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007 Fabrice Colin
+ *  Copyright 2007-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,10 +23,11 @@
 #include <map>
 
 #include "Document.h"
+#include "Visibility.h"
 #include "filters/Filter.h"
 
 /// Utility functions for dealing with Dijon filters.
-class FilterUtils
+class PINOT_EXPORT FilterUtils
 {
 	public:
 		virtual ~FilterUtils();

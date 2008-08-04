@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,13 +24,14 @@
 #include <set>
 #include <vector>
 
-#include "QueryProperties.h"
 #include "DocumentInfo.h"
+#include "Visibility.h"
+#include "QueryProperties.h"
 
 using namespace std;
 
 /// Interface implemented by search engines.
-class SearchEngineInterface
+class PINOT_EXPORT SearchEngineInterface
 {
 	public:
 		typedef enum { DEFAULT_OP_AND = 0, DEFAULT_OP_OR } DefaultOperator;

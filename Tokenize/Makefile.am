@@ -61,7 +61,7 @@ libTokenize_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/XmlFilter.cc
 
 AM_CXXFLAGS = \
-	-fPIC \
+	@VISIB_CFLAGS@ \
 	-I$(top_srcdir)/Utils -Ifilters \
 	@GMIME_CFLAGS@ @XML_CFLAGS@ @EXIF_CFLAGS@ @TAGLIB_CFLAGS@ \
 	-D_DYNAMIC_DIJON_FILTERS \

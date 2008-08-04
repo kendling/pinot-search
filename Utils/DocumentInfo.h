@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,8 +24,10 @@
 #include <map>
 #include <set>
 
+#include "Visibility.h"
+
 /// This represents all the properties of a document.
-class DocumentInfo
+class PINOT_EXPORT DocumentInfo
 {
 	public:
 		DocumentInfo();

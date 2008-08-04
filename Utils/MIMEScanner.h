@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,12 +27,13 @@
 #include <vector>
 
 #include "Url.h"
+#include "Visibility.h"
 
 /** MIMEAction stores useful information extracted from desktop files.
   * The desktop files format is defined by
   * http://standards.freedesktop.org/desktop-entry-spec/latest/
   */
-class MIMEAction
+class PINOT_EXPORT MIMEAction
 {
 	public:
 		MIMEAction();
@@ -89,7 +90,7 @@ class MIMECache
 /**
   * Utility class to get a file's MIME type and the default application associated with it.
   */
-class MIMEScanner
+class PINOT_EXPORT MIMEScanner
 {
 	public:
 		~MIMEScanner();

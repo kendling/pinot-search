@@ -13,17 +13,10 @@ noinst_HEADERS = \
 	SearchEngineInterface.h \
 	SearchPluginProperties.h \
 	SherlockParser.h \
-	SOAPEnv.h \
-	SOAPEnvH.h \
-	SOAPEnvStub.h \
 	WebEngine.h \
 	XesamLog.h
 
-if HAVE_SOAP
-noinst_LTLIBRARIES = libIndex.la libIndexSearch.la libSearchSOAP.la
-else
 noinst_LTLIBRARIES = libIndex.la libIndexSearch.la
-endif
 
 libIndex_la_SOURCES = \
 	DBusIndex.cpp
@@ -44,10 +37,6 @@ if HAVE_BOOST_SPIRIT
 libIndexSearch_la_SOURCES += SherlockParser.cpp
 endif
 
-if HAVE_SOAP
-libSearchSOAP_la_SOURCES = SOAPEnvC.cpp SOAPEnvNS.cpp
-endif
-
 bin_PROGRAMS = pinot-index pinot-label pinot-search
 
 pinot_index_LDFLAGS = \
@@ -59,7 +48,7 @@ pinot_index_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch/Google \
 	-lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ \
 	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 pinot_index_SOURCES = pinot-index.cpp
@@ -88,25 +77,16 @@ pinot_search_LDADD = \
 	-L$(top_builddir)/IndexSearch/Google \
 	-L$(top_builddir)/IndexSearch/xesam \
 	-lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @DBUS_LIBS@ @SOAP_LIBS@ \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ \
 	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 pinot_search_SOURCES = \
 	pinot-search.cpp
 
-if HAVE_SOAP
-pinot_search_DEPENDENCIES = libIndexSearch.la libSearchSOAP.la
-else
 pinot_search_DEPENDENCIES = libIndexSearch.la
-endif
-
-if HAVE_SOAP
-SOAPEnvC.cpp : SOAPEnv.h
-	soapcpp2 -pSOAPEnv SOAPEnv.h
-endif
 
 AM_CXXFLAGS = \
-	-fPIC \
+	@VISIB_CFLAGS@ \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \
@@ -114,8 +94,8 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/IndexSearch/cjkv \
 	-I$(top_srcdir)/IndexSearch/Google \
 	-I$(top_srcdir)/IndexSearch/xesam \
-	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ \
-	@DBUS_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@
+	@HTTP_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ \
+	@INDEX_CFLAGS@ @GLIBMM_CFLAGS@
 
 if HAVE_BOOST_SPIRIT
 AM_CXXFLAGS += -DHAVE_BOOST_SPIRIT

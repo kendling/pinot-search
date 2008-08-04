@@ -21,7 +21,9 @@
 
 #include <string>
 
-class TextConverter
+#include "Visibility.h"
+
+class PINOT_EXPORT TextConverter
 {
 	public:
 		TextConverter(unsigned int maxErrors = 10);

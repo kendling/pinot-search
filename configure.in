@@ -71,6 +71,7 @@ AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 AC_PATH_PROG(DESKTOP_INSTALL, desktop-file-install, no)
 
 dnl DEBUG mode
+CXXFLAGS="-fPIC"
 AC_MSG_CHECKING(whether to enable DEBUG mode)
 AC_ARG_ENABLE(debug,
    [AS_HELP_STRING([--enable-debug], [enable debug [default=no]])],
@@ -84,6 +85,21 @@ else
    enable_debug="no"
 fi
 AC_MSG_RESULT($enable_debug)
+
+dnl Set compiler specific flags
+VISIB_CFLAGS=""
+if test "x$GCC" = "xyes"; then
+gxx_version=`$CXX --version 2>&1 | head -1 | $SED 's/^[[^ ]]* (GCC) //;s/ .*//'`
+case $gxx_version in
+4.*)
+VISIB_CFLAGS="-fvisibility=hidden"
+;;
+*)
+dnl Other versions
+;;
+esac
+fi
+AC_SUBST(VISIB_CFLAGS)
 
 dnl SOAP API support
 AC_MSG_CHECKING(whether to enable SOAP support)
@@ -101,7 +117,6 @@ if test "x$enable_soap" = "xyes"; then
    PKG_CHECK_MODULES(SOAP, gsoap)
    SOAP_CFLAGS="-DHAVE_GOOGLEAPI $SOAP_CFLAGS"
    AM_CONDITIONAL(HAVE_SOAP, true)
-   SOAP_LIBS="-lSearchGoogle $SOAP_LIBS -lSearchSOAP"
 fi
 AC_SUBST(SOAP_CFLAGS)
 AC_SUBST(SOAP_LIBS)

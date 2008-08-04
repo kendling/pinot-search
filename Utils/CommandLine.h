@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,9 +23,10 @@
 #include <vector>
 
 #include "MIMEScanner.h"
+#include "Visibility.h"
 
 /// Utilities for running commands.
-class CommandLine
+class PINOT_EXPORT CommandLine
 {
 	public:
 		~CommandLine();

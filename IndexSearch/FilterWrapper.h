@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007 Fabrice Colin
+ *  Copyright 2007-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,11 +23,12 @@
 #include <set>
 
 #include "Document.h"
+#include "Visibility.h"
 #include "Filter.h"
 #include "IndexInterface.h"
 
 /// A wrapper around Dijon filters.
-class FilterWrapper
+class PINOT_EXPORT FilterWrapper
 {
 	public:
 		/// Builds a FilterWrapper object.

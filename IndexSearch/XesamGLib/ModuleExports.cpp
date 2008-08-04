@@ -19,16 +19,16 @@
 #include <string>
 
 #include "config.h"
-#include "IndexInterface.h"
+#include "Visibility.h"
 #include "XesamEngine.h"
 
 using std::string;
 
 extern "C"
 {
-	string getModuleType(void);
-	SearchEngineInterface *getSearchEngine(const string &dbusObject);
-	void closeAll(void);
+	PINOT_EXPORT string getModuleType(void);
+	PINOT_EXPORT SearchEngineInterface *getSearchEngine(const string &dbusObject);
+	PINOT_EXPORT void closeAll(void);
 }
 
 string getModuleType(void)

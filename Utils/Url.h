@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,8 +21,10 @@
 
 #include <string>
 
+#include "Visibility.h"
+
 /// This dissects and manipulates URLs returned by search engines.
-class Url
+class PINOT_EXPORT Url
 {
 	public:
 		Url(const std::string &url);

@@ -27,6 +27,7 @@ noinst_HEADERS = \
 	PinotUtils.h \
 	ResultsTree.h \
 	ServerThreads.h \
+	UniqueApplication.h \
 	WorkerThreads.h
 
 pinot_SOURCES = \
@@ -62,12 +63,13 @@ pinot_dbus_daemon_SOURCES = \
 	OnDiskHandler.cpp \
 	PinotSettings.cpp \
 	ServerThreads.cpp \
+	UniqueApplication.cpp \
 	WorkerThreads.cpp
 
 bin_PROGRAMS = pinot pinot-dbus-daemon
 
 AM_CXXFLAGS = \
-	-fPIC \
+	@VISIB_CFLAGS@ \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \
@@ -75,9 +77,8 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/Monitor \
 	-I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/IndexSearch \
-	-I$(top_srcdir)/IndexSearch/Google \
-	@SQL_CFLAGS@ @HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ \
-	@DBUS_CFLAGS@ @INDEX_CFLAGS@ @GTHREAD_CFLAGS@ @GTKMM_CFLAGS@
+	@SQL_CFLAGS@ @HTTP_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ \
+	@INDEX_CFLAGS@ @GTHREAD_CFLAGS@ @GTKMM_CFLAGS@
 
 pinot_LDFLAGS = \
 	-rdynamic
@@ -89,10 +90,9 @@ pinot_LDADD = \
 	-L$(top_builddir)/Monitor \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
-	-L$(top_builddir)/IndexSearch/Google \
 	-lIndexSearch -lMonitor -lCollect -lSQL \
 	-lTokenize -lUtils -lBasicUtils @LIBS@ \
-	@GTKMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @SOAP_LIBS@ @XML_LIBS@ \
+	@GTKMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
 pinot_dbus_daemon_LDFLAGS = \
@@ -105,9 +105,8 @@ pinot_dbus_daemon_LDADD = \
 	-L$(top_builddir)/Monitor \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
-	-L$(top_builddir)/IndexSearch/Google \
 	-lIndexSearch -lMonitor -lCollect -lSQL \
 	-lTokenize -lUtils -lBasicUtils @LIBS@ \
-	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @SOAP_LIBS@ @XML_LIBS@ \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 

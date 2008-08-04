@@ -13,12 +13,10 @@ libxesamglibbackend_la_SOURCES = \
 libxesamglibbackend_la_LDFLAGS = -module -shared -nostartfiles
 
 libxesamglibbackend_la_LIBADD = \
-	@XESAMGLIB_LIBS@ @MISC_LIBS@ \
-	-L$(top_builddir)/Utils \
-	-lBasicUtils 
+	@XESAMGLIB_LIBS@ @MISC_LIBS@
 
 AM_CXXFLAGS = \
-	-fPIC \
+	@VISIB_CFLAGS@ \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \

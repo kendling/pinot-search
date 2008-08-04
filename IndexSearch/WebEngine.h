@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,12 +24,13 @@
 #include <map>
 
 #include "Document.h"
+#include "Visibility.h"
 #include "DownloaderInterface.h"
 #include "QueryProperties.h"
 #include "SearchEngineInterface.h"
 
 /// Base class for all Web search engines.
-class WebEngine : public SearchEngineInterface
+class PINOT_EXPORT WebEngine : public SearchEngineInterface
 {
 	public:
 		WebEngine();
