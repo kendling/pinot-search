@@ -6,16 +6,22 @@ noinst_HEADERS = \
 	GAPIH.h \
 	GAPIStub.h \
 	GoogleAPIEngine.h \
-	GoogleSearch.h
+	GoogleSearch.h \
+	GAPIClientLib.cpp
 
 if HAVE_SOAP
-noinst_LTLIBRARIES = libSearchGoogle.la
+lib_LTLIBRARIES = libgoogleapibackend.la
 
-libSearchGoogle_la_SOURCES = \
+libgoogleapibackend_la_SOURCES = \
 	GAPIC.cpp \
 	GAPIClient.cpp \
-	GAPIClientLib.cpp \
-	GoogleAPIEngine.cpp
+	GoogleAPIEngine.cpp \
+	ModuleExports.cpp
+
+libgoogleapibackend_la_LDFLAGS = -module -shared -nostartfiles
+
+libgoogleapibackend_la_LIBADD = \
+	@SOAP_LIBS@ @MISC_LIBS@
 
 GoogleSearch.h :
 	wsdl2h -n gapi -o GoogleSearch.h googleapi/GoogleSearch.wsdl
@@ -23,13 +29,12 @@ GoogleSearch.h :
 GAPIClientLib.cpp : GoogleSearch.h
 	soapcpp2 -n -pGAPI -I/usr/include/gsoap/import -I/usr/share/gsoap/import GoogleSearch.h
 
-libSearchGoogle_la_CXXFLAGS = \
+libgoogleapibackend_la_CXXFLAGS = \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \
 	-I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/IndexSearch \
-	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@ \
-	@INDEX_CFLAGS@
+	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@
 endif
 

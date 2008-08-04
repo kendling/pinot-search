@@ -29,6 +29,8 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+struct Namespace *namespaces;
+
 GoogleAPIEngine::GoogleAPIEngine(const string &key) :
 	WebEngine(),
 	m_key(key)
