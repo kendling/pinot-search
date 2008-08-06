@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,39 +54,6 @@ using std::set;
 using std::map;
 using std::min;
 using std::max;
-
-static bool setVersionFile(const string &databaseName, const string &version)
-{
-	ofstream verFile;
-	string verFileName(databaseName + "/version");
-	bool setVer = false;
-
-	verFile.open(verFileName.c_str(), ios::trunc);
-	if (verFile.good() == true)
-	{
-		verFile << version;
-		setVer = true;
-	}
-	verFile.close();
-
-	return setVer;
-}
-
-static string getVersionFromFile(const string &databaseName)
-{
-	ifstream verFile;
-	string verFileName(databaseName + "/version");
-	string version;
-
-	verFile.open(verFileName.c_str());
-	if (verFile.good() == true)
-	{
-		verFile >> version;
-	}
-	verFile.close();
-
-	return version;
-}
 
 class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 {
@@ -927,7 +894,7 @@ string XapianIndex::getMetadata(const string &name) const
 	if (pDatabase == NULL)
 	{
 		cerr << "Bad index " << m_databaseName << endl;
-		return false;
+		return "";
 	}
 
 	try
@@ -1178,17 +1145,7 @@ bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string>
 /// Sets the list of known labels.
 bool XapianIndex::setLabels(const set<string> &labels)
 {
-	bool setLabels = false;
-
-#if ENABLE_XAPIAN_DB_METADATA>0
-	string labelString;
-
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return false;
-	}
+	string labelsString;
 
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
@@ -1198,89 +1155,40 @@ bool XapianIndex::setLabels(const set<string> &labels)
 		{
 			continue;
 		}
-		labelString += "[";
-		labelString += Url::escapeUrl(*labelIter);
-		labelString += "]";
+
+		labelsString += "[";
+		labelsString += Url::escapeUrl(*labelIter);
+		labelsString += "]";
 	}
 
-	try
-	{
-#ifdef DEBUG
-		cout << "XapianIndex::setLabels: " << labels.size() << " labels" << endl;
-#endif
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-		if (pIndex != NULL)
-		{
-			pIndex->set_metadata("labels", labelString);
-			setLabels = true;
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't set database labels: " << error.get_type() << ": " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't set database labels, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
-#endif
-
-	return setLabels;
+	return setMetadata("labels", labelsString);
 }
 
 /// Gets the list of known labels.
 bool XapianIndex::getLabels(set<string> &labels) const
 {
-#if ENABLE_XAPIAN_DB_METADATA>0
-	string labelsString;
+	string labelsString(getMetadata("labels"));
 
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
-	if (pDatabase == NULL)
+	if (labelsString.empty() == true)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
 		return false;
 	}
 
-	try
+	string::size_type endPos = 0;
+	string label(StringManip::extractField(labelsString, "[", "]", endPos));
+
+	while (label.empty() == false)
 	{
-		Xapian::Database *pIndex = pDatabase->readLock();
-		if (pIndex != NULL)
+		labels.insert(Url::unescapeUrl(label));
+
+		if (endPos == string::npos)
 		{
-			labelsString = pIndex->get_metadata("labels");
+			break;
 		}
+		label = StringManip::extractField(labelsString, "[", "]", endPos);
 	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't get database labels: " << error.get_type() << ": " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't get database labels, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
 
-	if (labelsString.empty() == false)
-	{
-		string::size_type endPos = 0;
-		string label(StringManip::extractField(labelsString, "[", "]", endPos));
-
-		while (label.empty() == false)
-		{
-			labels.insert(Url::unescapeUrl(label));
-
-			if (endPos == string::npos)
-			{
-				break;
-			}
-			label = StringManip::extractField(labelsString, "[", "]", endPos);
-		}
-
-		return true;
-	}
-#endif
-
-	return false;
+	return true;
 }
 
 /// Adds a label.
