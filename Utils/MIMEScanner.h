@@ -120,8 +120,10 @@ class PINOT_EXPORT MIMEScanner
 		static bool getDefaultActions(const std::string &mimeType, std::vector<MIMEAction> &typeActions);
 
 	protected:
+#ifndef HAVE_GIO_MIME
 		/// Mutex to protect access to xdgmime.
 		static pthread_mutex_t m_xdgMutex;
+#endif
 		/// Lock to protect access to caches.
 		static pthread_rwlock_t m_cachesLock;
 		/// MIME type caches, ordered by decreasing priority.

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,8 +21,11 @@
 #include <glib.h>
 #include <iostream>
 #include <cstring>
-
+#ifdef HAVE_GIO_MIME
+#include <gio/gio.h>
+#else
 #include "xdgmime/xdgmime.h"
+#endif
 
 #include "MIMEScanner.h"
 #include "StringManip.h"
@@ -33,6 +36,7 @@
 #define MIME_DEFAULTS_SECTION	"Default Applications"
 #define MIME_CACHE		"mimeinfo.cache"
 #define MIME_CACHE_SECTION	"MIME Cache"
+#define UNKNOWN_MIME_TYPE	"application/octet-stream";
 
 using std::cout;
 using std::endl;
@@ -355,7 +359,9 @@ bool MIMECache::load(const list<string> &desktopFilesPaths)
 	return foundActions;
 }
 
+#ifndef HAVE_GIO_MIME
 pthread_mutex_t MIMEScanner::m_xdgMutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 pthread_rwlock_t MIMEScanner::m_cachesLock = PTHREAD_RWLOCK_INITIALIZER;
 list<MIMECache> MIMEScanner::m_caches;
 
@@ -373,6 +379,11 @@ bool MIMEScanner::initialize(const string &userPrefix, const string &systemPrefi
 	string userDirectory(userPrefix + APPLICATIONS_DIRECTORY);
 	string systemDirectory(systemPrefix + APPLICATIONS_DIRECTORY);
 	bool foundActions = false;
+
+#ifdef HAVE_GIO_MIME
+	// Initialize the GType system
+	g_type_init();
+#endif
 
 	// This may be a re-initialize
 	if (pthread_rwlock_wrlock(&m_cachesLock) == 0)
@@ -444,7 +455,9 @@ bool MIMEScanner::addCache(const string &file, const string &section,
 
 void MIMEScanner::shutdown(void)
 {
+#ifndef HAVE_GIO_MIME
 	xdg_mime_shutdown();
+#endif
 }
 
 void MIMEScanner::listConfigurationFiles(const string &prefix, set<string> &files)
@@ -458,36 +471,71 @@ void MIMEScanner::listConfigurationFiles(const string &prefix, set<string> &file
 
 string MIMEScanner::scanFileType(const string &fileName)
 {
-	const char *pType = NULL;
-
 	if (fileName.empty() == true)
 	{
 		return "";
 	}
 
 	// Does it have an obvious extension ?
+#ifdef HAVE_GIO_MIME
+	char *pType = g_content_type_guess(fileName.c_str(), NULL, 0, NULL);
+#else
+	const char *pType = NULL;
+
 	if (pthread_mutex_lock(&m_xdgMutex) == 0)
 	{
 		pType = xdg_mime_get_mime_type_from_file_name(fileName.c_str());
 
 		pthread_mutex_unlock(&m_xdgMutex);
 	}
+#endif
 
-	if ((pType == NULL) ||
-		(strncasecmp(pType, xdg_mime_type_unknown, strlen(pType)) == 0))
+	if (pType == NULL)
 	{
 		return "";
 	}
+
+#ifdef HAVE_GIO_MIME
+	if (g_content_type_is_unknown(pType) == TRUE)
+	{
+		g_free(pType);
+		return "";
+	}
+
+	// Get the corresponding MIME type
+	char *pMimeType = g_content_type_get_mime_type(pType);
+	if (pMimeType == NULL)
+	{
+		g_free(pType);
+		return "";
+	}
+
+	g_free(pType);
+	pType = pMimeType;
+#else
+	if (strncasecmp(pType, xdg_mime_type_unknown, strlen(pType)) == 0)
+	{
+		return "";
+	}
+#endif
+
+	string mimeType(pType);
 
 	// Quick and dirty fix to work-around shared-mime-info mistakenly identifying
 	// HTML files as Mozilla bookmarks
 	if ((fileName.find(".htm") != string::npos) &&
 		(strncasecmp(pType, "application/x-mozilla-bookmarks", strlen(pType)) == 0))
 	{
-		return "text/html";
+		mimeType = "text/html";
 	}
+#ifdef HAVE_GIO_MIME
+	g_free(pType);
+#endif
+#ifdef DEBUG
+	cout << "MIMEScanner::scanFileType: " << fileName << " " << mimeType << endl;
+#endif
 
-	return pType;
+	return mimeType;
 }
 
 /// Finds out the given file's MIME type.
@@ -500,30 +548,72 @@ string MIMEScanner::scanFile(const string &fileName)
 
 	string mimeType(scanFileType(fileName));
 
-	if (mimeType.empty() == true)
+	if (mimeType.empty() == false)
 	{
-		const char *pType = NULL;
-
-		// Have a peek at the file
-		if (pthread_mutex_lock(&m_xdgMutex) == 0)
-		{
-			pType = xdg_mime_get_mime_type_for_file(fileName.c_str(), NULL);
-
-			pthread_mutex_unlock(&m_xdgMutex);
-		}
-
-		if (pType != NULL)
-		{
-			mimeType = pType;
-		}
-		else
-		{
-			if (xdg_mime_type_unknown != NULL)
-			{
-				mimeType = xdg_mime_type_unknown;
-			}
-		}
+		return mimeType;
 	}
+
+#ifdef HAVE_GIO_MIME
+	string uri("file://");
+	uri += fileName;
+
+	// GFile will sniff the file if necessary
+	GFile *pFile = g_file_new_for_uri(uri.c_str());
+	if (pFile == NULL)
+	{
+		return UNKNOWN_MIME_TYPE;
+	}
+
+	GFileInfo *pFileInfo = g_file_query_info(pFile,
+		G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
+		(GFileQueryInfoFlags)0, NULL, NULL);
+	if (pFileInfo == NULL)
+	{
+		g_object_unref(pFile);
+		return UNKNOWN_MIME_TYPE;
+	}
+
+	const char *pType = g_file_info_get_content_type(pFileInfo);
+	if (pType == NULL)
+	{
+		g_object_unref(pFileInfo);
+		g_object_unref(pFile);
+		return UNKNOWN_MIME_TYPE;
+	}
+
+	// Get the corresponding MIME type
+	char *pMimeType = g_content_type_get_mime_type(pType);
+	if (pMimeType == NULL)
+	{
+		g_object_unref(pFileInfo);
+		g_object_unref(pFile);
+		return UNKNOWN_MIME_TYPE;
+	}
+
+	mimeType = pMimeType;
+	g_free(pMimeType);
+	g_object_unref(pFileInfo);
+	g_object_unref(pFile);
+#else
+	const char *pType = NULL;
+
+	// Have a peek at the file
+	if (pthread_mutex_lock(&m_xdgMutex) == 0)
+	{
+		pType = xdg_mime_get_mime_type_for_file(fileName.c_str(), NULL);
+
+		pthread_mutex_unlock(&m_xdgMutex);
+	}
+
+	if (pType != NULL)
+	{
+		mimeType = pType;
+	}
+	else if (xdg_mime_type_unknown != NULL)
+	{
+		mimeType = xdg_mime_type_unknown;
+	}
+#endif
 #ifdef DEBUG
 	cout << "MIMEScanner::scanFile: " << fileName << " " << mimeType << endl;
 #endif
@@ -534,32 +624,45 @@ string MIMEScanner::scanFile(const string &fileName)
 /// Finds out the given URL's MIME type.
 string MIMEScanner::scanUrl(const Url &urlObj)
 {
-	string mimeType(scanFileType(urlObj.getFile()));
+	string mimeType;
 
-	if (mimeType.empty() == true)
+	// Is it a local file ?
+	if (urlObj.getProtocol() == "file")
 	{
-		// Is it a local file ?
-		if (urlObj.getProtocol() == "file")
-		{
-			string fileName = urlObj.getLocation();
-			fileName += "/";
-			fileName += urlObj.getFile();
+		string fileName(urlObj.getLocation());
+		fileName += "/";
+		fileName += urlObj.getFile();
 
-			mimeType = scanFile(fileName);
-		}
+		mimeType = scanFile(fileName);
+	}
+	else
+	{
+		mimeType = scanFileType(urlObj.getFile());
 	}
 
-	if (mimeType.empty() == true)
+	if (mimeType.empty() == false)
 	{
-		if (urlObj.getProtocol() == "http")
-		{
-			mimeType = "text/html";
-		}
-		else if (xdg_mime_type_unknown != NULL)
-		{
-			mimeType = xdg_mime_type_unknown;
-		}
+		return mimeType;
 	}
+
+	if (urlObj.getProtocol() == "http")
+	{
+		mimeType = "text/html";
+	}
+#ifdef HAVE_GIO_MIME
+	else
+	{
+		mimeType = UNKNOWN_MIME_TYPE;
+	}
+#else
+	else if (xdg_mime_type_unknown != NULL)
+	{
+		mimeType = xdg_mime_type_unknown;
+	}
+#endif
+#ifdef DEBUG
+	cout << "MIMEScanner::scanUrl: " << urlObj.getFile() << " " << mimeType << endl;
+#endif
 
 	return mimeType;
 }
@@ -572,6 +675,8 @@ bool MIMEScanner::getParentTypes(const string &mimeType, set<string> &parentMime
 		return false;
 	}
 
+#ifdef HAVE_GIO_MIME
+#else
 	char **pParentTypes = xdg_mime_list_mime_parents(mimeType.c_str());
 	if ((pParentTypes != NULL) &&
 		(pParentTypes[0] != NULL))
@@ -585,6 +690,7 @@ bool MIMEScanner::getParentTypes(const string &mimeType, set<string> &parentMime
 
 		return true;
 	}
+#endif
 
 	return false;
 }
@@ -662,6 +768,8 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 	if (foundAction == false)
 	{
 		// Is there an action for any of this type's parents ?
+#ifdef HAVE_GIO_MIME
+#else
 		char **pParentTypes = xdg_mime_list_mime_parents(mimeType.c_str());
 		if ((pParentTypes != NULL) &&
 			(pParentTypes[0] != NULL))
@@ -684,6 +792,7 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 		}
 #ifdef DEBUG
 		else cout << "MIMEScanner::getDefaultActions: " << mimeType << " has no parent types" << endl;
+#endif
 #endif
 	}
 

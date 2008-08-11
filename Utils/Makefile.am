@@ -20,6 +20,17 @@ noinst_HEADERS = \
 	$(top_srcdir)/Utils/xdgmime/xdgmimemagic.h \
 	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.h
 
+if HAVE_GIO_MIME
+noinst_HEADERS += \
+	$(top_srcdir)/Utils/xdgmime/xdgmimealias.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmime.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimecache.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimeglob.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimeint.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimemagic.c \
+	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.c
+endif
+
 noinst_LTLIBRARIES = libBasicUtils.la libUtils.la
 
 libBasicUtils_la_SOURCES = \
@@ -31,6 +42,11 @@ libBasicUtils_la_SOURCES = \
 	Timer.cpp \
 	Url.cpp
 
+if HAVE_GIO_MIME
+libUtils_la_SOURCES = \
+	Languages.cpp \
+	MIMEScanner.cpp
+else
 libUtils_la_SOURCES = \
 	Languages.cpp \
 	MIMEScanner.cpp \
@@ -41,9 +57,14 @@ libUtils_la_SOURCES = \
 	$(top_srcdir)/Utils/xdgmime/xdgmimeint.c \
 	$(top_srcdir)/Utils/xdgmime/xdgmimemagic.c \
 	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.c
+endif
 
 AM_CFLAGS = -fPIC -DXDG_PREFIX=pinot_xdg
 AM_CXXFLAGS = \
 	@VISIB_CFLAGS@ \
 	@HTTP_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@ -DXDG_PREFIX=pinot_xdg
+
+if HAVE_GIO_MIME
+AM_CXXFLAGS += -DHAVE_GIO_MIME
+endif
 
