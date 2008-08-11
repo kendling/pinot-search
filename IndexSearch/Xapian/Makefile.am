@@ -34,6 +34,8 @@ endif
 libxapianbackend_la_LDFLAGS = -module -shared -nostartfiles
 
 libxapianbackend_la_LIBADD = \
+	-L$(top_builddir)/Utils \
+	-lBasicUtils \
 	@INDEX_LIBS@ @MISC_LIBS@
 
 AM_CXXFLAGS = \

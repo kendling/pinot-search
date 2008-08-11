@@ -13,6 +13,8 @@ libxesamglibbackend_la_SOURCES = \
 libxesamglibbackend_la_LDFLAGS = -module -shared -nostartfiles
 
 libxesamglibbackend_la_LIBADD = \
+	-L$(top_builddir)/Utils \
+	-lBasicUtils \
 	@XESAMGLIB_LIBS@ @MISC_LIBS@
 
 AM_CXXFLAGS = \

@@ -21,6 +21,8 @@ libgoogleapibackend_la_SOURCES = \
 libgoogleapibackend_la_LDFLAGS = -module -shared -nostartfiles
 
 libgoogleapibackend_la_LIBADD = \
+	-L$(top_builddir)/Utils \
+	-lBasicUtils \
 	@SOAP_LIBS@ @MISC_LIBS@
 
 GoogleSearch.h :
@@ -36,5 +38,12 @@ libgoogleapibackend_la_CXXFLAGS = \
 	-I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/IndexSearch \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @SOAP_CFLAGS@
+else
+noinst_HEADERS += \
+	GAPIClientLib.cpp \
+	GAPIC.cpp \
+	GAPIClient.cpp \
+	GoogleAPIEngine.cpp \
+	ModuleExports.cpp
 endif
 
