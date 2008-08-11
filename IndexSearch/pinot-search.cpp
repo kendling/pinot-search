@@ -104,7 +104,7 @@ static void printHelp(void)
 		<< "Supported search engine types are :";
 	for (map<string, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
 	{
-		cout << " " << engineIter->first;
+		cout << " '" << engineIter->first << "'";
 	}
 	cout << "\n\nExamples:\n"
 #ifdef HAVE_GOOGLEAPI

@@ -75,7 +75,7 @@ static void printHelp(void)
 		if ((engineIter->second == true) &&
 			(ModuleFactory::isSupported(engineIter->first, true) == true))
 		{
-			cout << " " << engineIter->first;
+			cout << " '" << engineIter->first << "'";
 		}
 	}
 	ModuleFactory::unloadModules();

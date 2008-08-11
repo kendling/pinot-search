@@ -50,11 +50,9 @@ Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 		return NULL;
 	}
 
-	string directoryName = thisUrl.getLocation();
-	string fileName = thisUrl.getFile();
-	string fileLocation = directoryName;
+	string fileLocation(thisUrl.getLocation());
 	fileLocation += "/";
-	fileLocation += fileName;
+	fileLocation += thisUrl.getFile();
 
 	Document *pDocument = new Document(docInfo);
 
@@ -71,3 +69,4 @@ Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 
 	return pDocument;
 }
+
