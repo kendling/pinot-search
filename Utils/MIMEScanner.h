@@ -25,6 +25,9 @@
 #include <map>
 #include <set>
 #include <vector>
+#ifdef USE_GIO
+#include <gio/gio.h>
+#endif
 
 #include "Url.h"
 #include "Visibility.h"
@@ -38,7 +41,11 @@ class PINOT_EXPORT MIMEAction
 	public:
 		MIMEAction();
 		MIMEAction(const std::string &name, const std::string &cmdLine);
+#ifdef USE_GIO
+		MIMEAction(GAppInfo *pAppInfo);
+#else
 		MIMEAction(const std::string &desktopFile);
+#endif
 		MIMEAction(const MIMEAction &other);
 		virtual ~MIMEAction();
 
@@ -46,19 +53,26 @@ class PINOT_EXPORT MIMEAction
 
 		MIMEAction &operator=(const MIMEAction &other);
 
+#ifndef USE_GIO
 		void load(void);
 		void parseExec(void);
+#endif
 
 		bool m_multipleArgs;
 		bool m_localOnly;
 		std::string m_name;
 		std::string m_location;
 		std::string m_exec;
+#ifdef USE_GIO
+		GAppInfo *m_pAppInfo;
+#else
 		std::string m_icon;
 		std::string m_device;
+#endif
 
 };
 
+#ifndef USE_GIO 
 /** Caching of MIME type information.
   * A cache can be reloaded as required.
   */
@@ -86,6 +100,7 @@ class MIMECache
 			std::map<std::string, MIMEAction> &loadedActions);
 
 };
+#endif
 
 /**
   * Utility class to get a file's MIME type and the default application associated with it.
@@ -120,14 +135,14 @@ class PINOT_EXPORT MIMEScanner
 		static bool getDefaultActions(const std::string &mimeType, std::vector<MIMEAction> &typeActions);
 
 	protected:
-#ifndef HAVE_GIO_MIME
+#ifndef USE_GIO
 		/// Mutex to protect access to xdgmime.
 		static pthread_mutex_t m_xdgMutex;
-#endif
 		/// Lock to protect access to caches.
 		static pthread_rwlock_t m_cachesLock;
 		/// MIME type caches, ordered by decreasing priority.
 		static std::list<MIMECache> m_caches;
+#endif
 
 		MIMEScanner();
 

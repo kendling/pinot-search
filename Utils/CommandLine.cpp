@@ -70,6 +70,56 @@ bool CommandLine::runSync(const string &commandLine, string &output)
 /// Runs a command asynchronously.
 bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &arguments)
 {
+#ifdef USE_GIO
+	if (action.m_pAppInfo == NULL)
+	{
+		return false;
+	}
+
+	GList *pFilesList = NULL;
+
+	vector<string>::const_iterator firstArg = arguments.begin();
+	while (firstArg != arguments.end())
+	{
+		Url firstUrl(*firstArg);
+		string protocol(firstUrl.getProtocol());
+
+		if (action.m_localOnly == false)
+		{
+			pFilesList = g_list_prepend(pFilesList, g_strdup((*firstArg).c_str()));
+		}
+		else if (protocol == "file")
+		{
+			pFilesList = g_list_prepend(pFilesList, g_file_new_for_uri((*firstArg).c_str()));
+		}
+#ifdef DEBUG
+		else cout << "CommandLine::runAsync: can't open URL " << *firstArg << endl;
+#endif
+
+		// Next
+		++firstArg;
+	}
+
+	GError *pError = NULL;
+	gboolean launched = FALSE;
+
+	if (action.m_localOnly == false)
+	{
+		launched = g_app_info_launch_uris(action.m_pAppInfo, pFilesList, NULL, &pError);
+	}
+	else
+	{
+		launched = g_app_info_launch(action.m_pAppInfo, pFilesList, NULL, &pError);
+	}
+
+	g_list_foreach(pFilesList, (GFunc)g_object_unref, NULL);
+	g_list_free(pFilesList);
+
+	if (launched == FALSE)
+	{
+		return false;
+	}
+#else
 	string commandLine(action.m_exec);
 
 	if (action.m_exec.empty() == true)
@@ -270,6 +320,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 		}
 
 	}
+#endif
 
 	return true;
 }

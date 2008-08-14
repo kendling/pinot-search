@@ -21,9 +21,7 @@
 #include <glib.h>
 #include <iostream>
 #include <cstring>
-#ifdef HAVE_GIO_MIME
-#include <gio/gio.h>
-#else
+#ifndef USE_GIO
 #include "xdgmime/xdgmime.h"
 #endif
 
@@ -81,7 +79,13 @@ static string getKeyValue(GKeyFile *pDesktopFile, const string &key)
 
 MIMEAction::MIMEAction() :
 	m_multipleArgs(false),
-	m_localOnly(true)
+	m_localOnly(true),
+#ifdef USE_GIO
+	m_pAppInfo(NULL)
+#else
+	m_icon(""),
+	m_device("")
+#endif
 {
 }
 
@@ -89,11 +93,54 @@ MIMEAction::MIMEAction(const string &name, const string &cmdLine) :
 	m_multipleArgs(false),
 	m_localOnly(true),
 	m_name(name),
-	m_exec(cmdLine)
+	m_exec(cmdLine),
+#ifdef USE_GIO
+	m_pAppInfo(NULL)
+#else
+	m_icon(""),
+	m_device("")
+#endif
 {
+#ifdef USE_GIO
+	GError *pError = NULL;
+	m_pAppInfo = g_app_info_create_from_commandline(cmdLine.c_str(),
+		name.c_str(), G_APP_INFO_CREATE_SUPPORTS_URIS, &pError);
+	if (pError != NULL)
+	{
+		g_error_free(pError);
+	}
+#else
 	parseExec();
+#endif
 }
 
+#ifdef USE_GIO
+MIMEAction::MIMEAction(GAppInfo *pAppInfo) :
+	m_multipleArgs(false),
+	m_localOnly(true),
+	m_pAppInfo(NULL)
+{
+	if (pAppInfo != NULL)
+	{
+		const char *pInfo = g_app_info_get_name(pAppInfo);
+		if (pInfo != NULL)
+		{
+			m_name = pInfo;
+		}
+		pInfo = g_app_info_get_executable(pAppInfo);
+		if (pInfo != NULL)
+		{
+			m_exec = pInfo;
+		}
+		if (g_app_info_supports_uris(pAppInfo) == TRUE)
+		{
+			m_localOnly = false;
+		}
+
+		m_pAppInfo = g_app_info_dup(pAppInfo);
+	}
+}
+#else
 MIMEAction::MIMEAction(const string &desktopFile) :
 	m_multipleArgs(false),
 	m_localOnly(true),
@@ -102,19 +149,37 @@ MIMEAction::MIMEAction(const string &desktopFile) :
 	load();
 }
 
+#endif
+
 MIMEAction::MIMEAction(const MIMEAction &other) :
 	m_multipleArgs(other.m_multipleArgs),
 	m_localOnly(other.m_localOnly),
 	m_name(other.m_name),
 	m_location(other.m_location),
 	m_exec(other.m_exec),
+#ifdef USE_GIO
+	m_pAppInfo(NULL)
+#else
 	m_icon(other.m_icon),
 	m_device(other.m_device)
+#endif
 {
+#ifdef USE_GIO
+	if (other.m_pAppInfo != NULL)
+	{
+		m_pAppInfo = g_app_info_dup(other.m_pAppInfo);
+	}
+#endif
 }
 
 MIMEAction::~MIMEAction()
 {
+#ifdef USE_GIO
+	if (m_pAppInfo != NULL)
+	{
+		g_object_unref(m_pAppInfo);
+	}
+#endif
 }
 
 bool MIMEAction::operator<(const MIMEAction &other) const
@@ -136,13 +201,26 @@ MIMEAction &MIMEAction::operator=(const MIMEAction &other)
 		m_name = other.m_name;
 		m_location = other.m_location;
 		m_exec = other.m_exec;
+#ifdef USE_GIO
+		if (m_pAppInfo != NULL)
+		{
+			g_object_unref(m_pAppInfo);
+			m_pAppInfo = NULL;
+		}
+		if (other.m_pAppInfo != NULL)
+		{
+			m_pAppInfo = g_app_info_dup(other.m_pAppInfo);
+		}
+#else
 		m_icon = other.m_icon;
 		m_device = other.m_device;
+#endif
 	}
 
 	return *this;
 }
 
+#ifndef USE_GIO
 void MIMEAction::load(void)
 {
 	GKeyFile *pDesktopFile = g_key_file_new();
@@ -359,11 +437,10 @@ bool MIMECache::load(const list<string> &desktopFilesPaths)
 	return foundActions;
 }
 
-#ifndef HAVE_GIO_MIME
 pthread_mutex_t MIMEScanner::m_xdgMutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
 pthread_rwlock_t MIMEScanner::m_cachesLock = PTHREAD_RWLOCK_INITIALIZER;
 list<MIMECache> MIMEScanner::m_caches;
+#endif
 
 MIMEScanner::MIMEScanner()
 {
@@ -375,15 +452,16 @@ MIMEScanner::~MIMEScanner()
 
 bool MIMEScanner::initialize(const string &userPrefix, const string &systemPrefix)
 {
+#ifdef USE_GIO
+	// Initialize the GType system
+	g_type_init();
+
+	return true;
+#else
 	list<string> desktopFilesPaths;
 	string userDirectory(userPrefix + APPLICATIONS_DIRECTORY);
 	string systemDirectory(systemPrefix + APPLICATIONS_DIRECTORY);
 	bool foundActions = false;
-
-#ifdef HAVE_GIO_MIME
-	// Initialize the GType system
-	g_type_init();
-#endif
 
 	// This may be a re-initialize
 	if (pthread_rwlock_wrlock(&m_cachesLock) == 0)
@@ -434,6 +512,7 @@ bool MIMEScanner::initialize(const string &userPrefix, const string &systemPrefi
 	}
 
 	return foundActions;
+#endif
 }
 
 bool MIMEScanner::addCache(const string &file, const string &section,
@@ -441,6 +520,7 @@ bool MIMEScanner::addCache(const string &file, const string &section,
 {
 	bool addedCache = false;
 
+#ifndef USE_GIO
 	if (pthread_rwlock_wrlock(&m_cachesLock) == 0)
 	{
 		m_caches.push_back(MIMECache(file, section));
@@ -449,13 +529,14 @@ bool MIMEScanner::addCache(const string &file, const string &section,
 
 		pthread_rwlock_unlock(&m_cachesLock);
 	}
+#endif
 
 	return addedCache;
 }
 
 void MIMEScanner::shutdown(void)
 {
-#ifndef HAVE_GIO_MIME
+#ifndef USE_GIO
 	xdg_mime_shutdown();
 #endif
 }
@@ -477,7 +558,7 @@ string MIMEScanner::scanFileType(const string &fileName)
 	}
 
 	// Does it have an obvious extension ?
-#ifdef HAVE_GIO_MIME
+#ifdef USE_GIO
 	char *pType = g_content_type_guess(fileName.c_str(), NULL, 0, NULL);
 #else
 	const char *pType = NULL;
@@ -495,7 +576,7 @@ string MIMEScanner::scanFileType(const string &fileName)
 		return "";
 	}
 
-#ifdef HAVE_GIO_MIME
+#ifdef USE_GIO
 	if (g_content_type_is_unknown(pType) == TRUE)
 	{
 		g_free(pType);
@@ -528,7 +609,7 @@ string MIMEScanner::scanFileType(const string &fileName)
 	{
 		mimeType = "text/html";
 	}
-#ifdef HAVE_GIO_MIME
+#ifdef USE_GIO
 	g_free(pType);
 #endif
 #ifdef DEBUG
@@ -553,7 +634,7 @@ string MIMEScanner::scanFile(const string &fileName)
 		return mimeType;
 	}
 
-#ifdef HAVE_GIO_MIME
+#ifdef USE_GIO
 	string uri("file://");
 	uri += fileName;
 
@@ -649,7 +730,7 @@ string MIMEScanner::scanUrl(const Url &urlObj)
 	{
 		mimeType = "text/html";
 	}
-#ifdef HAVE_GIO_MIME
+#ifdef USE_GIO
 	else
 	{
 		mimeType = UNKNOWN_MIME_TYPE;
@@ -675,7 +756,9 @@ bool MIMEScanner::getParentTypes(const string &mimeType, set<string> &parentMime
 		return false;
 	}
 
-#ifdef HAVE_GIO_MIME
+#ifdef USE_GIO
+	// FIXME: GContentType doesn't have any function to get a MIME type's parents
+	// Similarly, one can't get a GAppInfo's list of supported MIME types
 #else
 	char **pParentTypes = xdg_mime_list_mime_parents(mimeType.c_str());
 	if ((pParentTypes != NULL) &&
@@ -698,6 +781,19 @@ bool MIMEScanner::getParentTypes(const string &mimeType, set<string> &parentMime
 /// Adds a user-defined action for the given type.
 void MIMEScanner::addDefaultAction(const string &mimeType, const MIMEAction &typeAction)
 {
+#ifdef USE_GIO
+	if (typeAction.m_pAppInfo == NULL)
+	{
+		return;
+	}
+
+	GError *pError = NULL;
+	g_app_info_set_as_default_for_type(typeAction.m_pAppInfo, mimeType.c_str(), &pError);
+	if (pError != NULL)
+	{
+		g_error_free(pError);
+	}
+#else
 	// Custom actions get stored in a cache object which is not connected to a file
 	// We need to create this object the first time a custom action gets added
 	if (pthread_rwlock_wrlock(&m_cachesLock) == 0)
@@ -712,11 +808,46 @@ void MIMEScanner::addDefaultAction(const string &mimeType, const MIMEAction &typ
 
 		pthread_rwlock_unlock(&m_cachesLock);
 	}
+#endif
 }
 
 bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &actionNames,
 	vector<MIMEAction> &typeActions)
 {
+#ifdef USE_GIO
+	GList *pAppInfoList = g_app_info_get_all_for_type(mimeType.c_str());
+	if (pAppInfoList == NULL)
+	{
+		return false;
+	}
+
+	typeActions.reserve(g_list_length(pAppInfoList));
+	for (GList *pList = pAppInfoList; pList != NULL; pList = pList->next)
+	{
+		if (pList->data == NULL)
+		{
+			continue;
+		}
+
+		GAppInfo *pAppInfo = G_APP_INFO(pList->data);
+		if (pAppInfo == NULL)
+		{
+			continue;
+		}
+
+		MIMEAction action(pAppInfo);
+#ifdef DEBUG
+		cout << "MIMEScanner::getDefaultActions: action " << action.m_name << endl;
+#endif
+
+		actionNames.insert(action.m_name);
+		typeActions.push_back(action);
+	}
+	g_list_foreach(pAppInfoList, (GFunc)g_object_unref, NULL);
+	g_list_free(pAppInfoList);
+
+	return true;
+#else
 	bool foundAction = false;
 
 	if (pthread_rwlock_rdlock(&m_cachesLock) != 0)
@@ -752,6 +883,7 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &
 	pthread_rwlock_unlock(&m_cachesLock);
 
 	return foundAction;
+#endif
 }
 
 /// Determines the default action(s) for the given type.
@@ -765,11 +897,10 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 	cout << "MIMEScanner::getDefaultActions: searching for " << mimeType << endl;
 #endif
 	bool foundAction = getDefaultActionsForType(mimeType, actionNames, typeActions);
+#ifndef USE_GIO
 	if (foundAction == false)
 	{
 		// Is there an action for any of this type's parents ?
-#ifdef HAVE_GIO_MIME
-#else
 		char **pParentTypes = xdg_mime_list_mime_parents(mimeType.c_str());
 		if ((pParentTypes != NULL) &&
 			(pParentTypes[0] != NULL))
@@ -793,8 +924,8 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 #ifdef DEBUG
 		else cout << "MIMEScanner::getDefaultActions: " << mimeType << " has no parent types" << endl;
 #endif
-#endif
 	}
+#endif
 
 	return foundAction;
 }
