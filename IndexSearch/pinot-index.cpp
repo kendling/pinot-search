@@ -353,6 +353,14 @@ int main(int argc, char **argv)
 				}
 				cout << endl;
 			}
+
+			vector<MIMEAction> typeActions;
+			MIMEScanner::getDefaultActions(docInfo.getType(), typeActions);
+			for (vector<MIMEAction>::const_iterator actionIter = typeActions.begin();
+				actionIter != typeActions.end(); ++actionIter)
+			{
+				cout << "Action   : '" << actionIter->m_name << "' " << actionIter->m_exec << endl;
+			}
 		}
 
 		// Next
