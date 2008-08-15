@@ -125,6 +125,9 @@ class PINOT_EXPORT MIMEScanner
 		/// Finds out the given URL's MIME type.
 		static std::string scanUrl(const Url &urlObj);
 
+		/// Finds out the given data buffer's MIME type.
+		static std::string scanData(const char *pData, unsigned int length);
+
 		/// Gets parent MIME types.
 		static bool getParentTypes(const std::string &mimeType,
 			const std::set<std::string> &allTypes,

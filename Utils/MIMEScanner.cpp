@@ -748,6 +748,58 @@ string MIMEScanner::scanUrl(const Url &urlObj)
 	return mimeType;
 }
 
+/// Finds out the given data buffer's MIME type.
+string MIMEScanner::scanData(const char *pData, unsigned int length)
+{
+	if ((pData == NULL) ||
+		(length == 0))
+	{
+		return "";
+	}
+
+#ifdef USE_GIO
+	char *pType = g_content_type_guess(NULL, (const guchar *)pData, (gsize)length, NULL);
+#else
+	const char *pType = NULL;
+
+	if (pthread_mutex_lock(&m_xdgMutex) == 0)
+	{
+		pType = xdg_mime_cache_get_mime_type_for_data((const void *)pData, (size_t)length, NULL);
+
+		pthread_mutex_unlock(&m_xdgMutex);
+	}
+#endif
+
+	if (pType == NULL)
+	{
+		return UNKNOWN_MIME_TYPE;
+	}
+
+#ifdef USE_GIO
+	// Get the corresponding MIME type
+	char *pMimeType = g_content_type_get_mime_type(pType);
+	if (pMimeType == NULL)
+	{
+		g_free(pType);
+		return UNKNOWN_MIME_TYPE;
+	}
+
+	g_free(pType);
+	pType = pMimeType;
+#endif
+
+	string mimeType(pType);
+
+#ifdef USE_GIO
+	g_free(pType);
+#endif
+#ifdef DEBUG
+	cout << "MIMEScanner::scanData: " << mimeType << endl;
+#endif
+
+	return mimeType;
+}
+
 /// Gets parent MIME types.
 bool MIMEScanner::getParentTypes(const string &mimeType,
 	const set<string> &allTypes, set<string> &parentMimeTypes)

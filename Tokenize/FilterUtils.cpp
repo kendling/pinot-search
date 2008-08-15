@@ -259,6 +259,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 {
 	string charset, uri, ipath;
+	bool checkType = false;
 
 	if (pFilter == NULL)
 	{
@@ -288,7 +289,16 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		}
 		else if (metaIter->first == "mimetype")
 		{
-			doc.setType(StringManip::toLowerCase(metaIter->second));
+			string mimeType(StringManip::toLowerCase(metaIter->second));
+
+			if (mimeType == "scan")
+			{
+				checkType = true;
+			}
+			else
+			{
+				doc.setType(StringManip::toLowerCase(metaIter->second));
+			}
 		}
 		else if (metaIter->first == "size")
 		{
@@ -341,6 +351,12 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 			cerr << doc.getLocation() << " may not have been fully converted to UTF-8" << endl;
 		}
 		doc.setData(utf8Data.c_str(), utf8Data.length());
+
+		if (checkType == true)
+		{
+			doc.setType(MIMEScanner::scanData(utf8Data.c_str(), utf8Data.length()));
+		}
+
 #ifdef DEBUG
 		cout << "FilterUtils::populateDocument: set " << utf8Data.length() << "/" << contentIter->second.length()
 			<< " bytes, converted from charset " << charset << endl;
