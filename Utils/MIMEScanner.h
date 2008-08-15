@@ -126,7 +126,9 @@ class PINOT_EXPORT MIMEScanner
 		static std::string scanUrl(const Url &urlObj);
 
 		/// Gets parent MIME types.
-		static bool getParentTypes(const std::string &mimeType, std::set<std::string> &parentMimeTypes);
+		static bool getParentTypes(const std::string &mimeType,
+			const std::set<std::string> &allTypes,
+			std::set<std::string> &parentMimeTypes);
 
 		/// Adds a user-defined action for the given type.
 		static void addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction);

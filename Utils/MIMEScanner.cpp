@@ -749,7 +749,8 @@ string MIMEScanner::scanUrl(const Url &urlObj)
 }
 
 /// Gets parent MIME types.
-bool MIMEScanner::getParentTypes(const string &mimeType, set<string> &parentMimeTypes)
+bool MIMEScanner::getParentTypes(const string &mimeType,
+	const set<string> &allTypes, set<string> &parentMimeTypes)
 {
 	if (mimeType.empty() == true)
 	{
@@ -757,8 +758,18 @@ bool MIMEScanner::getParentTypes(const string &mimeType, set<string> &parentMime
 	}
 
 #ifdef USE_GIO
-	// FIXME: GContentType doesn't have any function to get a MIME type's parents
-	// Similarly, one can't get a GAppInfo's list of supported MIME types
+	for (set<string>::const_iterator typeIter = allTypes.begin(); typeIter != allTypes.end(); ++typeIter)
+	{
+		// FIXME: this function deals with content types, not MIME types !
+		// There's no way currently to convert to content types, but on Unix they are one and the same
+		if (g_content_type_is_a(mimeType.c_str(), typeIter->c_str()) == TRUE)
+		{
+#ifdef DEBUG
+			cout << "MIMEScanner::getParentTypes: " << mimeType << " is a " << *typeIter << endl;
+#endif
+			parentMimeTypes.insert(*typeIter);
+		}
+	}
 #else
 	char **pParentTypes = xdg_mime_list_mime_parents(mimeType.c_str());
 	if ((pParentTypes != NULL) &&

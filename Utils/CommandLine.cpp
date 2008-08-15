@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -112,7 +112,14 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 		launched = g_app_info_launch(action.m_pAppInfo, pFilesList, NULL, &pError);
 	}
 
-	g_list_foreach(pFilesList, (GFunc)g_object_unref, NULL);
+	if (action.m_localOnly == false)
+	{
+		g_list_foreach(pFilesList, (GFunc)g_free, NULL);
+	}
+	else
+	{
+		g_list_foreach(pFilesList, (GFunc)g_object_unref, NULL);
+	}
 	g_list_free(pFilesList);
 
 	if (launched == FALSE)

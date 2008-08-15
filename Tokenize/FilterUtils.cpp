@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007,2008 Fabrice Colin
+ *  Copyright 2007-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ using std::string;
 using std::set;
 using std::map;
 
+set<string> FilterUtils::m_types;
 map<string, string> FilterUtils::m_typeAliases;
 
 FilterUtils::FilterUtils()
@@ -79,8 +80,13 @@ Dijon::Filter *FilterUtils::getFilter(const string &mimeType)
 	{
 		set<string> parentTypes;
 
+		if (m_types.empty() == true)
+		{
+			Dijon::FilterFactory::getSupportedTypes(m_types);
+		}
+
 		// Try that type's parents
-		MIMEScanner::getParentTypes(mimeType, parentTypes);
+		MIMEScanner::getParentTypes(mimeType, m_types, parentTypes);
 		for (set<string>::const_iterator parentIter = parentTypes.begin();
 			parentIter != parentTypes.end(); ++parentIter)
 		{
@@ -120,8 +126,13 @@ bool FilterUtils::isSupportedType(const string &mimeType)
 	{
 		set<string> parentTypes;
 
+		if (m_types.empty() == true)
+		{
+			Dijon::FilterFactory::getSupportedTypes(m_types);
+		}
+
 		// Try that type's parents
-		MIMEScanner::getParentTypes(mimeType, parentTypes);
+		MIMEScanner::getParentTypes(mimeType, m_types, parentTypes);
 		for (set<string>::const_iterator parentIter = parentTypes.begin();
 			parentIter != parentTypes.end(); ++parentIter)
 		{
