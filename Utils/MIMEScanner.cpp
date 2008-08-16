@@ -46,6 +46,7 @@ using std::set;
 using std::vector;
 using std::pair;
 
+#ifndef USE_GIO
 static string getKeyValue(GKeyFile *pDesktopFile, const string &key)
 {
 	string value;
@@ -76,6 +77,7 @@ static string getKeyValue(GKeyFile *pDesktopFile, const string &key)
 
 	return value;
 }
+#endif
 
 MIMEAction::MIMEAction() :
 	m_multipleArgs(false),
@@ -764,7 +766,7 @@ string MIMEScanner::scanData(const char *pData, unsigned int length)
 
 	if (pthread_mutex_lock(&m_xdgMutex) == 0)
 	{
-		pType = xdg_mime_cache_get_mime_type_for_data((const void *)pData, (size_t)length, NULL);
+		pType = xdg_mime_get_mime_type_for_data((const void *)pData, (size_t)length, NULL);
 
 		pthread_mutex_unlock(&m_xdgMutex);
 	}
@@ -813,7 +815,7 @@ bool MIMEScanner::getParentTypes(const string &mimeType,
 	for (set<string>::const_iterator typeIter = allTypes.begin(); typeIter != allTypes.end(); ++typeIter)
 	{
 		// FIXME: this function deals with content types, not MIME types !
-		// There's no way currently to convert to content types, but on Unix they are one and the same
+		// Check whether g_content_type_from_mime_type() exists
 		if (g_content_type_is_a(mimeType.c_str(), typeIter->c_str()) == TRUE)
 		{
 #ifdef DEBUG
