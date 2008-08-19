@@ -20,20 +20,21 @@
 
 #include "config.h"
 #include "Visibility.h"
+#include "ModuleProperties.h"
 #include "XesamEngine.h"
 
 using std::string;
 
 extern "C"
 {
-	PINOT_EXPORT string getModuleType(void);
+	PINOT_EXPORT ModuleProperties *getModuleProperties(void);
 	PINOT_EXPORT SearchEngineInterface *getSearchEngine(const string &dbusObject);
 	PINOT_EXPORT void closeAll(void);
 }
 
-string getModuleType(void)
+ModuleProperties *getModuleProperties(void)
 {
-	return "xesam";
+	return new ModuleProperties("xesam", "Xesam", "", "");
 }
 
 SearchEngineInterface *getSearchEngine(const string &dbusObject)

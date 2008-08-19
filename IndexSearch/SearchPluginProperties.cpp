@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ using std::map;
 using std::set;
 
 SearchPluginProperties::SearchPluginProperties() :
+	ModuleProperties(),
 	m_method(GET_METHOD),
 	m_scrolling(PER_PAGE),
 	m_nextIncrement(0),
@@ -32,10 +33,7 @@ SearchPluginProperties::SearchPluginProperties() :
 }
 
 SearchPluginProperties::SearchPluginProperties(const SearchPluginProperties &other) :
-	m_name(other.m_name),
-	m_longName(other.m_longName),
-	m_description(other.m_description),
-	m_channel(other.m_channel),
+	ModuleProperties(other),
 	m_languages(other.m_languages),
 	m_baseUrl(other.m_baseUrl),
 	m_method(other.m_method),
@@ -56,12 +54,10 @@ SearchPluginProperties::~SearchPluginProperties()
 
 SearchPluginProperties& SearchPluginProperties::operator=(const SearchPluginProperties& other)
 {
+	ModuleProperties::operator=(other);
+
 	if (this != &other)
 	{
-		m_name = other.m_name;
-		m_longName = other.m_longName;
-		m_description = other.m_description;
-		m_channel = other.m_channel;
 		m_languages = other.m_languages;
 		m_baseUrl = other.m_baseUrl;
 		m_method = other.m_method;
@@ -80,7 +76,7 @@ SearchPluginProperties& SearchPluginProperties::operator=(const SearchPluginProp
 
 bool SearchPluginProperties::operator==(const SearchPluginProperties &other) const
 {
-	if (m_name == other.m_name)
+	if (ModuleProperties::operator==(other) == true)
 	{
 		return true;
 	}
@@ -90,10 +86,11 @@ bool SearchPluginProperties::operator==(const SearchPluginProperties &other) con
 
 bool SearchPluginProperties::operator<(const SearchPluginProperties &other) const
 {
-	if (m_name < other.m_name)
+	if (ModuleProperties::operator<(other) == true)
 	{
 		return true;
 	}
 
 	return false;
 }
+

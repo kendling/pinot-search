@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007,2008 Fabrice Colin
+ *  Copyright 2007-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,20 +23,21 @@
 #include <map>
 
 #include "IndexInterface.h"
+#include "SearchPluginProperties.h"
 #include "SearchEngineInterface.h"
 
 /// Loadable module.
 class LoadableModule
 {
 	public:
-		LoadableModule(const std::string &type, const std::string &location,
-			void *pHandle);
+		LoadableModule(ModuleProperties *pProperties,
+			const std::string &location, void *pHandle);
 		LoadableModule(const LoadableModule &other);
 		virtual ~LoadableModule();
 
 		LoadableModule &operator=(const LoadableModule &other);
 
-		std::string m_type;
+		ModuleProperties *m_pProperties;
 		std::string m_location;
 		bool m_canSearch;
 		bool m_canIndex;
@@ -71,7 +72,7 @@ class ModuleFactory
 		static string getSearchEngineName(const std::string &type, const std::string &option);
 
 		/// Returns all supported engines.
-		static void getSupportedEngines(std::map<std::string, bool> &engines);
+		static void getSupportedEngines(std::map<ModuleProperties, bool> &engines);
 
 		/// Indicates whether a search engine or index is supported or not.
 		static bool isSupported(const std::string &type, bool asIndex = false);

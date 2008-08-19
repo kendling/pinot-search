@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007,2008 Fabrice Colin
+ *  Copyright 2007-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <dlfcn.h>
+#include <utility>
 #include <iostream>
 
 #include "DBusIndex.h"
@@ -37,14 +38,14 @@
 #define DLOPEN_FLAGS (RTLD_NOW|RTLD_LOCAL)
 #endif
 
-#define GETMODULETYPEFUNC	"getModuleType"
+#define GETMODULEPROPERTIESFUNC	"getModuleProperties"
 #define OPENORCREATEINDEXFUNC	"openOrCreateIndex"
 #define MERGEINDEXESFUNC	"mergeIndexes"
 #define GETINDEXFUNC		"getIndex"
 #define GETSEARCHENGINEFUNC	"getSearchEngine"
 #define CLOSEALLFUNC		"closeAll"
 
-typedef string (getModuleTypeFunc)(void);
+typedef ModuleProperties *(getModulePropertiesFunc)(void);
 typedef bool (openOrCreateIndexFunc)(const string &, bool &, bool, bool);
 typedef bool (mergeIndexesFunc)(const string &, const string &, const string &);
 typedef IndexInterface *(getIndexFunc)(const string &);
@@ -59,9 +60,9 @@ using std::map;
 using std::set;
 using std::pair;
 
-LoadableModule::LoadableModule(const string &type, const string &location,
-	void *pHandle) :
-	m_type(type),
+LoadableModule::LoadableModule(ModuleProperties *pProperties,
+	const string &location, void *pHandle) :
+	m_pProperties(pProperties),
 	m_location(location),
 	m_canSearch(false),
 	m_canIndex(false),
@@ -70,25 +71,41 @@ LoadableModule::LoadableModule(const string &type, const string &location,
 }
 
 LoadableModule::LoadableModule(const LoadableModule &other) :
-	m_type(other.m_type),
+	m_pProperties(NULL),
 	m_location(other.m_location),
 	m_canSearch(other.m_canSearch),
 	m_canIndex(other.m_canIndex),
 	m_pHandle(other.m_pHandle)
 {
+	if (other.m_pProperties != NULL)
+	{
+		m_pProperties = new ModuleProperties(*other.m_pProperties);
+	}
 }
 
 LoadableModule::~LoadableModule()
 {
+	if (m_pProperties != NULL)
+	{
+		delete m_pProperties;
+	}
 }
 
 LoadableModule &LoadableModule::operator=(const LoadableModule &other)
 {
-	m_type = other.m_type;
-	m_location = other.m_location;
-	m_canSearch = other.m_canSearch;
-	m_canIndex = other.m_canIndex;
-	m_pHandle = other.m_pHandle;
+	if (this != &other)
+	{
+		if (m_pProperties != NULL)
+		{
+			delete m_pProperties;
+			m_pProperties = NULL;
+		}
+		m_pProperties = other.m_pProperties;
+		m_location = other.m_location;
+		m_canSearch = other.m_canSearch;
+		m_canIndex = other.m_canIndex;
+		m_pHandle = other.m_pHandle;
+	}
 
 	return *this;
 }
@@ -215,35 +232,39 @@ unsigned int ModuleFactory::loadModules(const string &directory)
 				if (pHandle != NULL)
 				{
 					// What type does this export ?
-					getModuleTypeFunc *pTypeFunc = (getModuleTypeFunc *)dlsym(pHandle,
-						GETMODULETYPEFUNC);
-					if (pTypeFunc != NULL)
+					getModulePropertiesFunc *pPropsFunc = (getModulePropertiesFunc *)dlsym(pHandle,
+						GETMODULEPROPERTIESFUNC);
+					if (pPropsFunc != NULL)
 					{
-						string moduleType((*pTypeFunc)());
-						LoadableModule module(moduleType, fileName, pHandle);
+						LoadableModule module((*pPropsFunc)(), fileName, pHandle);
 
-						// Can it search ?
-						getSearchEngineFunc *pSearchFunc = (getSearchEngineFunc *)dlsym(pHandle,
-							GETSEARCHENGINEFUNC);
-						if (pSearchFunc != NULL)
+						if (module.m_pProperties != NULL)
 						{
-							module.m_canSearch = true;
-						}
+							string moduleType(module.m_pProperties->m_name);
 
-						// Can it index ?
-						getIndexFunc *pIndexFunc = (getIndexFunc *)dlsym(pHandle,
-							GETINDEXFUNC);
-						if (pIndexFunc != NULL)
-						{
-							module.m_canIndex = true;
-						}
+							// Can it search ?
+							getSearchEngineFunc *pSearchFunc = (getSearchEngineFunc *)dlsym(pHandle,
+								GETSEARCHENGINEFUNC);
+							if (pSearchFunc != NULL)
+							{
+								module.m_canSearch = true;
+							}
 
-						// Add a record for this module
-						m_types.insert(pair<string, LoadableModule>(moduleType, module));
+							// Can it index ?
+							getIndexFunc *pIndexFunc = (getIndexFunc *)dlsym(pHandle,
+								GETINDEXFUNC);
+							if (pIndexFunc != NULL)
+							{
+								module.m_canIndex = true;
+							}
+
+							// Add a record for this module
+							m_types.insert(pair<string, LoadableModule>(moduleType, module));
 #ifdef DEBUG
-						cout << "ModuleFactory::loadModules: type " << moduleType
-							<< " is supported by " << pEntryName << endl;
+							cout << "ModuleFactory::loadModules: " << moduleType
+								<< " is supported by " << pEntryName << endl;
 #endif
+						}
 					}
 					else cerr << "ModuleFactory::loadModules: " << dlerror() << endl;
 				}
@@ -393,20 +414,26 @@ string ModuleFactory::getSearchEngineName(const string &type, const string &opti
 	return type;
 }
 
-void ModuleFactory::getSupportedEngines(map<string, bool> &engines)
+void ModuleFactory::getSupportedEngines(map<ModuleProperties, bool> &engines)
 {
 	engines.clear();
 
 	// Built-in engines
 #ifdef HAVE_BOOST_SPIRIT
-	engines["sherlock"] = false;
+	engines.insert(pair<ModuleProperties, bool>(ModuleProperties("sherlock", "Sherlock", "", ""), false));
 #endif
-	engines["opensearch"] = false;
+	engines.insert(pair<ModuleProperties, bool>(ModuleProperties("opensearch", "OpenSearch", "", ""), false));
+
 	// Library-handled engines
 	for (map<string, LoadableModule>::iterator typeIter = m_types.begin();
 		typeIter != m_types.end(); ++typeIter)
 	{
-		engines[typeIter->first] = true;
+		ModuleProperties *pProps = typeIter->second.m_pProperties;
+
+		if (pProps != NULL)
+		{
+			engines.insert(pair<ModuleProperties, bool>(*pProps, true));
+		}
 	}
 }
 

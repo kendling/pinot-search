@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ static struct option g_longOptions[] = {
 
 static void printHelp(void)
 {
-	map<string, bool> engines;
+	map<ModuleProperties, bool> engines;
 
 	// Help
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
@@ -70,12 +70,12 @@ static void printHelp(void)
 		<< "  -s, --showinfo            show information about the document\n"
 		<< "  -v, --version             output version information and exit\n\n"
 		<< "Supported back-ends are :";
-	for (map<string, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
+	for (map<ModuleProperties, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
 	{
 		if ((engineIter->second == true) &&
-			(ModuleFactory::isSupported(engineIter->first, true) == true))
+			(ModuleFactory::isSupported(engineIter->first.m_name, true) == true))
 		{
-			cout << " '" << engineIter->first << "'";
+			cout << " '" << engineIter->first.m_name << "'";
 		}
 	}
 	ModuleFactory::unloadModules();

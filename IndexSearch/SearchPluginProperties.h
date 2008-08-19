@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,8 +23,10 @@
 #include <map>
 #include <set>
 
-/// Properties of a search plugin.
-class SearchPluginProperties
+#include "ModuleProperties.h"
+
+/// Properties of a search engine plugin.
+class SearchPluginProperties : public ModuleProperties
 {
 	public:
 		SearchPluginProperties();
@@ -47,10 +49,6 @@ class SearchPluginProperties
 			RSS_RESPONSE, ATOM_RESPONSE } Response;
 
 		// Description
-		std::string m_name;
-		std::string m_longName;
-		std::string m_description;
-		std::string m_channel;
 		std::set<std::string> m_languages;
 		// Query
 		std::string m_baseUrl;

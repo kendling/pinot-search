@@ -5,6 +5,7 @@ noinst_HEADERS = \
 	FilterWrapper.h \
 	IndexInterface.h \
 	ModuleFactory.h \
+	ModuleProperties.h \
 	OpenSearchParser.h \
 	PluginParsers.h \
 	PluginWebEngine.h \

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006,2007 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ static bool loadFile(const string &xesamFile, string &fileContents)
 
 static void printHelp(void)
 {
-	map<string, bool> engines;
+	map<ModuleProperties, bool> engines;
 
 	// Help
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
@@ -102,9 +102,9 @@ static void printHelp(void)
 		<< "  -q, --xesamql             query input is a file containing Xesam QL\n"
 		<< "  -u, --xesamul             query input is a file containing Xesam UL\n\n"
 		<< "Supported search engine types are :";
-	for (map<string, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
+	for (map<ModuleProperties, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
 	{
-		cout << " '" << engineIter->first << "'";
+		cout << " '" << engineIter->first.m_name << "'";
 	}
 	cout << "\n\nExamples:\n"
 #ifdef HAVE_GOOGLEAPI

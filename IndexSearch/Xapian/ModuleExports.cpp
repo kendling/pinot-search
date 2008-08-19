@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include "Visibility.h"
+#include "ModuleProperties.h"
 #include "XapianDatabaseFactory.h"
 #include "XapianEngine.h"
 #include "XapianIndex.h"
@@ -29,7 +30,7 @@ using std::string;
 
 extern "C"
 {
-	PINOT_EXPORT string getModuleType(void);
+	PINOT_EXPORT ModuleProperties *getModuleProperties(void);
 	PINOT_EXPORT bool openOrCreateIndex(const string &databaseName, bool &obsoleteFormat,
 		bool readOnly, bool overwrite);
 	PINOT_EXPORT bool mergeIndexes(const string &mergedDatabaseName,
@@ -39,9 +40,9 @@ extern "C"
 	PINOT_EXPORT void closeAll(void);
 }
 
-string getModuleType(void)
+ModuleProperties *getModuleProperties(void)
 {
-	return "xapian";
+	return new ModuleProperties("xapian", "Xapian", "", "");
 }
 
 bool openOrCreateIndex(const string &databaseName, bool &obsoleteFormat,
