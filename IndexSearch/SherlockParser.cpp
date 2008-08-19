@@ -527,13 +527,6 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 			properties.m_name = mapIter->second;
 		}
 
-		// Description
-		mapIter = lowSearchParams.find("description");
-		if (mapIter != lowSearchParams.end())
-		{
-			properties.m_description = mapIter->second;
-		}
-
 		// Channel
 		mapIter = lowSearchParams.find("routetype");
 		if (mapIter != lowSearchParams.end())

@@ -355,10 +355,6 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 				{
 					properties.m_name = nodeContent;
 				}
-				else if (nodeName == "Description")
-				{
-					properties.m_description = nodeContent;
-				}
 				else if (nodeName == "Url")
 				{
 					ustring url, type;
