@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -246,7 +246,7 @@ EnginesModelColumns &EnginesTree::getColumnRecord(void)
 //
 void EnginesTree::populate(bool indexesOnly)
 {
-	set<PinotSettings::Engine> engines;
+	set<ModuleProperties> engines;
 	ustring currentUserChannel(_("Current User"));
 	TreeModel::Row row;
 	TreeModel::iterator folderIter, localIter;
@@ -293,11 +293,11 @@ void EnginesTree::populate(bool indexesOnly)
 			m_refStore->iter_swap(folderIter, localIter);
 		}
 
-		std::set<PinotSettings::Engine>::const_iterator engineIter = engines.begin();
+		std::set<ModuleProperties>::const_iterator engineIter = engines.begin();
 		for (; engineIter != engines.end(); ++engineIter)
 		{
-			string engineName(engineIter->m_name);
-			string engineType(engineIter->m_type);
+			string engineType(engineIter->m_name);
+			string engineName(engineIter->m_longName);
 
 			if (ModuleFactory::isSupported(engineType, true) == true)
 			{

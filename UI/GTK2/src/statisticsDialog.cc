@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ void statisticsDialog::populate(void)
 {
 	TreeModel::iterator folderIter = m_refStore->append();
 	TreeModel::Row row = *folderIter;
-	std::map<string, bool> engines;
+	std::map<ModuleProperties, bool> engines;
 
 	// Indexes
 	statisticsTreeview->get_selection()->select(folderIter);
@@ -93,12 +93,12 @@ void statisticsDialog::populate(void)
 	row = *enginesIter;
 	row[m_statsColumns.m_name] = _("Search Engines");
 	ModuleFactory::getSupportedEngines(engines);
-	for (std::map<string, bool>::const_iterator engineIter = engines.begin();
+	for (std::map<ModuleProperties, bool>::const_iterator engineIter = engines.begin();
 		engineIter != engines.end(); ++engineIter)
 	{
 		TreeModel::iterator statIter = m_refStore->append(enginesIter->children());
 		row = *statIter;
-		row[m_statsColumns.m_name] = engineIter->first;
+		row[m_statsColumns.m_name] = engineIter->first.m_name;
 	}
 
 	// History

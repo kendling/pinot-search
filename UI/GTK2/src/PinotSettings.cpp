@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -314,32 +314,32 @@ bool PinotSettings::loadGlobal(const string &fileName)
 
 bool PinotSettings::load(void)
 {
-	map<string, bool> engines;
-	bool hasBackends = false;
+	map<ModuleProperties, bool> engines;
+	string currentUserChannelName(_("Current User"));
 
-	// Others are available as back-ends
+	// Some engines are available as back-ends
 	ModuleFactory::getSupportedEngines(engines);
-	for (map<string, bool>::const_iterator engineIter = engines.begin();
+	for (map<ModuleProperties, bool>::const_iterator engineIter = engines.begin();
 		engineIter != engines.end(); ++engineIter)
 	{
 		if (engineIter->second == true)
 		{
-			string engineName(engineIter->first);
+			string channelName(engineIter->first.m_channel);
 
-			if (isalpha(engineName[0]) != 0)
+			m_engineIds[1 << m_engines.size()] = engineIter->first.m_name;
+
+			// Is a channel specified ?
+			if (channelName.empty() == true)
 			{
-				engineName = toupper(engineName[0]);
-				engineName += engineIter->first.substr(1);
+				channelName = currentUserChannelName;
 			}
+			m_engines.insert(engineIter->first);
 
-			m_engineIds[1 << m_engines.size()] = engineIter->first;
-			m_engines.insert(Engine(engineName, engineIter->first, "", _("Current User")));
-			hasBackends = true;
+			if (m_engineChannels.find(channelName) == m_engineChannels.end())
+			{
+				m_engineChannels.insert(pair<string, bool>(channelName, true));
+			}
 		}
-	}
-	if (hasBackends == true)
-	{
-		m_engineChannels.insert(pair<string, bool>(_("Current User"), true));
 	}
 
 	// Load the configuration file
@@ -1331,7 +1331,7 @@ bool PinotSettings::loadSearchEngines(const string &directoryName)
 					{
 						properties.m_channel = _("Unclassified");
 					}
-					m_engines.insert(Engine(properties.m_name, "sherlock", location, properties.m_channel));
+					m_engines.insert(ModuleProperties("sherlock", properties.m_name, location, properties.m_channel));
 					m_engineChannels.insert(pair<string, bool>(properties.m_channel, true));
 
 					// Any editable parameters in this plugin ?
@@ -1699,7 +1699,7 @@ IndexInterface *PinotSettings::getIndex(const string &location)
 }
 
 /// Returns the search engines set.
-bool PinotSettings::getSearchEngines(set<PinotSettings::Engine> &engines, string channelName) const
+bool PinotSettings::getSearchEngines(set<ModuleProperties> &engines, const string &channelName) const
 {
 	if (channelName.empty() == true)
 	{
@@ -1715,7 +1715,7 @@ bool PinotSettings::getSearchEngines(set<PinotSettings::Engine> &engines, string
 		}
 
 		// Copy engines that belong to the given channel
-		for (set<Engine>::iterator engineIter = m_engines.begin(); engineIter != m_engines.end(); ++engineIter)
+		for (set<ModuleProperties>::iterator engineIter = m_engines.begin(); engineIter != m_engines.end(); ++engineIter)
 		{
 			if (engineIter->m_channel == channelName)
 			{
@@ -1887,63 +1887,6 @@ bool PinotSettings::isBlackListed(const string &fileName)
 	}
 
 	return !m_isBlackList;
-}
-
-PinotSettings::Engine::Engine()
-{
-}
-
-PinotSettings::Engine::Engine(string name, string type, string option, string channel) :
-	m_name(name),
-	m_type(type),
-	m_option(option),
-	m_channel(channel)
-{
-}
-
-PinotSettings::Engine::Engine(const Engine &other) :
-	m_name(other.m_name),
-	m_type(other.m_type),
-	m_option(other.m_option),
-	m_channel(other.m_channel)
-{
-}
-
-PinotSettings::Engine::~Engine()
-{
-}
-
-PinotSettings::Engine &PinotSettings::Engine::operator=(const PinotSettings::Engine &other)
-{
-	if (this != &other)
-	{
-		m_name = other.m_name;
-		m_type = other.m_type;
-		m_option = other.m_option;
-		m_channel = other.m_channel;
-	}
-
-	return *this;
-}
-
-bool PinotSettings::Engine::operator<(const PinotSettings::Engine &other) const
-{
-	if (m_name < other.m_name)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool PinotSettings::Engine::operator==(const Engine &other) const
-{
-	if (m_name == other.m_name)
-	{
-		return true;
-	}
-
-	return false;
 }
 
 PinotSettings::TimestampedItem::TimestampedItem() :

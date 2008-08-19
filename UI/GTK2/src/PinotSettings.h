@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include <libxml++/nodes/element.h>
 
 #include "IndexInterface.h"
+#include "ModuleProperties.h"
 #include "QueryProperties.h"
 
 class PinotSettings
@@ -91,26 +92,8 @@ class PinotSettings
 		/// Returns an IndexInterface for the given index location.
 		IndexInterface *getIndex(const std::string &location);
 
-		class Engine
-		{
-			public:
-				Engine();
-				Engine(const Engine &other);
-				Engine(std::string name, std::string type, std::string option, std::string channel);
-				~Engine();
-
-				Engine &operator=(const Engine &other);
-				bool operator<(const Engine &other) const;
-				bool operator==(const Engine &other) const;
-
-				std::string m_name;
-				std::string m_type;
-				std::string m_option;
-				std::string m_channel;
-		};
-
 		/// Returns the search engines set.
-		bool getSearchEngines(std::set<Engine> &engines, std::string channelName = "") const;
+		bool getSearchEngines(std::set<ModuleProperties> &engines, const std::string &channelName = "") const;
 
 		/// Returns an ID that identifies the given engine name.
 		unsigned int getEngineId(const std::string &name);
@@ -224,7 +207,7 @@ class PinotSettings
 		bool m_firstRun;
 		std::map<std::string, std::string> m_indexNames;
 		std::map<unsigned int, std::string> m_indexIds;
-		std::set<Engine> m_engines;
+		std::set<ModuleProperties> m_engines;
 		std::map<unsigned int, std::string> m_engineIds;
 		std::map<std::string, bool> m_engineChannels;
 		std::map<std::string, QueryProperties> m_queries;

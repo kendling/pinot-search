@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2008 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -3346,7 +3346,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 		if (engineType == EnginesModelColumns::WEB_ENGINE)
 		{
 			// There's a special case for the Google API...
-			if (engineName == "Google API")
+			if (engineName == "googleapi")
 			{
 				// Make sure this has been configured
 				if (m_settings.m_googleAPIKey.empty() == true)
