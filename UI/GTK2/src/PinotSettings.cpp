@@ -360,6 +360,7 @@ bool PinotSettings::load(void)
 		m_labels.insert(_("New"));
 		m_labels.insert(_("Personal"));
 		m_isBlackList = getDefaultPatterns(m_filePatternsList);
+
 		// Create default queries
 		struct passwd *pPasswd = getpwuid(geteuid());
 		if (pPasswd != NULL)
@@ -384,6 +385,15 @@ bool PinotSettings::load(void)
 				addQuery(queryProps);
 			}
 		}
+
+		QueryProperties queryProps(_("Latest First"), "dir:/");
+		queryProps.setSortOrder(QueryProperties::DATE);
+		addQuery(queryProps);
+		addQuery(QueryProperties(_("Home Stuff"), string("dir:") + getHomeDirectory()));
+		addQuery(QueryProperties(_("With Label New"), "label:New"));
+		addQuery(QueryProperties(_("Have CJKV"), "tokens:CJKV"));
+		addQuery(QueryProperties(_("In English"), "lang:en"));
+		addQuery(QueryProperties(_("10kb And Smaller"), "0..10240b"));
 	}
 
 	return true;
