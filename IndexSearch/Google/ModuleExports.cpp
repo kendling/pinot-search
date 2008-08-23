@@ -39,7 +39,7 @@ ModuleProperties *getModuleProperties(void)
 
 SearchEngineInterface *getSearchEngine(const string &apiKey)
 {
-	return new GoogleAPIEngine(dbusObject);
+	return new GoogleAPIEngine(apiKey);
 }
 
 void closeAll(void)
