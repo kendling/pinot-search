@@ -50,6 +50,9 @@ protected:
 	std::map<int, Gtk::TreeModel::iterator> m_errorsIters;
 	std::map<unsigned int, time_t> m_latestErrorDates;
 	bool m_hasErrors;
+	bool m_hasDiskSpace;
+	bool m_hasBattery;
+	bool m_hasCrawl;
 	bool m_getStats;
 	sigc::connection m_idleConnection;
 

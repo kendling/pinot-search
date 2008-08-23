@@ -43,6 +43,9 @@ using namespace Gtk;
 statisticsDialog::statisticsDialog() :
 	statisticsDialog_glade(),
 	m_hasErrors(false),
+	m_hasDiskSpace(false),
+	m_hasBattery(false),
+	m_hasCrawl(false),
 	m_getStats(true)
 {
 	// Associate the columns model to the engines tree
@@ -113,9 +116,6 @@ void statisticsDialog::populate(void)
 	row = *m_daemonIter;
 	row[m_statsColumns.m_name] = _("Daemon");
 	m_daemonProcIter = m_refStore->append(m_daemonIter->children());
-	m_diskSpaceIter = m_refStore->append(m_daemonIter->children());
-	m_batteryIter = m_refStore->append(m_daemonIter->children());
-	m_crawlIter = m_refStore->append(m_daemonIter->children());
 
 	// Expand everything
 	statisticsTreeview->expand_all();
@@ -131,7 +131,6 @@ bool statisticsDialog::on_activity_timeout(void)
 	ViewHistory viewHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 	TreeModel::Row row;
 	std::map<unsigned int, string> sources;
-	ustring yes(_("Yes")), no(_("No"));
 	string daemonDBusStatus;
 	char countStr[64];
 	bool lowDiskSpace = false, onBattery = false, crawling = false;
@@ -232,12 +231,58 @@ bool statisticsDialog::on_activity_timeout(void)
 	}
 
 	// Show status
-	row = *m_diskSpaceIter;
-	row[m_statsColumns.m_name] = ustring(_("Low disk space")) + ": " + (lowDiskSpace == true ? yes : no);
-	row = *m_batteryIter;
-	row[m_statsColumns.m_name] = ustring(_("On battery")) + ": " + (onBattery == true ? yes : no);
-	row = *m_crawlIter;
-	row[m_statsColumns.m_name] = ustring(_("Crawling")) + ": "+ (crawling == true ? yes : no);
+	if (lowDiskSpace == true)
+	{
+		if (m_hasDiskSpace == false)
+		{
+			m_diskSpaceIter = m_refStore->insert_after(m_daemonProcIter);
+
+			m_hasDiskSpace = true;
+		}
+		row = *m_diskSpaceIter;
+		row[m_statsColumns.m_name] = ustring(_("Low disk space"));
+	}
+	else if (m_hasDiskSpace == true)
+	{
+		m_refStore->erase(m_diskSpaceIter);
+
+		m_hasDiskSpace = false;
+	}
+	if (onBattery == true)
+	{
+		if (m_hasBattery == false)
+		{
+			m_batteryIter = m_refStore->insert_after(m_daemonProcIter);
+
+			m_hasBattery = true;
+		}
+		row = *m_batteryIter;
+		row[m_statsColumns.m_name] = ustring(_("System on battery"));
+	}
+	else if (m_hasBattery == true)
+	{
+		m_refStore->erase(m_batteryIter);
+
+		m_hasBattery = false;
+	}
+	if (crawling == true)
+	{
+		if (m_hasCrawl == false)
+		{
+			m_crawlIter = m_refStore->insert_after(m_daemonProcIter);
+
+			m_hasCrawl = true;
+		}
+
+		row = *m_crawlIter;
+		row[m_statsColumns.m_name] = ustring(_("Crawling"));
+	}
+	else if (m_hasCrawl == true)
+	{
+		m_refStore->erase(m_crawlIter);
+
+		m_hasCrawl = false;
+	}
 
 	// Show errors
 	crawlHistory.getSources(sources);
