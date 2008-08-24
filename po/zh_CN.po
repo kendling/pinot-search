@@ -4,21 +4,23 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.87\n"
+"Project-Id-Version: pinot 0.88\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-19 16:20+0800\n"
-"PO-Revision-Date: 2008-03-24 14:32+0800\n"
-"Last-Translator: Ashlee Ma <ashlee8310@hotmail.com>\n"
+"POT-Creation-Date: 2008-08-23 23:22+0800\n"
+"PO-Revision-Date: 2008-08-07 15:44+0000\n"
+"Last-Translator: rainofchaos <rainofchaos@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2008-08-23 14:16+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
 
-#: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:89
+#: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:97
 msgid "Search Engines"
 msgstr "搜寻引擎"
 
-#: UI/GTK2/src/EnginesTree.cpp:250 UI/GTK2/src/PinotSettings.cpp:342
-#: UI/GTK2/src/PinotSettings.cpp:348
+#: UI/GTK2/src/EnginesTree.cpp:250 UI/GTK2/src/PinotSettings.cpp:318
 msgid "Current User"
 msgstr "目前的使用者"
 
@@ -31,9 +33,9 @@ msgstr "目前的使用者"
 #: UI/GTK2/src/mainWindow.cc:1531 UI/GTK2/src/mainWindow.cc:1534
 #: UI/GTK2/src/mainWindow.cc:1626 UI/GTK2/src/mainWindow.cc:1662
 #: UI/GTK2/src/mainWindow.cc:1684 UI/GTK2/src/mainWindow.cc:2395
-#: UI/GTK2/src/PinotSettings.cpp:359 UI/GTK2/src/PinotSettings.cpp:1570
-#: UI/GTK2/src/PinotSettings.cpp:1626 UI/GTK2/src/statisticsDialog.cc:79
-#: UI/GTK2/src/WorkerThreads.cpp:1010
+#: UI/GTK2/src/PinotSettings.cpp:353 UI/GTK2/src/PinotSettings.cpp:1574
+#: UI/GTK2/src/PinotSettings.cpp:1630 UI/GTK2/src/statisticsDialog.cc:87
+#: UI/GTK2/src/WorkerThreads.cpp:1011
 msgid "My Web Pages"
 msgstr "我的网页"
 
@@ -41,9 +43,9 @@ msgstr "我的网页"
 #: UI/GTK2/src/EnginesTree.cpp:356 UI/GTK2/src/mainWindow.cc:864
 #: UI/GTK2/src/mainWindow.cc:1079 UI/GTK2/src/mainWindow.cc:1385
 #: UI/GTK2/src/mainWindow.cc:1542 UI/GTK2/src/mainWindow.cc:1545
-#: UI/GTK2/src/mainWindow.cc:2399 UI/GTK2/src/PinotSettings.cpp:360
-#: UI/GTK2/src/PinotSettings.cpp:1571 UI/GTK2/src/PinotSettings.cpp:1627
-#: UI/GTK2/src/statisticsDialog.cc:83 UI/GTK2/src/WorkerThreads.cpp:1020
+#: UI/GTK2/src/mainWindow.cc:2399 UI/GTK2/src/PinotSettings.cpp:354
+#: UI/GTK2/src/PinotSettings.cpp:1575 UI/GTK2/src/PinotSettings.cpp:1631
+#: UI/GTK2/src/statisticsDialog.cc:91 UI/GTK2/src/WorkerThreads.cpp:1021
 msgid "My Documents"
 msgstr "我的文件"
 
@@ -403,7 +405,7 @@ msgstr "档案类型没有定义应用程式"
 msgid "Query:"
 msgstr "查询："
 
-#: UI/GTK2/src/mainWindow_glade.cc:137 UI/GTK2/src/statisticsDialog.cc:102
+#: UI/GTK2/src/mainWindow_glade.cc:137 UI/GTK2/src/statisticsDialog.cc:110
 msgid "History"
 msgstr "历史记录"
 
@@ -411,7 +413,7 @@ msgstr "历史记录"
 msgid "Stored queries"
 msgstr "储存的查询"
 
-#: UI/GTK2/src/mainWindow_glade.cc:155 UI/GTK2/src/statisticsDialog.cc:50
+#: UI/GTK2/src/mainWindow_glade.cc:155 UI/GTK2/src/statisticsDialog.cc:55
 #: UI/GTK2/src/statisticsDialog_glade.cc:86
 msgid "Status"
 msgstr "状态"
@@ -488,7 +490,7 @@ msgstr "结果(_R)"
 
 #: UI/GTK2/src/mainWindow_glade.cc:248
 msgid "_Help"
-msgstr "说明(_H)"
+msgstr "帮助 (_H)"
 
 #: UI/GTK2/src/mainWindow_glade.cc:377
 msgid "Pinot"
@@ -499,67 +501,67 @@ msgid "Close"
 msgstr ""
 
 #. Localize language names
-#: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:492
+#: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:442
 msgid "Unknown"
 msgstr ""
 
-#: UI/GTK2/src/pinot.cc:237 UI/GTK2/src/pinot-dbus-daemon.cc:493
+#: UI/GTK2/src/pinot.cc:237 UI/GTK2/src/pinot-dbus-daemon.cc:443
 msgid "Danish"
 msgstr "丹麦语"
 
-#: UI/GTK2/src/pinot.cc:238 UI/GTK2/src/pinot-dbus-daemon.cc:494
+#: UI/GTK2/src/pinot.cc:238 UI/GTK2/src/pinot-dbus-daemon.cc:444
 msgid "Dutch"
 msgstr "荷兰语"
 
-#: UI/GTK2/src/pinot.cc:239 UI/GTK2/src/pinot-dbus-daemon.cc:495
+#: UI/GTK2/src/pinot.cc:239 UI/GTK2/src/pinot-dbus-daemon.cc:445
 msgid "English"
 msgstr "英语"
 
-#: UI/GTK2/src/pinot.cc:240 UI/GTK2/src/pinot-dbus-daemon.cc:496
+#: UI/GTK2/src/pinot.cc:240 UI/GTK2/src/pinot-dbus-daemon.cc:446
 msgid "Finnish"
 msgstr "芬兰语"
 
-#: UI/GTK2/src/pinot.cc:241 UI/GTK2/src/pinot-dbus-daemon.cc:497
+#: UI/GTK2/src/pinot.cc:241 UI/GTK2/src/pinot-dbus-daemon.cc:447
 msgid "French"
 msgstr "法语"
 
-#: UI/GTK2/src/pinot.cc:242 UI/GTK2/src/pinot-dbus-daemon.cc:498
+#: UI/GTK2/src/pinot.cc:242 UI/GTK2/src/pinot-dbus-daemon.cc:448
 msgid "German"
 msgstr "德语"
 
-#: UI/GTK2/src/pinot.cc:243 UI/GTK2/src/pinot-dbus-daemon.cc:499
+#: UI/GTK2/src/pinot.cc:243 UI/GTK2/src/pinot-dbus-daemon.cc:449
 msgid "Hungarian"
 msgstr "匈牙利语"
 
-#: UI/GTK2/src/pinot.cc:244 UI/GTK2/src/pinot-dbus-daemon.cc:500
+#: UI/GTK2/src/pinot.cc:244 UI/GTK2/src/pinot-dbus-daemon.cc:450
 msgid "Italian"
 msgstr "意大利语"
 
-#: UI/GTK2/src/pinot.cc:245 UI/GTK2/src/pinot-dbus-daemon.cc:501
+#: UI/GTK2/src/pinot.cc:245 UI/GTK2/src/pinot-dbus-daemon.cc:451
 msgid "Norwegian"
 msgstr "挪威语"
 
-#: UI/GTK2/src/pinot.cc:246 UI/GTK2/src/pinot-dbus-daemon.cc:502
+#: UI/GTK2/src/pinot.cc:246 UI/GTK2/src/pinot-dbus-daemon.cc:452
 msgid "Portuguese"
 msgstr "葡萄牙语"
 
-#: UI/GTK2/src/pinot.cc:247 UI/GTK2/src/pinot-dbus-daemon.cc:503
+#: UI/GTK2/src/pinot.cc:247 UI/GTK2/src/pinot-dbus-daemon.cc:453
 msgid "Romanian"
 msgstr "罗马尼亚语"
 
-#: UI/GTK2/src/pinot.cc:248 UI/GTK2/src/pinot-dbus-daemon.cc:504
+#: UI/GTK2/src/pinot.cc:248 UI/GTK2/src/pinot-dbus-daemon.cc:454
 msgid "Russian"
 msgstr "俄语"
 
-#: UI/GTK2/src/pinot.cc:249 UI/GTK2/src/pinot-dbus-daemon.cc:505
+#: UI/GTK2/src/pinot.cc:249 UI/GTK2/src/pinot-dbus-daemon.cc:455
 msgid "Spanish"
 msgstr "西班牙语"
 
-#: UI/GTK2/src/pinot.cc:250 UI/GTK2/src/pinot-dbus-daemon.cc:506
+#: UI/GTK2/src/pinot.cc:250 UI/GTK2/src/pinot-dbus-daemon.cc:456
 msgid "Swedish"
 msgstr "瑞典语"
 
-#: UI/GTK2/src/pinot.cc:251 UI/GTK2/src/pinot-dbus-daemon.cc:507
+#: UI/GTK2/src/pinot.cc:251 UI/GTK2/src/pinot-dbus-daemon.cc:457
 msgid "Turkish"
 msgstr "土耳其语"
 
@@ -572,23 +574,48 @@ msgid "Couldn't create history database"
 msgstr "无法开启历史资料库"
 
 #. Add default labels
-#: UI/GTK2/src/PinotSettings.cpp:365
+#: UI/GTK2/src/PinotSettings.cpp:359
 msgid "Important"
 msgstr "重要的"
 
-#: UI/GTK2/src/PinotSettings.cpp:366
+#: UI/GTK2/src/PinotSettings.cpp:360
 msgid "New"
 msgstr "新增"
 
-#: UI/GTK2/src/PinotSettings.cpp:367
+#: UI/GTK2/src/PinotSettings.cpp:361
 msgid "Personal"
 msgstr "个人资料"
 
-#: UI/GTK2/src/PinotSettings.cpp:387
+#: UI/GTK2/src/PinotSettings.cpp:382
 msgid "Me"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:1338
+#: UI/GTK2/src/PinotSettings.cpp:389
+msgid "Latest First"
+msgstr ""
+
+#: UI/GTK2/src/PinotSettings.cpp:392
+msgid "Home Stuff"
+msgstr ""
+
+#: UI/GTK2/src/PinotSettings.cpp:393
+msgid "With Label New"
+msgstr ""
+
+#: UI/GTK2/src/PinotSettings.cpp:394
+msgid "Have CJKV"
+msgstr ""
+
+#: UI/GTK2/src/PinotSettings.cpp:395
+#, fuzzy
+msgid "In English"
+msgstr "英语"
+
+#: UI/GTK2/src/PinotSettings.cpp:396
+msgid "10kb And Smaller"
+msgstr ""
+
+#: UI/GTK2/src/PinotSettings.cpp:1342
 msgid "Unclassified"
 msgstr "未分类的"
 
@@ -838,11 +865,11 @@ msgstr "查询的参数"
 msgid "Score"
 msgstr "评分"
 
-#: UI/GTK2/src/statisticsDialog.cc:76
+#: UI/GTK2/src/statisticsDialog.cc:84
 msgid "Indexes"
 msgstr "索引"
 
-#: UI/GTK2/src/statisticsDialog.cc:109
+#: UI/GTK2/src/statisticsDialog.cc:117
 msgid "Daemon"
 msgstr "伺服程式"
 
@@ -851,7 +878,7 @@ msgid "documents"
 msgstr "文件"
 
 #: UI/GTK2/src/statisticsDialog.cc:151 UI/GTK2/src/statisticsDialog.cc:169
-#: UI/GTK2/src/WorkerThreads.cpp:125
+#: UI/GTK2/src/WorkerThreads.cpp:126
 msgid "Unknown error"
 msgstr "原因不明的错误"
 
@@ -872,108 +899,125 @@ msgid "files"
 msgstr "档案"
 
 #. FIXME: check whether it's actually running !
-#: UI/GTK2/src/statisticsDialog.cc:199
+#: UI/GTK2/src/statisticsDialog.cc:200
 msgid "Running under PID"
 msgstr "程式执行的行程代码"
 
-#: UI/GTK2/src/statisticsDialog.cc:205
+#: UI/GTK2/src/statisticsDialog.cc:221
 msgid "Disconnected from D-Bus"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:209
+#: UI/GTK2/src/statisticsDialog.cc:225
 msgid "Stopped"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:213
+#: UI/GTK2/src/statisticsDialog.cc:229
 msgid "Currently not running"
 msgstr "目前没有执行"
 
 #: UI/GTK2/src/statisticsDialog.cc:243
+msgid "Low disk space"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:260
+msgid "System on battery"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:278
+#, fuzzy
+msgid "Crawling"
+msgstr "已抓回的"
+
+#: UI/GTK2/src/statisticsDialog.cc:313
 msgid "Errors"
 msgstr "错误"
 
-#: UI/GTK2/src/WorkerThreads.cpp:92
+#: UI/GTK2/src/WorkerThreads.cpp:93
 #, fuzzy
 msgid "Index error"
 msgstr "索引错误："
 
-#: UI/GTK2/src/WorkerThreads.cpp:94
+#: UI/GTK2/src/WorkerThreads.cpp:95
 #, fuzzy
 msgid "Couldn't index document"
 msgstr "无法解除文件的索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:96
+#: UI/GTK2/src/WorkerThreads.cpp:97
 msgid "Couldn't update document"
 msgstr "无法更新文件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:98
+#: UI/GTK2/src/WorkerThreads.cpp:99
 msgid "Couldn't unindex document(s)"
 msgstr "无法解除文件的索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:100
+#: UI/GTK2/src/WorkerThreads.cpp:101
 msgid "Couldn't run query on search engine"
 msgstr "搜寻引擎无法执行查询"
 
-#: UI/GTK2/src/WorkerThreads.cpp:102
+#: UI/GTK2/src/WorkerThreads.cpp:103
 #, fuzzy
 msgid "Couldn't get history for search engine"
 msgstr "搜寻引擎无法执行查询"
 
-#: UI/GTK2/src/WorkerThreads.cpp:104
+#: UI/GTK2/src/WorkerThreads.cpp:105
 #, fuzzy
 msgid "Couldn't retrieve document"
 msgstr "无法更新文件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:106
+#: UI/GTK2/src/WorkerThreads.cpp:107
 msgid "File monitor error"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:108
+#: UI/GTK2/src/WorkerThreads.cpp:109
 #, fuzzy
 msgid "Couldn't open directory"
 msgstr "无法开启索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:110
+#: UI/GTK2/src/WorkerThreads.cpp:111
 #, fuzzy
 msgid "Index doesn't exist"
 msgstr "不存在"
 
-#: UI/GTK2/src/WorkerThreads.cpp:112
+#: UI/GTK2/src/WorkerThreads.cpp:113
 msgid "Couldn't create search engine"
 msgstr "无法建立搜寻引擎"
 
-#: UI/GTK2/src/WorkerThreads.cpp:114
+#: UI/GTK2/src/WorkerThreads.cpp:115
 msgid "Cannot index document type"
 msgstr "无法索引档案类别"
 
-#: UI/GTK2/src/WorkerThreads.cpp:116
+#: UI/GTK2/src/WorkerThreads.cpp:117
 msgid "No downloader for this protocol"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:118
+#: UI/GTK2/src/WorkerThreads.cpp:119
 msgid "Robots META tag forbids indexing"
 msgstr "Robots的meta标记不允许索引"
 
-#: UI/GTK2/src/WorkerThreads.cpp:120
+#: UI/GTK2/src/WorkerThreads.cpp:121
 msgid "No monitoring handler"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:417
+#: UI/GTK2/src/WorkerThreads.cpp:418
 msgid "Indexing was stopped"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:430
+#: UI/GTK2/src/WorkerThreads.cpp:431
 msgid "Can't index mail here"
 msgstr "无法索引邮件"
 
-#: UI/GTK2/src/WorkerThreads.cpp:451 UI/GTK2/src/WorkerThreads.cpp:716
+#: UI/GTK2/src/WorkerThreads.cpp:452 UI/GTK2/src/WorkerThreads.cpp:717
 msgid "is already being indexed"
 msgstr "已经被索引了"
 
-#: UI/GTK2/src/WorkerThreads.cpp:461
+#: UI/GTK2/src/WorkerThreads.cpp:462
 msgid "is blacklisted"
 msgstr "列入黑名单"
 
-#: UI/GTK2/src/WorkerThreads.cpp:973
+#: UI/GTK2/src/WorkerThreads.cpp:974
 msgid "No title"
 msgstr "无标题"
+
+#, fuzzy
+#~ msgid "No"
+#~ msgstr "无"
