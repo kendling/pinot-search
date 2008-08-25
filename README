@@ -109,10 +109,11 @@ http://pinot.berlios.de/
   content".
 
   If the version of Pinot you are using was built with support for the Google
-  SOAP API, a "Google API" engine will appear in the group The Web. To query
-  this engine, create an account at http://api.google.com/. You will then
-  receive a Google API key by email. Enter this key in the corresponding
-  field in the General tab of the Preferences box.
+  SOAP API, a "Google API" engine will appear in the group The Web (<= v0.87)
+  or Current User (> v0.87). To query this engine, you will need to enter
+  your Google API in the corresponding field in the General tab of the
+  Preferences box. Note that Google no longer issues API keys. Building this
+  engine is not recommended.
 
 
 4. Indexes
@@ -208,8 +209,26 @@ http://pinot.berlios.de/
       "HHMMSS..HHMMSS" for time ranges, eg "090000..180000"
       "size0..size1b" for size in bytes, eg "0..10240b"
 
-  For more information about the query syntax, you may want to have a look at the
-  documentation for Xapian's QueryParser at http://www.xapian.org/docs/queryparser.html
+  For more information about this query syntax, you may want to have a look at
+  the documentation for Xapian's QueryParser at
+  http://www.xapian.org/docs/queryparser.html
+
+  Pinot also has support for the Xesam desktop search specifications. As of
+  v0.87, provided that the xesam-glib library is found at compilation time,
+  users can query a search engine that implements the Xesam interface. Note
+  that the daemon doesn't itself implement that interface just yet.
+
+  By default, Pinot assumes that all queries are in the Xapian QueryParser
+  format but the following exceptions apply :
+    * when querying the Xesam engine using the UI, queries should be entered
+      in the Xesam User Language format.
+    * when querying the Xesam engine using pinot-search with the -q/--xesamql
+      option, queries should be entered in the Xesam Query Language format;
+      otherwise, in the Xesam User Language format.
+    * when querying an internal index using pinot-search, the -q/--xesamql
+      and -u/--xesamul options determine the format of the query.
+
+  See the manual page for pinot-search(1) for examples.
 
 
 7. Viewing cached results
@@ -404,6 +423,9 @@ http://pinot.berlios.de/
 
   Prior to v0.85, this processing only applied to pure CJKV queries.
 
+  It is recommended that filters (eg "title") be used at the end of the query
+  for it to be processed as expected.
+
   You can get a list of documents in which CJKV characters were detected
   by the indexer with the special filter "tokens:CJKV".
 
@@ -521,7 +543,10 @@ http://ktown.kde.org/~wheeler/taglib/
 libexif							0.6
 http://libexif.sourceforge.net/
 
-openssh-askpass (4)					4.3
+xesam-glib (4)						0.4.0
+http://xesam.org/people/kamstrup/xesam-glib/
+
+openssh-askpass (5)					4.3
 http://www.openssh.com/portable.html
 
 ---------------------------------------------------------------
@@ -550,11 +575,12 @@ catppt
 xls2csv
 http://www.wagner.pp.ru/~vitus/software/catdoc/
 
----------------------------------------------------------------
+----------------------------------------------------------------
 Notes :
 (1) enabled with "./configure --with-http=neon|curl"
-(2) enabled with "./configure --with-soap=yes"
+(2) enabled with "./configure --enable-soap=yes" (not recommended)
 (3) for building only
-(4) experimental - required only if _SSH_TUNNEL is set
----------------------------------------------------------------
+(4) enabled with "./configure --enable-xesam-glib=yes
+(5) experimental - required only if _SSH_TUNNEL is set
+----------------------------------------------------------------
 

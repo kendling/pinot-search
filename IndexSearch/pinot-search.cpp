@@ -107,13 +107,13 @@ static void printHelp(void)
 		cout << " '" << engineIter->first.m_name << "'";
 	}
 	cout << "\n\nExamples:\n"
-#ifdef HAVE_GOOGLEAPI
-		<< "pinot-search googleapi mygoogleapikey \"clowns\"\n\n"
-#endif
 		<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\"\n\n"
 		<< "pinot-search --max 20 sherlock --seteditable \"Bozo App ID:1234567890\" " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
+		<< "pinot-search googleapi mygoogleapikey \"clowns\"\n\n"
 		<< "pinot-search xapian ~/.pinot/index \"label:Clowns\"\n\n"
 		<< "pinot-search --stemming english xapian somehostname:12345 \"clowning\"\n\n"
+		<< "pinot-search --xesamul xapian ~/.pinot/index some_xesamul_query.txt\n\n"
+		<< "pinot-search --xesamql xesam - some_xesamql_query.xml\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }
 
