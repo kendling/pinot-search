@@ -176,11 +176,14 @@ http://pinot.berlios.de/
 
   When querying an index, things are somewhat different. Queries can be
   expressed in a very natural way, using a combination of operators, filters
-  and ranges.
+  and ranges. This query syntax is the syntax supported natively by Xapian's
+  QueryParser.
+
+  The full syntax is documented at http://www.xapian.org/docs/queryparser.html
   For instance, the query "type:text/html and lang:en and (tcp near ip)" will
   look for HTML files in English that mention TCP/IP. 
 
-  Supported filters are :
+  Pinot supports these filters :
       "site" for host name, eg "site:pinot.berlios.de"
       "file" for file name, eg "file:index.html"
       "ext" for file extension, eg "ext:html"
@@ -209,17 +212,14 @@ http://pinot.berlios.de/
       "HHMMSS..HHMMSS" for time ranges, eg "090000..180000"
       "size0..size1b" for size in bytes, eg "0..10240b"
 
-  For more information about this query syntax, you may want to have a look at
-  the documentation for Xapian's QueryParser at
-  http://www.xapian.org/docs/queryparser.html
-
   Pinot also has support for the Xesam desktop search specifications. As of
   v0.87, provided that the xesam-glib library is found at compilation time,
   users can query a search engine that implements the Xesam interface. Note
   that the daemon doesn't itself implement that interface just yet.
 
-  By default, Pinot assumes that all queries are in the Xapian QueryParser
-  format but the following exceptions apply :
+  The following rules of thumb apply :
+    * when querying a Web engine, queries should be entered in a format
+      understood by the engine.
     * when querying the Xesam engine using the UI, queries should be entered
       in the Xesam User Language format.
     * when querying the Xesam engine using pinot-search with the -q/--xesamql
