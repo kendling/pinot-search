@@ -24,7 +24,7 @@
     charset = "UTF-8"
     resultListStart="<div id=res" 
     resultListEnd="<div id=navbar" 
-    resultItemStart="<div class=g>" 
+    resultItemStart=" class=g>" 
     resultItemEnd="</div>"
 >
 </search>
