@@ -20,7 +20,7 @@ Barpanel
 
 Tokenize
 - Allow to cache documents that had to be converted ? eg PDF, MS Word
-- PDF filter with poppler
+- Write a PDF filter that handles columns correctly, with poppler ?
 - WordPerfect filter with libwpd
 - Office filter with libgst
 - TeX filter
@@ -29,7 +29,6 @@ Tokenize
  given type
 - XmlFilter is slow-ish, rewrite file parsing with the TextReader interface
 - Filters should at least return errno when they fail
-- Write a PDF filter that handles columns correctly
 
 SQL
 - Move history files into the index directories
@@ -54,7 +53,6 @@ Search
 - getCloseTerms() should be a search engine method so that WebEngine can use plugins'
  suggestions Url field (http://developer.mozilla.org/en/docs/Supporting_search_suggestions_in_search_plugins)
 - pinot-search should be able to run stored queries, as found in the configuration file
-- Move the Google API code into a search-only backend
 
 Index
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
@@ -72,6 +70,7 @@ Index
 - Send a signal when crawling is done so that the UI can reopen the index
 - Be ready to catch DatabaseModifiedError exceptions and reopen the index
 - Associate URIs or IDs to labels to avoid expensive find and replace operations when they are renamed
+- Force reindexing on 0.90 to make sure all CJKV fixes are taken advantage of
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -88,7 +87,6 @@ Daemon
 - Clean up method names
 - Prefer ustring to string whenever possible
 - Queue unindexing too
-- Don't link against SOAP stuff, it's not needed here
 - Follow updates to Xesam specs
 - Preserve user set metadata on reindexing
 
@@ -97,7 +95,7 @@ UI
  selectively
 - Display search engines icons (Gtk::IconSource::set_filename() and Gtk::Style::render_icon())
 - Replace glademm with libglademm ?
-- Make unique (http://guniqueapp.akl.lt/)
+- Use unique (http://www.gnome.org/~ebassi/source/) if available
 - Either Live Query behaves like a live query (eg results list updated when new
  documents match) or it is renamed to something else to avoid confusion
 - When viewing or indexing a result, all rows for that same URL should be updated with

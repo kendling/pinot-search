@@ -167,7 +167,7 @@ http://pinot.berlios.de/
 6. Searching
 
 
-  Searches are run differently based on the type of engine being queries.
+  Searches are run differently based on the type of engine being queried.
 
   When querying a Web engine, Pinot assumes this engine understands the query,
   which is sent as is. No pre-processing is performed on the text of the query,
@@ -207,7 +207,7 @@ http://pinot.berlios.de/
   worth pointing out that the query "dir:/X/Y" will return files and directories
   located in /X/Y, but not Y itself, which is what "dir:/X file:Y" would do.
 
-  Supported ranges are :
+  In addition, these ranges are supported :
       "YYYYMMDD..YYYYMMDD" for date ranges, eg "20070801..20070831"
       "HHMMSS..HHMMSS" for time ranges, eg "090000..180000"
       "size0..size1b" for size in bytes, eg "0..10240b"
