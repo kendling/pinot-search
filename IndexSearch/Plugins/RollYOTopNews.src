@@ -13,12 +13,13 @@
 <INPUT NAME="q" user>
 <INPUT NAME="uid" VALUE="0">
 <INPUT NAME="sid" VALUE="5628">
+<INPUTNEXT NAME="start" FACTOR="20" VALUE="1">
 
 <INTERPRET
  resultListStart=''
  resultListEnd=''
- resultItemStart='<dt class="top-title">'
- resultItemEnd='</dt>'
+ resultItemStart='<dl><dt>'
+ resultItemEnd='</dd></dl>'
 >
 
 </SEARCH>

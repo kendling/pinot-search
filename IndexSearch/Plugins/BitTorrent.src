@@ -5,20 +5,18 @@
 	name="BitTorrent"
 	description="bittorrent.com"
 	method="GET"
-	action="http://www.bittorrent.com/search.jsp"
+	action="http://www.bittorrent.com/search"
 	routeType="Content"
 >
-
-<INPUT NAME="hitsPerPage" VALUE="10">
-<INPUT NAME="hitsPerSite" VALUE="3">
-<INPUT NAME="query" USER>
-<INPUT NAME="Submit2" VALUE="Search">
-<INPUTNEXT NAME="start" FACTOR="10">
+<INPUT NAME="q" USER>
+<INPUT NAME="category" VALUE="All">
+<INPUT NAME="start" VALUE="0">
+<INPUTNEXT NAME="start_result" FACTOR="10">
 
 <INTERPRET
-resultListStart='<div class="searchresults">'
-resultListEnd='<div class="pages">'
-resultItemStart='<div class="d">'
+resultListStart='<ol id="results">'
+resultListEnd='<div id="paging">'
+resultItemStart='<li class="clear">'
 resultItemEnd='</li>'
 >
 

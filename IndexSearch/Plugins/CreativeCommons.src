@@ -5,18 +5,18 @@
 	name="Creative Commons"
 	description="Yahoo! Search for Creative Commons"
 	method="GET"
-	action="http://search.creativecommons.org/"
+	action="http://creativecommons.org/"
 	routeType="Content"
 >
 
-<INPUT NAME="q" USER>
+<INPUT NAME="s" USER>
 <INPUTNEXT NAME="start" FACTOR="10" VALUE="0">
 
 <INTERPRET
-resultListStart='<!-- start results -->'
-resultListEnd='<!-- end results -->'
-resultItemStart='<p class="resultitem">'
-resultItemEnd='</p>'
+resultListStart='<div id="content">'
+resultListEnd='<div class="wp-pagenavi">'
+resultItemStart='<div class="block blogged">'
+resultItemEnd='</div>'
 >
 
 </SEARCH>

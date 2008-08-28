@@ -12,13 +12,13 @@
 <INPUT NAME="search" USER>
 <INPUT NAME="fulltext" VALUE="Search">
 <INPUT NAME="limit" VALUE="10">
-<INPUTNEXT NAME="offset" FACTOR="1">
+<INPUTNEXT NAME="offset" FACTOR="10">
 
 <INTERPRET
-resultListStart=""
-resultListEnd=""
-resultItemStart='<li style="padding-bottom: 1em;">'
-resultItemEnd='</span></li>'
+resultListStart="<ul class='mw-search-results'>"
+resultListEnd="</ul>"
+resultItemStart="<li>"
+resultItemEnd="</li>"
 >
 
 </SEARCH>

@@ -10,10 +10,10 @@
    routeType="Source Code"
 >
 
+<input name="hl" value="en">
 <input name="q" user>
-<input name="btnG" value="Search+Codesourceid">
 <inputnext name="start" factor="10">
-<inputprev name="start" factor="10">
+<input name="sa" value="N">
 <input name="ie" value="utf-8">
 <input name="oe" value="utf-8">
 
@@ -23,6 +23,6 @@
     resultListStart=""
     resultListEnd=""
     resultItemStart="<div class=h>"
-    resultItemEnd="</span></div>"
+    resultItemEnd="</div>"
 >
 </search>

@@ -23,6 +23,6 @@
     resultListStart="<hr"
     resultListEnd=""
     resultItemStart='<td valign="top">'
-    resultItemEnd='</table>'
+    resultItemEnd='<small>Version:</small>'
 >
 </search>
