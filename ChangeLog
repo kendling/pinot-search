@@ -1,4 +1,430 @@
 ------------------------------------------------------------------------
+r1351 | fabricecolin | 2008-08-29 23:58:52 +0800 (Fri, 29 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog-dijon
+   M /trunk/NEWS
+
+Updated NEWS and Dijon's ChangeLog.
+
+------------------------------------------------------------------------
+r1350 | fabricecolin | 2008-08-28 23:52:50 +0800 (Thu, 28 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Plugins/Google.src
+
+Another plugin update.
+
+------------------------------------------------------------------------
+r1349 | fabricecolin | 2008-08-28 21:30:42 +0800 (Thu, 28 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-index.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/IndexSearch/pinot-search.1
+   M /trunk/README
+   M /trunk/TODO
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.1
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Bumped the version number, regenerated man pages.
+Minor updates to TODO and README.
+
+------------------------------------------------------------------------
+r1348 | fabricecolin | 2008-08-28 21:14:48 +0800 (Thu, 28 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+
+Move YahooBOSS.src out of the engines directory for the time being.
+
+------------------------------------------------------------------------
+r1347 | fabricecolin | 2008-08-28 21:08:46 +0800 (Thu, 28 Aug 2008) | 2 lines
+Changed paths:
+   D /trunk/IndexSearch/Plugins/CreativeCommons.src
+
+This is now a blog search. The actual content search is somewhat obfuscated.
+
+------------------------------------------------------------------------
+r1346 | fabricecolin | 2008-08-28 21:07:38 +0800 (Thu, 28 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Plugins/BitTorrent.src
+   M /trunk/IndexSearch/Plugins/CreativeCommons.src
+   M /trunk/IndexSearch/Plugins/Freshmeat.src
+   M /trunk/IndexSearch/Plugins/GoogleCodeSearch.src
+   M /trunk/IndexSearch/Plugins/RollYOTopNews.src
+   M /trunk/IndexSearch/Plugins/Wikipedia.src
+
+Search engine updates.
+
+------------------------------------------------------------------------
+r1345 | fabricecolin | 2008-08-27 22:28:47 +0800 (Wed, 27 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/README
+
+Added rainofchaos to list of translators.
+Rephrased part about engines and query syntaxes in section 6 of the README.
+
+------------------------------------------------------------------------
+r1344 | fabricecolin | 2008-08-25 22:46:08 +0800 (Mon, 25 Aug 2008) | 5 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-search.cpp
+   M /trunk/README
+
+Explain to what extent Xesam specs are supported; pinot-search's help text has
+some examples now.
+Clarify that building the Google API is not recommended, and how to use filters
+in CJKV queries.
+
+------------------------------------------------------------------------
+r1343 | fabricecolin | 2008-08-24 12:43:33 +0800 (Sun, 24 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Current translations.
+
+------------------------------------------------------------------------
+r1342 | fabricecolin | 2008-08-23 22:39:04 +0800 (Sat, 23 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+
+Create a bunch of useful default queries.
+
+------------------------------------------------------------------------
+r1341 | fabricecolin | 2008-08-23 22:37:10 +0800 (Sat, 23 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Google/ModuleExports.cpp
+
+Fix previous commit.
+
+------------------------------------------------------------------------
+r1340 | fabricecolin | 2008-08-23 20:57:23 +0800 (Sat, 23 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/statisticsDialog.cc
+   M /trunk/UI/GTK2/src/statisticsDialog.hh
+
+Show extra stats only when on.
+
+------------------------------------------------------------------------
+r1339 | fabricecolin | 2008-08-19 21:46:17 +0800 (Tue, 19 Aug 2008) | 2 lines
+Changed paths:
+   A /trunk/IndexSearch/Google/ModuleExports.cpp
+
+Functions exported by this backend.
+
+------------------------------------------------------------------------
+r1338 | fabricecolin | 2008-08-19 21:43:52 +0800 (Tue, 19 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/EnginesTree.cpp
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+   M /trunk/UI/GTK2/src/PinotSettings.h
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/prefsDialog.cc
+   M /trunk/UI/GTK2/src/statisticsDialog.cc
+
+Synced with the new ModuleFactory::getSupportedEngines().
+Replaced PinotSettings::Engine with ModuleProperties.
+
+------------------------------------------------------------------------
+r1337 | fabricecolin | 2008-08-19 21:40:26 +0800 (Tue, 19 Aug 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/Makefile.am
+   M /trunk/IndexSearch/ModuleFactory.cpp
+   M /trunk/IndexSearch/ModuleFactory.h
+   A /trunk/IndexSearch/ModuleProperties.h
+   M /trunk/IndexSearch/SearchPluginProperties.cpp
+   M /trunk/IndexSearch/SearchPluginProperties.h
+   M /trunk/IndexSearch/Xapian/ModuleExports.cpp
+   M /trunk/IndexSearch/XesamGLib/ModuleExports.cpp
+   M /trunk/IndexSearch/pinot-index.cpp
+   M /trunk/IndexSearch/pinot-search.cpp
+
+Spun some properties out of SearchPluginProperties into ModuleProperties.
+Backends must implement ModuleProperties *getModuleProperties() instead of
+string getModuleType().
+
+------------------------------------------------------------------------
+r1336 | fabricecolin | 2008-08-19 21:38:49 +0800 (Tue, 19 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/OpenSearchParser.cpp
+   M /trunk/IndexSearch/SherlockParser.cpp
+
+Forget about description of engines.
+
+------------------------------------------------------------------------
+r1335 | fabricecolin | 2008-08-16 13:57:59 +0800 (Sat, 16 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/configure.in
+
+If GIO can sniff PNG, set USE_GIO and make sure programs link against it.
+The test on GIO's sniffing abilities comes from gtk+'s configure.in.
+
+------------------------------------------------------------------------
+r1334 | fabricecolin | 2008-08-16 13:54:54 +0800 (Sat, 16 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/Utils/MIMEScanner.cpp
+
+Compile getKeyValue() out if GIO is in use.
+The xdgmime function to call in scanData() is xdg_mime_get_mime_type_for_data().
+
+------------------------------------------------------------------------
+r1333 | fabricecolin | 2008-08-15 22:47:45 +0800 (Fri, 15 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/FilterUtils.cpp
+   M /trunk/Utils/MIMEScanner.cpp
+   M /trunk/Utils/MIMEScanner.h
+
+New MIMEScanner::scanData() method, used when a filter returns "scan" as type.
+
+------------------------------------------------------------------------
+r1332 | fabricecolin | 2008-08-15 21:25:14 +0800 (Fri, 15 Aug 2008) | 4 lines
+Changed paths:
+   M /trunk/Tokenize/FilterUtils.cpp
+   M /trunk/Tokenize/FilterUtils.h
+   M /trunk/Utils/CommandLine.cpp
+   M /trunk/Utils/MIMEScanner.cpp
+   M /trunk/Utils/MIMEScanner.h
+
+MIMEScanner::getParentTypes() needs the list of all supported types so that in
+GIO mode it can determine which types are related with g_content_type_is_a().
+This flattens the types hierarchy though, but this will do.
+
+------------------------------------------------------------------------
+r1331 | fabricecolin | 2008-08-14 21:34:54 +0800 (Thu, 14 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-index.cpp
+
+If --showinfo is passed, show which actions are associated with the document's
+MIME type.
+
+------------------------------------------------------------------------
+r1330 | fabricecolin | 2008-08-14 21:29:02 +0800 (Thu, 14 Aug 2008) | 4 lines
+Changed paths:
+   M /trunk/Utils/CommandLine.cpp
+   M /trunk/Utils/MIMEScanner.cpp
+   M /trunk/Utils/MIMEScanner.h
+   M /trunk/Utils/Makefile.am
+
+Use GAppInfo at the same time as GContentType, instead of the MIMECache code.
+This extends to CommandLine::runAsync().
+Switched to USE_GIO for consistency with the HTTP stuff.
+
+------------------------------------------------------------------------
+r1329 | fabricecolin | 2008-08-11 15:43:11 +0800 (Mon, 11 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/Collect/FileCollector.cpp
+   M /trunk/IndexSearch/pinot-index.cpp
+   M /trunk/IndexSearch/pinot-search.cpp
+
+Cosmetic changes.
+
+------------------------------------------------------------------------
+r1328 | fabricecolin | 2008-08-11 15:41:48 +0800 (Mon, 11 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Google/Makefile.am
+   M /trunk/IndexSearch/Xapian/Makefile.am
+   M /trunk/IndexSearch/XesamGLib/Makefile.am
+
+Link all backends against BasicUtils.
+For the Google API, bundle all source files as headers if support is turned off.
+
+------------------------------------------------------------------------
+r1327 | fabricecolin | 2008-08-11 15:39:22 +0800 (Mon, 11 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/Utils/MIMEScanner.cpp
+   M /trunk/Utils/MIMEScanner.h
+   M /trunk/Utils/Makefile.am
+
+Use GContentType instead of xdgmime if HAVE_GIO_MIME is set/defined.
+
+------------------------------------------------------------------------
+r1326 | fabricecolin | 2008-08-06 21:35:44 +0800 (Wed, 06 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.h
+
+Removed dead functions. Both set/getLabels() rely on set/getMetadata().
+
+------------------------------------------------------------------------
+r1325 | fabricecolin | 2008-08-04 22:45:18 +0800 (Mon, 04 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Google API key fix.
+
+------------------------------------------------------------------------
+r1324 | fabricecolin | 2008-08-04 22:37:13 +0800 (Mon, 04 Aug 2008) | 2 lines
+Changed paths:
+   D /trunk/Tokenize/Tokenizer.cpp
+   D /trunk/Tokenize/tokenizertest.cpp
+
+These two were obsoleted quite some time ago...
+
+------------------------------------------------------------------------
+r1323 | fabricecolin | 2008-08-04 22:33:24 +0800 (Mon, 04 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+   M /trunk/UI/GTK2/src/prefsDialog.cc
+
+The Google API engine is now loaded dynamically, if available, and identified as
+"Google API".
+
+------------------------------------------------------------------------
+r1322 | fabricecolin | 2008-08-04 22:31:35 +0800 (Mon, 04 Aug 2008) | 2 lines
+Changed paths:
+   D /trunk/IndexSearch/SOAPEnv.h
+   D /trunk/IndexSearch/SOAPEnvH.h
+   D /trunk/IndexSearch/SOAPEnvNS.cpp
+   D /trunk/IndexSearch/SOAPEnvStub.h
+
+These are no longer needed.
+
+------------------------------------------------------------------------
+r1321 | fabricecolin | 2008-08-04 22:22:08 +0800 (Mon, 04 Aug 2008) | 5 lines
+Changed paths:
+   M /trunk/IndexSearch/Google/GAPIC.cpp
+   M /trunk/IndexSearch/Google/GAPIClient.cpp
+   M /trunk/IndexSearch/Google/GAPIClientLib.cpp
+   M /trunk/IndexSearch/Google/GAPIGoogleSearchBindingProxy.h
+   M /trunk/IndexSearch/Google/GAPIH.h
+   M /trunk/IndexSearch/Google/GAPIStub.h
+   M /trunk/IndexSearch/Google/GoogleAPIEngine.cpp
+   M /trunk/IndexSearch/Google/GoogleSearch.h
+   M /trunk/IndexSearch/Google/Makefile.am
+
+Regenerated code with gsoap 2.7.10.
+Compile GAPIC and GAPIClient, and ignore GAPIClientLib as it defines a macro
+that makes all the soap_ functions static. All this is built into a dynamic
+backend.
+
+------------------------------------------------------------------------
+r1320 | fabricecolin | 2008-08-04 22:15:56 +0800 (Mon, 04 Aug 2008) | 6 lines
+Changed paths:
+   M /trunk/Collect/Makefile.am
+   M /trunk/IndexSearch/FilterWrapper.h
+   M /trunk/IndexSearch/IndexInterface.h
+   M /trunk/IndexSearch/Makefile.am
+   M /trunk/IndexSearch/ModuleFactory.cpp
+   M /trunk/IndexSearch/QueryProperties.h
+   M /trunk/IndexSearch/SearchEngineInterface.h
+   M /trunk/IndexSearch/WebEngine.h
+   M /trunk/IndexSearch/Xapian/Makefile.am
+   M /trunk/IndexSearch/Xapian/ModuleExports.cpp
+   M /trunk/IndexSearch/XesamGLib/Makefile.am
+   M /trunk/IndexSearch/XesamGLib/ModuleExports.cpp
+   M /trunk/Monitor/Makefile.am
+   M /trunk/SQL/Makefile.am
+   M /trunk/Tokenize/FilterUtils.h
+   M /trunk/Tokenize/Makefile.am
+   M /trunk/Tokenize/TextConverter.h
+   M /trunk/Tokenize/Tokenizer.h
+   M /trunk/UI/GTK2/src/Makefile.am
+   M /trunk/Utils/CommandLine.h
+   M /trunk/Utils/Document.h
+   M /trunk/Utils/DocumentInfo.h
+   M /trunk/Utils/Languages.h
+   M /trunk/Utils/MIMEScanner.h
+   M /trunk/Utils/Makefile.am
+   M /trunk/Utils/StringManip.h
+   M /trunk/Utils/TimeConverter.h
+   M /trunk/Utils/Timer.h
+   M /trunk/Utils/Url.h
+   M /trunk/configure.in
+
+If gcc 4.x is available, set symbol visibility to hidden by default. Only export
+stuff we know is required by the backends, and backend's entry points.
+Don't build libSearchSOAP, and remove references to the Google API engine, this
+will go into a separate backend.
+-fPIC is set in CXXFLAGS by configure.in instead of in each Makefile.
+
+------------------------------------------------------------------------
+r1319 | fabricecolin | 2008-08-03 23:23:35 +0800 (Sun, 03 Aug 2008) | 2 lines
+Changed paths:
+   A /trunk/Utils/Visibility.h
+
+Some macros to set symbol visibility.
+
+------------------------------------------------------------------------
+r1318 | fabricecolin | 2008-08-03 23:22:35 +0800 (Sun, 03 Aug 2008) | 3 lines
+Changed paths:
+   A /trunk/UI/GTK2/src/UniqueApplication.cpp
+   A /trunk/UI/GTK2/src/UniqueApplication.h
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+
+Moved code that enforced the daemon's uniqueness to UniqueApplication and
+prepare for an eventual switch to Unique (http://www.gnome.org/~ebassi/source/).
+
+------------------------------------------------------------------------
+r1317 | fabricecolin | 2008-08-03 21:02:29 +0800 (Sun, 03 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/WorkerThreads.cpp
+
+Time retrieveUrl().
+
+------------------------------------------------------------------------
+r1316 | fabricecolin | 2008-08-03 17:09:13 +0800 (Sun, 03 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+
+The flag QueryParser::FLAG_BOOLEAN_ANY_CASE causes more problems than it's worth,
+especially when queries are pieces of text pasted from elsewhere.
+
+------------------------------------------------------------------------
+r1315 | fabricecolin | 2008-08-03 17:04:32 +0800 (Sun, 03 Aug 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/XesamGLib/XesamEngine.cpp
+
+Use xesam:language and xesam:relevancyRating.
+It's not clear in what language the languages list is supposed to be, so we
+assume it's in the locale language.
+
+------------------------------------------------------------------------
+r1314 | fabricecolin | 2008-07-26 14:10:28 +0800 (Sat, 26 Jul 2008) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/po/de.po
+   M /trunk/po/fr.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/sv.po
+
+Updated de, pt_BR, sv and fr by Gena Haltmair, Rafael Porto Rodrigues, Daniel
+Nylander and myself.
+
+------------------------------------------------------------------------
+r1313 | fabricecolin | 2008-07-26 12:20:04 +0800 (Sat, 26 Jul 2008) | 5 lines
+Changed paths:
+   M /trunk/IndexSearch/DBusIndex.cpp
+   M /trunk/IndexSearch/DBusIndex.h
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+   M /trunk/UI/GTK2/src/DaemonState.h
+   M /trunk/UI/GTK2/src/ServerThreads.cpp
+   M /trunk/UI/GTK2/src/pinot-dbus-daemon.xml
+   M /trunk/UI/GTK2/src/statisticsDialog.cc
+   M /trunk/UI/GTK2/src/statisticsDialog.hh
+
+Extended GetStatistics to return the flags "low disk space", "on battery" and
+"crawling". The latter is new to the daemon and set while a DirectoryScanner is
+running.
+That information is displayed in the Status window.
+
+------------------------------------------------------------------------
+r1311 | fabricecolin | 2008-07-19 19:11:52 +0800 (Sat, 19 Jul 2008) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/ChangeLog-dijon
+
+Current logs.
+
+------------------------------------------------------------------------
 r1310 | fabricecolin | 2008-07-19 19:00:19 +0800 (Sat, 19 Jul 2008) | 2 lines
 Changed paths:
    M /trunk/NEWS
