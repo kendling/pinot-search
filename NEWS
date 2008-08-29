@@ -1,3 +1,33 @@
+2008/08/30 version_0_8_8
+General :
+ - replace xdgmime with GIO if it can sniff PNG at configure time
+ - with gcc 4.x, set symbol visibility to hidden by default
+Tokenize :
+ - for unknown text formats, don't be too quick to fall back on the plain
+  text filter
+ - the output of external filters can be scanned if need be
+ - some support for OpenXML formats
+Search :
+ - obsolete Google API engine now built as a dynamic backend
+ - backends provide slightly more information 
+ - updated several plugins
+ - removed the CreativeCommons plugin
+Index :
+ - pinot-index --showinfo shows which actions are associated with a MIME type
+Xapian :
+ - only support boolean operators in upper-case. This helps fixing issues
+  with queries made of text pasted from elsewhere.
+Daemon :
+ - extended GetStatistics to return the flags "low disk space", "on battery"
+  and "crawling"
+UI :
+ - on first runs, create useful stored queries
+ - display extended status in the Status window
+ - updated Simplified Chinese translation by rainofchaos
+ - updated German translation by Gena Haltmair
+ - updated Brazilian Portuguese translation by Rafael Porto Rodrigues
+ - updated Swedish translation by Daniel Nylander
+
 2008/07/20 version_0_8_7
 General :
  - install the Amazon API plugin with other plugins
@@ -9,6 +39,7 @@ Search :
  - in plugins, setting a value to "EDIT:description" makes it editable and
   allows to assign it a value at search time
  - pinot-search can set editable parameters with -e/--seteditable 
+ - plugin for the new Yahoo! BOSS API 
 Xapian :
  - skip very short non-CJKV terms when expanding queries.
  - fixed mangling of some CJKV queries

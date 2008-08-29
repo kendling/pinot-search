@@ -1,4 +1,45 @@
 ------------------------------------------------------------------------
+r114 | fabricecolin | 2008-08-22 21:50:04 +0800 (Fri, 22 Aug 2008) | 4 lines
+Changed paths:
+   M /trunk/filters/external-filters.xml
+
+If a filter's output element is set to SCAN, the application is supposed to scan
+it for its MIME type.
+Added two such filters for application/x-gzip and x-bzip.
+
+------------------------------------------------------------------------
+r113 | fabricecolin | 2008-08-15 21:02:48 +0800 (Fri, 15 Aug 2008) | 3 lines
+Changed paths:
+   M /trunk/filters/FilterFactory.cc
+
+Don't assume that all MIME types of class text can be handled by the plain text
+filter.
+
+------------------------------------------------------------------------
+r112 | fabricecolin | 2008-08-04 22:27:19 +0800 (Mon, 04 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.h
+   M /trunk/filters/ExifImageFilter.cc
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/Filter.h
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/HtmlFilter.cc
+   M /trunk/filters/HtmlFilter.h
+   M /trunk/filters/TagLibMusicFilter.cc
+   M /trunk/filters/TextFilter.h
+   M /trunk/filters/XmlFilter.cc
+
+If gcc 4.*, export filter entry points and base classes explicitely.
+
+------------------------------------------------------------------------
+r111 | fabricecolin | 2008-07-26 13:59:03 +0800 (Sat, 26 Jul 2008) | 3 lines
+Changed paths:
+   M /trunk/filters/external-filters.xml
+
+Support for docx formats, as suggested by Frank Bruzzaniti on the xapian-discuss
+mailing list.
+
+------------------------------------------------------------------------
 r109 | fabricecolin | 2008-07-19 15:37:59 +0800 (Sat, 19 Jul 2008) | 2 lines
 Changed paths:
    M /trunk/filters/HtmlFilter.cc
