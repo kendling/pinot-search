@@ -12,6 +12,7 @@ noinst_HEADERS = \
 	Timer.h \
 	Url.h \
 	Visibility.h \
+	$(top_srcdir)/Utils/unac/unac.h \
 	$(top_srcdir)/Utils/xdgmime/xdgmimealias.h \
 	$(top_srcdir)/Utils/xdgmime/xdgmimecache.h \
 	$(top_srcdir)/Utils/xdgmime/xdgmimeglob.h \
@@ -40,16 +41,16 @@ libBasicUtils_la_SOURCES = \
 	StringManip.cpp \
 	TimeConverter.cpp \
 	Timer.cpp \
-	Url.cpp
+	Url.cpp \
+	$(top_srcdir)/Utils/unac/unac.c
 
-if HAVE_GIO_MIME
 libUtils_la_SOURCES = \
 	Languages.cpp \
 	MIMEScanner.cpp
+
+if HAVE_GIO_MIME
 else
-libUtils_la_SOURCES = \
-	Languages.cpp \
-	MIMEScanner.cpp \
+libUtils_la_SOURCES += \
 	$(top_srcdir)/Utils/xdgmime/xdgmimealias.c \
 	$(top_srcdir)/Utils/xdgmime/xdgmime.c \
 	$(top_srcdir)/Utils/xdgmime/xdgmimecache.c \
@@ -59,8 +60,8 @@ libUtils_la_SOURCES = \
 	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.c
 endif
 
-AM_CFLAGS = -fPIC -DXDG_PREFIX=pinot_xdg
+AM_CFLAGS = -fPIC -DXDG_PREFIX=pinot_xdg -DUNAC_VERSION=\"1.0.7\"
 AM_CXXFLAGS = \
 	@VISIB_CFLAGS@ \
-	@HTTP_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@ -DXDG_PREFIX=pinot_xdg
+	@HTTP_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@ -DXDG_PREFIX=pinot_xdg -DUNAC_VERSION=\"1.0.7\"
 
