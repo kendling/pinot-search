@@ -108,6 +108,7 @@ class SetTokensHandler : public Dijon::CJKVTokenizer::TokensHandler
 QueryProperties::QueryProperties() :
 	m_type(XAPIAN_QP),
 	m_order(RELEVANCE),
+	m_diacriticSensitive(false),
 	m_resultsCount(10),
 	m_indexResults(NOTHING),
 	m_modified(false)
@@ -119,6 +120,7 @@ QueryProperties::QueryProperties(const string &name, const string &freeQuery,
 	m_name(name),
 	m_type(type),
 	m_order(RELEVANCE),
+	m_diacriticSensitive(false),
 	m_freeQuery(freeQuery),
 	m_resultsCount(10),
 	m_indexResults(NOTHING),
@@ -132,6 +134,7 @@ QueryProperties::QueryProperties(const QueryProperties &other) :
 	m_type(other.m_type),
 	m_order(other.m_order),
 	m_language(other.m_language),
+	m_diacriticSensitive(other.m_diacriticSensitive),
 	m_freeQuery(other.m_freeQuery),
 	m_freeQueryWithoutFilters(other.m_freeQueryWithoutFilters),
 	m_resultsCount(other.m_resultsCount),
@@ -153,6 +156,7 @@ QueryProperties &QueryProperties::operator=(const QueryProperties &other)
 		m_type = other.m_type;
 		m_order = other.m_order;
 		m_language = other.m_language;
+		m_diacriticSensitive = other.m_diacriticSensitive;
 		m_freeQuery = other.m_freeQuery;
 		m_freeQueryWithoutFilters = other.m_freeQueryWithoutFilters;
 		m_resultsCount = other.m_resultsCount;
@@ -254,6 +258,18 @@ void QueryProperties::setStemmingLanguage(const string &language)
 string QueryProperties::getStemmingLanguage(void) const
 {
 	return m_language;
+}
+
+/// Sets whether the query is sensitive to diacritics.
+void QueryProperties::setDiacriticSensitive(bool sensitive)
+{
+	m_diacriticSensitive = sensitive;
+}
+
+/// Gets whether the query is sensitive to diacritics.
+bool QueryProperties::getDiacriticSensitive(void) const
+{
+	return m_diacriticSensitive;
 }
 
 /// Sets the query string.

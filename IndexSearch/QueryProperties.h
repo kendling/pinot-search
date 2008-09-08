@@ -64,6 +64,11 @@ class PINOT_EXPORT QueryProperties
 		/// Gets the language to use for stemming.
 		string getStemmingLanguage(void) const;
 
+		/// Sets whether the query is sensitive to diacritics.
+		void setDiacriticSensitive(bool sensitive);
+		/// Gets whether the query is sensitive to diacritics.
+		bool getDiacriticSensitive(void) const;
+
 		/// Sets the query string.
 		void setFreeQuery(const string &freeQuery);
 		/// Gets the query string.
@@ -100,6 +105,7 @@ class PINOT_EXPORT QueryProperties
 		QueryType m_type;
 		SortOrder m_order;
 		string m_language;
+		bool m_diacriticSensitive;
 		string m_freeQuery;
 		string m_freeQueryWithoutFilters;
 		unsigned int m_resultsCount;
