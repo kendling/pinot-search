@@ -515,9 +515,15 @@ void mainWindow::add_query(QueryProperties &queryProps, bool mergeQueries)
 				QueryProperties existingQueryProps = row[m_queryColumns.m_properties];
 				ustring freeQuery(existingQueryProps.getFreeQuery());
 
-				if (freeQuery != queryProps.getFreeQuery())
+				// Only merge if the new bit isn't in already
+				if (freeQuery.find(queryProps.getFreeQuery()) == string::npos)
 				{
 					queryProps.setFreeQuery("( " + freeQuery + " ) or ( " + queryProps.getFreeQuery() + " )");
+				}
+				else
+				{
+					// Leave the query as it is
+					return;
 				}
 			}
 			m_settings.removeQuery(queryName);
