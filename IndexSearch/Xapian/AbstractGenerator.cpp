@@ -44,8 +44,8 @@ unsigned int AbstractGenerator::m_maxSeedTerms = 5;
 unsigned int AbstractGenerator::m_minTermPositions = 10;
 
 AbstractGenerator::PositionWindow::PositionWindow() :
-	m_backWeight(0),
-	m_forwardWeight(0)
+	m_backWeight(1),
+	m_forwardWeight(1)
 {
 }
 
@@ -167,6 +167,16 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	for (map<Xapian::termpos, PositionWindow>::iterator winIter = abstractWindows.begin();
 		winIter != abstractWindows.end(); ++winIter)
 	{
+#ifdef DEBUG
+		cout << "AbstractGenerator::generateAbstract: position " << winIter->first
+			<< " weights " << winIter->second.m_backWeight 
+			<< "/" << winIter->second.m_forwardWeight << endl;
+#endif
+		if (bestWeight < winIter->second.m_forwardWeight)
+		{
+			bestPosition = startPosition = winIter->first;
+			bestWeight = winIter->second.m_forwardWeight;
+		}
 		if (bestWeight < winIter->second.m_backWeight)
 		{
 			bestPosition = winIter->first;
@@ -176,11 +186,6 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 				startPosition = bestPosition - m_wordsCount;
 			}
 			bestWeight = winIter->second.m_backWeight;
-		}
-		if (bestWeight < winIter->second.m_forwardWeight)
-		{
-			bestPosition = startPosition = winIter->first;
-			bestWeight = winIter->second.m_forwardWeight;
 		}
 	}
 #ifdef DEBUG
@@ -205,6 +210,9 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 			if ((tokenizer.has_cjkv(termName) == true) &&
 				(termName.length() > 4))
 			{
+#ifdef DEBUG
+				cout << "AbstractGenerator::generateAbstract: skipping " << termName << endl;
+#endif
 				continue;
 			}
 
@@ -258,7 +266,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		}
 
 		// Is this a seed term ?
-		if (find(seedTerms.begin(), seedTerms.end(), wordIter->second) != seedTerms.end())
+		if (abstractWindows.find(wordIter->first) != abstractWindows.end())
 		{
 			summary += "<b>";
 			summary += pEscToken;
