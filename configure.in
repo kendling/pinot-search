@@ -394,6 +394,7 @@ GTKMM_LIBS="$GIO_LIBS $GTKMM_LIBS"
 fi
 
 dnl Check for specific functions
+AC_CHECK_FUNCS(vsnprintf)
 AC_CHECK_FUNCS(gettimeofday)
 AC_CHECK_FUNCS(timegm)
 AC_CHECK_FUNCS(lstat)
