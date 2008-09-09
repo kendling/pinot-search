@@ -70,12 +70,18 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 			m_nGramSize(nGramSize),
 			m_nGramCount(0),
 			m_doSpelling(doSpelling),
-			m_termPos(termPos)
+			m_termPos(termPos),
+			m_hasCJKV(false)
 		{
 		}
 
 		virtual ~TokensIndexer()
 		{
+			if (m_hasCJKV == true)
+			{
+				// This will help identify CJKV documents
+				m_doc.add_term("XTOK:CJKV");
+			}
 		}
 
 		virtual bool handle_token(const string &tok, bool is_cjkv)
@@ -101,6 +107,18 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 			// Is this CJKV ?
 			if (is_cjkv == false)
 			{
+#ifndef _DIACRITICS_SENSITIVE
+				// Remove accents and other diacritics
+				string unaccentedTerm(StringManip::stripDiacritics(term));
+				if (unaccentedTerm != term)
+				{
+#ifdef DEBUG
+					cout << "TokensIndexer::handle_token: unaccented " << unaccentedTerm << endl;
+#endif
+					m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(unaccentedTerm), m_termPos);
+				}
+#endif
+
 				// Don't stem if the term starts with a digit
 				if ((m_pStemmer != NULL) &&
 					(isdigit((int)term[0]) == 0))
@@ -125,6 +143,7 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 					addSpelling = m_doSpelling;
 				}
 				++m_nGramCount;
+				m_hasCJKV = true;
 			}
 
 			if (addSpelling == true)
@@ -153,6 +172,7 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 		unsigned int m_nGramCount;
 		bool &m_doSpelling;
 		Xapian::termcount &m_termPos;
+		bool m_hasCJKV;
 
 };
 
@@ -277,15 +297,20 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 		Dijon::CJKVTokenizer tokenizer;
 		string text(pRawData);
 
+#ifdef _DIACRITICS_SENSITIVE
 		if (tokenizer.has_cjkv(text) == true)
 		{
+#endif
 			// Use overload
 			addPostingsToDocument(tokenizer, pStemmer, text, doc, db,
 				prefix, doSpelling, termPos);
 			isCJKV = true;
+#ifdef _DIACRITICS_SENSITIVE
 		}
+#endif
 	}
 
+#ifdef _DIACRITICS_SENSITIVE
 	if (isCJKV == false)
 	{
 		Xapian::TermGenerator generator;
@@ -326,6 +351,7 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 		}
 		termPos = generator.get_termpos();
 	}
+#endif
 
 	if (pStemmer != NULL)
 	{
@@ -342,13 +368,9 @@ void XapianIndex::addPostingsToDocument(Dijon::CJKVTokenizer &tokenizer, Xapian:
 
 	// Get the terms
 	tokenizer.tokenize(text, handler);
-
 #ifdef DEBUG
-	cout << "XapianIndex::addPostingsToDocument: CJKV terms to position " << termPos << endl;
+	cout << "XapianIndex::addPostingsToDocument: terms to position " << termPos << endl;
 #endif
-
-	// This will help identify which documents were processed here
-	doc.add_term("XTOK:CJKV");
 }
 
 void XapianIndex::addLabelsToDocument(Xapian::Document &doc, const set<string> &labels,
