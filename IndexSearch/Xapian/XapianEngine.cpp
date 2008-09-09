@@ -158,12 +158,17 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 	public:
 		typedef enum { NONE = 0, BRACKETS } CJKVWrap;
 
-		QueryModifier(const string &query, unsigned int nGramSize) :
+		QueryModifier(const string &query,
+			bool diacriticSensitive, unsigned int nGramSize) :
 			m_query(query),
+			m_diacriticSensitive(diacriticSensitive),
 			m_pos(0),
 			m_wrap(BRACKETS),
+			m_wrapped(false),
 			m_nGramCount(0),
-			m_nGramSize(nGramSize)
+			m_nGramSize(nGramSize),
+			m_hasCJKV(false),
+			m_hasNonCJKV(false)
 		{
 		}
 
@@ -220,6 +225,21 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 					m_wrap = BRACKETS;
 				}
 
+				if (m_currentFilter.empty() == true)
+				{
+					m_hasNonCJKV = true;
+				}
+
+				if (m_diacriticSensitive == false)
+				{
+					// Strip accents and other diacritics from terms
+					string unaccentedTok(StringManip::stripDiacritics(tok));
+					if (tok != unaccentedTok)
+					{
+						m_query.replace(tokPos, tok.length(), unaccentedTok);
+					}
+				}
+
 				// Return right away
 				return true;
 			}
@@ -239,15 +259,8 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 					m_modifiedQuery += " " + m_query.substr(m_pos, tokPos - m_pos);
 				}
 				m_pos += tok.length();
-				switch (m_wrap)
-				{
-					case BRACKETS:
-						m_modifiedQuery += " (";
-						break;
-					case NONE:
-					default:
-						break;
-				}
+
+				wrapOpen();
 			}
 			else
 			{
@@ -267,11 +280,12 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 				m_pos = tokPos + tok.length();
 			}
 			++m_nGramCount;
+			m_hasCJKV = true;
 
 			return true;
 		}
 
-		string get_modified_query(void)
+		string get_modified_query(bool &pureCJKV)
 		{
 #ifdef DEBUG
 			cout << "QueryModifier::get_modified_query: " << m_pos << "/" << m_query.length() << endl;
@@ -287,20 +301,53 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 			cout << "QueryModifier::get_modified_query: " << m_modifiedQuery << endl;
 #endif
 
+			if ((m_hasCJKV == true) &&
+				(m_hasNonCJKV == false))
+			{
+				pureCJKV = true;
+			}
+			else
+			{
+				pureCJKV = false;
+			}
+
 			return m_modifiedQuery;
 		}
 
 	protected:
 		string m_query;
+		bool m_diacriticSensitive;
 		string m_modifiedQuery;
 		string::size_type m_pos;
 		CJKVWrap m_wrap;
+		bool m_wrapped;
 		string m_currentFilter;
 		unsigned int m_nGramCount;
 		unsigned int m_nGramSize;
+		bool m_hasCJKV;
+		bool m_hasNonCJKV;
+
+		void wrapOpen(void)
+		{
+			switch (m_wrap)
+			{
+				case BRACKETS:
+					m_modifiedQuery += " (";
+					break;
+				case NONE:
+				default:
+					break;
+			}
+			m_wrapped = true;
+		}
 
 		void wrapClose(void)
 		{
+			if (m_wrapped == false)
+			{
+				return;
+			}
+
 			// Finish wrapping CJKV tokens
 			switch (m_wrap)
 			{
@@ -311,6 +358,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 				default:
 					break;
 			}
+			m_wrapped = false;
 		}
 
 };
@@ -343,22 +391,26 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
 	unsigned int minDay, minMonth, minYear = 0;
 	unsigned int maxDay, maxMonth, maxYear = 0;
+	bool diacriticSensitive = queryProps.getDiacriticSensitive();
 
-	if (tokenizer.has_cjkv(freeQuery) == true)
+	// Modifying the query is necessary if it's CJKV or diacritics are off
+	if ((tokenizer.has_cjkv(freeQuery) == true) ||
+		(diacriticSensitive == false))
 	{
-		QueryModifier handler(freeQuery, tokenizer.get_ngram_size());
+		QueryModifier handler(freeQuery,
+			diacriticSensitive,
+			tokenizer.get_ngram_size());
 
 		tokenizer.tokenize(freeQuery, handler, true);
 
-		string cjkvQuery(handler.get_modified_query());
+		// We can disable stemming and spelling correction for pure CJKV queries
+		string cjkvQuery(handler.get_modified_query(minimal));
 #ifdef DEBUG
 		cout << "XapianEngine::parseQuery: CJKV query is " << cjkvQuery << endl;
 #endif
 
 		// Do as if the user had given this as input
 		freeQuery = cjkvQuery;
-		// We can disable stemming and spelling correction
-		minimal = true;
 	}
 
 	if (pIndex != NULL)
