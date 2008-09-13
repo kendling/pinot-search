@@ -204,6 +204,13 @@ void QueryProperties::removeFilters(void)
 		return;
 	}
 
+	// Remove carriage returns
+	string noCR(StringManip::replaceSubString(m_freeQuery, "\r\n", "\n"));
+	// If there's a line break right after an hyphen, remove both
+	string dehyphenedOnNL(StringManip::replaceSubString(noCR, "-\n", ""));
+	// ... and replace line breaks with spaces
+	m_freeQuery = StringManip::replaceSubString(dehyphenedOnNL, "\n", " ");
+
 	Dijon::CJKVTokenizer tokenizer;
 	FilterRemover handler(m_freeQuery);
 
