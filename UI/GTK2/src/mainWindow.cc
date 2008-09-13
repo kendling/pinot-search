@@ -40,7 +40,6 @@
 #include "config.h"
 #include "NLS.h"
 #include "CommandLine.h"
-#include "StringManip.h"
 #include "TimeConverter.h"
 #include "MIMEScanner.h"
 #include "Url.h"
@@ -340,7 +339,7 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 		}
 		row[m_queryColumns.m_lastRun] = to_utf8(lastRun);
 		row[m_queryColumns.m_lastRunTime] = lastRunTime;
-		ustring summary(StringManip::replaceSubString(queryIter->second.getFreeQuery(), "\n", " "));
+		ustring summary(queryIter->second.getFreeQuery());
 		if (summary.empty() == false)
 		{
 			row[m_queryColumns.m_summary] = summary;
