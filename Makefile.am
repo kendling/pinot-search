@@ -50,6 +50,7 @@ install-data-local:
 	@mkdir -p $(DESTDIR)$(libdir)/pinot/backends
 	@rm $(DESTDIR)$(libdir)/lib*backend.a $(DESTDIR)$(libdir)/lib*backend.la
 	@mv $(DESTDIR)$(libdir)/lib*backend* $(DESTDIR)$(libdir)/pinot/backends/
+	@mkdir -p $(DESTDIR)$(datadir)/pinot/stopwords
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
 	$(INSTALL_DATA) $(srcdir)/UI/icons/48x48/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/pinot.png
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/
