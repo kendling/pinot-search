@@ -92,6 +92,7 @@ SearchEngineInterface *getSearchEngine(const string &databaseName)
 
 void closeAll(void)
 {
+	XapianEngine::freeAll();
 	XapianDatabaseFactory::closeAll();
 }
 

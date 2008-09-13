@@ -45,6 +45,9 @@ class XapianEngine : public SearchEngineInterface
 		XapianEngine(const std::string &database);
 		virtual ~XapianEngine();
 
+		/// Frees all objects.
+		static void freeAll(void);
+
 		/// Sets the set of documents to limit to.
 		virtual bool setLimitSet(const std::set<std::string> &docsSet);
 

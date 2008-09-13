@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include <cstring>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 
 #include "config.h"
@@ -49,6 +50,8 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::inserter;
+using std::getline;
+using std::ifstream;
 using namespace Dijon;
 
 static void checkFilter(const string &freeQuery, string::size_type filterValueStart,
@@ -88,8 +91,14 @@ static void checkFilter(const string &freeQuery, string::size_type filterValueSt
 class TimeValueRangeProcessor : public Xapian::ValueRangeProcessor
 {
 	public:
-		TimeValueRangeProcessor(Xapian::valueno valueNumber) : Xapian::ValueRangeProcessor(), m_valueNumber(valueNumber) { }
-		~TimeValueRangeProcessor() { }
+		TimeValueRangeProcessor(Xapian::valueno valueNumber) :
+			Xapian::ValueRangeProcessor(),
+			m_valueNumber(valueNumber)
+		{
+		}
+		~TimeValueRangeProcessor()
+		{
+		}
 
 		virtual Xapian::valueno operator()(string &begin, string &end)
 		{
@@ -131,8 +140,14 @@ class TimeValueRangeProcessor : public Xapian::ValueRangeProcessor
 class PrefixDecider : public Xapian::ExpandDecider
 {
 	public:
-		PrefixDecider(const string &allowedPrefixes) : Xapian::ExpandDecider(), m_allowedPrefixes(allowedPrefixes) { }
-		~PrefixDecider() { }
+		PrefixDecider(const string &allowedPrefixes) :
+			Xapian::ExpandDecider(),
+			m_allowedPrefixes(allowedPrefixes)
+		{
+		}
+		~PrefixDecider()
+		{
+		}
 
 		virtual bool operator()(const std::string &term) const
 		{
@@ -153,6 +168,83 @@ class PrefixDecider : public Xapian::ExpandDecider
 
 };
 
+class FileStopper : public Xapian::SimpleStopper
+{
+	public:
+		FileStopper(const string &languageCode) :
+			Xapian::SimpleStopper(),
+			m_languageCode(languageCode),
+			m_stopwordsCount(0)
+		{
+			if (languageCode.empty() == false)
+			{
+				ifstream inputFile;
+				string fileName(PREFIX);
+
+				fileName += "/share/pinot/stopwords/stopwords.";
+				fileName += languageCode;
+				inputFile.open(fileName.c_str());
+				if (inputFile.good() == true)
+				{
+					string line;
+
+					// Each line is a stopword
+					while (getline(inputFile, line).eof() == false)
+					{
+						add(line);
+						++m_stopwordsCount;
+					}
+				}
+				inputFile.close();
+
+#ifdef DEBUG
+				cout << "FileStopper: " << m_stopwordsCount << " stopwords for language code " << languageCode << endl;
+#endif
+			}
+		}
+		virtual ~FileStopper()
+		{
+		}
+
+		unsigned int get_stopwords_count(void) const
+		{
+			return m_stopwordsCount;
+		}
+
+		static FileStopper *get_stopper(const string &languageCode)
+		{
+			if (m_pStopper == NULL)
+			{
+				m_pStopper = new FileStopper(languageCode);
+			}
+			else if (m_pStopper->m_languageCode != languageCode)
+			{
+				delete m_pStopper;
+
+				m_pStopper = new FileStopper(languageCode);
+			}
+
+			return m_pStopper;
+		}
+
+		static void free_stopper(void)
+		{
+			if (m_pStopper != NULL)
+			{
+				delete m_pStopper;
+				m_pStopper = NULL;
+			}
+		}
+
+	protected:
+		string m_languageCode;
+		unsigned int m_stopwordsCount;
+		static FileStopper *m_pStopper;
+
+};
+
+FileStopper *FileStopper::m_pStopper = NULL;
+
 class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 {
 	public:
@@ -167,6 +259,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 			m_wrapped(false),
 			m_nGramCount(0),
 			m_nGramSize(nGramSize),
+			m_tokensCount(0),
 			m_hasCJKV(false),
 			m_hasNonCJKV(false)
 		{
@@ -188,6 +281,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 
 			// Where is this token in the original query ?
 			string::size_type tokPos = m_query.find(tok, m_pos);
+			++m_tokensCount;
 
 			// Is this CJKV ?
 			if (is_cjkv == false)
@@ -285,6 +379,11 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 			return true;
 		}
 
+		unsigned int get_tokens_count(void) const
+		{
+			return m_tokensCount;
+		}
+
 		string get_modified_query(bool &pureCJKV)
 		{
 #ifdef DEBUG
@@ -324,6 +423,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 		string m_currentFilter;
 		unsigned int m_nGramCount;
 		unsigned int m_nGramSize;
+		unsigned int m_tokensCount;
 		bool m_hasCJKV;
 		bool m_hasNonCJKV;
 
@@ -388,9 +488,8 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	Xapian::QueryParser parser;
 	Xapian::Stem stemmer;
 	CJKVTokenizer tokenizer;
-	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
-	unsigned int minDay, minMonth, minYear = 0;
-	unsigned int maxDay, maxMonth, maxYear = 0;
+	string freeQuery(queryProps.getFreeQuery());
+	unsigned int tokensCount = 1;
 	bool diacriticSensitive = queryProps.getDiacriticSensitive();
 
 	// Modifying the query is necessary if it's CJKV or diacritics are off
@@ -403,6 +502,8 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 
 		tokenizer.tokenize(freeQuery, handler, true);
 
+		tokensCount = handler.get_tokens_count();
+
 		// We can disable stemming and spelling correction for pure CJKV queries
 		string cjkvQuery(handler.get_modified_query(minimal));
 #ifdef DEBUG
@@ -412,6 +513,25 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		// Do as if the user had given this as input
 		freeQuery = cjkvQuery;
 	}
+	else
+	{
+		string::size_type spacePos = freeQuery.find(' ');
+		while (spacePos != string::npos)
+		{
+			++tokensCount;
+
+			if (spacePos + 1 >= freeQuery.length())
+			{
+				break;
+			}
+
+			// Next
+			spacePos = freeQuery.find(' ', spacePos + 1);
+		}
+	}
+#ifdef DEBUG
+	cout << "XapianEngine::parseQuery: " << tokensCount << " tokens" << endl;
+#endif
 
 	if (pIndex != NULL)
 	{
@@ -436,6 +556,19 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		}
 		parser.set_stemmer(stemmer);
 		parser.set_stemming_strategy(Xapian::QueryParser::STEM_SOME);
+
+		// Don't bother loading the stopwords list if there's only one token
+		if (tokensCount > 1)
+		{
+			string languageCode(Languages::toCode(stemLanguage));
+
+			FileStopper *pStopper = FileStopper::get_stopper(languageCode);
+			if ((pStopper != NULL) &&
+				(pStopper->get_stopwords_count() > 0))
+			{
+				parser.set_stopper(pStopper);
+			}
+		}
 	}
 	else
 	{
@@ -509,6 +642,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 
 		XapianQueryBuilder builder(parser, fieldMapping);
 		XesamParser *pParser = NULL;
+		bool parsedQuery = false;
 
 		// Get a Xesam parser
 		if (type == QueryProperties::XESAM_QL)
@@ -524,14 +658,14 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 
 		if (pParser != NULL)
 		{
-			bool parsedQuery = pParser->parse(freeQuery, builder);
+			parsedQuery = pParser->parse(freeQuery, builder);
 
 			delete pParser;
+		}
 
-			if (parsedQuery == true)
-			{
-				return builder.get_query();
-			}
+		if (parsedQuery == true)
+		{
+			return builder.get_query();
 		}
 
 		return Xapian::Query();
@@ -832,6 +966,12 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	}
 
 	return false;
+}
+
+/// Frees all objects.
+void XapianEngine::freeAll(void)
+{
+	FileStopper::free_stopper();
 }
 
 //
