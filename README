@@ -199,9 +199,10 @@ http://pinot.berlios.de/
   Allowed language codes are "da", "nl", "en", "fi", "fr", "de", "it", "nn", "pt",
   "ru", "es" and "sv".
 
-  Stemming is available to queries for which a stemming language is defined.
-  If such a query doesn't return any exact match, the query terms are stemmed
-  and the query is run again.
+  Stemming is available to stored queries for which a stemming language is
+  defined. If such a query doesn't return any exact match, the query terms are
+  stemmed and the query is run again. Stopwords are also then removed if a
+  stopwords list was found for the stemming language.
 
   The values of "file", "url", "dir" and "label" may be double-quoted. It's also
   worth pointing out that the query "dir:/X/Y" will return files and directories
@@ -300,7 +301,7 @@ http://pinot.berlios.de/
   related to these files.
 
   If you have never run Pinot before, the list will be pre-configured to skip
-  common picture, video and archive types such as GIF, MPG and ZIP.
+  common picture, video and archive types such as GIF, MPG and RAR.
 
 
 10. Digging deeper
@@ -319,6 +320,10 @@ http://pinot.berlios.de/
   Search For This will search those results for the Stored Query selected in
   the sub-menu and will present results in a new tab. For instance, running
   the Stored Query "Me" on a set of results will open a "Me In Results" tab.
+
+  In addition to these, Pinot may suggest alternative spellings for queries
+  that don't return any result. If it does, a new Stored Query prefixed with
+  "Corrected" will be created.
 
 
 11. Saving results
