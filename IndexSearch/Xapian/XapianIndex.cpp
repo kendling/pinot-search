@@ -108,14 +108,14 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 			if (is_cjkv == false)
 			{
 #ifndef _DIACRITICS_SENSITIVE
+				bool hasDiacritics = false;
+
 				// Remove accents and other diacritics
 				string unaccentedTerm(StringManip::stripDiacritics(term));
 				if (unaccentedTerm != term)
 				{
-#ifdef DEBUG
-					cout << "TokensIndexer::handle_token: unaccented " << unaccentedTerm << endl;
-#endif
 					m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(unaccentedTerm), m_termPos);
+					hasDiacritics = true;
 				}
 #endif
 
@@ -126,6 +126,14 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 					string stemmedTerm((*m_pStemmer)(term));
 
 					m_doc.add_term("Z" + XapianDatabase::limitTermLength(stemmedTerm));
+#ifndef _DIACRITICS_SENSITIVE
+					if (hasDiacritics == true)
+					{
+						stemmedTerm = (*m_pStemmer)(unaccentedTerm);
+
+						m_doc.add_term("Z" + XapianDatabase::limitTermLength(stemmedTerm));
+					}
+#endif
 				}
 
 				addSpelling = m_doSpelling;
