@@ -1843,6 +1843,7 @@ bool PinotSettings::getDefaultPatterns(set<ustring> &defaultPatterns)
 	defaultPatterns.insert("*.a");
 	defaultPatterns.insert("*.asf");
 	defaultPatterns.insert("*.avi");
+	defaultPatterns.insert("*CVS");
 	defaultPatterns.insert("*.cap");
 	defaultPatterns.insert("*.divx");
 	defaultPatterns.insert("*.flv");
@@ -1860,7 +1861,9 @@ bool PinotSettings::getDefaultPatterns(set<ustring> &defaultPatterns)
 	defaultPatterns.insert("*.rar");
 	defaultPatterns.insert("*.sh");
 	defaultPatterns.insert("*.so");
+	defaultPatterns.insert("*.svn");
 	defaultPatterns.insert("*.tiff");
+	defaultPatterns.insert("*.torrent");
 	defaultPatterns.insert("*.wmv");
 	defaultPatterns.insert("*.xbm");
 	defaultPatterns.insert("*.xpm");
