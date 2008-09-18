@@ -517,7 +517,7 @@ void mainWindow::add_query(QueryProperties &queryProps, bool mergeQueries)
 				// Only merge if the new bit isn't in already
 				if (freeQuery.find(queryProps.getFreeQuery()) == string::npos)
 				{
-					queryProps.setFreeQuery("( " + freeQuery + " ) or ( " + queryProps.getFreeQuery() + " )");
+					queryProps.setFreeQuery("( " + freeQuery + " ) OR ( " + queryProps.getFreeQuery() + " )");
 				}
 				else
 				{
