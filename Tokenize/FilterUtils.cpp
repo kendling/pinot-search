@@ -98,6 +98,9 @@ Dijon::Filter *FilterUtils::getFilter(const string &mimeType)
 				return pFilter;
 			}
 		}
+#ifdef DEBUG
+		cout << "FilterUtils::getFilter: no valid parent for " << mimeType << endl;
+#endif
 
 		// This type has no valid parent
 		m_typeAliases[mimeType] = UNSUPPORTED_TYPE;
@@ -143,6 +146,9 @@ bool FilterUtils::isSupportedType(const string &mimeType)
 				return true;
 			}
 		}
+#ifdef DEBUG
+		cout << "FilterUtils::isSupportedType: no valid parent for " << mimeType << endl;
+#endif
 
 		// This type has no valid parent
 		m_typeAliases[mimeType] = UNSUPPORTED_TYPE;
