@@ -5,16 +5,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.88\n"
+"Project-Id-Version: pinot 0.89\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-08-23 23:22+0800\n"
-"PO-Revision-Date: 2008-07-31 11:21+0000\n"
+"PO-Revision-Date: 2008-09-13 09:35+0000\n"
 "Last-Translator: Daniel Nylander <yeager@ubuntu.com>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-08-23 14:16+0000\n"
+"X-Launchpad-Export-Date: 2008-09-20 06:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:97
@@ -493,7 +493,7 @@ msgstr "Pinot"
 
 #: UI/GTK2/src/Notebook.cpp:146
 msgid "Close"
-msgstr ""
+msgstr "Stäng"
 
 #. Localize language names
 #: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:442
@@ -587,28 +587,27 @@ msgstr "Jag"
 
 #: UI/GTK2/src/PinotSettings.cpp:389
 msgid "Latest First"
-msgstr ""
+msgstr "Senaste först"
 
 #: UI/GTK2/src/PinotSettings.cpp:392
 msgid "Home Stuff"
-msgstr ""
+msgstr "Personliga saker"
 
 #: UI/GTK2/src/PinotSettings.cpp:393
 msgid "With Label New"
-msgstr ""
+msgstr "Med etiketten Ny"
 
 #: UI/GTK2/src/PinotSettings.cpp:394
 msgid "Have CJKV"
-msgstr ""
+msgstr "Har CJKV"
 
 #: UI/GTK2/src/PinotSettings.cpp:395
-#, fuzzy
 msgid "In English"
-msgstr "Engelska"
+msgstr "På engelska"
 
 #: UI/GTK2/src/PinotSettings.cpp:396
 msgid "10kb And Smaller"
-msgstr ""
+msgstr "10kb och mindre"
 
 #: UI/GTK2/src/PinotSettings.cpp:1342
 msgid "Unclassified"
@@ -714,9 +713,8 @@ msgid "File patterns:"
 msgstr "Filmönster:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:139
-#, fuzzy
 msgid "Reset"
-msgstr "_Resultat"
+msgstr "Återställ"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:144
 msgid "Indexing"
@@ -843,9 +841,8 @@ msgid "Stemming:"
 msgstr "Bildande av ordstam:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:94
-#, fuzzy
 msgid "Only index new results"
-msgstr "Indexera endast dessa mönster"
+msgstr "Indexera endast nya resultat"
 
 #: UI/GTK2/src/queryDialog_glade.cc:208
 msgid "Query parameters"
@@ -896,11 +893,11 @@ msgstr "Kör under PID"
 
 #: UI/GTK2/src/statisticsDialog.cc:221
 msgid "Disconnected from D-Bus"
-msgstr ""
+msgstr "Koppla från D-Bus"
 
 #: UI/GTK2/src/statisticsDialog.cc:225
 msgid "Stopped"
-msgstr ""
+msgstr "Stoppad"
 
 #: UI/GTK2/src/statisticsDialog.cc:229
 msgid "Currently not running"
@@ -908,16 +905,15 @@ msgstr "Kör för tillfället inte"
 
 #: UI/GTK2/src/statisticsDialog.cc:243
 msgid "Low disk space"
-msgstr ""
+msgstr "Lite diskutrymme kvar"
 
 #: UI/GTK2/src/statisticsDialog.cc:260
 msgid "System on battery"
-msgstr ""
+msgstr "Systemet på batteridrift"
 
 #: UI/GTK2/src/statisticsDialog.cc:278
-#, fuzzy
 msgid "Crawling"
-msgstr "Insamlad"
+msgstr "Insamling"
 
 #: UI/GTK2/src/statisticsDialog.cc:313
 msgid "Errors"
@@ -1002,10 +998,6 @@ msgstr "är svartlistad"
 #: UI/GTK2/src/WorkerThreads.cpp:974
 msgid "No title"
 msgstr "Ingen titel"
-
-#, fuzzy
-#~ msgid "No"
-#~ msgstr "Ingen"
 
 #~ msgid "Extract"
 #~ msgstr "Utdrag"

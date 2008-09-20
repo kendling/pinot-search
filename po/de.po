@@ -4,16 +4,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.88\n"
+"Project-Id-Version: pinot 0.89\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-08-23 23:22+0800\n"
-"PO-Revision-Date: 2008-07-26 12:09+0000\n"
-"Last-Translator: Gena Haltmair <gena@haltmair.com>\n"
+"PO-Revision-Date: 2008-09-09 11:25+0000\n"
+"Last-Translator: Gena Haltmair <Unknown>\n"
 "Language-Team: German <de@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-08-23 14:16+0000\n"
+"X-Launchpad-Export-Date: 2008-09-20 06:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:97
@@ -494,7 +494,7 @@ msgstr "Pinot"
 
 #: UI/GTK2/src/Notebook.cpp:146
 msgid "Close"
-msgstr ""
+msgstr "Schliessen"
 
 #. Localize language names
 #: UI/GTK2/src/pinot.cc:236 UI/GTK2/src/pinot-dbus-daemon.cc:442
@@ -588,28 +588,27 @@ msgstr "Ich"
 
 #: UI/GTK2/src/PinotSettings.cpp:389
 msgid "Latest First"
-msgstr ""
+msgstr "Letze zuerst"
 
 #: UI/GTK2/src/PinotSettings.cpp:392
 msgid "Home Stuff"
-msgstr ""
+msgstr "Eigene Dateien"
 
 #: UI/GTK2/src/PinotSettings.cpp:393
 msgid "With Label New"
-msgstr ""
+msgstr "Kategorie \"Neu\""
 
 #: UI/GTK2/src/PinotSettings.cpp:394
 msgid "Have CJKV"
-msgstr ""
+msgstr "Hat CJKV"
 
 #: UI/GTK2/src/PinotSettings.cpp:395
-#, fuzzy
 msgid "In English"
-msgstr "Englisch"
+msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:396
 msgid "10kb And Smaller"
-msgstr ""
+msgstr "10kb und kleiner"
 
 #: UI/GTK2/src/PinotSettings.cpp:1342
 msgid "Unclassified"
@@ -714,9 +713,8 @@ msgid "File patterns:"
 msgstr "Dateiendungen:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:139
-#, fuzzy
 msgid "Reset"
-msgstr "_Ergebnisse"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:144
 msgid "Indexing"
@@ -843,9 +841,8 @@ msgid "Stemming:"
 msgstr "Abstammend:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:94
-#, fuzzy
 msgid "Only index new results"
-msgstr "Nur Dateien mit diesen Dateiendungen indizieren"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog_glade.cc:208
 msgid "Query parameters"
@@ -896,11 +893,11 @@ msgstr "Läuft unter PID"
 
 #: UI/GTK2/src/statisticsDialog.cc:221
 msgid "Disconnected from D-Bus"
-msgstr ""
+msgstr "Nicht verbunden mit D-Bus"
 
 #: UI/GTK2/src/statisticsDialog.cc:225
 msgid "Stopped"
-msgstr ""
+msgstr "Angehalten"
 
 #: UI/GTK2/src/statisticsDialog.cc:229
 msgid "Currently not running"
@@ -908,16 +905,15 @@ msgstr "Läuft derzeit nicht"
 
 #: UI/GTK2/src/statisticsDialog.cc:243
 msgid "Low disk space"
-msgstr ""
+msgstr "Wenig Speicherplatz"
 
 #: UI/GTK2/src/statisticsDialog.cc:260
 msgid "System on battery"
-msgstr ""
+msgstr "Batteriebetrieb"
 
 #: UI/GTK2/src/statisticsDialog.cc:278
-#, fuzzy
 msgid "Crawling"
-msgstr "Gesammelt"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:313
 msgid "Errors"
@@ -1002,10 +998,6 @@ msgstr "auf Blacklist gesetzt"
 #: UI/GTK2/src/WorkerThreads.cpp:974
 msgid "No title"
 msgstr "Kein Titel"
-
-#, fuzzy
-#~ msgid "No"
-#~ msgstr "Keine"
 
 #~ msgid "Extract"
 #~ msgstr "Auslesen"

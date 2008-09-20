@@ -4,16 +4,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.88\n"
+"Project-Id-Version: pinot 0.89\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-08-23 23:22+0800\n"
-"PO-Revision-Date: 2008-07-26 12:13+0000\n"
+"PO-Revision-Date: 2008-08-23 16:14+0000\n"
 "Last-Translator: Sergey Vostrikov <s.vostrikov@gmail.com>\n"
 "Language-Team: Russian <ru@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-08-23 14:16+0000\n"
+"X-Launchpad-Export-Date: 2008-09-20 06:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:97
@@ -54,9 +54,8 @@ msgid "Served by"
 msgstr ""
 
 #: UI/GTK2/src/indexDialog.cc:124
-#, fuzzy
 msgid "Local"
-msgstr "Месторасположение"
+msgstr ""
 
 #: UI/GTK2/src/indexDialog.cc:286
 msgid "Index location"
@@ -158,24 +157,20 @@ msgid "Find documents that match the query string"
 msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:222
-#, fuzzy
 msgid "Add an index"
-msgstr "Добавить индекс"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:223
-#, fuzzy
 msgid "Remove an index"
-msgstr "Удалить индекс"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:224
-#, fuzzy
 msgid "Add a query"
-msgstr "Добавлен новый запрос"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:225
-#, fuzzy
 msgid "Remove a query"
-msgstr "Реальный запрос"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:226
 msgid "Show the query's previous results"
@@ -195,9 +190,8 @@ msgid "Updating all documents in My Web Pages is recommended"
 msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:266
-#, fuzzy
 msgid "Don't warn me again"
-msgstr "Невозможно переименовать индекс"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:274 UI/GTK2/src/mainWindow_glade.cc:224
 msgid "Update"
@@ -208,9 +202,8 @@ msgid "N/A"
 msgstr "N/A"
 
 #: UI/GTK2/src/mainWindow.cc:350
-#, fuzzy
 msgid "Undefined"
-msgstr "<неопределенная>"
+msgstr ""
 
 #. Find this query
 #: UI/GTK2/src/mainWindow.cc:573 UI/GTK2/src/mainWindow.cc:2779
@@ -232,9 +225,8 @@ msgid "Couldn't find query"
 msgstr "Невозможно найти запрос"
 
 #: UI/GTK2/src/mainWindow.cc:1075
-#, fuzzy
 msgid "In Results"
-msgstr "_Результат"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:1265
 msgid "Showing"
@@ -303,9 +295,8 @@ msgid "Edited index"
 msgstr "Редактирование индекса"
 
 #: UI/GTK2/src/mainWindow.cc:2140
-#, fuzzy
 msgid "Export Results"
-msgstr "_Результат"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:2412
 msgid "Index"
@@ -408,9 +399,8 @@ msgid "Query:"
 msgstr "Запрос:"
 
 #: UI/GTK2/src/mainWindow_glade.cc:137 UI/GTK2/src/statisticsDialog.cc:110
-#, fuzzy
 msgid "History"
-msgstr "Домашняя директория"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:142
 msgid "Stored queries"
@@ -454,9 +444,8 @@ msgid "More Like This"
 msgstr "Подробнее об этом"
 
 #: UI/GTK2/src/mainWindow_glade.cc:206
-#, fuzzy
 msgid "Search This For"
-msgstr "Поисковые машины"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:209 UI/GTK2/src/mainWindow_glade.cc:245
 msgid "_Index"
@@ -610,9 +599,8 @@ msgid "Have CJKV"
 msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:395
-#, fuzzy
 msgid "In English"
-msgstr "Английский"
+msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:396
 msgid "10kb And Smaller"
@@ -717,14 +705,12 @@ msgstr ""
 "Эти каталоги будут индексироваться и необязательны для контроля изменений:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:126
-#, fuzzy
 msgid "File patterns:"
-msgstr "Расширение файла"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:139
-#, fuzzy
 msgid "Reset"
-msgstr "_Результат"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:144
 msgid "Indexing"
@@ -739,9 +725,8 @@ msgid "Per document"
 msgstr "При содействии документа"
 
 #: UI/GTK2/src/propertiesDialog.cc:365
-#, fuzzy
 msgid "Export Terms"
-msgstr "_Результат"
+msgstr ""
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:64
 msgid "Language:"
@@ -807,14 +792,12 @@ msgstr "Метка"
 
 #. The last column is for the timestamp
 #: UI/GTK2/src/queryDialog.cc:122 UI/GTK2/src/ResultsTree.cpp:160
-#, fuzzy
 msgid "Date"
-msgstr "в"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog.cc:123
-#, fuzzy
 msgid "Time"
-msgstr "Название"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog.cc:124
 msgid "Size"
@@ -826,23 +809,20 @@ msgid "By relevance"
 msgstr ""
 
 #: UI/GTK2/src/queryDialog.cc:129
-#, fuzzy
 msgid "By date"
-msgstr "Обновить"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog_glade.cc:71
-#, fuzzy
 msgid "New filter or range:"
-msgstr "Новый фильтр:"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog_glade.cc:80
 msgid "Query Text"
 msgstr "Текст запроса"
 
 #: UI/GTK2/src/queryDialog_glade.cc:82
-#, fuzzy
 msgid "Index results with label"
-msgstr "Индексировать все результаты с меткой"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog_glade.cc:85
 msgid "Number of results:"
@@ -870,18 +850,16 @@ msgid "Score"
 msgstr "Счет"
 
 #: UI/GTK2/src/statisticsDialog.cc:84
-#, fuzzy
 msgid "Indexes"
-msgstr "Индексировано"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:117
 msgid "Daemon"
 msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:145 UI/GTK2/src/statisticsDialog.cc:161
-#, fuzzy
 msgid "documents"
-msgstr "Мои Документы"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:151 UI/GTK2/src/statisticsDialog.cc:169
 #: UI/GTK2/src/WorkerThreads.cpp:126
@@ -889,14 +867,12 @@ msgid "Unknown error"
 msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:176
-#, fuzzy
 msgid "Viewed"
-msgstr "Вид"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:176
-#, fuzzy
 msgid "results"
-msgstr "_Результат"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:182
 msgid "Crawled"
@@ -908,9 +884,8 @@ msgstr ""
 
 #. FIXME: check whether it's actually running !
 #: UI/GTK2/src/statisticsDialog.cc:200
-#, fuzzy
 msgid "Running under PID"
-msgstr "Запуск запроса"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:221
 msgid "Disconnected from D-Bus"
@@ -933,23 +908,20 @@ msgid "System on battery"
 msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:278
-#, fuzzy
 msgid "Crawling"
-msgstr "HTTP сканирование:"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:313
 msgid "Errors"
 msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:93
-#, fuzzy
 msgid "Index error"
-msgstr "Ошибка индекса на"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:95
-#, fuzzy
 msgid "Couldn't index document"
-msgstr "Невозможно деиндексировать документ(ы)"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:97
 msgid "Couldn't update document"
@@ -964,14 +936,12 @@ msgid "Couldn't run query on search engine"
 msgstr "Не удается запустить запрос в поисковой системе"
 
 #: UI/GTK2/src/WorkerThreads.cpp:103
-#, fuzzy
 msgid "Couldn't get history for search engine"
-msgstr "Не удается запустить запрос в поисковой системе"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:105
-#, fuzzy
 msgid "Couldn't retrieve document"
-msgstr "Невозможно обновить документ"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:107
 msgid "File monitor error"
@@ -982,9 +952,8 @@ msgid "Couldn't open directory"
 msgstr "Невозможно открыть каталог"
 
 #: UI/GTK2/src/WorkerThreads.cpp:111
-#, fuzzy
 msgid "Index doesn't exist"
-msgstr "нет"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:113
 msgid "Couldn't create search engine"
@@ -995,9 +964,8 @@ msgid "Cannot index document type"
 msgstr "Невозможно индексировать данный тип документов"
 
 #: UI/GTK2/src/WorkerThreads.cpp:117
-#, fuzzy
 msgid "No downloader for this protocol"
-msgstr "Не удалось получить загрузчик для протокола"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:119
 msgid "Robots META tag forbids indexing"
@@ -1026,10 +994,6 @@ msgstr "заключается в черный список"
 #: UI/GTK2/src/WorkerThreads.cpp:974
 msgid "No title"
 msgstr "Нет названия"
-
-#, fuzzy
-#~ msgid "No"
-#~ msgstr "Нет"
 
 #~ msgid "Extract"
 #~ msgstr "Извлечение"

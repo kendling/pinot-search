@@ -4,16 +4,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.88\n"
+"Project-Id-Version: pinot 0.89\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-08-23 23:22+0800\n"
-"PO-Revision-Date: 2008-07-26 12:13+0000\n"
+"PO-Revision-Date: 2008-08-23 16:15+0000\n"
 "Last-Translator: _PN_boy <pedro_nuno_pn@iol.pt>\n"
 "Language-Team: Portuguese <pt@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-08-23 14:16+0000\n"
+"X-Launchpad-Export-Date: 2008-09-20 06:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:97
@@ -21,9 +21,8 @@ msgid "Search Engines"
 msgstr "Motores de pesquisa"
 
 #: UI/GTK2/src/EnginesTree.cpp:250 UI/GTK2/src/PinotSettings.cpp:318
-#, fuzzy
 msgid "Current User"
-msgstr "Utilizador corrente"
+msgstr ""
 
 #. Enable these menu items unless it is not the documents index
 #. Add a row to the index tree
@@ -160,24 +159,20 @@ msgid "Find documents that match the query string"
 msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:222
-#, fuzzy
 msgid "Add an index"
-msgstr "Adicionar index"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:223
-#, fuzzy
 msgid "Remove an index"
-msgstr "Remover index"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:224
-#, fuzzy
 msgid "Add a query"
-msgstr "Adicionar nova consulta"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:225
-#, fuzzy
 msgid "Remove a query"
-msgstr "Consulta activa"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:226
 msgid "Show the query's previous results"
@@ -197,9 +192,8 @@ msgid "Updating all documents in My Web Pages is recommended"
 msgstr "A actualizar todos os documentos nas Minhas Páginas Web é recomendado"
 
 #: UI/GTK2/src/mainWindow.cc:266
-#, fuzzy
 msgid "Don't warn me again"
-msgstr "Não foi possível renomear o índice"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:274 UI/GTK2/src/mainWindow_glade.cc:224
 msgid "Update"
@@ -233,9 +227,8 @@ msgid "Couldn't find query"
 msgstr "Não foi possível encontrar a consulta"
 
 #: UI/GTK2/src/mainWindow.cc:1075
-#, fuzzy
 msgid "In Results"
-msgstr "resultados"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:1265
 msgid "Showing"
@@ -304,9 +297,8 @@ msgid "Edited index"
 msgstr "Índice editado"
 
 #: UI/GTK2/src/mainWindow.cc:2140
-#, fuzzy
 msgid "Export Results"
-msgstr "resultados"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:2412
 msgid "Index"
@@ -454,9 +446,8 @@ msgid "More Like This"
 msgstr "Mais identicos"
 
 #: UI/GTK2/src/mainWindow_glade.cc:206
-#, fuzzy
 msgid "Search This For"
-msgstr "Motores de pesquisa"
+msgstr ""
 
 #: UI/GTK2/src/mainWindow_glade.cc:209 UI/GTK2/src/mainWindow_glade.cc:245
 msgid "_Index"
@@ -610,9 +601,8 @@ msgid "Have CJKV"
 msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:395
-#, fuzzy
 msgid "In English"
-msgstr "Inglês"
+msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:396
 msgid "10kb And Smaller"
@@ -718,14 +708,12 @@ msgstr ""
 "alterações:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:126
-#, fuzzy
 msgid "File patterns:"
-msgstr "Extensão do ficheiro"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:139
-#, fuzzy
 msgid "Reset"
-msgstr "_Resultados"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:144
 msgid "Indexing"
@@ -740,9 +728,8 @@ msgid "Per document"
 msgstr "Por documento"
 
 #: UI/GTK2/src/propertiesDialog.cc:365
-#, fuzzy
 msgid "Export Terms"
-msgstr "resultados"
+msgstr ""
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:64
 msgid "Language:"
@@ -816,9 +803,8 @@ msgid "Time"
 msgstr "Tempo"
 
 #: UI/GTK2/src/queryDialog.cc:124
-#, fuzzy
 msgid "Size"
-msgstr "Tamanho:"
+msgstr ""
 
 #. Sort order
 #: UI/GTK2/src/queryDialog.cc:128
@@ -826,14 +812,12 @@ msgid "By relevance"
 msgstr ""
 
 #: UI/GTK2/src/queryDialog.cc:129
-#, fuzzy
 msgid "By date"
-msgstr "Actualizar"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog_glade.cc:71
-#, fuzzy
 msgid "New filter or range:"
-msgstr "Novo filtro:"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog_glade.cc:80
 msgid "Query Text"
@@ -927,23 +911,20 @@ msgid "System on battery"
 msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:278
-#, fuzzy
 msgid "Crawling"
-msgstr "HTTP crawling:"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:313
 msgid "Errors"
 msgstr "Erros"
 
 #: UI/GTK2/src/WorkerThreads.cpp:93
-#, fuzzy
 msgid "Index error"
-msgstr "Erro na indexação em"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:95
-#, fuzzy
 msgid "Couldn't index document"
-msgstr "Não foi possível remover documento(s) do índice"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:97
 msgid "Couldn't update document"
@@ -958,28 +939,24 @@ msgid "Couldn't run query on search engine"
 msgstr "Não foi possível efectuar consulta no mecanismo de pesquisa"
 
 #: UI/GTK2/src/WorkerThreads.cpp:103
-#, fuzzy
 msgid "Couldn't get history for search engine"
-msgstr "Não foi possível efectuar consulta no mecanismo de pesquisa"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:105
-#, fuzzy
 msgid "Couldn't retrieve document"
-msgstr "Não foi possível actualizar o documento"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:107
 msgid "File monitor error"
 msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:109
-#, fuzzy
 msgid "Couldn't open directory"
-msgstr "Não foi possível abrir o índice"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:111
-#, fuzzy
 msgid "Index doesn't exist"
-msgstr "não existe"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:113
 msgid "Couldn't create search engine"
@@ -990,9 +967,8 @@ msgid "Cannot index document type"
 msgstr "Impossível indexar tipo de ficheiro"
 
 #: UI/GTK2/src/WorkerThreads.cpp:117
-#, fuzzy
 msgid "No downloader for this protocol"
-msgstr "Não foi possível obter fonte de transferência para o protocolo"
+msgstr ""
 
 #: UI/GTK2/src/WorkerThreads.cpp:119
 msgid "Robots META tag forbids indexing"
@@ -1021,10 +997,6 @@ msgstr "está na lista negra"
 #: UI/GTK2/src/WorkerThreads.cpp:974
 msgid "No title"
 msgstr "Sem título"
-
-#, fuzzy
-#~ msgid "No"
-#~ msgstr "Nenhum"
 
 #~ msgid "Extract"
 #~ msgstr "Extrair"

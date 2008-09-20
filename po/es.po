@@ -5,16 +5,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.88\n"
+"Project-Id-Version: pinot 0.89\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-08-23 23:22+0800\n"
-"PO-Revision-Date: 2008-07-26 12:10+0000\n"
+"PO-Revision-Date: 2008-08-23 16:14+0000\n"
 "Last-Translator: Jesus Tramullas <jesus@tramullas.com>\n"
 "Language-Team: es <fabricecolin@users.berlios.de>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-08-23 14:16+0000\n"
+"X-Launchpad-Export-Date: 2008-09-20 06:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:97
@@ -602,9 +602,8 @@ msgid "Have CJKV"
 msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:395
-#, fuzzy
 msgid "In English"
-msgstr "Inglés"
+msgstr ""
 
 #: UI/GTK2/src/PinotSettings.cpp:396
 msgid "10kb And Smaller"
@@ -712,9 +711,8 @@ msgid "File patterns:"
 msgstr "Patrones de fichero"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:139
-#, fuzzy
 msgid "Reset"
-msgstr "Resultados"
+msgstr ""
 
 #: UI/GTK2/src/prefsDialog_glade.cc:144
 msgid "Indexing"
@@ -841,9 +839,8 @@ msgid "Stemming:"
 msgstr "Identificar raíces"
 
 #: UI/GTK2/src/queryDialog_glade.cc:94
-#, fuzzy
 msgid "Only index new results"
-msgstr "Indizar sólo estos patrones"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog_glade.cc:208
 msgid "Query parameters"
@@ -913,9 +910,8 @@ msgid "System on battery"
 msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:278
-#, fuzzy
 msgid "Crawling"
-msgstr "Capturado"
+msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:313
 msgid "Errors"
@@ -1000,10 +996,6 @@ msgstr "ya excluido"
 #: UI/GTK2/src/WorkerThreads.cpp:974
 msgid "No title"
 msgstr "Sin título"
-
-#, fuzzy
-#~ msgid "No"
-#~ msgstr "Ninguno"
 
 #~ msgid "Extract"
 #~ msgstr "Extraídos"

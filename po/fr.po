@@ -5,20 +5,17 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.82\n"
+"Project-Id-Version: pinot 0.89\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-08-23 23:22+0800\n"
 "PO-Revision-Date: 2008-08-24 04:19+0000\n"
 "Last-Translator: FabriceColin <fabrice.colin@gmail.com>\n"
 "Language-Team: fr <fabricecolin@users.berlios.de>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-08-24 04:24+0000\n"
+"X-Launchpad-Export-Date: 2008-09-20 06:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
-
-#~ msgid "Extract"
-#~ msgstr "Extrait"
 
 #: UI/GTK2/src/EnginesTree.cpp:68 UI/GTK2/src/statisticsDialog.cc:97
 msgid "Search Engines"
@@ -193,8 +190,7 @@ msgstr "Pret"
 
 #: UI/GTK2/src/mainWindow.cc:258
 msgid "Updating all documents in My Web Pages is recommended"
-msgstr ""
-"Il est recommende de mettre a jour tous les documents de Mes Pages Web"
+msgstr "Il est recommende de mettre a jour tous les documents de Mes Pages Web"
 
 #: UI/GTK2/src/mainWindow.cc:266
 #, fuzzy
@@ -708,8 +704,7 @@ msgid "Labels"
 msgstr "Etiquettes"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:113
-msgid ""
-"These directories will be indexed and optionally monitored for changes:"
+msgid "These directories will be indexed and optionally monitored for changes:"
 msgstr "Ces repertoires seront indexes automatiquement:"
 
 #: UI/GTK2/src/prefsDialog_glade.cc:126
@@ -1004,3 +999,6 @@ msgstr "est exclus"
 #: UI/GTK2/src/WorkerThreads.cpp:974
 msgid "No title"
 msgstr "Pas de titre"
+
+#~ msgid "Extract"
+#~ msgstr "Extrait"
