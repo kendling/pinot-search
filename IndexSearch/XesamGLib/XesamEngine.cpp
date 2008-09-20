@@ -18,12 +18,11 @@
 
 #include <stdlib.h>
 #include <glib.h>
-#include <xesam-glib/xesam-glib.h>
+#include <xesam-glib.h>
 #include <vector>
 #include <iostream>
 
 #include "DocumentInfo.h"
-#include "StringManip.h"
 #include "XesamEngine.h"
 
 using std::cout;
@@ -45,6 +44,16 @@ class CallbackData
 		}
 		~CallbackData()
 		{
+		}
+
+		bool enoughHits(void) const
+		{
+			if (m_resultsList.size() >= m_requiredHitsCount)
+			{
+				return true;
+			}
+
+			return false;
 		}
 
 		GMainLoop *m_pMainLoop;
@@ -70,9 +79,6 @@ static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int hitN
 	{
 		return;
 	}
-#ifdef DEBUG
-	cout << "XesamEngine::pushHit: hit ID " << xesam_g_hit_get_id(pHit) << endl;
-#endif
 
 	DocumentInfo docInfo;
 
@@ -142,6 +148,10 @@ static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int hitN
 		// Assume hits are sorted by relevancy
 		docInfo.setScore((float )(100 - hitNum));
 	}
+#ifdef DEBUG
+	cout << "XesamEngine::pushHit: hit " << xesam_g_hit_get_id(pHit)
+		<< " on " << docInfo.getLocation() << endl;
+#endif
 
 	// Push into the results list
 	resultsList.push_back(docInfo);
@@ -156,6 +166,8 @@ static void hitsReady(XesamGSearch *pSearch, XesamGHits *pHits, gpointer pUserDa
 	}
 
 	CallbackData *pData = (CallbackData *)pUserData;
+	bool haveEnough = false;
+
 #ifdef DEBUG
 	cout << "XesamEngine::hitsReady: needing " << pData->m_requiredHitsCount
 		<< " hits, got " << xesam_g_hits_get_count(pHits) << endl;
@@ -164,11 +176,22 @@ static void hitsReady(XesamGSearch *pSearch, XesamGHits *pHits, gpointer pUserDa
 	++pData->m_gettingHits;
 	for (guint hitNum = 0; hitNum < xesam_g_hits_get_count(pHits); ++hitNum)
 	{
+		if (pData->enoughHits() == true)
+		{
+			haveEnough = true;
+			break;
+		}
+
 		XesamGHit *pHit = xesam_g_hits_get(pHits, hitNum);
 
 		pushHit(pHit, pData->m_resultsList, hitNum);
 	}
 	--pData->m_gettingHits;
+
+	if (haveEnough == true)
+	{
+		stopSearch(pData->m_pMainLoop);
+	}
 }
 
 static void searchDone(XesamGSearch *pSearch, gpointer pUserData)
@@ -217,7 +240,7 @@ XesamEngine::~XesamEngine()
 bool XesamEngine::runQuery(QueryProperties& queryProps,
 	unsigned int startDoc)
 {
-	string freeQuery(StringManip::replaceSubString(queryProps.getFreeQuery(), "\n", " "));
+	string freeQuery(queryProps.getFreeQuery());
 	QueryProperties::QueryType type = queryProps.getType();
 	bool ranQuery = false;
 
