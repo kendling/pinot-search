@@ -1,3 +1,21 @@
+2008/09/20 version_0_8_9
+Xapian :
+ - indexing and searching are now diacritics insensitive by default, thanks
+  to Unac 1.7.0 by Loic Dachary
+ - support for removal of stopwords at query time. Language specific lists
+  should be installed in $PREFIX/share/pinot/stopwords and be named
+  stopwords.language_code
+ - better abstracts for short queries
+Daemon :
+ - fixed indexing of plain text and XML files, following changes made in 0.88
+UI :
+ - fixed boolean operators in spelling suggestions, broken in 0.88
+ - spelling suggestion doesn't suggest the same thing over and over again
+ - dehyphen queries on line breaks, useful with text pasted from an external
+  document
+ - updated Simplified Chinese translation by Aron Xu
+ - updated Brazilian Portuguese translation by André Gondim
+
 2008/08/30 version_0_8_8
 General :
  - replace xdgmime with GIO if it can sniff PNG at configure time

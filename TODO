@@ -48,11 +48,10 @@ Search
 - With engines that provide a redirection URL for results (eg Acoona), it looks like
   the query hitory is not saved/checked correctly
 - Make sure Description files' SyndicationRight is not private or closed
-- Get hold of stopwords lists for the languages supported by Xapian's stemmers
- and remove stopwords from queries as first step of search
 - getCloseTerms() should be a search engine method so that WebEngine can use plugins'
  suggestions Url field (http://developer.mozilla.org/en/docs/Supporting_search_suggestions_in_search_plugins)
 - pinot-search should be able to run stored queries, as found in the configuration file
+- Filters with CJKV should work better; supporting quoting would help, eg title:"你好"
 
 Index
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
@@ -109,4 +108,5 @@ UI
 - Default cache provider should be configurable
 - Reorganize menus so that More Like This, Search This For etc... are available
  on all documents, whether a result or from an index
+- Offer to index newly mounted volumes
 
