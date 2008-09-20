@@ -1,4 +1,18 @@
 ------------------------------------------------------------------------
+r117 | fabricecolin | 2008-09-16 22:05:12 +0800 (Tue, 16 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/FilterFactory.cc
+
+isSupportedType() would claim plain text and XML were not supported !
+
+------------------------------------------------------------------------
+r115 | fabricecolin | 2008-09-09 22:33:55 +0800 (Tue, 09 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/HtmlFilter.cc
+
+Check for vsnprintf().
+
+------------------------------------------------------------------------
 r114 | fabricecolin | 2008-08-22 21:50:04 +0800 (Fri, 22 Aug 2008) | 4 lines
 Changed paths:
    M /trunk/filters/external-filters.xml

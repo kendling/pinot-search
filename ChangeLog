@@ -1,4 +1,213 @@
 ------------------------------------------------------------------------
+r1375 | fabricecolin | 2008-09-20 16:45:49 +0800 (Sat, 20 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+
+Current state of things.
+
+------------------------------------------------------------------------
+r1374 | fabricecolin | 2008-09-20 16:40:29 +0800 (Sat, 20 Sep 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/XesamGLib/XesamEngine.cpp
+
+Assume QueryProperties sanitized the query.
+Attempt to stop the search when enough hits have been received.
+Include <xesam-glib.h> as found in xesam-glib v0.5.0.
+
+------------------------------------------------------------------------
+r1373 | fabricecolin | 2008-09-20 15:18:09 +0800 (Sat, 20 Sep 2008) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Current translations, with updates from Aron Xu (Simplified Chinese) and
+André Gondim (Brazilian Portuguese).
+
+------------------------------------------------------------------------
+r1372 | fabricecolin | 2008-09-18 22:48:09 +0800 (Thu, 18 Sep 2008) | 4 lines
+Changed paths:
+   M /trunk/configure.in
+
+Bumped version number to 0.89. Force automatic reindexing of older versions so
+that users benefit from the various bug fixes to CJKV, handling of basic types
+as well as diacritics insensitivity.
+
+------------------------------------------------------------------------
+r1371 | fabricecolin | 2008-09-18 22:44:14 +0800 (Thu, 18 Sep 2008) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+
+Give credit to Loic Dachary for Unac, and to Constantin Teodorescu for his help
+with testing diacritics (in)sensitivity.
+
+------------------------------------------------------------------------
+r1370 | fabricecolin | 2008-09-18 22:42:42 +0800 (Thu, 18 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/FilterUtils.cpp
+
+DEBUG only output.
+
+------------------------------------------------------------------------
+r1369 | fabricecolin | 2008-09-18 22:41:44 +0800 (Thu, 18 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/PinotSettings.cpp
+
+Added CVS, .svn and .torrent to the default blacklist.
+
+------------------------------------------------------------------------
+r1368 | fabricecolin | 2008-09-18 22:38:27 +0800 (Thu, 18 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Boolean operators are case sensitive since 0.88 !
+
+------------------------------------------------------------------------
+r1367 | fabricecolin | 2008-09-16 22:37:39 +0800 (Tue, 16 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+Stems of terms without diacritics are indexed too.
+
+------------------------------------------------------------------------
+r1366 | fabricecolin | 2008-09-13 13:52:52 +0800 (Sat, 13 Sep 2008) | 3 lines
+Changed paths:
+   M /trunk/README
+
+Clarify parts about stemming and blacklists. Mention stopwords removal and
+query correction.
+
+------------------------------------------------------------------------
+r1365 | fabricecolin | 2008-09-13 13:51:06 +0800 (Sat, 13 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+
+Create the stopwords directory even though there are no lists to copy there.
+
+------------------------------------------------------------------------
+r1364 | fabricecolin | 2008-09-13 13:07:02 +0800 (Sat, 13 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Assume query strings are sanitized by QueryProperty.
+
+------------------------------------------------------------------------
+r1363 | fabricecolin | 2008-09-13 13:01:56 +0800 (Sat, 13 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/Monitor/INotifyMonitor.cpp
+
+Include more headers to hopefully fix build issue on current Fedora 10.
+
+------------------------------------------------------------------------
+r1362 | fabricecolin | 2008-09-13 12:59:53 +0800 (Sat, 13 Sep 2008) | 9 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/ModuleExports.cpp
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+   M /trunk/IndexSearch/Xapian/XapianEngine.h
+
+FileStopper implements a file-based Stopper. Language specific stopwords lists
+are assumed to be at "$PREFIX/share/pinot/stopwords/stopwords.language_code".
+Stopwords are removed from queries when stemming is on, and if the query
+consists of more than one token. For non-CJKV queries, we rely on the number
+of spaces in the query (which is okay for the languages stopwords removal is
+useful for).
+Cache the stopper object, and delete it when the back-end is unloaded.
+Let QueryProperties sanitize the query string.
+
+------------------------------------------------------------------------
+r1361 | fabricecolin | 2008-09-13 12:31:24 +0800 (Sat, 13 Sep 2008) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/QueryProperties.cpp
+
+Clean up the query string : remove CRs, dehyphen on line breaks, replace line
+breaks with spaces.
+
+------------------------------------------------------------------------
+r1360 | fabricecolin | 2008-09-09 21:21:07 +0800 (Tue, 09 Sep 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+
+If the query is not sensitive to diacritics, get QueryModifier to remove
+them from query terms.
+Fixed a (harmless ?) bug where a stray bracket would be appended to queries.
+
+------------------------------------------------------------------------
+r1359 | fabricecolin | 2008-09-09 21:17:59 +0800 (Tue, 09 Sep 2008) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+Unless_DIACRITICS_SENSITIVE is defined, always use our own TokensIndexer; terms
+with diacritics are indexed with and without.
+Only add a "XTOK:CJKV" term if CJKV was found.
+
+------------------------------------------------------------------------
+r1358 | fabricecolin | 2008-09-09 21:10:43 +0800 (Tue, 09 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/configure.in
+
+Check for vsnprintf().
+
+------------------------------------------------------------------------
+r1357 | fabricecolin | 2008-09-08 21:41:21 +0800 (Mon, 08 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/QueryProperties.cpp
+   M /trunk/IndexSearch/QueryProperties.h
+
+Added a diacriticSensitive property, false by default.
+
+------------------------------------------------------------------------
+r1356 | fabricecolin | 2008-09-08 21:40:13 +0800 (Mon, 08 Sep 2008) | 4 lines
+Changed paths:
+   M /trunk/Utils/Makefile.am
+   M /trunk/Utils/StringManip.cpp
+   M /trunk/Utils/StringManip.h
+   A /trunk/Utils/unac
+   A /trunk/Utils/unac/unac.c
+   A /trunk/Utils/unac/unac.h
+
+Embed a copy of unac 1.7.0 main files. Unac is Copyright (C) 2000, 2001, 2002
+Loic Dachary.
+StringManip::stripDiacritics() wraps unac_string().
+
+------------------------------------------------------------------------
+r1355 | fabricecolin | 2008-09-08 21:36:44 +0800 (Mon, 08 Sep 2008) | 4 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+In add_query(), only merge queries if the new bit isn't in already. This
+prevents automatically generated queries such as spelling corrections from
+getting longer and longer when running the same query against the same index.
+
+------------------------------------------------------------------------
+r1354 | fabricecolin | 2008-09-08 21:34:46 +0800 (Mon, 08 Sep 2008) | 6 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/AbstractGenerator.cpp
+
+When there's only one term, no abstract window would be chosen because the
+default weights were zero.
+Prefer the window leading to terms, rather than following.
+Rely on terms' positions to determine whether terms should be highlighted as
+sometimes one position may have more than one term.
+
+------------------------------------------------------------------------
+r1352 | fabricecolin | 2008-08-30 00:02:43 +0800 (Sat, 30 Aug 2008) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Current log.
+
+------------------------------------------------------------------------
 r1351 | fabricecolin | 2008-08-29 23:58:52 +0800 (Fri, 29 Aug 2008) | 2 lines
 Changed paths:
    M /trunk/ChangeLog-dijon
