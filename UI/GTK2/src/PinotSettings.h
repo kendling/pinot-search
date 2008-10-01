@@ -207,6 +207,7 @@ class PinotSettings
 		bool m_firstRun;
 		std::map<std::string, std::string> m_indexNames;
 		std::map<unsigned int, std::string> m_indexIds;
+		unsigned int m_indexCount;
 		std::set<ModuleProperties> m_engines;
 		std::map<unsigned int, std::string> m_engineIds;
 		std::map<std::string, bool> m_engineChannels;

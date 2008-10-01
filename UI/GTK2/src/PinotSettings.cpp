@@ -110,7 +110,8 @@ PinotSettings::PinotSettings() :
 	m_proxyPort(8080),
 	m_proxyEnabled(false),
 	m_isBlackList(true),
-	m_firstRun(false)
+	m_firstRun(false),
+	m_indexCount(0)
 {
 	string directoryName(getConfigurationDirectory());
 	struct stat fileStat;
@@ -294,6 +295,7 @@ void PinotSettings::clear(void)
 	m_firstRun = false;
 	m_indexNames.clear();
 	m_indexIds.clear();
+	m_indexCount = 0;
 	m_engines.clear();
 	m_engineIds.clear();
 	m_engineChannels.clear();
@@ -1587,8 +1589,12 @@ bool PinotSettings::addIndex(const string &name, const string &location)
 	if (namesMapIter == m_indexNames.end())
 	{
 		// Okay, no such index exists
-		m_indexIds[1 << m_indexNames.size()] = name;
+		m_indexIds[1 << m_indexCount] = name;
 		m_indexNames[name] = location;
+#ifdef DEBUG
+		cout << "PinotSettings::addIndex: index " << m_indexCount << " is " << name << endl;
+#endif
+		++m_indexCount;
 
 		return true;
 	}
@@ -1627,6 +1633,7 @@ void PinotSettings::clearIndexes(void)
 	// Clear both maps, reinsert the internal index
 	m_indexNames.clear();
 	m_indexIds.clear();
+	m_indexCount = 0;
 	addIndex(_("My Web Pages"), m_docsIndexLocation);
 	addIndex(_("My Documents"), m_daemonIndexLocation);
 }
@@ -1669,13 +1676,13 @@ void PinotSettings::getIndexNames(unsigned int id, std::set<std::string> &names)
 {
 	names.clear();
 
-	// Make sure there are indexes defined
-	if (m_indexNames.empty() == true)
+	// Make sure indexes are or were defined
+	if (m_indexCount == 0)
 	{
 		return;
 	}
 
-	unsigned indexId = 1 << (m_indexNames.size() - 1);
+	unsigned indexId = 1 << (m_indexCount - 1);
 	do
 	{
 		if (id & indexId)
@@ -1683,6 +1690,9 @@ void PinotSettings::getIndexNames(unsigned int id, std::set<std::string> &names)
 			map<unsigned int, string>::iterator mapIter = m_indexIds.find(indexId);
 			if (mapIter != m_indexIds.end())
 			{
+#ifdef DEBUG
+				cout << "PinotSettings::getIndexNames: index " << indexId << " is " << mapIter->second << endl;
+#endif
 				// Get the associated name
 				names.insert(mapIter->second);
 			}
