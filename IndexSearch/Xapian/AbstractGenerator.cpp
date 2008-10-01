@@ -70,6 +70,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 {
 	CJKVTokenizer tokenizer;
 	map<Xapian::termpos, PositionWindow> abstractWindows;
+	set<Xapian::termpos> seedTermsPositions;
 	map<Xapian::termpos, string> wordsBuffer;
 	string summary;
 	Xapian::termpos bestPosition = 0, startPosition = 0;
@@ -91,12 +92,6 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	{
 		string termName(*termIter);
 
-		if (seedTermsCount >= m_maxSeedTerms)
-		{
-			// Enough terms
-			break;
-		}
-
 #ifdef DEBUG
 		cout << "AbstractGenerator::generateAbstract: term " << termName << endl;
 #endif
@@ -111,6 +106,13 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 				Xapian::termpos termPos = *positionIter;
 
 				positions.insert(termPos);
+				seedTermsPositions.insert(termPos);
+
+				if (seedTermsCount >= m_maxSeedTerms)
+				{
+					// Enough windows already 
+					continue;
+				}
 
 				// Take all the top term's positions into account, and some of 
 				// the other terms' too if the minimum number is not reached
@@ -145,8 +147,8 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 				}
 			}
 
-			topTerm = false;
 			++seedTermsCount;
+			topTerm = false;
 		}
 		catch (const Xapian::Error &error)
 		{
@@ -158,7 +160,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 
 #ifdef DEBUG
 		cout << "AbstractGenerator::generateAbstract: " << abstractWindows.size()
-			<< " positions, " << seedTermsCount << " terms" << endl;
+			<< " windows, " << seedTermsCount << " terms" << endl;
 #endif
 	}
 
@@ -210,9 +212,6 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 			if ((tokenizer.has_cjkv(termName) == true) &&
 				(termName.length() > 4))
 			{
-#ifdef DEBUG
-				cout << "AbstractGenerator::generateAbstract: skipping " << termName << endl;
-#endif
 				continue;
 			}
 
@@ -266,7 +265,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		}
 
 		// Is this a seed term ?
-		if (abstractWindows.find(wordIter->first) != abstractWindows.end())
+		if (seedTermsPositions.find(wordIter->first) != seedTermsPositions.end())
 		{
 			summary += "<b>";
 			summary += pEscToken;
