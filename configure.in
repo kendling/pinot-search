@@ -226,18 +226,9 @@ else
 fi
 
 dnl inotify
-linuxinotify="no"
-AM_CONDITIONAL(HAVE_LINUX_INOTIFY, false)
-AC_CHECK_HEADERS([linux/inotify.h],
-   [linuxinotify="yes"
-   AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
+AC_CHECK_HEADERS([sys/inotify.h],
+   [AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
    ])
-if test "$linuxinotify" = "no" ; then
-   AC_CHECK_HEADERS([sys/inotify.h],
-   [linuxinotify="yes"
-   AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
-   ])
-fi
 
 dnl boost Spirit 
 AM_CONDITIONAL(HAVE_BOOST_SPIRIT, false)

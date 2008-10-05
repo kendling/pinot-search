@@ -24,9 +24,7 @@ Small patches, bug reports and helpful comments :
 	David Paleino <d dot paleino at gmail dot com>
 	Michael Biebl <biebl at debian dot org>
 	Constantin Teodorescu <brailateo at gmail dot com>
-
-The file Monitor/linux-inotify-syscalls.h is originally from libinotify
-(Copyright © 2005 Ryan Lortie <desrt at desrt dot ca>).
+	Adrian Bunk <bunk at stusta dot de>
 
 The source in Utils/unac is from unac 1.7.0 (Copyright Loic Dachary
 <loic at senga dot org>).
