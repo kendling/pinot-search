@@ -880,10 +880,42 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &
 	vector<MIMEAction> &typeActions)
 {
 #ifdef USE_GIO
+	// Get default actions first
+	GAppInfo *pDefAppInfo1 = g_app_info_get_default_for_type(mimeType.c_str(), TRUE);
+	if (pDefAppInfo1 != NULL)
+	{
+		MIMEAction action(pDefAppInfo1);
+
+#ifdef DEBUG
+		cout << "MIMEScanner::getDefaultActionsForType: default action " << action.m_name << endl;
+#endif
+		actionNames.insert(action.m_name);
+		typeActions.push_back(action);
+
+		g_object_unref(pDefAppInfo1);
+	}
+	GAppInfo *pDefAppInfo2 = g_app_info_get_default_for_type(mimeType.c_str(), FALSE);
+	if (pDefAppInfo2 != NULL)
+	{
+		MIMEAction action(pDefAppInfo2);
+
+		if (actionNames.find(action.m_name) == actionNames.end())
+		{
+#ifdef DEBUG
+			cout << "MIMEScanner::getDefaultActionsForType: non-URI default action " << action.m_name << endl;
+#endif
+			actionNames.insert(action.m_name);
+			typeActions.push_back(action);
+		}
+
+		g_object_unref(pDefAppInfo2);
+	}
+
+	// Get all other actions
 	GList *pAppInfoList = g_app_info_get_all_for_type(mimeType.c_str());
 	if (pAppInfoList == NULL)
 	{
-		return false;
+		return !typeActions.empty();
 	}
 
 	typeActions.reserve(g_list_length(pAppInfoList));
@@ -901,12 +933,16 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &
 		}
 
 		MIMEAction action(pAppInfo);
-#ifdef DEBUG
-		cout << "MIMEScanner::getDefaultActions: action " << action.m_name << endl;
-#endif
 
-		actionNames.insert(action.m_name);
-		typeActions.push_back(action);
+		// Skip defaults
+		if (actionNames.find(action.m_name) == actionNames.end())
+		{
+#ifdef DEBUG
+			cout << "MIMEScanner::getDefaultActionsForType: action " << action.m_name << endl;
+#endif
+			actionNames.insert(action.m_name);
+			typeActions.push_back(action);
+		}
 	}
 	g_list_foreach(pAppInfoList, (GFunc)g_object_unref, NULL);
 	g_list_free(pAppInfoList);
@@ -935,7 +971,7 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &
 			if (actionNames.find(actionIter->second.m_name) == actionNames.end())
 			{
 #ifdef DEBUG
-				cout << "MIMEScanner::getDefaultActions: action " << actionIter->second.m_name
+				cout << "MIMEScanner::getDefaultActionsForType: action " << actionIter->second.m_name
 					<< " at " << actionIter->second.m_location << endl;
 #endif
 				actionNames.insert(actionIter->second.m_name);

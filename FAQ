@@ -13,6 +13,13 @@
     You may also want to disable support for spelling. See the README for more
     details.
 
+  * Pinot doesn't use my favourite browser XYZ to open HTML documents
+    Even if you have set XYZ as your favourite Web browser in your desktop
+    environment, it may not be setup as the default application for HTML files.
+    In Gnome for instance, one has to select XYZ as default for all HTML files
+    using Nautilus (Properties dialog, Open With tab). This applies to
+    applications for any other file type.
+
   * At startup, when listing an index or indexing documents, Pinot complains
     of an "index error"
     This is likely because a previous instance didn't exit properly and one
