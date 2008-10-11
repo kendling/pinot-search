@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdlib.h>
 #include <pthread.h>
 #include <iostream>
 
@@ -103,7 +104,10 @@ void DownloaderInterface::shutdown(void)
 }
 
 DownloaderInterface::DownloaderInterface() :
-	m_timeout(60)
+	m_userAgent("Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.3) Gecko/20041020"),
+	m_proxyPort(0),
+	m_timeout(60),
+	m_method("GET")
 {
 }
 
@@ -114,11 +118,46 @@ DownloaderInterface::~DownloaderInterface()
 /// Sets a (name, value) setting; true if success.
 bool DownloaderInterface::setSetting(const string &name, const string &value)
 {
-	return false;
+	bool goodSetting = true;
+
+	if (name == "useragent")
+	{
+		m_userAgent = value;
+	}
+	else if (name == "proxyaddress")
+	{
+		m_proxyAddress = value;
+	}
+	else if ((name == "proxyport") &&
+		(value.empty() == false))
+	{
+		m_proxyPort = (unsigned int )atoi(value.c_str());
+	}
+	else if (name == "proxytype")
+	{
+		m_proxyType = value;
+	}
+	else if (name == "timeout")
+	{
+		m_timeout = (unsigned int)atoi(value.c_str());
+	}
+	else if (name == "method")
+	{
+		if ((value == "GET") ||
+			(value == "POST"))
+		{
+			m_method = value;
+		}
+	}
+	else if (name == "postfields")
+	{
+		m_postFields = value;
+	}
+	else
+	{
+		goodSetting = false;
+	}
+
+	return goodSetting;
 }
 
-/// Sets timeout.
-void DownloaderInterface::setTimeout(unsigned int seconds)
-{
-	m_timeout = seconds;
-}

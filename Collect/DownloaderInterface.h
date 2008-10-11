@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,18 +40,24 @@ class DownloaderInterface
 		  * proxyaddress - the address of the proxy to use
 		  * proxyport - the port of the proxy to use (positive integer)
 		  * proxytype - the type of the proxy to use
+		  * timeout - timeout in seconds 
+		  * method - GET or POST
+		  * postfields - data to post
 		  * Returns true if success.
 		  */
 		virtual bool setSetting(const std::string &name, const std::string &value);
-
-		/// Sets timeout.
-		virtual void setTimeout(unsigned int seconds);
 
 		/// Retrieves the specified document; NULL if error. Caller deletes.
 		virtual Document *retrieveUrl(const DocumentInfo &docInfo) = 0;
 
 	protected:
+		std::string m_userAgent;
+		std::string m_proxyAddress;
+		unsigned int m_proxyPort;
+		std::string m_proxyType;
 		unsigned int m_timeout;
+		std::string m_method;
+		std::string m_postFields;
 
 		DownloaderInterface();
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,24 +30,11 @@ class CurlDownloader : public DownloaderInterface
 		CurlDownloader();
 		virtual ~CurlDownloader();
 
-		/**
-		  * Sets a (name, value) setting. Setting names include :
-		  * proxyaddress - the address of the proxy to use
-		  * proxyport - the port of the proxy to use (positive integer)
-		  * proxytype - the type of the proxy to use
-		  * Returns true if success.
-		  */
-		virtual bool setSetting(const std::string &name, const std::string &value);
-
 		/// Retrieves the specified document; NULL if error. Caller deletes.
 		virtual Document *retrieveUrl(const DocumentInfo &docInfo);
 
 	protected:
 		static unsigned int m_initialized;
-		std::string m_userAgent;
-		std::string m_proxyAddress;
-		unsigned int m_proxyPort;
-		std::string m_proxyType;
 
 	private:
 		CurlDownloader(const CurlDownloader &other);

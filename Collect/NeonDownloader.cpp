@@ -16,7 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <cstdio>
+#include <stdio.h>
+#include <string.h>
 #include <strings.h>
 #include <stdarg.h>
 #include <pthread.h>
@@ -36,8 +37,7 @@ using namespace std;
 unsigned int NeonDownloader::m_initialized = 0;
 
 NeonDownloader::NeonDownloader() :
-	DownloaderInterface(),
-	m_proxyPort(0)
+	DownloaderInterface()
 {
 	if (m_initialized == 0)
 	{
@@ -46,9 +46,6 @@ NeonDownloader::NeonDownloader() :
 
 		++m_initialized;
 	}
-
-	// Pretend to be Mozilla
-	m_userAgent = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.3) Gecko/20041020";
 }
 
 NeonDownloader::~NeonDownloader()
@@ -103,42 +100,6 @@ string NeonDownloader::handleRedirection(const char *pBody, unsigned int length)
 //
 // Implementation of DownloaderInterface
 //
-
-/**
-  * Sets a (name, value) setting. Setting names include :
-  * proxyaddress - the address of the proxy to use
-  * proxyport - the port of the proxy to use (positive integer)
-  * proxytype - the type of the proxy to use
-  * Returns true if success.
-  */
-bool NeonDownloader::setSetting(const string &name, const string &value)
-{
-	bool goodSetting = true;
-
-	if (name == "useragent")
-	{
-		m_userAgent = value;
-	}
-	else if (name == "proxyaddress")
-	{
-		m_proxyAddress = value;
-	}
-	else if ((name == "proxyport") &&
-		(value.empty() == false))
-	{
-		m_proxyPort = (unsigned int )atoi(value.c_str());
-	}
-	else if (name == "proxytype")
-	{
-		m_proxyType = value;
-	}
-	else
-	{
-		goodSetting = false;
-	}
-
-	return goodSetting;
-}
 
 /// Retrieves the specified document; NULL if error.
 Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
@@ -206,7 +167,20 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	}
 
 	// Create a request for this URL
-	ne_request *pRequest = ne_request_create(pSession, "GET", fullLocation.c_str());
+	ne_request *pRequest = NULL;
+	if (m_method == "POST")
+	{
+		pRequest = ne_request_create(pSession, "POST", fullLocation.c_str());
+		if ((pRequest != NULL) &&
+			(m_postFields.empty() == false))
+		{
+			ne_set_request_body_buffer(pRequest, m_postFields.c_str(), m_postFields.length());
+		}
+	}
+	else
+	{
+		pRequest = ne_request_create(pSession, "GET", fullLocation.c_str());
+	}
 	if (pRequest == NULL)
 	{
 #ifdef DEBUG

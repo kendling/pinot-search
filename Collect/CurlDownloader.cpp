@@ -124,8 +124,7 @@ static size_t headerCallback(void *pData, size_t dataSize, size_t elementsCount,
 unsigned int CurlDownloader::m_initialized = 0;
 
 CurlDownloader::CurlDownloader() :
-	DownloaderInterface(),
-	m_proxyPort(0)
+	DownloaderInterface()
 {
 	if (m_initialized == 0)
 	{
@@ -134,9 +133,6 @@ CurlDownloader::CurlDownloader() :
 
 		++m_initialized;
 	}
-
-        // Pretend to be Mozilla
-	m_userAgent = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.3) Gecko/20041020";
 }
 
 CurlDownloader::~CurlDownloader()
@@ -152,42 +148,6 @@ CurlDownloader::~CurlDownloader()
 //
 // Implementation of DownloaderInterface
 //
-
-/**
-  * Sets a (name, value) setting. Setting names include :
-  * proxyaddress - the address of the proxy to use
-  * proxyport - the port of the proxy to use (positive integer)
-  * proxytype - the type of the proxy to use
-  * Returns true if success.
-  */
-bool CurlDownloader::setSetting(const string &name, const string &value)
-{
-        bool goodSetting = true;
-
-        if (name == "useragent")
-        {
-                m_userAgent = value;
-        }
-	else if (name == "proxyaddress")
-	{
-		m_proxyAddress = value;
-	}
-	else if ((name == "proxyport") &&
-		(value.empty() == false))
-	{
-		m_proxyPort = (unsigned int )atoi(value.c_str());
-	}
-	else if (name == "proxytype")
-	{
-		m_proxyType = value;
-	}
-        else
-        {
-                goodSetting = false;
-        }
-
-        return goodSetting;
-}
 
 /// Retrieves the specified document; NULL if error.
 Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
@@ -257,6 +217,15 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 		while (redirectionsCount < 10)
 		{
 			curl_easy_setopt(pCurlHandler, CURLOPT_URL, url.c_str());
+
+			if (m_method == "POST")
+			{
+				curl_easy_setopt(pCurlHandler, CURLOPT_POST, 1);
+				if (m_postFields.empty() == false)
+				{
+					curl_easy_setopt(pCurlHandler, CURLOPT_POSTFIELDS, m_postFields.c_str());
+				}
+			}
 
 			CURLcode res = curl_easy_perform(pCurlHandler);
 			if ((res == CURLE_OK) &&
