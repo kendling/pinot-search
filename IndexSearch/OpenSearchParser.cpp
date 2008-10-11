@@ -112,7 +112,6 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 	{
 		bool loadFeed = false;
 
-		// Parse the configuration file
 		DomParser parser;
 		parser.set_substitute_entities(true);
 		parser.parse_memory_raw((const unsigned char *)pContent, (Parser::size_type)contentLen);
@@ -307,7 +306,6 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 
 	try
 	{
-		// Parse the configuration file
 		DomParser parser;
 		parser.set_substitute_entities(true);
 		parser.parse_file(m_fileName);

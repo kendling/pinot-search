@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 	bool checkDocument = false, indexDocument = false, showInfo = false, success = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "b:cd:hia:p:t:sv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "a:b:cd:hip:t:sv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		set<string> engines;
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "b:cd:hia:p:t:sv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "a:b:cd:hip:t:sv", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -222,11 +222,6 @@ int main(int argc, char **argv)
 	{
 		cerr << "Couldn't open index " << databaseName << endl;
 
-		Dijon::FilterFactory::unloadFilters();
-		Dijon::HtmlFilter::shutdown();
-		DownloaderInterface::shutdown();
-		MIMEScanner::shutdown();
-
 		return EXIT_FAILURE;
 	}
 
@@ -235,12 +230,6 @@ int main(int argc, char **argv)
 	if (pIndex == NULL)
 	{
 		cerr << "Couldn't obtain index for " << databaseName << endl;
-
-		ModuleFactory::unloadModules();
-		Dijon::FilterFactory::unloadFilters();
-		Dijon::HtmlFilter::shutdown();
-		DownloaderInterface::shutdown();
-		MIMEScanner::shutdown();
 
 		return EXIT_FAILURE;
 	}
