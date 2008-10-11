@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,6 +38,9 @@ class MonitorInterface
 		{
 			return m_monitorFd;
 		}
+
+		/// Returns the maximum number of files that can be monitored.
+		virtual unsigned int getLimit(void) const = 0;
 
 		/// Adds a watch for the specified location.
 		virtual bool addLocation(const std::string &location, bool isDirectory) = 0;

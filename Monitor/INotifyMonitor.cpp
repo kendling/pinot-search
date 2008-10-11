@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,22 +24,25 @@
 #include <string.h>
 #include <errno.h>
 #include <iostream>
+#include <fstream>
 #include <set>
 
 #include "INotifyMonitor.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::string;
 using std::map;
 using std::set;
 using std::queue;
 using std::pair;
-using std::cout;
-using std::cerr;
-using std::endl;
+using std::ifstream;
 
 INotifyMonitor::INotifyMonitor() :
 	MonitorInterface(),
-	m_noWatchesLeft(false)
+	m_maxUserWatches(0),
+	m_watchesCount(0)
 {
 	pthread_mutex_init(&m_mutex, NULL);
 	m_monitorFd = inotify_init();
@@ -49,6 +52,21 @@ INotifyMonitor::INotifyMonitor() :
 
 		strerror_r(errno, errBuffer, 1024);
 		cerr << "Couldn't initialize inotify: " << errBuffer << endl;
+	}
+
+	// FIXME: check for existence of /proc
+	ifstream inputFile;
+	inputFile.open("/proc/sys/fs/inotify/max_user_watches");
+	if (inputFile.good() == true)
+	{
+		inputFile >> m_maxUserWatches;
+		inputFile.close();
+
+		if (m_maxUserWatches > 8192)
+		{
+			// Don't be greedy, leave some for other processes
+			m_maxUserWatches -= 1024;
+		}
 	}
 }
 
@@ -67,7 +85,7 @@ bool INotifyMonitor::removeWatch(const string &location)
 	if (locationIter != m_locations.end())
 	{
 		inotify_rm_watch(m_monitorFd, locationIter->second);
-		m_noWatchesLeft = false;
+		--m_watchesCount;
 
 		map<int, string>::iterator watchIter = m_watches.find(locationIter->second);
 		if (watchIter != m_watches.end())
@@ -86,6 +104,12 @@ bool INotifyMonitor::removeWatch(const string &location)
 	return false;
 }
 
+/// Returns the maximum number of files that can be monitored.
+unsigned int INotifyMonitor::getLimit(void) const
+{
+	return m_maxUserWatches;
+}
+
 /// Starts monitoring a location.
 bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 {
@@ -95,7 +119,7 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 	if ((location.empty() == true) ||
 		(location == "/") ||
 		(m_monitorFd < 0) ||
-		(m_noWatchesLeft == true))
+		(m_watchesCount > m_maxUserWatches))
 	{
 		return false;
 	}
@@ -113,10 +137,11 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 	}
 	else
 	{
-		// FIXME: check the maximum number of watches hasn't been reached (MAX_FILE_WATCHES ?)
 		int watchNum = inotify_add_watch(m_monitorFd, location.c_str(), eventsMask);
 		if (watchNum >= 0)
 		{
+			++m_watchesCount;
+
 			// Generate an event to signal the file exists and is being monitored
 			if (isDirectory == false)
 			{
@@ -140,7 +165,8 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 		{
 			if (errno == ENOSPC)
 			{
-				m_noWatchesLeft = true;
+				// There are no watches left
+				m_watchesCount = m_maxUserWatches + 1;
 			}
 			cerr << "Couldn't monitor " << location << endl;
 		}
