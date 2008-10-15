@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,15 +22,11 @@
 #include <sigc++/sigc++.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/box.h>
-#include <gtkmm/paned.h>
-#include <gtkmm/label.h>
-#include <gtkmm/image.h>
-#define _USE_BUTTON_TAB 1
-#if _USE_BUTTON_TAB
 #include <gtkmm/button.h>
-#else
-#include <gtkmm/eventbox.h>
-#endif
+#include <gtkmm/comboboxtext.h>
+#include <gtkmm/image.h>
+#include <gtkmm/label.h>
+#include <gtkmm/paned.h>
 #include <gtkmm/textview.h>
 
 #include "PinotSettings.h"
@@ -68,9 +64,23 @@ class ResultsPage : public NotebookPageBox
 		/// Returns the page's tree.
 		virtual ResultsTree *getTree(void) const;
 
+		/// Returns the suggest signal.
+		sigc::signal2<void, Glib::ustring, Glib::ustring>& getSuggestSignal(void);
+
+		/// Append a suggestion.
+		void appendSuggestion(const Glib::ustring &text);
+
 	protected:
+		Gtk::Label *m_pLabel;
+		Gtk::ComboBoxText *m_pCombobox;
+		Gtk::Button *m_pButton;
+		Gtk::HBox *m_pHBox;
+		Gtk::VBox *m_pVBox;
 		Gtk::VPaned *m_pVPaned;
 		ResultsTree *m_pTree;
+		sigc::signal2<void, Glib::ustring, Glib::ustring> m_signalSuggest;
+
+		void onButtonClicked();
 
 };
 
@@ -89,18 +99,10 @@ class NotebookTabBox : public Gtk::HBox
 		NotebookPageBox::PageType m_pageType;
 		Gtk::Label *m_tabLabel;
 		Gtk::Image *m_tabImage;
-#if _USE_BUTTON_TAB
 		Gtk::Button *m_tabButton;
-#else
-		Gtk::EventBox *m_tabEventBox;
-#endif
 		sigc::signal2<void, Glib::ustring, NotebookPageBox::PageType> m_signalClose;
 
-#if _USE_BUTTON_TAB
 		void onButtonClicked(void);
-#else
-		bool onButtonPressEvent(GdkEventButton *ev);
-#endif
 
 };
 

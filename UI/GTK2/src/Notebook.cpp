@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,9 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if _USE_BUTTON_TAB
 #include <gtkmm/rc.h>
-#endif
 
 #include "config.h"
 #include "NLS.h"
@@ -60,21 +58,49 @@ NotebookPageBox::PageType NotebookPageBox::getType(void) const
 ResultsPage::ResultsPage(const ustring &queryName, ResultsTree *pTree,
 	int parentHeight, PinotSettings &settings) :
 	NotebookPageBox(queryName, NotebookPageBox::RESULTS_PAGE, settings),
+	m_pLabel(NULL),
+	m_pCombobox(NULL),
+	m_pButton(NULL),
+	m_pHBox(NULL),
+	m_pVBox(NULL),
 	m_pVPaned(NULL),
 	m_pTree(pTree)
 {
 	if (pTree != NULL)
 	{
+		m_pLabel = manage(new Label(_("Did you mean ?")));
+		m_pCombobox = manage(new ComboBoxText());
+		m_pButton = manage(new Button(StockID("gtk-yes")));
+
+		m_pHBox = manage(new HBox(false, 0));
+		m_pHBox->pack_start(*m_pLabel, Gtk::PACK_SHRINK, 4);
+		m_pHBox->pack_start(*m_pCombobox, Gtk::PACK_EXPAND_WIDGET, 4);
+		m_pHBox->pack_start(*m_pButton, Gtk::PACK_SHRINK, 4);
+
+		m_pVBox = manage(new VBox(false, 0));
+		m_pVBox->pack_start(*pTree->getResultsScrolledWindow());
+		m_pVBox->pack_start(*m_pHBox, Gtk::PACK_SHRINK, 0);
+
 		m_pVPaned = manage(new VPaned());
 		m_pVPaned->set_flags(Gtk::CAN_FOCUS);
 		m_pVPaned->set_position(105);
-		m_pVPaned->pack1(*pTree->getResultsScrolledWindow(), Gtk::EXPAND|Gtk::SHRINK);
+		m_pVPaned->pack1(*m_pVBox, Gtk::EXPAND|Gtk::SHRINK);
 		m_pVPaned->pack2(*pTree->getExtractScrolledWindow(), Gtk::SHRINK);
 		pack_start(*m_pVPaned, Gtk::PACK_EXPAND_WIDGET, 0);
 
 		// Give the extract 2/10th of the height
 		m_pVPaned->set_position((parentHeight * 8) / 10);
+
+		// Hide suggestions by default
+		m_pLabel->hide();
+		m_pCombobox->hide();
+		m_pButton->hide();
+		m_pHBox->hide();
+		m_pVBox->show();
 		m_pVPaned->show();
+
+		m_pButton->signal_clicked().connect(
+			sigc::mem_fun(*this, &ResultsPage::onButtonClicked), false);
 	}
 
 	show();
@@ -82,6 +108,16 @@ ResultsPage::ResultsPage(const ustring &queryName, ResultsTree *pTree,
 
 ResultsPage::~ResultsPage()
 {
+}
+
+void ResultsPage::onButtonClicked()
+{
+	if (m_pCombobox == NULL)
+	{
+		return;
+	}
+
+	m_signalSuggest(m_title, m_pCombobox->get_active_text());
 }
 
 //
@@ -92,6 +128,29 @@ ResultsTree *ResultsPage::getTree(void) const
 	return m_pTree;
 }
 
+// Returns the suggest signal.
+sigc::signal2<void, ustring, ustring>& ResultsPage::getSuggestSignal(void)
+{
+	return m_signalSuggest;
+}
+
+//
+// Append a suggestion.
+//
+void ResultsPage::appendSuggestion(const ustring &text)
+{
+	if (text.empty() == false)
+	{
+		m_pCombobox->prepend_text(text);
+		m_pCombobox->set_active(0);
+
+		m_pLabel->show();
+		m_pCombobox->show();
+		m_pButton->show();
+		m_pHBox->show();
+	}
+}
+
 bool NotebookTabBox::m_initialized = false;
 
 NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::PageType type) :
@@ -100,17 +159,12 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 	m_pageType(type),
 	m_tabLabel(NULL),
 	m_tabImage(NULL),
-#if _USE_BUTTON_TAB
 	m_tabButton(NULL)
-#else
-	m_tabEventBox(NULL)
-#endif
 {
 	if (m_initialized == false)
 	{
 		m_initialized = true;
 
-#if _USE_BUTTON_TAB
 		// This was lifted from gnome-terminal's terminal-window.c
 		RC::parse_string("style \"pinot-tab-close-button-style\"\n"
 			"{\n"
@@ -120,16 +174,11 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 			"ythickness = 0\n"
 			"}\n"
 			"widget \"*.pinot-tab-close-button\" style \"pinot-tab-close-button-style\"");
-#endif
 	}
 
 	m_tabLabel = manage(new Label(title));
 	m_tabImage = manage(new Image(StockID("gtk-close"), IconSize(ICON_SIZE_MENU)));
-#if _USE_BUTTON_TAB
 	m_tabButton = manage(new Button());
-#else
-	m_tabEventBox = manage(new EventBox);
-#endif
 
 	m_tabLabel->set_alignment(0, 0.5);
 	m_tabLabel->set_padding(0, 0);
@@ -139,58 +188,32 @@ NotebookTabBox::NotebookTabBox(const Glib::ustring &title, NotebookPageBox::Page
 	m_tabLabel->set_selectable(false);
 	m_tabImage->set_alignment(0, 0);
 	m_tabImage->set_padding(0, 0);
-#if _USE_BUTTON_TAB
 	m_tabButton->set_relief(RELIEF_NONE);
 	m_tabButton->set_border_width(0);
 	m_tabButton->set_name("pinot-tab-close-button");
 	m_tabButton->set_tooltip_text(_("Close"));
 	m_tabButton->set_alignment(0, 0);
 	m_tabButton->add(*m_tabImage);
-#else
-	m_tabEventBox->add(*m_tabImage);
-	m_tabEventBox->set_events(Gdk::BUTTON_PRESS_MASK);
-#endif
 	pack_start(*m_tabLabel);
-#if _USE_BUTTON_TAB
 	pack_start(*m_tabButton, PACK_SHRINK);
-#else
-	pack_start(*m_tabEventBox, PACK_SHRINK);
-#endif
 	set_spacing(0);
 	set_homogeneous(false);
 	m_tabLabel->show();
 	m_tabImage->show();
-#if _USE_BUTTON_TAB
 	m_tabButton->show();
-#else
-	m_tabEventBox->show();
-#endif
 	show();
 
-#if _USE_BUTTON_TAB
 	m_tabButton->signal_clicked().connect(
 		sigc::mem_fun(*this, &NotebookTabBox::onButtonClicked));
-#else
-	m_tabEventBox->signal_button_press_event().connect(
-		sigc::mem_fun(*this, &NotebookTabBox::onButtonPressEvent));
-#endif
 }
 
 NotebookTabBox::~NotebookTabBox()
 {
 }
 
-#if _USE_BUTTON_TAB
 void NotebookTabBox::onButtonClicked(void)
-#else
-bool NotebookTabBox::onButtonPressEvent(GdkEventButton *ev)
-#endif
 {
 	m_signalClose(m_title, m_pageType);
-
-#if !_USE_BUTTON_TAB
-	return true;
-#endif
 }
 
 //

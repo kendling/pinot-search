@@ -121,6 +121,7 @@ protected:
 	virtual void on_removeQueryButton_clicked();
 	virtual void on_queryHistoryButton_clicked();
 	virtual void on_findQueryButton_clicked();
+	virtual void on_suggestQueryButton_clicked(Glib::ustring queryName, Glib::ustring queryText);
 
 	virtual void on_indexBackButton_clicked(Glib::ustring indexName);
 	virtual void on_indexForwardButton_clicked(Glib::ustring indexName);

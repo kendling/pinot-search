@@ -1330,26 +1330,6 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		status += _("ended");
 		set_status(status);
 
-		// Suggest the correction to the user
-		if (wasCorrected == true)
-		{
-			ustring correctedQueryName(_("Corrected"));
-
-			if (queryName.empty() == true)
-			{
-				correctedQueryName += "...";
-			}
-			else
-			{
-				correctedQueryName += " ";
-				correctedQueryName += queryName;
-			}
-			queryProps.setName(correctedQueryName);
-			queryProps.setModified(true);
-
-			add_query(queryProps, true);
-		}
-
 		// Index results ?
 		QueryProperties::IndexWhat indexResults = queryProps.getIndexResults();
 		if ((indexResults != QueryProperties::NOTHING) &&
@@ -1460,6 +1440,14 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			pResultsTree->deleteResults(engineName);
 			pResultsTree->addResults(engineName, resultsList,
 				resultsCharset, pQueryThread->isLive());
+		}
+
+		// Suggest the correction to the user
+		if ((pResultsPage != NULL) &&
+			(wasCorrected == true))
+		{
+			pResultsPage->getSuggestSignal().connect(sigc::mem_fun(*this, &mainWindow::on_suggestQueryButton_clicked));
+			pResultsPage->appendSuggestion(queryProps.getFreeQuery());
 		}
 
 		// Now that results are displayed, go ahead and index documents
@@ -2905,6 +2893,26 @@ void mainWindow::on_findQueryButton_clicked()
 		// Update the Last Run column
 		queryRow[m_queryColumns.m_lastRun] = to_utf8(TimeConverter::toTimestamp(lastRunTime));
 		queryRow[m_queryColumns.m_lastRunTime] = lastRunTime;
+	}
+}
+
+//
+// Suggest query button click
+//
+void mainWindow::on_suggestQueryButton_clicked(ustring queryName, ustring queryText)
+{
+	// Find the query
+	const std::map<string, QueryProperties> &queriesMap = m_settings.getQueries();
+	std::map<string, QueryProperties>::const_iterator queryIter = queriesMap.find(queryName);
+	if (queryIter != queriesMap.end())
+	{
+		QueryProperties queryProps(queryIter->second);
+
+		queryProps.setName("");
+		queryProps.setFreeQuery(queryText);
+		queryProps.setModified(true);
+
+		edit_query(queryProps, true);
 	}
 }
 
