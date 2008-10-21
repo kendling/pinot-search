@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include <gtkmm/treestore.h>
 
 #include "ModelColumns.h"
+#include "WorkerThreads.h"
 #include "statisticsDialog_glade.hh"
 
 class statisticsDialog : public statisticsDialog_glade
@@ -53,12 +54,28 @@ protected:
 	bool m_hasDiskSpace;
 	bool m_hasBattery;
 	bool m_hasCrawl;
-	bool m_getStats;
 	sigc::connection m_idleConnection;
+	class InternalState : public ThreadsManager
+	{
+	public:
+		InternalState(unsigned int maxIndexThreads,
+			statisticsDialog *pWindow);
+		~InternalState();
+
+		bool m_getStats;
+		bool m_gettingStats;
+		bool m_lowDiskSpace;
+		bool m_onBattery;
+		bool m_crawling;
+
+	} m_state;
 
 	void populate(void);
 
 	bool on_activity_timeout(void);
 
+	void on_thread_end(WorkerThread *pThread);
+
 };
+
 #endif

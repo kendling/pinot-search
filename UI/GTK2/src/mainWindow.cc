@@ -1813,9 +1813,13 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 //
 void mainWindow::on_statistics_activate()
 {
+	m_state.disconnect();
+
 	statisticsDialog statsDialog;
 	statsDialog.show();
 	statsDialog.run();
+
+	m_state.connect();
 }
 
 //

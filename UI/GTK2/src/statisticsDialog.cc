@@ -33,12 +33,74 @@
 #include "ModuleFactory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
-#include "WorkerThreads.h"
 #include "statisticsDialog.hh"
 
 using namespace std;
 using namespace Glib;
 using namespace Gtk;
+
+class DaemonStatusThread : public WorkerThread
+{
+        public:
+                DaemonStatusThread() :
+			WorkerThread(),
+			m_gotStats(false),
+			m_lowDiskSpace(false),
+			m_onBattery(false),
+			m_crawling(false),
+			m_crawledCount(0),
+			m_docsCount(0)
+		{
+		}
+                virtual ~DaemonStatusThread()
+		{
+		}
+
+                virtual std::string getType(void) const
+		{
+			return "DaemonStatusThread";
+		}
+
+		bool m_gotStats;
+		bool m_lowDiskSpace;
+		bool m_onBattery;
+		bool m_crawling;
+		unsigned int m_crawledCount;
+		unsigned int m_docsCount;
+
+        protected:
+                virtual void doWork(void)
+		{
+			if (DBusIndex::getStatistics(m_crawledCount, m_docsCount,
+				m_lowDiskSpace, m_onBattery, m_crawling) == true)
+			{
+				m_gotStats = true;
+			}
+#ifdef DEBUG
+			else cout << "DaemonStatusThread::doWork: failed to get statistics" << endl;
+#endif
+		}
+
+        private:
+                DaemonStatusThread(const DaemonStatusThread &other);
+                DaemonStatusThread &operator=(const DaemonStatusThread &other);
+
+};
+
+statisticsDialog::InternalState::InternalState(unsigned int maxIndexThreads, statisticsDialog *pWindow) :
+        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
+	m_getStats(true),
+	m_gettingStats(false),
+	m_lowDiskSpace(false),
+	m_onBattery(false),
+	m_crawling(false)
+{
+        m_onThreadEndSignal.connect(sigc::mem_fun(*pWindow, &statisticsDialog::on_thread_end));
+}
+
+statisticsDialog::InternalState::~InternalState()
+{
+}
 
 statisticsDialog::statisticsDialog() :
 	statisticsDialog_glade(),
@@ -46,7 +108,7 @@ statisticsDialog::statisticsDialog() :
 	m_hasDiskSpace(false),
 	m_hasBattery(false),
 	m_hasCrawl(false),
-	m_getStats(true)
+	m_state(10, this)
 {
 	// Associate the columns model to the engines tree
 	m_refStore = TreeStore::create(m_statsColumns);
@@ -66,11 +128,15 @@ statisticsDialog::statisticsDialog() :
 	// ...and update regularly
 	m_idleConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
 		&statisticsDialog::on_activity_timeout), 10000);
+
+	// Connect to threads' finished signal
+	m_state.connect();
 }
 
 statisticsDialog::~statisticsDialog()
 {
 	m_idleConnection.disconnect();
+	m_state.disconnect();
 }
 
 void statisticsDialog::populate(void)
@@ -133,7 +199,6 @@ bool statisticsDialog::on_activity_timeout(void)
 	std::map<unsigned int, string> sources;
 	string daemonDBusStatus;
 	char countStr[64];
-	bool lowDiskSpace = false, onBattery = false, crawling = false;
 
 	row = *m_myWebPagesIter;
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_docsIndexLocation);
@@ -199,18 +264,15 @@ bool statisticsDialog::on_activity_timeout(void)
 		// FIXME: check whether it's actually running !
 		row[m_statsColumns.m_name] = ustring(_("Running under PID")) + " " + countStr;
 
-		if (m_getStats == true)
+		if ((m_state.m_getStats == true) &&
+			(m_state.m_gettingStats == false))
 		{
-			unsigned int crawledCount = 0, docsCount = 0;
+			DaemonStatusThread *pThread = new DaemonStatusThread();
 
-			if (DBusIndex::getStatistics(crawledCount, docsCount, lowDiskSpace, onBattery, crawling) == false)
+			if (m_state.start_thread(pThread, false) == false)
 			{
-#ifdef DEBUG
-				cout << "statisticsDialog::on_activity_timeout: failed to get statistics" << endl;
-#endif
-
-				// Don't try again
-				m_getStats = false;
+				delete pThread;
+				m_state.m_getStats = false;
 			}
 		}
 	}
@@ -231,7 +293,7 @@ bool statisticsDialog::on_activity_timeout(void)
 	}
 
 	// Show status
-	if (lowDiskSpace == true)
+	if (m_state.m_lowDiskSpace == true)
 	{
 		if (m_hasDiskSpace == false)
 		{
@@ -248,7 +310,7 @@ bool statisticsDialog::on_activity_timeout(void)
 
 		m_hasDiskSpace = false;
 	}
-	if (onBattery == true)
+	if (m_state.m_onBattery == true)
 	{
 		if (m_hasBattery == false)
 		{
@@ -265,7 +327,7 @@ bool statisticsDialog::on_activity_timeout(void)
 
 		m_hasBattery = false;
 	}
-	if (crawling == true)
+	if (m_state.m_crawling == true)
 	{
 		if (m_hasCrawl == false)
 		{
@@ -362,5 +424,60 @@ bool statisticsDialog::on_activity_timeout(void)
 	}
 
 	return true;
+}
+
+void statisticsDialog::on_thread_end(WorkerThread *pThread)
+{
+	ustring status;
+	bool success = true;
+
+	if (pThread == NULL)
+	{
+		return;
+	}
+
+	// Any thread still running ?
+	if (m_state.get_threads_count() > 0)
+	{
+		m_state.m_gettingStats = false;
+	}
+
+	// Did the thread fail ?
+	status = pThread->getStatus();
+	if (status.empty() == false)
+	{
+#ifdef DEBUG
+		cout << "statisticsDialog::on_thread_end: " << status << endl;
+#endif
+		success = false;
+	}
+
+	// What type of thread was it ?
+	string type = pThread->getType();
+	if (type == "DaemonStatusThread")
+	{
+		// Did it succeed ?
+		if (success == true)
+		{
+			DaemonStatusThread *pStatusThread = dynamic_cast<DaemonStatusThread*>(pThread);
+			if (pStatusThread != NULL)
+			{
+				// Yes, it did
+				m_state.m_getStats = pStatusThread->m_gotStats;
+				m_state.m_lowDiskSpace = pStatusThread->m_lowDiskSpace;
+				m_state.m_onBattery = pStatusThread->m_onBattery;
+				m_state.m_crawling = pStatusThread->m_crawling;
+#ifdef DEBUG
+				cout << "statisticsDialog::on_thread_end: refreshed stats" << endl;
+#endif
+			}
+		}
+	}
+
+	// Delete the thread
+	delete pThread;
+
+	// We might be able to run a queued action
+	m_state.pop_queue();
 }
 
