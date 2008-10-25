@@ -25,6 +25,7 @@
 #include <strings.h>
 #include <time.h>
 #include <ctype.h>
+#include <vector>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -602,6 +603,17 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 			// Next
 			slashPos = tree.find('/', slashPos + 1);
 		}
+
+		// ...and all components as XPATH:
+		Dijon::CJKVTokenizer pathTokenizer;
+		vector<string> paths;
+
+		pathTokenizer.tokenize(tree, paths);
+		for (vector<string>::iterator pathIter = paths.begin();
+			pathIter != paths.end(); ++pathIter)
+		{
+			doc.add_term(string("XPATH:") + XapianDatabase::limitTermLength(Url::escapeUrl(*pathIter), true));
+		}
 	}
 	// ...and the file name with prefix P
 	string fileName(urlObj.getFile());
@@ -726,6 +738,17 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 
 			// Next
 			slashPos = tree.find('/', slashPos + 1);
+		}
+
+		// ...paths
+		Dijon::CJKVTokenizer pathTokenizer;
+		vector<string> paths;
+
+		pathTokenizer.tokenize(tree, paths);
+		for (vector<string>::iterator pathIter = paths.begin();
+			pathIter != paths.end(); ++pathIter)
+		{
+			commonTerms.insert(string("XPATH:") + XapianDatabase::limitTermLength(Url::escapeUrl(*pathIter), true));
 		}
 	}
 	// ...and file name

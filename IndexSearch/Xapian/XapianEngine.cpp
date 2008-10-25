@@ -593,6 +593,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_prefix("title", "S");
 	parser.add_boolean_prefix("url", "U");
 	parser.add_boolean_prefix("dir", "XDIR:");
+	parser.add_boolean_prefix("path", "XPATH:");
 	parser.add_boolean_prefix("lang", "L");
 	parser.add_boolean_prefix("type", "T");
 	parser.add_boolean_prefix("class", "XCLASS:");
