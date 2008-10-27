@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1357,6 +1357,14 @@ DownloadingThread::DownloadingThread(const DocumentInfo &docInfo) :
 {
 }
 
+DownloadingThread::DownloadingThread() :
+	WorkerThread(),
+	m_docInfo("", "", "", ""),
+	m_pDoc(NULL),
+	m_pDownloader(NULL)
+{
+}
+
 DownloadingThread::~DownloadingThread()
 {
 	if (m_pDoc != NULL)
@@ -1386,6 +1394,11 @@ const Document *DownloadingThread::getDocument(void) const
 
 void DownloadingThread::doWork(void)
 {
+	if (m_pDoc != NULL)
+	{
+		delete m_pDoc;
+		m_pDoc = NULL;
+	}
 	if (m_pDownloader != NULL)
 	{
 		delete m_pDownloader;
@@ -1438,6 +1451,15 @@ IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &indexL
 	m_docId(0),
 	m_indexLocation(indexLocation),
 	m_allowAllMIMETypes(allowAllMIMETypes),
+	m_update(false)
+{
+}
+
+IndexingThread::IndexingThread() :
+	DownloadingThread(),
+	m_docId(0),
+	m_indexLocation(""),
+	m_allowAllMIMETypes(true),
 	m_update(false)
 {
 }

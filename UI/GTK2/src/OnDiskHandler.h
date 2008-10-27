@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -68,11 +68,11 @@ class OnDiskHandler : public MonitorHandler
 		/// Handles directory deleted events.
 		virtual bool directoryDeleted(const std::string &dirName);
 
-		sigc::signal3<void, DocumentInfo, std::string, bool>& getFileFoundSignal(void);
+		sigc::signal2<void, DocumentInfo, bool>& getFileFoundSignal(void);
 
 	protected:
 		pthread_mutex_t m_mutex;
-		sigc::signal3<void, DocumentInfo, std::string, bool> m_signalFileFound;
+		sigc::signal2<void, DocumentInfo, bool> m_signalFileFound;
 		std::map<unsigned int, std::string> m_fileSources;
 		CrawlHistory m_history;
 		IndexInterface *m_pIndex;

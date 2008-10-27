@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,8 +48,8 @@ OnDiskHandler::~OnDiskHandler()
 	pthread_mutex_destroy(&m_mutex);
 
 	// Disconnect the signal
-	sigc::signal3<void, DocumentInfo, string, bool>::slot_list_type slotsList = m_signalFileFound.slots();
-	sigc::signal3<void, DocumentInfo, string, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	sigc::signal2<void, DocumentInfo, bool>::slot_list_type slotsList = m_signalFileFound.slots();
+	sigc::signal2<void, DocumentInfo, bool>::slot_list_type::iterator slotIter = slotsList.begin();
 	if (slotIter != slotsList.end())
 	{
 		if (slotIter->empty() == false)
@@ -203,7 +203,7 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 	DocumentInfo docInfo("", location, MIMEScanner::scanUrl(urlObj), "");
 
 	// What source does it belong to ?
-	for(map<unsigned int, string>::const_iterator sourceIter = m_fileSources.begin();
+	for (map<unsigned int, string>::const_iterator sourceIter = m_fileSources.begin();
 		sourceIter != m_fileSources.end(); ++sourceIter)
 	{
 		sourceId = sourceIter->first;
@@ -216,6 +216,7 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 
 		if (location.substr(0, sourceIter->second.length()) == sourceIter->second)
 		{
+			set<string> labels;
 			stringstream labelStream;
 
 			// That's the one
@@ -223,18 +224,16 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 #ifdef DEBUG
 			cout << "OnDiskHandler::indexFile: source label for " << location << " is " << labelStream.str() << endl;
 #endif
-			m_signalFileFound(docInfo, labelStream.str(), isDirectory);
-			return true;
+			labels.insert(labelStream.str());
+			docInfo.setLabels(labels);
+			break;
 		}
 #ifdef DEBUG
 		else cout << "OnDiskHandler::indexFile: not " << sourceIter->second << endl;
 #endif
 	}
-#ifdef DEBUG
-	cout << "OnDiskHandler::indexFile: no source label for " << location << endl;
-#endif
 
-	m_signalFileFound(docInfo, "", isDirectory);
+	m_signalFileFound(docInfo, isDirectory);
 
 	return true;
 }
@@ -413,7 +412,7 @@ bool OnDiskHandler::directoryDeleted(const string &dirName)
 	return fileDeleted(dirName, IndexInterface::BY_DIRECTORY);
 }
 
-sigc::signal3<void, DocumentInfo, string, bool>& OnDiskHandler::getFileFoundSignal(void)
+sigc::signal2<void, DocumentInfo, bool>& OnDiskHandler::getFileFoundSignal(void)
 {
 	return m_signalFileFound;
 }

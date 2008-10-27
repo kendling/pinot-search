@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ extern "C"
 #include "DaemonState.h"
 #include "WorkerThreads.h"
 
-class DirectoryScannerThread : public WorkerThread
+class DirectoryScannerThread : public IndexingThread
 {
 	public:
 		DirectoryScannerThread(const std::string &dirName, bool isSource,
@@ -55,7 +55,7 @@ class DirectoryScannerThread : public WorkerThread
 
 		virtual void stop(void);
 
-		sigc::signal3<void, DocumentInfo, std::string, bool>& getFileFoundSignal(void);
+		sigc::signal2<void, DocumentInfo, bool>& getFileFoundSignal(void);
 
 	protected:
 		std::string m_dirName;
@@ -66,7 +66,8 @@ class DirectoryScannerThread : public WorkerThread
 		unsigned int m_currentLevel;
 		unsigned int m_maxLevel;
 		bool m_followSymLinks;
-		sigc::signal3<void, DocumentInfo, std::string, bool> m_signalFileFound;
+		bool m_delegateIndexing;
+		sigc::signal2<void, DocumentInfo, bool> m_signalFileFound;
 		std::map<std::string, time_t> m_updateCache;
 
 		void cacheUpdate(const std::string &location, time_t mTime, CrawlHistory &crawlHistory);

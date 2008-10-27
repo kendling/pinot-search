@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
+#include <strings.h>
 #include <signal.h>
 #include <errno.h>
 #include <exception>
@@ -37,6 +38,8 @@
 #include "TimeConverter.h"
 #include "Timer.h"
 #include "Url.h"
+#include "CrawlHistory.h"
+#include "MetaDataBackup.h"
 #include "DBusIndex.h"
 #include "ModuleFactory.h"
 #include "DaemonState.h"
@@ -106,7 +109,7 @@ static bool loadXMLDescription(void)
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSource,
 	bool fullScan, MonitorInterface *pMonitor, MonitorHandler *pHandler,
 	unsigned int maxLevel, bool followSymLinks) :
-	WorkerThread(),
+	IndexingThread(),
 	m_dirName(dirName),
 	m_fullScan(fullScan),
 	m_pMonitor(pMonitor),
@@ -114,8 +117,18 @@ DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSou
 	m_sourceId(0),
 	m_currentLevel(0),
 	m_maxLevel(maxLevel),
-	m_followSymLinks(followSymLinks)
+	m_followSymLinks(followSymLinks),
+	m_delegateIndexing(false)
 {
+	// This is not set in the configuration file
+	char *pEnvVar = getenv("PINOT_DELEGATE_INDEXING");
+	if ((pEnvVar != NULL) &&
+		(strlen(pEnvVar) > 0) &&
+		(strncasecmp(pEnvVar, "Y", 1) == 0))
+	{
+		m_delegateIndexing = true;
+	}
+
 	if (m_dirName.empty() == false)
 	{
 		CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
@@ -171,8 +184,8 @@ string DirectoryScannerThread::getDirectory(void) const
 void DirectoryScannerThread::stop(void)
 {
 	// Disconnect the signal
-	sigc::signal3<void, DocumentInfo, string, bool>::slot_list_type slotsList = m_signalFileFound.slots();
-	sigc::signal3<void, DocumentInfo, string, bool>::slot_list_type::iterator slotIter = slotsList.begin();
+	sigc::signal2<void, DocumentInfo, bool>::slot_list_type slotsList = m_signalFileFound.slots();
+	sigc::signal2<void, DocumentInfo, bool>::slot_list_type::iterator slotIter = slotsList.begin();
 	if (slotIter != slotsList.end())
 	{
 		if (slotIter->empty() == false)
@@ -184,7 +197,7 @@ void DirectoryScannerThread::stop(void)
 	WorkerThread::stop();
 }
 
-sigc::signal3<void, DocumentInfo, string, bool>& DirectoryScannerThread::getFileFoundSignal(void)
+sigc::signal2<void, DocumentInfo, bool>& DirectoryScannerThread::getFileFoundSignal(void)
 {
 	return m_signalFileFound;
 }
@@ -202,6 +215,10 @@ void DirectoryScannerThread::cacheUpdate(const string &location, time_t mTime,
 
 void DirectoryScannerThread::flushUpdates(CrawlHistory &crawlHistory)
 {
+#ifdef DEBUG
+	cout << "DirectoryScannerThread::flushUpdates: flushing updates" << endl;
+#endif
+
 	// Update these records
 	crawlHistory.updateItems(m_updateCache, CrawlHistory::CRAWLED);
 	m_updateCache.clear();
@@ -219,14 +236,24 @@ void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 		return;
 	}
 
-	stringstream labelStream;
+	if (m_delegateIndexing == false)
+	{
+		// Reset base class members
+		m_docInfo = docInfo;
+		m_docId = 0;
+		m_indexLocation = PinotSettings::getInstance().m_daemonIndexLocation;
+		m_update = false;
 
-	// This identifies the source
-	labelStream << "X-SOURCE" << m_sourceId;
+		IndexingThread::doWork();
 #ifdef DEBUG
-	cout << "DirectoryScannerThread::foundFile: source label for " << docInfo.getLocation() << " is " << labelStream.str() << endl;
+		cout << "DirectoryScannerThread::foundFile: indexed " << docInfo.getLocation() << " to " << m_docId << endl;
 #endif
-	m_signalFileFound(docInfo, labelStream.str(), false);
+	}
+	else
+	{
+		// Delegate indexing
+		m_signalFileFound(docInfo, false);
+	}
 }
 
 bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &crawlHistory)
@@ -421,6 +448,8 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 		if (reportFile == true)
 		{
 			DocumentInfo docInfo("", location, "", "");
+			set<string> labels;
+			stringstream labelStream;
 
 			if (S_ISDIR(fileStat.st_mode))
 			{
@@ -433,6 +462,10 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 			}
 			docInfo.setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
 			docInfo.setSize(fileStat.st_size);
+			// Insert a label that identifies the source
+			labelStream << "X-SOURCE" << m_sourceId;
+			labels.insert(labelStream.str());
+			docInfo.setLabels(labels);
 
 			foundFile(docInfo);
 		}
