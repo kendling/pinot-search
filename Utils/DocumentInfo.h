@@ -40,11 +40,13 @@ class PINOT_EXPORT DocumentInfo
 
 		bool operator<(const DocumentInfo& other) const;
 
+		typedef enum { SERIAL_ALL = 0, SERIAL_FIELDS, SERIAL_LABELS } SerialExtent;
+
 		/// Serializes the document.
-		std::string serialize(void) const;
+		std::string serialize(SerialExtent extent = SERIAL_ALL) const;
 
 		/// Deserializes the document.
-		void deserialize(const std::string &info);
+		void deserialize(const std::string &info, SerialExtent extent = SERIAL_ALL);
 
 		/// Sets the title of the document.
 		virtual void setTitle(const std::string &title);

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -97,78 +97,102 @@ bool DocumentInfo::operator<(const DocumentInfo& other) const
 }
 
 /// Serializes the document.
-string DocumentInfo::serialize(void) const
+string DocumentInfo::serialize(SerialExtent extent) const
 {
 	string info;
 	char numStr[64];
 
 	// Serialize DocumentInfo into a string
-	for (map<string, string>::const_iterator fieldIter = m_fields.begin();
-		fieldIter != m_fields.end(); ++fieldIter)
+	if ((extent == SERIAL_ALL) ||
+		(extent == SERIAL_FIELDS))
 	{
+		for (map<string, string>::const_iterator fieldIter = m_fields.begin();
+			fieldIter != m_fields.end(); ++fieldIter)
+		{
+			info += "\n";
+			info += fieldIter->first;
+			info += "=";
+			info += fieldIter->second;
+		}
 		info += "\n";
-		info += fieldIter->first;
-		info += "=";
-		info += fieldIter->second;
 	}
-	info += "\nlabels=";
-	for (set<string>::const_iterator labelIter = m_labels.begin();
-		labelIter != m_labels.end(); ++labelIter)
+	if ((extent == SERIAL_ALL) ||
+		(extent == SERIAL_LABELS))
 	{
-		info += "[" + Url::escapeUrl(*labelIter) + "]";
+		info += "labels=";
+		for (set<string>::const_iterator labelIter = m_labels.begin();
+			labelIter != m_labels.end(); ++labelIter)
+		{
+			info += "[" + Url::escapeUrl(*labelIter) + "]";
+		}
+		info += "\n";
 	}
-	info += "\nextract=";
-	info += m_extract;
-	info += "\nscore=";
-	snprintf(numStr, 64, "%f", m_score);
-	info += numStr;
-	info += "\nindexid=";
-	snprintf(numStr, 64, "%u", m_indexId);
-	info += numStr;
-	info += "\ndocid=";
-	snprintf(numStr, 64, "%u", m_docId);
-	info += numStr;
-	info += "\n";
+	if (extent == SERIAL_ALL)
+	{
+		info += "extract=";
+		info += m_extract;
+		info += "\nscore=";
+		snprintf(numStr, 64, "%f", m_score);
+		info += numStr;
+		info += "\nindexid=";
+		snprintf(numStr, 64, "%u", m_indexId);
+		info += numStr;
+		info += "\ndocid=";
+		snprintf(numStr, 64, "%u", m_docId);
+		info += numStr;
+		info += "\n";
+	}
 
 	return Url::escapeUrl(info);
 }
 
 /// Deserializes the document.
-void DocumentInfo::deserialize(const string &info)
+void DocumentInfo::deserialize(const string &info, SerialExtent extent)
 {
 	string unescapedInfo(Url::unescapeUrl(info));
 
 	// Deserialize DocumentInfo
-	setField("caption", StringManip::extractField(unescapedInfo, "caption=", "\n"));
-	setField("url", StringManip::extractField(unescapedInfo, "url=", "\n"));
-	setField("type", StringManip::extractField(unescapedInfo, "type=", "\n"));
-	setField("language", StringManip::extractField(unescapedInfo, "language=", "\n"));
-	setField("modtime", StringManip::extractField(unescapedInfo, "modtime=", "\n"));
-	setField("size", StringManip::extractField(unescapedInfo, "size=", "\n"));
-	string labelsString(StringManip::extractField(unescapedInfo, "labels=", "\n"));
-	if (labelsString.empty() == false)
+	if ((extent == SERIAL_ALL) ||
+		(extent == SERIAL_FIELDS))
 	{
-		string::size_type endPos = 0;
-		string labelName(StringManip::extractField(labelsString, "[", "]", endPos));
-
-		m_labels.clear();
-
-		// Parse labels
-		while (labelName.empty() == false)
+		setField("caption", StringManip::extractField(unescapedInfo, "caption=", "\n"));
+		setField("url", StringManip::extractField(unescapedInfo, "url=", "\n"));
+		setField("type", StringManip::extractField(unescapedInfo, "type=", "\n"));
+		setField("language", StringManip::extractField(unescapedInfo, "language=", "\n"));
+		setField("modtime", StringManip::extractField(unescapedInfo, "modtime=", "\n"));
+		setField("size", StringManip::extractField(unescapedInfo, "size=", "\n"));
+	}
+	if ((extent == SERIAL_ALL) ||
+		(extent == SERIAL_LABELS))
+	{
+		string labelsString(StringManip::extractField(unescapedInfo, "labels=", "\n"));
+		if (labelsString.empty() == false)
 		{
-			m_labels.insert(Url::unescapeUrl(labelName));
+			string::size_type endPos = 0;
+			string labelName(StringManip::extractField(labelsString, "[", "]", endPos));
 
-			if (endPos == string::npos)
+			m_labels.clear();
+
+			// Parse labels
+			while (labelName.empty() == false)
 			{
-				break;
+				m_labels.insert(Url::unescapeUrl(labelName));
+
+				if (endPos == string::npos)
+				{
+					break;
+				}
+				labelName = StringManip::extractField(labelsString, "[", "]", endPos);
 			}
-			labelName = StringManip::extractField(labelsString, "[", "]", endPos);
 		}
 	}
-	m_extract = StringManip::extractField(unescapedInfo, "extract=", "\n");
-	m_score = (float)atof(StringManip::extractField(unescapedInfo, "score=", "\n").c_str());
-	m_indexId = (unsigned int)atoi(StringManip::extractField(unescapedInfo, "indexid=", "\n").c_str());
-	m_docId = (unsigned int)atoi(StringManip::extractField(unescapedInfo, "docid=", "\n").c_str());
+	if (extent == SERIAL_ALL)
+	{
+		m_extract = StringManip::extractField(unescapedInfo, "extract=", "\n");
+		m_score = (float)atof(StringManip::extractField(unescapedInfo, "score=", "\n").c_str());
+		m_indexId = (unsigned int)atoi(StringManip::extractField(unescapedInfo, "indexid=", "\n").c_str());
+		m_docId = (unsigned int)atoi(StringManip::extractField(unescapedInfo, "docid=", "\n").c_str());
+	}
 }
 
 /// Sets the title of the document.
