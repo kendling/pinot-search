@@ -876,45 +876,6 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "RenameLabel") == TRUE)
-	{
-		char *pOldLabel = NULL;
-		char *pNewLabel = NULL;
-
-		if (dbus_message_get_args(m_pRequest, &error,
-			DBUS_TYPE_STRING, &pOldLabel,
-			DBUS_TYPE_STRING, &pNewLabel,
-			DBUS_TYPE_INVALID) == TRUE)
-		{
-#ifdef DEBUG
-			cout << "DBusServletThread::doWork: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
-#endif
-
-			if ((pOldLabel != NULL) &&
-				(pNewLabel != NULL))
-			{
-				// Rename the label
-				flushIndex = pIndex->renameLabel(pOldLabel, pNewLabel);
-				// Update the labels list
-				set<string>::const_iterator oldLabelIter = labelsCache.find(pOldLabel);
-				if (oldLabelIter != labelsCache.end())
-				{
-					labelsCache.erase(oldLabelIter);
-					labelsCache.insert(pNewLabel);
-					updateLabelsCache = true;
-				}
-			}
-
-			// Prepare the reply
-			m_pReply = newDBusReply(m_pRequest);
-			if (m_pReply != NULL)
-			{
-				dbus_message_append_args(m_pReply,
-					DBUS_TYPE_STRING, &pNewLabel,
-					DBUS_TYPE_INVALID);
-			}
-		}
-	}
 	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "DeleteLabel") == TRUE)
 	{
 		char *pLabel = NULL;
@@ -1312,7 +1273,7 @@ void DBusServletThread::doWork(void)
 
 	// Set labels ?
 	if ((updateLabelsCache == true) &&
-		(pIndex->setLabels(labelsCache) == false))
+		(pIndex->setLabels(labelsCache, false) == false))
 	{
 		// Updating failed... reset the cache
 		labelsCache.clear();

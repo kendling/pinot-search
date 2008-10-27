@@ -70,16 +70,13 @@ class XapianIndex : public IndexInterface
 			std::map<unsigned int, std::string> &wordsBuffer) const;
 
 		/// Sets the list of known labels.
-		virtual bool setLabels(const std::set<std::string> &labels);
+		virtual bool setLabels(const std::set<std::string> &labels, bool resetLabels);
 
 		/// Gets the list of known labels.
 		virtual bool getLabels(std::set<std::string> &labels) const;
 
 		/// Adds a label.
 		virtual bool addLabel(const std::string &name);
-
-		/// Renames a label.
-		virtual bool renameLabel(const std::string &name, const std::string &newName);
 
 		/// Deletes all references to a label.
 		virtual bool deleteLabel(const std::string &name);

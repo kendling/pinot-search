@@ -119,7 +119,6 @@ public:
 
 	Gtk::TreeModelColumn<bool> m_enabled;
 	Gtk::TreeModelColumn<Glib::ustring> m_name;
-	Gtk::TreeModelColumn<Glib::ustring> m_oldName;
 
 };
 

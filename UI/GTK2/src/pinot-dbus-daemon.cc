@@ -642,13 +642,13 @@ int main(int argc, char **argv)
 				{
 					// If this is an upgrade from a version < 0.80, the labels list
 					// needs to be pulled from the configuration file
-					pIndex->setLabels(settings.m_labels);
+					pIndex->setLabels(settings.m_labels, true);
 
 					cout << "Set labels as per the configuration file" << endl;
 				}
 				else
 				{
-					pIndex->setLabels(labels);
+					pIndex->setLabels(labels, true);
 				}
 			}
 

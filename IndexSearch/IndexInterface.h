@@ -58,16 +58,13 @@ class PINOT_EXPORT IndexInterface
 			std::map<unsigned int, std::string> &wordsBuffer) const = 0;
 
 		/// Sets the list of known labels.
-		virtual bool setLabels(const std::set<std::string> &labels) = 0;
+		virtual bool setLabels(const std::set<std::string> &labels, bool resetLabels) = 0;
 
 		/// Gets the list of known labels.
 		virtual bool getLabels(std::set<std::string> &labels) const = 0;
 
 		/// Adds a label.
 		virtual bool addLabel(const std::string &name) = 0;
-
-		/// Renames a label.
-		virtual bool renameLabel(const std::string &name, const std::string &newName) = 0;
 
 		/// Deletes all references to a label.
 		virtual bool deleteLabel(const std::string &name) = 0;

@@ -90,7 +90,6 @@ LabelModelColumns::LabelModelColumns()
 {
 	add(m_enabled);
 	add(m_name);
-	add(m_oldName);
 }
 
 LabelModelColumns::~LabelModelColumns()

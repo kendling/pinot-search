@@ -1196,10 +1196,11 @@ bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string>
 }
 
 /// Sets the list of known labels.
-bool XapianIndex::setLabels(const set<string> &labels)
+bool XapianIndex::setLabels(const set<string> &labels, bool resetLabels)
 {
 	string labelsString;
 
+	// Whether labels are reset or not doesn't make any difference
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{
@@ -1249,65 +1250,6 @@ bool XapianIndex::addLabel(const string &name)
 {
 	// Nothing to do here
 	return false;
-}
-
-/// Renames a label.
-bool XapianIndex::renameLabel(const string &name, const string &newName)
-{
-	bool renamedLabel = false;
-
-	// Prevent from renaming or setting internal labels
-	if ((name.substr(0, 2) == "X-") ||
-		(newName.substr(0, 2) == "X-"))
-	{
-		return false;
-	}
-
-	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
-	if (pDatabase == NULL)
-	{
-		cerr << "Bad index " << m_databaseName << endl;
-		return false;
-	}
-
-	try
-	{
-		Xapian::WritableDatabase *pIndex = pDatabase->writeLock();
-		if (pIndex != NULL)
-		{
-			string term("XLABEL:");
-
-			// Get documents that have this label
-			term += XapianDatabase::limitTermLength(Url::escapeUrl(name));
-			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
-				postingIter != pIndex->postlist_end(term); ++postingIter)
-			{
-				Xapian::docid docId = *postingIter;
-
-				// Get the document
-				Xapian::Document doc = pIndex->get_document(docId);
-				// Remove the term
-				doc.remove_term(term);
-				// ...add the new one
-				doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(newName)));
-				// ...and update the document
-				pIndex->replace_document(docId, doc);
-			}
-
-			renamedLabel = true;
-		}
-	}
-	catch (const Xapian::Error &error)
-	{
-		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
-	}
-	catch (...)
-	{
-		cerr << "Couldn't delete label, unknown exception occured" << endl;
-	}
-	pDatabase->unlock();
-
-	return renamedLabel;
 }
 
 /// Deletes all references to a label.

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007 Fabrice Colin
+ *  Copyright 2007-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -489,7 +489,7 @@ bool DBusIndex::getDocumentTerms(unsigned int docId,
 }
 
 /// Sets the list of known labels.
-bool DBusIndex::setLabels(const set<string> &labels)
+bool DBusIndex::setLabels(const set<string> &labels, bool resetLabels)
 {
 	// Not allowed here
 	return false;
@@ -589,52 +589,6 @@ bool DBusIndex::addLabel(const string &name)
 	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
 
 	return addedLabel;
-}
-
-/// Renames a label.
-bool DBusIndex::renameLabel(const string &name, const string &newName)
-{
-	bool renamedLabel = false;
-
-	DBusGConnection *pBus = getBusConnection();
-	if (pBus == NULL)
-	{
-		return false;
-	}
-
-	DBusGProxy *pBusProxy = getBusProxy(pBus);
-	if (pBusProxy == NULL)
-	{
-		cerr << "DBusIndex::renameLabel: couldn't get bus proxy" << endl;
-		return false;
-	}
-
-	GError *pError = NULL;
-	const char *pOldLabel = name.c_str();
-	const char *pNewLabel = newName.c_str();
-
-	if (dbus_g_proxy_call(pBusProxy, "RenameLabel", &pError,
-		G_TYPE_STRING, pOldLabel,
-		G_TYPE_STRING, pNewLabel,
-		G_TYPE_INVALID,
-		G_TYPE_STRING, &pNewLabel,
-		G_TYPE_INVALID) == TRUE)
-	{
-		renamedLabel = true;
-	}
-	else
-	{
-		if (pError != NULL)
-		{
-			cerr << "DBusIndex::renameLabel: " << pError->message << endl;
-			g_error_free(pError);
-		}
-	}
-
-	g_object_unref(pBusProxy);
-	// FIXME: don't we have to call dbus_g_connection_unref(pBus); ?
-
-	return renamedLabel;
 }
 
 /// Deletes all references to a label.

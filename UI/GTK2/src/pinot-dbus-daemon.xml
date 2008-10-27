@@ -66,18 +66,6 @@
       <arg type="s" name="label" direction="out"/>
     </method>
     <!--
-	Renames a label.
-	 oldLabel: the label to rename
-	 newLabel: the new label name
-        This method shouldn't be used by applications other than Pinot.
-	-->
-    <method name="RenameLabel">
-      <annotation name="de.berlios.Pinot.RenameLabel" value="pinotDBus"/>
-      <arg type="s" name="oldLabel" direction="in"/>
-      <arg type="s" name="newLabel" direction="in"/>
-      <arg type="s" name="newLabel" direction="out"/>
-    </method>
-    <!--
 	Deletes a label.
 	 label: the name of the label to delete
         This method shouldn't be used by applications other than Pinot.

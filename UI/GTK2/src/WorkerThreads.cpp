@@ -1245,7 +1245,7 @@ void ExpandQueryThread::doWork(void)
 }
 
 LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToAdd,
-	const set<string> &labelsToDelete, const map<string, string> &labelsToRename) :
+	const set<string> &labelsToDelete) :
 	WorkerThread(),
 	m_resetLabels(false)
 {
@@ -1253,8 +1253,6 @@ LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToAdd,
 		inserter(m_labelsToAdd, m_labelsToAdd.begin()));
 	copy(labelsToDelete.begin(), labelsToDelete.end(),
 		inserter(m_labelsToDelete, m_labelsToDelete.begin()));
-	copy(labelsToRename.begin(), labelsToRename.end(),
-		inserter(m_labelsToRename, m_labelsToRename.begin()));
 }
 
 LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToAdd,
@@ -1336,12 +1334,6 @@ void LabelUpdateThread::doWork(void)
 		{
 			pDocsIndex->deleteLabel(*iter);
 			pDaemonIndex->deleteLabel(*iter);
-		}
-		// Rename labels
-		for (map<string, string>::iterator iter = m_labelsToRename.begin(); iter != m_labelsToRename.end(); ++iter)
-		{
-			pDocsIndex->renameLabel(iter->first, iter->second);
-			pDaemonIndex->renameLabel(iter->first, iter->second);
 		}
 	}
 

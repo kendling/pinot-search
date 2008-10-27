@@ -102,7 +102,7 @@ prefsDialog::prefsDialog() :
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
 	labelsTreeview->set_model(m_refLabelsTree);
-	labelsTreeview->append_column_editable(_("Name"), m_labelsColumns.m_name);
+	labelsTreeview->append_column(_("Name"), m_labelsColumns.m_name);
 	// Allow only single selection
 	labelsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	populate_labelsTreeview();
@@ -153,11 +153,6 @@ const set<string> &prefsDialog::getLabelsToAdd(void) const
 const set<string> &prefsDialog::getLabelsToDelete(void) const
 {
 	return m_deletedLabels;
-}
-
-const map<string, string> &prefsDialog::getLabelsToRename(void) const
-{
-	return m_renamedLabels;
 }
 
 bool prefsDialog::startDaemon(void) const
@@ -252,7 +247,6 @@ void prefsDialog::populate_labelsTreeview()
 		row = *iter;
 		// Set its name
 		row[m_labelsColumns.m_name] = *labelIter;
-		row[m_labelsColumns.m_oldName] = *labelIter;
 		// This allows to differentiate existing labels from new labels the user may create
 		row[m_labelsColumns.m_enabled] = true;
 	}
@@ -274,24 +268,15 @@ void prefsDialog::save_labelsTreeview()
 		for (; iter != children.end(); ++iter)
 		{
 			TreeModel::Row row = *iter;
-
-			// Add this new label to the settings
 			ustring labelName(row[m_labelsColumns.m_name]);
-			ustring oldName(row[m_labelsColumns.m_oldName]);
-			// Was this label renamed ?
-			if ((row[m_labelsColumns.m_enabled] == true) &&
-				(labelName != oldName))
-			{
-				// Yes, it was
-				m_renamedLabels[from_utf8(oldName)] = from_utf8(labelName);
-			}
+
 			// Check user didn't recreate this label after having deleted it
 			set<string>::iterator labelIter = m_deletedLabels.find(from_utf8(labelName));
 			if (labelIter != m_deletedLabels.end())
 			{
 				m_deletedLabels.erase(labelIter);
 			}
-			// Is this a nw label ?
+			// Is this a new label ?
 			if (row[m_labelsColumns.m_enabled] == false)
 			{
 				m_addedLabels.insert(from_utf8(labelName));
@@ -300,6 +285,7 @@ void prefsDialog::save_labelsTreeview()
 #ifdef DEBUG
 			cout << "prefsDialog::save_labelsTreeview: " << labelName << endl;
 #endif
+			// Add this new label to the settings
 			labels.insert(labelName);
 		}
 	}

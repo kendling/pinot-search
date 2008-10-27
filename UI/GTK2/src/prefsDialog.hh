@@ -41,8 +41,6 @@ public:
 
 	const std::set<std::string> &getLabelsToDelete(void) const;
 
-	const std::map<std::string, std::string> &getLabelsToRename(void) const;
-
 	bool startDaemon(void) const;
 
 protected:
@@ -58,7 +56,6 @@ protected:
 	std::vector<Gtk::Entry *> m_editableValueEntries;
 	std::set<std::string> m_addedLabels;
 	std::set<std::string> m_deletedLabels;
-	std::map<std::string, std::string> m_renamedLabels;
 	std::set<std::string> m_deletedDirectories;
 	std::string m_directoriesHash;
 	std::string m_patternsHash;
