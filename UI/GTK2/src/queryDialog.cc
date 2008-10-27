@@ -92,7 +92,7 @@ bool queryDialog::is_separator(const RefPtr<TreeModel>& model, const TreeModel::
 
 		// FIXME: this is extremely hacky !
 		if ((sscanf(rowPath.c_str(), "%u", &rowPos) == 1) &&
-			(rowPos == 10))
+			(rowPos == 11))
 		{
 			return true;
 		}
@@ -113,6 +113,7 @@ void queryDialog::populate_comboboxes()
 	filterCombobox->append_text(_("Title"));
 	filterCombobox->append_text(_("URL"));
 	filterCombobox->append_text(_("Directory"));
+	filterCombobox->append_text(_("Path"));
 	filterCombobox->append_text(_("Language code"));
 	filterCombobox->append_text(_("MIME type"));
 	filterCombobox->append_text(_("MIME class"));
@@ -295,29 +296,32 @@ void queryDialog::on_addFilterButton_clicked()
 			filter = "dir:/home/xxx";
 			break;
 		case 6:
-			filter = "lang:en";
+			filter = "path:Documents";
 			break;
 		case 7:
-			filter = "type:text/plain";
+			filter = "lang:en";
 			break;
 		case 8:
-			filter = "class:text";
+			filter = "type:text/plain";
 			break;
 		case 9:
-			filter = "label:New";
+			filter = "class:text";
 			break;
 		case 10:
-			// Separator
+			filter = "label:New";
 			break;
 		case 11:
+			// Separator
+			break;
+		case 12:
 			filter = TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 			filter += "..20991231";
 			break;
-		case 12:
+		case 13:
 			filter = TimeConverter::toHHMMSSString(tm->tm_hour, tm->tm_min, tm->tm_sec);
 			filter += "..235959";
 			break;
-		case 13:
+		case 14:
 			filter += "0..10240b";
 			break;
 		default:
