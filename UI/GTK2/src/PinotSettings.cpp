@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -27,7 +28,6 @@
 #include <fnmatch.h>
 #include <algorithm>
 #include <iostream>
-#include <cstring>
 
 #include <glibmm/convert.h>
 #include <glibmm/date.h>
@@ -139,11 +139,11 @@ PinotSettings::PinotSettings() :
 	m_daemonIndexLocation += "/daemon";
 
 	// This is not set in the configuration file
-	char *minDiskSpace = getenv("PINOT_MINIMUM_DISK_SPACE");
-	if ((minDiskSpace != NULL) &&
-		(strlen(minDiskSpace) > 0))
+	char *pEnvVar = getenv("PINOT_MINIMUM_DISK_SPACE");
+	if ((pEnvVar != NULL) &&
+		(strlen(pEnvVar) > 0))
 	{
-		m_minimumDiskSpace = atof(minDiskSpace);
+		m_minimumDiskSpace = atof(pEnvVar);
 	}
 }
 

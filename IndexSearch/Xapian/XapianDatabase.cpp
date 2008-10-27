@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,12 +21,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #include <regex.h>
 #include <stdio.h>
 #include <sstream>
 #include <iostream>
-#include <cstring>
 
 #include "StringManip.h"
 #include "TimeConverter.h"
@@ -158,7 +158,8 @@ void XapianDatabase::openDatabase(void)
 	// Should we build the spelling database ?
 	char *pEnvVar = getenv("PINOT_SPELLING_DB");
 	if ((pEnvVar != NULL) &&
-		(strncasecmp(pEnvVar, "no", 2) == 0))
+		(strlen(pEnvVar) > 0) &&
+		(strncasecmp(pEnvVar, "N", 1) == 0))
 	{
 		// No
 		m_withSpelling = false;

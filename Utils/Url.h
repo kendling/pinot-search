@@ -70,7 +70,7 @@ class PINOT_EXPORT Url
 		std::string getParameters(void) const;
 
 		/// Returns whether the Url points to a local file.
-		bool isLocal(void) const ;
+		bool isLocal(void) const;
 
 	protected:
 		std::string m_protocol;
