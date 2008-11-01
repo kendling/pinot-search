@@ -225,7 +225,14 @@ else
    exit 1
 fi
 
+dnl xattrs
+AM_CONDITIONAL(HAVE_ATTR_XATTR, false)
+AC_CHECK_HEADERS([attr/xattr.h],
+   [AM_CONDITIONAL(HAVE_ATTR_XATTR, true)
+   ])
+
 dnl inotify
+AM_CONDITIONAL(HAVE_LINUX_INOTIFY, false)
 AC_CHECK_HEADERS([sys/inotify.h],
    [AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
    ])

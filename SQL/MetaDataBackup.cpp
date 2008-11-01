@@ -1,0 +1,474 @@
+/*
+ *  Copyright 2005-2008 Fabrice Colin
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#include "config.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#ifdef HAVE_ATTR_XATTR
+#include <attr/xattr.h>
+#endif
+#include <set>
+#include <iostream>
+
+#include "Url.h"
+#include "StringManip.h"
+#include "TimeConverter.h"
+#include "MetaDataBackup.h"
+
+using std::string;
+using std::set;
+using std::cout;
+using std::endl;
+
+MetaDataBackup::MetaDataBackup(const string &database) :
+	SQLiteBase(database)
+{
+}
+
+MetaDataBackup::~MetaDataBackup()
+{
+}
+
+bool MetaDataBackup::setAttribute(const string &url,
+	const string &name, const string &value, bool noXAttr)
+{
+#ifdef HAVE_ATTR_XATTR
+	Url urlObj(url);
+
+	// If the file is local and isn't a nested document, use an extended attribute
+	if ((noXAttr == false) &&
+		(urlObj.isLocal() == true) &&
+		(urlObj.getParameters().empty() == true))
+	{
+		string fileName(url.substr(urlObj.getProtocol().length() + 3));
+		string attrName("pinot." + name);
+
+		if (setxattr(fileName.c_str(), attrName.c_str(),
+			value.c_str(), (size_t)value.length(), 0) == 0)
+		{
+			return true;
+		}
+		else if (errno != ENOTSUP)
+		{
+			// Extended attributes are supported, but some error occured 
+			return false;
+		}
+	}
+#endif
+	bool update = false, success = false;
+
+	// Is there already such an item for this URL ?
+	SQLResults *results = executeStatement("SELECT Url FROM MetaDataBackup \
+		WHERE Url='%q' AND Name='%q';",
+		Url::escapeUrl(url).c_str(), name.c_str());
+	if (results != NULL)
+	{
+		SQLRow *row = results->nextRow();
+		if (row != NULL)
+		{
+			// Yes, there is
+			update = true;
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	if (update == false)
+	{
+		results = executeStatement("INSERT INTO MetaDataBackup \
+			VALUES('%q', '%q', '%q');",
+			Url::escapeUrl(url).c_str(), name.c_str(), value.c_str());
+	}
+	else
+	{
+		results = executeStatement("UPDATE MetaDataBackup \
+			SET Value='%q' WHERE Url='%q' AND Name='%q';",
+			value.c_str(), Url::escapeUrl(url).c_str(), name.c_str());
+	}
+	if (results != NULL)
+	{
+		success = true;
+
+		delete results;
+	}
+
+	return success;
+
+}
+
+bool MetaDataBackup::getAttribute(const string &url,
+	const string &name, string &value, bool noXAttr)
+{
+	bool success = false;
+#ifdef HAVE_ATTR_XATTR
+	Url urlObj(url);
+
+	// If the file is local and isn't a nested document, use an extended attribute
+	if ((noXAttr == false) &&
+		(urlObj.isLocal() == true) &&
+		(urlObj.getParameters().empty() == true))
+	{
+		string fileName(url.substr(urlObj.getProtocol().length() + 3));
+		string attrName("pinot." + name);
+
+		ssize_t attrSize = getxattr(fileName.c_str(), attrName.c_str(), NULL, 0);
+		if (attrSize > 0)
+		{
+			char *pAttr = new char[attrSize];
+
+			if (getxattr(fileName.c_str(), attrName.c_str(), pAttr, attrSize) > 0)
+			{
+				value = string(pAttr, attrSize);
+				success = true;
+			}
+			else if (errno != ENOTSUP)
+			{
+				// Extended attributes are supported, but this one doesn't exist
+				delete[] pAttr;
+				return false;
+			}
+
+			delete[] pAttr;
+		}
+	}
+#endif
+
+	SQLResults *results = executeStatement("SELECT Value FROM MetaDataBackup \
+		WHERE Url='%q' AND Name='%q';",
+		Url::escapeUrl(url).c_str(), name.c_str());
+	if (results != NULL)
+	{
+		SQLRow *row = results->nextRow();
+		if (row != NULL)
+		{
+			value = row->getColumn(0);
+			success = true;
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return success;
+}
+
+bool MetaDataBackup::getAttributes(const string &url,
+	const string &name, set<string> &values)
+{
+	bool success = false;
+#if 0
+	Url urlObj(url);
+
+	// If the file is local and isn't a nested document, use an extended attribute
+	if ((urlObj.isLocal() == true) &&
+		(urlObj.getParameters().empty() == true))
+	{
+		string likeName("pinot." + name);
+
+		ssize_t listSize = flistxattr(fd, NULL, 0);
+		if (listSize > 0)
+		{
+			char *pList = new char[listSize];
+
+			if ((pList != NULL) &&
+				(flistxattr(fd, pList, listSize) > 0))
+			{
+				string attrList(pList, listSize);
+				string::size_type startPos = 0, endPos = attrList.find('\0');
+
+				while (endPos != string::npos)
+				{
+					string attrName(attrList.substr(startPos, endPos - startPos));
+
+					if ((attrName.length() > likeName.length()) &&
+						(attrName.substr(0, likeName.length()) == likeName))
+					{
+						string value;
+
+						if (getAttribute(url, attrName.substr(6), value, true) == true)
+						{
+							values.insert(value);
+						}
+					}
+
+					// Next
+					startPos = endPos + 1;
+					if (startPos < listSize)
+					{
+						endPos = attrList.find('\0', startPos);
+					}
+					else
+					{
+						endPos = string::npos;
+					}
+				}
+			}
+
+			delete[] pList;
+		}
+	}
+#endif
+
+	SQLResults *results = executeStatement("SELECT Value FROM MetaDataBackup \
+		WHERE Url='%q' AND Name LIKE '%q%';",
+		Url::escapeUrl(url).c_str(), name.c_str());
+	if (results != NULL)
+	{
+		while (results->hasMoreRows() == true)
+                {
+			SQLRow *row = results->nextRow();
+			if (row == NULL)
+			{
+				continue;
+			}
+
+			values.insert(row->getColumn(0));
+			success = true;
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return success;
+}
+
+bool MetaDataBackup::removeAttribute(const string &url,
+	const string &name, bool noXAttr, bool likeName)
+{
+	bool success = false;
+
+#ifdef HAVE_ATTR_XATTR
+	Url urlObj(url);
+
+	// If the file is local and isn't a nested document, use an extended attribute
+	if ((noXAttr == false) &&
+		(url.empty() == false) &&
+		(urlObj.isLocal() == true) &&
+		(urlObj.getParameters().empty() == true))
+	{
+		string fileName(url.substr(urlObj.getProtocol().length() + 3));
+		string attrName("pinot." + name);
+
+		if (removeattr(fileName.c_str(), attrName.c_str()) > 0)
+		{
+			return true;
+		}
+		else if (errno != ENOTSUP)
+		{
+			// Extended attributes are supported, but this one doesn't exist
+			return false;
+		}
+	}
+#endif
+
+	// Delete from MetaDataBackup
+	SQLResults *results = NULL;
+
+	if (url.empty() == false)
+	{
+		if (likeName == false)
+		{
+			results = executeStatement("DELETE FROM MetaDataBackup \
+				WHERE Url='%q' AND NAME='%q';",
+				Url::escapeUrl(url).c_str(), name.c_str());
+		}
+		else
+		{
+			results = executeStatement("DELETE FROM MetaDataBackup \
+				WHERE Url='%q' AND NAME LIKE '%q%';",
+				Url::escapeUrl(url).c_str(), name.c_str());
+		}
+	}
+	else
+	{
+		results = executeStatement("DELETE FROM MetaDataBackup \
+			WHERE NAME='%q';",
+			name.c_str());
+	}
+	if (results != NULL)
+	{
+		success = true;
+		delete results;
+	}
+
+	return success;
+}
+
+/// Creates the MetaDataBackup table in the database.
+bool MetaDataBackup::create(const string &database)
+{
+	bool success = true;
+
+	// The specified path must be a file
+	if (SQLiteBase::check(database) == false)
+	{
+		return false;
+	}
+
+	SQLiteBase db(database);
+
+	// Does MetaDataBackup exist ?
+	if (db.executeSimpleStatement("SELECT * FROM MetaDataBackup LIMIT 1;") == false)
+	{
+#ifdef DEBUG
+		cout << "MetaDataBackup::create: MetaDataBackup doesn't exist" << endl;
+#endif
+		// Create the table
+		if (db.executeSimpleStatement("CREATE TABLE MetaDataBackup (Url VARCHAR(255), \
+			Name VARCHAR(255), Value TEXT, PRIMARY KEY(Url, Value));") == false)
+		{
+			success = false;
+		}
+	}
+
+	return success;
+}
+
+/// Adds an item.
+bool MetaDataBackup::addItem(const DocumentInfo &docInfo, DocumentInfo::SerialExtent extent)
+{
+	string url(docInfo.getLocation());
+	bool success = false;
+
+	if ((extent == DocumentInfo::SERIAL_FIELDS) ||
+		(extent == DocumentInfo::SERIAL_ALL))
+	{
+		if (setAttribute(url, "fields",
+			docInfo.serialize(DocumentInfo::SERIAL_FIELDS)) == false)
+		{
+			return false;
+		}
+
+		success = true;
+	}
+	if ((extent == DocumentInfo::SERIAL_LABELS) ||
+		(extent == DocumentInfo::SERIAL_ALL))
+	{
+		success = true;
+
+		const set<string> &labels = docInfo.getLabels();
+		for (set<string>::const_iterator labelIter = labels.begin();
+			labelIter != labels.end(); ++labelIter)
+		{
+			// Skip internal labels
+			if (labelIter->substr(0, 2) == "X-")
+			{
+				continue;
+			}
+
+			if (setAttribute(url, string("label.") + *labelIter, *labelIter, true) == false)
+			{
+				success = false;
+			}
+		}
+	}
+
+	return success;
+}
+
+/// Gets an item.
+bool MetaDataBackup::getItem(DocumentInfo &docInfo, DocumentInfo::SerialExtent extent)
+{
+	string url(docInfo.getLocation()), value;
+	bool success = false;
+
+	if ((extent == DocumentInfo::SERIAL_FIELDS) ||
+		(extent == DocumentInfo::SERIAL_ALL))
+	{
+		if (getAttribute(url, "fields", value) == false)
+		{
+			return false;
+		}
+
+		docInfo.deserialize(value, DocumentInfo::SERIAL_FIELDS);
+		success = true;
+	}
+	if ((extent == DocumentInfo::SERIAL_LABELS) ||
+		(extent == DocumentInfo::SERIAL_ALL))
+	{
+		set<string> labels;
+
+		success = true;
+
+		if (getAttributes(url, "label", labels) == false)
+		{
+			success = false;
+		}
+		else
+		{
+			docInfo.setLabels(labels);
+		}
+	}
+
+	return success;
+}
+
+/// Deletes an item.
+bool MetaDataBackup::deleteItem(const DocumentInfo &docInfo, DocumentInfo::SerialExtent extent,
+	const string &value)
+{
+	string url(docInfo.getLocation());
+	bool success = false;
+
+	if ((extent == DocumentInfo::SERIAL_FIELDS) ||
+		(extent == DocumentInfo::SERIAL_ALL))
+	{
+		if (removeAttribute(url, "fields") == false)
+		{
+			return false;
+		}
+
+		success = true;
+	}
+	if ((extent == DocumentInfo::SERIAL_LABELS) ||
+		(extent == DocumentInfo::SERIAL_ALL))
+	{
+		if (value.empty() == false)
+		{
+			success = removeAttribute(url, string("label.") + value, true);
+		}
+		else
+		{
+			success = removeAttribute(url, "label.", true, true);
+		}
+	}
+
+	return success;
+}
+
+/// Deletes a label.
+bool MetaDataBackup::deleteLabel(const string &value)
+{
+	if ((value.empty() == true) ||
+		(removeAttribute("", string("label.") + value, true) == false))
+	{
+		return false;
+	}
+
+	return true;
+}
+
