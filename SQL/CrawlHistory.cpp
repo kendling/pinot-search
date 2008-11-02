@@ -412,7 +412,8 @@ unsigned int CrawlHistory::getItems(CrawlStatus status, set<string> &urls)
 
 /// Returns items that belong to a source.
 unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus status,
-	set<string> &urls, time_t minDate)
+	set<string> &urls, unsigned int min, unsigned int max,
+	time_t minDate)
 {
 	SQLResults *results = NULL;
 	unsigned int count = 0;
@@ -420,15 +421,15 @@ unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus sta
 	if (minDate > 0)
 	{
 		results = executeStatement("SELECT Url FROM CrawlHistory \
-			WHERE SourceId='%u' AND Status='%q' AND Date>'%d';",
-			sourceId, statusToText(status).c_str(), minDate);
+			WHERE SourceId='%u' AND Status='%q' AND Date>'%d' LIMIT %u OFFSET %u;",
+			sourceId, statusToText(status).c_str(), minDate, max - min, min);
 	}
 	else
 	{
 		// Ignore the date
 		results = executeStatement("SELECT Url FROM CrawlHistory \
-			WHERE SourceId='%u' AND Status='%q';",
-			sourceId, statusToText(status).c_str());
+			WHERE SourceId='%u' AND Status='%q' LIMIT %u OFFSET %u;",
+			sourceId, statusToText(status).c_str(), max - min, min);
 	}
 
 	if (results != NULL)
