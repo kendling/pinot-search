@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,12 +16,16 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#ifdef HAVE_ATTR_XATTR
+#include <attr/xattr.h>
+#endif
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -34,6 +38,26 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+
+#ifdef HAVE_ATTR_XATTR
+static char *getXAttr(int fd, const string &attrName)
+{
+	ssize_t attrSize = fgetxattr(fd, attrName.c_str(), NULL, 0);
+
+	if (attrSize > 0)
+	{
+		char *pAttr = new char[attrSize];
+
+		if ((pAttr != NULL) &&
+			(fgetxattr(fd, attrName.c_str(), pAttr, attrSize) > 0))
+		{
+			return pAttr;
+		}
+	}
+
+	return NULL;
+}
+#endif
 
 Document::Document() :
 	DocumentInfo(),
@@ -196,6 +220,66 @@ bool Document::setDataFromFile(const string &fileName)
 	{
 		cerr << "Document::setDataFromFile: mapping failed" << endl;
 	}
+
+#ifdef HAVE_ATTR_XATTR
+	// Any extended attributes ?
+	ssize_t listSize = flistxattr(fd, NULL, 0);
+	if (listSize > 0)
+	{
+		char *pList = new char[listSize];
+
+		if (flistxattr(fd, pList, listSize) > 0)
+		{
+			set<string> labels;
+			string attrList(pList, listSize);
+			string::size_type startPos = 0, endPos = attrList.find('\0');
+
+			while (endPos != string::npos)
+			{
+				string attrName(attrList.substr(startPos, endPos - startPos));
+				char *pAttr = NULL;
+
+				// FIXME: support common attributes defined at
+				// http://www.freedesktop.org/wiki/CommonExtendedAttributes
+				if (attrName == "user.mime_type")
+				{
+					pAttr = getXAttr(fd, attrName);
+					if (pAttr != NULL)
+					{
+						// Set the MIME type
+						setType(pAttr);
+					}
+				}
+
+				if (pAttr != NULL)
+				{
+#ifdef DEBUG
+					cout << "Document::setDataFromFile: xattr " << attrName << "=" << pAttr << endl;
+#endif
+					delete[] pAttr;
+				}
+
+				// Next
+				startPos = endPos + 1;
+				if (startPos < listSize)
+				{
+					endPos = attrList.find('\0', startPos);
+				}
+				else
+				{
+					endPos = string::npos;
+				}
+			}
+
+			if (labels.empty() == false)
+			{
+				setLabels(labels);
+			}
+		}
+
+		delete[] pList;
+	}
+#endif
 
 	// Close the file
 	if (close(fd) == -1)
