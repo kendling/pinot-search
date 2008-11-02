@@ -23,13 +23,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#ifdef HAVE_ATTR_XATTR
+#ifdef HAVE_ATTR_XATTR_H
 #include <attr/xattr.h>
 #endif
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
+#include <set>
 
 #include "Document.h"
 #include "TimeConverter.h"
@@ -38,8 +39,9 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+using std::set;
 
-#ifdef HAVE_ATTR_XATTR
+#ifdef HAVE_ATTR_XATTR_H
 static char *getXAttr(int fd, const string &attrName)
 {
 	ssize_t attrSize = fgetxattr(fd, attrName.c_str(), NULL, 0);
@@ -221,7 +223,7 @@ bool Document::setDataFromFile(const string &fileName)
 		cerr << "Document::setDataFromFile: mapping failed" << endl;
 	}
 
-#ifdef HAVE_ATTR_XATTR
+#ifdef HAVE_ATTR_XATTR_H
 	// Any extended attributes ?
 	ssize_t listSize = flistxattr(fd, NULL, 0);
 	if (listSize > 0)

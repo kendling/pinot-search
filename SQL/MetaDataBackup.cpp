@@ -19,15 +19,17 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef HAVE_ATTR_XATTR
+#ifdef HAVE_ATTR_XATTR_H
 #include <attr/xattr.h>
 #endif
 #include <set>
 #include <iostream>
+#include <sstream>
 
 #include "Url.h"
 #include "StringManip.h"
@@ -51,7 +53,7 @@ MetaDataBackup::~MetaDataBackup()
 bool MetaDataBackup::setAttribute(const string &url,
 	const string &name, const string &value, bool noXAttr)
 {
-#ifdef HAVE_ATTR_XATTR
+#ifdef HAVE_ATTR_XATTR_H
 	Url urlObj(url);
 
 	// If the file is local and isn't a nested document, use an extended attribute
@@ -62,15 +64,13 @@ bool MetaDataBackup::setAttribute(const string &url,
 		string fileName(url.substr(urlObj.getProtocol().length() + 3));
 		string attrName("pinot." + name);
 
+		// Set an attribute, and add an entry in the table
 		if (setxattr(fileName.c_str(), attrName.c_str(),
-			value.c_str(), (size_t)value.length(), 0) == 0)
+			value.c_str(), (size_t)value.length(), 0) != 0)
 		{
-			return true;
-		}
-		else if (errno != ENOTSUP)
-		{
-			// Extended attributes are supported, but some error occured 
-			return false;
+#ifdef DEBUG
+			cout << "MetaDataBackup::setAttribute: setxattr failed with " << strerror(errno) << endl;
+#endif
 		}
 	}
 #endif
@@ -121,7 +121,7 @@ bool MetaDataBackup::getAttribute(const string &url,
 	const string &name, string &value, bool noXAttr)
 {
 	bool success = false;
-#ifdef HAVE_ATTR_XATTR
+#ifdef HAVE_ATTR_XATTR_H
 	Url urlObj(url);
 
 	// If the file is local and isn't a nested document, use an extended attribute
@@ -261,7 +261,7 @@ bool MetaDataBackup::removeAttribute(const string &url,
 {
 	bool success = false;
 
-#ifdef HAVE_ATTR_XATTR
+#ifdef HAVE_ATTR_XATTR_H
 	Url urlObj(url);
 
 	// If the file is local and isn't a nested document, use an extended attribute
@@ -273,7 +273,7 @@ bool MetaDataBackup::removeAttribute(const string &url,
 		string fileName(url.substr(urlObj.getProtocol().length() + 3));
 		string attrName("pinot." + name);
 
-		if (removeattr(fileName.c_str(), attrName.c_str()) > 0)
+		if (removexattr(fileName.c_str(), attrName.c_str()) > 0)
 		{
 			return true;
 		}
@@ -422,6 +422,48 @@ bool MetaDataBackup::getItem(DocumentInfo &docInfo, DocumentInfo::SerialExtent e
 		{
 			docInfo.setLabels(labels);
 		}
+	}
+
+	return success;
+}
+
+/// Gets items.
+bool MetaDataBackup::getItems(const string &protocol, set<string> &urls,
+	unsigned long min, unsigned long max)
+{
+	SQLResults *results = NULL;
+	bool success = false;
+
+	// Even when attributes are used, an entry is always added to the table
+	if (protocol.empty() == true)
+	{
+		results = executeStatement("SELECT Url FROM MetaDataBackup \
+			LIMIT %u OFFSET %u;",
+			max - min, min);
+	}
+	else
+	{
+		results = executeStatement("SELECT Url FROM MetaDataBackup \
+			WHERE Url LIKE '%q%' LIMIT %u OFFSET %u;",
+			protocol.c_str(), max - min, min);
+	}
+	if (results != NULL)
+	{
+		while (results->hasMoreRows() == true)
+                {
+			SQLRow *row = results->nextRow();
+			if (row == NULL)
+			{
+				continue;
+			}
+
+			urls.insert(row->getColumn(0));
+			success = true;
+
+			delete row;
+		}
+
+		delete results;
 	}
 
 	return success;

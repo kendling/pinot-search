@@ -42,6 +42,11 @@ class MetaDataBackup : public SQLiteBase
 		/// Gets an item.
 		bool getItem(DocumentInfo &docInfo, DocumentInfo::SerialExtent extent);
 
+		/// Gets items.
+		bool getItems(const std::string &protocol,
+			std::set<std::string> &urls,
+			unsigned long min, unsigned long max);
+
 		/// Deletes an item.
 		bool deleteItem(const DocumentInfo &docInfo, DocumentInfo::SerialExtent extent,
 			const std::string &value = "");
