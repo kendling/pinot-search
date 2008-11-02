@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -56,15 +56,15 @@ Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 
 	Document *pDocument = new Document(docInfo);
 
-	if (pDocument->getType().empty() == true)
-	{
-		// Determine the file type
-		pDocument->setType(MIMEScanner::scanFile(fileLocation));
-	}
 	if (pDocument->setDataFromFile(fileLocation) == false)
 	{
 		delete pDocument;
 		return NULL;
+	}
+	if (pDocument->getType().empty() == true)
+	{
+		// Determine the file type
+		pDocument->setType(MIMEScanner::scanFile(fileLocation));
 	}
 
 	return pDocument;
