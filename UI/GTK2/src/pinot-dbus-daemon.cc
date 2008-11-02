@@ -44,6 +44,7 @@
 #include "ModuleFactory.h"
 #include "ActionQueue.h"
 #include "CrawlHistory.h"
+#include "MetaDataBackup.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
@@ -486,6 +487,7 @@ int main(int argc, char **argv)
 	if ((historyDatabase.empty() == true) ||
 		(ActionQueue::create(historyDatabase) == false) ||
 		(CrawlHistory::create(historyDatabase) == false) ||
+		(MetaDataBackup::create(historyDatabase) == false) ||
 		(QueryHistory::create(historyDatabase) == false) ||
 		(ViewHistory::create(historyDatabase) == false))
 	{
@@ -687,7 +689,7 @@ int main(int argc, char **argv)
 				cout << "System is on battery" << endl;
 			}
 
-			server.start(fullScan);
+			server.start(fullScan, reindex);
 
 			// Run the main loop
 			g_refMainLoop->run();

@@ -38,7 +38,7 @@ class DaemonState : public ThreadsManager
 
 		typedef enum { LOW_DISK_SPACE = 0, ON_BATTERY, CRAWLING, STOPPED, DISCONNECTED } StatusFlag;
 
-		void start(bool forceFullScan);
+		void start(bool forceFullScan, bool isReindex);
 
 		void reload(void);
 
@@ -60,6 +60,7 @@ class DaemonState : public ThreadsManager
 
 	protected:
 		bool m_fullScan;
+		bool m_isReindex;
 		bool m_reload;
 		fd_set m_flagsSet;
 		MonitorInterface *m_pDiskMonitor;

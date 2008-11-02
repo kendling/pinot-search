@@ -354,6 +354,7 @@ bool statisticsDialog::on_activity_timeout(void)
 		unsigned int sourceNum(sourceIter->first);
 		set<string> errors;
 		time_t latestErrorDate = 0;
+		unsigned int currentOffset = 0;
 
 		std::map<unsigned int, time_t>::const_iterator dateIter = m_latestErrorDates.find(sourceNum);
 		if (dateIter != m_latestErrorDates.end())
@@ -363,8 +364,9 @@ bool statisticsDialog::on_activity_timeout(void)
 
 		// Did any error occur on this source ?
 		unsigned int errorCount = crawlHistory.getSourceItems(sourceNum,
-			CrawlHistory::ERROR, errors, latestErrorDate);
-		if ((errorCount > 0) &&
+			CrawlHistory::ERROR, errors, currentOffset, currentOffset + 100,
+			latestErrorDate);
+		while ((errorCount > 0) &&
 			(errors.empty() == false))
 		{
 			// Add an errors row
@@ -417,6 +419,16 @@ bool statisticsDialog::on_activity_timeout(void)
 			// Expand errors
 			TreeModel::Path errPath = m_refStore->get_path(m_errorsTopIter);
 			statisticsTreeview->expand_to_path(errPath);
+
+			// Next
+			if (errors.size() < 100)
+			{
+				break;
+			}
+			currentOffset += 100;
+			errorCount = crawlHistory.getSourceItems(sourceNum,
+				CrawlHistory::ERROR, errors, currentOffset, currentOffset + 100,
+				latestErrorDate);
 		}
 
 		// The next check will ignore errors older than this

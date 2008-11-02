@@ -128,6 +128,7 @@ public:
 DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 10),
 	m_fullScan(false),
+	m_isReindex(false),
 	m_reload(false),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
 	m_pDiskHandler(NULL),
@@ -259,13 +260,13 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 	{
 		// Monitoring is not necessary, but we still have to pass the handler
 		// so that we can act on documents that have been deleted
-		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource, m_fullScan,
-			NULL, m_pDiskHandler);
+		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
+			m_fullScan, m_isReindex, NULL, m_pDiskHandler);
 	}
 	else
 	{
-		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource, m_fullScan,
-			m_pDiskMonitor, m_pDiskHandler);
+		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
+			m_fullScan, m_isReindex, m_pDiskMonitor, m_pDiskHandler);
 	}
 	pScannerThread->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 
@@ -280,7 +281,7 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 	return false;
 }
 
-void DaemonState::start(bool forceFullScan)
+void DaemonState::start(bool forceFullScan, bool isReindex)
 {
 	// Disable implicit flushing after a change
 	WorkerThread::immediateFlush(false);
@@ -305,6 +306,7 @@ void DaemonState::start(bool forceFullScan)
 		cout << "DaemonState::start: picked " << randomNum << endl;
 #endif
 	}
+	m_isReindex = isReindex;
 
 	// Fire up the disk monitor thread
 	if (m_pDiskHandler == NULL)
@@ -530,7 +532,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 #endif
 
 		// ...and restart everything 
-		start(true);
+		start(true, false);
 	}
 #ifdef DEBUG
 	cout << "DaemonState::on_thread_end: reload status " << m_reload << endl;

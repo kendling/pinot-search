@@ -49,6 +49,33 @@
 using namespace Glib;
 using namespace std;
 
+static void updateLabels(unsigned int docId, MetaDataBackup &metaData,
+	IndexInterface *pIndex, set<string> &labels, gboolean resetLabels)
+{
+	DocumentInfo docInfo;
+
+	if (pIndex == NULL)
+	{
+		return;
+	}
+
+	// If it's a reset, remove labels from the metadata backup
+	if ((resetLabels == TRUE) &&
+		(pIndex->getDocumentInfo(docId, docInfo) == true))
+	{
+		metaData.deleteItem(docInfo, DocumentInfo::SERIAL_LABELS);
+	}
+
+	// Get the current labels 
+	if (resetLabels == TRUE)
+	{
+		labels.clear();
+		pIndex->getDocumentLabels(docId, labels);
+	}
+	docInfo.setLabels(labels);
+	metaData.addItem(docInfo, DocumentInfo::SERIAL_LABELS);
+}
+
 static DBusMessage *newDBusReply(DBusMessage *pMessage)
 {
         if (pMessage == NULL) 
@@ -107,11 +134,13 @@ static bool loadXMLDescription(void)
 }
 
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSource,
-	bool fullScan, MonitorInterface *pMonitor, MonitorHandler *pHandler,
+	bool fullScan, bool isReindex,
+	MonitorInterface *pMonitor, MonitorHandler *pHandler,
 	unsigned int maxLevel, bool followSymLinks) :
 	IndexingThread(),
 	m_dirName(dirName),
 	m_fullScan(fullScan),
+	m_isReindex(isReindex),
 	m_pMonitor(pMonitor),
 	m_pHandler(pHandler),
 	m_sourceId(0),
@@ -493,8 +522,10 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 void DirectoryScannerThread::doWork(void)
 {
 	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
-	set<string> deletedFiles;
+	MetaDataBackup metaData(PinotSettings::getInstance().getHistoryDatabaseName());
 	Timer scanTimer;
+	set<string> urls;
+	unsigned int currentOffset = 0;
 
 	if (m_dirName.empty() == true)
 	{
@@ -519,6 +550,7 @@ void DirectoryScannerThread::doWork(void)
 		m_errorParam = m_dirName;
 	}
 	flushUpdates(crawlHistory);
+	cout << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
 
 	if (m_done == true)
 	{
@@ -530,27 +562,77 @@ void DirectoryScannerThread::doWork(void)
 
 	if (m_fullScan == true)
 	{
+		scanTimer.start();
+
 		// All files left with status CRAWLING were not found in this crawl
 		// Chances are they were removed after the last full scan
-		if ((m_pHandler != NULL) &&
-			(crawlHistory.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, deletedFiles) > 0))
+		while ((m_pHandler != NULL) &&
+			(crawlHistory.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, urls,
+				currentOffset, currentOffset + 100) > 0))
 		{
-#ifdef DEBUG
-			cout << "DirectoryScannerThread::doWork: " << deletedFiles.size() << " files were deleted" << endl;
-#endif
-			for(set<string>::const_iterator fileIter = deletedFiles.begin();
-				fileIter != deletedFiles.end(); ++fileIter)
+			for (set<string>::const_iterator urlIter = urls.begin();
+				urlIter != urls.end(); ++urlIter)
 			{
 				// Inform the MonitorHandler
-				if (m_pHandler->fileDeleted(fileIter->substr(7)) == true)
+				if (m_pHandler->fileDeleted(urlIter->substr(7)) == true)
 				{
 					// Delete this item
-					crawlHistory.deleteItem(*fileIter);
+					crawlHistory.deleteItem(*urlIter);
+					metaData.deleteItem(DocumentInfo("", *urlIter, "", ""), DocumentInfo::SERIAL_ALL);
 				}
 			}
+
+			// Next
+			if (urls.size() < 100)
+			{
+				break;
+			}
+			currentOffset += 100;
 		}
+		cout << "Cleaned up " << currentOffset + urls.size()
+			<< " history entries in " << scanTimer.stop() << " ms" << endl;
 	}
-	cout << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
+
+	if (m_isReindex == true)
+	{
+		urls.clear();
+		currentOffset = 0;
+		scanTimer.start();
+
+		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+		// Restore user-set metadata, if any
+		while ((pIndex != NULL) &&
+			(pIndex->isGood() == true) &&
+			(metaData.getItems("file://", urls,
+				currentOffset, currentOffset + 100) == true))
+		{
+			for (set<string>::const_iterator urlIter = urls.begin();
+				urlIter != urls.end(); ++urlIter)
+			{
+				unsigned int docId = pIndex->hasDocument(*urlIter);
+
+				if (docId > 0)
+				{
+					DocumentInfo docInfo("", *urlIter, "", "");
+
+					if (metaData.getItem(docInfo, DocumentInfo::SERIAL_ALL) == true)
+					{
+						pIndex->updateDocumentInfo(docId, docInfo);
+						pIndex->setDocumentLabels(docId, docInfo.getLabels(), true);
+					}
+				}
+			}
+
+			// Next
+			if (urls.size() < 100)
+			{
+				break;
+			}
+			currentOffset += 100;
+		}
+		cout << "Restored user-set metadata for " << currentOffset + urls.size()
+			<< " documents in " << scanTimer.stop() << " ms" << endl;
+	}
 }
 
 DBusServletThread::DBusServletThread(DaemonState *pServer, DBusConnection *pConnection, DBusMessage *pRequest) :
@@ -664,6 +746,7 @@ void DBusServletThread::doWork(void)
 {
 	PinotSettings &settings = PinotSettings::getInstance();
 	IndexInterface *pIndex = settings.getIndex(settings.m_daemonIndexLocation);
+	MetaDataBackup metaData(settings.getHistoryDatabaseName());
 	DBusError error;
 	bool processedMessage = true, updateLabelsCache = false, flushIndex = false;
 
@@ -876,6 +959,31 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
+	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "RenameLabel") == TRUE)
+	{
+		char *pOldLabel = NULL;
+		char *pNewLabel = NULL;
+
+		if (dbus_message_get_args(m_pRequest, &error,
+			DBUS_TYPE_STRING, &pOldLabel,
+			DBUS_TYPE_STRING, &pNewLabel,
+			DBUS_TYPE_INVALID) == TRUE)
+		{
+			// Nothing to do, this was obsoleted
+#ifdef DEBUG
+			cout << "DBusServletThread::doWork: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
+#endif
+			
+			// Prepare the reply
+			m_pReply = newDBusReply(m_pRequest);
+			if (m_pReply != NULL)
+			{
+				dbus_message_append_args(m_pReply,
+					DBUS_TYPE_STRING, &pNewLabel,
+					DBUS_TYPE_INVALID);
+			}
+		}
+	}
 	else if (dbus_message_is_method_call(m_pRequest, "de.berlios.Pinot", "DeleteLabel") == TRUE)
 	{
 		char *pLabel = NULL;
@@ -898,6 +1006,9 @@ void DBusServletThread::doWork(void)
 					labelsCache.erase(labelIter);
 					updateLabelsCache = true;
 				}
+
+				// Update the metadata backup
+				metaData.deleteLabel(pLabel);
 			}
 
 			// Prepare the reply
@@ -991,8 +1102,12 @@ void DBusServletThread::doWork(void)
 			cout << "DBusServletThread::doWork: received SetDocumentLabels on ID " << docId
 				<< ", " << labelsCount << " labels" << ", " << resetLabels << endl;
 #endif
+
 			// Set labels
 			flushIndex = pIndex->setDocumentLabels(docId, labels, ((resetLabels == TRUE) ? true : false));
+
+			// Update the metadata backup
+			updateLabels(docId, metaData, pIndex, labels, resetLabels);
 
 			// Free container types
 			g_strfreev(ppLabels);
@@ -1030,6 +1145,7 @@ void DBusServletThread::doWork(void)
 				{
 					break;
 				}
+
 				docIds.insert((unsigned int)atoi(ppDocIds[idIndex]));
 			}
 			for (dbus_uint32_t labelIndex = 0; labelIndex < labelsCount; ++labelIndex)
@@ -1058,6 +1174,13 @@ void DBusServletThread::doWork(void)
 			{
 				resetLabels = TRUE;
 				flushIndex = true;
+			}
+
+			// Update the metadata backup
+			for (set<unsigned int>::const_iterator docIter = docIds.begin();
+				docIter != docIds.end(); ++docIter)
+			{
+				updateLabels(*docIter, metaData, pIndex, labels, resetLabels);
 			}
 
 			// Free container types
@@ -1134,6 +1257,9 @@ void DBusServletThread::doWork(void)
 
 			// Update the document info
 			flushIndex = pIndex->updateDocumentInfo(docId, docInfo);
+
+			// Update the metadata backup
+			metaData.addItem(docInfo, DocumentInfo::SERIAL_FIELDS);
 
 			// Prepare the reply
 			m_pReply = newDBusReply(m_pRequest);

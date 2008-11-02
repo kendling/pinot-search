@@ -45,7 +45,8 @@ class DirectoryScannerThread : public IndexingThread
 {
 	public:
 		DirectoryScannerThread(const std::string &dirName, bool isSource,
-			bool fullScan, MonitorInterface *pMonitor, MonitorHandler *pHandler,
+			bool fullScan, bool isReindex,
+			MonitorInterface *pMonitor, MonitorHandler *pHandler,
 			unsigned int maxLevel = 0, bool followSymLinks = true);
 		virtual ~DirectoryScannerThread();
 
@@ -60,6 +61,7 @@ class DirectoryScannerThread : public IndexingThread
 	protected:
 		std::string m_dirName;
 		bool m_fullScan;
+		bool m_isReindex;
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
 		unsigned int m_sourceId;
