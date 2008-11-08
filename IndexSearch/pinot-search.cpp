@@ -35,6 +35,7 @@
 using namespace std;
 
 static struct option g_longOptions[] = {
+	{"datefirst", 0, 0, 'd'},
 	{"help", 0, 0, 'h'},
 	{"max", 1, 0, 'm'},
 	{"proxyaddress", 1, 0, 'a'},
@@ -89,6 +90,7 @@ static void printHelp(void)
 	cout << "pinot-search - Query search engines from the command-line\n\n"
 		<< "Usage: pinot-search [OPTIONS] SEARCHENGINETYPE SEARCHENGINENAME|SEARCHENGINEOPTION QUERYINPUT\n\n"
 		<< "Options:\n"
+		<< "  -d, --datefirst           sort by date then by relevance\n"
 		<< "  -h, --help                display this help and exit\n"
 		<< "  -m, --max                 maximum number of results (default 10)\n"
 		<< "  -a, --proxyaddress        proxy address\n"
@@ -124,9 +126,10 @@ int main(int argc, char **argv)
 	unsigned int maxResultsCount = 10; 
 	int longOptionIndex = 0;
 	bool printResults = true;
+	bool sortByDate = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "c:hm:a:e:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "c:dhm:a:e:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -136,6 +139,9 @@ int main(int argc, char **argv)
 				{
 					proxyAddress = optarg;
 				}
+				break;
+			case 'd':
+				sortByDate = true;
 				break;
 			case 'e':
 				if (optarg != NULL)
@@ -201,7 +207,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "c:hm:a:e:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "c:dhm:a:e:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -304,6 +310,10 @@ int main(int argc, char **argv)
 	}
 	queryProps.setStemmingLanguage(stemLanguage);
 	queryProps.setMaximumResultsCount(maxResultsCount);
+	if (sortByDate == true)
+	{
+		queryProps.setSortOrder(QueryProperties::DATE);
+	}
 
 	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
 	if (pEngine->runQuery(queryProps) == true)

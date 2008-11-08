@@ -16,8 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdlib.h>
 #include <iostream>
-#include <cstdlib>
 
 #include "Languages.h"
 #include "DBusIndex.h"
@@ -30,7 +30,7 @@ using std::set;
 using std::map;
 using std::min;
 
-static const char *g_fieldNames[] = { "caption", "url", "type", "language", "modtime", "size", "extract", NULL };
+static const char *g_fieldNames[] = { "caption", "url", "type", "language", "modtime", "size", "extract", "score", NULL };
 
 static DBusGConnection *getBusConnection(void)
 {
@@ -192,6 +192,10 @@ bool DBusIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
 		{
 			docInfo.setExtract(pValue);
 		}
+		else if (fieldName == g_fieldNames[7])
+		{
+			docInfo.setScore((float)atof(pValue));
+		}
 	}
 	while (dbus_message_iter_next(&array_iter));
 
@@ -230,7 +234,7 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 	for (unsigned int fieldNum = 0; g_fieldNames[fieldNum] != NULL; ++fieldNum)
 	{
 		string value;
-		char sizeStr[64];
+		char numStr[64];
 
 		switch (fieldNum)
 		{
@@ -250,11 +254,15 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 				value = docInfo.getTimestamp();
 				break;
 			case 5:
-				snprintf(sizeStr, 64, "%u", docInfo.getSize());
-				value = sizeStr;
+				snprintf(numStr, 64, "%u", docInfo.getSize());
+				value = numStr;
 				break;
 			case 6:
 				value = docInfo.getExtract();
+				break;
+			case 7:
+				snprintf(numStr, 64, "%f", docInfo.getScore());
+				value = numStr;
 				break;
 			default:
 				break;
