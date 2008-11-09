@@ -108,7 +108,7 @@ class DaemonState : public ThreadsManager
 		sigc::signal1<void, int> m_signalQuit;
 		unsigned int m_crawlers;
 		std::queue<PinotSettings::IndexableLocation> m_crawlQueue;
-		std::set<DBusServletInfo *> m_queryServlets;
+		std::set<DBusServletInfo *> m_servletsInfo;
 
 		bool on_activity_timeout(void);
 

@@ -1173,8 +1173,34 @@ void DBusServletThread::doWork(void)
 				QueryProperties queryProps(m_pServletInfo->m_queryName, pSearchText);
 				queryProps.setMaximumResultsCount(maxHits);
 
+				string engineType, engineOption;
+
+				// Provide reasonable defaults 
+				if ((pEngineType == NULL) ||
+					(strlen(pEngineType) == 0))
+				{
+					engineType = settings.m_defaultBackend;
+				}
+				else
+				{
+					engineType = pEngineType;
+				}
+				if ((pEngineOption == NULL) ||
+					(strlen(pEngineOption) == 0))
+				{
+					if (engineType == settings.m_defaultBackend)
+					{
+						// This wouldn't make sense with any other engine type
+						engineOption = settings.m_daemonIndexLocation;
+					}
+				}
+				else
+				{
+					engineOption = pEngineOption;
+				}
+
 				m_pServletInfo->m_pThread = new EngineQueryThread(pEngineType,
-					pEngineType, pEngineOption,
+					engineType, engineOption,
 					queryProps, startDoc);
 			}
 

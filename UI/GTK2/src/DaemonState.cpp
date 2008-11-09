@@ -678,7 +678,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		{
 			if (pInfo->m_pThread != NULL)
 			{
-				m_queryServlets.insert(pInfo);
+				m_servletsInfo.insert(pInfo);
 
 #ifdef DEBUG
 				cout << "DaemonState::on_thread_end: running query " << pInfo->m_queryName << endl;
@@ -718,8 +718,8 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		const vector<DocumentInfo> &resultsList = pQueryThread->getDocuments();
 
 		// Find the servlet info
-		for (set<DBusServletInfo *>::const_iterator servIter = m_queryServlets.begin();
-			servIter != m_queryServlets.end(); ++servIter)
+		for (set<DBusServletInfo *>::const_iterator servIter = m_servletsInfo.begin();
+			servIter != m_servletsInfo.end(); ++servIter)
 		{
 			DBusServletInfo *pInfo = const_cast<DBusServletInfo *>(*servIter);
 
@@ -733,7 +733,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 				pInfo->newQueryReply(resultsList, pQueryThread->getDocumentsCount());
 				pInfo->reply();
 
-				m_queryServlets.erase(servIter);
+				m_servletsInfo.erase(servIter);
 				delete pInfo;
 
 				break;
