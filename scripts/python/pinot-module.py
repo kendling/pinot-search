@@ -1,5 +1,5 @@
 #
-# Copyright 2005-2007 Fabrice Colin
+# Copyright 2005-2008 Fabrice Colin
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -62,11 +62,10 @@ class PinotFileMatch(deskbar.interfaces.Match):
 				tmp = re.sub(r"<.*?>", "", snippet)
 				tmp = re.sub(r"</.*?>", "", tmp)
 				print 'Extract ', tmp
-				self.result["snippet"] = "\n%s" % cgi.escape(tmp)
+				self.set_snippet("\n%s" % cgi.escape(tmp))
         
 		if url_scheme == "file":
 			print 'File hit'
-			#self.add_action(OpenFileAction(self.result["caption"] + self.result["snippet"], self.result["url"]))
 			self.add_action(OpenFileAction(self.result["caption"], self.result["url"]))
 		else:
 			print 'Other hit'
