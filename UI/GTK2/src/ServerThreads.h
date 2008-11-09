@@ -21,15 +21,6 @@
 
 #include <string>
 #include <vector>
-extern "C"
-{
-#if DBUS_VERSION < 1000000
-#define DBUS_API_SUBJECT_TO_CHANGE
-#endif
-#include <dbus/dbus.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-}
 #include <sigc++/sigc++.h>
 #include <glibmm/ustring.h>
 
@@ -87,26 +78,19 @@ class DirectoryScannerThread : public IndexingThread
 class DBusServletThread : public WorkerThread
 {
 	public:
-		DBusServletThread(DaemonState *pServer, DBusConnection *pConnection, DBusMessage *pRequest);
+		DBusServletThread(DaemonState *pServer, DBusServletInfo *pInfo);
 		virtual ~DBusServletThread();
 
 		virtual std::string getType(void) const;
 
-		DBusConnection *getConnection(void) const;
-
-		DBusMessage *getReply(void) const;
+		DBusServletInfo *getServletInfo(void) const;
 
 		bool mustQuit(void) const;
 
 	protected:
 		DaemonState *m_pServer;
-		DBusConnection *m_pConnection;
-		DBusMessage *m_pRequest;
-		DBusMessage *m_pReply;
-		GPtrArray *m_pArray;
+		DBusServletInfo *m_pServletInfo;
 		bool m_mustQuit;
-
-		bool runQuery(QueryProperties &queryProps, std::vector<std::string> &docIds);
 
 		virtual void doWork(void);
 

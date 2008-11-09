@@ -220,7 +220,9 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 
 		if (pServer != NULL)
 		{
-			pServer->start_thread(new DBusServletThread(pServer, pConnection, pMessage));
+			DBusServletInfo *pInfo = new DBusServletInfo(pConnection, pMessage);
+
+			pServer->start_thread(new DBusServletThread(pServer, pInfo));
 		}
 	}
 

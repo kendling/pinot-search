@@ -23,12 +23,51 @@
 #include <string>
 #include <queue>
 #include <set>
+extern "C"
+{
+#if DBUS_VERSION < 1000000
+#define DBUS_API_SUBJECT_TO_CHANGE
+#endif
+#include <dbus/dbus.h>
+#include <dbus/dbus-glib.h>
+#include <dbus/dbus-glib-lowlevel.h>
+}
 #include <sigc++/sigc++.h>
 
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
 #include "PinotSettings.h"
 #include "WorkerThreads.h"
+
+class DBusServletInfo
+{
+	public:
+		DBusServletInfo(DBusConnection *pConnection, DBusMessage *pRequest);
+		~DBusServletInfo();
+
+		bool newReply(void);
+
+		bool newErrorReply(const std::string &name, const std::string &message);
+
+		bool newReplyWithArray(void);
+
+		bool newQueryReply(const vector<DocumentInfo> &resultsList,
+			unsigned int resultsEstimate);
+
+		bool reply(void);
+
+		DBusConnection *m_pConnection;
+		DBusMessage *m_pRequest;
+		DBusMessage *m_pReply;
+		GPtrArray *m_pArray;
+		std::string m_queryName;
+		bool m_simpleQuery;
+		WorkerThread *m_pThread;
+
+	protected:
+		bool m_replied;
+
+};
 
 class DaemonState : public ThreadsManager
 {
@@ -69,6 +108,7 @@ class DaemonState : public ThreadsManager
 		sigc::signal1<void, int> m_signalQuit;
 		unsigned int m_crawlers;
 		std::queue<PinotSettings::IndexableLocation> m_crawlQueue;
+		std::set<DBusServletInfo *> m_queryServlets;
 
 		bool on_activity_timeout(void);
 

@@ -60,6 +60,7 @@
 #include "Url.h"
 #include "MonitorFactory.h"
 #include "CrawlHistory.h"
+#include "DBusIndex.h"
 #include "DaemonState.h"
 #include "OnDiskHandler.h"
 #include "PinotSettings.h"
@@ -124,6 +125,183 @@ public:
 		}
 	}
 };
+
+DBusServletInfo::DBusServletInfo(DBusConnection *pConnection, DBusMessage *pRequest) :
+	m_pConnection(pConnection),
+	m_pRequest(pRequest),
+	m_pReply(NULL),
+	m_pArray(NULL),
+	m_queryName(""),
+	m_simpleQuery(true),
+	m_pThread(NULL),
+	m_replied(false)
+{
+}
+
+DBusServletInfo::~DBusServletInfo()
+{
+	if (m_pReply != NULL)
+	{
+		dbus_message_unref(m_pReply);
+	}
+	if (m_pRequest != NULL)
+	{
+		dbus_message_unref(m_pRequest);
+	}
+	if (m_pConnection != NULL)
+	{
+		dbus_connection_unref(m_pConnection);
+	}
+	if (m_pArray != NULL)
+	{
+		// Free the array
+		g_ptr_array_free(m_pArray, TRUE);
+	}
+}
+
+bool DBusServletInfo::newReply(void)
+{
+        if (m_pRequest == NULL) 
+        {
+                return false;
+        }
+
+        m_pReply = dbus_message_new_method_return(m_pRequest);
+        if (m_pReply != NULL)
+        {
+                return true;
+        }
+
+        return false;
+}
+
+bool DBusServletInfo::newErrorReply(const string &name, const string &message)
+{
+        if (m_pRequest == NULL) 
+        {
+                return false;
+        }
+
+	if (m_pReply != NULL)
+	{
+		dbus_message_unref(m_pReply);
+		m_pReply = NULL;
+	}
+
+	m_pReply = dbus_message_new_error(m_pRequest,
+		name.c_str(), message.c_str());
+        if (m_pReply != NULL)
+        {
+                return true;
+        }
+
+        return false;
+}
+
+bool DBusServletInfo::newReplyWithArray(void)
+{
+	if (newReply() == true)
+	{
+		dbus_message_append_args(m_pReply,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &m_pArray->pdata, m_pArray->len,
+			DBUS_TYPE_INVALID);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool DBusServletInfo::newQueryReply(const vector<DocumentInfo> &resultsList,
+	unsigned int resultsEstimate)
+{
+	DBusMessageIter iter, subIter;
+
+	if (m_simpleQuery == false)
+	{
+		// Create the reply
+		if (newReply() == false)
+		{
+			return false;
+		}
+
+		// ...and attach a container
+		dbus_message_iter_init_append(m_pReply, &iter);
+		dbus_message_iter_append_basic(&iter, DBUS_TYPE_UINT32,
+			&resultsEstimate);
+		dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY,
+			 DBUS_TYPE_ARRAY_AS_STRING \
+			 DBUS_STRUCT_BEGIN_CHAR_AS_STRING \
+			 DBUS_TYPE_STRING_AS_STRING \
+			 DBUS_TYPE_STRING_AS_STRING \
+			 DBUS_STRUCT_END_CHAR_AS_STRING, &subIter);
+	}
+	else
+	{
+		// Create an array
+		// FIXME: use a container for this too
+		m_pArray = g_ptr_array_new();
+	}
+
+	for (vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
+		resultIter != resultsList.end(); ++resultIter)
+	{
+		unsigned int indexId = 0;
+		unsigned int docId = resultIter->getIsIndexed(indexId);
+
+#ifdef DEBUG
+		cout << "DBusServletInfo::newQueryReply: adding result " << docId << endl;
+#endif
+		if (m_simpleQuery == false)
+		{
+			// The document ID isn't needed here
+			if (DBusIndex::documentInfoToDBus(&subIter, 0, *resultIter) == false)
+			{
+				newErrorReply("de.berlios.Pinot.Query", "Unknown error");
+				return false;
+			}
+		}
+		else if (docId > 0)
+		{
+			char docIdStr[64];
+
+			// We only need the document ID
+			snprintf(docIdStr, 64, "%u", docId);
+			g_ptr_array_add(m_pArray, const_cast<char*>(docIdStr));
+		}
+	}
+
+	if (m_simpleQuery == false)
+	{
+		// Close the container
+		dbus_message_iter_close_container(&iter, &subIter);
+		return true;
+	}
+
+	// Attach the array to the reply
+	return newReplyWithArray();
+}
+
+bool DBusServletInfo::reply(void)
+{
+	// Send a reply ?
+	if ((m_pConnection != NULL) &&
+		(m_pReply != NULL) &&
+		(m_replied == false))
+	{
+		m_replied = true;
+
+		dbus_connection_send(m_pConnection, m_pReply, NULL);
+		dbus_connection_flush(m_pConnection);
+#ifdef DEBUG
+		cout << "DBusServletInfo::reply: sent reply" << endl;
+#endif
+
+		return true;
+	}
+
+	return false;
+}
 
 DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 10),
@@ -334,6 +512,7 @@ void DaemonState::start(bool forceFullScan, bool isReindex)
 		// Update all items status so that we can get rid of files from deleted sources
 		crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::CRAWLING, 0, true);
 	}
+
 	// Initiate crawling
 	start_crawling();
 }
@@ -493,6 +672,27 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
+		// Send the reply ?
+		DBusServletInfo *pInfo = pDBusThread->getServletInfo();
+		if (pInfo != NULL)
+		{
+			if (pInfo->m_pThread != NULL)
+			{
+				m_queryServlets.insert(pInfo);
+
+#ifdef DEBUG
+				cout << "DaemonState::on_thread_end: running query " << pInfo->m_queryName << endl;
+#endif
+				start_thread(pInfo->m_pThread);
+			}
+			else
+			{
+				pInfo->reply();
+
+				delete pInfo;
+			}
+		}
+
 		if (pDBusThread->mustQuit() == true)
 		{
 			// Disconnect the timeout signal
@@ -502,6 +702,42 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 				m_timeoutConnection.disconnect();
 			}
 			m_signalQuit(0);
+		}
+	}
+	else if (type == "QueryingThread")
+	{
+		QueryingThread *pQueryThread = dynamic_cast<QueryingThread *>(pThread);
+		if (pQueryThread == NULL)
+		{
+			delete pThread;
+			return;
+		}
+
+		bool wasCorrected = false;
+		QueryProperties queryProps(pQueryThread->getQuery(wasCorrected));
+		const vector<DocumentInfo> &resultsList = pQueryThread->getDocuments();
+
+		// Find the servlet info
+		for (set<DBusServletInfo *>::const_iterator servIter = m_queryServlets.begin();
+			servIter != m_queryServlets.end(); ++servIter)
+		{
+			DBusServletInfo *pInfo = const_cast<DBusServletInfo *>(*servIter);
+
+			if ((pInfo != NULL) &&
+				(pInfo->m_queryName == queryProps.getName()))
+			{
+#ifdef DEBUG
+				cout << "DaemonState::on_thread_end: ran query " << pInfo->m_queryName << endl;
+#endif
+				// Prepare and send the reply
+				pInfo->newQueryReply(resultsList, pQueryThread->getDocumentsCount());
+				pInfo->reply();
+
+				m_queryServlets.erase(servIter);
+				delete pInfo;
+
+				break;
+			}
 		}
 	}
 
