@@ -1323,16 +1323,14 @@ void LabelUpdateThread::doWork(void)
 
 	if (actOnDocuments == false)
 	{
-		// Add labels
+		// Add and/or delete labels on the daemon's index only
+		// The documents index is not required to have labels set
 		for (set<string>::iterator iter = m_labelsToAdd.begin(); iter != m_labelsToAdd.end(); ++iter)
 		{
-			pDocsIndex->addLabel(*iter);
 			pDaemonIndex->addLabel(*iter);
 		}
-		// Delete labels
 		for (set<string>::iterator iter = m_labelsToDelete.begin(); iter != m_labelsToDelete.end(); ++iter)
 		{
-			pDocsIndex->deleteLabel(*iter);
 			pDaemonIndex->deleteLabel(*iter);
 		}
 	}
