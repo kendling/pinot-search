@@ -72,6 +72,9 @@ protected:
 	virtual void on_removePatternButton_clicked();
 	virtual void on_resetPatternsButton_clicked();
 
+	void updateLabelRow(const Glib::ustring &path_string, const Glib::ustring &text);
+	void renderLabelNameColumn(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
+
 	void attach_value_widgets(const std::string &name, const std::string &value, guint rowNumber);
 	void populate_proxyTypeCombobox();
 	void populate_labelsTreeview();

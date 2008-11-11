@@ -25,7 +25,7 @@
 #include <gtkmm/label.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/menu.h>
-#include <gtkmm/messagedialog.h>
+#include <gtkmm/cellrenderertext.h>
 
 #include "config.h"
 #include "NLS.h"
@@ -102,7 +102,15 @@ prefsDialog::prefsDialog() :
 	// Associate the columns model to the labels tree
 	m_refLabelsTree = ListStore::create(m_labelsColumns);
 	labelsTreeview->set_model(m_refLabelsTree);
-	labelsTreeview->append_column(_("Name"), m_labelsColumns.m_name);
+	TreeViewColumn *pColumn = new TreeViewColumn(_("Name"));
+	CellRendererText *pTextRenderer = new CellRendererText();
+	pTextRenderer->signal_edited().connect(sigc::mem_fun(*this, &prefsDialog::updateLabelRow));
+	pColumn->pack_start(*manage(pTextRenderer));
+	pColumn->set_cell_data_func(*pTextRenderer, sigc::mem_fun(*this, &prefsDialog::renderLabelNameColumn));
+	pColumn->add_attribute(pTextRenderer->property_text(), m_labelsColumns.m_name);
+	pColumn->set_resizable(true);
+	pColumn->set_sort_column(m_labelsColumns.m_name);
+	labelsTreeview->append_column(*manage(pColumn));
 	// Allow only single selection
 	labelsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
 	populate_labelsTreeview();
@@ -714,5 +722,52 @@ void prefsDialog::on_resetPatternsButton_clicked()
 
 	// Repopulate with defaults
 	populate_patternsTreeview(defaultPatterns, isBlackList);
+}
+
+void prefsDialog::updateLabelRow(const ustring &path_string, const ustring &text)
+{
+	Gtk::TreePath path(path_string);
+
+	// Get the row
+	TreeModel::iterator iter = m_refLabelsTree->get_iter(path);
+	if (iter)
+	{
+		TreeRow row = *iter;
+
+#ifdef DEBUG
+		cout << "prefsDialog::updateLabelRow: set label to " << text << endl;
+#endif
+		// Set the value of the name column
+		row.set_value(m_labelsColumns.m_name, (ustring)text);
+	}
+}
+
+void prefsDialog::renderLabelNameColumn(CellRenderer *pRenderer, const TreeModel::iterator &iter)
+{
+	TreeModel::Row row = *iter;
+
+	if (pRenderer == NULL)
+	{
+		return;
+	}
+
+	CellRendererText *pTextRenderer = dynamic_cast<CellRendererText*>(pRenderer);
+	if (pTextRenderer != NULL)
+	{
+		bool isNewLabel = false;
+
+		// Is this a new label ?
+		if (row[m_labelsColumns.m_enabled] == false)
+		{
+			isNewLabel = true;
+		}
+
+		// Set the editable property
+#ifdef GLIBMM_PROPERTIES_ENABLED
+		pTextRenderer->property_editable() = isNewLabel;
+#else
+		pTextRenderer->set_property("editable", isNewLabel);
+#endif
+	}
 }
 
