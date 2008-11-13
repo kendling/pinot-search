@@ -19,6 +19,7 @@
 #ifndef _NOTEBOOK_HH
 #define _NOTEBOOK_HH
 
+#include <set>
 #include <sigc++/sigc++.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/box.h>
@@ -73,14 +74,18 @@ class ResultsPage : public NotebookPageBox
 	protected:
 		Gtk::Label *m_pLabel;
 		Gtk::ComboBoxText *m_pCombobox;
-		Gtk::Button *m_pButton;
+		Gtk::Button *m_pYesButton;
+		Gtk::Image *m_pCloseImage;
+		Gtk::Button *m_pCloseButton;
 		Gtk::HBox *m_pHBox;
 		Gtk::VBox *m_pVBox;
 		Gtk::VPaned *m_pVPaned;
 		ResultsTree *m_pTree;
 		sigc::signal2<void, Glib::ustring, Glib::ustring> m_signalSuggest;
+		std::set<Glib::ustring> m_suggestions;
+		void onYesButtonClicked();
 
-		void onButtonClicked();
+		void onCloseButtonClicked();
 
 };
 
@@ -97,9 +102,9 @@ class NotebookTabBox : public Gtk::HBox
 		static bool m_initialized;
 		Glib::ustring m_title;
 		NotebookPageBox::PageType m_pageType;
-		Gtk::Label *m_tabLabel;
-		Gtk::Image *m_tabImage;
-		Gtk::Button *m_tabButton;
+		Gtk::Label *m_pTabLabel;
+		Gtk::Image *m_pTabImage;
+		Gtk::Button *m_pTabButton;
 		sigc::signal2<void, Glib::ustring, NotebookPageBox::PageType> m_signalClose;
 
 		void onButtonClicked(void);
