@@ -310,16 +310,11 @@ void EnginesTree::populate(bool indexesOnly)
 
 			row[m_enginesColumns.m_name] = to_utf8(engineName);
 			row[m_enginesColumns.m_engineName] = to_utf8(engineType);
-			// Is this a Sherlock engine ?
-			if (engineType == "sherlock")
-			{
-				row[m_enginesColumns.m_option] = engineIter->m_option;
-			}
-			else
-			{
-				row[m_enginesColumns.m_option] = "";
-			}
+			row[m_enginesColumns.m_option] = engineIter->m_option;
 			row[m_enginesColumns.m_type] = EnginesModelColumns::WEB_ENGINE;
+#ifdef DEBUG
+			cout << "EnginesTree::populate: engine " << engineName << "/" << engineType << " at " << engineIter->m_option << endl;
+#endif
 		}
 
 		TreeModel::Path folderPath = m_refStore->get_path(folderIter);

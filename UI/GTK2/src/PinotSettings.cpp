@@ -1336,14 +1336,16 @@ bool PinotSettings::loadSearchEngines(const string &directoryName)
 				SearchPluginProperties properties;
 
 				if ((PluginWebEngine::getDetails(location, properties) == true) &&
-					(properties.m_name.empty() == false))
+					(properties.m_name.empty() == false) &&
+					(properties.m_longName.empty() == false))
 				{
-					m_engineIds[1 << m_engines.size()] = properties.m_name;
+					m_engineIds[1 << m_engines.size()] = properties.m_longName;
 					if (properties.m_channel.empty() == true)
 					{
 						properties.m_channel = _("Unclassified");
 					}
-					m_engines.insert(ModuleProperties("sherlock", properties.m_name, location, properties.m_channel));
+					// SearchPluginProperties derives ModuleProperties
+					m_engines.insert(properties);
 					m_engineChannels.insert(pair<string, bool>(properties.m_channel, true));
 
 					// Any editable parameters in this plugin ?
@@ -1354,6 +1356,7 @@ bool PinotSettings::loadSearchEngines(const string &directoryName)
 					}
 #ifdef DEBUG
 					cout << "PinotSettings::loadSearchEngines: " << properties.m_name
+						<< ", " << properties.m_longName << ", " << properties.m_option
 						<< " has " << properties.m_editableParameters.size() << " editable values" << endl;
 #endif
 				}
@@ -1751,6 +1754,7 @@ bool PinotSettings::getSearchEngines(set<ModuleProperties> &engines, const strin
 unsigned int PinotSettings::getEngineId(const string &name)
 {
 	unsigned int engineId = 0;
+
 	for (map<unsigned int, string>::iterator mapIter = m_engineIds.begin();
 		mapIter != m_engineIds.end(); ++mapIter)
 	{
@@ -1760,6 +1764,9 @@ unsigned int PinotSettings::getEngineId(const string &name)
 			break;
 		}
 	}
+#ifdef DEBUG
+	cout << "PinotSettings::getEngineId: " << name << ", ID " << engineId << endl;
+#endif
 
 	return engineId;
 }

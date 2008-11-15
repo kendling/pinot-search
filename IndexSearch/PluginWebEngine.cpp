@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -57,7 +57,8 @@ void PluginWebEngine::load(const string &fileName)
 		return;
 	}
 
-	PluginParserInterface *pParser = getPluginParser(fileName);
+	string pluginType;
+	PluginParserInterface *pParser = getPluginParser(fileName, pluginType);
 	if (pParser == NULL)
 	{
 		return;
@@ -137,7 +138,8 @@ bool PluginWebEngine::getPage(const string &formattedQuery, unsigned int maxResu
 	return success;
 }
 
-PluginParserInterface *PluginWebEngine::getPluginParser(const string &fileName)
+PluginParserInterface *PluginWebEngine::getPluginParser(const string &fileName,
+	string &pluginType)
 {
 	if (fileName.empty() == true)
 	{
@@ -157,12 +159,14 @@ PluginParserInterface *PluginWebEngine::getPluginParser(const string &fileName)
 #ifdef HAVE_BOOST_SPIRIT_CORE_HPP
 	if (strncasecmp(extension.c_str(), "src", 3) == 0)
 	{
+		pluginType = "sherlock";
 		return new SherlockParser(fileName);
 	}
 	else
 #endif
 	if (strncasecmp(extension.c_str(), "xml", 3) == 0)
 	{
+		pluginType = "opensearch";
 		return new OpenSearchParser(fileName);
 	}
 
@@ -176,7 +180,8 @@ bool PluginWebEngine::getDetails(const string &fileName, SearchPluginProperties 
 		return false;
 	}
 
-	PluginParserInterface *pParser = getPluginParser(fileName);
+	properties.m_option = fileName;
+	PluginParserInterface *pParser = getPluginParser(fileName, properties.m_name);
 	if (pParser == NULL)
 	{
 		return false;

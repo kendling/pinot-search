@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,7 +47,8 @@ class PluginWebEngine : public WebEngine
 
 		bool getPage(const std::string &formattedQuery, unsigned int maxResultsCount);
 
-		static PluginParserInterface *getPluginParser(const std::string &fileName);
+		static PluginParserInterface *getPluginParser(const std::string &fileName,
+			std::string &pluginType);
 
 	private:
 		PluginWebEngine(const PluginWebEngine &other);

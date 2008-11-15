@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -524,7 +524,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 		map<string, string>::iterator mapIter = lowSearchParams.find("name");
 		if (mapIter != lowSearchParams.end())
 		{
-			properties.m_name = mapIter->second;
+			properties.m_longName = mapIter->second;
 		}
 
 		// Channel

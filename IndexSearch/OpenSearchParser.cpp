@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -351,7 +351,8 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 
 				if (nodeName == "ShortName")
 				{
-					properties.m_name = nodeContent;
+					// Ignore LongName, use this as long name
+					properties.m_longName = nodeContent;
 				}
 				else if (nodeName == "Url")
 				{
@@ -520,10 +521,6 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 				{
 					// This is supposed to be a space-delimited list, but use the whole thing as channel
 					properties.m_channel = nodeContent;
-				}
-				else if (nodeName == "LongName")
-				{
-					properties.m_longName = nodeContent;
 				}
 				else if (nodeName == "Language")
 				{
