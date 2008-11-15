@@ -874,6 +874,10 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 	m_correctedSpelling(false),
 	m_isLive(true)
 {
+#ifdef DEBUG
+	cout << "QueryingThread: engine " << m_engineName << ", " << m_engineOption
+		<< ", mode " << m_listingIndex << endl;
+#endif
 }
 
 QueryingThread::~QueryingThread()
@@ -911,15 +915,61 @@ string QueryingThread::getCharset(void) const
 	return m_resultsCharset;
 }
 
+bool QueryingThread::findPlugin(void)
+{
+	string pluginName;
+
+	if ((m_engineName.empty() == true) &&
+		(m_engineOption.empty() == false))
+	{
+		pluginName = m_engineOption;
+	}
+	else if ((m_engineName.empty() == false) &&
+		(m_engineOption.empty() == true))
+	{
+		pluginName = m_engineName;
+	}
+
+	if (pluginName.empty() == false)
+	{
+		set<ModuleProperties> engines;
+		PinotSettings::getInstance().getSearchEngines(engines, "");
+#ifdef DEBUG
+		cout << "QueryingThread::findPlugin: looking for a plugin named " << pluginName << endl;
+#endif
+
+		// Is there a plugin with such a name ?
+		ModuleProperties modProps("sherlock", pluginName, "", "");
+		set<ModuleProperties>::const_iterator engineIter = engines.find(modProps);
+		if (engineIter == engines.end())
+		{
+			// Try again
+			modProps.m_name = "opensearch";
+			engineIter = engines.find(modProps);
+		}
+
+		if (engineIter != engines.end())
+		{
+			// Yes, there is !
+			m_engineName = engineIter->m_name;
+			m_engineDisplayableName = engineIter->m_longName;
+			m_engineOption = engineIter->m_option;
+#ifdef DEBUG
+			cout << "QueryingThread::findPlugin: found " << m_engineName << ", " << m_engineDisplayableName << ", " << m_engineOption << endl;
+#endif
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
 EngineQueryThread::EngineQueryThread(const string &engineName, const string &engineDisplayableName,
 	const string &engineOption, const QueryProperties &queryProps,
 	unsigned int startDoc, bool listingIndex) :
 	QueryingThread(engineName, engineDisplayableName, engineOption, queryProps, startDoc, listingIndex)
 {
-#ifdef DEBUG
-	cout << "EngineQueryThread::EngineQueryThread: engine " << m_engineName << ", " << m_engineOption
-		<< ", mode " << m_listingIndex << endl;
-#endif
 }
 
 EngineQueryThread::EngineQueryThread(const string &engineName, const string &engineDisplayableName,
@@ -929,10 +979,6 @@ EngineQueryThread::EngineQueryThread(const string &engineName, const string &eng
 {
 	copy(limitToDocsSet.begin(), limitToDocsSet.end(),
 		inserter(m_limitToDocsSet, m_limitToDocsSet.begin()));
-#ifdef DEBUG
-	cout << "EngineQueryThread::EngineQueryThread: engine " << m_engineName << ", " << m_engineOption
-		<< ", limited to " << m_limitToDocsSet.size() << " documents" << endl;
-#endif
 }
 
 EngineQueryThread::~EngineQueryThread()
@@ -1073,9 +1119,18 @@ void EngineQueryThread::doWork(void)
 	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine(m_engineName, m_engineOption);
 	if (pEngine == NULL)
 	{
-		m_errorNum = UNKNOWN_ENGINE;
-		m_errorParam = m_engineDisplayableName;
-		return;
+		// Try again
+		if (findPlugin() == true)
+		{
+			pEngine = ModuleFactory::getSearchEngine(m_engineName, m_engineOption);
+		}
+
+		if (pEngine == NULL)
+		{
+			m_errorNum = UNKNOWN_ENGINE;
+			m_errorParam = m_engineDisplayableName;
+			return;
+		}
 	}
 
 	// Set up the proxy
@@ -1155,9 +1210,6 @@ EngineHistoryThread::EngineHistoryThread(const string &engineDisplayableName,
 	QueryingThread("", engineDisplayableName, "", queryProps, 0, false),
 	m_maxDocsCount(maxDocsCount)
 {
-#ifdef DEBUG
-	cout << "EngineHistoryThread::EngineHistoryThread: engine " << m_engineDisplayableName << endl;
-#endif
 	// Results are converted to UTF-8 prior to insertion in the history database
 	m_resultsCharset = "UTF-8";
 	m_isLive = false;

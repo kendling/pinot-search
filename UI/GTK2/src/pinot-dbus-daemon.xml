@@ -136,8 +136,8 @@
     </method>
     <!--
 	Queries the index.
-	 engineType : engine type. See pinot-search(1) for a list of supported types
-	 engineName : engine name. See pinot-search(1) for examples
+	 engineType : engine type (defaults to "xapian"). See pinot-search(1) for a list of supported types
+	 engineName : engine name (defaults to "~/.pinot/daemon"). See pinot-search(1) for examples
 	 searchText : search text, as would be entered in Pinot's live query field
 	 startDoc: the first result to return, starting from 0
 	 maxHits: the maximum number of hits desired

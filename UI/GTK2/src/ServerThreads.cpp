@@ -1176,32 +1176,20 @@ void DBusServletThread::doWork(void)
 				string engineType, engineOption;
 
 				// Provide reasonable defaults 
-				if ((pEngineType == NULL) ||
-					(strlen(pEngineType) == 0))
+				if (((pEngineType == NULL) || (strlen(pEngineType) == 0)) &&
+					((pEngineOption == NULL) || (strlen(pEngineOption) == 0)))
 				{
 					engineType = settings.m_defaultBackend;
+					engineOption = settings.m_daemonIndexLocation;
 				}
 				else
 				{
 					engineType = pEngineType;
-				}
-				if ((pEngineOption == NULL) ||
-					(strlen(pEngineOption) == 0))
-				{
-					if (engineType == settings.m_defaultBackend)
-					{
-						// This wouldn't make sense with any other engine type
-						engineOption = settings.m_daemonIndexLocation;
-					}
-				}
-				else
-				{
 					engineOption = pEngineOption;
 				}
 
-				m_pServletInfo->m_pThread = new EngineQueryThread(pEngineType,
-					engineType, engineOption,
-					queryProps, startDoc);
+				m_pServletInfo->m_pThread = new EngineQueryThread(engineType,
+					engineType, engineOption, queryProps, startDoc);
 			}
 
 			if (replyWithError == true)

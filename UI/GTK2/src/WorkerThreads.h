@@ -244,6 +244,8 @@ class QueryingThread : public ListerThread
 		bool m_correctedSpelling;
 		bool m_isLive;
 
+		bool findPlugin(void);
+
 	private:
 		QueryingThread(const QueryingThread &other);
 		QueryingThread &operator=(const QueryingThread &other);
