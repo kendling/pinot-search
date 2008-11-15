@@ -23,6 +23,7 @@ from deskbar.handlers.actions.OpenFileAction import OpenFileAction
 from deskbar.handlers.actions.ActionsFactory import get_actions_for_uri
 import gobject
 from gettext import gettext as _
+import dbus
 
 HANDLERS = ['PinotFileSearchModule']
 
@@ -62,8 +63,11 @@ class PinotFileMatch(deskbar.interfaces.Match):
 				tmp = re.sub(r"<.*?>", "", snippet)
 				tmp = re.sub(r"</.*?>", "", tmp)
 				print 'Extract ', tmp
-				self.set_snippet("\n%s" % cgi.escape(tmp))
-        
+				try:
+					self.set_snippet("\n%s" % cgi.escape(tmp))
+				except AttributeError:
+					print 'Snippets not available'
+
 		if url_scheme == "file":
 			print 'File hit'
 			self.add_action(OpenFileAction(self.result["caption"], self.result["url"]))
@@ -99,7 +103,6 @@ class PinotFileSearchModule(deskbar.interfaces.Module):
 	@staticmethod
 	def has_prerequisites ():
 		try:
-			import dbus
 			try :
 				if getattr(dbus, 'version', (0,0,0)) >= (0,41,0):
 					import dbus.glib
@@ -130,7 +133,6 @@ class PinotFileSearchModule(deskbar.interfaces.Module):
 
 	def initialize(self):
 		try:
-			import dbus
 			print 'First time connection'
 			self.bus = dbus.SessionBus()
 			self.proxy_obj = self.bus.get_object('de.berlios.Pinot', '/de/berlios/Pinot')
@@ -141,9 +143,9 @@ class PinotFileSearchModule(deskbar.interfaces.Module):
 			print 'Caught unexpected exception'
 
 	def query (self, qstring):
-		print "SimpleQuery: ", qstring
-		doc_ids = []
+		print "Query: ", qstring
 		max = 10
+		estimated_hits = 0
 		# Do we need to set up the dbus connection ?
 		if self.pinot_iface:
 			try:
@@ -154,7 +156,6 @@ class PinotFileSearchModule(deskbar.interfaces.Module):
 				self.pinot_iface = None
 		if not self.pinot_iface:
 			try:
-				import dbus
 				print 'Connecting'
 				self.bus = dbus.SessionBus()
 				self.proxy_obj = self.bus.get_object('de.berlios.Pinot', '/de/berlios/Pinot')
@@ -165,22 +166,22 @@ class PinotFileSearchModule(deskbar.interfaces.Module):
 				print 'Caught unexpected exception'
 				return
 		# Run the query
+		hits_list = dbus.Array([], signature='aa{ss}') 
 		try :
-			import dbus
-			print 'Querying'
-			doc_ids = self.pinot_iface.SimpleQuery(qstring, dbus.UInt32(max))
+			print 'Querying default engine'
+			(estimated_hits, hits_list) = self.pinot_iface.Query('', '', qstring,
+				dbus.UInt32(0), dbus.UInt32(max))
 		except Exception, msg:
-			print 'Caught exception (SimpleQuery): ', msg
+			print 'Caught exception (Query): ', msg
 		# Save the query's details
 		self.query_string = qstring
 		self.matches = []
-		self.matches_count = len(doc_ids)
+		self.matches_count = len(hits_list)
 		try :
+			print 'Got ', self.matches_count, ' hits off ', estimated_hits
 			# Get the details of each hit
-			for doc_id in doc_ids:
-				print 'Hit on document ', doc_id
-				self.pinot_iface.GetDocumentInfo (dbus.UInt32(doc_id),
-					reply_handler=self.__receive_hits, error_handler=self.__receive_error)
+			for hit in hits_list:
+				self.__receive_hits(hit)
 		except Exception, msg:
 			print 'Caught exception (GetDocumentInfo): ', msg
 
@@ -198,7 +199,4 @@ class PinotFileSearchModule(deskbar.interfaces.Module):
 		print 'Got hit ', len(self.matches)
 		if len(self.matches) == self.matches_count:
 			self._emit_query_ready(self.query_string, self.matches)
-
-	def __receive_error (self, error):
-		print 'D-Bus error: ', error
 
