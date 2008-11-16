@@ -459,6 +459,9 @@ int main(int argc, char **argv)
 	Languages::setIntlName(14, _("Swedish"));
 	Languages::setIntlName(15, _("Turkish"));
 
+	// Load search engines
+	settings.loadSearchEngines(prefixDir + "/share/pinot/engines");
+	settings.loadSearchEngines(confDirectory + "/engines");
 	// Load the settings
 	settings.loadGlobal(string(SYSCONFDIR) + "/pinot/globalconfig.xml");
 	settings.load();

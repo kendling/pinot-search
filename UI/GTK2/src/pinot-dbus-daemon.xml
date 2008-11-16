@@ -145,7 +145,7 @@
 	 hitsList: hit properties
 	-->
     <method name="Query">
-      <annotation name="de.berlios.Pinot.SimpleQuery" value="pinotDBus"/>
+      <annotation name="de.berlios.Pinot.Query" value="pinotDBus"/>
       <arg type="s" name="engineType" direction="in" />
       <arg type="s" name="engineName" direction="in" />
       <arg type="s" name="searchText" direction="in" />
