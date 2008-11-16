@@ -37,6 +37,7 @@ using namespace std;
 static struct option g_longOptions[] = {
 	{"datefirst", 0, 0, 'd'},
 	{"help", 0, 0, 'h'},
+	{"locationonly", 0, 0, 'l'},
 	{"max", 1, 0, 'm'},
 	{"proxyaddress", 1, 0, 'a'},
 	{"proxyport", 1, 0, 'p'},
@@ -92,6 +93,7 @@ static void printHelp(void)
 		<< "Options:\n"
 		<< "  -d, --datefirst           sort by date then by relevance\n"
 		<< "  -h, --help                display this help and exit\n"
+		<< "  -l, --locationonly        only show the location of each result\n"
 		<< "  -m, --max                 maximum number of results (default 10)\n"
 		<< "  -a, --proxyaddress        proxy address\n"
 		<< "  -p, --proxyport           proxy port\n"
@@ -127,9 +129,10 @@ int main(int argc, char **argv)
 	int longOptionIndex = 0;
 	bool printResults = true;
 	bool sortByDate = false;
+	bool locationOnly = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "c:dhm:a:e:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "a:c:de:hlm:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -138,6 +141,13 @@ int main(int argc, char **argv)
 				if (optarg != NULL)
 				{
 					proxyAddress = optarg;
+				}
+				break;
+			case 'c':
+				if (optarg != NULL)
+				{
+					csvExport = optarg;
+					printResults = false;
 				}
 				break;
 			case 'd':
@@ -149,16 +159,12 @@ int main(int argc, char **argv)
 					editableParameter = optarg;
 				}
 				break;
-			case 'c':
-				if (optarg != NULL)
-				{
-					csvExport = optarg;
-					printResults = false;
-				}
-				break;
 			case 'h':
 				printHelp();
 				return EXIT_SUCCESS;
+			case 'l':
+				locationOnly = true;
+				break;
 			case 'm':
 				if (optarg != NULL)
 				{
@@ -207,7 +213,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "c:dhm:a:e:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "a:c:de:hlm:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -328,25 +334,30 @@ int main(int argc, char **argv)
 			{
 				unsigned int count = 0;
 
-				cout << "Matching documents are :" << endl;
-
 				vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 				while (resultIter != resultsList.end())
 				{
 					string rawUrl(resultIter->getLocation());
 
-					cout << count << " Location : '" << rawUrl << "'"<< endl;
-					cout << count << " Title    : " << resultIter->getTitle() << endl;
-					cout << count << " Type     : " << resultIter->getType() << endl;
-					cout << count << " Language : " << resultIter->getLanguage() << endl;
-					cout << count << " Date     : " << resultIter->getTimestamp() << endl;
-					cout << count << " Size     : " << resultIter->getSize() << endl;
-					cout << count << " Extract  : " << resultIter->getExtract() << endl;
-					cout << count << " Score    : " << resultIter->getScore() << endl;
-					count++;
+					if (locationOnly == false)
+					{
+						cout << count << " Location : '" << rawUrl << "'"<< endl;
+						cout << count << " Title    : " << resultIter->getTitle() << endl;
+						cout << count << " Type     : " << resultIter->getType() << endl;
+						cout << count << " Language : " << resultIter->getLanguage() << endl;
+						cout << count << " Date     : " << resultIter->getTimestamp() << endl;
+						cout << count << " Size     : " << resultIter->getSize() << endl;
+						cout << count << " Extract  : " << resultIter->getExtract() << endl;
+						cout << count << " Score    : " << resultIter->getScore() << endl;
+					}
+					else
+					{
+						cout << rawUrl << endl;
+					}
+					++count;
 
 					// Next
-					resultIter++;
+					++resultIter;
 				}
 			}
 			else
