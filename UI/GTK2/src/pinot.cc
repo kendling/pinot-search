@@ -229,7 +229,14 @@ int main(int argc, char **argv)
 	{
 		// Redirect cout and cerr to a file
 		string logFileName = confDirectory;
-		logFileName += "/pinot.log";
+		if (prefsMode == false)
+		{
+			logFileName += "/pinot.log";
+		}
+		else
+		{
+			logFileName += "/pinot-prefs.log";
+		}
 		g_outputFile.open(logFileName.c_str());
 		g_coutBuf = cout.rdbuf();
 		g_cerrBuf = cerr.rdbuf();

@@ -321,10 +321,7 @@ void prefsWindow::on_thread_end(WorkerThread *pThread)
 	}
 
 	// Any thread still running ?
-	if (m_state.get_threads_count() > 0)
-	{
-		canQuit = true;
-	}
+	unsigned int threadsCount = m_state.get_threads_count();
 
 	// What type of thread was it ?
 	string type = pThread->getType();
@@ -341,11 +338,13 @@ void prefsWindow::on_thread_end(WorkerThread *pThread)
 	{
 		populate_labelsTreeview();
 	}
-	else if (type == "StartDaemonThread")
+	else if ((type == "StartDaemonThread") ||
+		(type == "LabelUpdateThread"))
 	{
-	}
-	else if (type == "LabelUpdateThread")
-	{
+		if (threadsCount == 0)
+		{
+			canQuit = true;
+		}
 	}
 
 	// Delete the thread
@@ -358,6 +357,9 @@ void prefsWindow::on_thread_end(WorkerThread *pThread)
 	}
 	else
 	{
+#ifdef DEBUG
+		cout << "prefsWindow::on_thread_end: quitting" << endl;
+#endif
 		on_prefsWindow_delete_event(NULL);
 	}
 }
