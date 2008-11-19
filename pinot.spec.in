@@ -92,6 +92,7 @@ fi
 %{_bindir}/pinot-dbus-daemon
 %{_bindir}/pinot-index
 %{_bindir}/pinot-label
+%{_bindir}/pinot-prefs
 %{_bindir}/pinot-search
 %{_libdir}/pinot/filters/libexifimagefilter.so*
 %{_libdir}/pinot/filters/libexternalfilter.so*

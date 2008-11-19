@@ -19,8 +19,8 @@ UI/GTK2/src/pinot.cc
 UI/GTK2/src/pinot-dbus-daemon.cc
 UI/GTK2/src/PinotSettings.cpp
 UI/GTK2/src/PinotUtils.cpp
-UI/GTK2/src/prefsDialog.cc
-UI/GTK2/src/prefsDialog_glade.cc
+UI/GTK2/src/prefsWindow.cc
+UI/GTK2/src/prefsWindow_glade.cc
 UI/GTK2/src/propertiesDialog.cc
 UI/GTK2/src/propertiesDialog_glade.cc
 UI/GTK2/src/queryDialog.cc

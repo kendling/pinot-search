@@ -15,8 +15,7 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	UI/icons/32x32/pinot.png UI/icons/24x24/pinot.png \
 	UI/icons/22x22/pinot.png UI/icons/16x16/pinot.png \
 	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
-	scripts/bash/pinot-enum-index.sh \
-	scripts/python/pinot-live.py scripts/python/pinot-module.py
+	scripts/bash/*.sh scripts/python/*.py
 
 man_MANS = IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
 	IndexSearch/pinot-search.1 UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
@@ -29,6 +28,7 @@ manuals:
 	@help2man --no-info --name "D-Bus search and index daemon" UI/GTK2/src/pinot-dbus-daemon         >UI/GTK2/src/pinot-dbus-daemon.1
 
 install-data-local:
+	@ln -s $(bindir)/pinot $(DESTDIR)$(bindir)/pinot-prefs
 	@mkdir -p $(DESTDIR)$(sysconfdir)/pinot
 	$(INSTALL_DATA) $(srcdir)/Tokenize/filters/external-filters.xml $(DESTDIR)$(sysconfdir)/pinot/external-filters.xml
 	$(INSTALL_DATA) $(srcdir)/globalconfig.xml $(DESTDIR)$(sysconfdir)/pinot/globalconfig.xml
@@ -69,6 +69,7 @@ install-data-local:
 	$(INSTALL_DATA) $(srcdir)/scripts/python/pinot-live.py $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 	@mkdir -p $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/
 	$(INSTALL_DATA) $(srcdir)/scripts/python/pinot-module.py $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/
+	$(INSTALL_DATA) $(srcdir)/scripts/bash/*.sh $(DESTDIR)$(datadir)/pinot/
 
 uninstall-local:
 	@rm -rf $(DESTDIR)$(sysconfdir)/pinot
