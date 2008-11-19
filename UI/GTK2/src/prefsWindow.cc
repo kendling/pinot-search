@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,23 +26,119 @@
 #include <gtkmm/entry.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/cellrenderertext.h>
+#include <gtkmm/messagedialog.h>
+#include <gtkmm/main.h>
 
 #include "config.h"
 #include "NLS.h"
 #include "StringManip.h"
+#include "DBusIndex.h"
 #include "ModuleFactory.h"
 #include "PinotUtils.h"
-#include "prefsDialog.hh"
+#include "prefsWindow.hh"
 
 using namespace std;
 using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
 
-prefsDialog::prefsDialog() :
-	prefsDialog_glade(),
+class StartDaemonThread : public WorkerThread
+{
+	public:
+		StartDaemonThread() :
+			WorkerThread()
+		{
+		}
+		virtual ~StartDaemonThread()
+		{
+		}
+
+		virtual std::string getType(void) const
+		{
+			return "StartDaemonThread";
+		}
+
+	protected:
+		virtual void doWork(void)
+		{
+			// Save the settings
+			PinotSettings::getInstance().save();
+
+			// Ask the daemon to reload its configuration
+			// Let D-Bus activate the service if necessary
+			DBusIndex::reload();
+		}
+
+	private:
+		StartDaemonThread(const StartDaemonThread &other);
+		StartDaemonThread &operator=(const StartDaemonThread &other);
+
+};
+
+class GetLabelsThread : public WorkerThread
+{
+	public:
+		GetLabelsThread() :
+			WorkerThread()
+		{
+		}
+		virtual ~GetLabelsThread()
+		{
+		}
+
+		virtual std::string getType(void) const
+		{
+			return "GetLabelsThread";
+		}
+
+	protected:
+		virtual void doWork(void)
+		{
+			set<string> &labels = PinotSettings::getInstance().m_labels;
+
+			// Get labels directly from the daemon's index
+			IndexInterface *pDaemonIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+			if (pDaemonIndex != NULL)
+			{
+				set<string> indexLabels;
+
+				// Nothing might be found if we are upgrading from an older version
+				// and the daemon has not been run
+				if (pDaemonIndex->getLabels(indexLabels) == true)
+				{
+					labels.clear();
+
+					copy(indexLabels.begin(), indexLabels.end(),
+						inserter(labels, labels.begin()));
+				}
+#ifdef DEBUG
+				else cout << "GetLabelsThread::doWork: relying on configuration file" << endl;
+#endif
+
+				delete pDaemonIndex;
+			}
+		}
+
+	private:
+		GetLabelsThread(const GetLabelsThread &other);
+		GetLabelsThread &operator=(const GetLabelsThread &other);
+
+};
+
+prefsWindow::InternalState::InternalState(unsigned int maxIndexThreads, prefsWindow *pWindow) :
+        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads)
+{
+        m_onThreadEndSignal.connect(sigc::mem_fun(*pWindow, &prefsWindow::on_thread_end));
+}
+
+prefsWindow::InternalState::~InternalState()
+{
+}
+
+prefsWindow::prefsWindow() :
+	prefsWindow_glade(),
 	m_settings(PinotSettings::getInstance()),
-	m_startDaemon(false)
+	m_state(10, this)
 {
 	Color newColour;
 
@@ -71,7 +167,7 @@ prefsDialog::prefsDialog() :
 		guint rowsCount = rowsProp.get_value();
 
 #ifdef DEBUG
-		cout << "prefsDialog: adding " << m_settings.m_editablePluginValues.size() << " more rows" << endl;
+		cout << "prefsWindow: adding " << m_settings.m_editablePluginValues.size() << " more rows" << endl;
 #endif
 		generalTable->resize(rowsCount + m_settings.m_editablePluginValues.size(), columnsProp.get_value());
 
@@ -104,16 +200,18 @@ prefsDialog::prefsDialog() :
 	labelsTreeview->set_model(m_refLabelsTree);
 	TreeViewColumn *pColumn = new TreeViewColumn(_("Name"));
 	CellRendererText *pTextRenderer = new CellRendererText();
-	pTextRenderer->signal_edited().connect(sigc::mem_fun(*this, &prefsDialog::updateLabelRow));
+	pTextRenderer->signal_edited().connect(sigc::mem_fun(*this, &prefsWindow::updateLabelRow));
 	pColumn->pack_start(*manage(pTextRenderer));
-	pColumn->set_cell_data_func(*pTextRenderer, sigc::mem_fun(*this, &prefsDialog::renderLabelNameColumn));
+	pColumn->set_cell_data_func(*pTextRenderer, sigc::mem_fun(*this, &prefsWindow::renderLabelNameColumn));
 	pColumn->add_attribute(pTextRenderer->property_text(), m_labelsColumns.m_name);
 	pColumn->set_resizable(true);
 	pColumn->set_sort_column(m_labelsColumns.m_name);
 	labelsTreeview->append_column(*manage(pColumn));
 	// Allow only single selection
 	labelsTreeview->get_selection()->set_mode(SELECTION_SINGLE);
-	populate_labelsTreeview();
+	// Prevent adding/removing labels until we have the list
+	addLabelButton->set_sensitive(false);
+	removeLabelButton->set_sensitive(false);
 
 	// Associate the columns model to the directories tree
 	m_refDirectoriesTree = ListStore::create(m_directoriesColumns);
@@ -147,28 +245,124 @@ prefsDialog::prefsDialog() :
 	{
 		prefsNotebook->set_current_page(3);
 	}
+
+	// Connect to threads' finished signal
+	m_state.connect();
+
+	// Get the labels
+	GetLabelsThread *pThread = new GetLabelsThread();
+	if (m_state.start_thread(pThread) == false)
+	{
+		delete pThread;
+
+		populate_labelsTreeview();
+	}
 }
 
-prefsDialog::~prefsDialog()
+prefsWindow::~prefsWindow()
 {
+	m_state.disconnect();
 }
 
-const set<string> &prefsDialog::getLabelsToAdd(void) const
+void prefsWindow::updateLabelRow(const ustring &path_string, const ustring &text)
 {
-	return m_addedLabels;
+	Gtk::TreePath path(path_string);
+
+	// Get the row
+	TreeModel::iterator iter = m_refLabelsTree->get_iter(path);
+	if (iter)
+	{
+		TreeRow row = *iter;
+
+#ifdef DEBUG
+		cout << "prefsWindow::updateLabelRow: set label to " << text << endl;
+#endif
+		// Set the value of the name column
+		row.set_value(m_labelsColumns.m_name, (ustring)text);
+	}
 }
 
-const set<string> &prefsDialog::getLabelsToDelete(void) const
+void prefsWindow::renderLabelNameColumn(CellRenderer *pRenderer, const TreeModel::iterator &iter)
 {
-	return m_deletedLabels;
+	TreeModel::Row row = *iter;
+
+	if (pRenderer == NULL)
+	{
+		return;
+	}
+
+	CellRendererText *pTextRenderer = dynamic_cast<CellRendererText*>(pRenderer);
+	if (pTextRenderer != NULL)
+	{
+		bool isNewLabel = false;
+
+		// Is this a new label ?
+		if (row[m_labelsColumns.m_enabled] == false)
+		{
+			isNewLabel = true;
+		}
+
+		// Set the editable property
+#ifdef GLIBMM_PROPERTIES_ENABLED
+		pTextRenderer->property_editable() = isNewLabel;
+#else
+		pTextRenderer->set_property("editable", isNewLabel);
+#endif
+	}
 }
 
-bool prefsDialog::startDaemon(void) const
+void prefsWindow::on_thread_end(WorkerThread *pThread)
 {
-	return m_startDaemon;
+	bool canQuit = false;
+
+	if (pThread == NULL)
+	{
+		return;
+	}
+
+	// Any thread still running ?
+	if (m_state.get_threads_count() > 0)
+	{
+		canQuit = true;
+	}
+
+	// What type of thread was it ?
+	string type = pThread->getType();
+	// Did the thread fail ?
+	string status = pThread->getStatus();
+	if (status.empty() == false)
+	{
+#ifdef DEBUG
+		cout << "prefsWindow::on_thread_end: " << status << endl;
+#endif
+		// FIXME: tell the user the thread failed
+	}
+	else if (type == "GetLabelsThread")
+	{
+		populate_labelsTreeview();
+	}
+	else if (type == "StartDaemonThread")
+	{
+	}
+	else if (type == "LabelUpdateThread")
+	{
+	}
+
+	// Delete the thread
+	delete pThread;
+
+	if (canQuit == false)
+	{
+		// We might be able to run a queued action
+		m_state.pop_queue();
+	}
+	else
+	{
+		on_prefsWindow_delete_event(NULL);
+	}
 }
 
-void prefsDialog::attach_value_widgets(const string &name, const string &value, guint rowNumber)
+void prefsWindow::attach_value_widgets(const string &name, const string &value, guint rowNumber)
 {
 	Label *valueLabel = manage(new Label(name + ":"));
 	Entry *valueEntry = manage(new Entry());
@@ -203,40 +397,21 @@ void prefsDialog::attach_value_widgets(const string &name, const string &value, 
 	valueEntry->show();
 }
 
-void prefsDialog::populate_proxyTypeCombobox()
+void prefsWindow::populate_proxyTypeCombobox()
 {
 	proxyTypeCombobox->append_text("HTTP");
 	proxyTypeCombobox->append_text("SOCKS v4");
 	proxyTypeCombobox->append_text("SOCKS v5");
 }
 
-void prefsDialog::populate_labelsTreeview()
+void prefsWindow::populate_labelsTreeview()
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
 	set<string> &labels = m_settings.m_labels;
 
-	// Get labels directly from the daemon's index
-	IndexInterface *pDaemonIndex = m_settings.getIndex(m_settings.m_daemonIndexLocation);
-	if (pDaemonIndex != NULL)
-	{
-		set<string> indexLabels;
-
-		// Nothing might be found if we are upgrading from an older version
-		// and the daemon has not been run
-		if (pDaemonIndex->getLabels(indexLabels) == true)
-		{
-			labels.clear();
-
-			copy(indexLabels.begin(), indexLabels.end(),
-				inserter(labels, labels.begin()));
-		}
-#ifdef DEBUG
-		else cout << "prefsDialog::populate_labelsTreeview: relying on configuration file" << endl;
-#endif
-
-		delete pDaemonIndex;
-	}
+	// Now this can be enabled
+	addLabelButton->set_sensitive(true);
 
 	if (labels.empty() == true)
 	{
@@ -262,7 +437,7 @@ void prefsDialog::populate_labelsTreeview()
 	removeLabelButton->set_sensitive(true);
 }
 
-void prefsDialog::save_labelsTreeview()
+void prefsWindow::save_labelsTreeview()
 {
 	set<string> &labels = m_settings.m_labels;
 
@@ -291,7 +466,7 @@ void prefsDialog::save_labelsTreeview()
 			}
 
 #ifdef DEBUG
-			cout << "prefsDialog::save_labelsTreeview: " << labelName << endl;
+			cout << "prefsWindow::save_labelsTreeview: " << labelName << endl;
 #endif
 			// Add this new label to the settings
 			labels.insert(labelName);
@@ -299,7 +474,7 @@ void prefsDialog::save_labelsTreeview()
 	}
 }
 
-void prefsDialog::populate_directoriesTreeview()
+void prefsWindow::populate_directoriesTreeview()
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
@@ -329,7 +504,7 @@ void prefsDialog::populate_directoriesTreeview()
 	removeDirectoryButton->set_sensitive(true);
 }
 
-bool prefsDialog::save_directoriesTreeview()
+bool prefsWindow::save_directoriesTreeview()
 {
 	string dirsString;
 
@@ -361,7 +536,7 @@ bool prefsDialog::save_directoriesTreeview()
 			}
 
 #ifdef DEBUG
-			cout << "prefsDialog::save_directoriesTreeview: " << indexableLocation.m_name << endl;
+			cout << "prefsWindow::save_directoriesTreeview: " << indexableLocation.m_name << endl;
 #endif
 			m_settings.m_indexableLocations.insert(indexableLocation);
 			dirsString += indexableLocation.m_name + (indexableLocation.m_monitor == true ? "1" : "0") + "|";
@@ -371,7 +546,7 @@ bool prefsDialog::save_directoriesTreeview()
 	if (m_directoriesHash != StringManip::hashString(dirsString))
 	{
 #ifdef DEBUG
-		cout << "prefsDialog::save_directoriesTreeview: directories changed" << endl;
+		cout << "prefsWindow::save_directoriesTreeview: directories changed" << endl;
 #endif
 		return true;
 	}
@@ -379,13 +554,13 @@ bool prefsDialog::save_directoriesTreeview()
 	return false;
 }
 
-void prefsDialog::populate_patternsCombobox()
+void prefsWindow::populate_patternsCombobox()
 {
 	patternsCombobox->append_text(_("Exclude these patterns from indexing"));
 	patternsCombobox->append_text(_("Only index these patterns"));
 }
 
-void prefsDialog::populate_patternsTreeview(const set<ustring> &patternsList, bool isBlackList)
+void prefsWindow::populate_patternsTreeview(const set<ustring> &patternsList, bool isBlackList)
 {
 	TreeModel::iterator iter;
 	TreeModel::Row row;
@@ -430,7 +605,7 @@ void prefsDialog::populate_patternsTreeview(const set<ustring> &patternsList, bo
 	m_patternsHash = StringManip::hashString(patternsString);
 }
 
-bool prefsDialog::save_patternsTreeview()
+bool prefsWindow::save_patternsTreeview()
 {
 	ustring patternsString;
 
@@ -468,7 +643,7 @@ bool prefsDialog::save_patternsTreeview()
 	if (m_patternsHash != StringManip::hashString(patternsString))
 	{
 #ifdef DEBUG
-		cout << "prefsDialog::save_patternsTreeview: patterns changed" << endl;
+		cout << "prefsWindow::save_patternsTreeview: patterns changed" << endl;
 #endif
 		return true;
 	}
@@ -476,8 +651,19 @@ bool prefsDialog::save_patternsTreeview()
 	return false;
 }
 
-void prefsDialog::on_prefsOkbutton_clicked()
+void prefsWindow::on_prefsCancelbutton_clicked()
 {
+	on_prefsWindow_delete_event(NULL);
+}
+
+void prefsWindow::on_prefsOkbutton_clicked()
+{
+	bool startedThread = false;
+
+	// Disable the buttons
+	prefsCancelbutton->set_sensitive(false);
+	prefsOkbutton->set_sensitive(false);
+
 	// Synchronise widgets with settings
 	m_settings.m_ignoreRobotsDirectives = ignoreRobotsCheckbutton->get_active();
 	Color newColour = newResultsColorbutton->get_color();
@@ -528,13 +714,40 @@ void prefsDialog::on_prefsOkbutton_clicked()
 	if ((startForDirectories == true) ||
 		(startForPatterns == true))
 	{
-		// Save the settings
-		m_settings.save();
-		m_startDaemon = true;
+		StartDaemonThread *pThread = new StartDaemonThread();
+
+		if (m_state.start_thread(pThread) == false)
+		{
+			delete pThread;
+		}
+		else
+		{
+			startedThread = true;
+		}
 	}
+	if ((m_addedLabels.empty() == false) ||
+		(m_deletedLabels.empty() == false))
+	{
+		LabelUpdateThread *pThread = new LabelUpdateThread(m_addedLabels, m_deletedLabels);
+
+		if (m_state.start_thread(pThread) == false)
+		{
+			delete pThread;
+		}
+		else
+		{
+			startedThread = true;
+		}
+	}
+
+	if (startedThread == false)
+	{
+		on_prefsWindow_delete_event(NULL);
+	}
+	// FIXME: else, disable all buttons or provide some visual feedback, until threads are done
 }
 
-void prefsDialog::on_directConnectionRadiobutton_toggled()
+void prefsWindow::on_directConnectionRadiobutton_toggled()
 {
 	bool enabled = proxyRadiobutton->get_active();
 
@@ -543,7 +756,7 @@ void prefsDialog::on_directConnectionRadiobutton_toggled()
 	proxyTypeCombobox->set_sensitive(enabled);
 }
 
-void prefsDialog::on_addLabelButton_clicked()
+void prefsWindow::on_addLabelButton_clicked()
 {
 	// Now create a new entry in the labels list
 	TreeModel::iterator iter = m_refLabelsTree->append();
@@ -556,7 +769,7 @@ void prefsDialog::on_addLabelButton_clicked()
 	removeLabelButton->set_sensitive(true);
 }
 
-void prefsDialog::on_removeLabelButton_clicked()
+void prefsWindow::on_removeLabelButton_clicked()
 {
 	// Get the selected label in the list
 	TreeModel::iterator iter = labelsTreeview->get_selection()->get_selected();
@@ -582,7 +795,7 @@ void prefsDialog::on_removeLabelButton_clicked()
 	}
 }
 
-void prefsDialog::on_addDirectoryButton_clicked()
+void prefsWindow::on_addDirectoryButton_clicked()
 {
 	ustring dirName;
 
@@ -592,7 +805,7 @@ void prefsDialog::on_addDirectoryButton_clicked()
 	if (select_file_name(_("Directory to index"), dirName, true, true) == true)
 	{
 #ifdef DEBUG
-		cout << "prefsDialog::on_addDirectoryButton_clicked: "
+		cout << "prefsWindow::on_addDirectoryButton_clicked: "
 			<< dirName << endl;
 #endif
 		// Create a new entry in the directories list
@@ -610,7 +823,7 @@ void prefsDialog::on_addDirectoryButton_clicked()
 	}
 }
 
-void prefsDialog::on_removeDirectoryButton_clicked()
+void prefsWindow::on_removeDirectoryButton_clicked()
 {
 	// Get the selected directory in the list
 	TreeModel::iterator iter = directoriesTreeview->get_selection()->get_selected();
@@ -640,7 +853,7 @@ void prefsDialog::on_removeDirectoryButton_clicked()
 	}
 }
 
-void prefsDialog::on_patternsCombobox_changed()
+void prefsWindow::on_patternsCombobox_changed()
 {
 	int activeRow = patternsCombobox->get_active_row_number();
 
@@ -657,7 +870,7 @@ void prefsDialog::on_patternsCombobox_changed()
 	m_refPatternsTree->clear();
 }
 
-void prefsDialog::on_addPatternButton_clicked()
+void prefsWindow::on_addPatternButton_clicked()
 {
 	TreeModel::Children children = m_refPatternsTree->children();
 	bool wasEmpty = children.empty();
@@ -684,7 +897,7 @@ void prefsDialog::on_addPatternButton_clicked()
 	}
 }
 
-void prefsDialog::on_removePatternButton_clicked()
+void prefsWindow::on_removePatternButton_clicked()
 {
 	// Get the selected file pattern in the list
 	TreeModel::iterator iter = patternsTreeview->get_selection()->get_selected();
@@ -710,7 +923,7 @@ void prefsDialog::on_removePatternButton_clicked()
 	}
 }
 
-void prefsDialog::on_resetPatternsButton_clicked()
+void prefsWindow::on_resetPatternsButton_clicked()
 {
 	set<ustring> defaultPatterns;
 	bool isBlackList = m_settings.getDefaultPatterns(defaultPatterns);
@@ -724,50 +937,31 @@ void prefsDialog::on_resetPatternsButton_clicked()
 	populate_patternsTreeview(defaultPatterns, isBlackList);
 }
 
-void prefsDialog::updateLabelRow(const ustring &path_string, const ustring &text)
+bool prefsWindow::on_prefsWindow_delete_event(GdkEventAny *ev)
 {
-	Gtk::TreePath path(path_string);
-
-	// Get the row
-	TreeModel::iterator iter = m_refLabelsTree->get_iter(path);
-	if (iter)
+	// Any thread still running ?
+	if (m_state.get_threads_count() > 0)
 	{
-		TreeRow row = *iter;
-
-#ifdef DEBUG
-		cout << "prefsDialog::updateLabelRow: set label to " << text << endl;
-#endif
-		// Set the value of the name column
-		row.set_value(m_labelsColumns.m_name, (ustring)text);
-	}
-}
-
-void prefsDialog::renderLabelNameColumn(CellRenderer *pRenderer, const TreeModel::iterator &iter)
-{
-	TreeModel::Row row = *iter;
-
-	if (pRenderer == NULL)
-	{
-		return;
-	}
-
-	CellRendererText *pTextRenderer = dynamic_cast<CellRendererText*>(pRenderer);
-	if (pTextRenderer != NULL)
-	{
-		bool isNewLabel = false;
-
-		// Is this a new label ?
-		if (row[m_labelsColumns.m_enabled] == false)
+		ustring boxMsg(_("At least one task hasn't completed yet. Quit now ?"));
+		MessageDialog msgDialog(boxMsg, false, MESSAGE_QUESTION, BUTTONS_YES_NO);
+		msgDialog.set_title(_("Quit"));
+		msgDialog.set_transient_for(*this);
+		msgDialog.show();
+		int result = msgDialog.run();
+		if (result == RESPONSE_NO)
 		{
-			isNewLabel = true;
+			return true;
 		}
 
-		// Set the editable property
-#ifdef GLIBMM_PROPERTIES_ENABLED
-		pTextRenderer->property_editable() = isNewLabel;
-#else
-		pTextRenderer->set_property("editable", isNewLabel);
-#endif
+		m_state.disconnect();
+		m_state.stop_threads();
 	}
+	else
+	{
+		m_state.disconnect();
+	}
+
+	Main::quit();
+	return false;
 }
 

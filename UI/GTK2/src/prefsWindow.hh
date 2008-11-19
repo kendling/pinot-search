@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _PREFSDIALOG_HH
-#define _PREFSDIALOG_HH
+#ifndef _PREFSWINDOW_HH
+#define _PREFSWINDOW_HH
 
 #include <string>
 #include <map>
@@ -29,19 +29,14 @@
 
 #include "ModelColumns.h"
 #include "PinotSettings.h"
-#include "prefsDialog_glade.hh"
+#include "WorkerThreads.h"
+#include "prefsWindow_glade.hh"
 
-class prefsDialog : public prefsDialog_glade
+class prefsWindow : public prefsWindow_glade
 {  
 public:
-	prefsDialog();
-	virtual ~prefsDialog();
-
-	const std::set<std::string> &getLabelsToAdd(void) const;
-
-	const std::set<std::string> &getLabelsToDelete(void) const;
-
-	bool startDaemon(void) const;
+	prefsWindow();
+	virtual ~prefsWindow();
 
 protected:
 	PinotSettings &m_settings;
@@ -59,8 +54,16 @@ protected:
 	std::set<std::string> m_deletedDirectories;
 	std::string m_directoriesHash;
 	std::string m_patternsHash;
-	bool m_startDaemon;
+	class InternalState : public ThreadsManager
+	{
+	public:
+		InternalState(unsigned int maxIndexThreads,
+			prefsWindow *pWindow);
+		~InternalState();
 
+	} m_state;
+
+	virtual void on_prefsCancelbutton_clicked();
 	virtual void on_prefsOkbutton_clicked();
 	virtual void on_directConnectionRadiobutton_toggled();
 	virtual void on_addLabelButton_clicked();
@@ -71,10 +74,11 @@ protected:
 	virtual void on_addPatternButton_clicked();
 	virtual void on_removePatternButton_clicked();
 	virtual void on_resetPatternsButton_clicked();
+	virtual bool on_prefsWindow_delete_event(GdkEventAny *ev);
 
+	void on_thread_end(WorkerThread *pThread);
 	void updateLabelRow(const Glib::ustring &path_string, const Glib::ustring &text);
 	void renderLabelNameColumn(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
-
 	void attach_value_widgets(const std::string &name, const std::string &value, guint rowNumber);
 	void populate_proxyTypeCombobox();
 	void populate_labelsTreeview();
