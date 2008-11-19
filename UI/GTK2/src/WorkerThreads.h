@@ -473,24 +473,6 @@ class UpdateDocumentThread : public WorkerThread
 
 };
 
-class StartDaemonThread : public WorkerThread
-{
-	public:
-		// Start the daemon
-		StartDaemonThread();
-		virtual ~StartDaemonThread();
-
-		virtual std::string getType(void) const;
-
-	protected:
-		virtual void doWork(void);
-
-	private:
-		StartDaemonThread(const StartDaemonThread &other);
-		StartDaemonThread &operator=(const StartDaemonThread &other);
-
-};
-
 class MonitorThread : public WorkerThread
 {
 	public:

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@ extern "C"
 #include "DownloaderInterface.h"
 #include "PinotSettings.h"
 #include "mainWindow.hh"
+#include "prefsWindow.hh"
 
 using namespace std;
 
@@ -60,6 +61,7 @@ static streambuf *g_coutBuf = NULL;
 static streambuf *g_cerrBuf = NULL;
 static struct option g_longOptions[] = {
 	{"help", 0, 0, 'h'},
+	{"preferences", 0, 0, 'p'},
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
@@ -108,10 +110,10 @@ int main(int argc, char **argv)
 	Glib::ustring errorMsg;
 	struct sigaction newAction;
 	int longOptionIndex = 0;
-	bool warnAboutVersion = false;
+	bool warnAboutVersion = false, prefsMode = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "hpv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -122,9 +124,13 @@ int main(int argc, char **argv)
 					<< "Usage: pinot [OPTIONS]\n\n"
 					<< "Options:\n"
 					<< "  -h, --help		display this help and exit\n"
+					<< "  -p, --preferences		show preferences and exit\n"
 					<< "  -v, --version		output version information and exit\n"
 					<< "\nReport bugs to " << PACKAGE_BUGREPORT << endl;
 				return EXIT_SUCCESS;
+			case 'p':
+				prefsMode = true;
+				break;
 			case 'v':
 				cout << "pinot - " << PACKAGE_STRING << "\n\n" 
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
@@ -136,7 +142,14 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "hv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "hpv", g_longOptions, &longOptionIndex);
+	}
+
+	string programName(argv[0]);
+	if ((programName.length() >= 11) &&
+		(programName.substr(programName.length() - 11) == "pinot-prefs"))
+	{
+		prefsMode = true;
 	}
 
 #if defined(ENABLE_NLS)
@@ -158,7 +171,14 @@ int main(int argc, char **argv)
 	dbus_g_thread_init();
 
 	Gtk::Main m(&argc, &argv);
-	Glib::set_application_name("Pinot GTK2 UI");
+	if (prefsMode == false)
+	{
+		Glib::set_application_name("Pinot GTK2 UI");
+	}
+	else
+	{
+		Glib::set_application_name("Pinot Preferences");
+	}
 
 	// This should make Xapian use Flint rather than Quartz
 	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
@@ -265,9 +285,9 @@ int main(int argc, char **argv)
 	sigaction(SIGQUIT, &newAction, NULL);
 	sigaction(SIGTERM, &newAction, NULL);
 
-	// Open this index read-write
+	// Open this index read-write, unless we are in preferences mode
 	bool wasObsoleteFormat = false;
-	if (ModuleFactory::openOrCreateIndex(settings.m_defaultBackend, settings.m_docsIndexLocation, wasObsoleteFormat, false) == false)
+	if (ModuleFactory::openOrCreateIndex(settings.m_defaultBackend, settings.m_docsIndexLocation, wasObsoleteFormat, prefsMode) == false)
 	{
 		errorMsg = _("Couldn't open index");
 		errorMsg += " ";
@@ -343,13 +363,21 @@ int main(int argc, char **argv)
 		// Set an icon for all windows
 		Gtk::Window::set_default_icon_from_file(prefixDir + "/share/icons/hicolor/48x48/apps/pinot.png");
 
-		// Create and open the main dialog box
-		mainWindow mainBox;
-		if (errorMsg.empty() == false)
-		{
-			mainBox.set_status(errorMsg);
+		// Create and open the window
+		if (prefsMode == false)
+		{ 
+			mainWindow mainBox;
+			if (errorMsg.empty() == false)
+			{
+				mainBox.set_status(errorMsg);
+			}
+			m.run(mainBox);
 		}
-		m.run(mainBox);
+		else
+		{
+			prefsWindow prefsBox;
+			m.run(prefsBox);
+		}
 	}
 	catch (const Glib::Exception &e)
 	{

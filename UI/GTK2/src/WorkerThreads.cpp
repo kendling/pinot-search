@@ -47,7 +47,6 @@
 #include "QueryHistory.h"
 #include "DownloaderFactory.h"
 #include "FilterWrapper.h"
-#include "DBusIndex.h"
 #include "ModuleFactory.h"
 #include "WebEngine.h"
 #include "PinotSettings.h"
@@ -1969,27 +1968,6 @@ void UpdateDocumentThread::doWork(void)
 
 		delete pIndex;
 	}
-}
-
-StartDaemonThread::StartDaemonThread() :
-	WorkerThread()
-{
-}
-
-StartDaemonThread::~StartDaemonThread()
-{
-}
-
-string StartDaemonThread::getType(void) const
-{
-	return "StartDaemonThread";
-}
-
-void StartDaemonThread::doWork(void)
-{
-	// Ask the daemon to reload its configuration
-	// Let D-Bus activate the service if necessary
-	DBusIndex::reload();
 }
 
 MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler,

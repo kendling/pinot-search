@@ -9,8 +9,8 @@ noinst_HEADERS = \
 	launcherDialog_glade.hh \
 	mainWindow_glade.hh \
 	mainWindow.hh \
-	prefsDialog_glade.hh \
-	prefsDialog.hh \
+	prefsWindow_glade.hh \
+	prefsWindow.hh \
 	propertiesDialog_glade.hh \
 	propertiesDialog.hh \
 	queryDialog_glade.hh \
@@ -40,8 +40,8 @@ pinot_SOURCES = \
 	launcherDialog_glade.cc \
 	mainWindow_glade.cc \
 	mainWindow.cc \
-	prefsDialog_glade.cc \
-	prefsDialog.cc \
+	prefsWindow_glade.cc \
+	prefsWindow.cc \
 	propertiesDialog_glade.cc \
 	propertiesDialog.cc \
 	queryDialog_glade.cc \

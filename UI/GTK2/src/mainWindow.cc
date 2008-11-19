@@ -53,7 +53,6 @@
 #include "indexDialog.hh"
 #include "launcherDialog.hh"
 #include "propertiesDialog.hh"
-#include "prefsDialog.hh"
 #include "queryDialog.hh"
 #include "statisticsDialog.hh"
 
@@ -1722,12 +1721,6 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			}
 		}
 	}
-	else if (type == "StartDaemonThread")
-	{
-#ifdef DEBUG
-		cout << "mainWindow::on_thread_end: started daemon" << endl;
-#endif
-	}
 
 	// Delete the thread
 	delete pThread;;
@@ -1827,30 +1820,10 @@ void mainWindow::on_statistics_activate()
 //
 void mainWindow::on_configure_activate()
 {
-	prefsDialog prefsBox;
-	prefsBox.show();
-	if (prefsBox.run() != RESPONSE_OK)
-	{
-		return;
-	}
-#ifdef DEBUG
-	cout << "mainWindow::on_configure_activate: settings changed" << endl;
-#endif
+	MIMEAction prefsAction("pinot-prefs", "pinot-prefs");
+	vector<string> arguments;
 
-	// Is starting the daemon necessary ?
-	if (prefsBox.startDaemon() == true)
-	{
-		start_thread(new StartDaemonThread());
-	}
-
-	// Any labels to add, delete or rename ?
-	const set<string> &labelsToAdd = prefsBox.getLabelsToAdd();
-	const set<string> &labelsToDelete = prefsBox.getLabelsToDelete();
-	if ((labelsToAdd.empty() == false) ||
-		(labelsToDelete.empty() == false))
-	{
-		start_thread(new LabelUpdateThread(labelsToAdd, labelsToDelete));
-	}
+	CommandLine::runAsync(prefsAction, arguments);
 }
 
 //
