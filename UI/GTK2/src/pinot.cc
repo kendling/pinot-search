@@ -70,13 +70,6 @@ static void closeAll(void)
 {
 	cout << "Exiting..." << endl;
 
-	// Save the settings
-	PinotSettings &settings = PinotSettings::getInstance();
-	if (settings.save() == false)
-	{
-		cerr << "Couldn't save configuration file" << endl;
-	}
-
 	// Close everything
 	ModuleFactory::unloadModules();
 	Dijon::FilterFactory::unloadFilters();
@@ -277,12 +270,8 @@ int main(int argc, char **argv)
 	Languages::setIntlName(14, _("Swedish"));
 	Languages::setIntlName(15, _("Turkish"));
 
-	// Load search engines
-	settings.loadSearchEngines(prefixDir + "/share/pinot/engines");
-	settings.loadSearchEngines(confDirectory + "/engines");
 	// Load the settings
-	settings.loadGlobal(string(SYSCONFDIR) + "/pinot/globalconfig.xml");
-	settings.load();
+	settings.load(PinotSettings::LOAD_ALL);
 
 	// Catch interrupts
 	sigemptyset(&newAction.sa_mask);
@@ -337,32 +326,35 @@ int main(int argc, char **argv)
 
 	atexit(closeAll);
 
-	IndexInterface *pIndex = settings.getIndex(settings.m_docsIndexLocation);
-	if (pIndex != NULL)
+	if (prefsMode == false)
 	{
-		string indexVersion(pIndex->getMetadata("version"));
+		IndexInterface *pIndex = settings.getIndex(settings.m_docsIndexLocation);
+		if (pIndex != NULL)
+		{
+			string indexVersion(pIndex->getMetadata("version"));
 
-		// What version is the index at ?
-		if (indexVersion.empty() == true)
-		{
-			indexVersion = "0.0";
-		}
-		// Is an upgrade necessary ?
-		if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
-			(pIndex->getDocumentsCount() > 0))
-		{
-			warnAboutVersion = true;
-		}
+			// What version is the index at ?
+			if (indexVersion.empty() == true)
+			{
+				indexVersion = "0.0";
+			}
+			// Is an upgrade necessary ?
+			if ((indexVersion < PINOT_INDEX_MIN_VERSION) &&
+				(pIndex->getDocumentsCount() > 0))
+			{
+				warnAboutVersion = true;
+			}
 #ifdef DEBUG
-		cout << "My Web Pages was set to version " << indexVersion << endl;
+			cout << "My Web Pages was set to version " << indexVersion << endl;
 #endif
-		pIndex->setMetadata("version", VERSION);
+			pIndex->setMetadata("version", VERSION);
 
-		delete pIndex;
-	}
-	if (warnAboutVersion == true)
-	{
-		settings.m_warnAboutVersion = warnAboutVersion;
+			delete pIndex;
+		}
+		if (warnAboutVersion == true)
+		{
+			settings.m_warnAboutVersion = warnAboutVersion;
+		}
 	}
 
 	try

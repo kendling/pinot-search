@@ -296,6 +296,9 @@ mainWindow::~mainWindow()
 
 	// Save queries
 	save_queryTreeview();
+
+	// Save the settings
+	m_settings.save(PinotSettings::SAVE_CONFIG);
 }
 
 //
@@ -1822,6 +1825,9 @@ void mainWindow::on_configure_activate()
 {
 	MIMEAction prefsAction("pinot-prefs", "pinot-prefs");
 	vector<string> arguments;
+
+	// Save the settings first as any change in preferences will make the daemon reload the whole thing
+	m_settings.save(PinotSettings::SAVE_CONFIG);
 
 	CommandLine::runAsync(prefsAction, arguments);
 }

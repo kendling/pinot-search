@@ -760,8 +760,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		// Reload
 		PinotSettings &settings = PinotSettings::getInstance();
 		settings.clear();
-		settings.loadGlobal(string(SYSCONFDIR) + "/pinot/globalconfig.xml");
-		settings.load();
+		settings.load(PinotSettings::LOAD_ALL);
 		m_reload = false;
 #ifdef DEBUG
 		cout << "DaemonState::on_thread_end: reloading" << endl;

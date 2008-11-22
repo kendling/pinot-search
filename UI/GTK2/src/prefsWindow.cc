@@ -62,7 +62,7 @@ class StartDaemonThread : public WorkerThread
 		virtual void doWork(void)
 		{
 			// Save the settings
-			PinotSettings::getInstance().save();
+			PinotSettings::getInstance().save(PinotSettings::SAVE_PREFS);
 
 			// Ask the daemon to reload its configuration
 			// Let D-Bus activate the service if necessary

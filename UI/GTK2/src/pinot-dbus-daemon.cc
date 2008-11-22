@@ -271,7 +271,6 @@ static bool getBatteryState(DBusGConnection *pBus, const string &name, const str
 
 int main(int argc, char **argv)
 {
-	string prefixDir(PREFIX);
 	struct sigaction newAction;
 	int longOptionIndex = 0, priority = 15;
 	bool resetHistory = false;
@@ -459,12 +458,8 @@ int main(int argc, char **argv)
 	Languages::setIntlName(14, _("Swedish"));
 	Languages::setIntlName(15, _("Turkish"));
 
-	// Load search engines
-	settings.loadSearchEngines(prefixDir + "/share/pinot/engines");
-	settings.loadSearchEngines(confDirectory + "/engines");
 	// Load the settings
-	settings.loadGlobal(string(SYSCONFDIR) + "/pinot/globalconfig.xml");
-	settings.load();
+	settings.load(PinotSettings::LOAD_ALL);
 
 	// Catch interrupts
 	sigemptyset(&newAction.sa_mask);
