@@ -37,6 +37,10 @@ class PinotSettings
 	public:
 		~PinotSettings();
 
+		typedef enum { LOAD_ALL = 0, LOAD_GLOBAL, LOAD_LOCAL } LoadWhat;
+
+		typedef enum { SAVE_PREFS = 0, SAVE_CONFIG } SaveWhat;
+
 		static PinotSettings &getInstance(void);
 
 		static bool enableClientMode(bool enable);
@@ -45,7 +49,7 @@ class PinotSettings
 
 		static std::string getConfigurationDirectory(void);
 
-		static std::string getConfigurationFileName(void);
+		static std::string getFileName(bool prefsOrUI);
 
 		static std::string getCurrentUserName(void);
 
@@ -57,13 +61,9 @@ class PinotSettings
 
 		void clear(void);
 
-		bool loadGlobal(const std::string &fileName);
+		bool load(LoadWhat what);
 
-		bool load(void);
-
-		bool loadSearchEngines(const std::string &directoryName);
-
-		bool save(void);
+		bool save(SaveWhat what);
 
 		/// Returns the indexes map, keyed by name.
 		const std::map<std::string, std::string> &getIndexes(void) const;
@@ -214,6 +214,7 @@ class PinotSettings
 		std::map<std::string, QueryProperties> m_queries;
 
 		PinotSettings();
+		bool loadSearchEngines(const std::string &directoryName);
 		bool loadConfiguration(const std::string &fileName, bool isGlobal);
 		bool loadUi(const xmlpp::Element *pElem);
 		bool loadIndexes(const xmlpp::Element *pElem);

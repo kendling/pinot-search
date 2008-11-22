@@ -138,7 +138,7 @@ PinotSettings::PinotSettings() :
 	m_daemonIndexLocation = directoryName;
 	m_daemonIndexLocation += "/daemon";
 
-	// This is not set in the configuration file
+	// This is not set in the settings files
 	char *pEnvVar = getenv("PINOT_MINIMUM_DISK_SPACE");
 	if ((pEnvVar != NULL) &&
 		(strlen(pEnvVar) > 0))
@@ -199,10 +199,18 @@ string PinotSettings::getConfigurationDirectory(void)
 	return directoryName;
 }
 
-string PinotSettings::getConfigurationFileName(void)
+string PinotSettings::getFileName(bool prefsOrUI)
 {
-	string configFileName = getConfigurationDirectory();
-	configFileName += "/config.xml";
+	string configFileName(getConfigurationDirectory());
+
+	if (prefsOrUI == true)
+	{
+		configFileName += "/prefs.xml";
+	}
+	else
+	{
+		configFileName += "/ui.xml";
+	}
 
 	return configFileName;
 }
@@ -303,19 +311,60 @@ void PinotSettings::clear(void)
 	m_labels.clear();
 }
 
-bool PinotSettings::loadGlobal(const string &fileName)
+bool PinotSettings::load(LoadWhat what)
 {
-	if (loadConfiguration(fileName, true) == false)
+	string fileName;
+
+	if ((what == LOAD_ALL) ||
+		(what == LOAD_GLOBAL))
 	{
-		return false;
+		fileName = string(SYSCONFDIR) + "/pinot/globalconfig.xml";
+
+		if (loadConfiguration(fileName, true) == false)
+		{
+			return false;
+		}
+
+		if (what == LOAD_GLOBAL)
+		{
+			// Stop here
+			return true;
+		}
 	}
 
-	return true;
-}
+	// Load settings ?
+	if (m_firstRun == false)
+	{
+		if ((loadConfiguration(getFileName(true), false) == false) ||
+			(loadConfiguration(getFileName(false), false) == false))
+		{
+			fileName = getConfigurationDirectory() + "/config.xml";
 
+			// We may have to migrate away from a pre-0.90 configuration
+			clear();
+			if (loadConfiguration(fileName, false) == true)
+			{
+				// Save settings now to the new format
+				save(SAVE_PREFS);
+				save(SAVE_CONFIG);
 
-bool PinotSettings::load(void)
-{
+				cout << "Migrated settings to 0.90 format" << endl;
+			}
+			else
+			{
+				m_firstRun = true;
+			}
+		}
+
+	}
+
+	if (what == LOAD_ALL)
+	{
+		// Load search engines
+		loadSearchEngines(string(PREFIX) + "/share/pinot/engines");
+		loadSearchEngines(getConfigurationDirectory() + "/engines");
+	}
+
 	map<ModuleProperties, bool> engines;
 	string currentUserChannelName(_("Current User"));
 
@@ -342,13 +391,6 @@ bool PinotSettings::load(void)
 				m_engineChannels.insert(pair<string, bool>(channelName, true));
 			}
 		}
-	}
-
-	// Load the configuration file
-	string fileName = getConfigurationFileName();
-	if (m_firstRun == false)
-	{
-		loadConfiguration(fileName, false);
 	}
 
 	// Internal indices
@@ -401,6 +443,77 @@ bool PinotSettings::load(void)
 	return true;
 }
 
+bool PinotSettings::loadSearchEngines(const string &directoryName)
+{
+	if (directoryName.empty() == true)
+	{
+		return true;
+	}
+
+	DIR *pDir = opendir(directoryName.c_str());
+	if (pDir == NULL)
+	{
+		return false;
+	}
+
+	// Iterate through this directory's entries
+	struct dirent *pDirEntry = readdir(pDir);
+	while (pDirEntry != NULL)
+	{
+		char *pEntryName = pDirEntry->d_name;
+		if (pEntryName != NULL)
+		{
+			struct stat fileStat;
+			string location = directoryName;
+			location += "/";
+			location += pEntryName;
+
+			// Is that a file ?
+			if ((stat(location.c_str(), &fileStat) == 0) &&
+				(S_ISREG(fileStat.st_mode)))
+			{
+				SearchPluginProperties properties;
+
+				if ((PluginWebEngine::getDetails(location, properties) == true) &&
+					(properties.m_name.empty() == false) &&
+					(properties.m_longName.empty() == false))
+				{
+					m_engineIds[1 << m_engines.size()] = properties.m_longName;
+					if (properties.m_channel.empty() == true)
+					{
+						properties.m_channel = _("Unclassified");
+					}
+					// SearchPluginProperties derives ModuleProperties
+					m_engines.insert(properties);
+					m_engineChannels.insert(pair<string, bool>(properties.m_channel, true));
+
+					// Any editable parameters in this plugin ?
+					for (map<string, string>::const_iterator editableIter = properties.m_editableParameters.begin();
+						editableIter != properties.m_editableParameters.end(); ++editableIter)
+					{
+						// This may have been created when loading settings
+						if (m_editablePluginValues.find(editableIter->second) == m_editablePluginValues.end())
+						{
+							m_editablePluginValues[editableIter->second] = "";
+						}
+					}
+#ifdef DEBUG
+					cout << "PinotSettings::loadSearchEngines: " << properties.m_name
+						<< ", " << properties.m_longName << ", " << properties.m_option
+						<< " has " << properties.m_editableParameters.size() << " editable values" << endl;
+#endif
+				}
+			}
+		}
+
+		// Next entry
+		pDirEntry = readdir(pDir);
+	}
+	closedir(pDir);
+
+	return true;
+}
+
 bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal)
 {
 	struct stat fileStat;
@@ -409,17 +522,13 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 	if ((stat(fileName.c_str(), &fileStat) != 0) ||
 		(!S_ISREG(fileStat.st_mode)))
 	{
-		cerr << "Couldn't open configuration file " << fileName << endl;
-		if (isGlobal == false)
-		{
-			m_firstRun = true;
-		}
+		cerr << "Couldn't open settings file " << fileName << endl;
 		return false;
 	}
 
 	try
 	{
-		// Parse the configuration file
+		// Parse the settings file
 		DomParser parser;
 		parser.set_substitute_entities(true);
 		parser.parse_file(fileName);
@@ -561,7 +670,7 @@ bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal
 	}
 	catch (const std::exception& ex)
 	{
-		cerr << "Couldn't parse configuration file: "
+		cerr << "Couldn't parse settings file: "
 			<< ex.what() << endl;
 		success = false;
 	}
@@ -1226,11 +1335,7 @@ bool PinotSettings::loadPluginParameters(const Element *pElem)
 		}
 	}
 
-	map<string, string>::iterator valueIter = m_editablePluginValues.find(name);
-	if (valueIter != m_editablePluginValues.end())
-	{
-		valueIter->second = value;
-	}
+	m_editablePluginValues[name] = value;
 
 	return true;
 }
@@ -1304,78 +1409,17 @@ bool PinotSettings::loadCacheProviders(const Element *pElem)
 	return true;
 }
 
-bool PinotSettings::loadSearchEngines(const string &directoryName)
-{
-	if (directoryName.empty() == true)
-	{
-		return true;
-	}
-
-	DIR *pDir = opendir(directoryName.c_str());
-	if (pDir == NULL)
-	{
-		return false;
-	}
-
-	// Iterate through this directory's entries
-	struct dirent *pDirEntry = readdir(pDir);
-	while (pDirEntry != NULL)
-	{
-		char *pEntryName = pDirEntry->d_name;
-		if (pEntryName != NULL)
-		{
-			struct stat fileStat;
-			string location = directoryName;
-			location += "/";
-			location += pEntryName;
-
-			// Is that a file ?
-			if ((stat(location.c_str(), &fileStat) == 0) &&
-				(S_ISREG(fileStat.st_mode)))
-			{
-				SearchPluginProperties properties;
-
-				if ((PluginWebEngine::getDetails(location, properties) == true) &&
-					(properties.m_name.empty() == false) &&
-					(properties.m_longName.empty() == false))
-				{
-					m_engineIds[1 << m_engines.size()] = properties.m_longName;
-					if (properties.m_channel.empty() == true)
-					{
-						properties.m_channel = _("Unclassified");
-					}
-					// SearchPluginProperties derives ModuleProperties
-					m_engines.insert(properties);
-					m_engineChannels.insert(pair<string, bool>(properties.m_channel, true));
-
-					// Any editable parameters in this plugin ?
-					for (map<string, string>::const_iterator editableIter = properties.m_editableParameters.begin();
-						editableIter != properties.m_editableParameters.end(); ++editableIter)
-					{
-						m_editablePluginValues[editableIter->second] = "";
-					}
-#ifdef DEBUG
-					cout << "PinotSettings::loadSearchEngines: " << properties.m_name
-						<< ", " << properties.m_longName << ", " << properties.m_option
-						<< " has " << properties.m_editableParameters.size() << " editable values" << endl;
-#endif
-				}
-			}
-		}
-
-		// Next entry
-		pDirEntry = readdir(pDir);
-	}
-	closedir(pDir);
-
-	return true;
-}
-
-bool PinotSettings::save(void)
+bool PinotSettings::save(SaveWhat what)
 {
 	Element *pRootElem = NULL;
 	Element *pElem = NULL;
 	char numStr[64];
+	bool prefsOrUI = true;
+
+	if (what == SAVE_CONFIG)
+	{
+		prefsOrUI = false;
+	}
 
 	try
 	{
@@ -1389,177 +1433,183 @@ bool PinotSettings::save(void)
 		}
 		// ...with text children nodes
 		addChildElement(pRootElem, "version", VERSION);
-		addChildElement(pRootElem, "warnaboutversion", (m_warnAboutVersion ? "YES" : "NO"));
-		addChildElement(pRootElem, "backend", m_defaultBackend);
-		addChildElement(pRootElem, "googleapikey", m_googleAPIKey);
-		// User interface position and size
-		pElem = pRootElem->add_child("ui");
-		if (pElem == NULL)
+		if (what == SAVE_CONFIG)
 		{
-			return false;
-		}
-		snprintf(numStr, 64, "%d", m_xPos);
-		addChildElement(pElem, "xpos", numStr);
-		snprintf(numStr, 64, "%d", m_yPos);
-		addChildElement(pElem, "ypos", numStr);
-		snprintf(numStr, 64, "%d", m_width);
-		addChildElement(pElem, "width", numStr);
-		snprintf(numStr, 64, "%d", m_height);
-		addChildElement(pElem, "height", numStr);
-		snprintf(numStr, 64, "%d", m_panePos);
-		addChildElement(pElem, "panepos", numStr);
-		addChildElement(pElem, "expandqueries", (m_expandQueries ? "YES" : "NO"));
-		addChildElement(pElem, "showengines", (m_showEngines ? "YES" : "NO"));
-		// User-defined indexes
-		for (map<string, string>::iterator indexIter = m_indexNames.begin(); indexIter != m_indexNames.end(); ++indexIter)
-		{
-			string indexName = indexIter->first;
-
-			if (isInternalIndex(indexName) == true)
-			{
-				continue;
-			}
-
-			pElem = pRootElem->add_child("extraindex");
+			addChildElement(pRootElem, "warnaboutversion", (m_warnAboutVersion ? "YES" : "NO"));
+			addChildElement(pRootElem, "backend", m_defaultBackend);
+			addChildElement(pRootElem, "googleapikey", m_googleAPIKey);
+			// User interface position and size
+			pElem = pRootElem->add_child("ui");
 			if (pElem == NULL)
 			{
 				return false;
 			}
-			addChildElement(pElem, "name", indexIter->first);
-			addChildElement(pElem, "location", indexIter->second);
-		}
-		// Engine channels
-		for (map<string, bool>::iterator channelIter = m_engineChannels.begin();
-			channelIter != m_engineChannels.end(); ++channelIter)
-		{
-			// Only save those whose group was collapsed
-			if (channelIter->second == false)
+			snprintf(numStr, 64, "%d", m_xPos);
+			addChildElement(pElem, "xpos", numStr);
+			snprintf(numStr, 64, "%d", m_yPos);
+			addChildElement(pElem, "ypos", numStr);
+			snprintf(numStr, 64, "%d", m_width);
+			addChildElement(pElem, "width", numStr);
+			snprintf(numStr, 64, "%d", m_height);
+			addChildElement(pElem, "height", numStr);
+			snprintf(numStr, 64, "%d", m_panePos);
+			addChildElement(pElem, "panepos", numStr);
+			addChildElement(pElem, "expandqueries", (m_expandQueries ? "YES" : "NO"));
+			addChildElement(pElem, "showengines", (m_showEngines ? "YES" : "NO"));
+			// User-defined indexes
+			for (map<string, string>::iterator indexIter = m_indexNames.begin(); indexIter != m_indexNames.end(); ++indexIter)
 			{
-				pElem = pRootElem->add_child("channel");
+				string indexName = indexIter->first;
+
+				if (isInternalIndex(indexName) == true)
+				{
+					continue;
+				}
+
+				pElem = pRootElem->add_child("extraindex");
 				if (pElem == NULL)
 				{
 					return false;
 				}
-				addChildElement(pElem, "name", channelIter->first);
+				addChildElement(pElem, "name", indexIter->first);
+				addChildElement(pElem, "location", indexIter->second);
 			}
-		}
-		// User-defined queries
-		for (map<string, QueryProperties>::iterator queryIter = m_queries.begin();
-			queryIter != m_queries.end(); ++queryIter)
-		{
-			pElem = pRootElem->add_child("storedquery");
-			if (pElem == NULL)
+			// Engine channels
+			for (map<string, bool>::iterator channelIter = m_engineChannels.begin();
+				channelIter != m_engineChannels.end(); ++channelIter)
 			{
-				return false;
+				// Only save those whose group was collapsed
+				if (channelIter->second == false)
+				{
+					pElem = pRootElem->add_child("channel");
+					if (pElem == NULL)
+					{
+						return false;
+					}
+					addChildElement(pElem, "name", channelIter->first);
+				}
 			}
+			// User-defined queries
+			for (map<string, QueryProperties>::iterator queryIter = m_queries.begin();
+				queryIter != m_queries.end(); ++queryIter)
+			{
+				pElem = pRootElem->add_child("storedquery");
+				if (pElem == NULL)
+				{
+					return false;
+				}
 
-			addChildElement(pElem, "name", queryIter->first);
-			addChildElement(pElem, "sortorder", (queryIter->second.getSortOrder() == QueryProperties::DATE ? "DATE" : "RELEVANCE"));
-			addChildElement(pElem, "text", queryIter->second.getFreeQuery());
-			addChildElement(pElem, "stemlanguage", Languages::toEnglish(queryIter->second.getStemmingLanguage()));
-			snprintf(numStr, 64, "%u", queryIter->second.getMaximumResultsCount());
-			addChildElement(pElem, "maxresults", numStr);
-			QueryProperties::IndexWhat indexResults = queryIter->second.getIndexResults();
-			if (indexResults == QueryProperties::NEW_RESULTS)
-			{
-				addChildElement(pElem, "index", "NEW");
+				addChildElement(pElem, "name", queryIter->first);
+				addChildElement(pElem, "sortorder", (queryIter->second.getSortOrder() == QueryProperties::DATE ? "DATE" : "RELEVANCE"));
+				addChildElement(pElem, "text", queryIter->second.getFreeQuery());
+				addChildElement(pElem, "stemlanguage", Languages::toEnglish(queryIter->second.getStemmingLanguage()));
+				snprintf(numStr, 64, "%u", queryIter->second.getMaximumResultsCount());
+				addChildElement(pElem, "maxresults", numStr);
+				QueryProperties::IndexWhat indexResults = queryIter->second.getIndexResults();
+				if (indexResults == QueryProperties::NEW_RESULTS)
+				{
+					addChildElement(pElem, "index", "NEW");
+				}
+				else if (indexResults == QueryProperties::ALL_RESULTS)
+				{
+					addChildElement(pElem, "index", "ALL");
+				}
+				else
+				{
+					addChildElement(pElem, "index", "NONE");
+				}
+				addChildElement(pElem, "label", queryIter->second.getLabelName());
+				addChildElement(pElem, "modified", (queryIter->second.getModified() ? "YES" : "NO"));
 			}
-			else if (indexResults == QueryProperties::ALL_RESULTS)
-			{
-				addChildElement(pElem, "index", "ALL");
-			}
-			else
-			{
-				addChildElement(pElem, "index", "NONE");
-			}
-			addChildElement(pElem, "label", queryIter->second.getLabelName());
-			addChildElement(pElem, "modified", (queryIter->second.getModified() ? "YES" : "NO"));
 		}
-		// Labels
-		for (set<string>::iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
+		if (what == SAVE_PREFS)
 		{
-			pElem = pRootElem->add_child("label");
+			// Labels
+			for (set<string>::iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
+			{
+				pElem = pRootElem->add_child("label");
+				if (pElem == NULL)
+				{
+					return false;
+				}
+				addChildElement(pElem, "name", *labelIter);
+			}
+			// Ignore robots directives
+			addChildElement(pRootElem, "robots", (m_ignoreRobotsDirectives ? "IGNORE" : "OBEY"));
+			// Enable terms suggestion
+			addChildElement(pRootElem, "suggestterms", (m_suggestQueryTerms ? "YES" : "NO"));
+			// New results colour
+			pElem = pRootElem->add_child("newresults");
 			if (pElem == NULL)
 			{
 				return false;
 			}
-			addChildElement(pElem, "name", *labelIter);
-		}
-		// Ignore robots directives
-		addChildElement(pRootElem, "robots", (m_ignoreRobotsDirectives ? "IGNORE" : "OBEY"));
-		// Enable terms suggestion
-		addChildElement(pRootElem, "suggestterms", (m_suggestQueryTerms ? "YES" : "NO"));
-		// New results colour
-		pElem = pRootElem->add_child("newresults");
-		if (pElem == NULL)
-		{
-			return false;
-		}
-		snprintf(numStr, 64, "%u", m_newResultsColourRed);
-		addChildElement(pElem, "red", numStr);
-		snprintf(numStr, 64, "%u", m_newResultsColourGreen);
-		addChildElement(pElem, "green", numStr);
-		snprintf(numStr, 64, "%u", m_newResultsColourBlue);
-		addChildElement(pElem, "blue", numStr);
-		// Proxy
-		pElem = pRootElem->add_child("proxy");
-		if (pElem == NULL)
-		{
-			return false;
-		}
-		addChildElement(pElem, "address", m_proxyAddress);
-		snprintf(numStr, 64, "%u", m_proxyPort);
-		addChildElement(pElem, "port", numStr);
-		addChildElement(pElem, "type", m_proxyType);
-		addChildElement(pElem, "enable", (m_proxyEnabled ? "YES" : "NO"));
-		// Locations to index 
-		for (set<IndexableLocation>::iterator locationIter = m_indexableLocations.begin();
-			locationIter != m_indexableLocations.end(); ++locationIter)
-		{
-			pElem = pRootElem->add_child("indexable");
+			snprintf(numStr, 64, "%u", m_newResultsColourRed);
+			addChildElement(pElem, "red", numStr);
+			snprintf(numStr, 64, "%u", m_newResultsColourGreen);
+			addChildElement(pElem, "green", numStr);
+			snprintf(numStr, 64, "%u", m_newResultsColourBlue);
+			addChildElement(pElem, "blue", numStr);
+			// Proxy
+			pElem = pRootElem->add_child("proxy");
 			if (pElem == NULL)
 			{
 				return false;
 			}
-			addChildElement(pElem, "name", locationIter->m_name);
-			addChildElement(pElem, "monitor", (locationIter->m_monitor ? "YES" : "NO"));
-		}
-		// File patterns
-		pElem = pRootElem->add_child("patterns");
-		if (pElem == NULL)
-		{
-			return false;
-		}
-		for (set<ustring>::iterator patternIter = m_filePatternsList.begin();
-			patternIter != m_filePatternsList.end() ; ++patternIter)
-		{
-			addChildElement(pElem, "pattern", *patternIter);
-		}
-		addChildElement(pElem, "forbid", (m_isBlackList ? "YES" : "NO"));
-		// Values of editable plugin parameters
-		for (map<string, string>::iterator editableIter = m_editablePluginValues.begin();
-			editableIter != m_editablePluginValues.end() ; ++editableIter)
-		{
-			if (editableIter->second.empty() == true)
+			addChildElement(pElem, "address", m_proxyAddress);
+			snprintf(numStr, 64, "%u", m_proxyPort);
+			addChildElement(pElem, "port", numStr);
+			addChildElement(pElem, "type", m_proxyType);
+			addChildElement(pElem, "enable", (m_proxyEnabled ? "YES" : "NO"));
+			// Locations to index 
+			for (set<IndexableLocation>::iterator locationIter = m_indexableLocations.begin();
+				locationIter != m_indexableLocations.end(); ++locationIter)
 			{
-				continue;
+				pElem = pRootElem->add_child("indexable");
+				if (pElem == NULL)
+				{
+					return false;
+				}
+				addChildElement(pElem, "name", locationIter->m_name);
+				addChildElement(pElem, "monitor", (locationIter->m_monitor ? "YES" : "NO"));
 			}
+			// File patterns
+			pElem = pRootElem->add_child("patterns");
+			if (pElem == NULL)
+			{
+				return false;
+			}
+			for (set<ustring>::iterator patternIter = m_filePatternsList.begin();
+				patternIter != m_filePatternsList.end() ; ++patternIter)
+			{
+				addChildElement(pElem, "pattern", *patternIter);
+			}
+			addChildElement(pElem, "forbid", (m_isBlackList ? "YES" : "NO"));
+			// Values of editable plugin parameters
+			for (map<string, string>::iterator editableIter = m_editablePluginValues.begin();
+				editableIter != m_editablePluginValues.end() ; ++editableIter)
+			{
+				if (editableIter->second.empty() == true)
+				{
+					continue;
+				}
 
-			pElem = pRootElem->add_child("pluginparameters");
-			if (pElem == NULL)
-			{
-				return false;
+				pElem = pRootElem->add_child("pluginparameters");
+				if (pElem == NULL)
+				{
+					return false;
+				}
+				addChildElement(pElem, "name", editableIter->first);
+				addChildElement(pElem, "value", editableIter->second);
 			}
-			addChildElement(pElem, "name", editableIter->first);
-			addChildElement(pElem, "value", editableIter->second);
 		}
 
 		// Save to file
-		doc.write_to_file_formatted(getConfigurationFileName());
+		doc.write_to_file_formatted(getFileName(prefsOrUI));
 	}
 	catch (const std::exception& ex)
 	{
-		cerr << "Couldn't save configuration file: "
+		cerr << "Couldn't save settings file: "
 			<< ex.what() << endl;
 		return false;
 	}
