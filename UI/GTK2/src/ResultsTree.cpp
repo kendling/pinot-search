@@ -375,54 +375,52 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 	if ((path_currently_selected == false) &&
 		(m_groupMode != FLAT))
 	{
-		// Clear the extract
+		// Is this an actual result ?
+		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
+		if (type != ResultsModelColumns::ROW_RESULT)
+		{
+			return true;
+		}
+
 		RefPtr<TextBuffer> refBuffer = m_extractTextView->get_buffer();
 		if (refBuffer)
 		{
-			refBuffer->set_text("");
-		}
+			ustring extract(findResultsExtract(row));
+			TextBuffer::iterator bufferPos = refBuffer->begin();
+			ustring::size_type textPos = 0, boldPos = extract.find("<b>");
 
-		// Is this an actual result ?
-		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
-		if (type == ResultsModelColumns::ROW_RESULT)
-		{
+			// Clear the extract
+			refBuffer->set_text("");
+
 #ifdef DEBUG
 			cout << "ResultsTree::onSelectionSelect: extract for " << row[m_resultsColumns.m_text] << endl;
 #endif
-			RefPtr<TextBuffer> refBuffer = m_extractTextView->get_buffer();
-			if (refBuffer)
+			if (boldPos == ustring::npos)
 			{
-				ustring extract(findResultsExtract(row));
-				TextBuffer::iterator bufferPos = refBuffer->begin();
-				ustring::size_type textPos = 0, boldPos = extract.find("<b>");
-
-				if (boldPos == ustring::npos)
+				refBuffer->set_text(extract);
+			}
+			else
+			{
+				while (boldPos != ustring::npos)
 				{
-					refBuffer->set_text(extract);
+					bufferPos = refBuffer->insert(bufferPos, extract.substr(textPos, boldPos - textPos));
+
+					textPos = boldPos + 3;
+					boldPos = extract.find("</b>", textPos);
+					if (boldPos == ustring::npos)
+					{
+						continue;
+					}
+					bufferPos = refBuffer->insert_with_tag(bufferPos, extract.substr(textPos, boldPos - textPos), "bold");
+
+					// Next
+					textPos = boldPos + 4;
+					boldPos = extract.find("<b>", textPos);
 				}
-				else
+
+				if (textPos + 1 < extract.length())
 				{
-					while (boldPos != ustring::npos)
-					{
-						bufferPos = refBuffer->insert(bufferPos, extract.substr(textPos, boldPos - textPos));
-
-						textPos = boldPos + 3;
-						boldPos = extract.find("</b>", textPos);
-						if (boldPos == ustring::npos)
-						{
-							continue;
-						}
-						bufferPos = refBuffer->insert_with_tag(bufferPos, extract.substr(textPos, boldPos - textPos), "bold");
-
-						// Next
-						textPos = boldPos + 4;
-						boldPos = extract.find("<b>", textPos);
-					}
-
-					if (textPos + 1 < extract.length())
-					{
-						bufferPos = refBuffer->insert(bufferPos, extract.substr(textPos, boldPos - textPos));
-					}
+					bufferPos = refBuffer->insert(bufferPos, extract.substr(textPos, boldPos - textPos));
 				}
 			}
 		}
@@ -754,8 +752,9 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 		cout << "ResultsTree::setGroupMode: looking at " << row[m_resultsColumns.m_text] << endl;
 #endif
 		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
-		// Skip new type rows
-		if (type == newType)
+		// Skip new type and other rows
+		if ((type == newType) ||
+			(type == ResultsModelColumns::ROW_OTHER))
 		{
 			iter++;
 			continue;
@@ -769,6 +768,18 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 			TreeModel::Row childRow = *childIter;
 			TreeModel::iterator groupIter, newIter;
 			bool success = false;
+
+			type = childRow[m_resultsColumns.m_resultType];
+			if (type == ResultsModelColumns::ROW_OTHER)
+			{
+				TreeModel::Children::iterator nextChildIter = childIter;
+				++nextChildIter;
+
+				// Erase this row
+				m_refStore->erase(childIter);
+				childIter = nextChildIter;
+				continue;
+			}
 
 			// We will need the URL and engines columns in all cases
 			string url(from_utf8(childRow[m_resultsColumns.m_url]));
@@ -1516,6 +1527,16 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 		}
 
 		averageScore = (int)(averageScore / groupChildren.size());
+	}
+	else
+	{
+		TreeModel::Row groupRow = *groupIter;
+		TreeModel::iterator childIter = m_refStore->append(groupRow.children());
+		TreeModel::Row childRow = *childIter;
+
+		updateRow(childRow, _("No results"), "", 0, 0, 0,
+			0, TimeConverter::toTimestamp(time(NULL)), "", ResultsModelColumns::ROW_OTHER,
+			false, false, 0);
 	}
 	groupRow[m_resultsColumns.m_score] = averageScore;
 
