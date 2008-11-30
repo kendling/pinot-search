@@ -826,6 +826,10 @@ bool PinotSettings::loadEngineChannels(const Element *pElem)
 			{
 				channelIter->second = false;
 			}
+			else
+			{
+				m_engineChannels.insert(pair<string, bool>(nodeContent, false));
+			}
 		}
 	}
 
@@ -1910,27 +1914,41 @@ bool PinotSettings::getDefaultPatterns(set<ustring> &defaultPatterns)
 	defaultPatterns.insert("*.a");
 	defaultPatterns.insert("*.asf");
 	defaultPatterns.insert("*.avi");
+	defaultPatterns.insert("*.aux");
 	defaultPatterns.insert("*CVS");
 	defaultPatterns.insert("*.cap");
 	defaultPatterns.insert("*.divx");
 	defaultPatterns.insert("*.flv");
 	defaultPatterns.insert("*.gif");
+	defaultPatterns.insert("*.git");
+	defaultPatterns.insert("*.gmo");
 	defaultPatterns.insert("*.iso");
 	defaultPatterns.insert("*.la");
 	defaultPatterns.insert("*.lha");
+	defaultPatterns.insert("*.lo");
+	defaultPatterns.insert("*.loT");
+	defaultPatterns.insert("*.m4");
 	defaultPatterns.insert("*.mov");
 	defaultPatterns.insert("*.msf");
 	defaultPatterns.insert("*.mpeg");
 	defaultPatterns.insert("*.mpg");
 	defaultPatterns.insert("*.mo");
 	defaultPatterns.insert("*.o");
+	defaultPatterns.insert("*.omf");
+	defaultPatterns.insert("*.orig");
+	defaultPatterns.insert("*.part");
+	defaultPatterns.insert("*.pc");
 	defaultPatterns.insert("*.png");
+	defaultPatterns.insert("*.po");
 	defaultPatterns.insert("*.rar");
+	defaultPatterns.insert("*.rej");
 	defaultPatterns.insert("*.sh");
 	defaultPatterns.insert("*.so");
 	defaultPatterns.insert("*.svn");
 	defaultPatterns.insert("*.tiff");
+	defaultPatterns.insert("*.tmp");
 	defaultPatterns.insert("*.torrent");
+	defaultPatterns.insert("*.vm*");
 	defaultPatterns.insert("*.wmv");
 	defaultPatterns.insert("*.xbm");
 	defaultPatterns.insert("*.xpm");
