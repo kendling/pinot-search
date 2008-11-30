@@ -5,7 +5,7 @@ SUBDIRS = po Utils Tokenize SQL Collect IndexSearch/Google IndexSearch IndexSear
 EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	Tokenize/filters/external-filters.xml globalconfig.xml \
 	textcat_conf.txt textcat3_conf.txt \
-	pinot.desktop pinot-dbus-daemon.desktop pinot.spec \
+	pinot*.desktop pinot.spec \
 	IndexSearch/Plugins/*src IndexSearch/Plugins/*.xml \
 	IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
 	IndexSearch/pinot-search.1 UI/GTK2/src/pinot.1 \
@@ -63,6 +63,7 @@ install-data-local:
 	$(INSTALL_DATA) $(srcdir)/UI/icons/16x16/pinot.png $(DESTDIR)$(datadir)/icons/hicolor/16x16/apps/pinot.png
 	@mkdir -p $(DESTDIR)$(datadir)/applications
 	@desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications $(srcdir)/pinot.desktop
+	@desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications $(srcdir)/pinot-prefs.desktop
 	@mkdir -p $(DESTDIR)${sysconfdir}/xdg/autostart
 	@desktop-file-install --vendor="" --dir=$(DESTDIR)${sysconfdir}/xdg/autostart $(srcdir)/pinot-dbus-daemon.desktop
 	@mkdir -p $(DESTDIR)$(libdir)/deskbar-applet/handlers/

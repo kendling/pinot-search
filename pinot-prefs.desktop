@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=File Indexing and Search
+Comment=Configure Pinot to index your files
+Exec=pinot-prefs
+StartupNotify=true
+Icon=pinot
+Terminal=false
+Type=Application
+Categories=Settings;
