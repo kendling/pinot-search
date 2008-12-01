@@ -16,6 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifdef __MINGW32__
+#include <windows.h>
+#endif
 #include <stdlib.h>
 #include <pthread.h>
 #include <iostream>
@@ -61,7 +64,11 @@ static void lockingCallback(int mode, int n, const char *file, int line)
 
 static unsigned long idCallback(void)
 {
+#ifdef __MINGW32__
+	return (unsigned long)GetCurrentThreadId();
+#else
 	return (unsigned long)pthread_self();
+#endif
 }
 #endif
 

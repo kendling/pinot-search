@@ -17,6 +17,7 @@
  */
 
 #include <stdlib.h>
+#include <time.h>
 #include <algorithm>
 
 #include "StringManip.h"

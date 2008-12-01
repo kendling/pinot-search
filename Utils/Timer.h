@@ -38,7 +38,7 @@ class PINOT_EXPORT Timer
 		void start(void);
 
 		/// Stops the timer and returns the number of milliseconds elapsed.
-		suseconds_t stop(void);
+		long stop(void);
 
 	protected:
 		struct timeval m_start;
