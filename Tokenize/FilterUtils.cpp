@@ -16,11 +16,15 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <iostream>
 #include <set>
 
+#include "config.h"
 #include "MIMEScanner.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
@@ -230,7 +234,16 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 	{
 		char inTemplate[18] = "/tmp/filterXXXXXX";
 
+#ifdef HAVE_MKSTEMP
 		int inFd = mkstemp(inTemplate);
+#else
+		int inFd = -1;
+		char *pInFile = mktemp(inTemplate);
+		if (pInFile != NULL)
+		{
+			inFd = open(pInFile, O_RDONLY);
+		}
+#endif
 		if (inFd != -1)
 		{
 #ifdef DEBUG

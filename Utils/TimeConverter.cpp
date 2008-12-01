@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 #include "config.h"
+#include <stdlib.h>
 #ifdef HAVE_TIMEGM
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE
@@ -118,24 +119,36 @@ TimeConverter::TimeConverter()
 /// Converts into an RFC 822 timestamp.
 string TimeConverter::toTimestamp(time_t aTime, bool inGMTime)
 {
-	struct tm timeTm;
+	struct tm *pTimeTm = new struct tm;
 
 	if (((inGMTime == true) &&
-		(gmtime_r(&aTime, &timeTm) != NULL)) ||
-		(localtime_r(&aTime, &timeTm) != NULL))
+#ifdef HAVE_GMTIME_R
+		(gmtime_r(&aTime, pTimeTm) != NULL)
+#else
+		((pTimeTm = gmtime(&aTime)) != NULL)
+#endif
+		) ||
+#ifdef HAVE_LOCALTIME_R
+		(localtime_r(&aTime, pTimeTm) != NULL)
+#else
+		((pTimeTm = localtime(&aTime)) != NULL)
+#endif
+		)
 	{
 		char timeStr[64];
 
+		// FIXME: don't use this extension ?
 #if defined(__GNU_LIBRARY__)
 		// %z is a GNU extension
-		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %z", &timeTm) > 0)
+		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %z", pTimeTm) > 0)
 #else
-		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %Z", &timeTm) > 0)
+		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %Z", pTimeTm) > 0)
 #endif
 		{
 			return timeStr;
 		}
 	}
+	delete pTimeTm;
 
 	return "";
 }
@@ -207,7 +220,13 @@ time_t TimeConverter::fromYYYYMMDDString(const string &yyyymmdd, bool inGMTime)
 	timeTm.tm_sec = timeTm.tm_min = timeTm.tm_hour = timeTm.tm_mday = 0;
 	timeTm.tm_mon = timeTm.tm_year = timeTm.tm_wday = timeTm.tm_yday = timeTm.tm_isdst = 0;
 
+#ifdef HAVE_STRPTIME
 	strptime(yyyymmdd.c_str(), "%Y%m%d", &timeTm);
+#else
+	timeTm.tm_year = atoi(yyyymmdd.substr(0, 4).c_str());
+	timeTm.tm_mon = atoi(yyyymmdd.substr(4, 2).c_str());
+	timeTm.tm_mday = atoi(yyyymmdd.substr(6, 2).c_str());
+#endif
 #ifdef DEBUG
 	cout << "TimeConverter::fromYYYYMMDDString: " << timeTm.tm_year << " " << timeTm.tm_mon << " " << timeTm.tm_mday << endl;
 #endif
@@ -271,7 +290,13 @@ time_t TimeConverter::fromHHMMSSString(const string &hhmmss, bool inGMTime)
 	timeTm.tm_sec = timeTm.tm_min = timeTm.tm_hour = timeTm.tm_mday = 0;
 	timeTm.tm_mon = timeTm.tm_year = timeTm.tm_wday = timeTm.tm_yday = timeTm.tm_isdst = 0;
 
+#ifdef HAVE_STRPTIME
 	strptime(hhmmss.c_str(), "%H%M%S", &timeTm);
+#else
+	timeTm.tm_hour = atoi(hhmmss.substr(0, 2).c_str());
+	timeTm.tm_min = atoi(hhmmss.substr(2, 2).c_str());
+	timeTm.tm_sec = atoi(hhmmss.substr(4, 2).c_str());
+#endif
 #ifdef DEBUG
 	cout << "TimeConverter::fromHHMMSSString: " << timeTm.tm_hour << " " << timeTm.tm_min << " " << timeTm.tm_sec << endl;
 #endif

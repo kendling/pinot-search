@@ -22,7 +22,9 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef HAVE_MMAP
 #include <sys/mman.h>
+#endif
 #ifdef HAVE_ATTR_XATTR_H
 #include <attr/xattr.h>
 #endif
@@ -208,20 +210,36 @@ bool Document::setDataFromFile(const string &fileName)
 	// Discard existing data
 	resetData();
 
+#ifdef HAVE_MMAP
 	// Request a private mapping of the whole file
 	void *mapSpace = mmap(NULL, fileStat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (mapSpace != MAP_FAILED)
 	{
 		m_pData = (char*)mapSpace;
 		m_dataLength = fileStat.st_size;
-		setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
-		setSize(fileStat.st_size);
 		m_isMapped = true;
 	}
-	else
+	else cerr << "Document::setDataFromFile: mapping failed" << endl;
+#else
+	m_pData = (char *)malloc(sizeof(char) * (fileStat.st_size + 1));
+	if (m_pData != NULL)
 	{
-		cerr << "Document::setDataFromFile: mapping failed" << endl;
+		if (read(fd, (void*)m_pData, fileStat.st_size) == fileStat.st_size)
+		{
+			m_pData[fileStat.st_size] = '\0';
+			m_dataLength = (unsigned int)fileStat.st_size;
+		}
+		else
+		{
+			free(m_pData);
+			m_pData = NULL;
+		}
 	}
+	else cerr << "Document::setDataFromFile: reading failed" << endl;
+#endif
+
+	setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
+	setSize(fileStat.st_size);
 
 #ifdef HAVE_ATTR_XATTR_H
 	// Any extended attributes ?
@@ -311,11 +329,13 @@ void Document::resetData(void)
 			// Free
 			free(m_pData);
 		}
+#ifdef HAVE_MMAP
 		else
 		{
 			// Unmap
 			munmap((void*)m_pData, m_dataLength);
 		}
+#endif
 	}
 
 	m_pData = NULL;

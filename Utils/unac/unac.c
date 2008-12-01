@@ -12617,10 +12617,10 @@ int unac_string_utf16(const char* in, size_t in_length,
   if(*outp) {
     out = *outp;
     /* +1 for null */
-    out = realloc(out, out_size + 1);
+    out = (char*)realloc(out, out_size + 1);
   } else {
     /* +1 for null */
-    out = malloc(out_size + 1);
+    out = (char*)malloc(out_size + 1);
     if(out == 0) return -1;
   }
   out_length = 0;
@@ -12657,7 +12657,7 @@ int unac_string_utf16(const char* in, size_t in_length,
      */
     if(out_length + ((l + 1) * 2) > out_size) {
       out_size += ((l + 1) * 2) + 1024;
-      out = realloc(out, out_size);
+      out = (char*)realloc(out, out_size);
       if(out == 0) {
 	if(debug_level == UNAC_DEBUG_LOW)
 	  DEBUG("realloc %d bytes failed\n", out_size);
@@ -12718,10 +12718,10 @@ static int convert(const char* from, const char* to,
   if(*outp) {
     out = *outp;
     /* +1 for null */
-    out = realloc(out, out_size + 1);
+    out = (char*)realloc(out, out_size + 1);
   } else {
     /* +1 for null */
-    out = malloc(out_size + 1);
+    out = (char*)malloc(out_size + 1);
     if(out == 0) return -1;
   }
   out_remain = out_size;
@@ -12779,7 +12779,7 @@ static int convert(const char* from, const char* to,
 	  int length = out - out_base;
 	  out_size *= 2;
 	  /* +1 for null */
-	  out_base = realloc(out_base, out_size + 1);
+	  out_base = (char*)realloc(out_base, out_size + 1);
 	  if(out_base == 0) return -1;
 	  out = out_base + length;
 	  out_remain = out_size - length;
@@ -12810,7 +12810,7 @@ int unac_string(const char* charset,
    */
   if(in_length <= 0) {
     if(!*outp)
-      *outp = malloc(32);
+      *outp = (char*)malloc(32);
     (*outp)[0] = '\0';
     *out_lengthp = 0;
   } else {

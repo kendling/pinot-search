@@ -15,27 +15,28 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+
+#include "config.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
+#ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
+#endif
 #include <utility>
 #include <iostream>
 
 #include "DBusIndex.h"
 #include "PluginWebEngine.h"
 #include "ModuleFactory.h"
-#if 0
-#include "XapianDatabaseFactory.h"
-#include "XapianIndex.h"
-#include "XapianEngine.h"
-#endif
 
+#ifdef HAVE_DLFCN_H
 #ifdef __CYGWIN__
 #define DLOPEN_FLAGS RTLD_NOW
 #else
 #define DLOPEN_FLAGS (RTLD_NOW|RTLD_LOCAL)
+#endif
 #endif
 
 #define GETMODULEPROPERTIESFUNC	"getModuleProperties"
@@ -136,12 +137,14 @@ IndexInterface *ModuleFactory::getLibraryIndex(const string &type, const string 
 		return NULL;
 	}
 
+#ifdef HAVE_DLFCN_H
 	getIndexFunc *pFunc = (getIndexFunc *)dlsym(pHandle,
 		GETINDEXFUNC);
 	if (pFunc != NULL)
 	{
 		return (*pFunc)(option);
 	}
+#endif
 #ifdef DEBUG
 	cout << "ModuleFactory::getLibraryIndex: couldn't find export getIndex" << endl;
 #endif
@@ -164,12 +167,14 @@ SearchEngineInterface *ModuleFactory::getLibrarySearchEngine(const string &type,
 		return NULL;
 	}
 
+#ifdef HAVE_DLFCN_H
 	getSearchEngineFunc *pFunc = (getSearchEngineFunc *)dlsym(pHandle,
 		GETSEARCHENGINEFUNC);
 	if (pFunc != NULL)
 	{
 		return (*pFunc)(option);
 	}
+#endif
 #ifdef DEBUG
 	cout << "ModuleFactory::getLibrarySearchEngine: couldn't find export getSearchEngine" << endl;
 #endif
@@ -179,8 +184,9 @@ SearchEngineInterface *ModuleFactory::getLibrarySearchEngine(const string &type,
 
 unsigned int ModuleFactory::loadModules(const string &directory)
 {
-	struct stat fileStat;
 	unsigned int count = 0;
+#ifdef HAVE_DLFCN_H
+	struct stat fileStat;
 
 	if (directory.empty() == true)
 	{
@@ -280,6 +286,7 @@ unsigned int ModuleFactory::loadModules(const string &directory)
 		pDirEntry = readdir(pDir);
 	}
 	closedir(pDir);
+#endif
 
 	return count;
 }
@@ -301,12 +308,14 @@ bool ModuleFactory::openOrCreateIndex(const string &type, const string &option,
 		return false;
 	}
 
+#ifdef HAVE_DLFCN_H
 	openOrCreateIndexFunc *pFunc = (openOrCreateIndexFunc *)dlsym(pHandle,
 		OPENORCREATEINDEXFUNC);
 	if (pFunc != NULL)
 	{
 		return (*pFunc)(option, obsoleteFormat, readOnly, overwrite);
 	}
+#endif
 #ifdef DEBUG
 	cout << "ModuleFactory::openOrCreateIndex: couldn't find export openOrCreateIndex" << endl;
 #endif
@@ -331,12 +340,14 @@ bool ModuleFactory::mergeIndexes(const string &type, const string &option0,
 		return false;
 	}
 
+#ifdef HAVE_DLFCN_H
 	mergeIndexesFunc *pFunc = (mergeIndexesFunc *)dlsym(pHandle,
 		MERGEINDEXESFUNC);
 	if (pFunc != NULL)
 	{
 		return (*pFunc)(option0, option1, option2);
 	}
+#endif
 #ifdef DEBUG
 	cout << "ModuleFactory::mergeIndexes: couldn't find export mergeIndexes" << endl;
 #endif
@@ -482,6 +493,7 @@ void ModuleFactory::unloadModules(void)
 			continue;
 		}
 
+#ifdef HAVE_DLFCN_H
 		closeAllFunc *pFunc = (closeAllFunc *)dlsym(pHandle, CLOSEALLFUNC);
 		if (pFunc != NULL)
 		{
@@ -497,6 +509,7 @@ void ModuleFactory::unloadModules(void)
 			cout << "ModuleFactory::unloadModules: failed on " << typeIter->first << endl;
 #endif
 		}
+#endif
 	}
 
 	m_types.clear();

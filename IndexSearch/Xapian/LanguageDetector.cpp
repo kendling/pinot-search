@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,10 +25,15 @@
 #include "config.h"
 extern "C"
 {
+#define USE_TEXTCAT 1
 #ifdef HAVE_LIBTEXTCAT_TEXTCAT_H
 #include <libtextcat/textcat.h>
 #else
+#ifdef HAVE_TEXTCAT_H
 #include <textcat.h>
+#else
+#undef USE_TEXTCAT
+#endif
 #endif
 }
 
@@ -61,6 +66,7 @@ LanguageDetector::~LanguageDetector()
 void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 			std::vector<std::string> &candidates)
 {
+#ifdef USE_TEXTCAT
 	string confFile(SYSCONFDIR);
 	char *textCatVersion = textcat_Version();
 #ifdef HAVE_TEXTCAT_CAT
@@ -177,4 +183,7 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 
 	// Close the descriptor
 	textcat_Done(td);
+#else
+	candidates.push_back("unknown");
+#endif
 }
