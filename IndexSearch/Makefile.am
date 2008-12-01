@@ -87,7 +87,7 @@ pinot_search_SOURCES = \
 pinot_search_DEPENDENCIES = libIndexSearch.la
 
 AM_CXXFLAGS = \
-	@VISIB_CFLAGS@ \
+	@MISC_CFLAGS@ \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \

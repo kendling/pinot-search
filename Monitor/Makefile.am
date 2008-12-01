@@ -19,7 +19,7 @@ libMonitor_la_SOURCES += INotifyMonitor.cpp
 endif
 
 libMonitor_la_CXXFLAGS = \
-	@VISIB_CFLAGS@ \
+	@MISC_CFLAGS@ \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \

@@ -18,7 +18,7 @@ libCollect_la_SOURCES = \
 	MboxCollector.cpp
 
 libCollect_la_CXXFLAGS = \
-	@VISIB_CFLAGS@ \
+	@MISC_CFLAGS@ \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \

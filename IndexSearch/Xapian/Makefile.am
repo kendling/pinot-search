@@ -39,7 +39,7 @@ libxapianbackend_la_LIBADD = \
 	@INDEX_LIBS@ @MISC_LIBS@
 
 AM_CXXFLAGS = \
-	@VISIB_CFLAGS@ \
+	@MISC_CFLAGS@ \
 	-I$(top_srcdir)/Utils \
 	-I$(top_srcdir)/Tokenize \
 	-I$(top_srcdir)/Tokenize/filters \

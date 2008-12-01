@@ -21,6 +21,6 @@ libSQL_la_SOURCES = \
 	ViewHistory.cpp
 
 AM_CXXFLAGS = \
-	@VISIB_CFLAGS@ \
+	@MISC_CFLAGS@ \
 	-I$(top_srcdir)/Utils
 
