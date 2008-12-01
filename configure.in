@@ -71,7 +71,7 @@ AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 AC_PATH_PROG(DESKTOP_INSTALL, desktop-file-install, no)
 
 dnl DEBUG mode
-CXXFLAGS="-fPIC"
+CXXFLAGS="-fPIC $CXXFLAGS"
 AC_MSG_CHECKING(whether to enable DEBUG mode)
 AC_ARG_ENABLE(debug,
    [AS_HELP_STRING([--enable-debug], [enable debug [default=no]])],
@@ -99,7 +99,6 @@ dnl Other versions
 ;;
 esac
 fi
-AC_SUBST(VISIB_CFLAGS)
 
 dnl SOAP API support
 AC_MSG_CHECKING(whether to enable SOAP support)
@@ -245,8 +244,7 @@ AC_CHECK_HEADERS([boost/spirit/core.hpp],
 
 dnl TextCat
 AC_CHECK_HEADERS([textcat.h],,
-   [AC_CHECK_HEADERS([libtextcat/textcat.h],,
-   [AC_MSG_ERROR([Can't find textcat.h.])])
+   [AC_CHECK_HEADERS([libtextcat/textcat.h])
    ])
 AC_CHECK_LIB(textcat, textcat_Cat,
    [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)],
@@ -281,21 +279,37 @@ if test "$pthreadlib" ; then
    fi
 else
    AC_MSG_RESULT(no)
-   AC_MSG_ERROR([Can't find pthreads.])
-   exit 1
+   AC_CHECK_LIB(pthreadGCE2, pthread_mutex_lock,
+      [PTHREAD_CFLAGS="-Ipthread"
+       PTHREAD_LIBS="-lpthreadGCE2"])
+
+   if test -z "$PTHREAD_LIBS" ; then
+      AC_MSG_ERROR([Can't find pthreads.])
+      exit 1
+   fi
 fi
 
 dnl Check whether we can use GIO instead of xdgmime
-dnl This test is from gtk's configure.in, with some modifications
 AM_CONDITIONAL(HAVE_GIO_MIME, false)
 AC_MSG_CHECKING([if gio can sniff png])
-gtk_save_LIBS="$LIBS"
-gtk_save_CFLAGS="$CFLAGS"
-gtk_save_CXXFLAGS="$CXXFLAGS"
-LIBS="`$PKG_CONFIG --libs gio-2.0`"
-CFLAGS="`$PKG_CONFIG --cflags gio-2.0`"
-CXXFLAGS="`$PKG_CONFIG --cflags gio-2.0`"
-AC_RUN_IFELSE([AC_LANG_SOURCE([[
+AC_ARG_ENABLE(gio,
+   [AS_HELP_STRING([--enable-gio], [enable gio [default=test]])],
+   ,[enable_gio=test])
+if test "x$enable_gio" = "xyes"; then
+   gio_can_sniff=yes
+   AM_CONDITIONAL(HAVE_GIO_MIME, true)
+else if test "x$enable_gio" = "xno"; then
+   gio_can_sniff=no
+   AM_CONDITIONAL(HAVE_GIO_MIME, false)
+else
+   dnl This test is from gtk's configure.in, with some modifications
+   gtk_save_LIBS="$LIBS"
+   gtk_save_CFLAGS="$CFLAGS"
+   gtk_save_CXXFLAGS="$CXXFLAGS"
+   LIBS="`$PKG_CONFIG --libs gio-2.0`"
+   CFLAGS="`$PKG_CONFIG --cflags gio-2.0`"
+   CXXFLAGS="`$PKG_CONFIG --cflags gio-2.0`"
+   AC_RUN_IFELSE([AC_LANG_SOURCE([[
   #include <string.h>
   #include <gio/gio.h>
   static const gsize data_size = 159;
@@ -328,15 +342,19 @@ AC_RUN_IFELSE([AC_LANG_SOURCE([[
   [gio_can_sniff=yes
    AM_CONDITIONAL(HAVE_GIO_MIME, true)],
   [gio_can_sniff=no])
+   LIBS="$gtk_save_LIBS"
+   CFLAGS="$gtk_save_CFLAGS"
+   CXXFLAGS="$gtk_save_CXXFLAGS"
+fi
+fi
 AC_MSG_RESULT($gio_can_sniff)
-LIBS="$gtk_save_LIBS"
-CFLAGS="$gtk_save_CFLAGS"
-CXXFLAGS="$gtk_save_CXXFLAGS"
 
 dnl Other libraries
+MISC_CFLAGS="$PTHREAD_CFLAGS $VISIB_CFLAGS"
 MISC_LIBS="-lcrypt $PTHREAD_LIBS"
+AC_SUBST(MISC_CFLAGS)
 AC_SUBST(MISC_LIBS)
-AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h])
+AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h dlfcn.h])
 PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
 SHARED_MIME_INFO_PREFIX=`pkg-config --variable=prefix shared-mime-info`
 AC_SUBST(SHARED_MIME_INFO_PREFIX)
@@ -395,6 +413,9 @@ dnl Check for specific functions
 AC_CHECK_FUNCS(vsnprintf)
 AC_CHECK_FUNCS(gettimeofday)
 AC_CHECK_FUNCS(timegm)
+AC_CHECK_FUNCS(gmtime_r)
+AC_CHECK_FUNCS(localtime_r)
+AC_CHECK_FUNCS(strptime)
 AC_CHECK_FUNCS(lstat)
 AC_CHECK_FUNCS(mmap)
 AC_CHECK_FUNCS(socketpair)
@@ -403,6 +424,7 @@ AC_CHECK_FUNCS(setrlimit)
 AC_CHECK_FUNCS(statvfs)
 AC_CHECK_FUNCS(statfs)
 AC_CHECK_FUNCS(sysctlbyname)
+AC_CHECK_FUNCS(mkstemp)
 
 AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile \
