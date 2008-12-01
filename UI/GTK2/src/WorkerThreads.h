@@ -113,6 +113,8 @@ class ThreadsManager : virtual public sigc::trackable
 			unsigned int maxThreadsTime = 300);
 		virtual ~ThreadsManager();
 
+		static unsigned int get_next_id(void);
+
 		bool start_thread(WorkerThread *pWorkerThread, bool inBackground = false);
 
 		unsigned int get_threads_count(void);
@@ -136,13 +138,13 @@ class ThreadsManager : virtual public sigc::trackable
 		bool pop_queue(const std::string &urlWasIndexed = "");
 
 	protected:
+		static unsigned int m_nextThreadId;
 		sigc::connection m_threadsEndConnection;
 		pthread_rwlock_t m_threadsLock;
 		pthread_rwlock_t m_listsLock;
 		std::map<unsigned int, WorkerThread *> m_threads;
 		std::string m_defaultIndexLocation;
 		unsigned int m_maxIndexThreads;
-		unsigned int m_nextThreadId;
 		unsigned int m_backgroundThreadsCount;
 		unsigned int m_foregroundThreadsMaxTime;
 		long m_numCPUs;

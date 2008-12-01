@@ -60,7 +60,6 @@ class DBusServletInfo
 		DBusMessage *m_pRequest;
 		DBusMessage *m_pReply;
 		GPtrArray *m_pArray;
-		std::string m_queryName;
 		bool m_simpleQuery;
 		WorkerThread *m_pThread;
 

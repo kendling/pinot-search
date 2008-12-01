@@ -1167,10 +1167,9 @@ void DBusServletThread::doWork(void)
 
 				// Give the query a unique name
 				queryNameStr << "DBUS" << m_id;
-				m_pServletInfo->m_queryName = queryNameStr.str();
 				m_pServletInfo->m_simpleQuery = false;
 
-				QueryProperties queryProps(m_pServletInfo->m_queryName, pSearchText);
+				QueryProperties queryProps(queryNameStr.str(), pSearchText);
 				queryProps.setMaximumResultsCount(maxHits);
 
 				string engineType, engineOption;
@@ -1221,10 +1220,9 @@ void DBusServletThread::doWork(void)
 
 				// Give the query a unique name
 				queryNameStr << "DBUS" << m_id;
-				m_pServletInfo->m_queryName = queryNameStr.str();
 				m_pServletInfo->m_simpleQuery = true;
 
-				QueryProperties queryProps(m_pServletInfo->m_queryName, pSearchText);
+				QueryProperties queryProps(queryNameStr.str(), pSearchText);
 				queryProps.setMaximumResultsCount(maxHits);
 
 				m_pServletInfo->m_pThread = new EngineQueryThread(settings.m_defaultBackend,

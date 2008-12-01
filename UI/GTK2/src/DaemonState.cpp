@@ -131,7 +131,6 @@ DBusServletInfo::DBusServletInfo(DBusConnection *pConnection, DBusMessage *pRequ
 	m_pRequest(pRequest),
 	m_pReply(NULL),
 	m_pArray(NULL),
-	m_queryName(""),
 	m_simpleQuery(true),
 	m_pThread(NULL),
 	m_replied(false)
@@ -680,9 +679,6 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			{
 				m_servletsInfo.insert(pInfo);
 
-#ifdef DEBUG
-				cout << "DaemonState::on_thread_end: running query " << pInfo->m_queryName << endl;
-#endif
 				start_thread(pInfo->m_pThread);
 			}
 			else
@@ -724,10 +720,10 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			DBusServletInfo *pInfo = const_cast<DBusServletInfo *>(*servIter);
 
 			if ((pInfo != NULL) &&
-				(pInfo->m_queryName == queryProps.getName()))
+				(pInfo->m_pThread->getId() == pThread->getId()))
 			{
 #ifdef DEBUG
-				cout << "DaemonState::on_thread_end: ran query " << pInfo->m_queryName << endl;
+				cout << "DaemonState::on_thread_end: ran query " << queryProps.getName() << endl;
 #endif
 				// Prepare and send the reply
 				pInfo->newQueryReply(resultsList, pQueryThread->getDocumentsCount());

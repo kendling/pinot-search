@@ -137,7 +137,7 @@ void WorkerThread::immediateFlush(bool doFlush)
 
 WorkerThread::WorkerThread() :
 	m_startTime(time(NULL)),
-	m_id(0),
+	m_id(ThreadsManager::get_next_id()),
 	m_background(false),
 	m_stopped(false),
 	m_done(false),
@@ -267,11 +267,12 @@ void WorkerThread::emitSignal(void)
 	}
 }
 
+unsigned int ThreadsManager::m_nextThreadId = 1;
+
 ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	unsigned int maxIndexThreads, unsigned int maxThreadsTime) :
 	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(maxIndexThreads),
-	m_nextThreadId(1),
 	m_backgroundThreadsCount(0),
 	m_foregroundThreadsMaxTime(maxThreadsTime),
 	m_numCPUs(1),
@@ -483,6 +484,13 @@ void ThreadsManager::clear_queues(void)
 	}
 }
 
+unsigned int ThreadsManager::get_next_id(void)
+{
+	unsigned int nextThreadId = ++m_nextThreadId;
+
+	return nextThreadId;
+}
+
 bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground)
 {
 	bool createdThread = false;
@@ -492,7 +500,6 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 		return false;
 	}
 
-	pWorkerThread->setId(m_nextThreadId);
 	if (inBackground == true)
 	{
 #ifdef DEBUG
@@ -541,8 +548,6 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 			delete pWorkerThread;
 		}
 	}
-
-	++m_nextThreadId;
 
 	return createdThread;
 }
