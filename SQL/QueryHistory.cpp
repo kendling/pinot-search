@@ -18,9 +18,10 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include <iostream>
-#include <cstdlib>
 
 #include "TimeConverter.h"
 #include "Url.h"

@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -23,7 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#ifdef HAVE_REGEX_H
 #include <regex.h>
+#endif
 #include <stdio.h>
 #include <sstream>
 #include <iostream>
@@ -272,8 +275,12 @@ void XapianDatabase::openDatabase(void)
 			<< " doesn't exist" << endl;
 #endif
 
-		// Database directory doesn't exist, create it (mode 755)
-		if (mkdir(m_databaseName.c_str(), (mode_t)S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) != 0)
+		// Database directory doesn't exist, create it
+#ifdef WIN32
+		if (mkdir(m_databaseName.c_str()) != 0)
+#else
+		if (mkdir(m_databaseName.c_str(), (mode_t)(S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)) != 0)
+#endif
 		{
 			cerr << "XapianDatabase::openDatabase: couldn't create database directory "
 				<< m_databaseName << endl;
@@ -507,9 +514,10 @@ void XapianDatabase::unlock(void)
 
 bool XapianDatabase::badRecordField(const string &field)
 {
+	bool isBadField = false;
+#ifdef HAVE_REGEX_H
 	regex_t fieldRegex;
 	regmatch_t pFieldMatches[1];
-	bool isBadField = false;
 
 	// A bad field is one that includes one of our field delimiters
 	if (regcomp(&fieldRegex,
@@ -523,6 +531,19 @@ bool XapianDatabase::badRecordField(const string &field)
 		}
 	}
 	regfree(&fieldRegex);
+#else
+	// A bad field is one that includes one of our field delimiters
+	if ((field.find("url") != string::npos) ||
+		(field.find("sample") != string::npos) ||
+		(field.find("caption") != string::npos) ||
+		(field.find("type") != string::npos) ||
+		(field.find("modtime") != string::npos) ||
+		(field.find("language") != string::npos) ||
+		(field.find("size") != string::npos))
+	{
+		isBadField = true;
+	}
+#endif
 
 	return isBadField;
 }
