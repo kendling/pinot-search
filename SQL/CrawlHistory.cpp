@@ -55,7 +55,7 @@ string CrawlHistory::statusToText(CrawlStatus status)
 		case CRAWLED:
 			text = "CRAWLED";
 			break;
-		case ERROR:
+		case CRAWL_ERROR:
 			text = "ERROR";
 			break;
 		default:
@@ -79,7 +79,7 @@ CrawlHistory::CrawlStatus CrawlHistory::textToStatus(const string &text)
 	}
 	else if (text == "ERROR")
 	{
-		status = ERROR;
+		status = CRAWL_ERROR;
 	}
 
 	return status;

@@ -33,7 +33,7 @@ class CrawlHistory : public SQLiteBase
 		CrawlHistory(const std::string &database);
 		virtual ~CrawlHistory();
 
-		typedef enum { UNKNOWN, CRAWLING, CRAWLED, ERROR } CrawlStatus;
+		typedef enum { UNKNOWN, CRAWLING, CRAWLED, CRAWL_ERROR } CrawlStatus;
 
 		/// Creates the CrawlHistory table in the database.
 		static bool create(const std::string &database);
