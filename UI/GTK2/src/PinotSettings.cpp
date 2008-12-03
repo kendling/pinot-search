@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -24,8 +25,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif
+#ifdef HAVE_FNMATCH_H
 #include <fnmatch.h>
+#endif
 #include <algorithm>
 #include <iostream>
 
@@ -35,7 +40,6 @@
 #include <libxml++/nodes/node.h>
 #include <libxml++/nodes/textnode.h>
 
-#include "config.h"
 #include "NLS.h"
 #include "CommandLine.h"
 #include "Languages.h"
@@ -120,7 +124,11 @@ PinotSettings::PinotSettings() :
 	if (stat(directoryName.c_str(), &fileStat) != 0)
 	{
 		// No, create it then
+#ifdef WIN32
+		if (mkdir(directoryName.c_str()) == 0)
+#else
 		if (mkdir(directoryName.c_str(), (mode_t)S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IXOTH) == 0)
+#endif
 		{
 			cerr << "Created directory " << directoryName << endl;
 			m_firstRun = true;
@@ -167,6 +175,7 @@ bool PinotSettings::enableClientMode(bool enable)
 
 string PinotSettings::getHomeDirectory(void)
 {
+#ifdef HAVE_PWD_H
 	struct passwd *pPasswd = getpwuid(geteuid());
 
 	if ((pPasswd != NULL) &&
@@ -176,14 +185,17 @@ string PinotSettings::getHomeDirectory(void)
 	}
 	else
 	{
+#endif
 		char *homeDir = getenv("HOME");
 		if (homeDir != NULL)
 		{
 			return homeDir;
 		}
+#ifdef HAVE_PWD_H
 	}
 
 	return "~";
+#endif
 }
 
 string PinotSettings::getConfigurationDirectory(void)
@@ -217,6 +229,7 @@ string PinotSettings::getFileName(bool prefsOrUI)
 
 string PinotSettings::getCurrentUserName(void)
 {
+#ifdef HAVE_PWD_H
 	struct passwd *pPasswd = getpwuid(geteuid());
 
 	if ((pPasswd != NULL) &&
@@ -224,6 +237,7 @@ string PinotSettings::getCurrentUserName(void)
 	{
 		return pPasswd->pw_name;
 	}
+#endif
 
 	return "";
 }
@@ -406,6 +420,7 @@ bool PinotSettings::load(LoadWhat what)
 		m_isBlackList = getDefaultPatterns(m_filePatternsList);
 
 		// Create default queries
+#ifdef HAVE_PWD_H
 		struct passwd *pPasswd = getpwuid(geteuid());
 		if (pPasswd != NULL)
 		{
@@ -429,6 +444,7 @@ bool PinotSettings::load(LoadWhat what)
 				addQuery(queryProps);
 			}
 		}
+#endif
 
 		QueryProperties queryProps(_("Latest First"), "dir:/");
 		queryProps.setSortOrder(QueryProperties::DATE);
@@ -1971,6 +1987,7 @@ bool PinotSettings::isBlackListed(const string &fileName)
 		return true;
 	}
 
+#ifdef HAVE_FNMATCH_H
 	// Any pattern matches this file name ?
 	for (set<ustring>::iterator patternIter = m_filePatternsList.begin(); patternIter != m_filePatternsList.end() ; ++patternIter)
 	{
@@ -1983,6 +2000,7 @@ bool PinotSettings::isBlackListed(const string &fileName)
 			return m_isBlackList;
 		}
 	}
+#endif
 
 	return !m_isBlackList;
 }

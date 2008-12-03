@@ -354,7 +354,7 @@ MISC_CFLAGS="$PTHREAD_CFLAGS $VISIB_CFLAGS"
 MISC_LIBS="$PTHREAD_LIBS"
 AC_SUBST(MISC_CFLAGS)
 AC_SUBST(MISC_LIBS)
-AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h dlfcn.h regex.h])
+AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h dlfcn.h regex.h fnmatch.h pwd.h])
 PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
 SHARED_MIME_INFO_PREFIX=`pkg-config --variable=prefix shared-mime-info`
 AC_SUBST(SHARED_MIME_INFO_PREFIX)
@@ -425,6 +425,10 @@ AC_CHECK_FUNCS(statvfs)
 AC_CHECK_FUNCS(statfs)
 AC_CHECK_FUNCS(sysctlbyname)
 AC_CHECK_FUNCS(mkstemp)
+AC_CHECK_FUNCS(sigaction)
+AC_CHECK_FUNCS(sysconf)
+AC_CHECK_FUNCS(getloadavg)
+AC_CHECK_FUNCS(pipe)
 
 AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile \

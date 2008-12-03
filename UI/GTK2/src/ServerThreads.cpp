@@ -492,11 +492,11 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 		// Record this error
 		if (itemExists == false)
 		{
-			crawlHistory.insertItem(location, CrawlHistory::ERROR, m_sourceId, timeNow, entryStatus);
+			crawlHistory.insertItem(location, CrawlHistory::CRAWL_ERROR, m_sourceId, timeNow, entryStatus);
 		}
 		else
 		{
-			crawlHistory.updateItem(location, CrawlHistory::ERROR, timeNow, entryStatus);
+			crawlHistory.updateItem(location, CrawlHistory::CRAWL_ERROR, timeNow, entryStatus);
 		}
 	}
 
@@ -526,7 +526,7 @@ void DirectoryScannerThread::doWork(void)
 			m_sourceId);
 	}
 	// Remove errors
-	crawlHistory.deleteItems(m_sourceId, CrawlHistory::ERROR);
+	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_ERROR);
 
 	if (scanEntry(m_dirName, crawlHistory) == false)
 	{

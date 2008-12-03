@@ -364,7 +364,7 @@ bool statisticsDialog::on_activity_timeout(void)
 
 		// Did any error occur on this source ?
 		unsigned int errorCount = crawlHistory.getSourceItems(sourceNum,
-			CrawlHistory::ERROR, errors, currentOffset, currentOffset + 100,
+			CrawlHistory::CRAWL_ERROR, errors, currentOffset, currentOffset + 100,
 			latestErrorDate);
 		while ((errorCount > 0) &&
 			(errors.empty() == false))
@@ -427,7 +427,7 @@ bool statisticsDialog::on_activity_timeout(void)
 			}
 			currentOffset += 100;
 			errorCount = crawlHistory.getSourceItems(sourceNum,
-				CrawlHistory::ERROR, errors, currentOffset, currentOffset + 100,
+				CrawlHistory::CRAWL_ERROR, errors, currentOffset, 100, // currentOffset + 100,
 				latestErrorDate);
 		}
 

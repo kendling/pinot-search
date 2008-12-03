@@ -226,7 +226,7 @@ string WorkerThread::getStatus(void) const
 void WorkerThread::threadHandler(void)
 {
 #ifdef DEBUG
-	cout << "WorkerThread::threadHandler: thread " << m_id << " " << pthread_self() << endl;
+	cout << "WorkerThread::threadHandler: thread " << m_id << endl;
 #endif
 	try
 	{
@@ -281,7 +281,9 @@ ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	pthread_rwlock_init(&m_threadsLock, NULL);
 	pthread_rwlock_init(&m_listsLock, NULL);
 
+#ifdef HAVE_SYSCONF
 	m_numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
 }
 
 ThreadsManager::~ThreadsManager()
@@ -633,7 +635,6 @@ void ThreadsManager::on_thread_signal()
 
 ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 {
-	double averageLoad[3];
 	bool addToQueue = false;
 
 	if (get_threads_count() >= m_maxIndexThreads)
@@ -643,16 +644,23 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 #endif
 		addToQueue = true;
 	}
+#ifdef HAVE_GETLOADAVG
 	// Get the load averaged over the last minute
-	else if (getloadavg(averageLoad, 3) != -1)
+	else
 	{
-		// FIXME: is LOADAVG_1MIN Solaris specific ?
-		if (averageLoad[0] >= (double)m_numCPUs * 4)
+		double averageLoad[3];
+
+		if (getloadavg(averageLoad, 3) != -1)
 		{
-			// Don't add to the load, queue this
-			addToQueue = true;
+			// FIXME: is LOADAVG_1MIN Solaris specific ?
+			if (averageLoad[0] >= (double)m_numCPUs * 4)
+			{
+				// Don't add to the load, queue this
+				addToQueue = true;
+			}
 		}
 	}
+#endif
 
 	if (addToQueue == true)
 	{
@@ -1986,18 +1994,26 @@ MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandle
 {
 	int pipeFds[2];
 
+#ifdef HAVE_PIPE
 	if (pipe(pipeFds) == 0)
 	{
 		// This pipe will allow to stop select()
 		m_ctrlReadPipe = pipeFds[0];
 		m_ctrlWritePipe = pipeFds[1];
 	}
+#endif
 }
 
 MonitorThread::~MonitorThread()
 {
-	close(m_ctrlReadPipe);
-	close(m_ctrlWritePipe);
+	if (m_ctrlReadPipe >= 0)
+	{
+		close(m_ctrlReadPipe);
+	}
+	if (m_ctrlWritePipe >= 0)
+	{
+		close(m_ctrlWritePipe);
+	}
 }
 
 string MonitorThread::getType(void) const
@@ -2008,7 +2024,10 @@ string MonitorThread::getType(void) const
 void MonitorThread::stop(void)
 {
 	WorkerThread::stop();
-	write(m_ctrlWritePipe, "X", 1);
+	if (m_ctrlWritePipe >= 0)
+	{
+		write(m_ctrlWritePipe, "X", 1);
+	}
 }
 
 void MonitorThread::processEvents(void)
