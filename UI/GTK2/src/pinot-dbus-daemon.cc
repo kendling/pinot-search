@@ -271,7 +271,6 @@ static bool getBatteryState(DBusGConnection *pBus, const string &name, const str
 
 int main(int argc, char **argv)
 {
-	struct sigaction newAction;
 	int longOptionIndex = 0, priority = 15;
 	bool resetHistory = false;
 	bool resetLabels = false;
@@ -462,12 +461,21 @@ int main(int argc, char **argv)
 	settings.load(PinotSettings::LOAD_ALL);
 
 	// Catch interrupts
+#ifdef HAVE_SIGACTION
+	struct sigaction newAction;
 	sigemptyset(&newAction.sa_mask);
 	newAction.sa_flags = 0;
 	newAction.sa_handler = quitAll;
 	sigaction(SIGINT, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
 	sigaction(SIGTERM, &newAction, NULL);
+#else
+	signal(SIGINT, quitAll);
+#ifdef SIGQUIT
+	signal(SIGQUIT, quitAll);
+#endif
+	signal(SIGTERM, quitAll);
+#endif
 
 	// Open the daemon index in read-write mode 
 	bool wasObsoleteFormat = false;

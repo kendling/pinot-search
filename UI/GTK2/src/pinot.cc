@@ -101,7 +101,6 @@ int main(int argc, char **argv)
 {
 	string prefixDir(PREFIX);
 	Glib::ustring errorMsg;
-	struct sigaction newAction;
 	int longOptionIndex = 0;
 	bool warnAboutVersion = false, prefsMode = false;
 
@@ -274,12 +273,21 @@ int main(int argc, char **argv)
 	settings.load(PinotSettings::LOAD_ALL);
 
 	// Catch interrupts
+#ifdef HAVE_SIGACTION
+	struct sigaction newAction;
 	sigemptyset(&newAction.sa_mask);
 	newAction.sa_flags = 0;
 	newAction.sa_handler = quitAll;
 	sigaction(SIGINT, &newAction, NULL);
 	sigaction(SIGQUIT, &newAction, NULL);
 	sigaction(SIGTERM, &newAction, NULL);
+#else
+	signal(SIGINT, quitAll);
+#ifdef SIGQUIT
+	signal(SIGQUIT, quitAll);
+#endif
+	signal(SIGTERM, quitAll);
+#endif
 
 	// Open this index read-write, unless we are in preferences mode
 	bool wasObsoleteFormat = false;
