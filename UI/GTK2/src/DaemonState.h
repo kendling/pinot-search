@@ -16,13 +16,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef _DBUSERVER_HH
-#define _DBUSERVER_HH
+#ifndef _DAEMONSTATE_HH
+#define _DAEMONSTATE_HH
 
 #include <sys/select.h>
 #include <string>
 #include <queue>
 #include <set>
+#ifdef HAVE_DBUS
 extern "C"
 {
 #if DBUS_VERSION < 1000000
@@ -32,6 +33,7 @@ extern "C"
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 }
+#endif
 #include <sigc++/sigc++.h>
 
 #include "MonitorInterface.h"
@@ -39,6 +41,7 @@ extern "C"
 #include "PinotSettings.h"
 #include "WorkerThreads.h"
 
+#ifdef HAVE_DBUS
 class DBusServletInfo
 {
 	public:
@@ -67,6 +70,7 @@ class DBusServletInfo
 		bool m_replied;
 
 };
+#endif
 
 class DaemonState : public ThreadsManager
 {
@@ -107,7 +111,9 @@ class DaemonState : public ThreadsManager
 		sigc::signal1<void, int> m_signalQuit;
 		unsigned int m_crawlers;
 		std::queue<PinotSettings::IndexableLocation> m_crawlQueue;
+#ifdef HAVE_DBUS
 		std::set<DBusServletInfo *> m_servletsInfo;
+#endif
 
 		bool on_activity_timeout(void);
 
@@ -117,4 +123,4 @@ class DaemonState : public ThreadsManager
 
 };
 
-#endif
+#endif // _DAEMONSTATE_HH

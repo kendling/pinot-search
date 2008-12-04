@@ -30,6 +30,7 @@
 #include <glibmm/miscutils.h>
 #include <glibmm/convert.h>
 #include "config.h"
+#ifdef HAVE_DBUS
 extern "C"
 {
 #if DBUS_NUM_VERSION < 1000000
@@ -39,6 +40,7 @@ extern "C"
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 }
+#endif
 #include <gtkmm/main.h>
 
 #include "NLS.h"
@@ -157,10 +159,12 @@ int main(int argc, char **argv)
 	}
 	// Initialize the GType and the D-Bus thread system
 	g_type_init();
+#ifdef HAVE_DBUS
 #if DBUS_NUM_VERSION > 1000000
 	dbus_threads_init_default();
 #endif
 	dbus_g_thread_init();
+#endif
 
 	Gtk::Main m(&argc, &argv);
 	if (prefsMode == false)
@@ -213,8 +217,10 @@ int main(int argc, char **argv)
 
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();
+#ifdef HAVE_DBUS
 	// Talk to the daemon through DBus
 	settings.enableClientMode(true);
+#endif
 
 	string confDirectory = PinotSettings::getConfigurationDirectory();
 	if (chdir(confDirectory.c_str()) == 0)

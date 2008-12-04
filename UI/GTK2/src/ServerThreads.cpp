@@ -40,7 +40,9 @@
 #include "Url.h"
 #include "CrawlHistory.h"
 #include "MetaDataBackup.h"
+#ifdef HAVE_DBUS
 #include "DBusIndex.h"
+#endif
 #include "ModuleFactory.h"
 #include "DaemonState.h"
 #include "PinotSettings.h"
@@ -619,6 +621,7 @@ void DirectoryScannerThread::doWork(void)
 	}
 }
 
+#ifdef HAVE_DBUS
 DBusServletThread::DBusServletThread(DaemonState *pServer, DBusServletInfo *pInfo) :
 	WorkerThread(),
 	m_pServer(pServer),
@@ -1325,4 +1328,5 @@ void DBusServletThread::doWork(void)
 
 	delete pIndex;
 }
+#endif
 

@@ -29,7 +29,9 @@
 #include "Url.h"
 #include "CrawlHistory.h"
 #include "ViewHistory.h"
+#ifdef HAVE_DBUS
 #include "DBusIndex.h"
+#endif
 #include "ModuleFactory.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
@@ -39,6 +41,7 @@ using namespace std;
 using namespace Glib;
 using namespace Gtk;
 
+#ifdef HAVE_DBUS
 class DaemonStatusThread : public WorkerThread
 {
         public:
@@ -86,6 +89,7 @@ class DaemonStatusThread : public WorkerThread
                 DaemonStatusThread &operator=(const DaemonStatusThread &other);
 
 };
+#endif
 
 statisticsDialog::InternalState::InternalState(unsigned int maxIndexThreads, statisticsDialog *pWindow) :
         ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
@@ -264,6 +268,7 @@ bool statisticsDialog::on_activity_timeout(void)
 		// FIXME: check whether it's actually running !
 		row[m_statsColumns.m_name] = ustring(_("Running under PID")) + " " + countStr;
 
+#ifdef HAVE_DBUS
 		if ((m_state.m_getStats == true) &&
 			(m_state.m_gettingStats == false))
 		{
@@ -275,6 +280,7 @@ bool statisticsDialog::on_activity_timeout(void)
 				m_state.m_getStats = false;
 			}
 		}
+#endif
 	}
 	else
 	{
@@ -466,6 +472,7 @@ void statisticsDialog::on_thread_end(WorkerThread *pThread)
 
 	// What type of thread was it ?
 	string type = pThread->getType();
+#ifdef HAVE_DBUS
 	if (type == "DaemonStatusThread")
 	{
 		// Did it succeed ?
@@ -485,6 +492,7 @@ void statisticsDialog::on_thread_end(WorkerThread *pThread)
 			}
 		}
 	}
+#endif
 
 	// Delete the thread
 	delete pThread;

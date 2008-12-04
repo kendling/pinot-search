@@ -32,7 +32,9 @@
 #include "config.h"
 #include "NLS.h"
 #include "StringManip.h"
+#ifdef HAVE_DBUS
 #include "DBusIndex.h"
+#endif
 #include "ModuleFactory.h"
 #include "PinotUtils.h"
 #include "prefsWindow.hh"
@@ -42,6 +44,7 @@ using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
 
+#ifdef HAVE_DBUS
 class StartDaemonThread : public WorkerThread
 {
 	public:
@@ -74,6 +77,7 @@ class StartDaemonThread : public WorkerThread
 		StartDaemonThread &operator=(const StartDaemonThread &other);
 
 };
+#endif
 
 class GetLabelsThread : public WorkerThread
 {
@@ -713,6 +717,7 @@ void prefsWindow::on_prefsOkbutton_clicked()
 	save_labelsTreeview();
 	bool startForDirectories = save_directoriesTreeview();
 	bool startForPatterns = save_patternsTreeview();
+#ifdef HAVE_DBUS
 	if ((startForDirectories == true) ||
 		(startForPatterns == true))
 	{
@@ -727,6 +732,7 @@ void prefsWindow::on_prefsOkbutton_clicked()
 			startedThread = true;
 		}
 	}
+#endif
 	if ((m_addedLabels.empty() == false) ||
 		(m_deletedLabels.empty() == false))
 	{

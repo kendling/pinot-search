@@ -60,7 +60,9 @@
 #include "Url.h"
 #include "MonitorFactory.h"
 #include "CrawlHistory.h"
+#ifdef HAVE_DBUS
 #include "DBusIndex.h"
+#endif
 #include "DaemonState.h"
 #include "OnDiskHandler.h"
 #include "PinotSettings.h"
@@ -126,6 +128,7 @@ public:
 	}
 };
 
+#ifdef HAVE_DBUS
 DBusServletInfo::DBusServletInfo(DBusConnection *pConnection, DBusMessage *pRequest) :
 	m_pConnection(pConnection),
 	m_pRequest(pRequest),
@@ -301,6 +304,7 @@ bool DBusServletInfo::reply(void)
 
 	return false;
 }
+#endif
 
 DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 10),
@@ -662,6 +666,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	{
 		// FIXME: do something about this
 	}
+#ifdef HAVE_DBUS
 	else if (type == "DBusServletThread")
 	{
 		DBusServletThread *pDBusThread = dynamic_cast<DBusServletThread *>(pThread);
@@ -700,6 +705,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			m_signalQuit(0);
 		}
 	}
+#endif
 	else if (type == "QueryingThread")
 	{
 		QueryingThread *pQueryThread = dynamic_cast<QueryingThread *>(pThread);
@@ -713,6 +719,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		QueryProperties queryProps(pQueryThread->getQuery(wasCorrected));
 		const vector<DocumentInfo> &resultsList = pQueryThread->getDocuments();
 
+#ifdef HAVE_DBUS
 		// Find the servlet info
 		for (set<DBusServletInfo *>::const_iterator servIter = m_servletsInfo.begin();
 			servIter != m_servletsInfo.end(); ++servIter)
@@ -735,6 +742,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 				break;
 			}
 		}
+#endif
 	}
 
 	// Delete the thread

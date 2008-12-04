@@ -75,6 +75,7 @@ class DirectoryScannerThread : public IndexingThread
 
 };
 
+#ifdef HAVE_DBUS
 class DBusServletThread : public WorkerThread
 {
 	public:
@@ -99,5 +100,6 @@ class DBusServletThread : public WorkerThread
 		DBusServletThread &operator=(const DBusServletThread &other);
 
 };
+#endif
 
 #endif // _SERVERTHREADS_HH

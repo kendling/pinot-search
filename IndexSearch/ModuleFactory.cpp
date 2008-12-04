@@ -27,7 +27,9 @@
 #include <utility>
 #include <iostream>
 
+#ifdef HAVE_DBUS
 #include "DBusIndex.h"
+#endif
 #include "PluginWebEngine.h"
 #include "ModuleFactory.h"
 
@@ -369,7 +371,11 @@ IndexInterface *ModuleFactory::getIndex(const string &type, const string &option
 		pIndex = getLibraryIndex(type.substr(5), option);
 		if (pIndex != NULL)
 		{
+#ifdef HAVE_DBUS
 			return new DBusIndex(pIndex);
+#else
+			return pIndex;
+#endif
 		}
 
 		return NULL;
