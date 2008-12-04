@@ -17,13 +17,16 @@ noinst_HEADERS = \
 	WebEngine.h \
 	XesamLog.h
 
+if HAVE_DBUS
 noinst_LTLIBRARIES = libIndex.la libIndexSearch.la
+else
+noinst_LTLIBRARIES = libIndexSearch.la
+endif
 
 libIndex_la_SOURCES = \
 	DBusIndex.cpp
 
 libIndexSearch_la_SOURCES = \
-	DBusIndex.cpp \
 	FilterWrapper.cpp \
 	ModuleFactory.cpp \
 	OpenSearchParser.cpp \
@@ -34,11 +37,19 @@ libIndexSearch_la_SOURCES = \
 	SearchPluginProperties.cpp \
 	WebEngine.cpp
 
+if HAVE_DBUS
+libIndexSearch_la_SOURCES += DBusIndex.cpp
+endif
+
 if HAVE_BOOST_SPIRIT
 libIndexSearch_la_SOURCES += SherlockParser.cpp
 endif
 
+if HAVE_DBUS
 bin_PROGRAMS = pinot-index pinot-label pinot-search
+else
+bin_PROGRAMS = pinot-index pinot-search
+endif
 
 pinot_index_LDFLAGS = \
 	-rdynamic
@@ -97,6 +108,10 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/IndexSearch/xesam \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ \
 	@INDEX_CFLAGS@ @GLIBMM_CFLAGS@
+
+if HAVE_DBUS
+AM_CXXFLAGS += -DHAVE_DBUS
+endif
 
 if HAVE_BOOST_SPIRIT
 AM_CXXFLAGS += -DHAVE_BOOST_SPIRIT

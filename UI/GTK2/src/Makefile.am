@@ -66,7 +66,11 @@ pinot_dbus_daemon_SOURCES = \
 	UniqueApplication.cpp \
 	WorkerThreads.cpp
 
+if HAVE_DBUS
 bin_PROGRAMS = pinot pinot-dbus-daemon
+else
+bin_PROGRAMS = pinot
+endif
 
 AM_CXXFLAGS = \
 	@MISC_CFLAGS@ \
@@ -79,6 +83,10 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/IndexSearch \
 	@SQL_CFLAGS@ @HTTP_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ \
 	@INDEX_CFLAGS@ @GTHREAD_CFLAGS@ @GTKMM_CFLAGS@
+
+if HAVE_DBUS
+AM_CXXFLAGS += -DHAVE_DBUS
+endif
 
 pinot_LDFLAGS = \
 	-rdynamic
