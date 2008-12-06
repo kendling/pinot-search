@@ -22,6 +22,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <stdlib.h>
 #ifdef HAVE_STATFS
   #ifdef HAVE_SYS_VFS_H

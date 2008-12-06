@@ -19,6 +19,7 @@
 #ifndef _INOTIFY_MONITOR_H
 #define _INOTIFY_MONITOR_H
 
+#include <stdint.h>
 #include <pthread.h>
 #include <string>
 #include <map>
