@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2008 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -386,7 +386,6 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 		if (refBuffer)
 		{
 			ustring extract(findResultsExtract(row));
-			TextBuffer::iterator bufferPos = refBuffer->begin();
 			ustring::size_type textPos = 0, boldPos = extract.find("<b>");
 
 			// Clear the extract
@@ -401,6 +400,8 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			}
 			else
 			{
+				TextBuffer::iterator bufferPos = refBuffer->begin();
+
 				while (boldPos != ustring::npos)
 				{
 					bufferPos = refBuffer->insert(bufferPos, extract.substr(textPos, boldPos - textPos));
