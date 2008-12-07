@@ -454,6 +454,7 @@ bool PinotSettings::load(LoadWhat what)
 		addQuery(QueryProperties(_("Have CJKV"), "tokens:CJKV"));
 		addQuery(QueryProperties(_("In English"), "lang:en"));
 		addQuery(QueryProperties(_("10kb And Smaller"), "0..10240b"));
+		addQuery(QueryProperties("Pinot search", "pinot search"));
 	}
 
 	return true;
@@ -501,7 +502,10 @@ bool PinotSettings::loadSearchEngines(const string &directoryName)
 					}
 					// SearchPluginProperties derives ModuleProperties
 					m_engines.insert(properties);
-					m_engineChannels.insert(pair<string, bool>(properties.m_channel, true));
+					if (m_engineChannels.find(properties.m_channel) == m_engineChannels.end())
+					{
+						m_engineChannels.insert(pair<string, bool>(properties.m_channel, true));
+					}
 
 					// Any editable parameters in this plugin ?
 					for (map<string, string>::const_iterator editableIter = properties.m_editableParameters.begin();
