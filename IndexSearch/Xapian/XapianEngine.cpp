@@ -140,8 +140,12 @@ class TimeValueRangeProcessor : public Xapian::ValueRangeProcessor
 class PrefixDecider : public Xapian::ExpandDecider
 {
 	public:
-		PrefixDecider(const string &allowedPrefixes) :
+		PrefixDecider(Xapian::Database *pIndex,
+			Xapian::Stopper *pStopper,
+			const string &allowedPrefixes) :
 			Xapian::ExpandDecider(),
+			m_pIndex(pIndex),
+			m_pStopper(pStopper),
 			m_allowedPrefixes(allowedPrefixes)
 		{
 		}
@@ -151,19 +155,44 @@ class PrefixDecider : public Xapian::ExpandDecider
 
 		virtual bool operator()(const std::string &term) const
 		{
-			if ((isupper((int)(term[0])) == 0) ||
-				(m_allowedPrefixes.find(term[0]) != string::npos))
-			{
-				return true;
-			}
-#ifdef DEBUG
-			cout << "PrefixDecider::operator: rejecting " << term << endl;
-#endif
+			CJKVTokenizer tokenizer;
 
-			return false;
+			// Reject short terms
+			if ((tokenizer.has_cjkv(term) == false) &&
+				(term.length() < 3))
+			{
+				return false;
+			}
+
+			// Reject terms with prefixes we don't want
+			if ((isupper((int)(term[0])) != 0) && 
+				(m_allowedPrefixes.find(term[0]) == string::npos))
+			{
+				return false;
+			}
+
+			// Reject terms that occur only once
+			if ((m_pIndex != NULL) &&
+				(m_pIndex->get_termfreq(term) <= 1))
+			{
+				return false;
+			}
+
+			// Reject stop words
+			if ((m_pStopper != NULL) &&
+				((*m_pStopper)(term) == true))
+			{
+				return false;
+			}
+
+			// FIXME: reject terms that stem to the same as query terms
+
+			return true;
 		}
 
 	protected:
+		Xapian::Database *m_pIndex;
+		Xapian::Stopper *m_pStopper;
 		string m_allowedPrefixes;
 
 };
@@ -560,9 +589,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		// Don't bother loading the stopwords list if there's only one token
 		if (tokensCount > 1)
 		{
-			string languageCode(Languages::toCode(stemLanguage));
-
-			FileStopper *pStopper = FileStopper::get_stopper(languageCode);
+			FileStopper *pStopper = FileStopper::get_stopper(Languages::toCode(stemLanguage));
 			if ((pStopper != NULL) &&
 				(pStopper->get_stopwords_count() > 0))
 			{
@@ -586,6 +613,11 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	{
 		parser.set_default_op(Xapian::Query::OP_OR);
 	}
+#if XAPIAN_NUM_VERSION >= 1000004
+	// Search across text body and title
+	parser.add_prefix("", "");
+	parser.add_prefix("", "S");
+#endif
 	// X prefixes should always include a colon
 	parser.add_boolean_prefix("site", "H");
 	parser.add_boolean_prefix("file", "P");
@@ -760,7 +792,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 }
 
 bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
-	unsigned int startDoc, const QueryProperties &queryProps)
+	const string &stemLanguage, unsigned int startDoc, const QueryProperties &queryProps)
 {
 	Timer timer;
 	unsigned int maxResultsCount = queryProps.getMaximumResultsCount();
@@ -904,7 +936,6 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		if (m_expandDocuments.empty() == false)
 		{
 			Xapian::RSet expandDocs;
-			unsigned int count = 0;
 
 			for (set<string>::const_iterator docIter = m_expandDocuments.begin();
 				docIter != m_expandDocuments.end(); ++docIter)
@@ -924,24 +955,17 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 
 			// Get 10 non-prefixed terms
 			string allowedPrefixes("RS");
-			PrefixDecider expandDecider(allowedPrefixes);
+			PrefixDecider expandDecider(pIndex, FileStopper::get_stopper(Languages::toCode(stemLanguage)), allowedPrefixes);
 			CJKVTokenizer tokenizer;
-			Xapian::ESet expandTerms = enquire.get_eset(20, expandDocs, &expandDecider);
+			Xapian::ESet expandTerms = enquire.get_eset(10, expandDocs, &expandDecider);
 #ifdef DEBUG
 			cout << "XapianEngine::queryDatabase: " << expandTerms.size() << " expand terms" << endl;
 #endif
 			for (Xapian::ESetIterator termIter = expandTerms.begin();
-				(termIter != expandTerms.end()) && (count < 10); ++termIter)
+				termIter != expandTerms.end(); ++termIter)
 			{
 				string expandTerm(*termIter);
 				char firstChar = expandTerm[0];
-
-				// Skip short terms
-				if ((tokenizer.has_cjkv(expandTerm) == false) &&
-					(expandTerm.length() < 3))
-				{
-					continue;
-				}
 
 				// Is this prefixed ?
 				if (allowedPrefixes.find(firstChar) != string::npos)
@@ -950,7 +974,6 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 				}
 
 				m_expandTerms.insert(expandTerm);
-				++count;
 			}
 		}
 	}
@@ -1064,14 +1087,14 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 		unsigned int searchStep = 1;
 
 		// Searches are run in this order :
-		// 1. don't stem terms
-		// 2. if no results, stem terms if a language is defined for the query
+		// 1. no stemming, exact matches only
+		// 2. stem terms if a language is defined for the query
 		Xapian::Query fullQuery = parseQuery(pIndex, queryProps, "",
 			m_defaultOperator, m_limitQuery, m_correctedFreeQuery);
 		while (fullQuery.empty() == false)
 		{
 			// Query the database
-			if (queryDatabase(pIndex, fullQuery, startDoc, queryProps) == false)
+			if (queryDatabase(pIndex, fullQuery, stemLanguage, startDoc, queryProps) == false)
 			{
 				break;
 			}
