@@ -1274,17 +1274,15 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 				status = _("Showing");
 				status += " ";
-				snprintf(docsCountStr, 64, "%u", pResultsTree->getRowsCount());
+				snprintf(docsCountStr, 64, "%u", pIndexPage->getFirstDocument());
+				status += docsCountStr;
+				status += " - ";
+				snprintf(docsCountStr, 64, "%u", pIndexPage->getFirstDocument() + pResultsTree->getRowsCount());
 				status += docsCountStr;
 				status += " ";
 				status += _("of");
 				status += " ";
 				snprintf(docsCountStr, 64, "%u", pIndexPage->getDocumentsCount());
-				status += docsCountStr;
-				status += " ";
-				status += _("documents, starting at");
-				status += " ";
-				snprintf(docsCountStr, 64, "%u", pIndexPage->getFirstDocument());
 				status += docsCountStr;
 				set_status(status);
 
