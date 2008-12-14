@@ -195,6 +195,9 @@ string PinotSettings::getHomeDirectory(void)
 	}
 
 	return "~";
+#else
+
+	return ".";
 #endif
 }
 
