@@ -156,10 +156,14 @@ void statisticsDialog::populate(void)
 	row = *statIter;
 	row[m_statsColumns.m_name] = _("My Web Pages");
 	m_myWebPagesIter = m_refStore->append(statIter->children());
+	row = *m_myWebPagesIter;
+	row[m_statsColumns.m_name] = ustring(_("Checking"));
 	statIter = m_refStore->append(folderIter->children());
 	row = *statIter;
 	row[m_statsColumns.m_name] = _("My Documents");
 	m_myDocumentsIter = m_refStore->append(statIter->children());
+	row = *m_myDocumentsIter;
+	row[m_statsColumns.m_name] = ustring(_("Checking"));
 
 	// Search engines
 	TreeModel::iterator enginesIter = m_refStore->append();
@@ -179,20 +183,24 @@ void statisticsDialog::populate(void)
 	row = *folderIter;
 	row[m_statsColumns.m_name] = _("History");
 	m_viewStatIter = m_refStore->append(folderIter->children());
+	row = *m_viewStatIter;
+	row[m_statsColumns.m_name] = ustring(_("Checking"));
 	m_crawledStatIter = m_refStore->append(folderIter->children());
+	row = *m_crawledStatIter;
+	row[m_statsColumns.m_name] = ustring(_("Checking"));
 
 	// Daemon
 	m_daemonIter = m_refStore->append();
 	row = *m_daemonIter;
 	row[m_statsColumns.m_name] = _("Daemon");
 	m_daemonProcIter = m_refStore->append(m_daemonIter->children());
+	row = *m_daemonProcIter;
+	row[m_statsColumns.m_name] = ustring(_("Checking"));
 
 	// Expand everything
 	statisticsTreeview->expand_all();
 	TreeModel::Path enginesPath = m_refStore->get_path(enginesIter);
 	statisticsTreeview->collapse_row(enginesPath);
-
-	on_activity_timeout();
 }
 
 bool statisticsDialog::on_activity_timeout(void)
