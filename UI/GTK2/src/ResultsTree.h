@@ -139,8 +139,6 @@ class ResultsTree : public Gtk::TreeView
 
 		void renderTitleColumn(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
 
-		void renderExtractColumn(Gtk::CellRenderer *pRenderer, const Gtk::TreeModel::iterator &iter);
-
 		void onButtonPressEvent(GdkEventButton *ev);
 
 		void onSelectionChanged(void);

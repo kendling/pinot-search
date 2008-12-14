@@ -316,29 +316,6 @@ void ResultsTree::renderTitleColumn(CellRenderer *pRenderer, const TreeModel::it
 	}
 }
 
-void ResultsTree::renderExtractColumn(CellRenderer *pRenderer, const TreeModel::iterator &iter)
-{
-	TreeModel::Row row = *iter;
-
-	if (pRenderer == NULL)
-	{
-		return;
-	}
-
-	CellRendererText *pTextRenderer = dynamic_cast<CellRendererText*>(pRenderer);
-	if (pTextRenderer != NULL)
-	{
-		ustring markup(row[m_extractColumns.m_name]);
-		pTextRenderer->property_markup() = markup;
-		pTextRenderer->property_single_paragraph_mode() = true;
-		// These properties are not available in gtkmm 2.8
-#if GTKMM_MAJOR_VERSION==2 && GTKMM_MINOR_VERSION>=10
-		pTextRenderer->property_wrap_mode() = Pango::WRAP_WORD;
-		pTextRenderer->property_wrap_width() = m_pExtractScrolledwindow->get_width();
-#endif
-	}
-}
-
 void ResultsTree::onButtonPressEvent(GdkEventButton *ev)
 {
 	// Check for popup click
