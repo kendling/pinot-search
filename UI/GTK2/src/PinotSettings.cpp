@@ -397,11 +397,21 @@ bool PinotSettings::load(LoadWhat what)
 			m_engineIds[1 << m_engines.size()] = engineIter->first.m_name;
 
 			// Is a channel specified ?
-			if (channelName.empty() == true)
+			if (engineIter->first.m_channel.empty() == true)
 			{
-				channelName = currentUserChannelName;
+				ModuleProperties modProps(engineIter->first);
+
+				channelName = modProps.m_channel = currentUserChannelName;
+
+#ifdef DEBUG
+				cout << "PinotSettings::load: no channel for back-end " << engineIter->first.m_name << endl;
+#endif
+				m_engines.insert(modProps);
 			}
-			m_engines.insert(engineIter->first);
+			else
+			{
+				m_engines.insert(engineIter->first);
+			}
 
 			if (m_engineChannels.find(channelName) == m_engineChannels.end())
 			{
@@ -1819,6 +1829,9 @@ bool PinotSettings::getSearchEngines(set<ModuleProperties> &engines, const strin
 		{
 			if (engineIter->m_channel == channelName)
 			{
+#ifdef DEBUG
+				cout << "PinotSettings::getSearchEngines: engine " << engineIter->m_longName << " in channel " << channelName << endl;
+#endif
 				engines.insert(*engineIter);
 			}
 		}
