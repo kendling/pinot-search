@@ -156,6 +156,7 @@ class PrefixDecider : public Xapian::ExpandDecider
 		virtual bool operator()(const std::string &term) const
 		{
 			CJKVTokenizer tokenizer;
+			bool isPrefixed = false;
 
 			// Reject short terms
 			if ((tokenizer.has_cjkv(term) == false) &&
@@ -165,8 +166,18 @@ class PrefixDecider : public Xapian::ExpandDecider
 			}
 
 			// Reject terms with prefixes we don't want
-			if ((isupper((int)(term[0])) != 0) && 
-				(m_allowedPrefixes.find(term[0]) == string::npos))
+			if (isupper((int)(term[0])) != 0)
+			{
+				isPrefixed = true;
+
+				if (m_allowedPrefixes.find(term[0]) == string::npos)
+				{
+					return false;
+				}
+			}
+
+			// Reject terms with spaces
+			if (term.find_first_of(" \t\r\n") != string::npos)
 			{
 				return false;
 			}
