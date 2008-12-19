@@ -141,13 +141,38 @@ class PrefixDecider : public Xapian::ExpandDecider
 {
 	public:
 		PrefixDecider(Xapian::Database *pIndex,
+			Xapian::Stem *pStemmer,
 			Xapian::Stopper *pStopper,
-			const string &allowedPrefixes) :
+			const string &allowedPrefixes,
+			Xapian::Query &query) :
 			Xapian::ExpandDecider(),
 			m_pIndex(pIndex),
+			m_pStemmer(pStemmer),
 			m_pStopper(pStopper),
 			m_allowedPrefixes(allowedPrefixes)
 		{
+			for (Xapian::TermIterator termIter = query.get_terms_begin();
+				termIter != query.get_terms_end(); ++termIter)
+			{
+				string term(*termIter);
+
+				if (isupper((int)(term[0])) == 0)
+				{
+					m_termsToAvoid.insert(term);
+					if (m_pStemmer != NULL)
+					{
+						string stem((*m_pStemmer)(term));
+						m_termsToAvoid.insert(stem);
+					}
+				}
+				else if (term[0] == 'Z')
+				{
+					m_termsToAvoid.insert(term.substr(1));
+				}
+			}
+#ifdef DEBUG
+			cout << "PrefixDecider: avoiding " << m_termsToAvoid.size() << " terms" << endl;
+#endif
 		}
 		~PrefixDecider()
 		{
@@ -196,15 +221,48 @@ class PrefixDecider : public Xapian::ExpandDecider
 				return false;
 			}
 
-			// FIXME: reject terms that stem to the same as query terms
+			// Stop here if there's no specific terms to avoid
+			if (m_termsToAvoid.empty() == true)
+			{
+				return true;
+			}
+
+			// Reject query terms
+			if (m_termsToAvoid.find(term) != m_termsToAvoid.end())
+			{
+				return false;
+			}
+
+			// Stop here is there's no stemmer
+			if (m_pStemmer == NULL)
+			{
+				return true;
+			}
+
+			// Reject terms that stem to the same as query terms
+			string stem;
+			if (isPrefixed == true)
+			{
+				stem = (*m_pStemmer)(term.substr(1));
+			}
+			else
+			{
+				stem = (*m_pStemmer)(term);
+			}
+			if (m_termsToAvoid.find(stem) != m_termsToAvoid.end())
+			{
+				return false;
+			}
 
 			return true;
 		}
 
 	protected:
 		Xapian::Database *m_pIndex;
+		Xapian::Stem *m_pStemmer;
 		Xapian::Stopper *m_pStopper;
 		string m_allowedPrefixes;
+		set<string> m_termsToAvoid;
 
 };
 
@@ -526,7 +584,6 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	const string &limitQuery, string &correctedFreeQuery, bool minimal)
 {
 	Xapian::QueryParser parser;
-	Xapian::Stem stemmer;
 	CJKVTokenizer tokenizer;
 	string freeQuery(queryProps.getFreeQuery());
 	unsigned int tokensCount = 1;
@@ -583,18 +640,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	if ((minimal == false) &&
 		(stemLanguage.empty() == false))
 	{
-#ifdef DEBUG
-		cout << "XapianEngine::parseQuery: " << stemLanguage << " stemming" << endl;
-#endif
-		try
-		{
-			stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
-		}
-		catch (const Xapian::Error &error)
-		{
-			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
-		}
-		parser.set_stemmer(stemmer);
+		parser.set_stemmer(m_stemmer);
 		parser.set_stemming_strategy(Xapian::QueryParser::STEM_SOME);
 
 		// Don't bother loading the stopwords list if there's only one token
@@ -786,7 +832,6 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 
 	if (minimal == false)
 	{
-
 #if ENABLE_XAPIAN_SPELLING_CORRECTION>0
 		// Any correction ?
 		correctedFreeQuery = parser.get_corrected_query_string();
@@ -966,8 +1011,9 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 
 			// Get 10 non-prefixed terms
 			string allowedPrefixes("RS");
-			PrefixDecider expandDecider(pIndex, FileStopper::get_stopper(Languages::toCode(stemLanguage)), allowedPrefixes);
-			CJKVTokenizer tokenizer;
+			PrefixDecider expandDecider(pIndex, ((stemLanguage.empty() == true) ? NULL : &m_stemmer),
+				FileStopper::get_stopper(Languages::toCode(stemLanguage)),
+				allowedPrefixes, query);
 			Xapian::ESet expandTerms = enquire.get_eset(10, expandDocs, &expandDecider);
 #ifdef DEBUG
 			cout << "XapianEngine::queryDatabase: " << expandTerms.size() << " expand terms" << endl;
@@ -1070,6 +1116,8 @@ bool XapianEngine::setExpandSet(const set<string> &docsSet)
 bool XapianEngine::runQuery(QueryProperties& queryProps,
 	unsigned int startDoc)
 {
+	string stemLanguage(Languages::toEnglish(queryProps.getStemmingLanguage()));
+
 	// Clear the results list
 	m_resultsList.clear();
 	m_resultsCountEstimate = 0;
@@ -1089,12 +1137,26 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 		return false;
 	}
 
+	if (stemLanguage.empty() == false)
+	{
+#ifdef DEBUG
+		cout << "XapianEngine::runQuery: " << stemLanguage << " stemming" << endl;
+#endif
+		try
+		{
+			m_stemmer = Xapian::Stem(StringManip::toLowerCase(stemLanguage));
+		}
+		catch (const Xapian::Error &error)
+		{
+			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
+		}
+	}
+
 	// Get the latest revision...
 	pDatabase->reopen();
 	Xapian::Database *pIndex = pDatabase->readLock();
 	try
 	{
-		string stemLanguage(Languages::toEnglish(queryProps.getStemmingLanguage()));
 		unsigned int searchStep = 1;
 
 		// Searches are run in this order :

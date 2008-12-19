@@ -62,12 +62,13 @@ class XapianEngine : public SearchEngineInterface
 		std::string m_databaseName;
 		std::string m_limitQuery;
 		std::set<std::string> m_expandDocuments;
+		Xapian::Stem m_stemmer;
 
 		bool queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			const string &stemLanguage, unsigned int startDoc,
 			const QueryProperties &queryProps);
 
-		static Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
+		Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 			const string &stemLanguage, DefaultOperator defaultOperator,
 			const string &limitQuery, string &correctedFreeQuery, bool minimal = false);
 
