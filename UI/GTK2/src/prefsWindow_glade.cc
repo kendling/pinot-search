@@ -88,7 +88,7 @@ prefsWindow_glade::prefsWindow_glade(
    
    Gtk::Label *proxyTypeLabel = Gtk::manage(new class Gtk::Label(_("Type:")));
    Gtk::Label *proxyPortLabel = Gtk::manage(new class Gtk::Label(_("Port:")));
-   Gtk::Adjustment *proxyPortSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(80, 1, 65535, 1, 10, 10));
+   Gtk::Adjustment *proxyPortSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(80, 1, 65535, 1, 10, 0));
    proxyPortSpinbutton = Gtk::manage(new class Gtk::SpinButton(*proxyPortSpinbutton_adj, 1, 0));
    proxyTypeCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    

@@ -71,7 +71,7 @@ indexDialog_glade::indexDialog_glade(
    Gtk::Label *portLabel = Gtk::manage(new class Gtk::Label(_("Port:")));
    nameEntry = Gtk::manage(new class Gtk::Entry());
    
-   Gtk::Adjustment *portSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(1024, 1, 65535, 1, 10, 10));
+   Gtk::Adjustment *portSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(1024, 1, 65535, 1, 10, 0));
    portSpinbutton = Gtk::manage(new class Gtk::SpinButton(*portSpinbutton_adj, 1, 0));
    typeCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    
