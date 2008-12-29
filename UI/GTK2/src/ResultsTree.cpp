@@ -27,14 +27,13 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/cellrendererprogress.h>
 
+#include "config.h"
+#include "NLS.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
-#include "ResultsExporter.h"
-#include "config.h"
-#include "NLS.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
 #include "ResultsTree.h"
@@ -1259,10 +1258,10 @@ void ResultsTree::showExtract(bool showExtract)
 //
 // Exports results to a file.
 //
-void ResultsTree::exportResults(const string &fileName, bool csvFormat)
+void ResultsTree::exportResults(const string &fileName,
+	const string &queryName, bool csvFormat)
 {
-	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
-	QueryProperties queryProps(m_treeName, "");
+	QueryProperties queryProps(queryName, "");
 	ResultsExporter *pExporter = NULL;
 	unsigned int maxResultsCount = 0;
 
@@ -1284,7 +1283,11 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 
 	// How many results are there altogether ?
 	TreeModel::Children children = m_refStore->children();
-	for (TreeModel::Children::iterator iter = children.begin();
+	if (m_groupMode == FLAT)
+	{
+		maxResultsCount = children.size();
+	}
+	else for (TreeModel::Children::iterator iter = children.begin();
 		iter != children.end(); ++iter)
 	{
 		TreeModel::Row row = *iter;
@@ -1299,11 +1302,18 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 		TreeModel::Children groupChildren = iter->children();
 		maxResultsCount += groupChildren.size();
 	}
+#ifdef DEBUG
+	cout << "ResultsTree::exportResults: " << maxResultsCount << " results to export" << endl;
+#endif
 
 	// Start
 	pExporter->exportStart("", maxResultsCount);
 
-	for (TreeModel::Children::iterator iter = children.begin();
+	if (m_groupMode == FLAT)
+	{
+		exportResults(children, queryName, pExporter);
+	}
+	else for (TreeModel::Children::iterator iter = children.begin();
 		iter != children.end(); ++iter)
 	{
 		TreeModel::Row row = *iter;
@@ -1316,51 +1326,76 @@ void ResultsTree::exportResults(const string &fileName, bool csvFormat)
 		}
 
 		TreeModel::Children groupChildren = iter->children();
-		for (TreeModel::Children::iterator childIter = groupChildren.begin();
-			childIter != groupChildren.end(); ++childIter)
-		{
-			set<string> engineNames, indexNames;
-			TreeModel::Row childRow = *childIter;
-			DocumentInfo result;
-			string engineName, serial(from_utf8(childRow[m_resultsColumns.m_serial]));
-			unsigned int engineIds = childRow[m_resultsColumns.m_engines];
-			unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
-
-#ifdef DEBUG
-			cout << "ResultsTree::exportResults: engines " << engineIds << ", indexes " << indexIds << endl;
-#endif
-			result.deserialize(serial);
-			m_settings.getEngineNames(engineIds, engineNames);
-			if (engineNames.empty() == false)
-			{
-				// Get the first engine this result was obtained from
-				engineName = *engineNames.begin();
-				if (engineName == m_settings.m_defaultBackend)
-				{
-					m_settings.getIndexNames(indexIds, indexNames);
-					if (indexNames.empty() == false)
-					{
-						// Use the name of the first index as engine name
-						engineName = (*indexNames.begin());
-					}
-				}
-			}
-			if (m_groupMode != FLAT)
-			{
-				result.setExtract(queryHistory.getItemExtract(from_utf8(m_treeName),
-					engineName, result.getLocation()));
-			}
-			result.setTimestamp(from_utf8(childRow[m_resultsColumns.m_timestamp]));
-
-			// Export this
-			pExporter->exportResult(engineName, result);
-		}
+		exportResults(groupChildren, queryName, pExporter);
 	}
 
 	// End
 	pExporter->exportEnd();
 
 	delete pExporter;
+}
+
+//
+// Exports results to a file.
+//
+void ResultsTree::exportResults(TreeModel::Children &groupChildren,
+	const string &queryName, ResultsExporter *pExporter)
+{
+	QueryHistory queryHistory(m_settings.getHistoryDatabaseName());
+
+	for (TreeModel::Children::iterator childIter = groupChildren.begin();
+		childIter != groupChildren.end(); ++childIter)
+	{
+		TreeModel::Row childRow = *childIter;
+		ResultsModelColumns::RowType type = childRow[m_resultsColumns.m_resultType];
+
+		if (type == ResultsModelColumns::ROW_OTHER)
+		{
+			continue;
+		}
+
+		set<string> engineNames, indexNames;
+		DocumentInfo result;
+		string engineName, serial(from_utf8(childRow[m_resultsColumns.m_serial]));
+		unsigned int engineIds = childRow[m_resultsColumns.m_engines];
+		unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
+
+#ifdef DEBUG
+		cout << "ResultsTree::exportResults: engines " << engineIds << ", indexes " << indexIds << endl;
+#endif
+		result.deserialize(serial);
+		m_settings.getEngineNames(engineIds, engineNames);
+		if (engineNames.empty() == false)
+		{
+			// Get the first engine this result was obtained from
+			engineName = *engineNames.begin();
+			if (engineName == m_settings.m_defaultBackend)
+			{
+				m_settings.getIndexNames(indexIds, indexNames);
+				if (indexNames.empty() == false)
+				{
+					// Use the name of the first index as engine name
+					engineName = (*indexNames.begin());
+				}
+			}
+		}
+		if (m_groupMode != FLAT)
+		{
+			result.setExtract(queryHistory.getItemExtract(from_utf8(queryName),
+				engineName, result.getLocation()));
+		}
+		else
+		{
+			engineName = m_treeName;
+		}
+		result.setTimestamp(from_utf8(childRow[m_resultsColumns.m_timestamp]));
+
+		// Export this
+		if (pExporter != NULL)
+		{
+			pExporter->exportResult(engineName, result);
+		}
+	}
 }
 
 //

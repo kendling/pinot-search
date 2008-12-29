@@ -35,6 +35,7 @@
 #include <gtkmm/treeview.h>
 #include <gtkmm/treeselection.h>
 
+#include "ResultsExporter.h"
 #include "ModelColumns.h"
 #include "PinotSettings.h"
 
@@ -103,7 +104,8 @@ class ResultsTree : public Gtk::TreeView
 		void showExtract(bool showExtract = true);
 
 		/// Exports results to a file.
-		void exportResults(const std::string &fileName, bool csvFormat);
+		void exportResults(const std::string &fileName,
+			const string &queryName, bool csvFormat);
 
 		/// Returns the changed selection signal.
 		sigc::signal1<void, Glib::ustring>& getSelectionChangedSignal(void);
@@ -173,6 +175,10 @@ class ResultsTree : public Gtk::TreeView
 
 		/// Retrieves the extract to show for the given row.
 		Glib::ustring findResultsExtract(const Gtk::TreeModel::Row &row);
+
+		/// Exports results to a file.
+		void exportResults(Gtk::TreeModel::Children &groupChildren,
+			const string &queryName, ResultsExporter *pExporter);
 
 	private:
 		ResultsTree(const ResultsTree &other);
