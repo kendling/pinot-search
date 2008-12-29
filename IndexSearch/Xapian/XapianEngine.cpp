@@ -137,10 +137,10 @@ class TimeValueRangeProcessor : public Xapian::ValueRangeProcessor
 
 };
 
-class PrefixDecider : public Xapian::ExpandDecider
+class TermDecider : public Xapian::ExpandDecider
 {
 	public:
-		PrefixDecider(Xapian::Database *pIndex,
+		TermDecider(Xapian::Database *pIndex,
 			Xapian::Stem *pStemmer,
 			Xapian::Stopper *pStopper,
 			const string &allowedPrefixes,
@@ -149,8 +149,11 @@ class PrefixDecider : public Xapian::ExpandDecider
 			m_pIndex(pIndex),
 			m_pStemmer(pStemmer),
 			m_pStopper(pStopper),
-			m_allowedPrefixes(allowedPrefixes)
+			m_allowedPrefixes(allowedPrefixes),
+			m_pTermsToAvoid(NULL)
 		{
+			m_pTermsToAvoid = new set<string>();
+
 			for (Xapian::TermIterator termIter = query.get_terms_begin();
 				termIter != query.get_terms_end(); ++termIter)
 			{
@@ -158,24 +161,28 @@ class PrefixDecider : public Xapian::ExpandDecider
 
 				if (isupper((int)(term[0])) == 0)
 				{
-					m_termsToAvoid.insert(term);
+					m_pTermsToAvoid->insert(term);
 					if (m_pStemmer != NULL)
 					{
 						string stem((*m_pStemmer)(term));
-						m_termsToAvoid.insert(stem);
+						m_pTermsToAvoid->insert(stem);
 					}
 				}
 				else if (term[0] == 'Z')
 				{
-					m_termsToAvoid.insert(term.substr(1));
+					m_pTermsToAvoid->insert(term.substr(1));
 				}
 			}
 #ifdef DEBUG
-			cout << "PrefixDecider: avoiding " << m_termsToAvoid.size() << " terms" << endl;
+			cout << "TermDecider: avoiding " << m_pTermsToAvoid->size() << " terms" << endl;
 #endif
 		}
-		~PrefixDecider()
+		~TermDecider()
 		{
+			if (m_pTermsToAvoid != NULL)
+			{
+				delete m_pTermsToAvoid;
+			}
 		}
 
 		virtual bool operator()(const std::string &term) const
@@ -222,13 +229,13 @@ class PrefixDecider : public Xapian::ExpandDecider
 			}
 
 			// Stop here if there's no specific terms to avoid
-			if (m_termsToAvoid.empty() == true)
+			if (m_pTermsToAvoid->empty() == true)
 			{
 				return true;
 			}
 
 			// Reject query terms
-			if (m_termsToAvoid.find(term) != m_termsToAvoid.end())
+			if (m_pTermsToAvoid->find(term) != m_pTermsToAvoid->end())
 			{
 				return false;
 			}
@@ -240,6 +247,7 @@ class PrefixDecider : public Xapian::ExpandDecider
 			}
 
 			// Reject terms that stem to the same as query terms
+			// or previously validated terms
 			string stem;
 			if (isPrefixed == true)
 			{
@@ -249,10 +257,11 @@ class PrefixDecider : public Xapian::ExpandDecider
 			{
 				stem = (*m_pStemmer)(term);
 			}
-			if (m_termsToAvoid.find(stem) != m_termsToAvoid.end())
+			if (m_pTermsToAvoid->find(stem) != m_pTermsToAvoid->end())
 			{
 				return false;
 			}
+			m_pTermsToAvoid->insert(stem);
 
 			return true;
 		}
@@ -262,7 +271,7 @@ class PrefixDecider : public Xapian::ExpandDecider
 		Xapian::Stem *m_pStemmer;
 		Xapian::Stopper *m_pStopper;
 		string m_allowedPrefixes;
-		set<string> m_termsToAvoid;
+		set<string> *m_pTermsToAvoid;
 
 };
 
@@ -1011,7 +1020,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 
 			// Get 10 non-prefixed terms
 			string allowedPrefixes("RS");
-			PrefixDecider expandDecider(pIndex, ((stemLanguage.empty() == true) ? NULL : &m_stemmer),
+			TermDecider expandDecider(pIndex, ((stemLanguage.empty() == true) ? NULL : &m_stemmer),
 				FileStopper::get_stopper(Languages::toCode(stemLanguage)),
 				allowedPrefixes, query);
 			Xapian::ESet expandTerms = enquire.get_eset(10, expandDocs, &expandDecider);
