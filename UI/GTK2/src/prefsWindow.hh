@@ -65,15 +65,15 @@ protected:
 
 	virtual void on_prefsCancelbutton_clicked();
 	virtual void on_prefsOkbutton_clicked();
-	virtual void on_directConnectionRadiobutton_toggled();
-	virtual void on_addLabelButton_clicked();
-	virtual void on_removeLabelButton_clicked();
 	virtual void on_addDirectoryButton_clicked();
 	virtual void on_removeDirectoryButton_clicked();
 	virtual void on_patternsCombobox_changed();
 	virtual void on_addPatternButton_clicked();
 	virtual void on_removePatternButton_clicked();
 	virtual void on_resetPatternsButton_clicked();
+	virtual void on_addLabelButton_clicked();
+	virtual void on_removeLabelButton_clicked();
+	virtual void on_directConnectionRadiobutton_toggled();
 	virtual bool on_prefsWindow_delete_event(GdkEventAny *ev);
 
 	void on_thread_end(WorkerThread *pThread);

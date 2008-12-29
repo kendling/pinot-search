@@ -755,54 +755,6 @@ void prefsWindow::on_prefsOkbutton_clicked()
 	// FIXME: else, disable all buttons or provide some visual feedback, until threads are done
 }
 
-void prefsWindow::on_directConnectionRadiobutton_toggled()
-{
-	bool enabled = proxyRadiobutton->get_active();
-
-	proxyAddressEntry->set_sensitive(enabled);
-	proxyPortSpinbutton->set_sensitive(enabled);
-	proxyTypeCombobox->set_sensitive(enabled);
-}
-
-void prefsWindow::on_addLabelButton_clicked()
-{
-	// Now create a new entry in the labels list
-	TreeModel::iterator iter = m_refLabelsTree->append();
-	TreeModel::Row row = *iter;
-	row[m_labelsColumns.m_name] = to_utf8(_("New Label"));
-	// This marks the label as new
-	row[m_labelsColumns.m_enabled] = false;
-
-	// Enable this button
-	removeLabelButton->set_sensitive(true);
-}
-
-void prefsWindow::on_removeLabelButton_clicked()
-{
-	// Get the selected label in the list
-	TreeModel::iterator iter = labelsTreeview->get_selection()->get_selected();
-	if (iter)
-	{
-		// Unselect
-		labelsTreeview->get_selection()->unselect(iter);
-		// Select another row
-		TreeModel::Path labelPath = m_refLabelsTree->get_path(iter);
-		labelPath.next();
-		labelsTreeview->get_selection()->select(labelPath);
-		// Erase
-		TreeModel::Row row = *iter;
-		m_deletedLabels.insert(from_utf8(row[m_labelsColumns.m_name]));
-		m_refLabelsTree->erase(row);
-
-		TreeModel::Children children = m_refLabelsTree->children();
-		if (children.empty() == true)
-		{
-			// Disable this button
-			removeLabelButton->set_sensitive(false);
-		}
-	}
-}
-
 void prefsWindow::on_addDirectoryButton_clicked()
 {
 	ustring dirName;
@@ -943,6 +895,54 @@ void prefsWindow::on_resetPatternsButton_clicked()
 
 	// Repopulate with defaults
 	populate_patternsTreeview(defaultPatterns, isBlackList);
+}
+
+void prefsWindow::on_addLabelButton_clicked()
+{
+	// Now create a new entry in the labels list
+	TreeModel::iterator iter = m_refLabelsTree->append();
+	TreeModel::Row row = *iter;
+	row[m_labelsColumns.m_name] = to_utf8(_("New Label"));
+	// This marks the label as new
+	row[m_labelsColumns.m_enabled] = false;
+
+	// Enable this button
+	removeLabelButton->set_sensitive(true);
+}
+
+void prefsWindow::on_removeLabelButton_clicked()
+{
+	// Get the selected label in the list
+	TreeModel::iterator iter = labelsTreeview->get_selection()->get_selected();
+	if (iter)
+	{
+		// Unselect
+		labelsTreeview->get_selection()->unselect(iter);
+		// Select another row
+		TreeModel::Path labelPath = m_refLabelsTree->get_path(iter);
+		labelPath.next();
+		labelsTreeview->get_selection()->select(labelPath);
+		// Erase
+		TreeModel::Row row = *iter;
+		m_deletedLabels.insert(from_utf8(row[m_labelsColumns.m_name]));
+		m_refLabelsTree->erase(row);
+
+		TreeModel::Children children = m_refLabelsTree->children();
+		if (children.empty() == true)
+		{
+			// Disable this button
+			removeLabelButton->set_sensitive(false);
+		}
+	}
+}
+
+void prefsWindow::on_directConnectionRadiobutton_toggled()
+{
+	bool enabled = proxyRadiobutton->get_active();
+
+	proxyAddressEntry->set_sensitive(enabled);
+	proxyPortSpinbutton->set_sensitive(enabled);
+	proxyTypeCombobox->set_sensitive(enabled);
 }
 
 bool prefsWindow::on_prefsWindow_delete_event(GdkEventAny *ev)
