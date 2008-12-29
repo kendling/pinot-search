@@ -230,7 +230,16 @@ void DocumentInfo::setType(const string &type)
 /// Returns the type of the document.
 string DocumentInfo::getType(void) const
 {
-	return getField("type");
+	string type(getField("type"));
+	string::size_type semiColonPos = type.find(";");
+
+	// Remove the charset, if any
+	if (semiColonPos != string::npos)
+	{
+		return type.substr(0, semiColonPos);
+	}
+
+	return type;
 }
 
 /// Sets the language of the document.
