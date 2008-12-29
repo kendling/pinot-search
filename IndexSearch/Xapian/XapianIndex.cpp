@@ -609,6 +609,10 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 			doc.add_term(string("XPATH:") + XapianDatabase::limitTermLength(Url::escapeUrl(StringManip::toLowerCase(*pathIter)), true));
 		}
 	}
+	else
+	{
+		doc.add_term("XDIR:/");
+	}
 	// ...and the file name with prefix P
 	string fileName(urlObj.getFile());
 	if (fileName.empty() == false)
@@ -754,6 +758,10 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 		{
 			commonTerms.insert(string("XPATH:") + XapianDatabase::limitTermLength(Url::escapeUrl(StringManip::toLowerCase(*pathIter)), true));
 		}
+	}
+	else
+	{
+		commonTerms.insert("XDIR:/");
 	}
 	// ...and file name
 	string fileName(urlObj.getFile());
