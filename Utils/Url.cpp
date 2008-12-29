@@ -227,9 +227,7 @@ void Url::parse(const string &url)
 
 bool Url::isLocal(const string &protocol) const
 {
-	if ((protocol == "file") ||
-		(protocol == "mailbox") ||
-		(protocol == "xapian"))
+	if (protocol == "file")
 	{
 		return true;
 	}
