@@ -48,10 +48,14 @@ class NotebookPageBox : public Gtk::VBox
 		/// Returns the page type.
 		PageType getType(void) const;
 
+		/// Returns the page's tree.
+		virtual ResultsTree *getTree(void) const;
+
 	protected:
 		Glib::ustring m_title;
 		PageType m_type;
 		PinotSettings &m_settings;
+		ResultsTree *m_pTree;
 
 };
 
@@ -61,9 +65,6 @@ class ResultsPage : public NotebookPageBox
 		ResultsPage(const Glib::ustring &queryName, ResultsTree *pTree,
 			int parentHeight, PinotSettings &settings);
 		virtual ~ResultsPage();
-
-		/// Returns the page's tree.
-		virtual ResultsTree *getTree(void) const;
 
 		/// Returns the suggest signal.
 		sigc::signal2<void, Glib::ustring, Glib::ustring>& getSuggestSignal(void);
@@ -80,7 +81,6 @@ class ResultsPage : public NotebookPageBox
 		Gtk::HBox *m_pHBox;
 		Gtk::VBox *m_pVBox;
 		Gtk::VPaned *m_pVPaned;
-		ResultsTree *m_pTree;
 		sigc::signal2<void, Glib::ustring, Glib::ustring> m_signalSuggest;
 		std::set<Glib::ustring> m_suggestions;
 		void onYesButtonClicked();

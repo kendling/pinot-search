@@ -45,9 +45,6 @@ class IndexPage : public NotebookPageBox
 			PinotSettings &settings);
 		virtual ~IndexPage();
 
-		/// Returns the page's tree.
-		virtual ResultsTree *getTree(void) const;
-
 		/// Returns the name of the current query.
 		Glib::ustring getQueryName(void) const;
 
@@ -81,7 +78,6 @@ class IndexPage : public NotebookPageBox
 	protected:
 		Glib::ustring m_indexName;
 		Glib::ustring m_queryName;
-		ResultsTree *m_pTree;
 		Gtk::ComboBoxText *m_pQueryCombobox;
 		Gtk::Button *m_pBackButton;
 		Gtk::Button *m_pForwardButton;

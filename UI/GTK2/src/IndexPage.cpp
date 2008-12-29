@@ -35,13 +35,13 @@ using namespace Gtk;
 IndexPage::IndexPage(const ustring &indexName, ResultsTree *pTree,
 	PinotSettings &settings) :
 	NotebookPageBox(indexName, NotebookPageBox::INDEX_PAGE, settings),
-	m_pTree(pTree),
 	m_pQueryCombobox(NULL),
 	m_pBackButton(NULL),
 	m_pForwardButton(NULL),
 	m_docsCount(0),
 	m_firstDoc(0)
 {
+	m_pTree = pTree;
 	m_pQueryCombobox = manage(new ComboBoxText());
 
 	Image *image521 = manage(new Image(StockID("gtk-media-rewind"), IconSize(4)));
@@ -154,14 +154,6 @@ void IndexPage::onBackClicked(void)
 void IndexPage::onForwardClicked(void)
 {
 	m_signalForwardClicked(m_title);
-}
-
-//
-// Returns the page's tree.
-//
-ResultsTree *IndexPage::getTree(void) const
-{
-	return m_pTree;
 }
 
 //

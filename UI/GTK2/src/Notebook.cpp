@@ -33,7 +33,8 @@ NotebookPageBox::NotebookPageBox(const ustring &title, NotebookPageBox::PageType
 	VBox(),
 	m_title(title),
 	m_type(type),
-	m_settings(settings)
+	m_settings(settings),
+	m_pTree(NULL)
 {
 }
 
@@ -57,6 +58,14 @@ NotebookPageBox::PageType NotebookPageBox::getType(void) const
 	return m_type;
 }
 
+//
+// Returns the page's tree.
+//
+ResultsTree *NotebookPageBox::getTree(void) const
+{
+	return m_pTree;
+}
+
 ResultsPage::ResultsPage(const ustring &queryName, ResultsTree *pTree,
 	int parentHeight, PinotSettings &settings) :
 	NotebookPageBox(queryName, NotebookPageBox::RESULTS_PAGE, settings),
@@ -67,11 +76,11 @@ ResultsPage::ResultsPage(const ustring &queryName, ResultsTree *pTree,
 	m_pCloseButton(NULL),
 	m_pHBox(NULL),
 	m_pVBox(NULL),
-	m_pVPaned(NULL),
-	m_pTree(pTree)
+	m_pVPaned(NULL)
 {
 	if (pTree != NULL)
 	{
+		m_pTree = pTree;
 		m_pLabel = manage(new Label(_("Did you mean ?")));
 		m_pCombobox = manage(new ComboBoxText());
 		m_pYesButton = manage(new Button(StockID("gtk-yes")));
@@ -143,14 +152,6 @@ void ResultsPage::onCloseButtonClicked()
 	m_pCloseImage->hide();
 	m_pCloseButton->hide();
 	m_pHBox->hide();
-}
-
-//
-// Returns the page's tree.
-//
-ResultsTree *ResultsPage::getTree(void) const
-{
-	return m_pTree;
 }
 
 // Returns the suggest signal.
