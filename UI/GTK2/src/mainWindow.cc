@@ -93,6 +93,14 @@ class ReloadHandler : public MonitorHandler
 unsigned int mainWindow::m_maxDocsCount = 100;
 unsigned int mainWindow::m_maxIndexThreads = 2;
 
+mainWindow::ExpandSet::ExpandSet()
+{
+}
+
+mainWindow::ExpandSet::~ExpandSet()
+{
+}
+
 mainWindow::InternalState::InternalState(unsigned int maxIndexThreads, mainWindow *pWindow) :
 	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads, 60),
 	m_liveQueryLength(0),
@@ -212,7 +220,7 @@ mainWindow::mainWindow() :
 	removeQueryButton->set_sensitive(false);
 	queryHistoryButton->set_sensitive(false);
 	findQueryButton->set_sensitive(false);
-	show_global_menuitems(false);
+	show_pagebased_menuitems(false);
 	show_selectionbased_menuitems(false);
 	// ...and buttons
 	removeIndexButton->set_sensitive(false);
@@ -252,7 +260,7 @@ mainWindow::mainWindow() :
 	// Open the preferences on first run
 	if (m_settings.isFirstRun() == true)
 	{
-		on_configure_activate();
+		on_preferences_activate();
 	}
 	else if	(m_settings.m_warnAboutVersion == true)
 	{
@@ -402,7 +410,7 @@ void mainWindow::populate_cacheMenu()
 	if (m_pCacheMenu == NULL)
 	{
 		m_pCacheMenu = manage(new Menu());
-		viewcache1->set_submenu(*m_pCacheMenu);
+		opencache1->set_submenu(*m_pCacheMenu);
 	}
 	else
 	{
@@ -415,7 +423,7 @@ void mainWindow::populate_cacheMenu()
 	if (m_settings.m_cacheProviders.empty() == true)
 	{
 		// Hide the submenu
-		viewcache1->hide();
+		opencache1->hide();
 	}
 	else
 	{
@@ -441,7 +449,7 @@ void mainWindow::populate_indexMenu()
 	if (m_pIndexMenu == NULL)
 	{
 		m_pIndexMenu = manage(new Menu());
-		list1->set_submenu(*m_pIndexMenu);
+		listcontents1->set_submenu(*m_pIndexMenu);
 	}
 	else
 	{
@@ -473,7 +481,7 @@ void mainWindow::populate_findMenu()
 	if (m_pFindMenu == NULL)
 	{
 		m_pFindMenu = manage(new Menu());
-		searchagain1->set_submenu(*m_pFindMenu);
+		searchthisfor1->set_submenu(*m_pFindMenu);
 	}
 	else
 	{
@@ -481,7 +489,7 @@ void mainWindow::populate_findMenu()
 		m_pFindMenu->items().clear();
 	}
 
-	sigc::slot1<void, ustring> findSlot = sigc::mem_fun(*this, &mainWindow::on_searchagain_changed);
+	sigc::slot1<void, ustring> findSlot = sigc::mem_fun(*this, &mainWindow::on_searchthis_changed);
 
 	TreeModel::Children children = m_refQueryTree->children();
 	for (TreeModel::Children::iterator iter = children.begin();
@@ -548,10 +556,12 @@ void mainWindow::add_query(QueryProperties &queryProps, bool mergeQueries)
 // Get selected results in the current results tab
 //
 bool mainWindow::get_results_page_details(const ustring &queryName,
-	QueryProperties &queryProps, set<string> &locations)
+	QueryProperties &queryProps, set<string> &locations,
+	set<string> &locationsToIndex)
 {
 	vector<DocumentInfo> resultsList;
 	ustring currentQueryName(queryName);
+	bool foundQuery = false;
 
 	locations.clear();
 
@@ -560,22 +570,30 @@ bool mainWindow::get_results_page_details(const ustring &queryName,
 		NotebookPageBox *pNotebookPage = get_current_page();
 		if (pNotebookPage != NULL)
 		{
-			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-			if (pResultsPage != NULL)
+			ResultsTree *pResultsTree = pNotebookPage->getTree();
+			if (pResultsTree != NULL)
 			{
-				ResultsTree *pResultsTree = pResultsPage->getTree();
-				if (pResultsTree != NULL)
-				{
-					pResultsTree->getSelection(resultsList);
-				}
-
-				currentQueryName = pResultsPage->getTitle();
+				pResultsTree->getSelection(resultsList);
 			}
-		}
 
-		if (currentQueryName.empty() == true)
-		{
-			return false;
+			NotebookPageBox::PageType type = pNotebookPage->getType();
+			if (type == NotebookPageBox::RESULTS_PAGE)
+			{
+				currentQueryName = pNotebookPage->getTitle();
+
+				if (currentQueryName.empty() == true)
+				{
+					return false;
+				}
+			}
+			else if (type == NotebookPageBox::INDEX_PAGE)
+			{
+				IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pNotebookPage);
+				if (pIndexPage != NULL)
+				{
+					currentQueryName = pIndexPage->getQueryName();
+				}
+			}
 		}
 	}
 
@@ -585,10 +603,8 @@ bool mainWindow::get_results_page_details(const ustring &queryName,
 		queryProps.setName(currentQueryName);
 		queryProps.setFreeQuery(liveQueryEntry->get_text());
 	}
-	else
+	else if (currentQueryName.empty() == false)
 	{
-		bool foundQuery = false;
-
 		TreeModel::Children children = m_refQueryTree->children();
 		for (TreeModel::Children::iterator iter = children.begin();
 			iter != children.end(); ++iter)
@@ -613,10 +629,25 @@ bool mainWindow::get_results_page_details(const ustring &queryName,
 	for (vector<DocumentInfo>::const_iterator docIter = resultsList.begin();
 		docIter != resultsList.end(); ++docIter)
 	{
-		if (docIter->getIsIndexed() == true)
+		if (docIter->getIsIndexed() == false)
 		{
-			locations.insert(docIter->getLocation());
+			locationsToIndex.insert(docIter->getLocation());
 		}
+		locations.insert(docIter->getLocation());
+	}
+
+	if (foundQuery == false)
+	{
+		Url urlObj(*locations.begin());
+		string queryName(urlObj.getFile());
+
+		if (locations.size() > 1)
+		{
+			queryName += "...";
+		}
+
+		queryProps.setName(queryName);
+		queryProps.setFreeQuery("dir:/");
 	}
 
 	return true;
@@ -626,7 +657,7 @@ bool mainWindow::get_results_page_details(const ustring &queryName,
 // Drag and drop
 //
 void mainWindow::on_data_received(const RefPtr<DragContext> &context,
-	int x, int y, const SelectionData &data, guint info, guint time)
+	int x, int y, const SelectionData &data, guint info, guint dataTime)
 {
 	list<ustring> droppedUris = data.get_uris();
 	ustring droppedText(data.get_text());
@@ -639,15 +670,17 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 	{
 		IndexInterface *pIndex = m_settings.getIndex("MERGED");
 		set<string> locationsToIndex;
-		bool isIndexing = true;
+		ExpandSet expandSet;
+		string queryName;
+
+		expandSet.m_queryProps.setFreeQuery("dir:/");
 
 		for (list<ustring>::iterator uriIter = droppedUris.begin();
 			uriIter != droppedUris.end(); ++uriIter)
 		{
 			string uri(*uriIter);
 
-			cout << "mainWindow::on_data_received: received URI \""
-				<< uri << "\"" << endl; 
+			cout << "mainWindow::on_data_received: received " << uri << endl; 
 
 			// Query the merged index
 			if (pIndex != NULL)
@@ -660,7 +693,14 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 				}
 			}
 
-			m_expandLocations.insert(uri);
+			// Name the query after the first document
+			if (queryName.empty() == true)
+			{
+				Url urlObj(uri);
+				queryName = urlObj.getFile();
+			}
+
+			expandSet.m_locations.insert(uri);
 			goodDrop = true;
 		}
 
@@ -669,8 +709,16 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 			delete pIndex;
 		}
 
+		if (expandSet.m_locations.size() > 1)
+		{
+			queryName += "...";
+		}
+
 		if (goodDrop == true)
 		{
+			expandSet.m_queryProps.setName(queryName);
+			m_expandSets.push_back(expandSet);
+
 			for (set<string>::iterator locationIter = locationsToIndex.begin();
 				locationIter != locationsToIndex.end(); ++locationIter)
 			{
@@ -682,7 +730,7 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 
 			if (locationsToIndex.empty() == true)
 			{
-				// We can run a catch-all query and expand on these documents right away
+				// Expand on these documents right away
 				expand_locations();
 			}
 			// Else, do it when indexing is completed
@@ -699,7 +747,7 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 		goodDrop = true;
 	}
 
-	context->drag_finish(goodDrop, false, time);
+	context->drag_finish(goodDrop, false, dataTime);
 }
 
 //
@@ -760,9 +808,6 @@ void mainWindow::on_queryTreeviewSelection_changed()
 	findQueryButton->set_sensitive(enableButtons);
 }
 
-//
-// Results tree selection changed
-//
 void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 {
 	vector<DocumentInfo> resultsList;
@@ -771,21 +816,52 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 	NotebookPageBox *pNotebookPage = get_page(queryName, NotebookPageBox::RESULTS_PAGE);
 	if (pNotebookPage != NULL)
 	{
-		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-		if (pResultsPage != NULL)
+		ResultsTree *pResultsTree = pNotebookPage->getTree();
+		if (pResultsTree != NULL)
 		{
-			ResultsTree *pResultsTree = pResultsPage->getTree();
-			if (pResultsTree != NULL)
-			{
-				hasSelection = pResultsTree->getSelection(resultsList);
-			}
+			hasSelection = pResultsTree->getSelection(resultsList);
 		}
 	}
 
-	if ((hasSelection == true) &&
-		(resultsList.empty() == false))
+	on_document_changed(resultsList, false, false, true);
+}
+
+void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
+{
+	vector<DocumentInfo> resultsList;
+	bool hasSelection = false;
+
+	NotebookPageBox *pNotebookPage = get_page(indexName, NotebookPageBox::INDEX_PAGE);
+	if (pNotebookPage != NULL)
 	{
-		bool firstResult = true, isViewable = true, isCached = false, isIndexed = false, isIndexable = true;
+		ResultsTree *pResultsTree = pNotebookPage->getTree();
+		if (pResultsTree != NULL)
+		{
+			hasSelection = pResultsTree->getSelection(resultsList);
+		}
+	}
+
+	bool isDocumentsIndex = true;
+	bool editDocuments = true;
+
+	if (indexName != _("My Web Pages"))
+	{
+		isDocumentsIndex = false;
+		if (indexName != _("My Documents"))
+		{
+			editDocuments = false;
+		}
+	}
+
+	on_document_changed(resultsList, isDocumentsIndex, editDocuments, false);
+}
+
+void mainWindow::on_document_changed(vector<DocumentInfo> &resultsList,
+	bool isDocumentsIndex, bool editDocuments, bool areResults)
+{
+	if (resultsList.empty() == false)
+	{
+		bool firstResult = true, isViewable = true, isCached = false, isLocal = false, isIndexed = false, isIndexable = true;
 
 		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
@@ -795,12 +871,12 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 			string protocol(urlObj.getProtocol());
 
 #ifdef DEBUG
-			cout << "mainWindow::on_resultsTreeviewSelection_changed: " << url << endl;
+			cout << "mainWindow::on_document_changed: " << url << endl;
 #endif
 			if (firstResult == true)
 			{
-				// Show the URL of the first result in the status bar
-				ustring statusText = _("Result location is");
+				// Show the URL of the first document in the status bar
+				ustring statusText = _("Document location is");
 				statusText += " ";
 				statusText += url;
 				set_status(statusText, true);
@@ -821,90 +897,48 @@ void mainWindow::on_resultsTreeviewSelection_changed(ustring queryName)
 					isCached = true;
 				}
 
+				if (urlObj.isLocal() == true)
+				{
+					isLocal = true;
+				}
+
 				isIndexed = resultIter->getIsIndexed();
+				isIndexable = !isIndexed;
 			}
 		}
 
 		// Enable these menu items
-		viewresults1->set_sensitive(isViewable);
-		viewcache1->set_sensitive(isCached);
-		morelikethis1->set_sensitive(isIndexed);
-		searchagain1->set_sensitive(isIndexed);
-		indexresults1->set_sensitive(isIndexable);
+		open1->set_sensitive(isViewable);
+		opencache1->set_sensitive(isCached);
+		openparent1->set_sensitive(isLocal);
+		addtoindex1->set_sensitive(isIndexable);
+		updateindex1->set_sensitive(isDocumentsIndex);
+		unindex1->set_sensitive(isDocumentsIndex);
+		morelikethis1->set_sensitive(true);
+		searchthisfor1->set_sensitive(areResults);
+		properties1->set_sensitive(editDocuments);
 	}
 	else
 	{
 		// Disable these menu items
-		viewresults1->set_sensitive(false);
-		viewcache1->set_sensitive(false);
+		open1->set_sensitive(false);
+		opencache1->set_sensitive(false);
+		openparent1->set_sensitive(false);
+		addtoindex1->set_sensitive(false);
+		updateindex1->set_sensitive(false);
+		unindex1->set_sensitive(false);
 		morelikethis1->set_sensitive(false);
-		searchagain1->set_sensitive(false);
-		indexresults1->set_sensitive(false);
+		searchthisfor1->set_sensitive(false);
+		addtoindex1->set_sensitive(false);
 
 		// Reset
 		set_status("");
 	}
 }
 
-//
-// Index tree selection changed
-//
-void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
-{
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
-	if (pIndexPage == NULL)
-	{
-		return;
-	}
-
-	ResultsTree *pResultsTree = pIndexPage->getTree();
-	if (pResultsTree != NULL)
-	{
-		string url(pResultsTree->getFirstSelectionURL());
-
-		if (url.empty() == false)
-		{
-			bool isDocumentsIndex = true;
-			bool editDocument = true;
-
-			// Enable these menu items unless it is not the documents index
-			if (indexName != _("My Web Pages"))
-			{
-				isDocumentsIndex = false;
-				if (indexName != _("My Documents"))
-				{
-					editDocument = false;
-				}
-			}
-			viewfromindex1->set_sensitive(true);
-			refreshindex1->set_sensitive(isDocumentsIndex);
-			unindex1->set_sensitive(isDocumentsIndex);
-			showfromindex1->set_sensitive(editDocument);
-
-			// Show the URL in the status bar
-			ustring statusText = _("Document location is");
-			statusText += " ";
-			statusText += pResultsTree->getFirstSelectionURL();
-			set_status(statusText, true);
-		}
-	}
-	else
-	{
-		// No, disable these
-		viewfromindex1->set_sensitive(false);
-		refreshindex1->set_sensitive(false);
-		unindex1->set_sensitive(false);
-		showfromindex1->set_sensitive(false);
-	}
-}
-
-//
-// Index > List Contents Of menu selected
-//
 void mainWindow::on_index_changed(ustring indexName)
 {
 	ResultsTree *pResultsTree = NULL;
-	IndexPage *pIndexPage = NULL;
 	ustring queryName;
 	bool foundPage = false;
 
@@ -913,7 +947,7 @@ void mainWindow::on_index_changed(ustring indexName)
 #endif
 
 	// Is there already a page for this index ?
-	pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 	if (pIndexPage != NULL)
 	{
 		// Force a refresh
@@ -934,7 +968,7 @@ void mainWindow::on_index_changed(ustring indexName)
 			sigc::mem_fun(*this, &mainWindow::on_close_page));
 
 		// Position the index tree
-		pResultsTree = manage(new ResultsTree(indexName, indexMenuitem->get_submenu(),
+		pResultsTree = manage(new ResultsTree(indexName, fileMenuitem->get_submenu(),
 			ResultsTree::FLAT, m_settings));
 		pIndexPage = manage(new IndexPage(indexName, pResultsTree, m_settings));
 		// Connect to the "changed" signal
@@ -942,7 +976,7 @@ void mainWindow::on_index_changed(ustring indexName)
 			sigc::mem_fun(*this, &mainWindow::on_indexTreeviewSelection_changed));
 		// Connect to the edit document signal
 		pResultsTree->getDoubleClickSignal().connect(
-			sigc::mem_fun(*this, &mainWindow::on_showfromindex_activate));
+			sigc::mem_fun(*this, &mainWindow::on_properties_activate));
 		// Connect to the query changed signal
 		pIndexPage->getQueryChangedSignal().connect(
 			sigc::mem_fun(*this, &mainWindow::on_query_changed));
@@ -987,65 +1021,61 @@ void mainWindow::on_cache_changed(PinotSettings::CacheProvider cacheProvider)
 	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
-		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-		if (pResultsPage != NULL)
+		ResultsTree *pResultsTree = pNotebookPage->getTree();
+		if (pResultsTree != NULL)
 		{
-			ResultsTree *pResultsTree = pResultsPage->getTree();
-			if (pResultsTree != NULL)
+			vector<DocumentInfo> resultsList;
+
+			if (pResultsTree->getSelection(resultsList) == true)
 			{
-				vector<DocumentInfo> resultsList;
-
-				if (pResultsTree->getSelection(resultsList) == true)
+				for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
+					resultIter != resultsList.end(); ++resultIter)
 				{
-					for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
-						resultIter != resultsList.end(); ++resultIter)
+					string url(resultIter->getLocation());
+					Url urlObj(url);
+					string protocol(urlObj.getProtocol());
+
+					// Is this protocol supported ?
+					if (cacheProvider.m_protocols.find(protocol) == cacheProvider.m_protocols.end())
 					{
-						string url(resultIter->getLocation());
-						Url urlObj(url);
-						string protocol(urlObj.getProtocol());
-
-						// Is this protocol supported ?
-						if (cacheProvider.m_protocols.find(protocol) == cacheProvider.m_protocols.end())
-						{
-							// No, it isn't... This document will be open in place
-							continue;
-						}
-
-						// Rewrite the URL
-						ustring location(cacheProvider.m_location);
-						ustring::size_type argPos = location.find("%url0");
-						if (argPos != ustring::npos)
-						{
-							string::size_type pos = url.find("://");
-							if ((pos != string::npos) &&
-								(pos + 3 < url.length()))
-							{
-								// URL without protocol
-								location.replace(argPos, 5, url.substr(pos + 3));
-							}
-						}
-						else
-						{
-							argPos = location.find("%url");
-							if (argPos != ustring::npos)
-							{
-								// Full protocol
-								location.replace(argPos, 4, url);
-							}
-						}
-
-						resultIter->setLocation(location);
-#ifdef DEBUG
-						cout << "mainWindow::on_cache_changed: rewritten "
-							<< url << " to " << location << endl;
-#endif
+						// No, it isn't... This document will be open in place
+						continue;
 					}
 
-					view_documents(resultsList);
+					// Rewrite the URL
+					ustring location(cacheProvider.m_location);
+					ustring::size_type argPos = location.find("%url0");
+					if (argPos != ustring::npos)
+					{
+						string::size_type pos = url.find("://");
+						if ((pos != string::npos) &&
+							(pos + 3 < url.length()))
+						{
+							// URL without protocol
+							location.replace(argPos, 5, url.substr(pos + 3));
+						}
+					}
+					else
+					{
+						argPos = location.find("%url");
+						if (argPos != ustring::npos)
+						{
+							// Full protocol
+							location.replace(argPos, 4, url);
+						}
+					}
 
-					// Update the rows right now
-					pResultsTree->setSelectionState(true);
+					resultIter->setLocation(location);
+#ifdef DEBUG
+					cout << "mainWindow::on_cache_changed: rewritten "
+						<< url << " to " << location << endl;
+#endif
 				}
+
+				view_documents(resultsList);
+
+				// Update the rows right now
+				pResultsTree->setSelectionState(true);
 			}
 		}
 	}
@@ -1054,28 +1084,22 @@ void mainWindow::on_cache_changed(PinotSettings::CacheProvider cacheProvider)
 //
 // Results > Search This For menu selected
 //
-void mainWindow::on_searchagain_changed(ustring queryName)
+void mainWindow::on_searchthis_changed(ustring queryName)
 {
 	QueryProperties queryProps;
 	QueryProperties currentQueryProps;
-	set<string> locations;
+	set<string> locations, locationsToIndex;
 
 	// Get the properties of the given query and
 	// selected results on the current results page
-	if ((get_results_page_details(queryName, queryProps, locations) == false) ||
-		(get_results_page_details("", currentQueryProps, locations) == false))
+	if ((get_results_page_details(queryName, queryProps, locations, locationsToIndex) == false) ||
+		(get_results_page_details("", currentQueryProps, locations, locationsToIndex) == false))
 	{
-		// Maybe the query was deleted
-		if (queryProps.getName().empty() == false)
-		{
-			ustring status(_("Couldn't find query"));
-			status += " ";
-			status += queryName;
-			set_status(status);
-		}
+		set_status(_("Couldn't search in results"));
 
 		return;
 	}
+	// FIXME: index locations that need to be indexed
 
 	if (locations.empty() == false)
 	{
@@ -1106,13 +1130,8 @@ void mainWindow::on_searchagain_changed(ustring queryName)
 //
 void mainWindow::on_query_changed(ustring indexName, ustring queryName)
 {
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
-	if (pIndexPage == NULL)
-	{
-		return;
-	}
-	ResultsTree *pResultsTree = pIndexPage->getTree();
-	if (pResultsTree == NULL)
+	NotebookPageBox *pNotebookPage = get_page(indexName, NotebookPageBox::INDEX_PAGE);
+	if (pNotebookPage == NULL)
 	{
 		return;
 	}
@@ -1125,8 +1144,6 @@ void mainWindow::on_query_changed(ustring indexName, ustring queryName)
 //
 void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 {
-	bool showResultsMenuitems = false;
-
 	NotebookPageBox *pNotebookPage = dynamic_cast<NotebookPageBox*>(m_pNotebook->get_nth_page(p1));
 	if (pNotebookPage != NULL)
 	{
@@ -1134,33 +1151,28 @@ void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 		if (type == NotebookPageBox::RESULTS_PAGE)
 		{
 			// Show or hide the extract field
-			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-			if (pResultsPage != NULL)
+			ResultsTree *pResultsTree = pNotebookPage->getTree();
+			if (pResultsTree != NULL)
 			{
-				ResultsTree *pResultsTree = pResultsPage->getTree();
-				if (pResultsTree != NULL)
+				// Sync the results tree with the menuitems
+				pResultsTree->showExtract(showextracts1->get_active());
+				if (searchenginegroup1->get_active() == true)
 				{
-					// Sync the results tree with the menuitems
-					pResultsTree->showExtract(showextract1->get_active());
-					if (searchenginegroup1->get_active() == true)
-					{
-						pResultsTree->setGroupMode(ResultsTree::BY_ENGINE);
-					}
-					else
-					{
-						pResultsTree->setGroupMode(ResultsTree::BY_HOST);
-					}
+					pResultsTree->setGroupMode(ResultsTree::BY_ENGINE);
+				}
+				else
+				{
+					pResultsTree->setGroupMode(ResultsTree::BY_HOST);
 				}
 			}
-
-			showResultsMenuitems = true;
 		}
 #ifdef DEBUG
 		cout << "mainWindow::on_switch_page: page " << p1 << " has type " << type << endl;
 #endif
 	}
 
-	show_global_menuitems(showResultsMenuitems);
+	show_pagebased_menuitems(true);
+
 	// Did the page change ?
 	if (m_state.m_currentPage != p1)
 	{
@@ -1193,7 +1205,7 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 
 	if (m_pNotebook->get_n_pages() - pageDecrement <= 0)
 	{
-		show_global_menuitems(false);
+		show_pagebased_menuitems(false);
 		show_selectionbased_menuitems(false);
 	}
 
@@ -1252,16 +1264,14 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		IndexPage *pIndexPage = NULL;
-		ResultsTree *pResultsTree = NULL;
 		ustring indexName = to_utf8(pListThread->getIndexName());
 
 		// Find the page for this index
 		// It may have been closed by the user
-		pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
-			pResultsTree = pIndexPage->getTree();
+			ResultsTree *pResultsTree = pIndexPage->getTree();
 			if (pResultsTree != NULL)
 			{
 				const vector<DocumentInfo> &docsList = pListThread->getDocuments();
@@ -1358,14 +1368,19 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 					isNewResult = true;
 				}
 				
-				if ((docId == 0) &&
-					((indexResults == QueryProperties::ALL_RESULTS) || (isNewResult == true)))
+				if ((indexResults == QueryProperties::ALL_RESULTS) || (isNewResult == true))
 				{
-					// This document is not in either index
-					docsToIndex.insert(*resultIter);
+					if ((docId == 0) ||
+						(indexId != m_settings.getIndexIdByName(_("My Documents"))))
+					{
+						// This document will be indexed or updated
+						docsToIndex.insert(*resultIter);
+					}
 				}
-				else if (labels.empty() == false)
+				else if ((docId > 0) &&
+					(labels.empty() == false))
 				{
+					// Apply this label
 					if (indexId == m_settings.getIndexIdByName(_("My Web Pages")))
 					{
 						docsIds.insert(docId);
@@ -1408,16 +1423,18 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				groupMode = ResultsTree::BY_HOST;
 			}
 			// Position the results tree
-			pResultsTree = manage(new ResultsTree(queryName, resultsMenuitem->get_submenu(), groupMode, m_settings));
-			pResultsPage = manage(new ResultsPage(queryName, pResultsTree, m_pNotebook->get_height(), m_settings));
+			pResultsTree = manage(new ResultsTree(queryName, fileMenuitem->get_submenu(),
+				groupMode, m_settings));
+			pResultsPage = manage(new ResultsPage(queryName, pResultsTree,
+				m_pNotebook->get_height(), m_settings));
 			// Sync the results tree with the menuitems
-			pResultsTree->showExtract(showextract1->get_active());
+			pResultsTree->showExtract(showextracts1->get_active());
 			// Connect to the "changed" signal
 			pResultsTree->getSelectionChangedSignal().connect(
 				sigc::mem_fun(*this, &mainWindow::on_resultsTreeviewSelection_changed));
 			// Connect to the view results signal
 			pResultsTree->getDoubleClickSignal().connect(
-				sigc::mem_fun(*this, &mainWindow::on_viewresults_activate));
+				sigc::mem_fun(*this, &mainWindow::on_open_activate));
 
 			// Append the page
 			if (m_state.write_lock_lists() == true)
@@ -1815,9 +1832,70 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 }
 
 //
-// Session > Statistics menu selected
+// Suggest query button click
 //
-void mainWindow::on_statistics_activate()
+void mainWindow::on_suggestQueryButton_clicked(ustring queryName, ustring queryText)
+{
+	// Find the query
+	const std::map<string, QueryProperties> &queriesMap = m_settings.getQueries();
+	std::map<string, QueryProperties>::const_iterator queryIter = queriesMap.find(queryName);
+	if (queryIter != queriesMap.end())
+	{
+		QueryProperties queryProps(queryIter->second);
+
+		queryProps.setName("");
+		queryProps.setFreeQuery(queryText);
+		queryProps.setModified(true);
+
+		edit_query(queryProps, true);
+	}
+}
+
+//
+// Index back button click
+//
+void mainWindow::on_indexBackButton_clicked(ustring indexName)
+{
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
+	if (pIndexPage != NULL)
+	{
+		if (pIndexPage->getFirstDocument() >= m_maxDocsCount)
+		{
+			browse_index(indexName, pIndexPage->getQueryName(), pIndexPage->getFirstDocument() - m_maxDocsCount);
+		}
+	}
+}
+
+//
+// Index forward button click
+//
+void mainWindow::on_indexForwardButton_clicked(ustring indexName)
+{
+	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
+	if (pIndexPage != NULL)
+	{
+		if (pIndexPage->getDocumentsCount() == 0)
+		{
+#ifdef DEBUG
+			cout << "mainWindow::on_indexForwardButton_clicked: first" << endl;
+#endif
+			browse_index(indexName, pIndexPage->getQueryName(), 0);
+		}
+		else if (pIndexPage->getDocumentsCount() >= pIndexPage->getFirstDocument() + m_maxDocsCount)
+		{
+#ifdef DEBUG
+			cout << "mainWindow::on_indexForwardButton_clicked: next" << endl;
+#endif
+			browse_index(indexName, pIndexPage->getQueryName(), pIndexPage->getFirstDocument() + m_maxDocsCount);
+		}
+#ifdef DEBUG
+		cout << "mainWindow::on_indexForwardButton_clicked: counts "
+			<< pIndexPage->getFirstDocument() << " " << pIndexPage->getDocumentsCount() << endl;
+#endif
+	}
+}
+
+void mainWindow::on_status_activate()
 {
 	m_state.disconnect();
 
@@ -1828,10 +1906,7 @@ void mainWindow::on_statistics_activate()
 	m_state.connect();
 }
 
-//
-// Edit > Preferences menu selected
-//
-void mainWindow::on_configure_activate()
+void mainWindow::on_preferences_activate()
 {
 	MIMEAction prefsAction("pinot-prefs", "pinot-prefs");
 	vector<string> arguments;
@@ -1842,17 +1917,11 @@ void mainWindow::on_configure_activate()
 	CommandLine::runAsync(prefsAction, arguments);
 }
 
-//
-// Session > Quit menu selected
-//
 void mainWindow::on_quit_activate()
 {
 	on_mainWindow_delete_event(NULL);
 }
 
-//
-// Edit > Cut menu selected
-//
 void mainWindow::on_cut_activate()
 {
 	// Copy
@@ -1861,9 +1930,6 @@ void mainWindow::on_cut_activate()
 	on_delete_activate();
 }
 
-//
-// Edit > Copy menu selected
-//
 void mainWindow::on_copy_activate()
 {
 	ustring text;
@@ -1892,38 +1958,17 @@ void mainWindow::on_copy_activate()
 			vector<DocumentInfo> documentsList;
 			bool firstItem = true;
 
-			ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-			if (pResultsPage != NULL)
+			ResultsTree *pResultsTree = pNotebookPage->getTree();
+			if (pResultsTree != NULL)
 			{
-#ifdef DEBUG
-				cout << "mainWindow::on_copy_activate: results tree" << endl;
-#endif
-				ResultsTree *pResultsTree = pResultsPage->getTree();
-				if (pResultsTree != NULL)
+				if (pResultsTree->focusOnExtract() == true)
 				{
-					if (pResultsTree->focusOnExtract() == true)
-					{
-						// Retrieve the extract
-						text = pResultsTree->getExtract();
-					}
-					else
-					{
-						// Get the current results selection
-						pResultsTree->getSelection(documentsList);
-					}
+					// Retrieve the extract
+					text = pResultsTree->getExtract();
 				}
-			}
-
-			IndexPage *pIndexPage = dynamic_cast<IndexPage*>(pNotebookPage);
-			if (pIndexPage != NULL)
-			{
-#ifdef DEBUG
-				cout << "mainWindow::on_copy_activate: index tree" << endl;
-#endif
-				ResultsTree *pResultsTree = pIndexPage->getTree();
-				if (pResultsTree != NULL)
+				else
 				{
-					// Get the current documents selection
+					// Get the current results selection
 					pResultsTree->getSelection(documentsList);
 				}
 			}
@@ -1964,9 +2009,6 @@ void mainWindow::on_copy_activate()
 	}
 }
 
-//
-// Edit > Paste menu selected
-//
 void mainWindow::on_paste_activate()
 {
 	RefPtr<Clipboard> refClipboard = Clipboard::get();
@@ -2008,9 +2050,6 @@ void mainWindow::on_paste_activate()
 	}
 }
 
-//
-// Edit > Delete menu selected
-//
 void mainWindow::on_delete_activate()
 {
 	if (liveQueryEntry->is_focus() == true)
@@ -2039,10 +2078,7 @@ void mainWindow::on_delete_activate()
 	// Nothing else can be deleted
 }
 
-//
-// Results > Clear menu selected
-//
-void mainWindow::on_clearresults_activate()
+void mainWindow::on_showextracts_activate()
 {
 	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
@@ -2053,35 +2089,12 @@ void mainWindow::on_clearresults_activate()
 			ResultsTree *pResultsTree = pResultsPage->getTree();
 			if (pResultsTree != NULL)
 			{
-				pResultsTree->clear();
+				pResultsTree->showExtract(showextracts1->get_active());
 			}
 		}
 	}
 }
 
-//
-// Results > Show Extract menu selected
-//
-void mainWindow::on_showextract_activate()
-{
-	NotebookPageBox *pNotebookPage = get_current_page();
-	if (pNotebookPage != NULL)
-	{
-		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-		if (pResultsPage != NULL)
-		{
-			ResultsTree *pResultsTree = pResultsPage->getTree();
-			if (pResultsTree != NULL)
-			{
-				pResultsTree->showExtract(showextract1->get_active());
-			}
-		}
-	}
-}
-
-//
-// Results > Group menu selected
-//
 void mainWindow::on_groupresults_activate()
 {
 	// What's the new grouping criteria ?
@@ -2107,120 +2120,91 @@ void mainWindow::on_groupresults_activate()
 	}
 }
 
-//
-// Results > Export menu selected
-//
-void mainWindow::on_exportresults_activate()
+void mainWindow::on_export_activate()
 {
 	NotebookPageBox *pNotebookPage = get_current_page();
 	if (pNotebookPage != NULL)
 	{
-		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-		if (pResultsPage != NULL)
+		string queryName = from_utf8(pNotebookPage->getTitle());
+
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
+		if (pIndexPage != NULL)
 		{
-			ResultsTree *pResultsTree = pResultsPage->getTree();
-			if (pResultsTree != NULL)
+			queryName = from_utf8(pIndexPage->getQueryName());
+		}
+
+		ResultsTree *pResultsTree = pNotebookPage->getTree();
+		if (pResultsTree != NULL)
+		{
+			FileChooserDialog fileChooser(_("Export"));
+			FileFilter csvFilter, xmlFilter;
+			ustring location(m_settings.getHomeDirectory());
+			bool exportToCSV = true;
+
+			location += "/";
+			location += pNotebookPage->getTitle();
+			location += ".csv";
+			prepare_file_chooser(fileChooser, location, false);
+
+			// Add filters
+			csvFilter.add_mime_type("application/csv");
+			csvFilter.set_name("CSV");
+			fileChooser.add_filter(csvFilter);
+			xmlFilter.add_mime_type("application/xml");
+			xmlFilter.set_name("OpenSearch response");
+			fileChooser.add_filter(xmlFilter);
+
+			fileChooser.show();
+			if (fileChooser.run() == RESPONSE_OK)
 			{
-				FileChooserDialog fileChooser(_("Export Results"));
-				FileFilter csvFilter, xmlFilter;
-				ustring location(m_settings.getHomeDirectory());
-				bool exportToCSV = true;
-
-				location += "/";
-				location += pNotebookPage->getTitle();
-				location += ".csv";
-				prepare_file_chooser(fileChooser, location, false);
-
-				// Add filters
-				csvFilter.add_mime_type("application/csv");
-				csvFilter.set_name("CSV");
-				fileChooser.add_filter(csvFilter);
-				xmlFilter.add_mime_type("application/xml");
-				xmlFilter.set_name("OpenSearch response");
-				fileChooser.add_filter(xmlFilter);
-
-				fileChooser.show();
-				if (fileChooser.run() == RESPONSE_OK)
+				// Retrieve the chosen location
+				location = filename_to_utf8(fileChooser.get_filename());
+				// What file format was selected ?
+				const FileFilter *pFilter = fileChooser.get_filter();
+				if ((pFilter != NULL) &&
+					(pFilter->get_name() != "CSV"))
 				{
-					// Retrieve the chosen location
-					location = filename_to_utf8(fileChooser.get_filename());
-					// What file format was selected ?
-					const FileFilter *pFilter = fileChooser.get_filter();
-					if ((pFilter != NULL) &&
-						(pFilter->get_name() != "CSV"))
-					{
-						exportToCSV = false;
-					}
-
-					pResultsTree->exportResults(location, exportToCSV);
+					exportToCSV = false;
 				}
+
+				pResultsTree->exportResults(location, queryName, exportToCSV);
 			}
 		}
 	}
 }
 
-//
-// Results > View menu selected
-//
-void mainWindow::on_viewresults_activate()
-{
-	NotebookPageBox *pNotebookPage = get_current_page();
-	if (pNotebookPage != NULL)
-	{
-		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
-		if (pResultsPage != NULL)
-		{
-			ResultsTree *pResultsTree = pResultsPage->getTree();
-			if (pResultsTree != NULL)
-			{
-				vector<DocumentInfo> resultsList;
-
-				if (pResultsTree->getSelection(resultsList) == true)
-				{
-					view_documents(resultsList);
-
-					// We can update the rows right now
-					pResultsTree->setSelectionState(true);
-				}
-			}
-		}
-	}
-}
-
-//
-// Results > More Like This menu selected
-//
 void mainWindow::on_morelikethis_activate()
 {
-	QueryProperties queryProps;
-	set<string> locations;
+	set<string> locationsToIndex;
+	ExpandSet expandSet;
 
 	// Get the current page's details
-	if (get_results_page_details("", queryProps, locations) == false)
+	if (get_results_page_details("", expandSet.m_queryProps, expandSet.m_locations, locationsToIndex) == false)
 	{
-		// Maybe the query was deleted
-		if (queryProps.getName().empty() == false)
-		{
-			ustring status(_("Couldn't find query"));
-			status += " ";
-			status += queryProps.getName();
-			set_status(status);
-		}
+		set_status(_("Couldn't find similar documents"));
 
 		return;
 	}
+	m_expandSets.push_back(expandSet);
 
-	if (locations.empty() == false)
+	for (set<string>::iterator locationIter = locationsToIndex.begin();
+		locationIter != locationsToIndex.end(); ++locationIter)
 	{
-		// Spawn a new thread
-		start_thread(new ExpandQueryThread(queryProps, locations));
+		DocumentInfo docInfo("", *locationIter, "", "");
+
+		// Add this to My Web Pages
+		m_state.queue_index(docInfo);
 	}
+
+	if (locationsToIndex.empty() == true)
+	{
+		// Expand on these documents right away
+		expand_locations();
+	}
+	// Else, do it when indexing is completed
 }
 
-//
-// Results > Index menu selected
-//
-void mainWindow::on_indexresults_activate()
+void mainWindow::on_addtoindex_activate()
 {
 	vector<DocumentInfo> resultsList;
 
@@ -2240,7 +2224,7 @@ void mainWindow::on_indexresults_activate()
 					resultIter != resultsList.end(); ++resultIter)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::on_indexresults_activate: URL is " << resultIter->getLocation() << endl;
+					cout << "mainWindow::on_addtoindex_activate: URL is " << resultIter->getLocation() << endl;
 #endif
 					ustring status = m_state.queue_index(*resultIter);
 					if (status.empty() == false)
@@ -2253,9 +2237,6 @@ void mainWindow::on_indexresults_activate()
 	}
 }
 
-//
-// Index > Import menu selected
-//
 void mainWindow::on_import_activate()
 {
 	importDialog importBox;
@@ -2281,32 +2262,89 @@ void mainWindow::on_import_activate()
 	}
 }
 
-//
-// Index > View menu selected
-//
-void mainWindow::on_viewfromindex_activate()
+void mainWindow::on_open_activate()
 {
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
-	if (pIndexPage != NULL)
+	NotebookPageBox *pNotebookPage = get_current_page();
+	if (pNotebookPage != NULL)
 	{
-		ResultsTree *pResultsTree = pIndexPage->getTree();
+		ResultsTree *pResultsTree = pNotebookPage->getTree();
+		bool updateSelectionState = false;
+
+		ResultsPage *pResultsPage = dynamic_cast<ResultsPage*>(pNotebookPage);
+		if (pResultsPage != NULL)
+		{
+			updateSelectionState = true;
+		}
 
 		if (pResultsTree != NULL)
 		{
-			vector<DocumentInfo> documentsList;
+			vector<DocumentInfo> resultsList;
 
-			if (pResultsTree->getSelection(documentsList) == true)
+			if (pResultsTree->getSelection(resultsList) == true)
 			{
-				view_documents(documentsList);
+				view_documents(resultsList);
+
+				if (updateSelectionState == true)
+				{
+					// We can update the rows right now
+					pResultsTree->setSelectionState(true);
+				}
 			}
 		}
 	}
 }
 
-//
-// Index > Refresh menu selected
-//
-void mainWindow::on_refreshindex_activate()
+void mainWindow::on_openparent_activate()
+{
+	NotebookPageBox *pNotebookPage = get_current_page();
+	if (pNotebookPage != NULL)
+	{
+		ResultsTree *pResultsTree = pNotebookPage->getTree();
+		if (pResultsTree != NULL)
+		{
+			vector<DocumentInfo> resultsList;
+
+			if (pResultsTree->getSelection(resultsList) == true)
+			{
+				vector<DocumentInfo>::iterator resultIter = resultsList.begin();
+				while (resultIter != resultsList.end())
+				{
+					string location(resultIter->getLocation());
+					Url urlObj(location);
+					string::size_type slashPos = location.find_last_of("/");
+
+					if ((urlObj.isLocal() == true) &&
+						(slashPos != string::npos))
+					{
+						location.erase(slashPos);
+#ifdef DEBUG
+						cout << "mainWindow::on_openparent_activate: " << location << endl;
+#endif
+						resultIter->setLocation(location);
+						resultIter->setType("x-directory/normal");
+
+						// Next
+						++resultIter;
+					}
+					else
+					{
+						vector<DocumentInfo>::iterator nextIter = resultIter;
+						++nextIter;
+
+						resultsList.erase(resultIter);
+
+						// Next
+						resultIter = nextIter;
+					}
+				}
+
+				view_documents(resultsList);
+			}
+		}
+	}
+}
+
+void mainWindow::on_updateindex_activate()
 {
 	vector<DocumentInfo> documentsList;
 
@@ -2338,13 +2376,11 @@ void mainWindow::on_refreshindex_activate()
 			continue;
 		}
 #ifdef DEBUG
-		cout << "mainWindow::on_refreshindex_activate: URL is " << docIter->getLocation() << endl;
+		cout << "mainWindow::on_updateindex_activate: URL is " << docIter->getLocation() << endl;
 #endif
 
 		// Add this action to the queue
-		DocumentInfo docInfo(*docIter);
-
-		ustring status = m_state.queue_index(docInfo);
+		ustring status = m_state.queue_index(*docIter);
 		if (status.empty() == false)
 		{
 			set_status(status);
@@ -2352,10 +2388,7 @@ void mainWindow::on_refreshindex_activate()
 	}
 }
 
-//
-// Index > Show Properties menu selected
-//
-void mainWindow::on_showfromindex_activate()
+void mainWindow::on_properties_activate()
 {
 	vector<DocumentInfo> documentsList;
 	set<unsigned int> docIds;
@@ -2364,7 +2397,7 @@ void mainWindow::on_showfromindex_activate()
 	bool docsIndex = false, daemonIndex = false;
 
 #ifdef DEBUG
-	cout << "mainWindow::on_showfromindex_activate: called" << endl;
+	cout << "mainWindow::on_properties_activate: called" << endl;
 #endif
 	ResultsTree *pResultsTree = NULL;
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
@@ -2462,9 +2495,6 @@ void mainWindow::on_showfromindex_activate()
 	}
 }
 
-//
-// Index > Unindex menu selected
-//
 void mainWindow::on_unindex_activate()
 {
 	vector<DocumentInfo> documentsList;
@@ -2527,9 +2557,6 @@ void mainWindow::on_unindex_activate()
 	}
 }
 
-//
-// Help > About menu selected
-//
 void mainWindow::on_about_activate()
 {
 	AboutDialog aboutBox;
@@ -2747,9 +2774,6 @@ void mainWindow::on_liveQueryEntry_changed()
 	}
 }
 
-//
-// Return key pressed in live query entry field
-//
 void mainWindow::on_liveQueryEntry_activate()
 {
 	on_findButton_clicked();
@@ -2888,70 +2912,6 @@ void mainWindow::on_findQueryButton_clicked()
 }
 
 //
-// Suggest query button click
-//
-void mainWindow::on_suggestQueryButton_clicked(ustring queryName, ustring queryText)
-{
-	// Find the query
-	const std::map<string, QueryProperties> &queriesMap = m_settings.getQueries();
-	std::map<string, QueryProperties>::const_iterator queryIter = queriesMap.find(queryName);
-	if (queryIter != queriesMap.end())
-	{
-		QueryProperties queryProps(queryIter->second);
-
-		queryProps.setName("");
-		queryProps.setFreeQuery(queryText);
-		queryProps.setModified(true);
-
-		edit_query(queryProps, true);
-	}
-}
-
-//
-// Index back button click
-//
-void mainWindow::on_indexBackButton_clicked(ustring indexName)
-{
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
-	if (pIndexPage != NULL)
-	{
-		if (pIndexPage->getFirstDocument() >= m_maxDocsCount)
-		{
-			browse_index(indexName, pIndexPage->getQueryName(), pIndexPage->getFirstDocument() - m_maxDocsCount);
-		}
-	}
-}
-
-//
-// Index forward button click
-//
-void mainWindow::on_indexForwardButton_clicked(ustring indexName)
-{
-	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
-	if (pIndexPage != NULL)
-	{
-		if (pIndexPage->getDocumentsCount() == 0)
-		{
-#ifdef DEBUG
-			cout << "mainWindow::on_indexForwardButton_clicked: first" << endl;
-#endif
-			browse_index(indexName, pIndexPage->getQueryName(), 0);
-		}
-		else if (pIndexPage->getDocumentsCount() >= pIndexPage->getFirstDocument() + m_maxDocsCount)
-		{
-#ifdef DEBUG
-			cout << "mainWindow::on_indexForwardButton_clicked: next" << endl;
-#endif
-			browse_index(indexName, pIndexPage->getQueryName(), pIndexPage->getFirstDocument() + m_maxDocsCount);
-		}
-#ifdef DEBUG
-		cout << "mainWindow::on_indexForwardButton_clicked: counts "
-			<< pIndexPage->getFirstDocument() << " " << pIndexPage->getDocumentsCount() << endl;
-#endif
-	}
-}
-
-//
 // Query list mouse click
 //
 bool mainWindow::on_queryTreeview_button_press_event(GdkEventButton *ev)
@@ -3024,11 +2984,10 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 //
 // Show or hide menuitems.
 //
-void mainWindow::show_global_menuitems(bool showItems)
+void mainWindow::show_pagebased_menuitems(bool showItems)
 {
 	// Results menuitems that depend on the page
-	exportresults1->set_sensitive(showItems);
-	clearresults1->set_sensitive(showItems);
+	export1->set_sensitive(showItems);
 }
 
 //
@@ -3036,18 +2995,16 @@ void mainWindow::show_global_menuitems(bool showItems)
 //
 void mainWindow::show_selectionbased_menuitems(bool showItems)
 {
-	// Results menuitems that depend on selection
-	viewresults1->set_sensitive(showItems);
-	viewcache1->set_sensitive(showItems);
+	// Menuitems that depend on selection
+	open1->set_sensitive(showItems);
+	opencache1->set_sensitive(showItems);
+	openparent1->set_sensitive(showItems);
 	morelikethis1->set_sensitive(showItems);
-	searchagain1->set_sensitive(showItems);
-	indexresults1->set_sensitive(showItems);
-
-	// Index menuitems that depend on selection
-	viewfromindex1->set_sensitive(showItems);
-	refreshindex1->set_sensitive(showItems);
+	searchthisfor1->set_sensitive(showItems);
+	addtoindex1->set_sensitive(showItems);
+	updateindex1->set_sensitive(showItems);
 	unindex1->set_sensitive(showItems);
-	showfromindex1->set_sensitive(showItems);
+	properties1->set_sensitive(showItems);
 }
 
 //
@@ -3463,6 +3420,9 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 		string url(docIter->getLocation());
 		string mimeType(docIter->getType());
 
+#ifdef DEBUG
+		cout << "mainWindow::view_documents: " << url << endl;
+#endif
 		if (url.empty() == true)
 		{
 			continue;
@@ -3491,13 +3451,6 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 		{
 			// Scan for the MIME type
 			mimeType = MIMEScanner::scanUrl(urlObj);
-		}
-
-		// Remove the charset, if any
-		string::size_type semiColonPos = mimeType.find(";");
-		if (semiColonPos != string::npos)
-		{
-			mimeType.erase(semiColonPos);
 		}
 
 #ifdef DEBUG
@@ -3709,27 +3662,27 @@ bool mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 
 bool mainWindow::expand_locations(void)
 {
-	// Was an expand operation delayed by indexing ?
-	if (m_expandLocations.empty() == true)
+	ExpandQueryThread *pExpandQueryThread = NULL;
+
+	// Grab the first set
+	vector<ExpandSet>::iterator expandIter = m_expandSets.begin();
+	if (expandIter != m_expandSets.end())
 	{
-		return false;
+		pExpandQueryThread = new ExpandQueryThread(expandIter->m_queryProps, expandIter->m_locations);
+#ifdef DEBUG
+		cout << "mainWindow::expand_locations: " << expandIter->m_locations.size() << " locations in set" << endl;
+#endif
+
+		m_expandSets.erase(expandIter);
 	}
 
-	Url urlObj(*m_expandLocations.begin());
-	string queryName(urlObj.getFile());
-
-	if (m_expandLocations.size() > 1)
+	if (pExpandQueryThread != NULL)
 	{
-		queryName += "...";
+		// Run a catch-all query and expand on these documents
+		return start_thread(pExpandQueryThread);
 	}
-	QueryProperties queryProps(queryName, "dir:/");
 
-	// Run a catch-all query and expand on these documents
-	ExpandQueryThread *pExpandQueryThread = new ExpandQueryThread(queryProps, m_expandLocations);
-	m_expandLocations.clear();
-	start_thread(pExpandQueryThread);
-
-	return true;
+	return false;
 }
 
 //

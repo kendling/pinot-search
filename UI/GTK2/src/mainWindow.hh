@@ -65,72 +65,65 @@ protected:
 	void populate_findMenu();
 	void add_query(QueryProperties &queryProps, bool mergeQueries);
 	bool get_results_page_details(const Glib::ustring &queryName,
-		QueryProperties &queryProps, std::set<std::string> &locations);
+		QueryProperties &queryProps, std::set<std::string> &locations,
+		std::set<std::string> &locationsToIndex);
 
 	// Handlers
 	void on_data_received(const Glib::RefPtr<Gdk::DragContext> &context,
-		int x, int y, const Gtk::SelectionData &data, guint info, guint time);
+		int x, int y, const Gtk::SelectionData &data, guint info, guint dataTime);
 	void on_enginesTreeviewSelection_changed();
 	void on_queryTreeviewSelection_changed();
 	void on_resultsTreeviewSelection_changed(Glib::ustring queryName);
 	void on_indexTreeviewSelection_changed(Glib::ustring indexName);
+	void on_document_changed(std::vector<DocumentInfo> &resultsList,
+		bool isDocumentsIndex, bool editDocument, bool areResults);
 	void on_index_changed(Glib::ustring indexName);
 	void on_cache_changed(PinotSettings::CacheProvider cacheProvider);
-	void on_searchagain_changed(Glib::ustring queryName);
+	void on_searchthis_changed(Glib::ustring queryName);
 	void on_query_changed(Glib::ustring indexName, Glib::ustring queryName);
 	void on_switch_page(GtkNotebookPage *p0, guint p1);
 	void on_close_page(Glib::ustring title, NotebookPageBox::PageType type);
 	void on_thread_end(WorkerThread *pThread);
 	void on_editindex(Glib::ustring indexName, Glib::ustring location);
+	void on_suggestQueryButton_clicked(Glib::ustring queryName, Glib::ustring queryText);
+	void on_indexBackButton_clicked(Glib::ustring indexName);
+	void on_indexForwardButton_clicked(Glib::ustring indexName);
 
 	// Handlers inherited from the base class
-	virtual void on_statistics_activate();
-	virtual void on_configure_activate();
-	virtual void on_quit_activate();
-
-	virtual void on_cut_activate();
-	virtual void on_copy_activate();
-	virtual void on_paste_activate();
-	virtual void on_delete_activate();
-
-	virtual void on_clearresults_activate();
-	virtual void on_showextract_activate();
-	virtual void on_groupresults_activate();
-	virtual void on_exportresults_activate();
-	virtual void on_viewresults_activate();
-	virtual void on_morelikethis_activate();
-	virtual void on_indexresults_activate();
-
-	virtual void on_import_activate();
-	virtual void on_viewfromindex_activate();
-	virtual void on_refreshindex_activate();
-	virtual void on_unindex_activate();
-	virtual void on_showfromindex_activate();
-
-	virtual void on_about_activate();
-
-	virtual void on_addIndexButton_clicked();
-	virtual void on_removeIndexButton_clicked();
-
-	virtual void on_enginesTogglebutton_toggled();
-
-	virtual void on_liveQueryEntry_changed();
-	virtual void on_liveQueryEntry_activate();
-	virtual void on_findButton_clicked();
-	virtual void on_addQueryButton_clicked();
-	virtual void on_removeQueryButton_clicked();
-	virtual void on_queryHistoryButton_clicked();
-	virtual void on_findQueryButton_clicked();
-	virtual void on_suggestQueryButton_clicked(Glib::ustring queryName, Glib::ustring queryText);
-
-	virtual void on_indexBackButton_clicked(Glib::ustring indexName);
-	virtual void on_indexForwardButton_clicked(Glib::ustring indexName);
-
-	virtual bool on_queryTreeview_button_press_event(GdkEventButton *ev);
-	virtual bool on_mainWindow_delete_event(GdkEventAny *ev);
+        virtual void on_open_activate();
+        virtual void on_openparent_activate();
+        virtual void on_addtoindex_activate();
+        virtual void on_updateindex_activate();
+        virtual void on_unindex_activate();
+        virtual void on_morelikethis_activate();
+        virtual void on_properties_activate();
+        virtual void on_quit_activate();
+        virtual void on_cut_activate();
+        virtual void on_copy_activate();
+        virtual void on_paste_activate();
+        virtual void on_delete_activate();
+        virtual void on_preferences_activate();
+        virtual void on_groupresults_activate();
+        virtual void on_showextracts_activate();
+        virtual void on_import_activate();
+        virtual void on_export_activate();
+        virtual void on_status_activate();
+        virtual void on_about_activate();
+        virtual void on_addIndexButton_clicked();
+        virtual void on_removeIndexButton_clicked();
+        virtual void on_enginesTogglebutton_toggled();
+        virtual void on_liveQueryEntry_changed();
+        virtual void on_liveQueryEntry_activate();
+        virtual void on_findButton_clicked();
+        virtual bool on_queryTreeview_button_press_event(GdkEventButton *ev);
+        virtual void on_addQueryButton_clicked();
+        virtual void on_removeQueryButton_clicked();
+        virtual void on_queryHistoryButton_clicked();
+        virtual void on_findQueryButton_clicked();
+        virtual bool on_mainWindow_delete_event(GdkEventAny *ev);
 
 	// Action methods
-	void show_global_menuitems(bool showItems);
+	void show_pagebased_menuitems(bool showItems);
 	void show_selectionbased_menuitems(bool showItems);
 	NotebookPageBox *get_current_page(void);
 	NotebookPageBox *get_page(const Glib::ustring &title,
@@ -161,7 +154,17 @@ private:
 	Glib::RefPtr<Gtk::EntryCompletion> m_refLiveQueryCompletion;
 	QueryModelColumns m_queryColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refQueryTree;
-	std::set<std::string> m_expandLocations;
+	class ExpandSet
+	{
+		public:
+			ExpandSet();
+			~ExpandSet();
+
+			QueryProperties m_queryProps;
+			set<string> m_locations;
+
+	};
+	std::vector<ExpandSet> m_expandSets;
 	// Notebook
 	Gtk::Notebook *m_pNotebook;
 	// Menus
