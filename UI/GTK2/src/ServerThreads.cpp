@@ -589,23 +589,23 @@ void DirectoryScannerThread::doWork(void)
 		// Restore user-set metadata, if any
 		while ((pIndex != NULL) &&
 			(pIndex->isGood() == true) &&
-			(metaData.getItems("file://", urls,
+			(metaData.getItems(string("file://") + m_dirName, urls,
 				currentOffset, currentOffset + 100) == true))
 		{
 			for (set<string>::const_iterator urlIter = urls.begin();
 				urlIter != urls.end(); ++urlIter)
 			{
 				unsigned int docId = pIndex->hasDocument(*urlIter);
-
-				if (docId > 0)
+				if (docId == 0)
 				{
-					DocumentInfo docInfo("", *urlIter, "", "");
+					continue;
+				}
 
-					if (metaData.getItem(docInfo, DocumentInfo::SERIAL_ALL) == true)
-					{
-						pIndex->updateDocumentInfo(docId, docInfo);
-						pIndex->setDocumentLabels(docId, docInfo.getLabels(), true);
-					}
+				DocumentInfo docInfo("", *urlIter, "", "");
+				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_ALL) == true)
+				{
+					pIndex->updateDocumentInfo(docId, docInfo);
+					pIndex->setDocumentLabels(docId, docInfo.getLabels(), true);
 				}
 			}
 

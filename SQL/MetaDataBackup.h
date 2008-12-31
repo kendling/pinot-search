@@ -43,7 +43,7 @@ class MetaDataBackup : public SQLiteBase
 		bool getItem(DocumentInfo &docInfo, DocumentInfo::SerialExtent extent);
 
 		/// Gets items.
-		bool getItems(const std::string &protocol,
+		bool getItems(const std::string &likeUrl,
 			std::set<std::string> &urls,
 			unsigned long min, unsigned long max);
 

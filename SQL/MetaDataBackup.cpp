@@ -232,7 +232,7 @@ bool MetaDataBackup::getAttributes(const string &url,
 #endif
 
 	SQLResults *results = executeStatement("SELECT Value FROM MetaDataBackup \
-		WHERE Url='%q' AND Name LIKE '%q%';",
+		WHERE Url='%q' AND Name LIKE '%q%%';",
 		Url::escapeUrl(url).c_str(), name.c_str());
 	if (results != NULL)
 	{
@@ -299,7 +299,7 @@ bool MetaDataBackup::removeAttribute(const string &url,
 		else
 		{
 			results = executeStatement("DELETE FROM MetaDataBackup \
-				WHERE Url='%q' AND NAME LIKE '%q%';",
+				WHERE Url='%q' AND NAME LIKE '%q%%';",
 				Url::escapeUrl(url).c_str(), name.c_str());
 		}
 	}
@@ -428,14 +428,14 @@ bool MetaDataBackup::getItem(DocumentInfo &docInfo, DocumentInfo::SerialExtent e
 }
 
 /// Gets items.
-bool MetaDataBackup::getItems(const string &protocol, set<string> &urls,
+bool MetaDataBackup::getItems(const string &likeUrl, set<string> &urls,
 	unsigned long min, unsigned long max)
 {
 	SQLResults *results = NULL;
 	bool success = false;
 
 	// Even when attributes are used, an entry is always added to the table
-	if (protocol.empty() == true)
+	if (likeUrl.empty() == true)
 	{
 		results = executeStatement("SELECT Url FROM MetaDataBackup \
 			LIMIT %u OFFSET %u;",
@@ -444,8 +444,8 @@ bool MetaDataBackup::getItems(const string &protocol, set<string> &urls,
 	else
 	{
 		results = executeStatement("SELECT Url FROM MetaDataBackup \
-			WHERE Url LIKE '%q%' LIMIT %u OFFSET %u;",
-			protocol.c_str(), max - min, min);
+			WHERE Url LIKE '%q%%' LIMIT %u OFFSET %u;",
+			likeUrl.c_str(), max - min, min);
 	}
 	if (results != NULL)
 	{
@@ -457,7 +457,7 @@ bool MetaDataBackup::getItems(const string &protocol, set<string> &urls,
 				continue;
 			}
 
-			urls.insert(row->getColumn(0));
+			urls.insert(Url::unescapeUrl(row->getColumn(0)));
 			success = true;
 
 			delete row;
