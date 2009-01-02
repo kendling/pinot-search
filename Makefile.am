@@ -45,10 +45,10 @@ install-data-local:
 	$(INSTALL_DATA) $(srcdir)/IndexSearch/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
 	@mv $(DESTDIR)$(datadir)/pinot/engines/YahooBOSS.src $(DESTDIR)$(datadir)/pinot/
 	@mkdir -p $(DESTDIR)$(libdir)/pinot/filters
-	@rm $(DESTDIR)$(libdir)/lib*filter.a $(DESTDIR)$(libdir)/lib*filter.la
+	@rm -f $(DESTDIR)$(libdir)/lib*filter.a $(DESTDIR)$(libdir)/lib*filter.la
 	@mv $(DESTDIR)$(libdir)/lib*filter* $(DESTDIR)$(libdir)/pinot/filters/
 	@mkdir -p $(DESTDIR)$(libdir)/pinot/backends
-	@rm $(DESTDIR)$(libdir)/lib*backend.a $(DESTDIR)$(libdir)/lib*backend.la
+	@rm -f $(DESTDIR)$(libdir)/lib*backend.a $(DESTDIR)$(libdir)/lib*backend.la
 	@mv $(DESTDIR)$(libdir)/lib*backend* $(DESTDIR)$(libdir)/pinot/backends/
 	@mkdir -p $(DESTDIR)$(datadir)/pinot/stopwords
 	@mkdir -p $(DESTDIR)$(datadir)/icons/hicolor/48x48/apps/
