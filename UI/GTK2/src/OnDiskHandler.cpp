@@ -38,6 +38,7 @@ using namespace std;
 OnDiskHandler::OnDiskHandler() :
 	MonitorHandler(),
 	m_history(PinotSettings::getInstance().getHistoryDatabaseName()),
+	m_metaData(PinotSettings::getInstance().getHistoryDatabaseName()),
 	m_pIndex(PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation))
 {
 	pthread_mutex_init(&m_mutex, NULL);
@@ -232,6 +233,8 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 		else cout << "OnDiskHandler::indexFile: not " << sourceIter->second << endl;
 #endif
 	}
+
+	m_metaData.getItem(docInfo, DocumentInfo::SERIAL_ALL);
 
 	m_signalFileFound(docInfo, isDirectory);
 

@@ -26,6 +26,7 @@
 #include <sigc++/sigc++.h>
 
 #include "CrawlHistory.h"
+#include "MetaDataBackup.h"
 #include "IndexInterface.h"
 #include "MonitorHandler.h"
 #include "PinotSettings.h"
@@ -75,6 +76,7 @@ class OnDiskHandler : public MonitorHandler
 		sigc::signal2<void, DocumentInfo, bool> m_signalFileFound;
 		std::map<unsigned int, std::string> m_fileSources;
 		CrawlHistory m_history;
+		MetaDataBackup m_metaData;
 		IndexInterface *m_pIndex;
 
 		bool fileMoved(const std::string &fileName,
