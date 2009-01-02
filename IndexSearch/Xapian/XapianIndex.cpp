@@ -849,7 +849,7 @@ string XapianIndex::scanDocument(const string &suggestedLanguage,
 
 		try
 		{
-			Xapian::Stem stemmer(*langIter);
+			Xapian::Stem stemmer(StringManip::toLowerCase(*langIter));
 		}
 		catch (const Xapian::Error &error)
 		{
