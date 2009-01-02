@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -276,13 +276,20 @@ void EnginesTree::populate(bool indexesOnly)
 		folderIter = m_refStore->append();
 		row = *folderIter;
 
-		row[m_enginesColumns.m_name] = to_utf8(channelName);
+		// Is this the current user channel ?
+		if (channelName == "X-Current-User-Channel")
+		{
+			row[m_enginesColumns.m_name] = currentUserChannel;
+		}
+		else
+		{
+			row[m_enginesColumns.m_name] = to_utf8(channelName);
+		}
 		row[m_enginesColumns.m_engineName] = "internal-folder";
 		row[m_enginesColumns.m_option] = "";
 		row[m_enginesColumns.m_type] = EnginesModelColumns::ENGINE_FOLDER;
 
-		// Is this the current user channel ?
-		if (channelName == currentUserChannel)
+		if (channelName == "X-Current-User-Channel")
 		{
 			localIter = folderIter;
 			createCurrentUserChannel = false;
@@ -344,7 +351,7 @@ void EnginesTree::populate(bool indexesOnly)
 	std::map<std::string, std::string>::const_iterator indexIter = m_settings.getIndexes().begin();
 	for (; indexIter != m_settings.getIndexes().end(); ++indexIter)
 	{
-		ustring indexName = to_utf8(indexIter->first);
+		ustring indexName(indexIter->first);
 		EnginesModelColumns::EngineType indexType = EnginesModelColumns::INDEX_ENGINE;
 
 		if ((indexName == _("My Web Pages")) ||
@@ -357,7 +364,7 @@ void EnginesTree::populate(bool indexesOnly)
 		TreeModel::Row childRow = *iter;
 		childRow[m_enginesColumns.m_name] = indexName;
 		childRow[m_enginesColumns.m_engineName] = m_settings.m_defaultBackend;
-		childRow[m_enginesColumns.m_option] = to_utf8(indexIter->second);
+		childRow[m_enginesColumns.m_option] = indexIter->second;
 		childRow[m_enginesColumns.m_type] = indexType;
 	}
 

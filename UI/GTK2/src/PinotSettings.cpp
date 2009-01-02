@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -383,7 +383,7 @@ bool PinotSettings::load(LoadWhat what)
 	}
 
 	map<ModuleProperties, bool> engines;
-	string currentUserChannelName(_("Current User"));
+	string currentUserChannel("X-Current-User-Channel");
 
 	// Some engines are available as back-ends
 	ModuleFactory::getSupportedEngines(engines);
@@ -401,7 +401,7 @@ bool PinotSettings::load(LoadWhat what)
 			{
 				ModuleProperties modProps(engineIter->first);
 
-				channelName = modProps.m_channel = currentUserChannelName;
+				channelName = modProps.m_channel = currentUserChannel;
 
 #ifdef DEBUG
 				cout << "PinotSettings::load: no channel for back-end " << engineIter->first.m_name << endl;

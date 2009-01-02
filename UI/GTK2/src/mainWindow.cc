@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -335,7 +335,6 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 		string lastRun;
 		time_t lastRunTime = 0;
 
-		row[m_queryColumns.m_name] = to_utf8(queryName);
 		if ((queryHistory.getLatestRuns(queryName, "", 1, latestRuns) == false) ||
 			(latestRuns.empty() == true))
 		{
@@ -350,6 +349,8 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 				<< queryName << " is " << lastRun << "/" << lastRunTime << endl;
 #endif
 		}
+
+		row[m_queryColumns.m_name] = to_utf8(queryName);
 		row[m_queryColumns.m_lastRun] = to_utf8(lastRun);
 		row[m_queryColumns.m_lastRunTime] = lastRunTime;
 		ustring summary(queryIter->second.getFreeQuery());
@@ -463,7 +464,7 @@ void mainWindow::populate_indexMenu()
 	for (std::map<std::string, std::string>::const_iterator indexIter = indexes.begin();
 		indexIter != indexes.end(); ++indexIter)
 	{
-		ustring indexName(to_utf8(indexIter->first));
+		ustring indexName(indexIter->first);
 
 		m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(indexName));
 		MenuItem &menuItem = m_pIndexMenu->items().back();

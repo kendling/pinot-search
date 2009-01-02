@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -143,9 +143,9 @@ void queryDialog::populate_comboboxes()
 	string language(m_properties.getStemmingLanguage());
 	for (unsigned int languageNum = 1; languageNum < Languages::m_count; ++languageNum)
 	{
-		string languageName(Languages::getIntlName(languageNum));
+		ustring languageName(Languages::getIntlName(languageNum));
 
-		stemmingCombobox->append_text(to_utf8(languageName));
+		stemmingCombobox->append_text(languageName);
 		// Is this the language we are looking for ?
 		if (language == languageName)
 		{

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1488,7 +1488,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::RowT
 		// No, it isn't: insert a new group in the tree
 		groupIter = m_refStore->append();
 		TreeModel::Row groupRow = *groupIter;
-		updateRow(groupRow, to_utf8(groupName),
+		updateRow(groupRow, groupName,
 			"", 0, 0, 0, 0, "", "", groupType,
 			false, false, false);
 
@@ -1581,7 +1581,7 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 		row[m_resultsColumns.m_indexes] = indexId;
 		row[m_resultsColumns.m_docId] = docId;
 		row[m_resultsColumns.m_resultType] = resultType;
-		row[m_resultsColumns.m_timestamp] = timestamp;
+		row[m_resultsColumns.m_timestamp] = to_utf8(timestamp);
 		row[m_resultsColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
 		row[m_resultsColumns.m_serial] = serial;
 
