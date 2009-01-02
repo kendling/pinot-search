@@ -930,7 +930,7 @@ void mainWindow::on_document_changed(vector<DocumentInfo> &resultsList,
 		unindex1->set_sensitive(false);
 		morelikethis1->set_sensitive(false);
 		searchthisfor1->set_sensitive(false);
-		addtoindex1->set_sensitive(false);
+		properties1->set_sensitive(false);
 
 		// Reset
 		set_status("");
