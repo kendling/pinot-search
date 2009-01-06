@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -49,6 +49,9 @@ string CrawlHistory::statusToText(CrawlStatus status)
 		case UNKNOWN:
 			text = "UNKNOWN";
 			break;
+		case TO_CRAWL:
+			text = "TO_CRAWL";
+			break;
 		case CRAWLING:
 			text = "CRAWLING";
 			break;
@@ -72,6 +75,10 @@ CrawlHistory::CrawlStatus CrawlHistory::textToStatus(const string &text)
 	if (text == "CRAWLING")
 	{
 		status = CRAWLING;
+	}
+	else if (text == "TO_CRAWL")
+	{
+		status = TO_CRAWL;
 	}
 	else if (text == "CRAWLED")
 	{
@@ -326,8 +333,8 @@ bool CrawlHistory::updateItems(const map<string, time_t> urls, CrawlStatus statu
 }
 
 /// Updates the status of items en masse.
-bool CrawlHistory::updateItemsStatus(CrawlStatus currentStatus, CrawlStatus newStatus,
-	unsigned int sourceId, bool allSources)
+bool CrawlHistory::updateItemsStatus(CrawlStatus newStatus, unsigned int sourceId,
+	bool allSources)
 {
 	SQLResults *results = NULL;
 	bool success = false;
@@ -335,17 +342,15 @@ bool CrawlHistory::updateItemsStatus(CrawlStatus currentStatus, CrawlStatus newS
 	if (allSources == false)
 	{
 		results = executeStatement("UPDATE CrawlHistory \
-			SET Status='%q' WHERE SourceId='%u' AND Status='%q';",
-			statusToText(newStatus).c_str(), sourceId,
-			statusToText(currentStatus).c_str());
+			SET Status='%q' WHERE SourceId='%u';",
+			statusToText(newStatus).c_str(), sourceId);
 	}
 	else
 	{
 		// Ignore the source
 		results = executeStatement("UPDATE CrawlHistory \
-			SET Status='%q' WHERE Status='%q';",
-			statusToText(newStatus).c_str(),
-			statusToText(currentStatus).c_str());
+			SET Status='%q';",
+			statusToText(newStatus).c_str());
 	}
 
 	if (results != NULL)

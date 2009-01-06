@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include <fstream>
 #include <sstream>
 #include <glibmm/miscutils.h>
+#include <glibmm/convert.h>
 
 #include "config.h"
 #include "NLS.h"
@@ -273,11 +274,10 @@ void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 
 bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &crawlHistory)
 {
-	CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
 	string location("file://" + entryName);
+	CrawlHistory::CrawlStatus itemStatus = CrawlHistory::UNKNOWN;
 	time_t itemDate;
 	struct stat fileStat;
-	int entryStatus = 0;
 	bool scanSuccess = true, reportFile = false, itemExists = false;
 
 	if (entryName.empty() == true)
@@ -297,20 +297,30 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 #endif
 		return false;
 	}
+#ifdef DEBUG
+	cout << "DirectoryScannerThread::scanEntry: checking " << entryName << endl;
+#endif
 
 	// Is this item in the database already ?
-	itemExists = crawlHistory.hasItem(location, status, itemDate);
-
-	if (m_followSymLinks == false)
+	itemExists = crawlHistory.hasItem(location, itemStatus, itemDate);
+	if (itemExists == true)
 	{
-		entryStatus = lstat(entryName.c_str(), &fileStat);
+		if (itemStatus > CrawlHistory::TO_CRAWL)
+		{
+			// At this stage, this shouldn't happen
+			cout << "Skipping " << entryName << ": it has already been crawled" << endl;
+			return false;
+		}
+
+		crawlHistory.updateItem(location, CrawlHistory::CRAWLING, itemDate);
 	}
 	else
 	{
-		// Stat the files pointed to by symlinks
-		entryStatus = stat(entryName.c_str(), &fileStat);
+		// Record it
+		crawlHistory.insertItem(location, CrawlHistory::CRAWLING, m_sourceId, itemDate);
 	}
 
+	int entryStatus = lstat(entryName.c_str(), &fileStat);
 	if (entryStatus == -1)
 	{
 		entryStatus = errno;
@@ -322,16 +332,105 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 	// Is it a file or a directory ?
 	else if (S_ISLNK(fileStat.st_mode))
 	{
-		// This won't happen when m_followSymLinks is true
+		string trueEntryName;
+
+		if (m_followSymLinks == false)
+		{
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: skipped symlink" << endl;
+			cout << "DirectoryScannerThread::scanEntry: skipped symlink " << entryName << endl;
 #endif
-		return false;
+			return false;
+		}
+
+		char *pBuf = g_file_read_link(entryName.c_str(), NULL);
+		if (pBuf != NULL)
+		{
+			string linkLocation(filename_to_utf8(pBuf));
+			if (path_is_absolute(linkLocation) == true)
+			{
+				trueEntryName = linkLocation;
+			}
+			else
+			{
+				string entryDir(path_get_dirname(entryName));
+				string::size_type prevSlashPos = 0, slashPos = linkLocation.find('/');
+
+				while (slashPos != string::npos)
+				{
+					string path(linkLocation.substr(prevSlashPos, slashPos - prevSlashPos));
+
+					if (path == "..")
+					{
+						string upDir(path_get_dirname(entryDir));
+						entryDir = upDir;
+					}
+					else if (path != ".")
+					{
+						entryDir += "/";
+						entryDir += path;
+					}
+#ifdef DEBUG
+					cout << "DirectoryScannerThread::scanEntry: symlink resolved to " << entryDir << endl;
+#endif
+
+					if (slashPos + 1 >= linkLocation.length())
+					{
+						// Nothing behind
+						prevSlashPos = string::npos;
+						break;
+					}
+
+					// Next
+					prevSlashPos = slashPos + 1;
+					slashPos = linkLocation.find('/', prevSlashPos);
+				}
+
+				// Remainder
+				if (prevSlashPos != string::npos)
+				{
+					string path(linkLocation.substr(prevSlashPos));
+
+					if (path == "..")
+					{
+						string upDir(path_get_dirname(entryDir));
+						entryDir = upDir;
+					}
+					else if (path != ".")
+					{
+						entryDir += "/";
+						entryDir += path;
+					}
+				}
+#ifdef DEBUG
+				cout << "DirectoryScannerThread::scanEntry: symlink resolved to " << entryDir << endl;
+#endif
+
+				trueEntryName = entryDir;
+			}
+
+			g_free(pBuf);
+		}
+
+		string trueLocation("file://" + trueEntryName);
+		CrawlHistory::CrawlStatus trueItemStatus = CrawlHistory::UNKNOWN;
+		time_t trueItemDate;
+
+		// Check whether this will be, or has already been crawled
+		if (crawlHistory.hasItem(trueLocation, trueItemStatus, trueItemDate) == false)
+		{
+			if (PinotSettings::getInstance().isBlackListed(entryName) == false)
+			{
+				// Proceed as per regular files
+				reportFile = true;
+			}
+		}
+		else cout << "Skipping " << entryName << ": it links to " << trueEntryName
+			<< " which will be crawled, or has already been crawled" << endl;
 	}
 	else if (S_ISREG(fileStat.st_mode))
 	{
 		// Is this file blacklisted ?
-		// We have to check early so that if necessary the file's status stays at CRAWLING 
+		// We have to check early so that if necessary the file's status stays at TO_CRAWL
 		// and it is removed from the index at the end of this crawl
 		if (PinotSettings::getInstance().isBlackListed(entryName) == false)
 		{
@@ -385,13 +484,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 						subEntryName += pEntryName;
 
 						// Scan this entry
-						if (scanEntry(subEntryName, crawlHistory) == false)
-						{
-#ifdef DEBUG
-							cout << "DirectoryScannerThread::scanEntry: failed to open "
-								<< subEntryName << endl;
-#endif
-						}
+						scanEntry(subEntryName, crawlHistory);
 					}
 
 					// Next entry
@@ -428,36 +521,24 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 	// If a major error occured, this won't be true
 	if (reportFile == true)
 	{
-		if (itemExists == false)
+		// Was it modified after the last crawl ?
+		if ((itemExists == true) &&
+			(itemDate >= fileStat.st_mtime))
 		{
-			// Record it
-			crawlHistory.insertItem(location, CrawlHistory::CRAWLED, m_sourceId, fileStat.st_mtime);
-			itemExists = true;
-#ifdef DEBUG
-			cout << "DirectoryScannerThread::scanEntry: reporting new file " << entryName << endl;
-#endif
+			// No, it wasn't
+			reportFile = false;
 		}
-		else
+
+		// History of modified files, especially the timestamp, is always updated
+		// Others' are updated only if we are doing a full scan because
+		// the status has to be reset to CRAWLED, so that they are not unindexed
+		if ((reportFile == true) ||
+			(m_fullScan == true))
 		{
-			// Was it modified after the last crawl ?
-			if (itemDate >= fileStat.st_mtime)
-			{
-				// No, it wasn't
-				reportFile = false;
-			}
-
-			// History of modified files, especially the timestamp, is always updated
-			// Others' are updated only if we are doing a full scan because
-			// the status has to be reset to CRAWLED, so that they are not unindexed
-			if ((reportFile == true) ||
-				(m_fullScan == true))
-			{
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: updating " << entryName << endl;
+			cout << "DirectoryScannerThread::scanEntry: updating " << entryName << endl;
 #endif
-				cacheUpdate(location, fileStat.st_mtime, crawlHistory);
-			}
-
+			cacheUpdate(location, fileStat.st_mtime, crawlHistory);
 		}
 
 		if (reportFile == true)
@@ -492,14 +573,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 		time_t timeNow = time(NULL);
 
 		// Record this error
-		if (itemExists == false)
-		{
-			crawlHistory.insertItem(location, CrawlHistory::CRAWL_ERROR, m_sourceId, timeNow, entryStatus);
-		}
-		else
-		{
-			crawlHistory.updateItem(location, CrawlHistory::CRAWL_ERROR, timeNow, entryStatus);
-		}
+		crawlHistory.updateItem(location, CrawlHistory::CRAWL_ERROR, timeNow, entryStatus);
 	}
 
 	return scanSuccess;
@@ -519,16 +593,16 @@ void DirectoryScannerThread::doWork(void)
 	}
 	scanTimer.start();
 
+	// Remove errors
+	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_ERROR);
+
 	if (m_fullScan == true)
 	{
 		cout << "Doing a full scan on " << m_dirName << endl;
 
 		// Update this source's items status so that we can detect files that have been deleted
-		crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::CRAWLING,
-			m_sourceId);
+		crawlHistory.updateItemsStatus(CrawlHistory::TO_CRAWL, m_sourceId);
 	}
-	// Remove errors
-	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_ERROR);
 
 	if (scanEntry(m_dirName, crawlHistory) == false)
 	{
@@ -550,22 +624,21 @@ void DirectoryScannerThread::doWork(void)
 	{
 		scanTimer.start();
 
-		// All files left with status CRAWLING were not found in this crawl
+		// All files left with status TO_CRAWL were not found in this crawl
 		// Chances are they were removed after the last full scan
 		while ((m_pHandler != NULL) &&
-			(crawlHistory.getSourceItems(m_sourceId, CrawlHistory::CRAWLING, urls,
+			(crawlHistory.getSourceItems(m_sourceId, CrawlHistory::TO_CRAWL, urls,
 				currentOffset, currentOffset + 100) > 0))
 		{
 			for (set<string>::const_iterator urlIter = urls.begin();
 				urlIter != urls.end(); ++urlIter)
 			{
 				// Inform the MonitorHandler
-				if (m_pHandler->fileDeleted(urlIter->substr(7)) == true)
-				{
-					// Delete this item
-					crawlHistory.deleteItem(*urlIter);
-					metaData.deleteItem(DocumentInfo("", *urlIter, "", ""), DocumentInfo::SERIAL_ALL);
-				}
+				m_pHandler->fileDeleted(urlIter->substr(7));
+
+				// Delete this item
+				crawlHistory.deleteItem(*urlIter);
+				metaData.deleteItem(DocumentInfo("", *urlIter, "", ""), DocumentInfo::SERIAL_ALL);
 			}
 
 			// Next

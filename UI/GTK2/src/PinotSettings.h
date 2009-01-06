@@ -122,21 +122,6 @@ class PinotSettings
 		/// Determines if a file matches the blacklist.
 		bool isBlackListed(const std::string &fileName);
 
-		class TimestampedItem
-		{
-			public:
-				TimestampedItem();
-				TimestampedItem(const TimestampedItem &other);
-				~TimestampedItem();
-
-				TimestampedItem &operator=(const TimestampedItem &other);
-				bool operator<(const TimestampedItem &other) const;
-				bool operator==(const TimestampedItem &other) const;
-
-				Glib::ustring m_name;
-				time_t m_modTime;
-		};
-
 		class IndexableLocation 
 		{
 			public:

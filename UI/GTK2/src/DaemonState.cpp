@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -514,7 +514,7 @@ void DaemonState::start(bool forceFullScan, bool isReindex)
 		CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 
 		// Update all items status so that we can get rid of files from deleted sources
-		crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::CRAWLING, 0, true);
+		crawlHistory.updateItemsStatus(CrawlHistory::TO_CRAWL, 0, true);
 	}
 
 	// Initiate crawling
@@ -551,9 +551,9 @@ void DaemonState::start_crawling(void)
 				CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 				set<string> deletedFiles;
 
-				// All files left with status CRAWLING belong to deleted sources
+				// All files left with status TO_CRAWL belong to deleted sources
 				if ((m_pDiskHandler != NULL) &&
-					(crawlHistory.getItems(CrawlHistory::CRAWLING, deletedFiles) > 0))
+					(crawlHistory.getItems(CrawlHistory::TO_CRAWL, deletedFiles) > 0))
 				{
 #ifdef DEBUG
 					cout << "DaemonState::start_crawling: " << deletedFiles.size() << " orphaned files" << endl;
@@ -562,11 +562,10 @@ void DaemonState::start_crawling(void)
 						fileIter != deletedFiles.end(); ++fileIter)
 					{
 						// Inform the MonitorHandler
-						if (m_pDiskHandler->fileDeleted(fileIter->substr(7)) == true)
-						{
-							// Delete this item
-							crawlHistory.deleteItem(*fileIter);
-						}
+						m_pDiskHandler->fileDeleted(fileIter->substr(7));
+
+						// Delete this item
+						crawlHistory.deleteItem(*fileIter);
 					}
 				}
 			}

@@ -1282,6 +1282,8 @@ bool PinotSettings::loadIndexableLocations(const Element *pElem)
 
 	if (location.m_name.empty() == false)
 	{
+		location.m_isSource = true;
+
 		m_indexableLocations.insert(location);
 	}
 
@@ -2013,9 +2015,6 @@ bool PinotSettings::isBlackListed(const string &fileName)
 	{
 		if (fnmatch(patternIter->c_str(), fileName.c_str(), FNM_NOESCAPE) == 0)
 		{
-#ifdef DEBUG
-			cout << "PinotSettings::isBlackListed: " << fileName << " matches " << *patternIter << endl;
-#endif
 			// Fail if it's in the blacklist, let the file through otherwise
 			return m_isBlackList;
 		}
@@ -2023,52 +2022,6 @@ bool PinotSettings::isBlackListed(const string &fileName)
 #endif
 
 	return !m_isBlackList;
-}
-
-PinotSettings::TimestampedItem::TimestampedItem() :
-	m_modTime(0)
-{
-}
-
-PinotSettings::TimestampedItem::TimestampedItem(const TimestampedItem &other) :
-	m_name(other.m_name),
-	m_modTime(other.m_modTime)
-{
-}
-
-PinotSettings::TimestampedItem::~TimestampedItem()
-{
-}
-
-PinotSettings::TimestampedItem &PinotSettings::TimestampedItem::operator=(const TimestampedItem &other)
-{
-	if (this != &other)
-	{
-		m_name = other.m_name;
-		m_modTime = other.m_modTime;
-	}
-
-	return *this;
-}
-
-bool PinotSettings::TimestampedItem::operator<(const TimestampedItem &other) const
-{
-	if (m_name < other.m_name)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool PinotSettings::TimestampedItem::operator==(const TimestampedItem &other) const
-{
-	if (m_name == other.m_name)
-	{
-		return true;
-	}
-
-	return false;
 }
 
 PinotSettings::IndexableLocation::IndexableLocation() :

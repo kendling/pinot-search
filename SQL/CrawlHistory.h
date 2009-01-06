@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ class CrawlHistory : public SQLiteBase
 		CrawlHistory(const std::string &database);
 		virtual ~CrawlHistory();
 
-		typedef enum { UNKNOWN, CRAWLING, CRAWLED, CRAWL_ERROR } CrawlStatus;
+		typedef enum { UNKNOWN, TO_CRAWL, CRAWLING, CRAWLED, CRAWL_ERROR } CrawlStatus;
 
 		/// Creates the CrawlHistory table in the database.
 		static bool create(const std::string &database);
@@ -64,8 +64,8 @@ class CrawlHistory : public SQLiteBase
 		bool updateItems(const std::map<std::string, time_t> urls, CrawlStatus status);
 
 		/// Updates the status of items en masse.
-		bool updateItemsStatus(CrawlStatus currentStatus, CrawlStatus newStatus,
-			unsigned int sourceId, bool allSources = false);
+		bool updateItemsStatus(CrawlStatus newStatus, unsigned int sourceId,
+			bool allSources = false);
 
 		/// Gets the error number and date for a URL.
 		int getErrorDetails(const std::string &url, time_t &date);
