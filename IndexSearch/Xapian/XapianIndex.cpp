@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -55,6 +55,18 @@ using std::set;
 using std::map;
 using std::min;
 using std::max;
+
+static string removeCharsetFromType(const string &type)
+{
+	// Remove the charset, if any
+	string::size_type semiColonPos = type.find(";");
+	if (semiColonPos != string::npos)
+	{
+		return type.substr(0, semiColonPos);
+	}
+
+	return type;
+}
 
 class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 {
@@ -537,7 +549,7 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	vector<string> paths;
 	string title(info.getTitle());
 	string location(info.getLocation());
-	string type(info.getType());
+	string type(removeCharsetFromType(info.getType()));
 	Url urlObj(location);
 
 	// Add a magic term :-)
@@ -793,7 +805,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 	// Language code
 	commonTerms.insert(string("L") + Languages::toCode(language));
 	// MIME type
-	string type(docInfo.getType());
+	string type(removeCharsetFromType(docInfo.getType()));
 	commonTerms.insert(string("T") + type);
 	string::size_type slashPos = type.find('/');
 	if (slashPos != string::npos)
@@ -1738,11 +1750,8 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	}
 
 	// Cache the document's properties
-	DocumentInfo docInfo(document.getTitle(), document.getLocation(),
-		document.getType(), document.getLanguage());
-	docInfo.setTimestamp(document.getTimestamp());
-	docInfo.setSize(document.getSize());
-	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
+	DocumentInfo docInfo(document);
+	docInfo.setLocation(Url::canonicalizeUrl(document.getLocation()));
 
 	unsigned int dataLength = 0;
 	const char *pData = document.getData(dataLength);
@@ -1814,11 +1823,8 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 	}
 
 	// Cache the document's properties
-	DocumentInfo docInfo(document.getTitle(), document.getLocation(),
-		document.getType(), document.getLanguage());
-	docInfo.setTimestamp(document.getTimestamp());
-	docInfo.setSize(document.getSize());
-	docInfo.setLocation(Url::canonicalizeUrl(docInfo.getLocation()));
+	DocumentInfo docInfo(document);
+	docInfo.setLocation(Url::canonicalizeUrl(document.getLocation()));
 
 	unsigned int dataLength = 0;
 	const char *pData = document.getData(dataLength);

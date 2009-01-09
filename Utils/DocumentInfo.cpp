@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -230,16 +230,7 @@ void DocumentInfo::setType(const string &type)
 /// Returns the type of the document.
 string DocumentInfo::getType(void) const
 {
-	string type(getField("type"));
-	string::size_type semiColonPos = type.find(";");
-
-	// Remove the charset, if any
-	if (semiColonPos != string::npos)
-	{
-		return type.substr(0, semiColonPos);
-	}
-
-	return type;
+	return getField("type");
 }
 
 /// Sets the language of the document.
