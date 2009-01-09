@@ -73,7 +73,8 @@ pinot_label_LDFLAGS = \
 pinot_label_LDADD = \
 	-L$(top_builddir)/Utils \
 	-lIndex -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@
+	@GLIBMM_LIBS@ @DBUS_LIBS@ \
+	@GTHREAD_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
 pinot_label_SOURCES = pinot-label.cpp
 
