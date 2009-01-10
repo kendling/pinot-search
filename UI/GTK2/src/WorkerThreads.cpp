@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1551,7 +1551,7 @@ void IndexingThread::doWork(void)
 {
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
 	Url thisUrl(m_docInfo.getLocation());
-	bool doDownload = true;
+	bool reliableType = false, doDownload = true;
 
 	// First things first, get the index
 	if ((pIndex == NULL) ||
@@ -1574,11 +1574,14 @@ void IndexingThread::doWork(void)
 		m_update = true;
 	}
 
-	// We may not have to download the document
-	// If coming from a crawl, this will be empty
 	if (m_docInfo.getType().empty() == true)
 	{
 		m_docInfo.setType(MIMEScanner::scanUrl(thisUrl));
+	}
+	else
+	{
+		// There's a good chance the supplied type is accurate
+		reliableType = true;
 	}
 
 	if (FilterUtils::isSupportedType(m_docInfo.getType()) == false)
@@ -1591,6 +1594,14 @@ void IndexingThread::doWork(void)
 			delete pIndex;
 
 			return;
+		}
+
+		if (reliableType == true)
+		{
+			doDownload = false;
+#ifdef DEBUG
+			cout << "IndexingThread::doWork: skipping download of unsupported type " << m_docInfo.getLocation() << endl;
+#endif
 		}
 	}
 	else
@@ -1606,12 +1617,16 @@ void IndexingThread::doWork(void)
 				(thisUrl.isLocal() == false)))
 			{
 				doDownload = false;
+#ifdef DEBUG
+				cout << "IndexingThread::doWork: let filter download " << m_docInfo.getLocation() << endl;
+#endif
 			}
 
 			delete pFilter;
 		}
 	}
 
+	// We may not have to download the document
 	if (doDownload == true)
 	{
 		DownloadingThread::doWork();
@@ -1622,9 +1637,6 @@ void IndexingThread::doWork(void)
 
 		m_pDoc->setTimestamp(m_docInfo.getTimestamp());
 		m_pDoc->setSize(m_docInfo.getSize());
-#ifdef DEBUG
-		cout << "IndexingThread::doWork: skipped download of " << m_docInfo.getLocation() << endl;
-#endif
 	}
 
 	if (m_pDoc != NULL)
@@ -1635,10 +1647,12 @@ void IndexingThread::doWork(void)
 		// The type may have been obtained when downloading
 		if (docType.empty() == false)
 		{
+			// Use the document's type
 			m_docInfo.setType(docType);
 		}
 		else
 		{
+			// Use the type we were supplied with
 			m_pDoc->setType(m_docInfo.getType());
 		}
 

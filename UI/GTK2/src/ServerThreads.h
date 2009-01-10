@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <stack>
 #include <sigc++/sigc++.h>
 #include <glibmm/ustring.h>
 
@@ -62,11 +63,15 @@ class DirectoryScannerThread : public IndexingThread
 		bool m_delegateIndexing;
 		sigc::signal2<void, DocumentInfo, bool> m_signalFileFound;
 		std::map<std::string, time_t> m_updateCache;
+		std::stack<std::string> m_currentLinks;
+		std::stack<std::string> m_currentLinkReferrees;
 
 		void cacheUpdate(const std::string &location, time_t mTime, CrawlHistory &crawlHistory);
 		void flushUpdates(CrawlHistory &crawlHistory);
 		void foundFile(const DocumentInfo &docInfo);
-		bool scanEntry(const std::string &entryName, CrawlHistory &crawlHistory);
+		bool isIndexable(const std::string &entryName) const;
+		bool scanEntry(const std::string &entryName, CrawlHistory &crawlHistory,
+			bool statLinks = true);
 		virtual void doWork(void);
 
 	private:
