@@ -675,8 +675,9 @@ void DirectoryScannerThread::doWork(void)
 	}
 	scanTimer.start();
 
-	// Remove errors
+	// Remove errors and links
 	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_ERROR);
+	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_LINK);
 
 	if (m_fullScan == true)
 	{
@@ -692,7 +693,6 @@ void DirectoryScannerThread::doWork(void)
 		m_errorParam = m_dirName;
 	}
 	flushUpdates(crawlHistory);
-	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_LINK);
 	cout << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
 
 	if (m_done == true)
