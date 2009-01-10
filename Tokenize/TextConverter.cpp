@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Fabrice Colin
+ *  Copyright 2008-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -77,65 +77,82 @@ string TextConverter::toUTF8(const char *pText, unsigned int textLen, const stri
 		textCharset = m_localeCharset;
 	}
 
-	IConv converter("UTF-8", textCharset);
 	string outputText;
 	gsize inputSize = (gsize)textLen;
 	bool invalidSequence = false;
 
-	while (inputSize > 0)
+	try
 	{
-		char *pOutput = outputBuffer;
-		gsize outputSize = 8192;
-
-		size_t conversions = converter.iconv(&pInput, &inputSize, &pOutput, &outputSize);
-		int errorCode = errno;
-		if (conversions == -1)
+		IConv converter("UTF-8", textCharset);
+ 
+		while (inputSize > 0)
 		{
-			if (errorCode == EILSEQ)
+			char *pOutput = outputBuffer;
+			gsize outputSize = 8192;
+
+			size_t conversions = converter.iconv(&pInput, &inputSize, &pOutput, &outputSize);
+			int errorCode = errno;
+			if (conversions == -1)
 			{
-				// Conversion was only partially successful
-				++m_conversionErrors;
-#ifdef DEBUG
-				cout << "TextConverter::toUTF8: invalid sequence at " << pInput - pText << endl;
-#endif
-				if (m_conversionErrors >= m_maxErrors)
+				if (errorCode == EILSEQ)
 				{
-					// Give up
+					// Conversion was only partially successful
+					++m_conversionErrors;
+#ifdef DEBUG
+					cout << "TextConverter::toUTF8: invalid sequence at " << pInput - pText << endl;
+#endif
+					if (m_conversionErrors >= m_maxErrors)
+					{
+						// Give up
+						return string(pText, textLen);
+					}
+					converter.reset();
+
+					outputText.append(outputBuffer, 8192 - outputSize);
+					if (invalidSequence == false)
+					{
+						outputText += "?";
+						invalidSequence = true;
+					}
+
+					// Skip that
+					++pInput;
+					--inputSize;
+					continue;
+				}
+				else if (errorCode != E2BIG)
+				{
+#ifdef DEBUG
+					cout << "TextConverter::toUTF8: unknown error " << errorCode << endl;
+#endif
 					return string(pText, textLen);
 				}
-				converter.reset();
-
-				outputText.append(outputBuffer, 8192 - outputSize);
-				if (invalidSequence == false)
-				{
-					outputText += "?";
-					invalidSequence = true;
-				}
-
-				// Skip that
-				++pInput;
-				--inputSize;
-				continue;
 			}
-			else if (errorCode != E2BIG)
+			else
 			{
-#ifdef DEBUG
-				cout << "TextConverter::toUTF8: unknown error " << errorCode << endl;
-#endif
-				return string(pText, textLen);
+				invalidSequence = false;
 			}
-		}
-		else
-		{
-			invalidSequence = false;
+
+			// Append what was successfully converted
+			outputText.append(outputBuffer, 8192 - outputSize);
 		}
 
-		// Append what was successfully converted
-		outputText.append(outputBuffer, 8192 - outputSize);
-	}
 #ifdef DEBUG
-	cout << "TextConverter::toUTF8: " << m_conversionErrors << " conversion errors" << endl;
+		cout << "TextConverter::toUTF8: " << m_conversionErrors << " conversion errors" << endl;
 #endif
+	}
+	catch (Error &ce)
+	{
+#ifdef DEBUG
+		cout << "TextConverter::toUTF8: " << ce.what() << endl;
+#endif
+	}
+	catch (...)
+	{
+#ifdef DEBUG
+		cout << "TextConverter::toUTF8: unknown exception" << endl;
+#endif
+	}
 
 	return outputText;
 }
@@ -151,10 +168,16 @@ string TextConverter::fromUTF8(const string &text)
 	{
 		return locale_from_utf8(text);
 	}
-	catch (ConvertError &ce)
+	catch (Error &ce)
 	{
 #ifdef DEBUG
 		cout << "TextConverter::fromUTF8: " << ce.what() << endl;
+#endif
+	}
+	catch (...)
+	{
+#ifdef DEBUG
+		cout << "TextConverter::fromUTF8: unknown exception" << endl;
 #endif
 	}
  
