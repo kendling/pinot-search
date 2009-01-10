@@ -706,8 +706,6 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 	{
 		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, db, "S",
 			language, true, m_doSpelling);
-		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, db, "",
-			language, false, m_doSpelling);
 	}
 
 	// Location 
