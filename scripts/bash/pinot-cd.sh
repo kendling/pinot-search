@@ -5,7 +5,7 @@
 
 MISSING_PROGRAM=1
 MISSING_INDEX=1
-FOUND_MATCH=0
+MATCHES_COUNT=0
 
 # Check programs we need are available
 checkprograms()
@@ -63,16 +63,16 @@ runsearch()
   pinot-search -l xapian "$HOME/.pinot/daemon" "type:x-directory/normal $1" 2>/dev/null | grep "file://" | sed -e "s/file:\/\/\(.*\)/\1/g" >$TEMP_FILE 2>/dev/null
 
   local RESULTS=`cat $TEMP_FILE`
-  local RESULTS_COUNT=`cat $TEMP_FILE|wc -l`
+  MATCHES_COUNT=`cat $TEMP_FILE|wc -l`
 
-  if [ $RESULTS_COUNT -eq 1 ]; then
-    FOUND_MATCH=1
+  if [ $MATCHES_COUNT -eq 1 ]; then
     echo $RESULTS
     cd "$RESULTS"
-  elif [ $RESULTS_COUNT -gt 1 ]; then
-    FOUND_MATCH=1
+  elif [ $MATCHES_COUNT -gt 1 ] && [ $2 -eq 1 ]; then
     echo "Matches for \"$1\":"
     cat $TEMP_FILE
+  elif [ $MATCHES_COUNT -eq 0 ] && [ $2 -eq 1 ]; then
+    echo "No match"
   fi
   \rm -f $TEMP_FILE >/dev/null 2>&1
 }
@@ -97,13 +97,10 @@ preparequery()
   # Assume the last path is the name of the final directory
   PATHS_AND_FILE_STRING=`echo $ARGS | sed -e "s/path:$LAST_ARG/file:$LAST_ARG/g"`
 
-  runsearch "$PATHS_AND_FILE_STRING"
-  if [ $FOUND_MATCH -eq 0 ]; then
+  runsearch "$PATHS_AND_FILE_STRING" 1
+  if [ $MATCHES_COUNT -eq 0 ]; then
     # That assumption doesn't seem correct
-    runsearch "$PATHS_ONLY_STRING"
-    if [ $FOUND_MATCH -eq 0 ]; then
-      echo "No match"
-    fi
+    runsearch "$PATHS_ONLY_STRING" 1
   fi
 }
 
