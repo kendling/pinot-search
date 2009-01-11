@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -184,10 +184,9 @@ void statisticsDialog::populate(void)
 	row[m_statsColumns.m_name] = _("History");
 	m_viewStatIter = m_refStore->append(folderIter->children());
 	row = *m_viewStatIter;
-	row[m_statsColumns.m_name] = ustring(_("Checking"));
 	m_crawledStatIter = m_refStore->append(folderIter->children());
 	row = *m_crawledStatIter;
-	row[m_statsColumns.m_name] = ustring(_("Checking"));
+	populate_history();
 
 	// Daemon
 	m_daemonIter = m_refStore->append();
@@ -203,10 +202,28 @@ void statisticsDialog::populate(void)
 	statisticsTreeview->collapse_row(enginesPath);
 }
 
-bool statisticsDialog::on_activity_timeout(void)
+void statisticsDialog::populate_history(void)
 {
 	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName(true));
 	ViewHistory viewHistory(PinotSettings::getInstance().getHistoryDatabaseName());
+	TreeModel::Row row;
+	char countStr[64];
+
+	// Show view statistics
+	unsigned int viewCount = viewHistory.getItemsCount();
+	snprintf(countStr, 64, "%u", viewCount);
+	row = *m_viewStatIter;
+	row[m_statsColumns.m_name] = ustring(_("Viewed")) + " " + countStr + " " + _("results");
+
+	// Show crawler statistics
+	unsigned int crawledFilesCount = crawlHistory.getItemsCount(CrawlHistory::CRAWLED);
+	snprintf(countStr, 64, "%u", crawledFilesCount);
+	row = *m_crawledStatIter;
+	row[m_statsColumns.m_name] = ustring(_("Crawled")) + " " + countStr + " " + _("files");
+}
+
+bool statisticsDialog::on_activity_timeout(void)
+{
 	TreeModel::Row row;
 	std::map<unsigned int, string> sources;
 	string daemonDBusStatus;
@@ -246,17 +263,7 @@ bool statisticsDialog::on_activity_timeout(void)
 		row[m_statsColumns.m_name] = _("Unknown error");
 	}
 
-	// Show view statistics
-	unsigned int viewCount = viewHistory.getItemsCount();
-	snprintf(countStr, 64, "%u", viewCount);
-	row = *m_viewStatIter;
-	row[m_statsColumns.m_name] = ustring(_("Viewed")) + " " + countStr + " " + _("results");
-
-	// Show crawler statistics
-	unsigned int crawledFilesCount = crawlHistory.getItemsCount(CrawlHistory::CRAWLED);
-	snprintf(countStr, 64, "%u", crawledFilesCount);
-	row = *m_crawledStatIter;
-	row[m_statsColumns.m_name] = ustring(_("Crawled")) + " " + countStr + " " + _("files");
+	populate_history();
 
 	// Is the daemon still running ?
 	string pidFileName(PinotSettings::getInstance().getConfigurationDirectory() + "/pinot-dbus-daemon.pid");
@@ -280,12 +287,14 @@ bool statisticsDialog::on_activity_timeout(void)
 		if ((m_state.m_getStats == true) &&
 			(m_state.m_gettingStats == false))
 		{
+			m_state.m_gettingStats = true;
+
 			DaemonStatusThread *pThread = new DaemonStatusThread();
 
 			if (m_state.start_thread(pThread, false) == false)
 			{
 				delete pThread;
-				m_state.m_getStats = false;
+				m_state.m_getStats = m_state.m_gettingStats = false;
 			}
 		}
 #endif
@@ -359,6 +368,8 @@ bool statisticsDialog::on_activity_timeout(void)
 
 		m_hasCrawl = false;
 	}
+
+	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName(true));
 
 	// Show errors
 	crawlHistory.getSources(sources);
@@ -462,12 +473,6 @@ void statisticsDialog::on_thread_end(WorkerThread *pThread)
 		return;
 	}
 
-	// Any thread still running ?
-	if (m_state.get_threads_count() > 0)
-	{
-		m_state.m_gettingStats = false;
-	}
-
 	// Did the thread fail ?
 	status = pThread->getStatus();
 	if (status.empty() == false)
@@ -483,6 +488,8 @@ void statisticsDialog::on_thread_end(WorkerThread *pThread)
 #ifdef HAVE_DBUS
 	if (type == "DaemonStatusThread")
 	{
+		m_state.m_gettingStats = false;
+
 		// Did it succeed ?
 		if (success == true)
 		{

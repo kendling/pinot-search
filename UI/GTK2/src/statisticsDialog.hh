@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -71,6 +71,8 @@ protected:
 	} m_state;
 
 	void populate(void);
+
+	void populate_history(void);
 
 	bool on_activity_timeout(void);
 
