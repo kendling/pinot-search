@@ -39,7 +39,8 @@ class DirectoryScannerThread : public IndexingThread
 		DirectoryScannerThread(const std::string &dirName, bool isSource,
 			bool fullScan, bool isReindex,
 			MonitorInterface *pMonitor, MonitorHandler *pHandler,
-			unsigned int maxLevel = 0, bool followSymLinks = true);
+			unsigned int maxLevel = 0, bool inlineIndexing = false,
+			bool followSymLinks = true);
 		virtual ~DirectoryScannerThread();
 
 		virtual std::string getType(void) const;
@@ -59,8 +60,8 @@ class DirectoryScannerThread : public IndexingThread
 		unsigned int m_sourceId;
 		unsigned int m_currentLevel;
 		unsigned int m_maxLevel;
+		bool m_inlineIndexing;
 		bool m_followSymLinks;
-		bool m_delegateIndexing;
 		sigc::signal2<void, DocumentInfo, bool> m_signalFileFound;
 		std::map<std::string, time_t> m_updateCache;
 		std::stack<std::string> m_currentLinks;

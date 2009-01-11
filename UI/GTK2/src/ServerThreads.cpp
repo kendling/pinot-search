@@ -123,7 +123,7 @@ static bool loadXMLDescription(void)
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSource,
 	bool fullScan, bool isReindex,
 	MonitorInterface *pMonitor, MonitorHandler *pHandler,
-	unsigned int maxLevel, bool followSymLinks) :
+	unsigned int maxLevel, bool inlineIndexing, bool followSymLinks) :
 	IndexingThread(),
 	m_dirName(dirName),
 	m_fullScan(fullScan),
@@ -133,18 +133,9 @@ DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSou
 	m_sourceId(0),
 	m_currentLevel(0),
 	m_maxLevel(maxLevel),
-	m_followSymLinks(followSymLinks),
-	m_delegateIndexing(false)
+	m_inlineIndexing(inlineIndexing),
+	m_followSymLinks(followSymLinks)
 {
-	// This is not set in the configuration file
-	char *pEnvVar = getenv("PINOT_DELEGATE_INDEXING");
-	if ((pEnvVar != NULL) &&
-		(strlen(pEnvVar) > 0) &&
-		(strncasecmp(pEnvVar, "Y", 1) == 0))
-	{
-		m_delegateIndexing = true;
-	}
-
 	if (m_dirName.empty() == false)
 	{
 		CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
@@ -252,7 +243,7 @@ void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 		return;
 	}
 
-	if (m_delegateIndexing == false)
+	if (m_inlineIndexing == true)
 	{
 		// Reset base class members
 		m_docInfo = docInfo;
