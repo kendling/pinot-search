@@ -41,7 +41,7 @@ fi
 rm -f "$1/urls.txt" "$1/filesizes.txt"
 
 # Get a list of documents
-DOCIDS=`$DELVE -t X-MetaSE-Doc "$1" | sed -e "s/[^0-9 ]//g"`
+DOCIDS=`$DELVE -t X-MetaSE-Doc "$1" | sed -e "s/\(.*\): \(.*\)/\2/g"`
 if [ $? != 0 ]; then
   echo "Couldn't query database at $1"
 fi
@@ -59,7 +59,7 @@ do
       echo $FILESIZE >> "$1/filesizes.txt"
       echo "+" >> "$1/filesizes.txt"
     fi
-    echo $FILENAME >> "$1/urls.txt"
+    echo "$DOCID $FILENAME" >> "$1/urls.txt"
   else
     # Dump documents with a scheme other than file
     URL=`$DELVE -d -r $DOCID "$1" | grep "url=" | sed -e "s/url=//g"`
@@ -70,7 +70,7 @@ do
           echo $FILESIZE >> "$1/filesizes.txt"
           echo "+" >> "$1/filesizes.txt"
         fi
-        echo $URL >> "$1/urls.txt"
+        echo "$DOCID $URL" >> "$1/urls.txt"
     fi
   fi
 done
