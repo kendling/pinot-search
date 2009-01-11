@@ -28,7 +28,7 @@ manuals:
 	@help2man --no-info --name "D-Bus search and index daemon" UI/GTK2/src/pinot-dbus-daemon         >UI/GTK2/src/pinot-dbus-daemon.1
 
 install-data-local:
-	@ln -s $(bindir)/pinot $(DESTDIR)$(bindir)/pinot-prefs
+	@ln -fs $(bindir)/pinot $(DESTDIR)$(bindir)/pinot-prefs
 	@mkdir -p $(DESTDIR)$(sysconfdir)/pinot
 	$(INSTALL_DATA) $(srcdir)/Tokenize/filters/external-filters.xml $(DESTDIR)$(sysconfdir)/pinot/external-filters.xml
 	$(INSTALL_DATA) $(srcdir)/globalconfig.xml $(DESTDIR)$(sysconfdir)/pinot/globalconfig.xml
