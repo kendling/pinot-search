@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -386,26 +386,8 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 
 		if (url.empty() == false)
 		{
-			Url urlObj(url);
-
-			// Is this URL relative to the search engine's domain ?
 			// FIXME: look for a interpret/baseurl tag, see https://bugzilla.mozilla.org/show_bug.cgi?id=65453
 			// FIXME: obey m_skipLocal
-			if (urlObj.getHost().empty() == true)
-			{
-				Url baseUrlObj(pResponseDoc->getLocation());
-
-				string tmpUrl = baseUrlObj.getProtocol();
-				tmpUrl += "://";
-				tmpUrl += baseUrlObj.getHost();
-				if (url[0] != '/')
-				{
-					tmpUrl += "/";
-				}
-				tmpUrl += url;
-				url = tmpUrl;
-			}
-
 			DocumentInfo result(name, url, "", "");
 			result.setExtract(extract);
 			result.setScore(pseudoScore);

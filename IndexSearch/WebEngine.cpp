@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -196,6 +196,7 @@ bool WebEngine::processResult(const string &queryUrl, DocumentInfo &result)
 		return false;
 	}
 
+	// Is this URL relative to the search engine's domain ?
 	if ((resultUrl[0] == '/') ||
 		((resultUrl.length() > 1) &&
 		(resultUrl[0] == '.') &&
@@ -216,6 +217,23 @@ bool WebEngine::processResult(const string &queryUrl, DocumentInfo &result)
 
 		resultUrl = fullResultUrl;
 	}
+	else
+	{
+		Url resultUrlObj(resultUrl);
+
+		if ((resultUrlObj.getHost().empty() == true) ||
+			(resultUrlObj.getHost() == "localhost"))
+		{
+			string fullResultUrl(queryUrlObj.getProtocol());
+
+			fullResultUrl += "://";
+			fullResultUrl += queryUrlObj.getHost();
+			fullResultUrl += "/";
+			fullResultUrl += resultUrl;
+			resultUrl = fullResultUrl;
+		}
+	}
+
 
 	Url resultUrlObj(resultUrl);
 
