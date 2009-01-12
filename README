@@ -17,7 +17,7 @@ http://pinot.berlios.de/
 12. D-Bus service
 13. Deskbar Applet plugins
 14. CJKV support
-15. Environment variables
+15. Environment variables and aliases
 16. How to reset indexes
 17. Dependencies
 
@@ -160,6 +160,11 @@ http://pinot.berlios.de/
   versions are able to fully index (and monitor, if necessary) all mbox files
   found during a directory crawl, just like any other file type.
 
+  In 0.90 and newer, the daemon will skip symlinks that refer to locations
+  that have already been crawled, or locations it knows it will have to crawl.
+  When skipped, symlinks are not followed but are still indexed, with the MIME
+  type "inode/symlink".
+
   If you want to exclude any specific files or directories from indexing, use
   patterns as described in section "9. File patterns".
 
@@ -177,13 +182,11 @@ http://pinot.berlios.de/
   When querying an index, things are somewhat different. Queries can be
   expressed in a very natural way, using a combination of operators, filters
   and ranges. This query syntax is the syntax supported natively by Xapian's
-  QueryParser.
-
-  The full syntax is documented at http://www.xapian.org/docs/queryparser.html
+  QueryParser and is documented at http://www.xapian.org/docs/queryparser.html
   For instance, the query "type:text/html and lang:en and (tcp near ip)" will
   look for HTML files in English that mention TCP/IP. 
 
-  Pinot supports these filters :
+  Pinot supports these query filters :
       "site" for host name, eg "site:pinot.berlios.de"
       "file" for file name, eg "file:index.html"
       "ext" for file extension, eg "ext:html"
@@ -375,16 +378,9 @@ http://pinot.berlios.de/
       UI may report that the operation failed, even though it was queued for
       processing and will be acted upon by the daemon as soon as possible.
 
-  If you have dbus-send installed, you can start the daemon manually by calling
-  the GetStatistics method with
-  $ dbus-send --session --print-reply --type=method_call \
-    --dest=de.berlios.Pinot /de/berlios/Pinot de.berlios.Pinot.GetStatistics
-  and stop it by calling the Stop method with
-  $ dbus-send --session --print-reply --type=method_call \
-    --dest=de.berlios.Pinot /de/berlios/Pinot de.berlios.Pinot.Stop
-  The daemon will also exit if killed.
-
-  For a list of available D-Bus methods, see the file pinot-dbus-daemon.xml.
+  See section "15. Environment variables and aliases" for some tips on how to
+  query the D-Bus interface. A list of available D-Bus methods can be found
+  in the file pinot-dbus-daemon.xml.
 
 
 13. Deskbar Applet plugins
@@ -435,7 +431,7 @@ http://pinot.berlios.de/
   by the indexer with the special filter "tokens:CJKV".
 
 
-15. Environment variables
+15. Environment variables and aliases
 
 
   Pinot tries to provide reasonable defaults for most systems, but there may be
@@ -460,8 +456,26 @@ http://pinot.berlios.de/
   at the time of writing this.
   Lowering this value should decrease the amount of memory used to cache
   changes to the index. Note that pinot-dbus-daemon explicitely flushes the
-  index once it has crawled a directory (directory configured in Preferences,
-  Indexing).
+  index once it has crawled each directory configured in Preferences.
+
+  Pinot v0.90 and newer provide a "tagged cd" script that enables to change
+  a shell's current directory to the directory that matches the path elements
+  passed as parameter. For instance, after running :
+  $ alias pcd='. /usr/share/pinot/pinot-cd.sh'
+  if ~/Documents is configured for indexing in Preferences, the following
+  command would change the current directory to ~/Documents/Web/Stats :
+  $ pcd Documents Stats
+  If other directories match the given paths, pinot-cd.sh will display a list
+  of matches.
+
+  If you have dbus-send installed, you may also want to set the following
+  aliases :
+  $ alias pinot-stats='dbus-send --session --print-reply --type=method_call \
+    --dest=de.berlios.Pinot /de/berlios/Pinot de.berlios.Pinot.GetStatistics'
+  $ alias pinot-stop='dbus-send --session --print-reply --type=method_call \
+    --dest=de.berlios.Pinot /de/berlios/Pinot de.berlios.Pinot.Stop'
+  The first will start the daemon by calling its GetStatistics method, while
+  the second alias will stop it by calling the Stop method.
 
 
 16. How to reset indexes
@@ -501,7 +515,7 @@ Libraries and tools					Version
 SQLite							3.3.1
 http://www.sqlite.org/
 
-xapian-core						1.0.3
+xapian-core						1.0.4
 http://www.xapian.org/
 
  zlib							1.2.0
