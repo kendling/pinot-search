@@ -59,7 +59,7 @@ do
       echo $FILESIZE >> "$1/filesizes.txt"
       echo "+" >> "$1/filesizes.txt"
     fi
-    echo "$DOCID $FILENAME" >> "$1/urls.txt"
+    echo "$FILENAME" >> "$1/urls.txt"
   else
     # Dump documents with a scheme other than file
     URL=`$DELVE -d -r $DOCID "$1" | grep "url=" | sed -e "s/url=//g"`
@@ -70,7 +70,7 @@ do
           echo $FILESIZE >> "$1/filesizes.txt"
           echo "+" >> "$1/filesizes.txt"
         fi
-        echo "$DOCID $URL" >> "$1/urls.txt"
+        echo "$URL" >> "$1/urls.txt"
     fi
   fi
 done
