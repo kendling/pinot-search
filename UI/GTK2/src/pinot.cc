@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -153,10 +153,7 @@ int main(int argc, char **argv)
 #endif //ENABLE_NLS
 
 	// Initialize threads support before doing anything else
-	if (Glib::thread_supported() == false)
-	{
-		Glib::thread_init();
-	}
+	Glib::thread_init();
 	// Initialize the GType and the D-Bus thread system
 	g_type_init();
 #ifdef HAVE_DBUS

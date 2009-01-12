@@ -546,6 +546,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 	{
 		ustring title(to_utf8(resultIter->getTitle(), charset));
 		ustring location(to_utf8(resultIter->getLocation(), charset));
+		ustring timestamp(to_utf8(resultIter->getTimestamp()));
 		ustring extract(to_utf8(resultIter->getExtract(), charset));
 		string groupName;
 		TreeModel::iterator groupIter;
@@ -615,7 +616,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		// OK, add a row for this result within the group
 		TreeModel::iterator titleIter;
 		if (appendResult(title, location, (int)currentScore, rankDiff, isIndexed, wasViewed,
-			docId, resultIter->getTimestamp(), resultIter->serialize(),
+			docId, timestamp, resultIter->serialize(),
 			engineId, indexId, titleIter, groupIter, true) == true)
 		{
 #ifdef DEBUG
@@ -1034,10 +1035,11 @@ bool ResultsTree::updateResult(const DocumentInfo &result)
 
 		if (docId == row[m_resultsColumns.m_docId])
 		{
+			// FIXME: title, location should be converted based on the result's charset !
 			updateRow(row, result.getTitle(), result.getLocation(),
 				row[m_resultsColumns.m_score], row[m_resultsColumns.m_engines],
 				row[m_resultsColumns.m_indexes], docId,
-				result.getTimestamp(), result.serialize(),
+				to_utf8(result.getTimestamp()), result.serialize(),
 				ResultsModelColumns::ROW_RESULT,
 				row[m_resultsColumns.m_indexed], row[m_resultsColumns.m_viewed],
 				row[m_resultsColumns.m_rankDiff]);
@@ -1151,9 +1153,10 @@ bool ResultsTree::deleteResults(const string &engineName)
 			row = *iter;
 
 			type = row[m_resultsColumns.m_resultType];
-			if ((type == ResultsModelColumns::ROW_RESULT) &&
+			if (((type == ResultsModelColumns::ROW_RESULT) &&
 				(row[m_resultsColumns.m_engines] == engineId) &&
-				(row[m_resultsColumns.m_indexes] == indexId))
+				(row[m_resultsColumns.m_indexes] == indexId)) ||
+				(type == ResultsModelColumns::ROW_OTHER))
 			{
 				TreeModel::Children::iterator nextIter = iter;
 				++nextIter;
@@ -1490,7 +1493,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::RowT
 		TreeModel::Row groupRow = *groupIter;
 		updateRow(groupRow, groupName,
 			"", 0, 0, 0, 0, "", "", groupType,
-			false, false, false);
+			false, false, 0);
 
 		// Update the map
 		m_resultsGroups[groupName] = groupIter;
@@ -1547,9 +1550,8 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 		TreeModel::iterator childIter = m_refStore->append(groupRow.children());
 		TreeModel::Row childRow = *childIter;
 
-		updateRow(childRow, _("No results"), "", 0, 0, 0,
-			0, TimeConverter::toTimestamp(time(NULL)), "", ResultsModelColumns::ROW_OTHER,
-			false, false, 0);
+		updateRow(childRow, _("No results"), "", 0, 0, 0, 0,
+			"", "", ResultsModelColumns::ROW_OTHER, false, false, 0);
 	}
 	groupRow[m_resultsColumns.m_score] = averageScore;
 
@@ -1581,8 +1583,8 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 		row[m_resultsColumns.m_indexes] = indexId;
 		row[m_resultsColumns.m_docId] = docId;
 		row[m_resultsColumns.m_resultType] = resultType;
-		row[m_resultsColumns.m_timestamp] = to_utf8(timestamp);
-		row[m_resultsColumns.m_timestampTime] = TimeConverter::fromTimestamp(timestamp);
+		row[m_resultsColumns.m_timestamp] = timestamp;
+		row[m_resultsColumns.m_timestampTime] = TimeConverter::fromTimestamp(from_utf8(timestamp));
 		row[m_resultsColumns.m_serial] = serial;
 
 		row[m_resultsColumns.m_indexed] = indexed;
@@ -1648,7 +1650,7 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 			if (extract.empty() == false)
 			{
 				// Stop here
-				return extract;
+				return to_utf8(extract);
 			}
 		}
 	}

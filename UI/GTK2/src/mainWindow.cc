@@ -2393,7 +2393,7 @@ void mainWindow::on_properties_activate()
 {
 	vector<DocumentInfo> documentsList;
 	set<unsigned int> docIds;
-	string indexName, queryName;
+	string indexName;
 	int width, height;
 	bool docsIndex = false, daemonIndex = false;
 
@@ -2404,8 +2404,7 @@ void mainWindow::on_properties_activate()
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
 	if (pIndexPage != NULL)
 	{
-		indexName = from_utf8(pIndexPage->getTitle());
-		queryName = from_utf8(pIndexPage->getQueryName());
+		indexName = pIndexPage->getTitle();
 		pResultsTree = pIndexPage->getTree();
 	}
 
@@ -3374,7 +3373,7 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 	// Spawn a new thread to browse the index
 	if (queryName.empty() == true)
 	{
-		start_thread(new IndexBrowserThread(from_utf8(indexName), m_maxDocsCount, startDoc));
+		start_thread(new IndexBrowserThread(indexName, m_maxDocsCount, startDoc));
 	}
 	else
 	{
