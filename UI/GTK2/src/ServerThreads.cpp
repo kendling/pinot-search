@@ -463,10 +463,12 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 			crawlHistory.insertItem(referreeLocation, CrawlHistory::CRAWL_LINK, m_sourceId, itemDate);
 
 			// Do it again, this time by stat'ing what the link refers to
-			scanEntry(entryName, crawlHistory, false);
+			bool scannedReferree = scanEntry(entryName, crawlHistory, false);
 
 			m_currentLinks.pop();
 			m_currentLinkReferrees.pop();
+
+			return scannedReferree;
 		}
 		else
 		{
@@ -564,7 +566,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 					pDirEntry = readdir(pDir);
 				}
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: done with " << entryName << endl;
+				cout << "DirectoryScannerThread::scanEntry: leaving " << entryName << endl;
 #endif
 
 				// Close the directory
