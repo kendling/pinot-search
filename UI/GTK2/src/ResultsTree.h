@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -158,7 +158,7 @@ class ResultsTree : public Gtk::TreeView
 		/// Adds a new row in the results tree.
 		bool appendResult(const Glib::ustring &text, const Glib::ustring &url,
 			int score, int rankDiff, bool isIndexed, bool wasViewed,
-			unsigned int docId, const Glib::ustring &timestamp, const Glib::ustring &serial,
+			unsigned int docId, const Glib::ustring &timestamp, const std::string &serial,
 			unsigned int engineId, unsigned int indexId,
 			Gtk::TreeModel::iterator &newRowIter,
 			const Gtk::TreeModel::iterator &parentIter,
@@ -170,7 +170,7 @@ class ResultsTree : public Gtk::TreeView
 		/// Updates a row.
 		void updateRow(Gtk::TreeModel::Row &row, const Glib::ustring &text,
 			const Glib::ustring &url, int score, unsigned int engineId, unsigned int indexId,
-			unsigned int docId, const Glib::ustring &timestamp, const Glib::ustring &serial,
+			unsigned int docId, const Glib::ustring &timestamp, const std::string &serial,
 			ResultsModelColumns::RowType resultType, bool indexed, bool viewed, int rankDiff);
 
 		/// Retrieves the extract to show for the given row.

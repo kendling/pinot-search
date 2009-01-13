@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ public:
 	Gtk::TreeModelColumn<RowType> m_resultType;
 	Gtk::TreeModelColumn<Glib::ustring> m_timestamp;
 	Gtk::TreeModelColumn<time_t> m_timestampTime;
-	Gtk::TreeModelColumn<Glib::ustring> m_serial;
+	Gtk::TreeModelColumn<std::string> m_serial;
 
 };
 

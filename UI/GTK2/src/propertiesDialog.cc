@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -160,7 +160,7 @@ void propertiesDialog::populate_languageCombobox(const string &language)
 
 	if (m_notALanguageName == true)
 	{
-		languageCombobox->append_text(to_utf8(language));
+		languageCombobox->append_text(language);
 		languageCombobox->set_active(0);
 		unknownLanguagePos = 1;
 	}
@@ -170,7 +170,7 @@ void propertiesDialog::populate_languageCombobox(const string &language)
 	{
 		string languageName(Languages::getIntlName(languageNum));
 
-		languageCombobox->append_text(to_utf8(languageName));
+		languageCombobox->append_text(languageName);
 		// Is this the language we are looking for ?
 		if ((m_notALanguageName == false) &&
 			(language.empty() == false) &&

@@ -1226,14 +1226,14 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 	{
 		return;
 	}
+
+	string type(pThread->getType());
+	string threadStatus(pThread->getStatus());
 #ifdef DEBUG
 	cout << "mainWindow::on_thread_end: end of thread " << pThread->getId() << endl;
 #endif
 
-	// What type of thread was it ?
-	string type = pThread->getType();
 	// Did the thread fail for some reason ?
-	string threadStatus = pThread->getStatus();
 	if (threadStatus.empty() == false)
 	{
 		// Yep, it did
@@ -1265,7 +1265,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		ustring indexName = to_utf8(pListThread->getIndexName());
+		ustring indexName(pListThread->getIndexName());
 
 		// Find the page for this index
 		// It may have been closed by the user

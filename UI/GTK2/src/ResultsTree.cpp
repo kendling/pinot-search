@@ -949,7 +949,7 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 			(isIndexed == false))
 		{
 			DocumentInfo current;
-			string serial(from_utf8(row[m_resultsColumns.m_serial]));
+			string serial(row[m_resultsColumns.m_serial]);
 
 			current.deserialize(serial);
 
@@ -1359,7 +1359,7 @@ void ResultsTree::exportResults(TreeModel::Children &groupChildren,
 
 		set<string> engineNames, indexNames;
 		DocumentInfo result;
-		string engineName, serial(from_utf8(childRow[m_resultsColumns.m_serial]));
+		string engineName, serial(childRow[m_resultsColumns.m_serial]);
 		unsigned int engineIds = childRow[m_resultsColumns.m_engines];
 		unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
 
@@ -1423,7 +1423,7 @@ sigc::signal0<void>& ResultsTree::getDoubleClickSignal(void)
 bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 	int score, int rankDiff, bool isIndexed, bool wasViewed,
 	unsigned int docId, const ustring &timestamp,
-	const ustring &serial, unsigned int engineId,
+	const string &serial, unsigned int engineId,
 	unsigned int indexId, TreeModel::iterator &newRowIter,
 	const TreeModel::iterator &parentIter, bool noDuplicates)
 {
@@ -1570,7 +1570,7 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 //
 void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 	const ustring &url, int score, 	unsigned int engineId, unsigned int indexId,
-	unsigned int docId, const ustring &timestamp, const ustring &serial,
+	unsigned int docId, const ustring &timestamp, const string &serial,
 	ResultsModelColumns::RowType resultType, bool indexed, bool viewed, int rankDiff)
 {
 	try
