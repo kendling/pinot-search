@@ -573,6 +573,9 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 XapianEngine::XapianEngine(const string &database) :
 	SearchEngineInterface()
 {
+	// We expect documents to have been converted to UTF-8 at indexing time
+	m_charset = "UTF-8";
+
 	// If the database name ends with a slash, remove it
 	if (database[database.length() - 1] == '/')
 	{
