@@ -368,7 +368,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			refBuffer->set_text("");
 
 #ifdef DEBUG
-			cout << "ResultsTree::onSelectionSelect: extract for " << row[m_resultsColumns.m_text] << endl;
+			cout << "ResultsTree::onSelectionSelect: extract for " << row[m_resultsColumns.m_url] << endl;
 #endif
 			if (boldPos == ustring::npos)
 			{
@@ -727,7 +727,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 	{
 		TreeModel::Row row = *iter;
 #ifdef DEBUG
-		cout << "ResultsTree::setGroupMode: looking at " << row[m_resultsColumns.m_text] << endl;
+		cout << "ResultsTree::setGroupMode: looking at " << row[m_resultsColumns.m_url] << endl;
 #endif
 		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
 		// Skip new type and other rows
@@ -1451,7 +1451,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 					childIter != children.end(); ++childIter)
 				{
 					TreeModel::Row row = *childIter;
-					if (row[m_resultsColumns.m_url] == to_utf8(url))
+					if (row[m_resultsColumns.m_url] == url)
 					{
 						// Update the engines column...
 						row[m_resultsColumns.m_engines] = row[m_resultsColumns.m_engines] | engineId;
@@ -1555,11 +1555,6 @@ void ResultsTree::updateGroup(TreeModel::iterator &groupIter)
 	}
 	groupRow[m_resultsColumns.m_score] = averageScore;
 
-#ifdef DEBUG
-	cout << "ResultsTree::updateGroup: group " << groupRow[m_resultsColumns.m_text]
-		<< " has score " << averageScore << endl;
-#endif
-
 	// Expand this group
 	TreeModel::Path groupPath = m_refStore->get_path(groupIter);
 	expand_row(groupPath, true);
@@ -1650,7 +1645,7 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 			if (extract.empty() == false)
 			{
 				// Stop here
-				return to_utf8(extract);
+				return extract;
 			}
 		}
 	}
