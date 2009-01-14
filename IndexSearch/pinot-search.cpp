@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -381,7 +381,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			cerr << "Couldn't get a results list !" << endl;
+			cerr << "No results" << endl;
 		}
 	}
 	else
