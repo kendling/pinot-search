@@ -1278,7 +1278,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				const vector<DocumentInfo> &docsList = pListThread->getDocuments();
 
 				// Add the documents to the tree
-				pResultsTree->addResults("", docsList, "", false);
+				pResultsTree->addResults("", docsList, "UTF-8", false);
 
 				pIndexPage->setDocumentsCount(pListThread->getDocumentsCount());
 				pIndexPage->updateButtonsState(m_maxDocsCount);
@@ -3624,7 +3624,7 @@ bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName
 
 		// Add a row
 		docsList.push_back(docInfo);
-		pResultsTree->addResults("", docsList, "", false);
+		pResultsTree->addResults("", docsList, "UTF-8", false);
 
 		return true;
 	}
