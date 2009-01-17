@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Fabrice Colin
+ *  Copyright 2008-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -145,6 +145,8 @@ prefsWindow::prefsWindow() :
 	m_state(10, this)
 {
 	Color newColour;
+	ustring desktopName(_("File Indexing and Search"));
+	ustring desktopComment(_("Configure Pinot to index your files"));
 
 	newColour.set_red(m_settings.m_newResultsColourRed);
 	newColour.set_green(m_settings.m_newResultsColourGreen);
