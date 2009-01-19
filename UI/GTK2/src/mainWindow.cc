@@ -1827,6 +1827,8 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 
 		// Refresh the engines list
 		m_pEnginesTree->populate();
+		// ...and the index menu
+		populate_indexMenu();
 	}
 
 	set_status(_("Edited index"));
