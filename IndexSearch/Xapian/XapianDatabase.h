@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,6 +41,12 @@ class XapianDatabase
 
 		/// Returns false if the database couldn't be opened.
 		bool isOpen(void) const;
+
+		/// Returns true if the database is a merge of other databases.
+		bool isMerge(void) const;
+
+		/// Returns false if the database isn't opened in write mode.
+		bool isWritable(void) const;
 
 		/// Returns true if the database supports spelling.
 		bool withSpelling(void);

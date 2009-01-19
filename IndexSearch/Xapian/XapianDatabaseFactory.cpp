@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ using std::pair;
 
 pthread_mutex_t XapianDatabaseFactory::m_mutex = PTHREAD_MUTEX_INITIALIZER;
 map<string, XapianDatabase *> XapianDatabaseFactory::m_databases;
+bool XapianDatabaseFactory::m_closed = false;
 
 XapianDatabaseFactory::XapianDatabaseFactory()
 {
@@ -41,6 +42,11 @@ XapianDatabaseFactory::~XapianDatabaseFactory()
 bool XapianDatabaseFactory::mergeDatabases(const string &name,
 	XapianDatabase *pFirst, XapianDatabase *pSecond)
 {
+	if (m_closed == true)
+	{
+		return false;
+	}
+
 	map<string, XapianDatabase *>::iterator dbIter = m_databases.find(name);
 	if (dbIter != m_databases.end())
 	{
@@ -70,7 +76,8 @@ XapianDatabase *XapianDatabaseFactory::getDatabase(const string &location,
 {
 	XapianDatabase *pDb = NULL;
 
-	if (location.empty() == true)
+	if ((m_closed == true) ||
+		(location.empty() == true))
 	{
 		return NULL;
 	}
@@ -132,20 +139,66 @@ void XapianDatabaseFactory::closeAll(void)
 	}
 
 	// Lock the map
+	// FIXME: another thread may have a database and try and lock it after the loop below deletes it
 	if (pthread_mutex_lock(&m_mutex) != 0)
 	{
 		return;
 	}
+	m_closed = true;
 
+	// Close merged databases first
 	std::map<std::string, XapianDatabase *>::iterator dbIter = m_databases.begin();
 	while (dbIter != m_databases.end())
 	{
 		XapianDatabase *pDb = dbIter->second;
-		dbIter->second = NULL;
+
+		if (pDb->isMerge() == false)
+		{
+			++dbIter;
+			continue;
+		}
+
+		std::map<std::string, XapianDatabase *>::iterator nextIter = dbIter;
+		++nextIter;
 #ifdef DEBUG
 		cout << "XapianDatabaseFactory::closeAll: closing " << dbIter->first << endl;
 #endif
+
+		// Remove from the map
+		dbIter->second = NULL;
 		m_databases.erase(dbIter);
+
+		Xapian::Database *pIndex = pDb->readLock();
+		pDb->unlock();
+		// Close the database
+		delete pDb;
+
+		dbIter = nextIter;
+	}
+	// Now close all other databases
+	dbIter = m_databases.begin();
+	while (dbIter != m_databases.end())
+	{
+		XapianDatabase *pDb = dbIter->second;
+		Xapian::Database *pIndex = NULL;
+#ifdef DEBUG
+		cout << "XapianDatabaseFactory::closeAll: closing " << dbIter->first << endl;
+#endif
+
+		// Remove from the map
+		dbIter->second = NULL;
+		m_databases.erase(dbIter);
+
+		if (pDb->isWritable() == true)
+		{
+			pIndex = pDb->writeLock();
+		}
+		else
+		{
+			pIndex = pDb->readLock();
+		}
+		pDb->unlock();
+		// Close the database
 		delete pDb;
 
 		dbIter = m_databases.begin();

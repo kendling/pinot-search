@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -191,6 +191,7 @@ void XapianDatabase::openDatabase(void)
 	{
 		Url urlObj(m_databaseName);
 
+		// FIXME: in newer versions, the remote backend supports writing
 		if (m_readOnly == false)
 		{
 			cerr << "XapianDatabase::openDatabase: remote databases " << m_databaseName << " are read-only" << endl;
@@ -376,6 +377,25 @@ bool XapianDatabase::isOpen(void) const
 	return m_isOpen;
 }
 
+/// Returns true if the database is a merge of other databases.
+bool XapianDatabase::isMerge(void) const
+{
+	return m_merge;
+}
+
+/// Returns false if the database isn't opened in write mode.
+bool XapianDatabase::isWritable(void) const
+{
+	if ((m_isOpen == false) ||
+		(m_readOnly == true) ||
+		(m_merge == true))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 /// Returns false if the database was of an obsolete format.
 bool XapianDatabase::wasObsoleteFormat(void) const
 {
@@ -434,14 +454,15 @@ Xapian::Database *XapianDatabase::readLock(void)
 			// Lock both indexes
 			Xapian::Database *pFirstDatabase = m_pFirst->readLock();
 			Xapian::Database *pSecondDatabase = m_pSecond->readLock();
-			// Copy the first one
-			m_pDatabase = new Xapian::Database(*pFirstDatabase);
-			// Add the second index to it
-			if (pSecondDatabase != NULL)
+			if ((pFirstDatabase != NULL) &&
+				(pSecondDatabase != NULL))
 			{
+				// Copy the first one
+				m_pDatabase = new Xapian::Database(*pFirstDatabase);
+				// Add the second index to it
 				m_pDatabase->add_database(*pSecondDatabase);
+				// Until unlock() is called, both indexes are read locked
 			}
-			// Until unlock() is called, both indexes are read locked
 
 			return m_pDatabase;
 		}
