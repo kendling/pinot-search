@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -223,6 +223,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 	char countStr[64];
 	unsigned int maxResultsCount(queryProps.getMaximumResultsCount());
 	unsigned int currentIncrement = 0, count = 0;
+	bool firstPage = true;
 
 	m_resultsList.clear();
 	m_resultsCountEstimate = 0;
@@ -301,11 +302,12 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 	setQuery(queryProps);
 
 #ifdef DEBUG
-	cout << "PluginWebEngine::runQuery: querying " << m_properties.m_name << endl;
+	cout << "PluginWebEngine::runQuery: querying " << m_properties.m_longName << endl;
 #endif
 	while (count < maxResultsCount)
 	{
 		string pageQuery(formattedQuery);
+		bool canScroll = false;
 
 		// How do we scroll ?
 		if (m_properties.m_scrolling == SearchPluginProperties::PER_INDEX)
@@ -320,6 +322,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 				pageQuery += "=";
 				snprintf(countStr, 64, "%u", maxResultsCount);
 				pageQuery += countStr;
+				canScroll = true;
 			}
 
 			paramIter = m_properties.m_variableParameters.find(SearchPluginProperties::START_INDEX_PARAM);
@@ -332,6 +335,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 				pageQuery += "=";
 				snprintf(countStr, 64, "%u", count + m_properties.m_nextBase);
 				pageQuery += countStr;
+				canScroll = true;
 			}
 		}
 		else
@@ -346,9 +350,20 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 				pageQuery += "=";
 				snprintf(countStr, 64, "%u", currentIncrement + m_properties.m_nextBase);
 				pageQuery += countStr;
+				canScroll = true;
 			}
 		}
 
+		if ((firstPage == false) &&
+			(canScroll == false))
+		{
+#ifdef DEBUG
+			cout << "PluginWebEngine::runQuery: can't scroll to the next page of results" << endl;
+#endif
+			break;
+		}
+
+		firstPage = false;
 		if (getPage(pageQuery, queryProps.getMaximumResultsCount()) == false)
 		{
 			break;

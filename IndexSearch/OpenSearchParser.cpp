@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 #include <libxml++/nodes/cdatanode.h>
 
 #include "StringManip.h"
+#include "HtmlFilter.h"
+#include "FilterUtils.h"
 #include "OpenSearchParser.h"
 
 using namespace std;
@@ -255,6 +257,18 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 				{
 					extract = getNodeContent(pItemNode);
 				}
+			}
+
+			// The extract may contain HTML
+			if ((extract.find("<") != string::npos) &&
+				(extract.find(">") != string::npos))
+			{
+				// Wrap the extract
+				ustring dummyHtml("<html><head><meta HTTP-EQUIV=\"content-type\" CONTENT=\"text/html\"></head><body>");
+				dummyHtml += extract;
+				dummyHtml += "</body></html>";
+
+				extract = FilterUtils::stripMarkup(dummyHtml);
 			}
 
 			DocumentInfo result(title, url, "", "");
@@ -549,9 +563,16 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 	{
 		properties.m_scrolling = SearchPluginProperties::PER_PAGE;
 	}
-	else
+	else if ((properties.m_variableParameters.find(SearchPluginProperties::COUNT_PARAM) != properties.m_variableParameters.end()) ||
+		(properties.m_variableParameters.find(SearchPluginProperties::START_INDEX_PARAM) != properties.m_variableParameters.end()))
 	{
 		properties.m_scrolling = SearchPluginProperties::PER_INDEX;
+	}
+	else
+	{
+		// No scrolling
+		properties.m_nextIncrement = 0;
+		properties.m_nextBase = 0;
 	}
 
 	return new OpenSearchResponseParser(rssResponse);
