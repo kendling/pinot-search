@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearchdescription/1.0/">
-  <Url>http://index.isc.org//opensearch?query={searchTerms}&amp;lang=en&amp;hitsPerPage=10</Url>
+  <Url>http://index.isc.org//opensearch?query={searchTerms}&amp;lang=en&amp;hitsPerPage={count}</Url>
   <Format>http://a9.com/-/spec/opensearchrss/1.0/</Format>
   <ShortName>IOI</ShortName>
   <LongName>Internet Open Index Search Engine</LongName>
