@@ -332,7 +332,7 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 		TreeModel::Row row = *iter;
 		set<time_t> latestRuns;
 		string queryName(queryIter->first);
-		string lastRun;
+		ustring lastRun;
 		time_t lastRunTime = 0;
 
 		if ((queryHistory.getLatestRuns(queryName, "", 1, latestRuns) == false) ||
@@ -343,15 +343,11 @@ void mainWindow::populate_queryTreeview(const string &selectedQueryName)
 		else
 		{
 			lastRunTime = *(latestRuns.begin());
-			lastRun = TimeConverter::toTimestamp(lastRunTime);
-#ifdef DEBUG
-			cout << "mainWindow::populate_queryTreeview: latest run of "
-				<< queryName << " is " << lastRun << "/" << lastRunTime << endl;
-#endif
+			lastRun = to_utf8(TimeConverter::toTimestamp(lastRunTime));
 		}
 
 		row[m_queryColumns.m_name] = to_utf8(queryName);
-		row[m_queryColumns.m_lastRun] = to_utf8(lastRun);
+		row[m_queryColumns.m_lastRun] = lastRun;
 		row[m_queryColumns.m_lastRunTime] = lastRunTime;
 		ustring summary(queryIter->second.getFreeQuery());
 		if (summary.empty() == false)
@@ -460,11 +456,11 @@ void mainWindow::populate_indexMenu()
 
 	sigc::slot1<void, ustring> indexSlot = sigc::mem_fun(*this, &mainWindow::on_index_changed);
 
-	std::map<std::string, std::string> indexes = m_settings.getIndexes();
-	for (std::map<std::string, std::string>::const_iterator indexIter = indexes.begin();
+	set<PinotSettings::IndexProperties> indexes = m_settings.getIndexes();
+	for (set<PinotSettings::IndexProperties>::const_iterator indexIter = indexes.begin();
 		indexIter != indexes.end(); ++indexIter)
 	{
-		ustring indexName(indexIter->first);
+		ustring indexName(indexIter->m_name);
 
 		m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(indexName));
 		MenuItem &menuItem = m_pIndexMenu->items().back();
@@ -1104,24 +1100,21 @@ void mainWindow::on_searchthis_changed(ustring queryName)
 
 	if (locations.empty() == false)
 	{
-		std::map<std::string, std::string> indexes = m_settings.getIndexes();
 		ustring queryName(queryProps.getName());
 
 		queryProps.setName(queryName + " " + _("In Results"));
 		queryProps.setModified(true);
 
 		// Spawn new threads
-		std::map<std::string, std::string>::const_iterator indexIter = indexes.find(_("My Documents"));
-		if (indexIter != indexes.end())
+		PinotSettings::IndexProperties indexProps(m_settings.getIndexPropertiesByName(_("My Documents")));
+		if (indexProps.m_location.empty() == false)
 		{
-			start_thread(new EngineQueryThread(m_settings.m_defaultBackend, indexIter->first,
-				indexIter->second, queryProps, locations));
+			start_thread(new EngineQueryThread(indexProps, queryProps, locations));
 		}
-		indexIter = indexes.find(_("My Web Pages"));
-		if (indexIter != indexes.end())
+		indexProps = m_settings.getIndexPropertiesByName(_("My Web Pages"));
+		if (indexProps.m_location.empty() == false)
 		{
-			start_thread(new EngineQueryThread(m_settings.m_defaultBackend, indexIter->first,
-				indexIter->second, queryProps, locations));
+			start_thread(new EngineQueryThread(indexProps, queryProps, locations));
 		}
 	}
 }
@@ -1265,11 +1258,10 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		ustring indexName(pListThread->getIndexName());
-
 		// Find the page for this index
 		// It may have been closed by the user
-		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexName, NotebookPageBox::INDEX_PAGE));
+		PinotSettings::IndexProperties indexProps(pListThread->getIndexProperties());
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexProps.m_name, NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
 			ResultsTree *pResultsTree = pIndexPage->getTree();
@@ -1372,7 +1364,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				if ((indexResults == QueryProperties::ALL_RESULTS) || (isNewResult == true))
 				{
 					if ((docId == 0) ||
-						(indexId != m_settings.getIndexIdByName(_("My Documents"))))
+						(indexId != m_settings.getIndexPropertiesByName(_("My Documents")).m_id))
 					{
 						// This document will be indexed or updated
 						docsToIndex.insert(*resultIter);
@@ -1382,11 +1374,11 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 					(labels.empty() == false))
 				{
 					// Apply this label
-					if (indexId == m_settings.getIndexIdByName(_("My Web Pages")))
+					if (indexId == m_settings.getIndexPropertiesByName(_("My Web Pages")).m_id)
 					{
 						docsIds.insert(docId);
 					}
-					else if (indexId == m_settings.getIndexIdByName(_("My Documents")))
+					else if (indexId == m_settings.getIndexPropertiesByName(_("My Documents")).m_id)
 					{
 						daemonIds.insert(docId);
 					}
@@ -1735,7 +1727,8 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			return;
 		}
 
-		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(pUpdateThread->getIndexName(), NotebookPageBox::INDEX_PAGE));
+		PinotSettings::IndexProperties indexProps(pUpdateThread->getIndexProperties());
+		IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_page(indexProps.m_name, NotebookPageBox::INDEX_PAGE));
 		if (pIndexPage != NULL)
 		{
 			ResultsTree *pResultsTree = pIndexPage->getTree();
@@ -1793,8 +1786,8 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 	if ((indexName != indexBox.getName()) ||
 		(location != indexBox.getLocation()))
 	{
-		ustring newName = indexBox.getName();
-		ustring newLocation = indexBox.getLocation();
+		ustring newName(indexBox.getName());
+		ustring newLocation(indexBox.getLocation());
 
 		// Is the name okay ?
 		if (indexBox.badName() == true)
@@ -1812,9 +1805,8 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 
 		// The only way to edit an index right now is to remove it
 		// first, then add it again
-		if ((m_settings.removeIndex(from_utf8(indexName)) == false) ||
-			(m_settings.addIndex(from_utf8(newName),
-				from_utf8(newLocation)) == false))
+		if ((m_settings.removeIndex(m_settings.getIndexPropertiesByName(indexName)) == false) ||
+			(m_settings.addIndex(newName, from_utf8(newLocation)) == false))
 		{
 			ustring statusText = _("Couldn't rename index");
 			statusText += " ";
@@ -2424,9 +2416,8 @@ void mainWindow::on_properties_activate()
 		return;
 	}
 
-	const std::map<string, string> &indexesMap = m_settings.getIndexes();
-	std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
-	if (mapIter == indexesMap.end())
+	PinotSettings::IndexProperties indexProps(m_settings.getIndexPropertiesByName(indexName));
+	if (indexProps.m_location.empty() == true)
 	{
 		ustring statusText = _("Index");
 		statusText += " ";
@@ -2448,7 +2439,7 @@ void mainWindow::on_properties_activate()
 
 	// Let the user set the labels
 	get_size(width, height);
-	propertiesDialog propertiesBox(mapIter->second, documentsList);
+	propertiesDialog propertiesBox(indexProps.m_location, documentsList);
 	propertiesBox.setHeight(height / 2);
 	propertiesBox.show();
 	// What labels will this show ?
@@ -2468,7 +2459,7 @@ void mainWindow::on_properties_activate()
 		// ... only if something was modified
 		if (propertiesBox.changedInfo() == true)
 		{
-			start_thread(new UpdateDocumentThread(indexName, docId, *docIter, false));
+			start_thread(new UpdateDocumentThread(indexProps, docId, *docIter, false));
 		}
 
 		docIds.insert(docId);
@@ -2621,8 +2612,7 @@ void mainWindow::on_addIndexButton_clicked()
 	}
 
 	// Add the new index
-	if (m_settings.addIndex(from_utf8(name),
-			from_utf8(location)) == false)
+	if (m_settings.addIndex(name, from_utf8(location)) == false)
 	{
 		ustring statusText = _("Couldn't add index");
 		statusText += " ";
@@ -2669,15 +2659,15 @@ void mainWindow::on_removeIndexButton_clicked()
 	EnginesModelColumns::EngineType engineType = engineRow[engineColumns.m_type];
 	if (engineType == EnginesModelColumns::INDEX_ENGINE)
 	{
-		ustring name = engineRow[engineColumns.m_name];
+		ustring indexName(engineRow[engineColumns.m_name]);
 
 		// Remove it
 		// FIXME: ask for confirmation ?
-		if (m_settings.removeIndex(from_utf8(name)) == false)
+		if (m_settings.removeIndex(m_settings.getIndexPropertiesByName(indexName)) == false)
 		{
 			ustring statusText = _("Couldn't remove index");
 			statusText += " ";
-			statusText += name;
+			statusText += indexName;
 
 			// An error occured
 			set_status(statusText);
@@ -3037,6 +3027,9 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 {
 	NotebookPageBox *pNotebookPage = NULL;
 
+#ifdef DEBUG
+	cout << "mainWindow::get_page: looking for " << title << " " << type << endl;
+#endif
 	if (m_state.read_lock_lists() == true)
 	{
 		for (int pageNum = 0; pageNum < m_pNotebook->get_n_pages(); ++pageNum)
@@ -3048,7 +3041,8 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 				if (pNotebookPage != NULL)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::get_page: " << pNotebookPage->getTitle() << endl;
+					cout << "mainWindow::get_page: " << pNotebookPage->getTitle()
+						<< " " << pNotebookPage->getType() << endl;
 #endif
 					if ((title == pNotebookPage->getTitle()) &&
 						(type == pNotebookPage->getType()))
@@ -3372,10 +3366,19 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 		}
 	}
 
+	PinotSettings::IndexProperties indexProps(m_settings.getIndexPropertiesByName(indexName));
+	if (indexProps.m_location.empty() == true)
+	{
+#ifdef DEBUG
+		cout << "mainWindow::browse_index: couldn't find index " << indexName << endl;
+#endif
+		return;
+	}
+
 	// Spawn a new thread to browse the index
 	if (queryName.empty() == true)
 	{
-		start_thread(new IndexBrowserThread(indexName, m_maxDocsCount, startDoc));
+		start_thread(new IndexBrowserThread(indexProps, m_maxDocsCount, startDoc));
 	}
 	else
 	{
@@ -3390,16 +3393,7 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 			queryProps.setMaximumResultsCount(m_maxDocsCount);
 
 			// ... and the index
-			const std::map<string, string> &indexesMap = m_settings.getIndexes();
-			std::map<string, string>::const_iterator mapIter = indexesMap.find(indexName);
-			if (mapIter != indexesMap.end())
-			{
-				start_thread(new EngineQueryThread(m_settings.m_defaultBackend, from_utf8(indexName),
-					mapIter->second, queryProps, startDoc, true));
-			}
-#ifdef DEBUG
-			else cout << "mainWindow::browse_index: couldn't find index " << indexName << endl;
-#endif
+			start_thread(new EngineQueryThread(indexProps, queryProps, startDoc, true));
 		}
 #ifdef DEBUG
 		else cout << "mainWindow::browse_index: couldn't find query " << queryName << endl;

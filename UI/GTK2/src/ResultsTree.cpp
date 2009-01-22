@@ -491,11 +491,11 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		if (engineId == 0)
 		{
 			// Chances are this engine is an index
-			std::map<string, string>::const_iterator mapIter = m_settings.getIndexes().find(engineName);
-			if (mapIter != m_settings.getIndexes().end())
+			PinotSettings::IndexProperties indexProps = m_settings.getIndexPropertiesByName(engineName);
+			if (indexProps.m_location.empty() == false)
 			{
 				// Yes, it is
-				indexId = m_settings.getIndexIdByName(engineName);
+				indexId = indexProps.m_id;
 				engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
 #ifdef DEBUG
 				cout << "ResultsTree::addResults: engine is index " << engineName << " " << indexId << " " << engineId << endl;
@@ -600,7 +600,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 
 		++count;
 
-		// We already got indexId from PinotSettings::getIndexIdByName()
+		// We already got indexId from PinotSettings
 		unsigned int docIndexId = 0;
 		unsigned int docId = resultIter->getIsIndexed(docIndexId);
 		bool isIndexed = false;
@@ -806,7 +806,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 						// Erase this
 						engineNames.erase(backendIter);
 #ifdef DEBUG
-						cout << "ResultsTree::setGroupMode: row is for index(es)" << indexIds << endl;
+						cout << "ResultsTree::setGroupMode: row is for index(es) " << indexIds << endl;
 #endif
 
 						// Add entries for each index name so that we can loop once on engine names
@@ -833,8 +833,8 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 						if (engineId == 0)
 						{
 							// This is actually an index, not an engine...
-							indexId = m_settings.getIndexIdByName(engineName);
-							if (indexId > 0)
+							PinotSettings::IndexProperties indexProps = m_settings.getIndexPropertiesByName(engineName);
+							if (indexProps.m_location.empty() == false)
 							{
 								engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
 							}
@@ -962,12 +962,13 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 				// Any internal index in there ?
 				for (set<string>::iterator indexIter = indexNames.begin(); indexIter != indexNames.end(); ++indexIter)
 				{
-					if  (m_settings.isInternalIndex(*indexIter) == true)
+					PinotSettings::IndexProperties indexProps = m_settings.getIndexPropertiesByName(*indexIter);
+					if (indexProps.m_internal == true)
 					{
 #ifdef DEBUG
 						cout << "ResultsTree::getSelection: result in internal index " << *indexIter << endl;
 #endif
-						current.setIsIndexed(m_settings.getIndexIdByName(*indexIter), row[m_resultsColumns.m_docId]);
+						current.setIsIndexed(indexProps.m_id, row[m_resultsColumns.m_docId]);
 						break;
 					}
 				}
@@ -1124,11 +1125,11 @@ bool ResultsTree::deleteResults(const string &engineName)
 	if (engineId == 0)
 	{
 		// Chances are this engine is an index
-		std::map<string, string>::const_iterator mapIter = m_settings.getIndexes().find(engineName);
-		if (mapIter != m_settings.getIndexes().end())
+		PinotSettings::IndexProperties indexProps = m_settings.getIndexPropertiesByName(engineName);
+		if (indexProps.m_location.empty() == false)
 		{
 			// Yes, it is
-			indexId = m_settings.getIndexIdByName(engineName);
+			indexId = indexProps.m_id;
 			engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
 		}
 	}

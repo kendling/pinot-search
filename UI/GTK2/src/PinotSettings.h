@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,6 +41,27 @@ class PinotSettings
 
 		typedef enum { SAVE_PREFS = 0, SAVE_CONFIG } SaveWhat;
 
+		class IndexProperties
+		{
+			public:
+				IndexProperties();
+				IndexProperties(const Glib::ustring &name,
+		                        const std::string &location,
+					unsigned int id, bool isInternal);
+				IndexProperties(const IndexProperties &other);
+				virtual ~IndexProperties();
+
+				IndexProperties& operator=(const IndexProperties &other);
+				bool operator<(const IndexProperties &other) const;
+				bool operator==(const IndexProperties &other) const;
+
+				Glib::ustring m_name;
+				std::string m_location;
+				unsigned int m_id;
+				bool m_internal;
+
+		};
+
 		static PinotSettings &getInstance(void);
 
 		static bool enableClientMode(bool enable);
@@ -65,26 +86,24 @@ class PinotSettings
 
 		bool save(SaveWhat what);
 
-		/// Returns the indexes map, keyed by name.
-		const std::map<std::string, std::string> &getIndexes(void) const;
-
-		/// Returns true if the given index is internal.
-		bool isInternalIndex(const string &name) const;
+		/// Returns the indexes set.
+		const std::set<IndexProperties> &getIndexes(void) const;
 
 		/// Adds a new index.
-		bool addIndex(const std::string &name, const std::string &location);
+		bool addIndex(const Glib::ustring &name, const std::string &location,
+			bool isInternal = false);
 
 		/// Removes an index.
-		bool removeIndex(const std::string &name);
+		bool removeIndex(const IndexProperties &indexProps);
 
 		/// Clears the indexes map.
 		void clearIndexes(void);
 
-		/// Returns an ID that identifies the given index.
-		unsigned int getIndexIdByName(const std::string &name);
+		/// Returns properties of the given index.
+		IndexProperties getIndexPropertiesByName(const std::string &name) const;
 
-		/// Returns an ID that identifies the given index.
-		unsigned int getIndexIdByLocation(const std::string &location);
+		/// Returns properties of the given index.
+		IndexProperties getIndexPropertiesByLocation(const std::string &location) const;
 
 		/// Returns the name(s) for the given ID.
 		void getIndexNames(unsigned int id, std::set<std::string> &names);
@@ -190,8 +209,7 @@ class PinotSettings
 		static PinotSettings m_instance;
 		static bool m_clientMode;
 		bool m_firstRun;
-		std::map<std::string, std::string> m_indexNames;
-		std::map<unsigned int, std::string> m_indexIds;
+		std::set<IndexProperties> m_indexes;
 		unsigned int m_indexCount;
 		std::set<ModuleProperties> m_engines;
 		std::map<unsigned int, std::string> m_engineIds;

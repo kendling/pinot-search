@@ -318,8 +318,7 @@ void PinotSettings::clear(void)
 	m_cacheProtocols.clear();
 
 	m_firstRun = false;
-	m_indexNames.clear();
-	m_indexIds.clear();
+	m_indexes.clear();
 	m_indexCount = 0;
 	m_engines.clear();
 	m_engineIds.clear();
@@ -421,8 +420,8 @@ bool PinotSettings::load(LoadWhat what)
 	}
 
 	// Internal indices
-	addIndex(_("My Web Pages"), m_docsIndexLocation);
-	addIndex(_("My Documents"), m_daemonIndexLocation);
+	addIndex(_("My Web Pages"), m_docsIndexLocation, true);
+	addIndex(_("My Documents"), m_daemonIndexLocation, true);
 
 	if (m_firstRun == true)
 	{
@@ -547,7 +546,7 @@ bool PinotSettings::loadSearchEngines(const string &directoryName)
 	return true;
 }
 
-bool PinotSettings::loadConfiguration(const std::string &fileName, bool isGlobal)
+bool PinotSettings::loadConfiguration(const string &fileName, bool isGlobal)
 {
 	struct stat fileStat;
 	bool success = true;
@@ -821,7 +820,7 @@ bool PinotSettings::loadIndexes(const Element *pElem)
 	if ((indexName.empty() == false) &&
 		(indexLocation.empty() == false))
 	{
-		addIndex(indexName, indexLocation);
+		addIndex(indexName, indexLocation, false);
 	}
 
 	return true;
@@ -1496,11 +1495,9 @@ bool PinotSettings::save(SaveWhat what)
 			addChildElement(pElem, "expandqueries", (m_expandQueries ? "YES" : "NO"));
 			addChildElement(pElem, "showengines", (m_showEngines ? "YES" : "NO"));
 			// User-defined indexes
-			for (map<string, string>::iterator indexIter = m_indexNames.begin(); indexIter != m_indexNames.end(); ++indexIter)
+			for (set<IndexProperties>::iterator indexIter = m_indexes.begin(); indexIter != m_indexes.end(); ++indexIter)
 			{
-				string indexName = indexIter->first;
-
-				if (isInternalIndex(indexName) == true)
+				if (indexIter->m_internal == true)
 				{
 					continue;
 				}
@@ -1510,8 +1507,8 @@ bool PinotSettings::save(SaveWhat what)
 				{
 					return false;
 				}
-				addChildElement(pElem, "name", indexIter->first);
-				addChildElement(pElem, "location", indexIter->second);
+				addChildElement(pElem, "name", indexIter->m_name);
+				addChildElement(pElem, "location", indexIter->m_location);
 			}
 			// Engine channels
 			for (map<string, bool>::iterator channelIter = m_engineChannels.begin();
@@ -1656,62 +1653,33 @@ bool PinotSettings::save(SaveWhat what)
 	return true;
 }
 
-/// Returns the indexes map, keyed by name.
-const map<string, string> &PinotSettings::getIndexes(void) const
+/// Returns the indexes set.
+const set<PinotSettings::IndexProperties> &PinotSettings::getIndexes(void) const
 {
-	return m_indexNames;
-}
-
-/// Returns true if the given index is internal.
-bool PinotSettings::isInternalIndex(const string &name) const
-{
-	if ((name == _("My Web Pages")) ||
-		(name == _("My Documents")))
-	{
-		return true;
-	}
-
-	return false;		
+	return m_indexes;
 }
 
 /// Adds a new index.
-bool PinotSettings::addIndex(const string &name, const string &location)
+bool PinotSettings::addIndex(const ustring &name, const string &location, bool isInternal)
 {
-	map<string, string>::iterator namesMapIter = m_indexNames.find(name);
-	if (namesMapIter == m_indexNames.end())
-	{
-		// Okay, no such index exists
-		m_indexIds[1 << m_indexCount] = name;
-		m_indexNames[name] = location;
+	unsigned int indexId(1 << m_indexCount);
+	m_indexes.insert(IndexProperties(name, location, indexId, isInternal));
 #ifdef DEBUG
-		cout << "PinotSettings::addIndex: index " << m_indexCount << " is " << name << endl;
+	cout << "PinotSettings::addIndex: index " << m_indexCount << " is " << name << " with ID " << indexId << endl;
 #endif
-		++m_indexCount;
+	++m_indexCount;
 
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 /// Removes an index.
-bool PinotSettings::removeIndex(const string &name)
+bool PinotSettings::removeIndex(const IndexProperties &indexProps)
 {
 	// Remove from the names map
-	map<string, string>::iterator namesMapIter = m_indexNames.find(name);
-	if (namesMapIter != m_indexNames.end())
+	set<IndexProperties>::iterator namesMapIter = m_indexes.find(indexProps);
+	if (namesMapIter != m_indexes.end())
 	{
-		m_indexNames.erase(namesMapIter);
-
-		// Remove from the IDs map
-		for (map<unsigned int, string>::iterator idsMapIter = m_indexIds.begin();
-			idsMapIter != m_indexIds.end(); ++idsMapIter)
-		{
-			if (idsMapIter->second == name)
-			{
-				m_indexIds.erase(idsMapIter);
-			}
-		}
+		m_indexes.erase(namesMapIter);
 
 		return true;
 	}
@@ -1722,49 +1690,47 @@ bool PinotSettings::removeIndex(const string &name)
 /// Clears the indexes map.
 void PinotSettings::clearIndexes(void)
 {
-	// Clear both maps, reinsert the internal index
-	m_indexNames.clear();
-	m_indexIds.clear();
+	// Clear and reinsert the internal indexes
+	m_indexes.clear();
 	m_indexCount = 0;
-	addIndex(_("My Web Pages"), m_docsIndexLocation);
-	addIndex(_("My Documents"), m_daemonIndexLocation);
+	addIndex(_("My Web Pages"), m_docsIndexLocation, true);
+	addIndex(_("My Documents"), m_daemonIndexLocation, true);
 }
 
-/// Returns an ID that identifies the given index.
-unsigned int PinotSettings::getIndexIdByName(const std::string &name)
+/// Returns properties of the given index.
+PinotSettings::IndexProperties PinotSettings::getIndexPropertiesByName(const string &name) const
 {
 	unsigned int indexId = 0;
 
-	for (map<unsigned int, string>::iterator mapIter = m_indexIds.begin();
-		mapIter != m_indexIds.end(); ++mapIter)
+	for (set<IndexProperties>::const_iterator propsIter = m_indexes.begin();
+		propsIter != m_indexes.end(); ++propsIter)
 	{
-		if (mapIter->second == name)
+		if (propsIter->m_name == name)
 		{
-			indexId = mapIter->first;
-			break;
+			return *propsIter;
 		}
 	}
 
-	return indexId;
+	return IndexProperties();
 }
 
-/// Returns an ID that identifies the given index.
-unsigned int PinotSettings::getIndexIdByLocation(const std::string &location)
+/// Returns properties of the given index.
+PinotSettings::IndexProperties PinotSettings::getIndexPropertiesByLocation(const string &location) const
 {
-	for (map<string, string>::iterator mapIter = m_indexNames.begin();
-		mapIter != m_indexNames.end(); ++mapIter)
+	for (set<IndexProperties>::const_iterator propsIter = m_indexes.begin();
+		propsIter != m_indexes.end(); ++propsIter)
 	{
-		if (mapIter->second == location)
+		if (propsIter->m_location == location)
 		{
-			return getIndexIdByName(mapIter->first);
+			return *propsIter;
 		}
 	}
 
-	return 0;
+	return IndexProperties();
 }
 
 /// Returns the name(s) for the given ID.
-void PinotSettings::getIndexNames(unsigned int id, std::set<std::string> &names)
+void PinotSettings::getIndexNames(unsigned int id, set<string> &names)
 {
 	names.clear();
 
@@ -1779,14 +1745,17 @@ void PinotSettings::getIndexNames(unsigned int id, std::set<std::string> &names)
 	{
 		if (id & indexId)
 		{
-			map<unsigned int, string>::iterator mapIter = m_indexIds.find(indexId);
-			if (mapIter != m_indexIds.end())
+			for (set<IndexProperties>::const_iterator propsIter = m_indexes.begin();
+				propsIter != m_indexes.end(); ++propsIter)
 			{
+				if (propsIter->m_id == indexId)
+				{
 #ifdef DEBUG
-				cout << "PinotSettings::getIndexNames: index " << indexId << " is " << mapIter->second << endl;
+					cout << "PinotSettings::getIndexNames: index " << indexId << " is " << propsIter->m_name << endl;
 #endif
-				// Get the associated name
-				names.insert(mapIter->second);
+					// Get the associated name
+					names.insert(propsIter->m_name);
+				}
 			}
 		}
 		// Shift to the right
@@ -2120,6 +2089,81 @@ bool PinotSettings::CacheProvider::operator==(const CacheProvider &other) const
 	{
 		return true;
 	}
+
+	return false;
+}
+
+PinotSettings::IndexProperties::IndexProperties() :
+	m_id(0),
+	m_internal(false)
+{
+}
+
+PinotSettings::IndexProperties::IndexProperties(const ustring &name,
+	const string &location, unsigned int id, bool isInternal) :
+	m_name(name),
+	m_location(location),
+	m_id(id),
+	m_internal(isInternal)
+{
+}
+
+PinotSettings::IndexProperties::IndexProperties(const IndexProperties &other) :
+	m_name(other.m_name),
+	m_location(other.m_location),
+	m_id(other.m_id),
+	m_internal(other.m_internal)
+{
+}
+
+PinotSettings::IndexProperties::~IndexProperties()
+{
+}
+
+PinotSettings::IndexProperties& PinotSettings::IndexProperties::operator=(const IndexProperties &other)
+{
+	if (this != &other)
+	{
+		m_name = other.m_name;
+		m_location = other.m_location;
+		m_id = other.m_id;
+		m_internal = other.m_internal;
+	}
+
+	return *this;
+}
+
+bool PinotSettings::IndexProperties::operator<(const IndexProperties &other) const
+{
+	if (m_id < other.m_id)
+	{
+		return true;
+	}
+	else if (m_id == other.m_id)
+	{
+		if (m_name < other.m_name)
+		{
+			return true;
+		}
+	}
+#ifdef DEBUG
+	cout << "PinotSettings::IndexProperties::operator<: " << m_id << "/" << m_name
+		<< " more than " << other.m_id << "/" << other.m_name << endl;
+#endif
+
+	return false;
+}
+
+bool PinotSettings::IndexProperties::operator==(const IndexProperties &other) const
+{
+	if (m_id == other.m_id)
+	{
+		return true;
+	}
+#ifdef DEBUG
+	cout << "PinotSettings::IndexProperties::operator==: " << m_id << "/" << m_name
+		<< " not equal to " << other.m_id << "/" << other.m_name << endl;
+#endif
 
 	return false;
 }

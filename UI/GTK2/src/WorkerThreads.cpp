@@ -747,9 +747,10 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 	return foundItem;
 }
 
-ListerThread::ListerThread(const string &indexName, unsigned int startDoc) :
+ListerThread::ListerThread(const PinotSettings::IndexProperties &indexProps,
+	unsigned int startDoc) :
 	WorkerThread(),
-	m_indexName(indexName),
+	m_indexProps(indexProps),
 	m_startDoc(startDoc),
 	m_documentsCount(0)
 {
@@ -764,9 +765,9 @@ string ListerThread::getType(void) const
 	return "ListerThread";
 }
 
-string ListerThread::getIndexName(void) const
+PinotSettings::IndexProperties ListerThread::getIndexProperties(void) const
 {
-	return m_indexName;
+	return m_indexProps;
 }
 
 unsigned int ListerThread::getStartDoc(void) const
@@ -784,9 +785,9 @@ unsigned int ListerThread::getDocumentsCount(void) const
 	return m_documentsCount;
 }
 
-IndexBrowserThread::IndexBrowserThread(const string &indexName,
+IndexBrowserThread::IndexBrowserThread(const PinotSettings::IndexProperties &indexProps,
 	unsigned int maxDocsCount, unsigned int startDoc) :
-	ListerThread(indexName, startDoc),
+	ListerThread(indexProps, startDoc),
 	m_maxDocsCount(maxDocsCount)
 {
 }
@@ -801,22 +802,20 @@ void IndexBrowserThread::doWork(void)
 	set<string> docLabels;
 	unsigned int numDocs = 0;
 
-	const map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
-	map<string, string>::const_iterator mapIter = indexesMap.find(m_indexName);
-	if (mapIter == indexesMap.end())
+	if (m_indexProps.m_location.empty() == true)
 	{
 		m_errorNum = UNKNOWN_INDEX;
-		m_errorParam = m_indexName;
+		m_errorParam = m_indexProps.m_name.c_str();
 		return;
 	}
 
 	// Get the index at that location
-	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(mapIter->second);
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexProps.m_location);
 	if ((pIndex == NULL) ||
 		(pIndex->isGood() == false))
 	{
 		m_errorNum = INDEX_ERROR;
-		m_errorParam = mapIter->second;
+		m_errorParam = m_indexProps.m_location;
 		if (pIndex != NULL)
 		{
 			delete pIndex;
@@ -842,7 +841,6 @@ void IndexBrowserThread::doWork(void)
 	m_documentsList.clear();
 	m_documentsList.reserve(m_maxDocsCount);
 
-	unsigned int indexId = PinotSettings::getInstance().getIndexIdByName(m_indexName);
 	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
 	{
 		unsigned int docId = (*iter);
@@ -861,7 +859,7 @@ void IndexBrowserThread::doWork(void)
 			{
 				docInfo.setType("text/html");
 			}
-			docInfo.setIsIndexed(indexId, docId);
+			docInfo.setIsIndexed(m_indexProps.m_id, docId);
 
 			// Insert that document
 			m_documentsList.push_back(docInfo);
@@ -874,13 +872,12 @@ void IndexBrowserThread::doWork(void)
 	delete pIndex;
 }
 
-QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
-	const string &engineOption, const QueryProperties &queryProps,
-	unsigned int startDoc, bool listingIndex) :
-	ListerThread(engineDisplayableName, startDoc),
-	m_engineName(engineName),
-	m_engineDisplayableName(engineDisplayableName),
-	m_engineOption(engineOption),
+QueryingThread::QueryingThread(const PinotSettings::IndexProperties &indexProps,
+	const QueryProperties &queryProps, unsigned int startDoc, bool listingIndex) :
+	ListerThread(indexProps, startDoc),
+	m_engineName(PinotSettings::getInstance().m_defaultBackend),
+	m_engineDisplayableName(indexProps.m_name),
+	m_engineOption(indexProps.m_location),
 	m_queryProps(queryProps),
 	m_listingIndex(listingIndex),
 	m_correctedSpelling(false),
@@ -889,6 +886,24 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 #ifdef DEBUG
 	cout << "QueryingThread: engine " << m_engineName << ", " << m_engineOption
 		<< ", mode " << m_listingIndex << endl;
+#endif
+}
+
+QueryingThread::QueryingThread(const string &engineName, const string &engineDisplayableName,
+	const string &engineOption, const QueryProperties &queryProps,
+	unsigned int startDoc) :
+	ListerThread(PinotSettings::IndexProperties(engineDisplayableName, engineOption, 0, false), startDoc),
+	m_engineName(engineName),
+	m_engineDisplayableName(engineDisplayableName),
+	m_engineOption(engineOption),
+	m_queryProps(queryProps),
+	m_listingIndex(false),
+	m_correctedSpelling(false),
+	m_isLive(true)
+{
+#ifdef DEBUG
+	cout << "QueryingThread: engine " << m_engineName << ", " << m_engineOption
+		<< ", mode 0" << endl;
 #endif
 }
 
@@ -977,20 +992,25 @@ bool QueryingThread::findPlugin(void)
 	return false;
 }
 
-EngineQueryThread::EngineQueryThread(const string &engineName, const string &engineDisplayableName,
-	const string &engineOption, const QueryProperties &queryProps,
-	unsigned int startDoc, bool listingIndex) :
-	QueryingThread(engineName, engineDisplayableName, engineOption, queryProps, startDoc, listingIndex)
+EngineQueryThread::EngineQueryThread(const PinotSettings::IndexProperties &indexProps,
+	const QueryProperties &queryProps, unsigned int startDoc, bool listingIndex) :
+	QueryingThread(indexProps, queryProps, startDoc, listingIndex)
 {
 }
 
-EngineQueryThread::EngineQueryThread(const string &engineName, const string &engineDisplayableName,
-	const string &engineOption, const QueryProperties &queryProps,
-	const set<string> &limitToDocsSet, unsigned int startDoc) :
-	QueryingThread(engineName, engineDisplayableName, engineOption, queryProps, startDoc, false)
+EngineQueryThread::EngineQueryThread(const PinotSettings::IndexProperties &indexProps,
+	const QueryProperties &queryProps, const set<string> &limitToDocsSet,
+	unsigned int startDoc) :
+	QueryingThread(indexProps, queryProps, startDoc, false)
 {
 	copy(limitToDocsSet.begin(), limitToDocsSet.end(),
 		inserter(m_limitToDocsSet, m_limitToDocsSet.begin()));
+}
+
+EngineQueryThread::EngineQueryThread(const string &engineName, const string &engineDisplayableName,
+	const string &engineOption, const QueryProperties &queryProps, unsigned int startDoc) :
+	QueryingThread(engineName, engineDisplayableName, engineOption, queryProps, startDoc)
+{
 }
 
 EngineQueryThread::~EngineQueryThread()
@@ -1012,7 +1032,7 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 		if ((m_engineOption == settings.m_docsIndexLocation) ||
 			(m_engineOption == settings.m_daemonIndexLocation))
 		{
-			indexId = settings.getIndexIdByLocation(m_engineOption);
+			indexId = settings.getIndexPropertiesByLocation(m_engineOption).m_id;
 			isIndexQuery = true;
 		}
 	}
@@ -1066,7 +1086,7 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 			docId = pDocsIndex->hasDocument(location);
 			if (docId > 0)
 			{
-				indexId = settings.getIndexIdByName(_("My Web Pages"));
+				indexId = settings.getIndexPropertiesByName(_("My Web Pages")).m_id;
 			}
 		}
 		if ((pDaemonIndex != NULL) &&
@@ -1076,7 +1096,7 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 			docId = pDaemonIndex->hasDocument(location);
 			if (docId > 0)
 			{
-				indexId = settings.getIndexIdByName(_("My Documents"));
+				indexId = settings.getIndexPropertiesByName(_("My Documents")).m_id;
 			}
 		}
 
@@ -1197,7 +1217,7 @@ void EngineQueryThread::doWork(void)
 		else
 		{
 			processResults(resultsList,
-				PinotSettings::getInstance().getIndexIdByName(m_engineDisplayableName));
+				PinotSettings::getInstance().getIndexPropertiesByName(m_engineDisplayableName).m_id);
 		}
 
 		// Don't spellcheck if the query was modified in any way
@@ -1219,7 +1239,7 @@ void EngineQueryThread::doWork(void)
 
 EngineHistoryThread::EngineHistoryThread(const string &engineDisplayableName,
 	const QueryProperties &queryProps, unsigned int maxDocsCount) :
-	QueryingThread("", engineDisplayableName, "", queryProps, 0, false),
+	QueryingThread("", engineDisplayableName, "", queryProps, 0),
 	m_maxDocsCount(maxDocsCount)
 {
 	// Results are converted to UTF-8 prior to insertion in the history database
@@ -1780,7 +1800,9 @@ void IndexingThread::doWork(void)
 
 				// The document properties may have changed
 				pIndex->getDocumentInfo(m_docId, m_docInfo);
-				m_docInfo.setIsIndexed(PinotSettings::getInstance().getIndexIdByLocation(m_indexLocation), m_docId);
+				m_docInfo.setIsIndexed(
+					PinotSettings::getInstance().getIndexPropertiesByLocation(m_indexLocation).m_id,
+					m_docId);
 			}
 		}
 	}
@@ -1908,10 +1930,10 @@ void UnindexingThread::doWork(void)
 	delete pIndex;
 }
 
-UpdateDocumentThread::UpdateDocumentThread(const string &indexName, unsigned int docId,
+UpdateDocumentThread::UpdateDocumentThread(const PinotSettings::IndexProperties &indexProps, unsigned int docId,
 	const DocumentInfo &docInfo, bool updateLabels) :
 	WorkerThread(),
-	m_indexName(indexName),
+	m_indexProps(indexProps),
 	m_docId(docId),
 	m_docInfo(docInfo),
 	m_updateLabels(updateLabels)
@@ -1927,9 +1949,9 @@ string UpdateDocumentThread::getType(void) const
 	return "UpdateDocumentThread";
 }
 
-string UpdateDocumentThread::getIndexName(void) const
+PinotSettings::IndexProperties UpdateDocumentThread::getIndexProperties(void) const
 {
-	return m_indexName;
+	return m_indexProps;
 }
 
 unsigned int UpdateDocumentThread::getDocumentID(void) const
@@ -1946,22 +1968,20 @@ void UpdateDocumentThread::doWork(void)
 {
 	if (m_done == false)
 	{
-		const map<string, string> &indexesMap = PinotSettings::getInstance().getIndexes();
-		map<string, string>::const_iterator mapIter = indexesMap.find(m_indexName);
-		if (mapIter == indexesMap.end())
+		if (m_indexProps.m_location.empty() == true)
 		{
 			m_errorNum = UNKNOWN_INDEX;
-			m_errorParam = m_indexName;
+			m_errorParam = m_indexProps.m_name.c_str();
 			return;
 		}
 
 		// Get the index at that location
-		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(mapIter->second);
+		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexProps.m_location);
 		if ((pIndex == NULL) ||
 			(pIndex->isGood() == false))
 		{
 			m_errorNum = INDEX_ERROR;
-			m_errorParam = mapIter->second;
+			m_errorParam = m_indexProps.m_location;
 			if (pIndex != NULL)
 			{
 				delete pIndex;

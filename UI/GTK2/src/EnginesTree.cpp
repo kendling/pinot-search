@@ -303,8 +303,8 @@ void EnginesTree::populate(bool indexesOnly)
 		std::set<ModuleProperties>::const_iterator engineIter = engines.begin();
 		for (; engineIter != engines.end(); ++engineIter)
 		{
-			string engineType(engineIter->m_name);
-			string engineName(engineIter->m_longName);
+			ustring engineType(to_utf8(engineIter->m_name));
+			ustring engineName(to_utf8(engineIter->m_longName));
 
 			if (ModuleFactory::isSupported(engineType, true) == true)
 			{
@@ -315,8 +315,8 @@ void EnginesTree::populate(bool indexesOnly)
 			TreeModel::iterator iter = m_refStore->append(folderIter->children());
 			row = *iter;
 
-			row[m_enginesColumns.m_name] = to_utf8(engineName);
-			row[m_enginesColumns.m_engineName] = to_utf8(engineType);
+			row[m_enginesColumns.m_name] = engineName;
+			row[m_enginesColumns.m_engineName] = engineType;
 			row[m_enginesColumns.m_option] = engineIter->m_option;
 			row[m_enginesColumns.m_type] = EnginesModelColumns::WEB_ENGINE;
 #ifdef DEBUG
@@ -348,23 +348,21 @@ void EnginesTree::populate(bool indexesOnly)
 	}
 
 	// Local engines
-	std::map<std::string, std::string>::const_iterator indexIter = m_settings.getIndexes().begin();
-	for (; indexIter != m_settings.getIndexes().end(); ++indexIter)
+	for (set<PinotSettings::IndexProperties>::const_iterator indexIter = m_settings.getIndexes().begin();
+		indexIter != m_settings.getIndexes().end(); ++indexIter)
 	{
-		ustring indexName(indexIter->first);
 		EnginesModelColumns::EngineType indexType = EnginesModelColumns::INDEX_ENGINE;
 
-		if ((indexName == _("My Web Pages")) ||
-			(indexName == _("My Documents")))
+		if (indexIter->m_internal == true)
 		{
 			indexType = EnginesModelColumns::INTERNAL_INDEX_ENGINE;
 		}
 
 		TreeModel::iterator iter = m_refStore->append(localIter->children());
 		TreeModel::Row childRow = *iter;
-		childRow[m_enginesColumns.m_name] = indexName;
+		childRow[m_enginesColumns.m_name] = indexIter->m_name;
 		childRow[m_enginesColumns.m_engineName] = m_settings.m_defaultBackend;
-		childRow[m_enginesColumns.m_option] = indexIter->second;
+		childRow[m_enginesColumns.m_option] = indexIter->m_location;
 		childRow[m_enginesColumns.m_type] = indexType;
 	}
 

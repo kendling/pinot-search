@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -250,15 +250,19 @@ void indexDialog::on_indexOkbutton_clicked()
 #endif
 
 	// Look up that index name in the map
-	const std::map<string, string> &indexesMap = settings.getIndexes();
-	std::map<string, string>::const_iterator indexIter = indexesMap.find(from_utf8(name));
-	if (indexIter != indexesMap.end())
+	const set<PinotSettings::IndexProperties> &indexes = settings.getIndexes();
+	for (set<PinotSettings::IndexProperties>::const_iterator indexIter = indexes.begin();
+		indexIter != indexes.end(); ++indexIter)
 	{
-		// This name is in use
-		m_badName = true;
+		if (indexIter->m_name == name)
+		{
+			// This name is in use
+			m_badName = true;
 #ifdef DEBUG
-		cout << "indexDialog::on_indexOkbutton_clicked: name in use" << endl;
+			cout << "indexDialog::on_indexOkbutton_clicked: name in use" << endl;
 #endif
+			break;
+		}
 	}
 
 	if ((m_editIndex == true) &&

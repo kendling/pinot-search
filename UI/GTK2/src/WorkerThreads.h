@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -173,12 +173,13 @@ class ThreadsManager : virtual public sigc::trackable
 class ListerThread : public WorkerThread
 {
 	public:
-		ListerThread(const std::string &indexName, unsigned int startDoc);
+		ListerThread(const PinotSettings::IndexProperties &indexProps,
+			unsigned int startDoc);
 		~ListerThread();
 
 		std::string getType(void) const;
 
-		std::string getIndexName(void) const;
+		PinotSettings::IndexProperties getIndexProperties(void) const;
 
 		unsigned int getStartDoc(void) const;
 
@@ -187,7 +188,7 @@ class ListerThread : public WorkerThread
 		unsigned int getDocumentsCount(void) const;
 
 	protected:
-		std::string m_indexName;
+		PinotSettings::IndexProperties m_indexProps;
 		unsigned int m_startDoc;
 		std::vector<DocumentInfo> m_documentsList;
 		unsigned int m_documentsCount;
@@ -201,8 +202,8 @@ class ListerThread : public WorkerThread
 class IndexBrowserThread : public ListerThread
 {
 	public:
-		IndexBrowserThread(const std::string &indexName, unsigned int maxDocsCount,
-			unsigned int startDoc = 0);
+		IndexBrowserThread(const PinotSettings::IndexProperties &indexProps,
+			unsigned int maxDocsCount, unsigned int startDoc = 0);
 		~IndexBrowserThread();
 
 		std::string getLabelName(void) const;
@@ -221,9 +222,12 @@ class IndexBrowserThread : public ListerThread
 class QueryingThread : public ListerThread
 {
 	public:
+		QueryingThread(const PinotSettings::IndexProperties &indexProps,
+			const QueryProperties &queryProps, unsigned int startDoc = 0,
+			bool listingIndex = false);
 		QueryingThread(const std::string &engineName, const std::string &engineDisplayableName,
 			const std::string &engineOption, const QueryProperties &queryProps,
-			unsigned int startDoc = 0, bool listingIndex = false);
+			unsigned int startDoc = 0);
 		virtual ~QueryingThread();
 
 		virtual std::string getType(void) const;
@@ -257,12 +261,15 @@ class QueryingThread : public ListerThread
 class EngineQueryThread : public QueryingThread
 {
 	public:
-		EngineQueryThread(const std::string &engineName, const std::string &engineDisplayableName,
-			const std::string &engineOption, const QueryProperties &queryProps,
-			unsigned int startDoc = 0, bool listingIndex = false);
-		EngineQueryThread(const std::string &engineName, const std::string &engineDisplayableName,
-			const std::string &engineOption, const QueryProperties &queryProps,
+		EngineQueryThread(const PinotSettings::IndexProperties &indexProps,
+			const QueryProperties &queryProps, unsigned int startDoc = 0,
+			bool listingIndex = false);
+		EngineQueryThread(const PinotSettings::IndexProperties &indexProps,
+			const QueryProperties &queryProps,
 			const std::set<std::string> &limitToDocsSet, unsigned int startDoc = 0);
+		EngineQueryThread(const std::string &engineName, const std::string &engineDisplayableName,
+			const std::string &engineOption, const QueryProperties &queryProps,
+			unsigned int startDoc = 0);
 		virtual ~EngineQueryThread();
 
 	protected:
@@ -449,20 +456,21 @@ class UpdateDocumentThread : public WorkerThread
 {
 	public:
 		// Update a document's properties
-		UpdateDocumentThread(const std::string &indexName, unsigned int docId,
-			const DocumentInfo &docInfo, bool updateLabels);
+		UpdateDocumentThread(const PinotSettings::IndexProperties &indexProps,
+			unsigned int docId, const DocumentInfo &docInfo,
+			bool updateLabels);
 		virtual ~UpdateDocumentThread();
 
 		virtual std::string getType(void) const;
 
-		std::string getIndexName(void) const;
+		PinotSettings::IndexProperties getIndexProperties(void) const;
 
 		unsigned int getDocumentID(void) const;
 
 		const DocumentInfo &getDocumentInfo(void) const;
 
 	protected:
-		std::string m_indexName;
+		PinotSettings::IndexProperties m_indexProps;
 		unsigned int m_docId;
 		DocumentInfo m_docInfo;
 		bool m_updateLabels;
