@@ -251,11 +251,13 @@ void PinotSettings::checkHistoryDatabase(void)
 	string daemonHistoryDatabase(getConfigurationDirectory());
 	struct stat fileStat;
 
-	// We only need to copy the UI's over to the daemon's history if it doesn't exist
 	uiHistoryDatabase += "/history";
 	daemonHistoryDatabase += "/history-daemon";
-	if ((stat(daemonHistoryDatabase.c_str(), &fileStat) != 0) ||
-		(!S_ISREG(fileStat.st_mode)))
+
+	// Copy the UI's over to the daemon's history if it doesn't exist
+	if ((stat(uiHistoryDatabase.c_str(), &fileStat) == 0) &&
+		((stat(daemonHistoryDatabase.c_str(), &fileStat) != 0) ||
+		(!S_ISREG(fileStat.st_mode))))
 	{
 		string output;
 
@@ -351,8 +353,8 @@ bool PinotSettings::load(LoadWhat what)
 	// Load settings ?
 	if (m_firstRun == false)
 	{
-		if ((loadConfiguration(getFileName(true), false) == false) ||
-			(loadConfiguration(getFileName(false), false) == false))
+		// Load 0.90 preferences first
+		if (loadConfiguration(getFileName(false), false) == false)
 		{
 			fileName = getConfigurationDirectory() + "/config.xml";
 
@@ -371,7 +373,10 @@ bool PinotSettings::load(LoadWhat what)
 				m_firstRun = true;
 			}
 		}
-
+		else
+		{
+			loadConfiguration(getFileName(true), false);
+		}
 	}
 
 	if (what == LOAD_ALL)
@@ -1474,8 +1479,6 @@ bool PinotSettings::save(SaveWhat what)
 		if (what == SAVE_CONFIG)
 		{
 			addChildElement(pRootElem, "warnaboutversion", (m_warnAboutVersion ? "YES" : "NO"));
-			addChildElement(pRootElem, "backend", m_defaultBackend);
-			addChildElement(pRootElem, "googleapikey", m_googleAPIKey);
 			// User interface position and size
 			pElem = pRootElem->add_child("ui");
 			if (pElem == NULL)
@@ -1560,6 +1563,8 @@ bool PinotSettings::save(SaveWhat what)
 		}
 		if (what == SAVE_PREFS)
 		{
+			addChildElement(pRootElem, "backend", m_defaultBackend);
+			addChildElement(pRootElem, "googleapikey", m_googleAPIKey);
 			// Labels
 			for (set<string>::iterator labelIter = m_labels.begin(); labelIter != m_labels.end(); ++labelIter)
 			{
