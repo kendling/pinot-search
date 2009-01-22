@@ -244,14 +244,6 @@ prefsWindow::prefsWindow() :
 		apiKeyEntry->hide();
 	}
 
-	// Show The Indexing tab on first run
-	if ((m_settings.isFirstRun() == true) &&
-		(prefsNotebook != NULL) &&
-		(prefsNotebook->get_n_pages() > 3))
-	{
-		prefsNotebook->set_current_page(3);
-	}
-
 	// Connect to threads' finished signal
 	m_state.connect();
 
