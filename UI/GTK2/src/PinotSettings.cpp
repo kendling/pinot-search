@@ -354,7 +354,7 @@ bool PinotSettings::load(LoadWhat what)
 	if (m_firstRun == false)
 	{
 		// Load 0.90 preferences first
-		if (loadConfiguration(getFileName(false), false) == false)
+		if (loadConfiguration(getFileName(true), false) == false)
 		{
 			fileName = getConfigurationDirectory() + "/config.xml";
 
@@ -375,7 +375,7 @@ bool PinotSettings::load(LoadWhat what)
 		}
 		else
 		{
-			loadConfiguration(getFileName(true), false);
+			loadConfiguration(getFileName(false), false);
 		}
 	}
 
@@ -1644,6 +1644,9 @@ bool PinotSettings::save(SaveWhat what)
 				addChildElement(pElem, "value", editableIter->second);
 			}
 		}
+#ifdef DEBUG
+		cout << "PinotSettings::save: saving to " << getFileName(prefsOrUI) << endl;
+#endif
 
 		// Save to file
 		doc.write_to_file_formatted(getFileName(prefsOrUI));
@@ -2151,10 +2154,6 @@ bool PinotSettings::IndexProperties::operator<(const IndexProperties &other) con
 			return true;
 		}
 	}
-#ifdef DEBUG
-	cout << "PinotSettings::IndexProperties::operator<: " << m_id << "/" << m_name
-		<< " more than " << other.m_id << "/" << other.m_name << endl;
-#endif
 
 	return false;
 }
@@ -2165,10 +2164,6 @@ bool PinotSettings::IndexProperties::operator==(const IndexProperties &other) co
 	{
 		return true;
 	}
-#ifdef DEBUG
-	cout << "PinotSettings::IndexProperties::operator==: " << m_id << "/" << m_name
-		<< " not equal to " << other.m_id << "/" << other.m_name << endl;
-#endif
 
 	return false;
 }
