@@ -115,7 +115,7 @@ checkprograms
 checkindex
 
 if [ $# == 0 ]; then
-  echo "Usage: pinot-cd.sh path1 path2..."
+  echo "Usage: $0 PATH1 PATH2..."
 elif [ "$MISSING_PROGRAM" == 0 ] || [ "$MISSING_INDEX" == 0 ]; then
   if [ $# -eq 1 ] && [ "$1" == "-" ] && [ ! -z "$OLDPWD" ]; then
     cd "$OLDPWD"

@@ -3,7 +3,7 @@
 # and gives an estimate of how much disk space those take.
 
 if [ $# == 0 ]; then
-  echo "Usage: $0 <index>"
+  echo "Usage: $0 INDEX"
   exit 1
 fi
 

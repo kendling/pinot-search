@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run this with find, eg find -L ~/Documents/ -exec pinot-check-file.sh {} \;
 if [ $# == 0 ]; then
-  echo "Usage: $0 <index>"
+  echo "Usage: $0 FILE"
   exit 1
 fi
 
