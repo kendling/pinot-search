@@ -537,7 +537,8 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		}
 	}
 #ifdef DEBUG
-	cout << "ResultsTree::addResults: " << resultsList.size() << " results, second last run " << secondLastRunTime << endl;
+	cout << "ResultsTree::addResults: " << resultsList.size() << " results with charset " << charset
+		<< ", second last run " << secondLastRunTime << endl;
 #endif
 
 	// Look at the results list
@@ -622,7 +623,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 #ifdef DEBUG
 			cout << "ResultsTree::addResults: added row for result " << count
 				<< ", " << currentScore << ", " << isIndexed << " " << docId
-				<< " " << indexId << " " << resultIter->getTimestamp() << endl;
+				<< " " << indexId << endl;
 #endif
 
 			if (groupIter)

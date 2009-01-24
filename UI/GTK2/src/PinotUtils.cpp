@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -228,7 +228,7 @@ ustring to_utf8(const string &text, const string &charset)
 			return locale_to_utf8(text);
 		}
 	}
-	catch (ConvertError &ce)
+	catch (Error &ce)
 	{
 #ifdef DEBUG
 		cout << "to_utf8: cannot convert from " << charset << ": " << ce.what() << endl;
@@ -237,6 +237,12 @@ ustring to_utf8(const string &text, const string &charset)
 		{
 			return to_utf8(text);
 		}
+	}
+	catch (...)
+	{
+#ifdef DEBUG
+		cout << "to_utf8: unknown exception" << endl;
+#endif
 	}
 
 	return "";
@@ -249,10 +255,16 @@ string from_utf8(const ustring &text)
 	{
 		return locale_from_utf8(text);
 	}
-	catch (ConvertError &ce)
+	catch (Error &ce)
 	{
 #ifdef DEBUG
 		cout << "from_utf8: " << ce.what() << endl;
+#endif
+	}
+	catch (...)
+	{
+#ifdef DEBUG
+		cout << "from_utf8: unknown exception" << endl;
 #endif
 	}
 
