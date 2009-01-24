@@ -220,7 +220,7 @@ SherlockResponseParser::~SherlockResponseParser()
 }
 
 bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<DocumentInfo> &resultsList,
-	unsigned int &totalResults, unsigned int &firstResultIndex) const
+	unsigned int &totalResults, unsigned int &firstResultIndex, string &charset) const
 {
 	float pseudoScore = 100;
 	unsigned int contentLen = 0;
@@ -231,6 +231,22 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 		(contentLen == 0))
 	{
 		return false;
+	}
+
+	// Can we get the charset ?
+	Dijon::HtmlFilter htmlFilter("text/html");
+	if (FilterUtils::feedFilter(*pResponseDoc, &htmlFilter) == true)
+	{
+		const map<string, string> &metaData = htmlFilter.get_meta_data();
+		map<string, string>::const_iterator charsetIter = metaData.find("charset");
+
+		if (charsetIter != metaData.end())
+		{
+			charset = charsetIter->second;
+#ifdef DEBUG
+			cout << "SherlockResponseParser::parse: response charset is " << charset << endl;
+#endif
+		}
 	}
 
 	// These two are the minimum we need

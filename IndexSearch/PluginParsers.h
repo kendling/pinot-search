@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,8 @@ class ResponseParserInterface
 
 		/// Parses the response; false if not all could be parsed.
 		virtual bool parse(const Document *pResponseDoc, std::vector<DocumentInfo> &resultsList,
-			unsigned int &totalResults, unsigned int &firstResultIndex) const = 0;
+			unsigned int &totalResults, unsigned int &firstResultIndex,
+			std::string &charset) const = 0;
 
 	protected:
 		ResponseParserInterface()

@@ -25,7 +25,6 @@
 
 #include "StringManip.h"
 #include "Url.h"
-#include "HtmlFilter.h"
 #include "DownloaderFactory.h"
 #include "FilterUtils.h"
 #include "CJKVTokenizer.h"
@@ -36,6 +35,7 @@ using std::cerr;
 using std::endl;
 using std::string;
 using std::set;
+using std::map;
 using std::vector;
 
 class TermHighlighter : public Dijon::CJKVTokenizer::TokensHandler
@@ -156,25 +156,10 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 		if (pos != string::npos)
 		{
 			m_charset = StringManip::removeQuotes(contentType.substr(pos + 8));
-		}
-		if (m_charset.empty() == true)
-		{
-			Dijon::HtmlFilter htmlFilter("text/html");
-
-			if (FilterUtils::feedFilter(*pDoc, &htmlFilter) == true)
-			{
-				const map<string, string> &metaData = htmlFilter.get_meta_data();
-				map<string, string>::const_iterator charsetIter = metaData.find("charset");
-
-				if (charsetIter != metaData.end())
-				{
-					m_charset = charsetIter->second;
-				}
-			}
-		}
 #ifdef DEBUG
-		cout << "WebEngine::downloadPage: charset is " << m_charset << endl;
+			cout << "WebEngine::downloadPage: page charset is " << m_charset << endl;
 #endif
+		}
 	}
 
 	return pDoc;
@@ -303,7 +288,7 @@ DownloaderInterface *WebEngine::getDownloader(void)
 }
 
 /// Specifies values for editable parameters.
-void WebEngine::setEditableValues(const std::map<std::string, std::string> &editableValues)
+void WebEngine::setEditableValues(const map<string, string> &editableValues)
 {
 	m_editableValues = editableValues;
 }

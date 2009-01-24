@@ -106,8 +106,17 @@ bool PluginWebEngine::getPage(const string &formattedQuery, unsigned int maxResu
 	pageBackup.close();
 #endif
 
+	string responseCharset;
 	bool success = m_pResponseParser->parse(pResponseDoc, m_resultsList,
-		maxResultsCount, m_properties.m_nextBase);
+		maxResultsCount, m_properties.m_nextBase, responseCharset);
+	if (m_charset.empty() == true)
+	{
+		m_charset = responseCharset;
+#ifdef DEBUG
+		cout << "PluginWebEngine::getPage: page charset is " << m_charset << endl;
+#endif
+	}
+
 	vector<DocumentInfo>::iterator resultIter = m_resultsList.begin();
 	while (resultIter != m_resultsList.end())
 	{

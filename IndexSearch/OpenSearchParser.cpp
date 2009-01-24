@@ -29,7 +29,6 @@
 #include <libxml++/nodes/cdatanode.h>
 
 #include "StringManip.h"
-#include "HtmlFilter.h"
 #include "FilterUtils.h"
 #include "OpenSearchParser.h"
 
@@ -87,7 +86,7 @@ OpenSearchResponseParser::~OpenSearchResponseParser()
 }
 
 bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<DocumentInfo> &resultsList,
-	unsigned int &totalResults, unsigned int &firstResultIndex) const
+	unsigned int &totalResults, unsigned int &firstResultIndex, string &charset) const
 {
 	float pseudoScore = 100;
 	unsigned int contentLen = 0;
@@ -121,6 +120,15 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 		if (pDocument == NULL)
 		{
 			return false;
+		}
+
+		ustring encoding(pDocument->get_encoding());
+		if (encoding.empty() == false)
+		{
+			charset = encoding;
+#ifdef DEBUG
+			cout << "OpenSearchResponseParser::parse: response charset is " << charset << endl;
+#endif
 		}
 
 		Node *pNode = pDocument->get_root_node();
