@@ -248,7 +248,7 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -927,7 +927,7 @@ bool XapianIndex::deleteDocuments(const string &term)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -978,7 +978,7 @@ string XapianIndex::getMetadata(const string &name) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return "";
 	}
 
@@ -1017,7 +1017,7 @@ bool XapianIndex::setMetadata(const string &name, const string &value) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1069,7 +1069,7 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1112,7 +1112,7 @@ unsigned int XapianIndex::getDocumentTermsCount(unsigned int docId) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1151,7 +1151,7 @@ bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string>
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1298,7 +1298,7 @@ bool XapianIndex::deleteLabel(const string &name)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1347,7 +1347,7 @@ bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1395,7 +1395,7 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1458,7 +1458,7 @@ bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1526,7 +1526,7 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1578,7 +1578,7 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1634,7 +1634,7 @@ unsigned int XapianIndex::getLastDocumentID(void) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1667,7 +1667,7 @@ unsigned int XapianIndex::getDocumentsCount(const string &labelName) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1743,7 +1743,7 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1816,7 +1816,7 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1901,7 +1901,7 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1949,7 +1949,7 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -2020,7 +2020,7 @@ bool XapianIndex::flush(void)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -2053,7 +2053,7 @@ bool XapianIndex::reopen(void) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -2067,7 +2067,7 @@ bool XapianIndex::reset(void)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false, true);
 	if (pDatabase == NULL)
 	{
-		cerr << "Bad index " << m_databaseName << endl;
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 

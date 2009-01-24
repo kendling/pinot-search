@@ -992,7 +992,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "XapianEngine::queryDatabase: " << error.get_type() << ": " << error.get_msg() << endl;
+		cerr << "Couldn't run query: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	cout << "Ran query \"" << queryProps.getFreeQuery() << "\" in " << timer.stop() << " ms" << endl;
 
@@ -1048,7 +1048,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "XapianEngine::queryDatabase: " << error.get_type() << ": " << error.get_msg() << endl;
+		cerr << "Couldn't run query: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 
 	// Be tolerant of errors as long as we got some results
@@ -1146,6 +1146,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, true);
 	if (pDatabase == NULL)
 	{
+		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1211,7 +1212,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "XapianEngine::runQuery: " << error.get_type() << ": " << error.get_msg() << endl;
+		cerr << "Couldn't run query: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	pDatabase->unlock();
 
