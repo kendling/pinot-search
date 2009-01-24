@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2009-01-11 00:47+0800\n"
+"Project-Id-Version: pinot 0.90\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-01-24 12:35+0800\n"
 "PO-Revision-Date: 2009-01-10 16:34+0000\n"
 "Last-Translator: Yaron <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <he@li.org>\n"
@@ -25,32 +25,6 @@ msgstr "מנועי חיפוש"
 msgid "Current User"
 msgstr "משתמש נוכחי"
 
-#. Apply this label
-#. Add a row to the index tree
-#. Allow this only for internal indexes
-#. Internal indices
-#: UI/GTK2/src/EnginesTree.cpp:357 UI/GTK2/src/mainWindow.cc:848
-#: UI/GTK2/src/mainWindow.cc:1120 UI/GTK2/src/mainWindow.cc:1385
-#: UI/GTK2/src/mainWindow.cc:1545 UI/GTK2/src/mainWindow.cc:1548
-#: UI/GTK2/src/mainWindow.cc:1649 UI/GTK2/src/mainWindow.cc:1685
-#: UI/GTK2/src/mainWindow.cc:1707 UI/GTK2/src/mainWindow.cc:2412
-#: UI/GTK2/src/PinotSettings.cpp:424 UI/GTK2/src/PinotSettings.cpp:1668
-#: UI/GTK2/src/PinotSettings.cpp:1729 UI/GTK2/src/statisticsDialog.cc:157
-#: UI/GTK2/src/WorkerThreads.cpp:1069
-msgid "My Web Pages"
-msgstr "עמודי האינטרנט שלי"
-
-#. Spawn new threads
-#: UI/GTK2/src/EnginesTree.cpp:358 UI/GTK2/src/mainWindow.cc:851
-#: UI/GTK2/src/mainWindow.cc:1114 UI/GTK2/src/mainWindow.cc:1375
-#: UI/GTK2/src/mainWindow.cc:1389 UI/GTK2/src/mainWindow.cc:1556
-#: UI/GTK2/src/mainWindow.cc:1559 UI/GTK2/src/mainWindow.cc:2416
-#: UI/GTK2/src/PinotSettings.cpp:425 UI/GTK2/src/PinotSettings.cpp:1669
-#: UI/GTK2/src/PinotSettings.cpp:1730 UI/GTK2/src/statisticsDialog.cc:163
-#: UI/GTK2/src/WorkerThreads.cpp:1079
-msgid "My Documents"
-msgstr "המסמכים שלי"
-
 #: UI/GTK2/src/indexDialog.cc:122
 msgid "Served by"
 msgstr "מוגש על ידי"
@@ -59,7 +33,7 @@ msgstr "מוגש על ידי"
 msgid "Local"
 msgstr "מקומי"
 
-#: UI/GTK2/src/indexDialog.cc:286
+#: UI/GTK2/src/indexDialog.cc:290
 msgid "Index location"
 msgstr "מיקום באינדקס"
 
@@ -205,187 +179,211 @@ msgstr "עדכן"
 msgid "N/A"
 msgstr "לא זמין"
 
-#: UI/GTK2/src/mainWindow.cc:363
+#: UI/GTK2/src/mainWindow.cc:359
 msgid "Undefined"
 msgstr "לא מוגדר"
 
 #. Find this query
-#: UI/GTK2/src/mainWindow.cc:602 UI/GTK2/src/mainWindow.cc:2787
+#: UI/GTK2/src/mainWindow.cc:598 UI/GTK2/src/mainWindow.cc:2779
 msgid "Live query"
 msgstr "שאילתה חיה"
 
+#. Apply this label
+#. Add a row to the index tree
+#. Allow this only for internal indexes
+#. Internal indices
+#: UI/GTK2/src/mainWindow.cc:844 UI/GTK2/src/mainWindow.cc:1114
+#: UI/GTK2/src/mainWindow.cc:1377 UI/GTK2/src/mainWindow.cc:1537
+#: UI/GTK2/src/mainWindow.cc:1540 UI/GTK2/src/mainWindow.cc:1641
+#: UI/GTK2/src/mainWindow.cc:1677 UI/GTK2/src/mainWindow.cc:1699
+#: UI/GTK2/src/mainWindow.cc:2406 UI/GTK2/src/PinotSettings.cpp:428
+#: UI/GTK2/src/PinotSettings.cpp:1704 UI/GTK2/src/statisticsDialog.cc:157
+#: UI/GTK2/src/WorkerThreads.cpp:1089
+msgid "My Web Pages"
+msgstr "עמודי האינטרנט שלי"
+
+#. Spawn new threads
+#: UI/GTK2/src/mainWindow.cc:847 UI/GTK2/src/mainWindow.cc:1109
+#: UI/GTK2/src/mainWindow.cc:1367 UI/GTK2/src/mainWindow.cc:1381
+#: UI/GTK2/src/mainWindow.cc:1548 UI/GTK2/src/mainWindow.cc:1551
+#: UI/GTK2/src/mainWindow.cc:2410 UI/GTK2/src/PinotSettings.cpp:429
+#: UI/GTK2/src/PinotSettings.cpp:1705 UI/GTK2/src/statisticsDialog.cc:163
+#: UI/GTK2/src/WorkerThreads.cpp:1099
+msgid "My Documents"
+msgstr "המסמכים שלי"
+
 #. Show the URL of the first document in the status bar
-#: UI/GTK2/src/mainWindow.cc:880
+#: UI/GTK2/src/mainWindow.cc:876
 msgid "Document location is"
 msgstr "מיקום המסמך הוא"
 
-#: UI/GTK2/src/mainWindow.cc:1099
+#: UI/GTK2/src/mainWindow.cc:1095
 msgid "Couldn't search in results"
 msgstr "לא ניתן לחפש בתוצאות"
 
-#: UI/GTK2/src/mainWindow.cc:1110
+#: UI/GTK2/src/mainWindow.cc:1105
 msgid "In Results"
 msgstr "בתוצאות"
 
-#: UI/GTK2/src/mainWindow.cc:1286
+#: UI/GTK2/src/mainWindow.cc:1278
 msgid "Showing"
 msgstr "מציג"
 
-#: UI/GTK2/src/mainWindow.cc:1294
+#: UI/GTK2/src/mainWindow.cc:1286
 msgid "of"
 msgstr "מתוך"
 
-#: UI/GTK2/src/mainWindow.cc:1336
+#: UI/GTK2/src/mainWindow.cc:1328
 msgid "Query"
 msgstr "שאילתה"
 
-#: UI/GTK2/src/mainWindow.cc:1340 UI/GTK2/src/mainWindow.cc:3328
+#: UI/GTK2/src/mainWindow.cc:1332 UI/GTK2/src/mainWindow.cc:3324
 msgid "on"
 msgstr "ב־"
 
-#: UI/GTK2/src/mainWindow.cc:1344
+#: UI/GTK2/src/mainWindow.cc:1336
 msgid "ended"
 msgstr "הסתיים"
 
-#: UI/GTK2/src/mainWindow.cc:1499
+#: UI/GTK2/src/mainWindow.cc:1491
 msgid "More Like"
 msgstr "עוד כמו"
 
-#: UI/GTK2/src/mainWindow.cc:1566
+#: UI/GTK2/src/mainWindow.cc:1558
 msgid "Updated label(s)"
 msgstr "תווית/ות מעודכנת/ות"
 
 #. Yes, it did
-#: UI/GTK2/src/mainWindow.cc:1659 UI/GTK2/src/mainWindow.cc:1747
+#: UI/GTK2/src/mainWindow.cc:1651 UI/GTK2/src/mainWindow.cc:1740
 msgid "Updated document"
 msgstr "מסמך מעודכן"
 
-#: UI/GTK2/src/mainWindow.cc:1672
+#: UI/GTK2/src/mainWindow.cc:1664
 msgid "Indexed"
 msgstr "שמור באינדקס"
 
-#: UI/GTK2/src/mainWindow.cc:1708
+#: UI/GTK2/src/mainWindow.cc:1700
 msgid "Unindexed document(s)"
 msgstr "מסמך/ים שאינו/ם שמור/ים באינדקס"
 
-#: UI/GTK2/src/mainWindow.cc:1802
+#: UI/GTK2/src/mainWindow.cc:1795
 msgid "Couldn't rename index, name"
 msgstr "לא ניתן לשנות את אינדקס, שם"
 
-#: UI/GTK2/src/mainWindow.cc:1806 UI/GTK2/src/mainWindow.cc:2614
-#: UI/GTK2/src/mainWindow.cc:3134
+#: UI/GTK2/src/mainWindow.cc:1799 UI/GTK2/src/mainWindow.cc:2607
+#: UI/GTK2/src/mainWindow.cc:3130
 msgid "is already in use"
 msgstr "כבר נמצא בשימוש"
 
-#: UI/GTK2/src/mainWindow.cc:1819
+#: UI/GTK2/src/mainWindow.cc:1811
 msgid "Couldn't rename index"
 msgstr "לא ניתן לשנות את שם האינדקס"
 
-#: UI/GTK2/src/mainWindow.cc:1832
+#: UI/GTK2/src/mainWindow.cc:1826
 msgid "Edited index"
 msgstr "האינדקס נערך"
 
-#: UI/GTK2/src/mainWindow.cc:2140
+#: UI/GTK2/src/mainWindow.cc:2134
 msgid "Export"
 msgstr "ייצא"
 
-#: UI/GTK2/src/mainWindow.cc:2185
+#: UI/GTK2/src/mainWindow.cc:2179
 msgid "Couldn't find similar documents"
 msgstr "לא ניתן למצוא מסמכים דומים"
 
-#: UI/GTK2/src/mainWindow.cc:2429
+#: UI/GTK2/src/mainWindow.cc:2422
 msgid "Index"
 msgstr "אינדקס"
 
-#: UI/GTK2/src/mainWindow.cc:2433
+#: UI/GTK2/src/mainWindow.cc:2426
 msgid "doesn't exist"
 msgstr "לא קיים"
 
-#: UI/GTK2/src/mainWindow.cc:2501
+#: UI/GTK2/src/mainWindow.cc:2494
 msgid "Remove this document from the index ?"
 msgstr "האם להסיר מסמך זה מהאינדקס ?"
 
-#: UI/GTK2/src/mainWindow.cc:2520
+#: UI/GTK2/src/mainWindow.cc:2513
 msgid "Remove these documents from the index ?"
 msgstr "האם להסיר מסמכים אלו מהאינדקס?"
 
-#: UI/GTK2/src/mainWindow.cc:2525 UI/GTK2/src/mainWindow_glade.cc:180
+#: UI/GTK2/src/mainWindow.cc:2518 UI/GTK2/src/mainWindow_glade.cc:180
 msgid "Unindex"
 msgstr "הסרה מהאינדקס"
 
-#: UI/GTK2/src/mainWindow.cc:2564
+#: UI/GTK2/src/mainWindow.cc:2557
 msgid "A metasearch tool for the Free Desktop"
 msgstr "כלי חיפוש־מטא לשולחן העבודה החופשי"
 
-#: UI/GTK2/src/mainWindow.cc:2565
+#: UI/GTK2/src/mainWindow.cc:2558
 msgid "Search the Web and your documents !"
 msgstr "חיפוש באינטרנט ובמסמכים שלך !"
 
-#: UI/GTK2/src/mainWindow.cc:2610
+#: UI/GTK2/src/mainWindow.cc:2603
 msgid "Index name"
 msgstr "שם האינדקס"
 
-#: UI/GTK2/src/mainWindow.cc:2625
+#: UI/GTK2/src/mainWindow.cc:2617
 msgid "Couldn't add index"
 msgstr "לא ניתן להוסיף אינדקס"
 
-#: UI/GTK2/src/mainWindow.cc:2641
+#: UI/GTK2/src/mainWindow.cc:2633
 msgid "Added new index"
 msgstr "נוסף אינדקס חדש"
 
-#: UI/GTK2/src/mainWindow.cc:2676
+#: UI/GTK2/src/mainWindow.cc:2668
 msgid "Couldn't remove index"
 msgstr "לא ניתן להסיר אינדקס"
 
-#: UI/GTK2/src/mainWindow.cc:2876
+#: UI/GTK2/src/mainWindow.cc:2868
 msgid "No history for"
 msgstr "אין היסטוריה עבור"
 
-#: UI/GTK2/src/mainWindow.cc:2948 UI/GTK2/src/prefsWindow.cc:953
+#: UI/GTK2/src/mainWindow.cc:2940 UI/GTK2/src/prefsWindow.cc:947
 msgid "At least one task hasn't completed yet. Quit now ?"
 msgstr "לפחות משימה אחת לא הושלמה עדיין. לצאת כעת?"
 
-#: UI/GTK2/src/mainWindow.cc:2950 UI/GTK2/src/prefsWindow.cc:955
+#: UI/GTK2/src/mainWindow.cc:2942 UI/GTK2/src/prefsWindow.cc:949
 msgid "Quit"
 msgstr "יציאה"
 
-#: UI/GTK2/src/mainWindow.cc:3130
+#: UI/GTK2/src/mainWindow.cc:3126
 msgid "Query name"
 msgstr "שם השאילתה"
 
-#: UI/GTK2/src/mainWindow.cc:3157
+#: UI/GTK2/src/mainWindow.cc:3153
 msgid "Couldn't update query"
 msgstr "לא ניתן לעדכן את השאילתה"
 
-#: UI/GTK2/src/mainWindow.cc:3168
+#: UI/GTK2/src/mainWindow.cc:3164
 msgid "Edited query"
 msgstr "השאילתה נערכה"
 
-#: UI/GTK2/src/mainWindow.cc:3175
+#: UI/GTK2/src/mainWindow.cc:3171
 msgid "Couldn't add query"
 msgstr "לא ניתן להוסיף שאילתה"
 
-#: UI/GTK2/src/mainWindow.cc:3183
+#: UI/GTK2/src/mainWindow.cc:3179
 msgid "Added new query"
 msgstr "נוספה שאילתה חדשה"
 
-#: UI/GTK2/src/mainWindow.cc:3217
+#: UI/GTK2/src/mainWindow.cc:3213
 msgid "Query is not set"
 msgstr "השאילתה לא הוגדרה"
 
-#: UI/GTK2/src/mainWindow.cc:3228
+#: UI/GTK2/src/mainWindow.cc:3224
 msgid "No search engine selected"
 msgstr "לא נבחר מנוע חיפוש"
 
-#: UI/GTK2/src/mainWindow.cc:3315
+#: UI/GTK2/src/mainWindow.cc:3311
 msgid "Please set the Google API key first"
 msgstr "אנא הגדר את מפתח ה־API של גוגל תחילה"
 
-#: UI/GTK2/src/mainWindow.cc:3324
+#: UI/GTK2/src/mainWindow.cc:3320
 msgid "Running query"
 msgstr "השאילתה רצה"
 
-#: UI/GTK2/src/mainWindow.cc:3533
+#: UI/GTK2/src/mainWindow.cc:3529
 msgid "No default application defined for type"
 msgstr "לא מוגדר יישום כברירת מחדל לסוג"
 
@@ -552,85 +550,92 @@ msgid "Couldn't create history database"
 msgstr ""
 
 #. Add default labels
-#: UI/GTK2/src/PinotSettings.cpp:430
+#: UI/GTK2/src/PinotSettings.cpp:434
 msgid "Important"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:431
+#: UI/GTK2/src/PinotSettings.cpp:435
 msgid "New"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:432
+#: UI/GTK2/src/PinotSettings.cpp:436
 msgid "Personal"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:454
+#: UI/GTK2/src/PinotSettings.cpp:458
 msgid "Me"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:462
+#: UI/GTK2/src/PinotSettings.cpp:466
 msgid "Latest First"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:465
+#: UI/GTK2/src/PinotSettings.cpp:469
 msgid "Home Stuff"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:466
+#: UI/GTK2/src/PinotSettings.cpp:470
 msgid "With Label New"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:467
+#: UI/GTK2/src/PinotSettings.cpp:471
 msgid "Have CJKV"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:468
+#: UI/GTK2/src/PinotSettings.cpp:472
 msgid "In English"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:469
+#: UI/GTK2/src/PinotSettings.cpp:473
 msgid "10kb And Smaller"
 msgstr ""
 
-#: UI/GTK2/src/PinotSettings.cpp:514
+#: UI/GTK2/src/PinotSettings.cpp:518
 msgid "Unclassified"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:205
+#: UI/GTK2/src/prefsWindow.cc:148
+msgid "File Indexing and Search"
+msgstr ""
+
+#: UI/GTK2/src/prefsWindow.cc:149
+msgid "Configure Pinot to index your files"
+msgstr ""
+
+#: UI/GTK2/src/prefsWindow.cc:207
 msgid "Name"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:223
+#: UI/GTK2/src/prefsWindow.cc:225
 msgid "Monitor"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:224
+#: UI/GTK2/src/prefsWindow.cc:226
 msgid "Location"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:232
+#: UI/GTK2/src/prefsWindow.cc:234
 msgid "Pattern"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:565
+#: UI/GTK2/src/prefsWindow.cc:559
 msgid "Exclude these patterns from indexing"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:566
+#: UI/GTK2/src/prefsWindow.cc:560
 msgid "Only index these patterns"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:765
+#: UI/GTK2/src/prefsWindow.cc:759
 msgid "Directory to index"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:905
+#: UI/GTK2/src/prefsWindow.cc:899
 msgid "New Label"
 msgstr ""
 
 #: UI/GTK2/src/prefsWindow_glade.cc:69
-msgid ""
-"These directories will be indexed and optionally monitored for changes:"
+msgid "These directories will be indexed and optionally monitored for changes:"
 msgstr ""
 
 #: UI/GTK2/src/prefsWindow_glade.cc:74 UI/GTK2/src/prefsWindow_glade.cc:90
@@ -843,7 +848,7 @@ msgstr ""
 msgid "Score"
 msgstr ""
 
-#: UI/GTK2/src/ResultsTree.cpp:1552
+#: UI/GTK2/src/ResultsTree.cpp:1555
 msgid "No results"
 msgstr ""
 
@@ -852,70 +857,69 @@ msgid "Indexes"
 msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:160 UI/GTK2/src/statisticsDialog.cc:166
-#: UI/GTK2/src/statisticsDialog.cc:187 UI/GTK2/src/statisticsDialog.cc:190
-#: UI/GTK2/src/statisticsDialog.cc:198
+#: UI/GTK2/src/statisticsDialog.cc:197
 msgid "Checking"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:195
+#: UI/GTK2/src/statisticsDialog.cc:194
 msgid "Daemon"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:222 UI/GTK2/src/statisticsDialog.cc:238
+#: UI/GTK2/src/statisticsDialog.cc:216
+msgid "Viewed"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:216
+msgid "results"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:222
+msgid "Crawled"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:222
+msgid "files"
+msgstr ""
+
+#: UI/GTK2/src/statisticsDialog.cc:239 UI/GTK2/src/statisticsDialog.cc:255
 msgid "documents"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:228 UI/GTK2/src/statisticsDialog.cc:246
+#: UI/GTK2/src/statisticsDialog.cc:245 UI/GTK2/src/statisticsDialog.cc:263
 #: UI/GTK2/src/WorkerThreads.cpp:125
 msgid "Unknown error"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:253
-msgid "Viewed"
-msgstr ""
-
-#: UI/GTK2/src/statisticsDialog.cc:253
-msgid "results"
-msgstr ""
-
-#: UI/GTK2/src/statisticsDialog.cc:259
-msgid "Crawled"
-msgstr ""
-
-#: UI/GTK2/src/statisticsDialog.cc:259
-msgid "files"
-msgstr ""
-
 #. FIXME: check whether it's actually running !
-#: UI/GTK2/src/statisticsDialog.cc:277
+#: UI/GTK2/src/statisticsDialog.cc:284
 msgid "Running under PID"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:297
+#: UI/GTK2/src/statisticsDialog.cc:306
 msgid "Disconnected from D-Bus"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:301
+#: UI/GTK2/src/statisticsDialog.cc:310
 msgid "Stopped"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:305
+#: UI/GTK2/src/statisticsDialog.cc:314
 msgid "Currently not running"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:319
+#: UI/GTK2/src/statisticsDialog.cc:328
 msgid "Low disk space"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:336
+#: UI/GTK2/src/statisticsDialog.cc:345
 msgid "System on battery"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:354
+#: UI/GTK2/src/statisticsDialog.cc:363
 msgid "Crawling"
 msgstr ""
 
-#: UI/GTK2/src/statisticsDialog.cc:391
+#: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr ""
 
@@ -995,6 +999,6 @@ msgstr ""
 msgid "is blacklisted"
 msgstr ""
 
-#: UI/GTK2/src/WorkerThreads.cpp:1032
+#: UI/GTK2/src/WorkerThreads.cpp:1052
 msgid "No title"
 msgstr ""
