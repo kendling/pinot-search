@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Fabrice Colin
+ *  Copyright 2008-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -60,6 +60,8 @@ protected:
 		InternalState(unsigned int maxIndexThreads,
 			prefsWindow *pWindow);
 		~InternalState();
+
+		bool m_savedPrefs;
 
 	} m_state;
 

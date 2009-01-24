@@ -130,7 +130,8 @@ class GetLabelsThread : public WorkerThread
 };
 
 prefsWindow::InternalState::InternalState(unsigned int maxIndexThreads, prefsWindow *pWindow) :
-        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads)
+        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
+	m_savedPrefs(false)
 {
         m_onThreadEndSignal.connect(sigc::mem_fun(*pWindow, &prefsWindow::on_thread_end));
 }
@@ -259,7 +260,11 @@ prefsWindow::prefsWindow() :
 
 prefsWindow::~prefsWindow()
 {
-	m_state.disconnect();
+	if (m_state.m_savedPrefs == false)
+	{
+		// Save the settings
+		PinotSettings::getInstance().save(PinotSettings::SAVE_PREFS);
+	}
 }
 
 void prefsWindow::updateLabelRow(const ustring &path_string, const ustring &text)
@@ -336,8 +341,16 @@ void prefsWindow::on_thread_end(WorkerThread *pThread)
 	{
 		populate_labelsTreeview();
 	}
-	else if ((type == "StartDaemonThread") ||
-		(type == "LabelUpdateThread"))
+	else if (type == "StartDaemonThread")
+	{
+		m_state.m_savedPrefs = true;
+
+		if (threadsCount == 0)
+		{
+			canQuit = true;
+		}
+	}
+	else if (type == "LabelUpdateThread")
 	{
 		if (threadsCount == 0)
 		{
