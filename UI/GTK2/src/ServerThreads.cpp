@@ -483,18 +483,15 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 
 	// Is this item in the database already ?
 	itemExists = crawlHistory.hasItem(location, itemStatus, itemDate);
-	if (itemExists == true)
-	{
-		if (m_fullScan == true)
-		{
-			// Change the status from TO_CRAWL to CRAWLING
-			crawlHistory.updateItem(location, CrawlHistory::CRAWLING, itemDate);
-		}
-	}
-	else
+	if (itemExists == false)
 	{
 		// Record it
 		crawlHistory.insertItem(location, CrawlHistory::CRAWLING, m_sourceId, itemDate);
+	}
+	else if (m_fullScan == true)
+	{
+		// Change the status from TO_CRAWL to CRAWLING
+		crawlHistory.updateItem(location, CrawlHistory::CRAWLING, itemDate);
 	}
 
 	// If stat'ing didn't fail, see if it's a file or a directory
@@ -600,11 +597,20 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 		(itemDate >= fileStat.st_mtime))
 	{
 		// No, it wasn't
+#ifdef DEBUG
+		cout << "DirectoryScannerThread::scanEntry: not reporting " << location
+			<< ", status " << itemStatus << endl;
+#endif
 		reportFile = false;
 	}
 
+	if (m_done == true)
+	{
+		// Don't record or report the file
+		reportFile = false;
+	}
 	// Did an error occur ?
-	if (entryStatus != 0)
+	else if (entryStatus != 0)
 	{
 		time_t timeNow = time(NULL);
 
@@ -671,6 +677,8 @@ void DirectoryScannerThread::doWork(void)
 	// Remove errors and links
 	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_ERROR);
 	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_LINK);
+	// ...and entries the previous instance didn't have time to crawl
+	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWLING);
 
 	if (m_fullScan == true)
 	{
