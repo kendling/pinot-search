@@ -332,6 +332,7 @@ void PinotSettings::clear(void)
 bool PinotSettings::load(LoadWhat what)
 {
 	string fileName;
+	bool loadedUIConfiguration = false;
 
 	if ((what == LOAD_ALL) ||
 		(what == LOAD_GLOBAL))
@@ -375,7 +376,7 @@ bool PinotSettings::load(LoadWhat what)
 		}
 		else
 		{
-			loadConfiguration(getFileName(false), false);
+			loadedUIConfiguration = loadConfiguration(getFileName(false), false);
 		}
 	}
 
@@ -428,7 +429,7 @@ bool PinotSettings::load(LoadWhat what)
 	addIndex(_("My Web Pages"), m_docsIndexLocation, true);
 	addIndex(_("My Documents"), m_daemonIndexLocation, true);
 
-	if (m_firstRun == true)
+	if (loadedUIConfiguration == false)
 	{
 		// Add default labels
 		m_labels.insert(_("Important"));
