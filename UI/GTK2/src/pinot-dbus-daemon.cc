@@ -508,9 +508,13 @@ int main(int argc, char **argv)
 		QueryHistory queryHistory(historyDatabase);
 		ViewHistory viewHistory(historyDatabase);
 		time_t timeNow = time(NULL);
+		unsigned int actionsCount = actionQueue.getItemsCount(ActionQueue::INDEX);
 
-		// Expire all actions left from last time
-		actionQueue.expireItems(timeNow);
+		// Don't expire actions left from last time
+		actionsCount += actionQueue.getItemsCount(ActionQueue::UNINDEX);
+		cout << actionsCount << " actions left" << endl;
+
+		// Expire the rest
 		queryHistory.expireItems(timeNow);
 		viewHistory.expireItems(timeNow);
 	}

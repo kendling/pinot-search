@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2008 Fabrice Colin
+ *  Copyright 2007-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -129,34 +129,35 @@ bool FilterUtils::isSupportedType(const string &mimeType)
 		return true;
 	}
 
-	if (Dijon::FilterFactory::isSupportedType(mimeType) == false)
+	if (Dijon::FilterFactory::isSupportedType(mimeType) == true)
 	{
-		set<string> parentTypes;
+		return true;
+	}
 
-		if (m_types.empty() == true)
-		{
-			Dijon::FilterFactory::getSupportedTypes(m_types);
-		}
+	if (m_types.empty() == true)
+	{
+		Dijon::FilterFactory::getSupportedTypes(m_types);
+	}
 
-		// Try that type's parents
-		MIMEScanner::getParentTypes(mimeType, m_types, parentTypes);
-		for (set<string>::const_iterator parentIter = parentTypes.begin();
-			parentIter != parentTypes.end(); ++parentIter)
+	// Try that type's parents
+	set<string> parentTypes;
+	MIMEScanner::getParentTypes(mimeType, m_types, parentTypes);
+	for (set<string>::const_iterator parentIter = parentTypes.begin();
+		parentIter != parentTypes.end(); ++parentIter)
+	{
+		if (Dijon::FilterFactory::isSupportedType(*parentIter) == true)
 		{
-			if (Dijon::FilterFactory::isSupportedType(*parentIter) == true)
-			{
-				// Add an alias
-				m_typeAliases[mimeType] = *parentIter;
-				return true;
-			}
+			// Add an alias
+			m_typeAliases[mimeType] = *parentIter;
+			return true;
 		}
+	}
 #ifdef DEBUG
-		cout << "FilterUtils::isSupportedType: no valid parent for " << mimeType << endl;
+	cout << "FilterUtils::isSupportedType: no valid parent for " << mimeType << endl;
 #endif
 
-		// This type has no valid parent
-		m_typeAliases[mimeType] = UNSUPPORTED_TYPE;
-	}
+	// This type has no valid parent
+	m_typeAliases[mimeType] = UNSUPPORTED_TYPE;
 
 	return false;
 }

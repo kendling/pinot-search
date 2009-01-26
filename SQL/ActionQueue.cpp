@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ bool ActionQueue::pushItem(ActionType type, const DocumentInfo &docInfo)
 
 	// Is there already an item for this URL ?
 	SQLResults *results = executeStatement("SELECT Url FROM ActionQueue \
-		WHERE QueueId='%q' AND Url='%q'",
+		WHERE QueueId='%q' AND Url='%q';",
 		m_queueId.c_str(), Url::escapeUrl(url).c_str());
 	if (results != NULL)
 	{
@@ -197,7 +197,7 @@ bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo)
 	bool success = false;
 
 	SQLResults *results = executeStatement("SELECT Type, Info FROM ActionQueue \
-		WHERE QueueId='%q' ORDER BY Date DESC LIMIT 1",
+		WHERE QueueId='%q' ORDER BY Date DESC LIMIT 1;",
 		m_queueId.c_str());
 	if (results != NULL)
 	{
@@ -217,6 +217,30 @@ bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo)
 	}
 
 	return success;
+}
+
+/// Returns the number of items of a particular type.
+unsigned int ActionQueue::getItemsCount(ActionType type)
+{
+	unsigned int count = 0;
+
+	SQLResults *results = executeStatement("SELECT COUNT(*) FROM ActionQueue \
+		WHERE Type='%q';",
+		typeToText(type).c_str());
+	if (results != NULL)
+	{
+		SQLRow *row = results->nextRow();
+		if (row != NULL)
+		{
+			count = atoi(row->getColumn(0).c_str());
+
+			delete row;
+		}
+
+		delete results;
+	}
+
+	return count;
 }
 
 /// Expires items older than the given date.
