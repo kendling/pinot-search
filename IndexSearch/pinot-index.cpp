@@ -261,6 +261,9 @@ int main(int argc, char **argv)
 				cerr << "Couldn't obtain downloader for protocol " << thisUrl.getProtocol() << endl;
 
 				success = false;
+
+				// Next
+				++optind;
 				continue;
 			}
 
