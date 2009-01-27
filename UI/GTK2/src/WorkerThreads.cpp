@@ -1598,9 +1598,10 @@ void IndexingThread::doWork(void)
 	{
 		m_docInfo.setType(MIMEScanner::scanUrl(thisUrl));
 	}
-	else
+	else if (thisUrl.isLocal() == true)
 	{
 		// There's a good chance the supplied type is accurate
+		// if the document is a local file
 		reliableType = true;
 	}
 
