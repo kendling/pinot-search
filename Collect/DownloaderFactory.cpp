@@ -43,7 +43,8 @@ DownloaderInterface *DownloaderFactory::getDownloader(const string &protocol)
 	DownloaderInterface *pDownloader = NULL;
 
 	// Choice by protocol
-	if (protocol == "http")
+	if ((protocol == "http") ||
+		(protocol == "https"))
 	{
 #ifdef USE_NEON
 		pDownloader = new NeonDownloader();
