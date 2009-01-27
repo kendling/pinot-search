@@ -120,7 +120,12 @@ elif [ "$MISSING_PROGRAM" == 0 ] || [ "$MISSING_INDEX" == 0 ]; then
   if [ $# -eq 1 ] && [ "$1" == "-" ] && [ ! -z "$OLDPWD" ]; then
     cd "$OLDPWD"
   else
-    preparequery $@
+    IS_FULL_PATH=`echo "$@" | grep "/"`
+    if [ ! -z "$IS_FULL_PATH" ]; then
+      cd $@
+    else
+      preparequery $@
+    fi
   fi
 fi
 
