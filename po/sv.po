@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.90\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-24 12:35+0800\n"
+"POT-Creation-Date: 2009-01-28 23:35+0800\n"
 "PO-Revision-Date: 2009-01-10 19:04+0000\n"
 "Last-Translator: Daniel Nylander <yeager@ubuntu.com>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -196,8 +196,8 @@ msgstr "Levande fråga"
 #: UI/GTK2/src/mainWindow.cc:1377 UI/GTK2/src/mainWindow.cc:1537
 #: UI/GTK2/src/mainWindow.cc:1540 UI/GTK2/src/mainWindow.cc:1641
 #: UI/GTK2/src/mainWindow.cc:1677 UI/GTK2/src/mainWindow.cc:1699
-#: UI/GTK2/src/mainWindow.cc:2406 UI/GTK2/src/PinotSettings.cpp:428
-#: UI/GTK2/src/PinotSettings.cpp:1704 UI/GTK2/src/statisticsDialog.cc:157
+#: UI/GTK2/src/mainWindow.cc:2406 UI/GTK2/src/PinotSettings.cpp:429
+#: UI/GTK2/src/PinotSettings.cpp:1705 UI/GTK2/src/statisticsDialog.cc:157
 #: UI/GTK2/src/WorkerThreads.cpp:1089
 msgid "My Web Pages"
 msgstr "Mina webbsidor"
@@ -206,8 +206,8 @@ msgstr "Mina webbsidor"
 #: UI/GTK2/src/mainWindow.cc:847 UI/GTK2/src/mainWindow.cc:1109
 #: UI/GTK2/src/mainWindow.cc:1367 UI/GTK2/src/mainWindow.cc:1381
 #: UI/GTK2/src/mainWindow.cc:1548 UI/GTK2/src/mainWindow.cc:1551
-#: UI/GTK2/src/mainWindow.cc:2410 UI/GTK2/src/PinotSettings.cpp:429
-#: UI/GTK2/src/PinotSettings.cpp:1705 UI/GTK2/src/statisticsDialog.cc:163
+#: UI/GTK2/src/mainWindow.cc:2410 UI/GTK2/src/PinotSettings.cpp:430
+#: UI/GTK2/src/PinotSettings.cpp:1706 UI/GTK2/src/statisticsDialog.cc:163
 #: UI/GTK2/src/WorkerThreads.cpp:1099
 msgid "My Documents"
 msgstr "Mina dokument"
@@ -339,11 +339,11 @@ msgstr "Kunde inte ta bort index"
 msgid "No history for"
 msgstr "Ingen historik för"
 
-#: UI/GTK2/src/mainWindow.cc:2940 UI/GTK2/src/prefsWindow.cc:947
+#: UI/GTK2/src/mainWindow.cc:2940 UI/GTK2/src/prefsWindow.cc:960
 msgid "At least one task hasn't completed yet. Quit now ?"
 msgstr "Åtminstone en uppgift har inte färdigställts än. Avsluta nu?"
 
-#: UI/GTK2/src/mainWindow.cc:2942 UI/GTK2/src/prefsWindow.cc:949
+#: UI/GTK2/src/mainWindow.cc:2942 UI/GTK2/src/prefsWindow.cc:962
 msgid "Quit"
 msgstr "Avsluta"
 
@@ -550,87 +550,87 @@ msgid "Couldn't create history database"
 msgstr "Kunde inte skapa historikdatabas"
 
 #. Add default labels
-#: UI/GTK2/src/PinotSettings.cpp:434
+#: UI/GTK2/src/PinotSettings.cpp:435
 msgid "Important"
 msgstr "Viktigt"
 
-#: UI/GTK2/src/PinotSettings.cpp:435
+#: UI/GTK2/src/PinotSettings.cpp:436
 msgid "New"
 msgstr "Ny"
 
-#: UI/GTK2/src/PinotSettings.cpp:436
+#: UI/GTK2/src/PinotSettings.cpp:437
 msgid "Personal"
 msgstr "Personlig"
 
-#: UI/GTK2/src/PinotSettings.cpp:458
+#: UI/GTK2/src/PinotSettings.cpp:459
 msgid "Me"
 msgstr "Jag"
 
-#: UI/GTK2/src/PinotSettings.cpp:466
+#: UI/GTK2/src/PinotSettings.cpp:467
 msgid "Latest First"
 msgstr "Senaste först"
 
-#: UI/GTK2/src/PinotSettings.cpp:469
+#: UI/GTK2/src/PinotSettings.cpp:470
 msgid "Home Stuff"
 msgstr "Personliga saker"
 
-#: UI/GTK2/src/PinotSettings.cpp:470
+#: UI/GTK2/src/PinotSettings.cpp:471
 msgid "With Label New"
 msgstr "Med etiketten Ny"
 
-#: UI/GTK2/src/PinotSettings.cpp:471
+#: UI/GTK2/src/PinotSettings.cpp:472
 msgid "Have CJKV"
 msgstr "Har CJKV"
 
-#: UI/GTK2/src/PinotSettings.cpp:472
+#: UI/GTK2/src/PinotSettings.cpp:473
 msgid "In English"
 msgstr "På engelska"
 
-#: UI/GTK2/src/PinotSettings.cpp:473
+#: UI/GTK2/src/PinotSettings.cpp:474
 msgid "10kb And Smaller"
 msgstr "10kb och mindre"
 
-#: UI/GTK2/src/PinotSettings.cpp:518
+#: UI/GTK2/src/PinotSettings.cpp:519
 msgid "Unclassified"
 msgstr "Oklassificerad"
 
-#: UI/GTK2/src/prefsWindow.cc:148
+#: UI/GTK2/src/prefsWindow.cc:149
 msgid "File Indexing and Search"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:149
+#: UI/GTK2/src/prefsWindow.cc:150
 msgid "Configure Pinot to index your files"
 msgstr ""
 
-#: UI/GTK2/src/prefsWindow.cc:207
+#: UI/GTK2/src/prefsWindow.cc:208
 msgid "Name"
 msgstr "Namn"
 
-#: UI/GTK2/src/prefsWindow.cc:225
+#: UI/GTK2/src/prefsWindow.cc:226
 msgid "Monitor"
 msgstr "Övervaka"
 
-#: UI/GTK2/src/prefsWindow.cc:226
+#: UI/GTK2/src/prefsWindow.cc:227
 msgid "Location"
 msgstr "Plats"
 
-#: UI/GTK2/src/prefsWindow.cc:234
+#: UI/GTK2/src/prefsWindow.cc:235
 msgid "Pattern"
 msgstr "Mönster"
 
-#: UI/GTK2/src/prefsWindow.cc:559
+#: UI/GTK2/src/prefsWindow.cc:572
 msgid "Exclude these patterns from indexing"
 msgstr "Undanta dessa mönster från indexering"
 
-#: UI/GTK2/src/prefsWindow.cc:560
+#: UI/GTK2/src/prefsWindow.cc:573
 msgid "Only index these patterns"
 msgstr "Indexera endast dessa mönster"
 
-#: UI/GTK2/src/prefsWindow.cc:759
+#: UI/GTK2/src/prefsWindow.cc:772
 msgid "Directory to index"
 msgstr "Katalog för index"
 
-#: UI/GTK2/src/prefsWindow.cc:899
+#: UI/GTK2/src/prefsWindow.cc:912
 msgid "New Label"
 msgstr "Ny etikett"
 
