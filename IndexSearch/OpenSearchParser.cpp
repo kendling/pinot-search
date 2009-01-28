@@ -565,16 +565,17 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 	}
 
 	// Scrolling
-	properties.m_nextIncrement = 1;
 	properties.m_nextBase = 1;
 	if (properties.m_variableParameters.find(SearchPluginProperties::START_PAGE_PARAM) != properties.m_variableParameters.end())
 	{
 		properties.m_scrolling = SearchPluginProperties::PER_PAGE;
+		properties.m_nextIncrement = 1;
 	}
 	else if ((properties.m_variableParameters.find(SearchPluginProperties::COUNT_PARAM) != properties.m_variableParameters.end()) ||
 		(properties.m_variableParameters.find(SearchPluginProperties::START_INDEX_PARAM) != properties.m_variableParameters.end()))
 	{
 		properties.m_scrolling = SearchPluginProperties::PER_INDEX;
+		properties.m_nextIncrement = 0;
 	}
 	else
 	{
