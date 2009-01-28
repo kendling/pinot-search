@@ -460,13 +460,13 @@ http://pinot.berlios.de/
 
   Pinot v0.90 and newer provide a "tagged cd" script that enables to change
   a shell's current directory to the directory that matches the path elements
-  passed as parameter. For instance, after running :
+  passed as parameter. For instance, after setting :
   $ alias pcd='. /usr/share/pinot/pinot-cd.sh'
   if ~/Documents is configured for indexing in Preferences, the following
   command would change the current directory to ~/Documents/Web/Stats :
   $ pcd Documents Stats
   If other directories match the given paths, pinot-cd.sh will display a list
-  of matches.
+  of matches. Future work will focus on disambiguation.
 
   If you have dbus-send installed, you may also want to set the following
   aliases :

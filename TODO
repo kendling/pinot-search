@@ -25,8 +25,6 @@ Tokenize
 - Office filter with libgst
 - TeX filter
 - HtmlFilter to look for META tags Author, Creator, Publisher and CreationDate
-- Filters should have a version number so that new versions force reindexing documents of the
- given type
 - XmlFilter is slow-ish, rewrite file parsing with the TextReader interface
 - Filters should at least return errno when they fail
 
@@ -50,15 +48,15 @@ Search
 - Make sure Description files' SyndicationRight is not private or closed
 - getCloseTerms() should be a search engine method so that WebEngine can use plugins'
  suggestions Url field (http://developer.mozilla.org/en/docs/Supporting_search_suggestions_in_search_plugins)
-- pinot-search should be able to run stored queries, as found in the configuration file
 - Filters with CJKV should work better; supporting quoting would help, eg title:"你好"
+- Check Mozdex plugin once it's back up
+- Add a plugin for http://arxiv.org/find
 
 Index
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
 - MD5 hash to determine on updates whether documents have changed, as done by omindex
 - Allow to access remote Xapian indexes tunneled through ssh with xapian-progsrv,
   and make sure ssh will ask passwords with /usr/libexec/openssh/ssh-askpass
-- Index xattrs if any
 - Index Nautilus metadata (http://linuxboxadmin.com/articles/nautilus.php)
 - Reverse terms so that left wildcards can be applied ?
 - XapianIndex could do with some common code refactoring
@@ -66,10 +64,8 @@ Index
 - After indexing or updating a document, a call to getDocumentInfo() shouldn't be necessary
 - Labels and the rest of DocumentInfo are handled separately, they shouldn't be
 - Indexes have no knowledge of indexId's
-- Send a signal when crawling is done so that the UI can reopen the index
 - Be ready to catch DatabaseModifiedError exceptions and reopen the index
-- Associate URIs or IDs to labels to avoid expensive find and replace operations when they are renamed
-- Force reindexing on 0.90 to make sure all CJKV fixes are taken advantage of
+- Think about security issues, especially when indexes are shared, based on http://plg.uwaterloo.ca/~claclark/fast2005.pdf
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -87,7 +83,11 @@ Daemon
 - Prefer ustring to string whenever possible
 - Queue unindexing too
 - Follow updates to Xesam specs
-- Preserve user set metadata on reindexing
+- Send a signal when crawling is done so that the UI can reopen the index
+- The daemon should ask for permission before reindexing, especially if the corpus is large
+- What does a first run mean for the daemon ? ie no configuration file
+- Daemon should use worker threads' doWork() instead of duplicating code
+- Only crawl newly added locations when the configuration changes
 
 UI
 - Show which threads are running, what they are doing, and allow to stop them
@@ -100,13 +100,35 @@ UI
 - When viewing or indexing a result, all rows for that same URL should be updated with
  the Viewed or Indexed icons (the latter after IndexingThread returns)
 - Make use of GTKmm 2.10 StatusIcon
-- UI doesn't show documents indexed by the daemon the very first time it's run,
- at least until it's restarted
 - Unknown exceptions in IndexingThread or elsewhere should be logged as errors
 - Delete all temporary files when exiting
 - Query expansion should be interactive
 - Default cache provider should be configurable
-- Reorganize menus so that More Like This, Search This For etc... are available
- on all documents, whether a result or from an index
 - Offer to index newly mounted volumes
+- UI doesn't show documents indexed by the daemon the very first time it's run,
+ at least until it's restarted
+- Status dialog to show time of latest update 
+- Unique preferences
+- Use gtk2 2.14's gtk_show_uri()
+- Reload settings after preferences exit
+- Changing set group by mode a few times will show index results under engine "xapian", why ?
+- getIndexNames() to return ustring's
+- Always call getIndexPropertiesByName() with a ustring, store engine names as ustring's
+
+v0.90
+- Filters should have a version number so that new versions only reindex documents
+ of the given type
+- Queries should be cancellable
+- Queries should return the top N results first, then the rest
+- D-Bus (Simple)Query shouldn't let the bus connection time out before replying
+- Live and stored queries shouldn't cap on the number of results but the number of results per page
+- For each query group in the results list, show Next and Previous buttons to page through results
+- Browse mode to be merged with the new search and page mode
+- The query builder for stored queries should be available for live queries too
+- PinotSettings and threads to be moved outside of UI
+- CLI programs shouldn't require details about backends, should know indexes by name and
+ know their backends
+- pinot-search should be able to run stored queries found in the configuration file
+- pinot-index should be able to index directories recursively, as done by the daemon
+- Command-line tools to work with relative paths
 
