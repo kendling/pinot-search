@@ -1,3 +1,81 @@
+2009/01/29 version_0_9_0
+General :
+ - builds with MingW
+ - patch by Martin Michlmayr to fix gcc 4.4 build errors
+Tokenize :
+ - skip mbox messages flagged deleted by Evolution
+ - patch by Adel Gadllah to build with gmime 2.4
+ - catch conversions errors to/from unsupported charsets
+ - fixed handling of Unicode space and punctuation code points
+Collect :
+ - look for the extended attribute user.mime_type on local files
+ - HTTP downloaders can do POST
+Monitor :
+ - check /proc/sys/fs/inotify/max_user_watches and set aside 1k watches for
+  other applications if possible
+ - patch by Adrian Bunk to fix inotify support with recent kernel headers
+Search :
+ - better rebasing of results' URLs
+ - dropped A9 and BitTorrent plugins
+ - added plugin for the Internet Open Index
+ - fixed various issues with getting more than one results page from Web engines 
+ - support for HTML extracts in OpenSearch Response
+Xapian :
+ - some terms were not always highlighted in the abstract
+ - support for the "path:" operator
+ - fix to always return the total results estimate
+ - don't index the title without prefix as if it were in the text body, but
+  let queries search across both text body and title. The "title" filter
+  still allows searching titles exclusively. Requires Xapian >= 1.0.4.
+ - always add a term for "dir:/"
+ - MIME type terms don't include any charset specification, as intended
+ - remove the original query's terms, stopwords, infrequent terms or similar
+  terms if the stemming language is set from More Like queries
+ - close all databases in an orderly manner
+Search :
+ - pinot-search has a "sort by date first" mode
+Scripts :
+ - pinot-cd.sh implements a "tagged cd"
+ - pinot-check-file.sh simplifies determining if a file is in My Documents
+Deskbar :
+ - pinot-module.py uses the new Query method, supports deskbar v2.24 snippets
+Daemon :
+ - user-set metadata, including labels, is saved and restored when reindexing
+ - D-Bus method RenameLabel obsoleted
+ - D-Bus method Query replaces SimpleQuery and allows querying the same engines
+  as the UI
+ - skip symlinks that refer to places that have been crawled or will be crawled
+ - if the daemon was interrupted while crawling, some files would never be indexed
+ - indexes created with version < 0.90 will be automatically upgraded
+UI :
+ - spelling suggestions are shown inline, above results. Upon selecting one and
+  clicking the Yes button, a new query based on the selected suggestion will be
+  created.
+ - restructured menus
+ - queries' Index Results option updatea documents already in My Web Pages. This
+  doesn't apply to those in My Documents
+ - on More Like This, selected documents are indexed to My Web Pages if necessary
+ - both results and index lists can be exported to CSV or XML
+ - Open Parent opens the directory a file is in
+ - say "No results" instead of showing a blank results list
+ - when viewing a document and GIO is used, make sure we consider the default
+  application(s) first
+ - support for the "path:" operator
+ - preferences can be open independantly with "pinot -p" or "pinot-prefs"
+ - smoother status window
+ - the List Contents Of menu wasn't refreshed after editing an index' name
+ - automatic migration of pre-0.90 configuration
+ - larger default blacklist
+ - updated Simplified Chinese translation by rainofchaos
+ - updated Dutch translation by JW
+ - updated French translation by Frédéric Grosshans
+ - updated German translation by Gena Haltmair
+ - updated Japanese translation by Takeo Mizuki
+ - updated Brazilian Portuguese translation by Henrique P. Machado
+ - updated Portuguese translation by _PN_boy
+ - updated Swedish translation by Daniel Nylander
+ - new Hebrew translation by Yaron
+
 2008/09/20 version_0_8_9
 Xapian :
  - indexing and searching are now diacritics insensitive by default, thanks
@@ -8,6 +86,7 @@ Xapian :
  - better abstracts for short queries
 Daemon :
  - fixed indexing of plain text and XML files, following changes made in 0.88
+ - indexes created with version < 0.89 will be automatically upgraded
 UI :
  - fixed boolean operators in spelling suggestions, broken in 0.88
  - spelling suggestion doesn't suggest the same thing over and over again
@@ -292,7 +371,7 @@ Index :
   made to convert text to UTF-8 yet, so this depends on document formats
   and encodings
  - preliminary support for spelling corrections, without user feedback
- - index directories are tagged as cache directories that they are skipped
+ - index directories are tagged as cache directories so that they are skipped
   by "tar --exclude-caches"
  - preserve documents' title if possible, use user-specified title on import
 Search :
