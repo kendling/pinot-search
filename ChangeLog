@@ -1,4 +1,54 @@
 ------------------------------------------------------------------------
+r1524 | fabricecolin | 2009-01-28 22:41:03 +0800 (Wed, 28 Jan 2009) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Current log.
+
+------------------------------------------------------------------------
+r1523 | fabricecolin | 2009-01-28 22:39:57 +0800 (Wed, 28 Jan 2009) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog-dijon
+
+Changes in Dijon.
+
+------------------------------------------------------------------------
+r1522 | fabricecolin | 2009-01-28 22:39:04 +0800 (Wed, 28 Jan 2009) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Current translations.
+
+------------------------------------------------------------------------
+r1521 | fabricecolin | 2009-01-28 22:38:21 +0800 (Wed, 28 Jan 2009) | 3 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/configure.in
+
+Changes in this release.
+Upped the version number. Force an upgrade of old indexes.
+
+------------------------------------------------------------------------
+r1520 | fabricecolin | 2009-01-28 22:36:27 +0800 (Wed, 28 Jan 2009) | 2 lines
+Changed paths:
+   M /trunk/README
+   M /trunk/TODO
+
+Minor change to the README. Removed some items from, added a lot more to the TODO.
+
+------------------------------------------------------------------------
 r1519 | fabricecolin | 2009-01-28 21:10:10 +0800 (Wed, 28 Jan 2009) | 3 lines
 Changed paths:
    M /trunk/IndexSearch/OpenSearchParser.cpp
