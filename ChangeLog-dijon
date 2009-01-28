@@ -1,4 +1,109 @@
 ------------------------------------------------------------------------
+r132 | fabricecolin | 2009-01-11 12:53:43 +0800 (Sun, 11 Jan 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/external-filters.xml
+
+Get pdftotext to output UTF-8 text.
+
+------------------------------------------------------------------------
+r131 | fabricecolin | 2009-01-08 19:25:00 +0800 (Thu, 08 Jan 2009) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+
+Treat all punctuation as space.
+
+------------------------------------------------------------------------
+r130 | fabricecolin | 2008-12-31 21:42:29 +0800 (Wed, 31 Dec 2008) | 3 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+
+Patch for gmime 2.4 support by Adel Gadllah.
+If GMIME_ENABLE_RFC2047_WORKAROUNDS is defined, assume gmime 2.4.
+
+------------------------------------------------------------------------
+r129 | fabricecolin | 2008-12-31 21:11:39 +0800 (Wed, 31 Dec 2008) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+
+Less DEBUG.
+
+------------------------------------------------------------------------
+r128 | fabricecolin | 2008-12-16 21:37:52 +0800 (Tue, 16 Dec 2008) | 3 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+
+In _unicode_to_char(), convert all Unicode spaces including the "non-breaking
+space" character at code point 160 to a single character.
+
+------------------------------------------------------------------------
+r127 | fabricecolin | 2008-12-13 13:38:05 +0800 (Sat, 13 Dec 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExifImageFilter.cc
+
+Fix previous commit.
+
+------------------------------------------------------------------------
+r126 | fabricecolin | 2008-12-13 13:36:00 +0800 (Sat, 13 Dec 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExifImageFilter.cc
+
+If strptime() isn't available, attempt to parse EXIF_TAG_DATE_TIME bit by bit.
+
+------------------------------------------------------------------------
+r125 | fabricecolin | 2008-12-07 12:58:29 +0800 (Sun, 07 Dec 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/FilterFactory.cc
+   M /trunk/filters/HtmlFilter.cc
+   M /trunk/xesam/XapianQueryBuilder.cc
+
+Include config.h before checking any of the "HAVE_" ifdef's.
+
+------------------------------------------------------------------------
+r124 | fabricecolin | 2008-12-06 09:22:40 +0800 (Sat, 06 Dec 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/TagLibMusicFilter.cc
+
+GCC 4.4 patch by Martin Michlmayr (Debian bug #504908).
+
+------------------------------------------------------------------------
+r123 | fabricecolin | 2008-12-02 23:59:34 +0800 (Tue, 02 Dec 2008) | 2 lines
+Changed paths:
+   M /trunk/xesam/XapianQueryBuilder.cc
+
+Support for the date field is conditioned by strptime().
+
+------------------------------------------------------------------------
+r122 | fabricecolin | 2008-12-01 21:03:18 +0800 (Mon, 01 Dec 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/Filter.h
+   M /trunk/filters/FilterFactory.cc
+   M /trunk/filters/GMimeMboxFilter.cc
+
+Portability fixes, brought up when compiling with MingW.
+
+------------------------------------------------------------------------
+r121 | fabricecolin | 2008-11-08 13:39:58 +0800 (Sat, 08 Nov 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+
+Look out for the X-Evolution header.
+
+------------------------------------------------------------------------
+r120 | fabricecolin | 2008-10-18 18:31:54 +0800 (Sat, 18 Oct 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExternalFilter.cc
+
+Get CDATA online. In run_command(), expect several %s. 
+
+------------------------------------------------------------------------
+r119 | fabricecolin | 2008-09-30 21:54:59 +0800 (Tue, 30 Sep 2008) | 2 lines
+Changed paths:
+   M /trunk/filters/ExifImageFilter.cc
+
+The conversion specifier %z is a GNU extension to strftime().
+
+------------------------------------------------------------------------
 r117 | fabricecolin | 2008-09-16 22:05:12 +0800 (Tue, 16 Sep 2008) | 2 lines
 Changed paths:
    M /trunk/filters/FilterFactory.cc
