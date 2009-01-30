@@ -1831,19 +1831,21 @@ void mainWindow::on_editindex(ustring indexName, ustring location)
 //
 void mainWindow::on_suggestQueryButton_clicked(ustring queryName, ustring queryText)
 {
+	QueryProperties queryProps;
+
 	// Find the query
 	const std::map<string, QueryProperties> &queriesMap = m_settings.getQueries();
 	std::map<string, QueryProperties>::const_iterator queryIter = queriesMap.find(queryName);
 	if (queryIter != queriesMap.end())
 	{
-		QueryProperties queryProps(queryIter->second);
-
+		queryProps = queryIter->second;
 		queryProps.setName("");
-		queryProps.setFreeQuery(queryText);
-		queryProps.setModified(true);
-
-		edit_query(queryProps, true);
 	}
+
+	queryProps.setFreeQuery(queryText);
+	queryProps.setModified(true);
+
+	edit_query(queryProps, true);
 }
 
 //
