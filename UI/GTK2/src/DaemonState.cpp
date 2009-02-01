@@ -599,11 +599,13 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		return;
 	}
 
-	// What type of thread was it ?
 	string type(pThread->getType());
+	bool isStopped = pThread->isStopped();
 #ifdef DEBUG
 	cout << "DaemonState::on_thread_end: end of thread " << type << " " << pThread->getId() << endl;
 #endif
+
+	// What type of thread was it ?
 	if (type == "DirectoryScannerThread")
 	{
 		DirectoryScannerThread *pScannerThread = dynamic_cast<DirectoryScannerThread *>(pThread);
@@ -626,7 +628,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 			delete pIndex;
 		}
 
-		if (pScannerThread->isStopped() == false)
+		if (isStopped == false)
 		{
 			// Pop the queue
 			m_crawlQueue.pop();
@@ -777,8 +779,11 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	cout << "DaemonState::on_thread_end: reload status " << m_reload << endl;
 #endif
 
-	// We might be able to run a queued action
-	pop_queue(indexedUrl);
+	// Try to run a queued action unless threads were stopped
+	if (isStopped == false)
+	{
+		pop_queue(indexedUrl);
+	}
 }
 
 void DaemonState::on_message_filefound(DocumentInfo docInfo, bool isDirectory)
