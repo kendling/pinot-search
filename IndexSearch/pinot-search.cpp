@@ -326,8 +326,7 @@ int main(int argc, char **argv)
 	{
 		string resultsPage;
 
-		// Try getting a list of links
-		const vector<DocumentInfo> resultsList = pEngine->getResults();
+		const vector<DocumentInfo> &resultsList = pEngine->getResults();
 		if (resultsList.empty() == false)
 		{
 			if (printResults == true)
