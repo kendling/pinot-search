@@ -21,11 +21,11 @@ man_MANS = IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
 	Core/pinot-search.1 Core/pinot-dbus-daemon.1 UI/GTK2/src/pinot.1
 
 manuals:
-	@help2man --no-info --name "Index documents from the command-line" IndexSearch/pinot-index       >IndexSearch/pinot-index.1
-	@help2man --no-info --name "Label files from the command-line" IndexSearch/pinot-label           >IndexSearch/pinot-label.1
-	@help2man --no-info --name "Query search engines from the command-line" IndexSearch/pinot-search >Core/pinot-search.1
-	@help2man --no-info --name "D-Bus search and index daemon" Core/pinot-dbus-daemon                >Core/pinot-dbus-daemon.1
-	@help2man --no-info --name "A metasearch tool for the Free Desktop" UI/GTK2/src/pinot            >UI/GTK2/src/pinot.1
+	@help2man --no-info --name "Index documents from the command-line" IndexSearch/pinot-index >IndexSearch/pinot-index.1
+	@help2man --no-info --name "Label files from the command-line" IndexSearch/pinot-label     >IndexSearch/pinot-label.1
+	@help2man --no-info --name "Query search engines from the command-line" Core/pinot-search  >Core/pinot-search.1
+	@help2man --no-info --name "D-Bus search and index daemon" Core/pinot-dbus-daemon          >Core/pinot-dbus-daemon.1
+	@help2man --no-info --name "A metasearch tool for the Free Desktop" UI/GTK2/src/pinot      >UI/GTK2/src/pinot.1
 
 install-data-local:
 	@ln -fs $(bindir)/pinot $(DESTDIR)$(bindir)/pinot-prefs

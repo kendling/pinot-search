@@ -20,7 +20,7 @@ libCore_la_SOURCES = \
 
 if HAVE_DBUS
 bin_PROGRAMS = pinot-search pinot-dbus-daemon
-#else
+else
 bin_PROGRAMS = pinot-search
 endif
 
