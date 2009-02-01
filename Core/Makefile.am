@@ -12,8 +12,6 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = libCore.la
 
 libCore_la_SOURCES = \
-	DaemonState.cpp \
-	OnDiskHandler.cpp \
 	PinotSettings.cpp \
 	PinotUtils.cpp \
 	ServerThreads.cpp \
@@ -55,7 +53,10 @@ pinot_dbus_daemon_LDADD = \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
-pinot_dbus_daemon_SOURCES = pinot-dbus-daemon.cpp
+pinot_dbus_daemon_SOURCES = \
+	DaemonState.cpp \
+	OnDiskHandler.cpp \
+	pinot-dbus-daemon.cpp
 
-pinot_index_DEPENDENCIES = libCore.la
+pinot_dbus_daemon_DEPENDENCIES = libCore.la
 
