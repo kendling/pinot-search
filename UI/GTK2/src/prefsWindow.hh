@@ -27,9 +27,9 @@
 #include <glibmm/ustring.h>
 #include <gtkmm/liststore.h>
 
-#include "ModelColumns.h"
 #include "PinotSettings.h"
 #include "WorkerThreads.h"
+#include "ModelColumns.hh"
 #include "prefsWindow_glade.hh"
 
 class prefsWindow : public prefsWindow_glade

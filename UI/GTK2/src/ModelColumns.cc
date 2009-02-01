@@ -18,7 +18,7 @@
 
 #include "config.h"
 #include "NLS.h"
-#include "ModelColumns.h"
+#include "ModelColumns.hh"
 
 ComboModelColumns::ComboModelColumns()
 {

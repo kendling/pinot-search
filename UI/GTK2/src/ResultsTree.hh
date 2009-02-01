@@ -36,8 +36,8 @@
 #include <gtkmm/treeselection.h>
 
 #include "ResultsExporter.h"
-#include "ModelColumns.h"
 #include "PinotSettings.h"
+#include "ModelColumns.hh"
 
 class ResultsTree : public Gtk::TreeView
 {

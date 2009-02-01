@@ -26,7 +26,7 @@
 #include "NLS.h"
 #include "PinotSettings.h"
 #include "PinotUtils.h"
-#include "IndexPage.h"
+#include "IndexPage.hh"
 
 using namespace std;
 using namespace Glib;

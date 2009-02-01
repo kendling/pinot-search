@@ -25,8 +25,8 @@
 #include <glibmm/refptr.h>
 #include <gtkmm/treestore.h>
 
-#include "ModelColumns.h"
 #include "WorkerThreads.h"
+#include "ModelColumns.hh"
 #include "statisticsDialog_glade.hh"
 
 class statisticsDialog : public statisticsDialog_glade

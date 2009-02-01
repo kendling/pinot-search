@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,13 +39,13 @@
 #include "QueryProperties.h"
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
-#include "EnginesTree.h"
-#include "IndexPage.h"
-#include "ModelColumns.h"
-#include "Notebook.h"
 #include "PinotSettings.h"
-#include "ResultsTree.h"
 #include "WorkerThreads.h"
+#include "EnginesTree.hh"
+#include "IndexPage.hh"
+#include "ModelColumns.hh"
+#include "Notebook.hh"
+#include "ResultsTree.hh"
 #include "mainWindow_glade.hh"
 
 class mainWindow : public mainWindow_glade

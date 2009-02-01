@@ -17,11 +17,11 @@ noinst_HEADERS = \
 	queryDialog.hh \
 	statisticsDialog_glade.hh \
 	statisticsDialog.hh \
-	EnginesTree.h \
-	IndexPage.h \
-	ModelColumns.h \
-	Notebook.h \
-	ResultsTree.h
+	EnginesTree.hh \
+	IndexPage.hh \
+	ModelColumns.hh \
+	Notebook.hh \
+	ResultsTree.hh
 
 pinot_SOURCES = \
 	pinot.cc \
@@ -41,11 +41,11 @@ pinot_SOURCES = \
 	queryDialog.cc \
 	statisticsDialog_glade.cc \
 	statisticsDialog.cc \
-	EnginesTree.cpp \
-	IndexPage.cpp \
-	ModelColumns.cpp \
-	Notebook.cpp \
-	ResultsTree.cpp
+	EnginesTree.cc \
+	IndexPage.cc \
+	ModelColumns.cc \
+	Notebook.cc \
+	ResultsTree.cc
 
 bin_PROGRAMS = pinot
 

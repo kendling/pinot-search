@@ -20,9 +20,6 @@ libCore_la_SOURCES = \
 	UniqueApplication.cpp \
 	WorkerThreads.cpp
 
-pinot_dbus_daemon_SOURCES = \
-	pinot-dbus-daemon.cc
-
 if HAVE_DBUS
 bin_PROGRAMS = pinot-dbus-daemon
 endif
@@ -57,4 +54,8 @@ pinot_dbus_daemon_LDADD = \
 	-lTokenize -lUtils -lBasicUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
+
+pinot_dbus_daemon_SOURCES = pinot-dbus-daemon.cpp
+
+pinot_index_DEPENDENCIES = libCore.la
 
