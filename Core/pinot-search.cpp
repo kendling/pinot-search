@@ -24,6 +24,7 @@
 #include <string>
 
 #include "config.h"
+#include "NLS.h"
 #include "Languages.h"
 #include "MIMEScanner.h"
 #include "Url.h"
@@ -31,6 +32,7 @@
 #include "ModuleFactory.h"
 #include "ResultsExporter.h"
 #include "WebEngine.h"
+#include "PinotSettings.h"
 
 using namespace std;
 
@@ -39,10 +41,7 @@ static struct option g_longOptions[] = {
 	{"help", 0, 0, 'h'},
 	{"locationonly", 0, 0, 'l'},
 	{"max", 1, 0, 'm'},
-	{"proxyaddress", 1, 0, 'a'},
-	{"proxyport", 1, 0, 'p'},
-	{"proxytype", 1, 0, 't'},
-	{"seteditable", 1, 0, 'e'},
+	{"storedquery", 0, 0, 'r'},
 	{"stemming", 1, 0, 's'},
 	{"tocsv", 1, 0, 'c'},
 	{"toxml", 1, 0, 'x'},
@@ -95,11 +94,8 @@ static void printHelp(void)
 		<< "  -h, --help                display this help and exit\n"
 		<< "  -l, --locationonly        only show the location of each result\n"
 		<< "  -m, --max                 maximum number of results (default 10)\n"
-		<< "  -a, --proxyaddress        proxy address\n"
-		<< "  -p, --proxyport           proxy port\n"
-		<< "  -t, --proxytype           proxy type (default HTTP, SOCKS4, SOCKS5)\n"
+		<< "  -r, --storedquery         query input is the name of a stored query\n"
 		<< "  -s, --stemming            stemming language (in English)\n"
-		<< "  -e, --seteditable         plugin editable parameter, name:value pair\n"
 		<< "  -c, --tocsv               file to export results in CSV format to\n"
 		<< "  -x, --toxml               file to export results in XML format to\n"
 		<< "  -v, --version             output version information and exit\n"
@@ -124,25 +120,20 @@ static void printHelp(void)
 int main(int argc, char **argv)
 {
 	QueryProperties::QueryType queryType = QueryProperties::XAPIAN_QP;
-	string engineType, option, csvExport, xmlExport, proxyAddress, proxyPort, proxyType, editableParameter, stemLanguage;
+	string engineType, option, csvExport, xmlExport, stemLanguage;
 	unsigned int maxResultsCount = 10; 
 	int longOptionIndex = 0;
 	bool printResults = true;
 	bool sortByDate = false;
 	bool locationOnly = false;
+	bool isStoredQuery = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "a:c:de:hlm:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "c:dhlm:qrs:uvx:", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
 		{
-			case 'a':
-				if (optarg != NULL)
-				{
-					proxyAddress = optarg;
-				}
-				break;
 			case 'c':
 				if (optarg != NULL)
 				{
@@ -152,12 +143,6 @@ int main(int argc, char **argv)
 				break;
 			case 'd':
 				sortByDate = true;
-				break;
-			case 'e':
-				if (optarg != NULL)
-				{
-					editableParameter = optarg;
-				}
 				break;
 			case 'h':
 				printHelp();
@@ -171,25 +156,16 @@ int main(int argc, char **argv)
 					maxResultsCount = (unsigned int )atoi(optarg);
 				}
 				break;
-			case 'p':
-				if (optarg != NULL)
-				{
-					proxyPort = optarg;
-				}
-				break;
 			case 'q':
 				queryType = QueryProperties::XESAM_QL;
+				break;
+			case 'r':
+				isStoredQuery = true;
 				break;
 			case 's':
 				if (optarg != NULL)
 				{
 					stemLanguage = optarg;
-				}
-				break;
-			case 't':
-				if (optarg != NULL)
-				{
-					proxyType = optarg;
 				}
 				break;
 			case 'u':
@@ -213,7 +189,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "a:c:de:hlm:p:qs:t:uvx:", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "c:dhlm:qrs:uvx:", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -229,73 +205,79 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	MIMEScanner::initialize("", "");
+	// This will create the necessary directories on the first run
+	PinotSettings &settings = PinotSettings::getInstance();
+	string confDirectory(PinotSettings::getConfigurationDirectory());
+
+	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
+		string(SHARED_MIME_INFO_PREFIX)) == false)
+	{
+		cerr << "Couldn't load MIME settings" << endl;
+	}
 	DownloaderInterface::initialize();
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
+	ModuleFactory::loadModules(confDirectory + "/backends");
 
 	// Localize language names
-	Languages::setIntlName(0, "Unknown");
-	Languages::setIntlName(1, "Danish");
-	Languages::setIntlName(2, "Dutch");
-	Languages::setIntlName(3, "English");
-	Languages::setIntlName(4, "Finnish");
-	Languages::setIntlName(5, "French");
-	Languages::setIntlName(6, "German");
-	Languages::setIntlName(7, "Hungarian");
-	Languages::setIntlName(8, "Italian");
-	Languages::setIntlName(9, "Norwegian");
-	Languages::setIntlName(10, "Portuguese");
-	Languages::setIntlName(11, "Romanian");
-	Languages::setIntlName(12, "Russian");
-	Languages::setIntlName(13, "Spanish");
-	Languages::setIntlName(14, "Swedish");
-	Languages::setIntlName(15, "Turkish");
+	Languages::setIntlName(0, _("Unknown"));
+	Languages::setIntlName(1, _("Danish"));
+	Languages::setIntlName(2, _("Dutch"));
+	Languages::setIntlName(3, _("English"));
+	Languages::setIntlName(4, _("Finnish"));
+	Languages::setIntlName(5, _("French"));
+	Languages::setIntlName(6, _("German"));
+	Languages::setIntlName(7, _("Hungarian"));
+	Languages::setIntlName(8, _("Italian"));
+	Languages::setIntlName(9, _("Norwegian"));
+	Languages::setIntlName(10, _("Portuguese"));
+	Languages::setIntlName(11, _("Romanian"));
+	Languages::setIntlName(12, _("Russian"));
+	Languages::setIntlName(13, _("Spanish"));
+	Languages::setIntlName(14, _("Swedish"));
+	Languages::setIntlName(15, _("Turkish"));
+
+	// Load the settings
+	settings.load(PinotSettings::LOAD_ALL);
 
 	engineType = argv[optind];
 	option = argv[optind + 1];
 	char *pQueryInput = argv[optind + 2];
 
-	// Which SearchEngine ?
-	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine(engineType, option);
-	if (pEngine == NULL)
+	// Set the query
+	QueryProperties queryProps("pinot-search", "", queryType);
+	if (queryType == QueryProperties::XAPIAN_QP)
 	{
-		cerr << "Couldn't obtain search engine instance" << endl;
+		if (isStoredQuery == true)
+		{
+			const map<string, QueryProperties> &queries = settings.getQueries();
+			map<string, QueryProperties>::const_iterator queryIter = queries.find(pQueryInput);
+			if (queryIter != queries.end())
+			{
+				queryProps = queryIter->second;
+			}
+			else
+			{
+				cerr << "Couldn't find stored query " << pQueryInput << endl;
+
+				DownloaderInterface::shutdown();
+				MIMEScanner::shutdown();
+
+				return EXIT_FAILURE;
+			}
+		}
+		else
+		{
+			queryProps.setFreeQuery(pQueryInput);
+		}
+	}
+	else if (isStoredQuery == true)
+	{
+		cerr << "Options -r and -q/-u are incompatible" << endl;
 
 		DownloaderInterface::shutdown();
 		MIMEScanner::shutdown();
 
 		return EXIT_FAILURE;
-	}
-
-	// Set up the proxy
-	WebEngine *pWebEngine = dynamic_cast<WebEngine *>(pEngine);
-	if (pWebEngine != NULL)
-	{
-		DownloaderInterface *pDownloader = pWebEngine->getDownloader();
-		if ((pDownloader != NULL) &&
-			(proxyAddress.empty() == false) &&
-			(proxyPort.empty() == false))
-		{
-			pDownloader->setSetting("proxyaddress", proxyAddress);
-			pDownloader->setSetting("proxyport", proxyPort);
-			pDownloader->setSetting("proxytype", proxyType);
-		}
-
-		string::size_type colonPos = editableParameter.find(':');
-		if (colonPos != string::npos)
-		{
-			map<string, string> editableValues;
-
-			editableValues[editableParameter.substr(0, colonPos)] = editableParameter.substr(colonPos + 1);
-			pWebEngine->setEditableValues(editableValues);
-		}
-	}
-
-	// Set the query
-	QueryProperties queryProps("pinot-search", "", queryType);
-	if (queryType == QueryProperties::XAPIAN_QP)
-	{
-		queryProps.setFreeQuery(pQueryInput);
 	}
 	else
 	{
@@ -319,6 +301,38 @@ int main(int argc, char **argv)
 	if (sortByDate == true)
 	{
 		queryProps.setSortOrder(QueryProperties::DATE);
+	}
+
+	// Which SearchEngine ?
+	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine(engineType, option);
+	if (pEngine == NULL)
+	{
+		cerr << "Couldn't obtain search engine instance" << endl;
+
+		DownloaderInterface::shutdown();
+		MIMEScanner::shutdown();
+
+		return EXIT_FAILURE;
+	}
+
+	// Set up the proxy
+	WebEngine *pWebEngine = dynamic_cast<WebEngine *>(pEngine);
+	if (pWebEngine != NULL)
+	{
+		DownloaderInterface *pDownloader = pWebEngine->getDownloader();
+		if ((pDownloader != NULL) &&
+			(settings.m_proxyEnabled == true) &&
+			(settings.m_proxyAddress.empty() == false))
+		{
+			char portStr[64];
+
+			pDownloader->setSetting("proxyaddress", settings.m_proxyAddress);
+			snprintf(portStr, 64, "%u", settings.m_proxyPort);
+			pDownloader->setSetting("proxyport", portStr);
+			pDownloader->setSetting("proxytype", settings.m_proxyType);
+		}
+
+		pWebEngine->setEditableValues(settings.m_editablePluginValues);
 	}
 
 	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
