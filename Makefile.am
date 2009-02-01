@@ -1,5 +1,5 @@
 
-SUBDIRS = po Utils Tokenize SQL Collect IndexSearch/Google IndexSearch IndexSearch/Xapian IndexSearch/XesamGLib Monitor UI/GTK2/src
+SUBDIRS = po Utils Tokenize SQL Collect IndexSearch/Google IndexSearch IndexSearch/Xapian IndexSearch/XesamGLib Monitor Core UI/GTK2/src
 
 # TODO: Fix that when cleaning up for distcheck! - crazy -
 EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
@@ -9,8 +9,8 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	IndexSearch/Plugins/*src IndexSearch/Plugins/*.xml \
 	IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
 	IndexSearch/pinot-search.1 UI/GTK2/src/pinot.1 \
-	UI/GTK2/src/pinot-dbus-daemon.1 UI/GTK2/src/pinot-dbus-daemon.xml \
-	UI/GTK2/src/de.berlios.Pinot.service \
+	Core/pinot-dbus-daemon.1 Core/pinot-dbus-daemon.xml \
+	Core/de.berlios.Pinot.service \
 	UI/GTK2/xapian-powered.png UI/icons/48x48/pinot.png \
 	UI/icons/32x32/pinot.png UI/icons/24x24/pinot.png \
 	UI/icons/22x22/pinot.png UI/icons/16x16/pinot.png \
@@ -18,14 +18,14 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	scripts/bash/*.sh scripts/python/*.py
 
 man_MANS = IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
-	IndexSearch/pinot-search.1 UI/GTK2/src/pinot.1 UI/GTK2/src/pinot-dbus-daemon.1
+	IndexSearch/pinot-search.1 Core/pinot-dbus-daemon.1 UI/GTK2/src/pinot.1
 
 manuals:
 	@help2man --no-info --name "Index documents from the command-line" IndexSearch/pinot-index       >IndexSearch/pinot-index.1
 	@help2man --no-info --name "Label files from the command-line" IndexSearch/pinot-label           >IndexSearch/pinot-label.1
 	@help2man --no-info --name "Query search engines from the command-line" IndexSearch/pinot-search >IndexSearch/pinot-search.1
+	@help2man --no-info --name "D-Bus search and index daemon" Core/pinot-dbus-daemon                >Core/pinot-dbus-daemon.1
 	@help2man --no-info --name "A metasearch tool for the Free Desktop" UI/GTK2/src/pinot            >UI/GTK2/src/pinot.1
-	@help2man --no-info --name "D-Bus search and index daemon" UI/GTK2/src/pinot-dbus-daemon         >UI/GTK2/src/pinot-dbus-daemon.1
 
 install-data-local:
 	@ln -fs $(bindir)/pinot $(DESTDIR)$(bindir)/pinot-prefs
@@ -35,11 +35,11 @@ install-data-local:
 	$(INSTALL_DATA) $(srcdir)/textcat_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat_conf.txt
 	$(INSTALL_DATA) $(srcdir)/textcat3_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat3_conf.txt
 	@mkdir -p $(DESTDIR)$(datadir)/pinot $(DESTDIR)$(datadir)/dbus-1/services
+	$(INSTALL_DATA) $(builddir)/Core/de.berlios.Pinot.service $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
+	$(INSTALL_DATA) $(srcdir)/Core/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml
 	$(INSTALL_DATA) $(srcdir)/UI/GTK2/xapian-powered.png $(DESTDIR)$(datadir)/pinot/xapian-powered.png
 	$(INSTALL_DATA) $(srcdir)/UI/GTK2/metase-gtk2.glade $(DESTDIR)$(datadir)/pinot/metase-gtk2.glade
 	$(INSTALL_DATA) $(srcdir)/UI/GTK2/metase-gtk2.gladep $(DESTDIR)$(datadir)/pinot/metase-gtk2.gladep
-	$(INSTALL_DATA) $(srcdir)/UI/GTK2/src/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml
-	$(INSTALL_DATA) $(builddir)/UI/GTK2/src/de.berlios.Pinot.service $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
 	@mkdir -p $(DESTDIR)$(datadir)/pinot/engines
 	$(INSTALL_DATA) $(srcdir)/IndexSearch/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
 	$(INSTALL_DATA) $(srcdir)/IndexSearch/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/

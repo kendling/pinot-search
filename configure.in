@@ -439,8 +439,8 @@ AC_CHECK_FUNCS(sysconf)
 AC_CHECK_FUNCS(getloadavg)
 AC_CHECK_FUNCS(pipe)
 
-AC_OUTPUT( pinot.spec UI/GTK2/src/de.berlios.Pinot.service Makefile \
+AC_OUTPUT( pinot.spec Core/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile \
 	IndexSearch/Google/Makefile IndexSearch/Xapian/Makefile IndexSearch/XesamGLib/Makefile \
-	IndexSearch/Makefile Monitor/Makefile UI/GTK2/src/Makefile )
+	IndexSearch/Makefile Monitor/Makefile Core/Makefile UI/GTK2/src/Makefile )
 

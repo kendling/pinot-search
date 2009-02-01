@@ -1,5 +1,12 @@
 # List of source files containing translatable strings.
-UI/GTK2/src/DaemonState.cpp
+Core/DaemonState.cpp
+Core/OnDiskHandler.cpp
+Core/pinot-dbus-daemon.cc
+Core/PinotSettings.cpp
+Core/PinotUtils.cpp
+Core/ServerThreads.cpp
+Core/UniqueApplication.cpp
+Core/WorkerThreads.cpp
 UI/GTK2/src/EnginesTree.cpp
 UI/GTK2/src/indexDialog.cc
 UI/GTK2/src/indexDialog_glade.cc
@@ -14,11 +21,7 @@ UI/GTK2/src/mainWindow.cc
 UI/GTK2/src/mainWindow_glade.cc
 UI/GTK2/src/ModelColumns.cpp
 UI/GTK2/src/Notebook.cpp
-UI/GTK2/src/OnDiskHandler.cpp
 UI/GTK2/src/pinot.cc
-UI/GTK2/src/pinot-dbus-daemon.cc
-UI/GTK2/src/PinotSettings.cpp
-UI/GTK2/src/PinotUtils.cpp
 UI/GTK2/src/prefsWindow.cc
 UI/GTK2/src/prefsWindow_glade.cc
 UI/GTK2/src/propertiesDialog.cc
@@ -28,4 +31,3 @@ UI/GTK2/src/queryDialog_glade.cc
 UI/GTK2/src/ResultsTree.cpp
 UI/GTK2/src/statisticsDialog.cc
 UI/GTK2/src/statisticsDialog_glade.cc
-UI/GTK2/src/WorkerThreads.cpp
