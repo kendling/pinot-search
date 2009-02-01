@@ -392,7 +392,7 @@ int main(int argc, char **argv)
 
 	// Make sure only one instance runs
 	UniqueApplication uniqueApp("de.berlios.PinotDBusDaemon");
-	string confDirectory = PinotSettings::getConfigurationDirectory();
+	string confDirectory(PinotSettings::getConfigurationDirectory());
 	g_pidFileName = confDirectory + "/pinot-dbus-daemon.pid";
 	if (chdir(confDirectory.c_str()) == 0)
 	{
@@ -431,7 +431,7 @@ int main(int argc, char **argv)
 		cerr << "Couldn't load MIME settings" << endl;
 	}
 	DownloaderInterface::initialize();
-	// Load tokenizer libraries, if any
+	// Load filter libraries, if any
 	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
 	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");

@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 	settings.enableClientMode(true);
 #endif
 
-	string confDirectory = PinotSettings::getConfigurationDirectory();
+	string confDirectory(PinotSettings::getConfigurationDirectory());
 	if (chdir(confDirectory.c_str()) == 0)
 	{
 		// Redirect cout and cerr to a file
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 		cerr << "Couldn't load MIME settings" << endl;
 	}
 	DownloaderInterface::initialize();
-	// Load tokenizer libraries, if any
+	// Load filter libraries, if any
 	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
 	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
