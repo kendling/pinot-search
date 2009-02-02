@@ -19,9 +19,9 @@ libCore_la_SOURCES = \
 	WorkerThreads.cpp
 
 if HAVE_DBUS
-bin_PROGRAMS = pinot-search pinot-dbus-daemon
+bin_PROGRAMS = pinot-index pinot-search pinot-dbus-daemon
 else
-bin_PROGRAMS = pinot-search
+bin_PROGRAMS = pinot-index pinot-search
 endif
 
 AM_CXXFLAGS = \
@@ -39,6 +39,22 @@ AM_CXXFLAGS = \
 if HAVE_DBUS
 AM_CXXFLAGS += -DHAVE_DBUS
 endif
+
+pinot_index_LDFLAGS = \
+	-rdynamic
+
+pinot_index_LDADD = \
+	-L$(top_builddir)/Utils \
+	-L$(top_builddir)/Tokenize \
+	-L$(top_builddir)/Collect \
+	-L$(top_builddir)/IndexSearch \
+	-lCore -lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ \
+	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+
+pinot_index_SOURCES = pinot-index.cpp
+
+pinot_index_DEPENDENCIES = libCore.la
 
 pinot_search_LDFLAGS = \
 	-rdynamic

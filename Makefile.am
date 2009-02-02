@@ -7,7 +7,7 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	textcat_conf.txt textcat3_conf.txt \
 	pinot*.desktop pinot.spec \
 	IndexSearch/Plugins/*src IndexSearch/Plugins/*.xml \
-	IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
+	Core/pinot-index.1 IndexSearch/pinot-label.1 \
 	Core/pinot-search.1 UI/GTK2/src/pinot.1 \
 	Core/pinot-dbus-daemon.1 Core/pinot-dbus-daemon.xml \
 	Core/de.berlios.Pinot.service \
@@ -17,11 +17,11 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
 	scripts/bash/*.sh scripts/python/*.py
 
-man_MANS = IndexSearch/pinot-index.1 IndexSearch/pinot-label.1 \
+man_MANS = Core/pinot-index.1 IndexSearch/pinot-label.1 \
 	Core/pinot-search.1 Core/pinot-dbus-daemon.1 UI/GTK2/src/pinot.1
 
 manuals:
-	@help2man --no-info --name "Index documents from the command-line" IndexSearch/pinot-index >IndexSearch/pinot-index.1
+	@help2man --no-info --name "Index documents from the command-line" Core/pinot-index >Core/pinot-index.1
 	@help2man --no-info --name "Label files from the command-line" IndexSearch/pinot-label     >IndexSearch/pinot-label.1
 	@help2man --no-info --name "Query search engines from the command-line" Core/pinot-search  >Core/pinot-search.1
 	@help2man --no-info --name "D-Bus search and index daemon" Core/pinot-dbus-daemon          >Core/pinot-dbus-daemon.1

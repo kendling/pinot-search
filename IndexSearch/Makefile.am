@@ -46,26 +46,8 @@ libIndexSearch_la_SOURCES += SherlockParser.cpp
 endif
 
 if HAVE_DBUS
-bin_PROGRAMS = pinot-index pinot-label
-else
-bin_PROGRAMS = pinot-index
+bin_PROGRAMS = pinot-label
 endif
-
-pinot_index_LDFLAGS = \
-	-rdynamic
-
-pinot_index_LDADD = \
-	-L$(top_builddir)/Utils \
-	-L$(top_builddir)/Tokenize \
-	-L$(top_builddir)/Collect \
-	-L$(top_builddir)/IndexSearch/Google \
-	-lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @DBUS_LIBS@ \
-	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
-
-pinot_index_SOURCES = pinot-index.cpp
-
-pinot_index_DEPENDENCIES = libIndexSearch.la
 
 pinot_label_LDFLAGS = \
 	-rdynamic

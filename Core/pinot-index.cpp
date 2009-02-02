@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,13 +17,14 @@
  */
  
 #include <getopt.h>
-#include <cstdlib>
-#include <cstdio>
+#include <stdlib.h>
+#include <stdio.h>
 #include <iostream>
 #include <string>
 #include <fstream>
 
 #include "config.h"
+#include "NLS.h"
 #include "Languages.h"
 #include "MIMEScanner.h"
 #include "Url.h"
@@ -31,7 +32,7 @@
 #include "DownloaderFactory.h"
 #include "FilterWrapper.h"
 #include "ModuleFactory.h"
-#include "config.h"
+#include "PinotSettings.h"
 
 using namespace std;
 
@@ -41,9 +42,6 @@ static struct option g_longOptions[] = {
 	{"db", 1, 0, 'd'},
 	{"help", 0, 0, 'h'},
 	{"index", 0, 0, 'i'},
-	{"proxyaddress", 1, 0, 'a'},
-	{"proxyport", 1, 0, 'p'},
-	{"proxytype", 1, 0, 't'},
 	{"showinfo", 0, 0, 's'},
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
@@ -59,14 +57,11 @@ static void printHelp(void)
 	cout << "pinot-index - Index documents from the command-line\n\n"
 		<< "Usage: pinot-index [OPTIONS] URLS\n\n"
 		<< "Options:\n"
-		<< "  -b, --backend             name of back-end to use (default xapian)\n"
+		<< "  -b, --backend             name of back-end to use (default " << PinotSettings::getInstance().m_defaultBackend << ")\n"
 		<< "  -c, --check               check whether the given URL is in the index\n"
-		<< "  -d, --db                  path to index to use (mandatory)\n"
+		<< "  -d, --db                  path to, or name of, index to use (mandatory)\n"
 		<< "  -h, --help                display this help and exit\n"
 		<< "  -i, --index               index the given URL\n"
-		<< "  -a, --proxyaddress        proxy address\n"
-		<< "  -p, --proxyport           proxy port\n"
-		<< "  -t, --proxytype           proxy type (default HTTP, SOCKS4, SOCKS5)\n"
 		<< "  -s, --showinfo            show information about the document\n"
 		<< "  -v, --version             output version information and exit\n\n"
 		<< "Supported back-ends are :";
@@ -81,7 +76,7 @@ static void printHelp(void)
 	ModuleFactory::unloadModules();
 	cout << "\n\nExamples:\n"
 		<< "pinot-index --check --showinfo --backend xapian --db ~/.pinot/daemon file:///home/fabrice/Documents/Bozo.txt\n\n"
-		<< "pinot-index --index --db ~/.pinot/index http://pinot.berlios.de/\n\n"
+		<< "pinot-index --index --db \"My Web Pages\" http://pinot.berlios.de/\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }
 
@@ -98,26 +93,19 @@ static void closeAll(void)
 int main(int argc, char **argv)
 {
 	string type, option;
-	// Use back-end xapian by default for backward compatibility
-	string backendType("xapian"), databaseName, proxyAddress, proxyPort, proxyType;
+	string backendType, databaseName;
 	int longOptionIndex = 0;
 	unsigned int docId = 0;
 	bool checkDocument = false, indexDocument = false, showInfo = false, success = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "a:b:cd:hip:t:sv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "b:cd:hisv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		set<string> engines;
 
 		switch (optionChar)
 		{
-			case 'a':
-				if (optarg != NULL)
-				{
-					proxyAddress = optarg;
-				}
-				break;
 			case 'b':
 				if (optarg != NULL)
 				{
@@ -139,20 +127,8 @@ int main(int argc, char **argv)
 			case 'i':
 				indexDocument = true;
 				break;
-			case 'p':
-				if (optarg != NULL)
-				{
-					proxyPort = optarg;
-				}
-				break;
 			case 's':
 				showInfo = true;
-				break;
-			case 't':
-				if (optarg != NULL)
-				{
-					proxyType = optarg;
-				}
 				break;
 			case 'v':
 				cout << "pinot-index - " << PACKAGE_STRING << "\n\n"
@@ -165,7 +141,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "a:b:cd:hip:t:sv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "b:cd:hisv", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -183,53 +159,77 @@ int main(int argc, char **argv)
 
 	if (((indexDocument == false) &&
 		(checkDocument == false)) ||
-		(backendType.empty() == true) ||
 		(databaseName.empty() == true))
 	{
 		cerr << "Incorrect parameters" << endl;
 		return EXIT_FAILURE;
 	}
 
-	MIMEScanner::initialize("", "");
+	// This will create the necessary directories on the first run
+	PinotSettings &settings = PinotSettings::getInstance();
+	string confDirectory(PinotSettings::getConfigurationDirectory());
+
+	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
+		string(SHARED_MIME_INFO_PREFIX)) == false)
+	{
+		cerr << "Couldn't load MIME settings" << endl;
+	}
 	DownloaderInterface::initialize();
 	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + string("/pinot/filters"));
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
+	ModuleFactory::loadModules(confDirectory + "/backends");
 
 	// Localize language names
-	Languages::setIntlName (0, "Unknown");
-	Languages::setIntlName (1, "Danish");
-	Languages::setIntlName (2, "Dutch");
-	Languages::setIntlName (3, "English");
-	Languages::setIntlName (4, "Finnish");
-	Languages::setIntlName (5, "French");
-	Languages::setIntlName (6, "German");
-	Languages::setIntlName (7, "Hungarian");
-	Languages::setIntlName (8, "Italian");
-	Languages::setIntlName (9, "Norwegian");
-	Languages::setIntlName (10, "Portuguese");
-	Languages::setIntlName (11, "Romanian");
-	Languages::setIntlName (12, "Russian");
-	Languages::setIntlName (13, "Spanish");
-	Languages::setIntlName (14, "Swedish");
-	Languages::setIntlName (15, "Turkish");
+	Languages::setIntlName(0, _("Unknown"));
+	Languages::setIntlName(1, _("Danish"));
+	Languages::setIntlName(2, _("Dutch"));
+	Languages::setIntlName(3, _("English"));
+	Languages::setIntlName(4, _("Finnish"));
+	Languages::setIntlName(5, _("French"));
+	Languages::setIntlName(6, _("German"));
+	Languages::setIntlName(7, _("Hungarian"));
+	Languages::setIntlName(8, _("Italian"));
+	Languages::setIntlName(9, _("Norwegian"));
+	Languages::setIntlName(10, _("Portuguese"));
+	Languages::setIntlName(11, _("Romanian"));
+	Languages::setIntlName(12, _("Russian"));
+	Languages::setIntlName(13, _("Spanish"));
+	Languages::setIntlName(14, _("Swedish"));
+	Languages::setIntlName(15, _("Turkish"));
+
+	// Load the settings
+	settings.load(PinotSettings::LOAD_ALL);
 
 	atexit(closeAll);
 
+	if (backendType.empty() == true)
+	{
+		backendType = settings.m_defaultBackend;
+	}
+
+	// Is this a known index name ?
+	PinotSettings::IndexProperties indexProps = settings.getIndexPropertiesByName(databaseName);
+	if (indexProps.m_name.empty() == true)
+	{
+		// No, it's not
+		indexProps.m_location = databaseName;
+	}
+
 	// Make sure the index is open in the correct mode
 	bool wasObsoleteFormat = false;
-	if (ModuleFactory::openOrCreateIndex(backendType, databaseName, wasObsoleteFormat, (indexDocument ? false : true)) == false)
+	if (ModuleFactory::openOrCreateIndex(backendType, indexProps.m_location, wasObsoleteFormat, (indexDocument ? false : true)) == false)
 	{
-		cerr << "Couldn't open index " << databaseName << endl;
+		cerr << "Couldn't open index " << indexProps.m_location << endl;
 
 		return EXIT_FAILURE;
 	}
 
 	// Get a read-write index of the given type
-	IndexInterface *pIndex = ModuleFactory::getIndex(backendType, databaseName);
+	IndexInterface *pIndex = ModuleFactory::getIndex(backendType, indexProps.m_location);
 	if (pIndex == NULL)
 	{
-		cerr << "Couldn't obtain index for " << databaseName << endl;
+		cerr << "Couldn't obtain index for " << indexProps.m_location << endl;
 
 		return EXIT_FAILURE;
 	}
@@ -268,12 +268,15 @@ int main(int argc, char **argv)
 			}
 
 			// Set up the proxy
-			if ((proxyAddress.empty() == false) &&
-				(proxyPort.empty() == false))
+			if ((settings.m_proxyEnabled == true) &&
+				(settings.m_proxyAddress.empty() == false))
 			{
-				pDownloader->setSetting("proxyaddress", proxyAddress);
-				pDownloader->setSetting("proxyport", proxyPort);
-				pDownloader->setSetting("proxytype", proxyType);
+				char portStr[64];
+
+				pDownloader->setSetting("proxyaddress", settings.m_proxyAddress);
+				snprintf(portStr, 64, "%u", settings.m_proxyPort);
+				pDownloader->setSetting("proxyport", portStr);
+				pDownloader->setSetting("proxytype", settings.m_proxyType);
 			}
 
 			DocumentInfo docInfo("", urlParam, MIMEScanner::scanUrl(thisUrl), "");
