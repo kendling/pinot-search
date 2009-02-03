@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <glibmm/miscutils.h>
 
 #include "config.h"
 #include "NLS.h"
@@ -75,7 +76,7 @@ static void printHelp(void)
 	}
 	ModuleFactory::unloadModules();
 	cout << "\n\nExamples:\n"
-		<< "pinot-index --check --showinfo --backend xapian --db ~/.pinot/daemon file:///home/fabrice/Documents/Bozo.txt\n\n"
+		<< "pinot-index --check --showinfo --backend xapian --db ~/.pinot/daemon ../Bozo.txt\n\n"
 		<< "pinot-index --index --db \"My Web Pages\" http://pinot.berlios.de/\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }
@@ -143,6 +144,12 @@ int main(int argc, char **argv)
 		// Next option
 		optionChar = getopt_long(argc, argv, "b:cd:hisv", g_longOptions, &longOptionIndex);
 	}
+
+#if defined(ENABLE_NLS)
+	bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
+	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+	textdomain(GETTEXT_PACKAGE);
+#endif //ENABLE_NLS
 
 	if (argc == 1)
 	{
@@ -238,6 +245,45 @@ int main(int argc, char **argv)
 	{
 		string urlParam(argv[optind]);
 
+		// Is this a relative path ?
+		if (Glib::path_is_absolute(urlParam) == false)
+		{
+			char *pCurrentDir = (char *)malloc(sizeof(char) * PATH_MAX);
+
+			if (pCurrentDir != NULL)
+			{
+				if (getcwd(pCurrentDir, PATH_MAX) != NULL)
+				{
+					urlParam = Url::resolvePath(pCurrentDir, argv[optind]);
+#ifdef DEBUG
+					cout << "URL resolved to " << urlParam << endl;
+#endif
+				}
+
+				free(pCurrentDir);
+			}
+		}
+
+		Url thisUrl(urlParam);
+
+		// Rewrite the URL, dropping user name and password which we don't support
+		urlParam = thisUrl.getProtocol();
+		urlParam += "://";
+		if (thisUrl.isLocal() == false)
+		{
+			urlParam += thisUrl.getHost();
+			urlParam += "/";
+		}
+		urlParam += thisUrl.getLocation();
+		if (thisUrl.getFile().empty() == false)
+		{
+			urlParam += "/";
+			urlParam += thisUrl.getFile();
+		}
+#ifdef DEBUG
+		cout << "URL rewritten to " << urlParam << endl;
+#endif
+
 		if (checkDocument == true)
 		{
 			if (pIndex->isGood() == true)
@@ -252,8 +298,6 @@ int main(int argc, char **argv)
 		}
 		if (indexDocument == true)
 		{
-			Url thisUrl(urlParam);
-
 			// Which Downloader ?
 			DownloaderInterface *pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
 			if (pDownloader == NULL)
