@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,12 +16,16 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdio.h>
+#include <iostream>
+#include <glibmm/miscutils.h>
+
 #include "StringManip.h"
 #include "Url.h"
 
-#include <stdio.h>
-
 using std::string;
+using std::cout;
+using std::endl;
 
 static const int g_rfc2396Encoded[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  /* 0x00 - 0x0f */
@@ -442,6 +446,70 @@ string Url::unescapeUrl(const string &escapedUrl)
 	}
 
 	return unescapedUrl;
+}
+
+/// Resolves a path.
+string Url::resolvePath(const string &currentDir, const string &location)
+{
+	string currentLocation(currentDir);
+	string::size_type prevSlashPos = 0, slashPos = location.find('/');
+
+	if (currentDir.empty() == true)
+	{
+		return "";
+	}
+
+	while (slashPos != string::npos)
+	{
+		string path(location.substr(prevSlashPos, slashPos - prevSlashPos));
+
+		if (path == "..")
+		{
+			string upDir(Glib::path_get_dirname(currentLocation));
+			currentLocation = upDir;
+		}
+		else if (path != ".")
+		{
+			currentLocation += "/";
+			currentLocation += path;
+		}
+#ifdef DEBUG
+		cout << "Url::resolvePath: partially resolved to " << currentLocation << endl;
+#endif
+
+		if (slashPos + 1 >= location.length())
+		{
+			// Nothing behind
+			prevSlashPos = string::npos;
+			break;
+		}
+
+		// Next
+		prevSlashPos = slashPos + 1;
+		slashPos = location.find('/', prevSlashPos);
+	}
+
+	// Remainder
+	if (prevSlashPos != string::npos)
+	{
+		string path(location.substr(prevSlashPos));
+
+		if (path == "..")
+		{
+			string upDir(Glib::path_get_dirname(currentLocation));
+			currentLocation = upDir;
+		}
+		else if (path != ".")
+		{
+			currentLocation += "/";
+			currentLocation += path;
+		}
+	}
+#ifdef DEBUG
+	cout << "Url::resolvePath: resolved to " << currentLocation << endl;
+#endif
+
+	return currentLocation;
 }
 
 string Url::getProtocol(void) const

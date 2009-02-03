@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 #include "Visibility.h"
 
-/// This dissects and manipulates URLs returned by search engines.
+/// This dissects and manipulates URLs.
 class PINOT_EXPORT Url
 {
 	public:
@@ -47,6 +47,9 @@ class PINOT_EXPORT Url
 
 		/// Unescapes an URL.
 		static std::string unescapeUrl(const std::string &escapedUrl);
+
+		/// Resolves a path.
+		static std::string resolvePath(const std::string &currentDir, const std::string &location);
 
 		/// Returns the protocol, eg "file".
 		std::string getProtocol(void) const;
