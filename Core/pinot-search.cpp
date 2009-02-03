@@ -108,7 +108,7 @@ static void printHelp(void)
 	}
 	cout << "\n\nExamples:\n"
 		<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\"\n\n"
-		<< "pinot-search --max 20 sherlock --seteditable \"Bozo App ID:1234567890\" " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
+		<< "pinot-search --max 20 sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
 		<< "pinot-search googleapi mygoogleapikey \"clowns\"\n\n"
 		<< "pinot-search xapian ~/.pinot/index \"label:Clowns\"\n\n"
 		<< "pinot-search --stemming english xapian somehostname:12345 \"clowning\"\n\n"
@@ -191,6 +191,12 @@ int main(int argc, char **argv)
 		// Next option
 		optionChar = getopt_long(argc, argv, "c:dhlm:qrs:uvx:", g_longOptions, &longOptionIndex);
 	}
+
+#if defined(ENABLE_NLS)
+	bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
+	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+	textdomain(GETTEXT_PACKAGE);
+#endif //ENABLE_NLS
 
 	if (argc == 1)
 	{
