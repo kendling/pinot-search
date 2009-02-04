@@ -381,56 +381,8 @@ bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &cr
 			else
 			{
 				string entryDir(path_get_dirname(realEntryName));
-				string::size_type prevSlashPos = 0, slashPos = linkLocation.find('/');
 
-				while (slashPos != string::npos)
-				{
-					string path(linkLocation.substr(prevSlashPos, slashPos - prevSlashPos));
-
-					if (path == "..")
-					{
-						string upDir(path_get_dirname(entryDir));
-						entryDir = upDir;
-					}
-					else if (path != ".")
-					{
-						entryDir += "/";
-						entryDir += path;
-					}
-#ifdef DEBUG
-					cout << "DirectoryScannerThread::scanEntry: symlink partially resolved to " << entryDir << endl;
-#endif
-
-					if (slashPos + 1 >= linkLocation.length())
-					{
-						// Nothing behind
-						prevSlashPos = string::npos;
-						break;
-					}
-
-					// Next
-					prevSlashPos = slashPos + 1;
-					slashPos = linkLocation.find('/', prevSlashPos);
-				}
-
-				// Remainder
-				if (prevSlashPos != string::npos)
-				{
-					string path(linkLocation.substr(prevSlashPos));
-
-					if (path == "..")
-					{
-						string upDir(path_get_dirname(entryDir));
-						entryDir = upDir;
-					}
-					else if (path != ".")
-					{
-						entryDir += "/";
-						entryDir += path;
-					}
-				}
-
-				entryNameReferree = entryDir;
+				entryNameReferree = Url::resolvePath(entryDir, linkLocation);
 			}
 
 			if (entryNameReferree[entryNameReferree.length() - 1] == '/')
