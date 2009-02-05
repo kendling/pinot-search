@@ -244,9 +244,11 @@ int main(int argc, char **argv)
 	while (optind < argc)
 	{
 		string urlParam(argv[optind]);
+		Url thisUrl(urlParam);
 
 		// Is this a relative path ?
-		if (Glib::path_is_absolute(urlParam) == false)
+		if ((thisUrl.isLocal() == true) &&
+			(Glib::path_is_absolute(urlParam) == false))
 		{
 			char *pCurrentDir = (char *)malloc(sizeof(char) * PATH_MAX);
 
@@ -264,7 +266,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		Url thisUrl(urlParam);
+		thisUrl = urlParam;
 
 		// Rewrite the URL, dropping user name and password which we don't support
 		urlParam = thisUrl.getProtocol();
