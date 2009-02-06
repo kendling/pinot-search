@@ -111,19 +111,19 @@ static double getFSFreeSpace(const string &path)
 	return availableMbSize;
 }
 
-// A function object to stop DirectoryScanner threads with for_each()
-struct StopScannerThreadFunc
+// A function object to stop Crawler threads with for_each()
+struct StopCrawlerThreadFunc
 {
 public:
 	void operator()(map<unsigned int, WorkerThread *>::value_type &p)
 	{
 		string type(p.second->getType());
 
-		if (type == "DirectoryScannerThread")
+		if (type == "CrawlerThread")
 		{
 			p.second->stop();
 #ifdef DEBUG
-			cout << "StopScannerThreadFunc: stopped thread " << p.second->getId() << endl;
+			cout << "StopCrawlerThreadFunc: stopped thread " << p.second->getId() << endl;
 #endif
 		}
 	}
@@ -421,7 +421,7 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 	string locationToCrawl(location.m_name);
 	bool doMonitoring = location.m_monitor;
 	bool isSource = location.m_isSource;
-	DirectoryScannerThread *pScannerThread = NULL;
+	CrawlerThread *pCrawlerThread = NULL;
 
 	// Can we go ahead and crawl ?
 	if ((is_flag_set(LOW_DISK_SPACE) == true) ||
@@ -442,17 +442,17 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 	{
 		// Monitoring is not necessary, but we still have to pass the handler
 		// so that we can act on documents that have been deleted
-		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
+		pCrawlerThread = new CrawlerThread(locationToCrawl, isSource,
 			m_fullScan, m_isReindex, NULL, m_pDiskHandler);
 	}
 	else
 	{
-		pScannerThread = new DirectoryScannerThread(locationToCrawl, isSource,
+		pCrawlerThread = new CrawlerThread(locationToCrawl, isSource,
 			m_fullScan, m_isReindex, m_pDiskMonitor, m_pDiskHandler);
 	}
-	pScannerThread->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
+	pCrawlerThread->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 
-	if (start_thread(pScannerThread, true) == true)
+	if (start_thread(pCrawlerThread, true) == true)
 	{
 		++m_crawlers;
 		set_flag(CRAWLING);
@@ -582,8 +582,8 @@ void DaemonState::stop_crawling(void)
 	{
 		if (m_threads.empty() == false)
 		{
-			// Stop all DirectoryScanner threads
-			for_each(m_threads.begin(), m_threads.end(), StopScannerThreadFunc());
+			// Stop all Crawler threads
+			for_each(m_threads.begin(), m_threads.end(), StopCrawlerThreadFunc());
 		}
 
 		unlock_threads();
@@ -606,17 +606,17 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 #endif
 
 	// What type of thread was it ?
-	if (type == "DirectoryScannerThread")
+	if (type == "CrawlerThread")
 	{
-		DirectoryScannerThread *pScannerThread = dynamic_cast<DirectoryScannerThread *>(pThread);
-		if (pScannerThread == NULL)
+		CrawlerThread *pCrawlerThread = dynamic_cast<CrawlerThread *>(pThread);
+		if (pCrawlerThread == NULL)
 		{
 			delete pThread;
 			return;
 		}
 		--m_crawlers;
 #ifdef DEBUG
-		cout << "DaemonState::on_thread_end: done crawling " << pScannerThread->getDirectory() << endl;
+		cout << "DaemonState::on_thread_end: done crawling " << pCrawlerThread->getDirectory() << endl;
 #endif
 
 		// Explicitely flush the index once a directory has been crawled
