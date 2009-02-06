@@ -19,10 +19,14 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <strings.h>
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <glibmm.h>
+#include <glibmm/thread.h>
 #include <glibmm/miscutils.h>
+#include <sigc++/sigc++.h>
 
 #include "config.h"
 #include "NLS.h"
@@ -33,7 +37,9 @@
 #include "DownloaderFactory.h"
 #include "FilterWrapper.h"
 #include "ModuleFactory.h"
+#include "ActionQueue.h"
 #include "PinotSettings.h"
+#include "WorkerThreads.h"
 
 using namespace std;
 
@@ -47,6 +53,69 @@ static struct option g_longOptions[] = {
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
+static Glib::RefPtr<Glib::MainLoop> g_refMainLoop;
+
+class IndexingState : public ThreadsManager
+{
+	public:
+		IndexingState(const string &indexLocation) :
+			ThreadsManager(indexLocation, 1, 60),
+			m_docId(0)
+		{
+			m_onThreadEndSignal.connect(sigc::mem_fun(*this, &IndexingState::on_thread_end));
+		}
+
+		~IndexingState()
+		{
+		}
+
+		void on_thread_end(WorkerThread *pThread)
+		{
+			string indexedUrl;
+
+			if (pThread == NULL)
+			{
+				return;
+			}
+
+			string type(pThread->getType());
+			bool isStopped = pThread->isStopped();
+#ifdef DEBUG
+			cout << "IndexingState::on_thread_end: end of thread " << type << " " << pThread->getId() << endl;
+#endif
+
+			// What type of thread was it ?
+			if ((isStopped == false) &&
+				((type == "IndexingThread") || (type == "DirectoryScannerThread")))
+			{
+				IndexingThread *pIndexThread = dynamic_cast<IndexingThread *>(pThread);
+				if (pIndexThread == NULL)
+				{
+					delete pThread;
+					return;
+				}
+
+				// Get the document ID of the URL we have just indexed
+				m_docId = pIndexThread->getDocumentID();
+			}
+
+			// Delete the thread
+			delete pThread;
+
+			// Stop there
+			g_refMainLoop->quit();
+		}
+
+		unsigned int getDocumentID(void) const
+		{
+			return m_docId;
+		}
+
+	protected:
+		unsigned int m_docId;
+
+};
+static IndexingState *g_pState = NULL;
 
 static void printHelp(void)
 {
@@ -91,12 +160,21 @@ static void closeAll(void)
 	MIMEScanner::shutdown();
 }
 
+static void quitAll(int sigNum)
+{
+	if (g_refMainLoop->is_running() == true)
+	{
+		cout << "Quitting..." << endl;
+
+		g_refMainLoop->quit();
+	}
+}
+
 int main(int argc, char **argv)
 {
 	string type, option;
 	string backendType, databaseName;
 	int longOptionIndex = 0;
-	unsigned int docId = 0;
 	bool checkDocument = false, indexDocument = false, showInfo = false, success = false;
 
 	// Look at the options
@@ -172,6 +250,18 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	// Initialize threads support before doing anything else
+	if (Glib::thread_supported() == false)
+	{
+		Glib::thread_init();
+	}
+
+	g_refMainLoop = Glib::MainLoop::create();
+	Glib::set_application_name("Pinot Indexer");
+
+	// This should make Xapian use Flint rather than Quartz
+	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
+
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();
 	string confDirectory(PinotSettings::getConfigurationDirectory());
@@ -208,12 +298,22 @@ int main(int argc, char **argv)
 	// Load the settings
 	settings.load(PinotSettings::LOAD_ALL);
 
-	atexit(closeAll);
-
-	if (backendType.empty() == true)
-	{
-		backendType = settings.m_defaultBackend;
-	}
+	// Catch interrupts
+#ifdef HAVE_SIGACTION
+	struct sigaction newAction;
+	sigemptyset(&newAction.sa_mask);
+	newAction.sa_flags = 0;
+	newAction.sa_handler = quitAll;
+	sigaction(SIGINT, &newAction, NULL);
+	sigaction(SIGQUIT, &newAction, NULL);
+	sigaction(SIGTERM, &newAction, NULL);
+#else
+	signal(SIGINT, quitAll);
+#ifdef SIGQUIT
+	signal(SIGQUIT, quitAll);
+#endif
+	signal(SIGTERM, quitAll);
+#endif
 
 	// Is this a known index name ?
 	PinotSettings::IndexProperties indexProps = settings.getIndexPropertiesByName(databaseName);
@@ -221,6 +321,11 @@ int main(int argc, char **argv)
 	{
 		// No, it's not
 		indexProps.m_location = databaseName;
+	}
+
+	if (backendType.empty() == true)
+	{
+		backendType = settings.m_defaultBackend;
 	}
 
 	// Make sure the index is open in the correct mode
@@ -231,6 +336,25 @@ int main(int argc, char **argv)
 
 		return EXIT_FAILURE;
 	}
+
+	// Do the same for the history database
+	string historyDatabase(settings.getHistoryDatabaseName());
+	if ((historyDatabase.empty() == true) ||
+		(ActionQueue::create(historyDatabase) == false))
+	{
+		cerr << "Couldn't create history database " << historyDatabase << endl;
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		ActionQueue actionQueue(historyDatabase, Glib::get_application_name());
+		time_t timeNow = time(NULL);
+
+		// Expire
+		actionQueue.expireItems(timeNow);
+	}
+
+	atexit(closeAll);
 
 	// Get a read-write index of the given type
 	IndexInterface *pIndex = ModuleFactory::getIndex(backendType, indexProps.m_location);
@@ -266,9 +390,8 @@ int main(int argc, char **argv)
 			}
 		}
 
-		thisUrl = urlParam;
-
 		// Rewrite the URL, dropping user name and password which we don't support
+		thisUrl = urlParam;
 		urlParam = thisUrl.getProtocol();
 		urlParam += "://";
 		if (thisUrl.isLocal() == false)
@@ -286,6 +409,9 @@ int main(int argc, char **argv)
 		cout << "URL rewritten to " << urlParam << endl;
 #endif
 
+		DocumentInfo docInfo("", urlParam, MIMEScanner::scanUrl(thisUrl), "");
+		unsigned int docId = 0;
+
 		if (checkDocument == true)
 		{
 			if (pIndex->isGood() == true)
@@ -300,73 +426,27 @@ int main(int argc, char **argv)
 		}
 		if (indexDocument == true)
 		{
-			// Which Downloader ?
-			DownloaderInterface *pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
-			if (pDownloader == NULL)
+			if (g_pState == NULL)
 			{
-				cerr << "Couldn't obtain downloader for protocol " << thisUrl.getProtocol() << endl;
-
-				success = false;
-
-				// Next
-				++optind;
-				continue;
+				g_pState = new IndexingState(indexProps.m_location);
 			}
 
-			// Set up the proxy
-			if ((settings.m_proxyEnabled == true) &&
-				(settings.m_proxyAddress.empty() == false))
-			{
-				char portStr[64];
+			// Connect to threads' finished signal
+			g_pState->connect();
 
-				pDownloader->setSetting("proxyaddress", settings.m_proxyAddress);
-				snprintf(portStr, 64, "%u", settings.m_proxyPort);
-				pDownloader->setSetting("proxyport", portStr);
-				pDownloader->setSetting("proxytype", settings.m_proxyType);
-			}
+			g_pState->queue_index(docInfo);
 
-			DocumentInfo docInfo("", urlParam, MIMEScanner::scanUrl(thisUrl), "");
-			Document *pDoc = pDownloader->retrieveUrl(docInfo);
-			if (pDoc == NULL)
-			{
-				cerr << "Couldn't download " << urlParam << endl;
-			}
-			else
-			{
-				FilterWrapper wrapFilter(pIndex);
-				set<string> labels;
+			// Run the main loop
+			g_refMainLoop->run();
 
-				// Update an existing document or add to the index ?
-				docId = pIndex->hasDocument(urlParam);
-				if (docId > 0)
-				{
-					// Update the document
-					if (wrapFilter.updateDocument(*pDoc, docId) == true)
-					{
-						success = true;
-					}
-				}
-				else
-				{
-					// Index the document
-					success = wrapFilter.indexDocument(*pDoc, labels, docId);
-				}
+			// Stop everything
+			g_pState->disconnect();
 
-				if (success == true)
-				{
-					// Flush the index
-					pIndex->flush();
-				}
-
-				delete pDoc;
-			}
-
-			delete pDownloader;
+			docId = g_pState->getDocumentID();
 		}
 		if ((showInfo == true) &&
 			(docId > 0))
 		{
-			DocumentInfo docInfo;
 			set<string> labels;
 
 			cout << "Index version       : " << pIndex->getMetadata("version") << endl;
@@ -408,6 +488,10 @@ int main(int argc, char **argv)
 		++optind;
 	}
 	delete pIndex;
+	if (g_pState == NULL)
+	{
+		delete g_pState;
+	}
 
 	// Did whatever operation we carried out succeed ?
 	if (success == true)
