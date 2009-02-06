@@ -25,6 +25,7 @@
 #include <queue>
 #include <set>
 #include <map>
+#include <stack>
 #include <pthread.h>
 #include <sigc++/sigc++.h>
 #include <glibmm/dispatcher.h>
@@ -507,6 +508,51 @@ class MonitorThread : public WorkerThread
 	private:
 		MonitorThread(const MonitorThread &other);
 		MonitorThread &operator=(const MonitorThread &other);
+
+};
+
+class DirectoryScannerThread : public IndexingThread
+{
+	public:
+		DirectoryScannerThread(const std::string &dirName,
+			const std::string &indexLocation, unsigned int maxLevel = 0,
+			bool inlineIndexing = false, bool followSymLinks = true);
+		virtual ~DirectoryScannerThread();
+
+		virtual std::string getType(void) const;
+
+		virtual std::string getDirectory(void) const;
+
+		virtual void stop(void);
+
+		sigc::signal2<void, DocumentInfo, bool>& getFileFoundSignal(void);
+
+	protected:
+		std::string m_dirName;
+		unsigned int m_currentLevel;
+		unsigned int m_maxLevel;
+		bool m_inlineIndexing;
+		bool m_followSymLinks;
+		sigc::signal2<void, DocumentInfo, bool> m_signalFileFound;
+		std::stack<std::string> m_currentLinks;
+		std::stack<std::string> m_currentLinkReferrees;
+
+		virtual void cacheUpdate(const std::string &location, time_t itemDate);
+		virtual bool isIndexable(const std::string &entryName) const;
+		virtual bool wasCrawled(const std::string &location, time_t &itemDate);
+		virtual void recordCrawling(const std::string &location, bool itemExists, time_t &itemDate);
+		virtual void recordError(const std::string &location, int errorCode);
+		virtual void recordSymlink(const std::string &location, time_t itemDate);
+		virtual bool monitorEntry(const std::string &entryName);
+		virtual void foundFile(const DocumentInfo &docInfo);
+
+		bool scanEntry(const std::string &entryName,
+			bool statLinks = true);
+		virtual void doWork(void);
+
+	private:
+		DirectoryScannerThread(const DirectoryScannerThread &other);
+		DirectoryScannerThread &operator=(const DirectoryScannerThread &other);
 
 };
 

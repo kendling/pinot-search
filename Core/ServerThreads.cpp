@@ -16,9 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <sys/types.h>
-#include <dirent.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -31,7 +28,6 @@
 #include <fstream>
 #include <sstream>
 #include <glibmm/miscutils.h>
-#include <glibmm/convert.h>
 
 #include "config.h"
 #include "NLS.h"
@@ -39,7 +35,6 @@
 #include "TimeConverter.h"
 #include "Timer.h"
 #include "Url.h"
-#include "CrawlHistory.h"
 #include "MetaDataBackup.h"
 #ifdef HAVE_DBUS
 #include "DBusIndex.h"
@@ -120,33 +115,28 @@ static bool loadXMLDescription(void)
 	return readFile;
 }
 
-DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSource,
-	bool fullScan, bool isReindex,
-	MonitorInterface *pMonitor, MonitorHandler *pHandler,
-	unsigned int maxLevel, bool inlineIndexing, bool followSymLinks) :
-	IndexingThread(),
-	m_dirName(dirName),
+CrawlerThread::CrawlerThread(const string &dirName,
+	bool isSource, bool fullScan, bool isReindex,
+	MonitorInterface *pMonitor, MonitorHandler *pHandler) :
+	DirectoryScannerThread(dirName,
+		PinotSettings::getInstance().m_daemonIndexLocation,
+		0, false, true),
 	m_fullScan(fullScan),
 	m_isReindex(isReindex),
+	m_sourceId(0),
 	m_pMonitor(pMonitor),
 	m_pHandler(pHandler),
-	m_sourceId(0),
-	m_currentLevel(0),
-	m_maxLevel(maxLevel),
-	m_inlineIndexing(inlineIndexing),
-	m_followSymLinks(followSymLinks)
+	m_crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName())
 {
 	if (m_dirName.empty() == false)
 	{
-		CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
-
 		if (isSource == true)
 		{
 			// Does this source exist ?
-			if (crawlHistory.hasSource("file://" + m_dirName, m_sourceId) == false)
+			if (m_crawlHistory.hasSource("file://" + m_dirName, m_sourceId) == false)
 			{
 				// Create it
-				m_sourceId = crawlHistory.insertSource("file://" + m_dirName);
+				m_sourceId = m_crawlHistory.insertSource("file://" + m_dirName);
 			}
 		}
 		else
@@ -174,96 +164,30 @@ DirectoryScannerThread::DirectoryScannerThread(const string &dirName, bool isSou
 	}
 }
 
-DirectoryScannerThread::~DirectoryScannerThread()
+CrawlerThread::~CrawlerThread()
 {
 }
 
-string DirectoryScannerThread::getType(void) const
+string CrawlerThread::getType(void) const
 {
-	return "DirectoryScannerThread";
+	return "CrawlerThread";
 }
 
-string DirectoryScannerThread::getDirectory(void) const
+void CrawlerThread::cacheUpdate(const string &location, time_t itemDate)
 {
-	return m_dirName;
-}
-
-void DirectoryScannerThread::stop(void)
-{
-	// Disconnect the signal
-	sigc::signal2<void, DocumentInfo, bool>::slot_list_type slotsList = m_signalFileFound.slots();
-	sigc::signal2<void, DocumentInfo, bool>::slot_list_type::iterator slotIter = slotsList.begin();
-	if (slotIter != slotsList.end())
-	{
-		if (slotIter->empty() == false)
-		{
-			slotIter->block();
-			slotIter->disconnect();
-		}
-	}
-	WorkerThread::stop();
-}
-
-sigc::signal2<void, DocumentInfo, bool>& DirectoryScannerThread::getFileFoundSignal(void)
-{
-	return m_signalFileFound;
-}
-
-void DirectoryScannerThread::cacheUpdate(const string &location, time_t mTime,
-	CrawlHistory &crawlHistory)
-{
-	m_updateCache[location] = mTime;
-
-	if (m_updateCache.size() > 500)
-	{
-		flushUpdates(crawlHistory);
-	}
-}
-
-void DirectoryScannerThread::flushUpdates(CrawlHistory &crawlHistory)
-{
-#ifdef DEBUG
-	cout << "DirectoryScannerThread::flushUpdates: flushing updates" << endl;
-#endif
-
-	// Update these records
-	crawlHistory.updateItems(m_updateCache, CrawlHistory::CRAWLED);
-	m_updateCache.clear();
-
-#ifdef DEBUG
-	cout << "DirectoryScannerThread::flushUpdates: flushed updates" << endl;
-#endif
-}
-
-void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
-{
-	if ((docInfo.getLocation().empty() == true) ||
-		(m_done == true))
+	if (m_fullScan == false)
 	{
 		return;
 	}
 
-	if (m_inlineIndexing == true)
+	m_updateCache[location] = itemDate;
+	if (m_updateCache.size() > 500)
 	{
-		// Reset base class members
-		m_docInfo = docInfo;
-		m_docId = 0;
-		m_indexLocation = PinotSettings::getInstance().m_daemonIndexLocation;
-		m_update = false;
-
-		IndexingThread::doWork();
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::foundFile: indexed " << docInfo.getLocation() << " to " << m_docId << endl;
-#endif
-	}
-	else
-	{
-		// Delegate indexing
-		m_signalFileFound(docInfo, false);
+		flushUpdates();
 	}
 }
 
-bool DirectoryScannerThread::isIndexable(const string &entryName) const
+bool CrawlerThread::isIndexable(const string &entryName) const
 {
 	string entryDir(path_get_dirname(entryName) + "/");
 
@@ -278,7 +202,7 @@ bool DirectoryScannerThread::isIndexable(const string &entryName) const
 		{
 			// Yes, it is
 #ifdef DEBUG
-			cout << "DirectoryScannerThread::isIndexable: under " << locationDir << endl;
+			cout << "CrawlerThread::isIndexable: under " << locationDir << endl;
 #endif
 			return true;
 		}
@@ -287,334 +211,78 @@ bool DirectoryScannerThread::isIndexable(const string &entryName) const
 	return false;
 }
 
-bool DirectoryScannerThread::scanEntry(const string &entryName, CrawlHistory &crawlHistory,
-	bool statLinks)
+bool CrawlerThread::wasCrawled(const string &location, time_t &itemDate)
 {
-	string location("file://" + entryName);
-	DocumentInfo docInfo("", location, "", "");
 	CrawlHistory::CrawlStatus itemStatus = CrawlHistory::UNKNOWN;
-	time_t itemDate = time(NULL);
-	struct stat fileStat;
-	int entryStatus = 0;
-	bool scanSuccess = true, reportFile = false, itemExists = false;
 
-	if (entryName.empty() == true)
-	{
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: no name" << endl;
-#endif
-		return false;
-	}
+	return m_crawlHistory.hasItem(location, itemStatus, itemDate);
+}
 
-	// Skip . .. and dotfiles
-	Url urlObj(location);
-	if (urlObj.getFile()[0] == '.')
-	{
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: skipped dotfile " << urlObj.getFile() << endl;
-#endif
-		return false;
-	}
-#ifdef DEBUG
-	cout << "DirectoryScannerThread::scanEntry: checking " << entryName << endl;
-#endif
-
-	// Stat links, or the stuff it refers to ?
-	if (statLinks == true)
-	{
-		entryStatus = lstat(entryName.c_str(), &fileStat);
-	}
-	else
-	{
-		entryStatus = stat(entryName.c_str(), &fileStat);
-	}
-
-	if (entryStatus == -1)
-	{
-		entryStatus = errno;
-		scanSuccess = false;
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: stat failed with error " << entryStatus << endl;
-#endif
-	}
-	// Special processing applies if it's a symlink
-	else if (S_ISLNK(fileStat.st_mode))
-	{
-		string realEntryName(entryName);
-		string entryNameReferree;
-		bool isInIndexableLocation = false;
-
-		if (m_followSymLinks == false)
-		{
-#ifdef DEBUG
-			cout << "DirectoryScannerThread::scanEntry: skipped symlink " << entryName << endl;
-#endif
-			return false;
-		}
-
-		// Are we already following a symlink to a directory ?
-		if (m_currentLinks.empty() == false)
-		{
-			string linkToDir(m_currentLinks.top() + "/");
-
-			// Yes, we are
-			if ((entryName.length() > linkToDir.length()) &&
-				(entryName.substr(0, linkToDir.length()) == linkToDir))
-			{
-				// ...and this entry is below it
-				realEntryName.replace(0, linkToDir.length() - 1, m_currentLinkReferrees.top());
-#ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: really at " << realEntryName << endl;
-#endif
-				isInIndexableLocation = isIndexable(realEntryName);
-			}
-		}
-
-		char *pBuf = g_file_read_link(realEntryName.c_str(), NULL);
-		if (pBuf != NULL)
-		{
-			string linkLocation(filename_to_utf8(pBuf));
-			if (path_is_absolute(linkLocation) == true)
-			{
-				entryNameReferree = linkLocation;
-			}
-			else
-			{
-				string entryDir(path_get_dirname(realEntryName));
-
-				entryNameReferree = Url::resolvePath(entryDir, linkLocation);
-			}
-
-			if (entryNameReferree[entryNameReferree.length() - 1] == '/')
-			{
-				// Drop the terminating slash
-				entryNameReferree.resize(entryNameReferree.length() - 1);
-			}
-#ifdef DEBUG
-			cout << "DirectoryScannerThread::scanEntry: symlink resolved to " << entryNameReferree << endl;
-#endif
-
-			g_free(pBuf);
-		}
-
-		string referreeLocation("file://" + entryNameReferree);
-		CrawlHistory::CrawlStatus referreeItemStatus = CrawlHistory::UNKNOWN;
-		time_t referreeItemDate;
-
-		// Check whether this will be, or has already been crawled
-		// Referrees in indexable locations will be indexed later on
-		if ((isInIndexableLocation == false) &&
-			(isIndexable(entryNameReferree) == false) &&
-			(crawlHistory.hasItem(referreeLocation, referreeItemStatus, referreeItemDate) == false))
-		{
-			m_currentLinks.push(entryName);
-			m_currentLinkReferrees.push(entryNameReferree);
-
-			// Add a dummy entry for this referree
-			// It will ensure it's not indexed more than once and it shouldn't do any harm
-			crawlHistory.insertItem(referreeLocation, CrawlHistory::CRAWL_LINK, m_sourceId, itemDate);
-
-			// Do it again, this time by stat'ing what the link refers to
-			bool scannedReferree = scanEntry(entryName, crawlHistory, false);
-
-			m_currentLinks.pop();
-			m_currentLinkReferrees.pop();
-
-			return scannedReferree;
-		}
-		else
-		{
-			cout << "Skipping " << entryName << ": it links to " << entryNameReferree
-				<< " which will be crawled, or has already been crawled" << endl;
-
-			// This should ensure that only metadata is indexed
-			docInfo.setType("inode/symlink");
-			reportFile = true;
-		}
-	}
-
-	// Is this item in the database already ?
-	itemExists = crawlHistory.hasItem(location, itemStatus, itemDate);
+void CrawlerThread::recordCrawling(const string &location, bool itemExists, time_t &itemDate)
+{
 	if (itemExists == false)
 	{
 		// Record it
-		crawlHistory.insertItem(location, CrawlHistory::CRAWLING, m_sourceId, itemDate);
+		m_crawlHistory.insertItem(location, CrawlHistory::CRAWLING, m_sourceId, itemDate);
 	}
 	else if (m_fullScan == true)
 	{
 		// Change the status from TO_CRAWL to CRAWLING
-		crawlHistory.updateItem(location, CrawlHistory::CRAWLING, itemDate);
+		m_crawlHistory.updateItem(location, CrawlHistory::CRAWLING, itemDate);
 	}
-
-	// If stat'ing didn't fail, see if it's a file or a directory
-	if ((entryStatus == 0) &&
-		(S_ISREG(fileStat.st_mode)))
-	{
-		// Is this file blacklisted ?
-		// We have to check early so that if necessary the file's status stays at TO_CRAWL
-		// and it is removed from the index at the end of this crawl
-		if (PinotSettings::getInstance().isBlackListed(entryName) == false)
-		{
-			reportFile = true;
-		}
-	}
-	else if ((entryStatus == 0) &&
-		(S_ISDIR(fileStat.st_mode)))
-	{
-		docInfo.setType("x-directory/normal");
-
-		// Can we scan this directory ?
-		if (((m_maxLevel == 0) ||
-			(m_currentLevel < m_maxLevel)) &&
-			(PinotSettings::getInstance().isBlackListed(entryName) == false))
-		{
-			++m_currentLevel;
-
-			// Open the directory
-			DIR *pDir = opendir(entryName.c_str());
-			if (pDir != NULL)
-			{
-#ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: entering " << entryName << endl;
-#endif
-				if (m_pMonitor != NULL)
-				{
-					// Monitor first so that we don't miss events
-					// If monitoring is not possible, record the first case
-					if ((m_pMonitor->addLocation(entryName, true) == false) &&
-						(entryStatus != MONITORING_FAILED))
-					{
-						entryStatus = MONITORING_FAILED;
-					}
-				}
-
-				// Iterate through this directory's entries
-				struct dirent *pDirEntry = readdir(pDir);
-				while ((m_done == false) &&
-					(pDirEntry != NULL))
-				{
-					char *pEntryName = pDirEntry->d_name;
-
-					// Skip . .. and dotfiles
-					if ((pEntryName != NULL) &&
-						(pEntryName[0] != '.'))
-					{
-						string subEntryName(entryName);
-
-						if (entryName[entryName.length() - 1] != '/')
-						{
-							subEntryName += "/";
-						}
-						subEntryName += pEntryName;
-
-						// Scan this entry
-						scanEntry(subEntryName, crawlHistory);
-					}
-
-					// Next entry
-					pDirEntry = readdir(pDir);
-				}
-#ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: leaving " << entryName << endl;
-#endif
-
-				// Close the directory
-				closedir(pDir);
-				--m_currentLevel;
-				reportFile = true;
-			}
-			else
-			{
-				entryStatus = errno;
-				scanSuccess = false;
-#ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: opendir failed with error " << entryStatus << endl;
-#endif
-			}
-		}
-	}
-	// Is it some unknown type ?
-	else if ((entryStatus == 0) &&
-		(!S_ISLNK(fileStat.st_mode)))
-	{
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: unknown entry type" << endl;
-#endif
-		entryStatus = ENOENT;
-		scanSuccess = false;
-	}
-
-	// Was it modified after the last crawl ?
-	if ((itemExists == true) &&
-		(itemDate >= fileStat.st_mtime))
-	{
-		// No, it wasn't
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: not reporting " << location
-			<< ", status " << itemStatus << endl;
-#endif
-		reportFile = false;
-	}
-
-	if (m_done == true)
-	{
-		// Don't record or report the file
-		reportFile = false;
-	}
-	// Did an error occur ?
-	else if (entryStatus != 0)
-	{
-		time_t timeNow = time(NULL);
-
-		// Record this error
-		crawlHistory.updateItem(location, CrawlHistory::CRAWL_ERROR, timeNow, entryStatus);
-
-		if (scanSuccess == false)
-		{
-			return scanSuccess;
-		}
-	}
-	// History of new or modified files, especially their timestamp, is always updated
-	// Others' are updated only if we are doing a full scan because
-	// the status has to be reset to CRAWLED, so that they are not unindexed
-	else if ((itemExists == false) ||
-		(reportFile == true) ||
-		(m_fullScan == true))
-	{
-#ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: updating " << entryName << endl;
-#endif
-		cacheUpdate(location, fileStat.st_mtime, crawlHistory);
-	}
-
-	// If a major error occured, this won't be true
-	if (reportFile == true)
-	{
-		set<string> labels;
-		stringstream labelStream;
-
-		if (docInfo.getType().empty() == true)
-		{
-			// Scan the file
-			docInfo.setType(MIMEScanner::scanFile(entryName));
-		}
-		docInfo.setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
-		docInfo.setSize(fileStat.st_size);
-
-		// Insert a label that identifies the source
-		labelStream << "X-SOURCE" << m_sourceId;
-		labels.insert(labelStream.str());
-		docInfo.setLabels(labels);
-
-		foundFile(docInfo);
-	}
-
-	return scanSuccess;
 }
 
-void DirectoryScannerThread::doWork(void)
+void CrawlerThread::recordError(const string &location, int errorCode)
 {
-	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
+	m_crawlHistory.updateItem(location, CrawlHistory::CRAWL_ERROR, time(NULL), errorCode);
+}
+
+void CrawlerThread::recordSymlink(const string &location, time_t itemDate)
+{
+	m_crawlHistory.insertItem(location, CrawlHistory::CRAWL_LINK, m_sourceId, itemDate);
+}
+
+bool CrawlerThread::monitorEntry(const string &entryName)
+{
+	if (m_pMonitor != NULL)
+	{
+		return m_pMonitor->addLocation(entryName, true);
+	}
+
+	return false;
+}
+
+void CrawlerThread::foundFile(const DocumentInfo &docInfo)
+{
+	DocumentInfo docInfoWithLabels(docInfo);
+	set<string> labels;
+	stringstream labelStream;
+
+	// Insert a label that identifies the source
+	labelStream << "X-SOURCE" << m_sourceId;
+	labels.insert(labelStream.str());
+	docInfoWithLabels.setLabels(labels);
+
+	DirectoryScannerThread::foundFile(docInfoWithLabels);
+}
+
+void CrawlerThread::flushUpdates(void)
+{
+#ifdef DEBUG
+	cout << "CrawlerThread::flushUpdates: flushing updates" << endl;
+#endif
+
+	// Update these records
+	m_crawlHistory.updateItems(m_updateCache, CrawlHistory::CRAWLED);
+	m_updateCache.clear();
+
+#ifdef DEBUG
+	cout << "CrawlerThread::flushUpdates: flushed updates" << endl;
+#endif
+}
+
+void CrawlerThread::doWork(void)
+{
 	MetaDataBackup metaData(PinotSettings::getInstance().getHistoryDatabaseName());
 	Timer scanTimer;
 	set<string> urls;
@@ -627,31 +295,31 @@ void DirectoryScannerThread::doWork(void)
 	scanTimer.start();
 
 	// Remove errors and links
-	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_ERROR);
-	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_LINK);
+	m_crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_ERROR);
+	m_crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_LINK);
 	// ...and entries the previous instance didn't have time to crawl
-	crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWLING);
+	m_crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWLING);
 
 	if (m_fullScan == true)
 	{
 		cout << "Doing a full scan on " << m_dirName << endl;
 
 		// Update this source's items status so that we can detect files that have been deleted
-		crawlHistory.updateItemsStatus(CrawlHistory::TO_CRAWL, m_sourceId);
+		m_crawlHistory.updateItemsStatus(CrawlHistory::TO_CRAWL, m_sourceId);
 	}
 
-	if (scanEntry(m_dirName, crawlHistory) == false)
+	if (scanEntry(m_dirName) == false)
 	{
 		m_errorNum = OPENDIR_FAILED;
 		m_errorParam = m_dirName;
 	}
-	flushUpdates(crawlHistory);
+	flushUpdates();
 	cout << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
 
 	if (m_done == true)
 	{
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::doWork: leaving cleanup until next crawl" << endl;
+		cout << "CrawlerThread::doWork: leaving cleanup until next crawl" << endl;
 #endif
 		return;
 	}
@@ -663,7 +331,7 @@ void DirectoryScannerThread::doWork(void)
 		// All files left with status TO_CRAWL were not found in this crawl
 		// Chances are they were removed after the last full scan
 		while ((m_pHandler != NULL) &&
-			(crawlHistory.getSourceItems(m_sourceId, CrawlHistory::TO_CRAWL, urls,
+			(m_crawlHistory.getSourceItems(m_sourceId, CrawlHistory::TO_CRAWL, urls,
 				currentOffset, currentOffset + 100) > 0))
 		{
 			for (set<string>::const_iterator urlIter = urls.begin();
@@ -673,7 +341,7 @@ void DirectoryScannerThread::doWork(void)
 				m_pHandler->fileDeleted(urlIter->substr(7));
 
 				// Delete this item
-				crawlHistory.deleteItem(*urlIter);
+				m_crawlHistory.deleteItem(*urlIter);
 				metaData.deleteItem(DocumentInfo("", *urlIter, "", ""), DocumentInfo::SERIAL_ALL);
 			}
 
