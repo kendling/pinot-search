@@ -28,7 +28,8 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <cstring>
+#include <string.h>
+#include <strings.h>
 #include <sigc++/sigc++.h>
 #include <glibmm.h>
 #include <glibmm/thread.h>
