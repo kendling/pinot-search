@@ -28,6 +28,7 @@ class PINOT_EXPORT Url
 {
 	public:
 		Url(const std::string &url);
+		Url(const std::string &path, const std::string &parentPath);
 		Url(const Url &other);
 		virtual ~Url();
 

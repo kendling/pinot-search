@@ -51,8 +51,40 @@ Url::Url(const string &url)
 	parse(url);
 }
 
-Url::~Url()
+Url::Url(const string &path, const string &parentPath)
 {
+	string absoluteUrl;
+
+	// Is this a relative path ?
+	if (Glib::path_is_absolute(path) == false)
+	{
+		if (parentPath.empty() == true)
+		{
+			char *pCurrentDir = (char *)malloc(sizeof(char) * PATH_MAX);
+
+			if (pCurrentDir != NULL)
+			{
+				if (getcwd(pCurrentDir, PATH_MAX) != NULL)
+				{
+					absoluteUrl = Url::resolvePath(pCurrentDir, path);
+				}
+				free(pCurrentDir);
+			}
+		}
+		else
+		{
+			absoluteUrl = Url::resolvePath(parentPath, path);
+		}
+	}
+
+	if (absoluteUrl.empty() == false)
+	{
+		parse(absoluteUrl);
+	}
+	else
+	{
+		parse(path);
+	}
 }
 
 Url::Url(const Url &other) :
@@ -63,6 +95,10 @@ Url::Url(const Url &other) :
 	m_location(other.m_location),
 	m_file(other.m_file),
 	m_parameters(other.m_parameters)
+{
+}
+
+Url::~Url()
 {
 }
 
