@@ -368,30 +368,9 @@ int main(int argc, char **argv)
 	while (optind < argc)
 	{
 		string urlParam(argv[optind]);
-		Url thisUrl(urlParam);
-
-		// Is this a relative path ?
-		if ((thisUrl.isLocal() == true) &&
-			(Glib::path_is_absolute(urlParam) == false))
-		{
-			char *pCurrentDir = (char *)malloc(sizeof(char) * PATH_MAX);
-
-			if (pCurrentDir != NULL)
-			{
-				if (getcwd(pCurrentDir, PATH_MAX) != NULL)
-				{
-					urlParam = Url::resolvePath(pCurrentDir, argv[optind]);
-#ifdef DEBUG
-					cout << "URL resolved to " << urlParam << endl;
-#endif
-				}
-
-				free(pCurrentDir);
-			}
-		}
+		Url thisUrl(urlParam, "");
 
 		// Rewrite the URL, dropping user name and password which we don't support
-		thisUrl = urlParam;
 		urlParam = thisUrl.getProtocol();
 		urlParam += "://";
 		if (thisUrl.isLocal() == false)

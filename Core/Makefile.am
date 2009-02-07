@@ -14,7 +14,6 @@ noinst_LTLIBRARIES = libCore.la
 libCore_la_SOURCES = \
 	PinotSettings.cpp \
 	PinotUtils.cpp \
-	ServerThreads.cpp \
 	UniqueApplication.cpp \
 	WorkerThreads.cpp
 
@@ -46,11 +45,14 @@ pinot_index_LDFLAGS = \
 pinot_index_LDADD = \
 	-L$(top_builddir)/Utils \
 	-L$(top_builddir)/Tokenize \
+	-L$(top_builddir)/SQL \
+	-L$(top_builddir)/Monitor \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
-	-lCore -lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
-	@GLIBMM_LIBS@ @DBUS_LIBS@ \
-	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
+	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
+	-lTokenize -lUtils -lBasicUtils @LIBS@ \
+	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
+	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
 pinot_index_SOURCES = pinot-index.cpp
 
@@ -64,7 +66,8 @@ pinot_search_LDADD = \
 	-L$(top_builddir)/Tokenize \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
-	-lCore -lIndexSearch -lCollect -lTokenize -lUtils -lBasicUtils \
+	-lCore -lIndexSearch -lCollect -lTokenize \
+	-lUtils -lBasicUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ \
 	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
@@ -91,6 +94,7 @@ pinot_dbus_daemon_LDADD = \
 pinot_dbus_daemon_SOURCES = \
 	DaemonState.cpp \
 	OnDiskHandler.cpp \
+	ServerThreads.cpp \
 	pinot-dbus-daemon.cpp
 
 pinot_dbus_daemon_DEPENDENCIES = libCore.la

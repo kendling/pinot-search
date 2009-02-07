@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007 Fabrice Colin
+ *  Copyright 2007-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,10 +17,8 @@
  */
  
 #include <getopt.h>
-#include <sys/types.h>
-#include <pwd.h>
+#include <stdlib.h>
 #include <iostream>
-#include <cstdlib>
 #include <string>
 #include <set>
 
@@ -60,27 +58,6 @@ static void printLabels(const set<string> &labels, const string &fileName)
 		cout << "[" << Url::escapeUrl(*labelIter) << "]";
 	}
 	cout << endl;
-}
-
-static string getHomeDirectory(void)
-{
-	struct passwd *pPasswd = getpwuid(geteuid());
-
-	if ((pPasswd != NULL) &&
-		(pPasswd->pw_dir != NULL))
-	{
-		return pPasswd->pw_dir;
-	}
-	else
-	{
-		char *homeDir = getenv("HOME");
-		if (homeDir != NULL)
-		{
-			return homeDir;
-		}
-	}
-
-	return "~";
 }
 
 static void printHelp(void)
@@ -190,11 +167,25 @@ int main(int argc, char **argv)
 	while (optind < argc)
 	{
 		string fileParam(argv[optind]);
+		Url thisUrl(fileParam, "");
+
+		// Rewrite it as a local URL
+		string urlParam(thisUrl.getProtocol());
+		urlParam += "://";
+		urlParam += thisUrl.getLocation();
+		if (thisUrl.getFile().empty() == false)
+		{
+			urlParam += "/";
+			urlParam += thisUrl.getFile();
+		}
+#ifdef DEBUG
+		cout << "URL rewritten to " << urlParam << endl;
+#endif
 
 		if ((getDocumentLabels == true) ||
 			(setDocumentLabels == true))
 		{
-			docId = index.hasDocument(string("file://") + fileParam);
+			docId = index.hasDocument(urlParam);
 			if (docId == 0)
 			{
 				cerr << fileParam << " is not indexed" << endl;
