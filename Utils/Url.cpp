@@ -56,7 +56,9 @@ Url::Url(const string &path, const string &parentPath)
 	string absoluteUrl;
 
 	// Is this a relative path ?
-	if (Glib::path_is_absolute(path) == false)
+	string::size_type pos = path.find("://");
+	if ((pos == string::npos) &&
+		(Glib::path_is_absolute(path) == false))
 	{
 		if (parentPath.empty() == true)
 		{
