@@ -125,7 +125,7 @@ static void printHelp(void)
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
 	ModuleFactory::getSupportedEngines(engines);
 	cout << "pinot-index - Index documents from the command-line\n\n"
-		<< "Usage: pinot-index [OPTIONS] URLS\n\n"
+		<< "Usage: pinot-index [OPTIONS] --db DATABASE URLS\n\n"
 		<< "Options:\n"
 		<< "  -b, --backend             name of back-end to use (default " << PinotSettings::getInstance().m_defaultBackend << ")\n"
 		<< "  -c, --check               check whether the given URL is in the index\n"

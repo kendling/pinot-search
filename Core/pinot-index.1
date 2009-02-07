@@ -4,7 +4,7 @@
 pinot-index \- Index documents from the command-line
 .SH SYNOPSIS
 .B pinot-index
-[\fIOPTIONS\fR] \fIURLS\fR
+[\fIOPTIONS\fR] \fI--db DATABASE URLS\fR
 .SH DESCRIPTION
 pinot\-index \- Index documents from the command\-line
 .SH OPTIONS
@@ -32,7 +32,7 @@ output version information and exit
 .PP
 Supported back\-ends are : 'xapian'
 .SH EXAMPLES
-pinot\-index \fB\-\-check\fR \fB\-\-showinfo\fR \fB\-\-backend\fR xapian \fB\-\-db\fR ~/.pinot/daemon file:///home/fabrice/Documents/Bozo.txt
+pinot\-index \fB\-\-check\fR \fB\-\-showinfo\fR \fB\-\-backend\fR xapian \fB\-\-db\fR ~/.pinot/daemon ../Bozo.txt
 .PP
 pinot\-index \fB\-\-index\fR \fB\-\-db\fR "My Web Pages" http://pinot.berlios.de/
 .SH "REPORTING BUGS"
