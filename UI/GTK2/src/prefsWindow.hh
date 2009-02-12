@@ -28,8 +28,8 @@
 #include <gtkmm/liststore.h>
 
 #include "PinotSettings.h"
-#include "WorkerThreads.h"
 #include "ModelColumns.hh"
+#include "UIThreads.hh"
 #include "prefsWindow_glade.hh"
 
 class prefsWindow : public prefsWindow_glade

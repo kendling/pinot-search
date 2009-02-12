@@ -59,7 +59,7 @@ class IndexingState : public ThreadsManager
 {
 	public:
 		IndexingState(const string &indexLocation) :
-			ThreadsManager(indexLocation, 1, 60),
+			ThreadsManager(indexLocation, 1, 60, true),
 			m_docId(0)
 		{
 			m_onThreadEndSignal.connect(sigc::mem_fun(*this, &IndexingState::on_thread_end));

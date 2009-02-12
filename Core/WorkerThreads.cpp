@@ -46,7 +46,6 @@
 #include "FilterUtils.h"
 #include "ActionQueue.h"
 #include "CrawlHistory.h"
-#include "QueryHistory.h"
 #include "DownloaderFactory.h"
 #include "FilterWrapper.h"
 #include "ModuleFactory.h"
@@ -272,11 +271,13 @@ void WorkerThread::emitSignal(void)
 unsigned int ThreadsManager::m_nextThreadId = 1;
 
 ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
-	unsigned int maxIndexThreads, unsigned int maxThreadsTime) :
+	unsigned int maxIndexThreads, unsigned int maxThreadsTime,
+	bool scanLocalFiles) :
 	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(maxIndexThreads),
 	m_backgroundThreadsCount(0),
 	m_foregroundThreadsMaxTime(maxThreadsTime),
+	m_scanLocalFiles(scanLocalFiles),
 	m_numCPUs(1),
 	m_stopIndexing(false)
 {
@@ -467,7 +468,8 @@ ustring ThreadsManager::index_document(const DocumentInfo &docInfo)
 		return status;
 	}
 
-	if (urlObj.isLocal() == true)
+	if ((m_scanLocalFiles == true) &&
+		(urlObj.isLocal() == true))
 	{
 		// This handles both directories and files
 		start_thread(new DirectoryScannerThread(urlObj.getLocation() + "/" + urlObj.getFile(),
@@ -794,93 +796,6 @@ const vector<DocumentInfo> &ListerThread::getDocuments(void) const
 unsigned int ListerThread::getDocumentsCount(void) const
 {
 	return m_documentsCount;
-}
-
-IndexBrowserThread::IndexBrowserThread(const PinotSettings::IndexProperties &indexProps,
-	unsigned int maxDocsCount, unsigned int startDoc) :
-	ListerThread(indexProps, startDoc),
-	m_maxDocsCount(maxDocsCount)
-{
-}
-
-IndexBrowserThread::~IndexBrowserThread()
-{
-}
-
-void IndexBrowserThread::doWork(void)
-{
-	set<unsigned int> docIDList;
-	set<string> docLabels;
-	unsigned int numDocs = 0;
-
-	if (m_indexProps.m_location.empty() == true)
-	{
-		m_errorNum = UNKNOWN_INDEX;
-		m_errorParam = m_indexProps.m_name.c_str();
-		return;
-	}
-
-	// Get the index at that location
-	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexProps.m_location);
-	if ((pIndex == NULL) ||
-		(pIndex->isGood() == false))
-	{
-		m_errorNum = INDEX_ERROR;
-		m_errorParam = m_indexProps.m_location;
-		if (pIndex != NULL)
-		{
-			delete pIndex;
-		}
-		return;
-	}
-
-	m_documentsCount = pIndex->getDocumentsCount();
-	if (m_documentsCount == 0)
-	{
-#ifdef DEBUG
-		cout << "IndexBrowserThread::doWork: no documents" << endl;
-#endif
-		return;
-	}
-
-#ifdef DEBUG
-	cout << "IndexBrowserThread::doWork: " << m_maxDocsCount << " off " << m_documentsCount
-		<< " documents to browse, starting at position " << m_startDoc << endl;
-#endif
-	pIndex->listDocuments(docIDList, m_maxDocsCount, m_startDoc);
-
-	m_documentsList.clear();
-	m_documentsList.reserve(m_maxDocsCount);
-
-	for (set<unsigned int>::iterator iter = docIDList.begin(); iter != docIDList.end(); ++iter)
-	{
-		unsigned int docId = (*iter);
-
-		if (m_done == true)
-		{
-			break;
-		}
-
-		DocumentInfo docInfo;
-		if (pIndex->getDocumentInfo(docId, docInfo) == true)
-		{
-			string type(docInfo.getType());
-
-			if (type.empty() == true)
-			{
-				docInfo.setType("text/html");
-			}
-			docInfo.setIsIndexed(m_indexProps.m_id, docId);
-
-			// Insert that document
-			m_documentsList.push_back(docInfo);
-			++numDocs;
-		}
-#ifdef DEBUG
-		else cout << "IndexBrowserThread::doWork: couldn't retrieve document " << docId << endl;
-#endif
-	}
-	delete pIndex;
 }
 
 QueryingThread::QueryingThread(const PinotSettings::IndexProperties &indexProps,
@@ -1248,192 +1163,6 @@ void EngineQueryThread::doWork(void)
 	delete pEngine;
 }
 
-EngineHistoryThread::EngineHistoryThread(const string &engineDisplayableName,
-	const QueryProperties &queryProps, unsigned int maxDocsCount) :
-	QueryingThread("", engineDisplayableName, "", queryProps, 0),
-	m_maxDocsCount(maxDocsCount)
-{
-	// Results are converted to UTF-8 prior to insertion in the history database
-	m_resultsCharset = "UTF-8";
-	m_isLive = false;
-}
-
-EngineHistoryThread::~EngineHistoryThread()
-{
-}
-
-void EngineHistoryThread::doWork(void)
-{
-	QueryHistory queryHistory(PinotSettings::getInstance().getHistoryDatabaseName());
-
-	if (queryHistory.getItems(m_queryProps.getName(), m_engineDisplayableName,
-		m_maxDocsCount, m_documentsList) == false)
-	{
-		m_errorNum = HISTORY_FAILED;
-		m_errorParam = m_engineDisplayableName;
-	}
-	else if (m_documentsList.empty() == false)
-	{
-		// Get the first result's charset
-		queryHistory.getItemExtract(m_queryProps.getName(), m_engineDisplayableName,
-			m_documentsList.front().getLocation());
-	}
-}
-
-ExpandQueryThread::ExpandQueryThread(const QueryProperties &queryProps,
-	const set<string> &expandFromDocsSet) :
-	WorkerThread(),
-	m_queryProps(queryProps)
-{
-	copy(expandFromDocsSet.begin(), expandFromDocsSet.end(),
-		inserter(m_expandFromDocsSet, m_expandFromDocsSet.begin()));
-}
-
-ExpandQueryThread::~ExpandQueryThread()
-{
-}
-
-string ExpandQueryThread::getType(void) const
-{
-	return "ExpandQueryThread";
-}
-
-QueryProperties ExpandQueryThread::getQuery(void) const
-{
-	return m_queryProps;
-}
-
-const set<string> &ExpandQueryThread::getExpandTerms(void) const
-{
-	return m_expandTerms;
-}
-
-void ExpandQueryThread::doWork(void)
-{
-	// Get the SearchEngine
-	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine(PinotSettings::getInstance().m_defaultBackend, "MERGED");
-	if (pEngine == NULL)
-	{
-		m_errorNum = UNKNOWN_ENGINE;
-		m_errorParam = m_queryProps.getName();
-		return;
-	}
-
-	// Expand the query
-	pEngine->setExpandSet(m_expandFromDocsSet);
-
-	// Run the query
-	pEngine->setDefaultOperator(SearchEngineInterface::DEFAULT_OP_AND);
-	if (pEngine->runQuery(m_queryProps) == false)
-	{
-		m_errorNum = QUERY_FAILED;
-	}
-	else
-	{
-		// Copy the expand terms
-		const set<string> &expandTerms = pEngine->getExpandTerms();
-		copy(expandTerms.begin(), expandTerms.end(),
-			inserter(m_expandTerms, m_expandTerms.begin()));
-	}
-
-	delete pEngine;
-}
-
-LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToAdd,
-	const set<string> &labelsToDelete) :
-	WorkerThread(),
-	m_resetLabels(false)
-{
-	copy(labelsToAdd.begin(), labelsToAdd.end(),
-		inserter(m_labelsToAdd, m_labelsToAdd.begin()));
-	copy(labelsToDelete.begin(), labelsToDelete.end(),
-		inserter(m_labelsToDelete, m_labelsToDelete.begin()));
-}
-
-LabelUpdateThread::LabelUpdateThread(const set<string> &labelsToAdd,
-	const set<unsigned int> &docsIds, const set<unsigned int> &daemonIds,
-	bool resetLabels) :
-	WorkerThread(),
-	m_resetLabels(resetLabels)
-{
-	copy(labelsToAdd.begin(), labelsToAdd.end(),
-		inserter(m_labelsToAdd, m_labelsToAdd.begin()));
-	copy(docsIds.begin(), docsIds.end(),
-		inserter(m_docsIds, m_docsIds.begin()));
-	copy(daemonIds.begin(), daemonIds.end(),
-		inserter(m_daemonIds, m_daemonIds.begin()));
-}
-
-LabelUpdateThread::~LabelUpdateThread()
-{
-}
-
-string LabelUpdateThread::getType(void) const
-{
-	return "LabelUpdateThread";
-}
-
-bool LabelUpdateThread::modifiedDocsIndex(void) const
-{
-	return !m_docsIds.empty();
-}
-
-bool LabelUpdateThread::modifiedDaemonIndex(void) const
-{
-	return !m_daemonIds.empty();
-}
-
-void LabelUpdateThread::doWork(void)
-{
-	bool actOnDocuments = false;
-
-	IndexInterface *pDocsIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_docsIndexLocation);
-	if (pDocsIndex == NULL)
-	{
-		m_errorNum = INDEX_ERROR;
-		m_errorParam = PinotSettings::getInstance().m_docsIndexLocation;
-		return;
-	}
-
-	IndexInterface *pDaemonIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
-	if (pDaemonIndex == NULL)
-	{
-		m_errorNum = INDEX_ERROR;
-		m_errorParam = PinotSettings::getInstance().m_daemonIndexLocation;
-		delete pDocsIndex;
-		return;
-	}
-
-	// Apply the labels to existing documents
-	if (m_docsIds.empty() == false)
-	{
-		pDocsIndex->setDocumentsLabels(m_docsIds, m_labelsToAdd, m_resetLabels);
-		actOnDocuments = true;
-	}
-	if (m_daemonIds.empty() == false)
-	{
-		pDaemonIndex->setDocumentsLabels(m_daemonIds, m_labelsToAdd, m_resetLabels);
-		actOnDocuments = true;
-	}
-
-	if (actOnDocuments == false)
-	{
-		// Add and/or delete labels on the daemon's index only
-		// The documents index is not required to have labels set
-		for (set<string>::iterator iter = m_labelsToAdd.begin(); iter != m_labelsToAdd.end(); ++iter)
-		{
-			pDaemonIndex->addLabel(*iter);
-		}
-		for (set<string>::iterator iter = m_labelsToDelete.begin(); iter != m_labelsToDelete.end(); ++iter)
-		{
-			pDaemonIndex->deleteLabel(*iter);
-		}
-	}
-
-	delete pDaemonIndex;
-	delete pDocsIndex;
-}
-
 DownloadingThread::DownloadingThread(const DocumentInfo &docInfo) :
 	WorkerThread(),
 	m_docInfo(docInfo),
@@ -1673,8 +1402,11 @@ void IndexingThread::doWork(void)
 
 	if (m_pDoc != NULL)
 	{
+		Timer indexTimer;
 		string docType(m_pDoc->getType());
 		bool success = false;
+
+		indexTimer.start();
 
 		// The type may have been obtained when downloading
 		if (docType.empty() == false)
@@ -1815,6 +1547,8 @@ void IndexingThread::doWork(void)
 				m_docInfo.setIsIndexed(
 					PinotSettings::getInstance().getIndexPropertiesByLocation(m_indexLocation).m_id,
 					m_docId);
+
+				cout << "Indexed " << m_docInfo.getLocation() << " in " << indexTimer.stop() << " ms" << endl;
 			}
 		}
 	}
@@ -1940,93 +1674,6 @@ void UnindexingThread::doWork(void)
 	}
 
 	delete pIndex;
-}
-
-UpdateDocumentThread::UpdateDocumentThread(const PinotSettings::IndexProperties &indexProps, unsigned int docId,
-	const DocumentInfo &docInfo, bool updateLabels) :
-	WorkerThread(),
-	m_indexProps(indexProps),
-	m_docId(docId),
-	m_docInfo(docInfo),
-	m_updateLabels(updateLabels)
-{
-}
-
-UpdateDocumentThread::~UpdateDocumentThread()
-{
-}
-
-string UpdateDocumentThread::getType(void) const
-{
-	return "UpdateDocumentThread";
-}
-
-PinotSettings::IndexProperties UpdateDocumentThread::getIndexProperties(void) const
-{
-	return m_indexProps;
-}
-
-unsigned int UpdateDocumentThread::getDocumentID(void) const
-{
-	return m_docId;
-}
-
-const DocumentInfo &UpdateDocumentThread::getDocumentInfo(void) const
-{
-	return m_docInfo;
-}
-
-void UpdateDocumentThread::doWork(void)
-{
-	if (m_done == false)
-	{
-		if (m_indexProps.m_location.empty() == true)
-		{
-			m_errorNum = UNKNOWN_INDEX;
-			m_errorParam = m_indexProps.m_name.c_str();
-			return;
-		}
-
-		// Get the index at that location
-		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexProps.m_location);
-		if ((pIndex == NULL) ||
-			(pIndex->isGood() == false))
-		{
-			m_errorNum = INDEX_ERROR;
-			m_errorParam = m_indexProps.m_location;
-			if (pIndex != NULL)
-			{
-				delete pIndex;
-			}
-			return;
-		}
-
-		// Update the DocumentInfo
-		if (pIndex->updateDocumentInfo(m_docId, m_docInfo) == false)
-		{
-			m_errorNum = UPDATE_FAILED;
-			m_errorParam = m_docInfo.getLocation();
-			return;
-		}
-		// ...and the labels if necessary
-		if (m_updateLabels == true)
-		{
-			if (pIndex->setDocumentLabels(m_docId, m_docInfo.getLabels()) == false)
-			{
-				m_errorNum = UPDATE_FAILED;
-				m_errorParam = m_docInfo.getLocation();
-				return;
-			}
-		}
-
-		// Flush the index ?
-		if (m_immediateFlush == true)
-		{
-			pIndex->flush();
-		}
-
-		delete pIndex;
-	}
 }
 
 MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler,

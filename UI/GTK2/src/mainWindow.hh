@@ -40,12 +40,12 @@
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
 #include "PinotSettings.h"
-#include "WorkerThreads.h"
 #include "EnginesTree.hh"
 #include "IndexPage.hh"
 #include "ModelColumns.hh"
 #include "Notebook.hh"
 #include "ResultsTree.hh"
+#include "UIThreads.hh"
 #include "mainWindow_glade.hh"
 
 class mainWindow : public mainWindow_glade
