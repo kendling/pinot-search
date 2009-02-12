@@ -1,5 +1,4 @@
 [Desktop Entry]
-Encoding=UTF-8
 Name=File Indexing and Search
 Comment=Configure Pinot to index your files
 Exec=pinot-prefs
