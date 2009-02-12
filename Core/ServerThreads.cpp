@@ -249,7 +249,7 @@ bool CrawlerThread::monitorEntry(const string &entryName)
 		return m_pMonitor->addLocation(entryName, true);
 	}
 
-	return false;
+	return true;
 }
 
 void CrawlerThread::foundFile(const DocumentInfo &docInfo)
