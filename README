@@ -266,7 +266,7 @@ http://pinot.berlios.de/
     * plain text
     * HTML
     * XML
-    * mbox
+    * mbox, including attachments and embedded documents
     * MP3 and Ogg Vorbis
     * JPEG
 
@@ -283,11 +283,9 @@ http://pinot.berlios.de/
     * DEB (dpkg required)
 
   For other document types, Pinot will only index metadata such as name,
-  location etc...
-
-  If you wish to add support for another document type, and know of a
-  command-line program that can convert that type to plain text, XML or HTML,
-  add it to external-filters.xml, located in /etc/pinot/.
+  location etc... If you wish to add support for another document type, and
+  know of a command-line program that can handle that type, add it to
+  external-filters.xml, located in /etc/pinot/.
 
 
 9. File patterns
