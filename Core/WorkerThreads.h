@@ -287,6 +287,7 @@ class DownloadingThread : public WorkerThread
 		DocumentInfo m_docInfo;
 		Document *m_pDoc;
 		DownloaderInterface *m_pDownloader;
+		std::string m_protocol;
 
 		DownloadingThread();
 
@@ -303,6 +304,7 @@ class IndexingThread : public DownloadingThread
 	public:
 		IndexingThread(const DocumentInfo &docInfo, const std::string &indexLocation,
 			bool allowAllMIMETypes = true);
+		IndexingThread(const std::string &indexLocation);
 		virtual ~IndexingThread();
 
 		virtual std::string getType(void) const;
@@ -316,10 +318,11 @@ class IndexingThread : public DownloadingThread
 		bool isNewDocument(void) const;
 
 	protected:
-		unsigned int m_docId;
+		IndexInterface *m_pIndex;
 		std::string m_indexLocation;
 		bool m_allowAllMIMETypes;
 		bool m_update;
+		unsigned int m_docId;
 
 		IndexingThread();
 

@@ -1208,21 +1208,36 @@ const Document *DownloadingThread::getDocument(void) const
 
 void DownloadingThread::doWork(void)
 {
+	Url thisUrl(m_docInfo.getLocation());
+	bool getDownloader = true;
+
 	if (m_pDoc != NULL)
 	{
 		delete m_pDoc;
 		m_pDoc = NULL;
 	}
+
+	// Get a Downloader
 	if (m_pDownloader != NULL)
 	{
-		delete m_pDownloader;
-		m_pDownloader = NULL;
+		// Same protocol as what we now need ?
+		if (m_protocol == thisUrl.getProtocol())
+		{
+			getDownloader = false;
+		}
+		else
+		{
+			delete m_pDownloader;
+			m_pDownloader = NULL;
+			m_protocol.clear();
+		}
+	}
+	if (getDownloader == true)
+	{
+		m_protocol = thisUrl.getProtocol();
+		m_pDownloader = DownloaderFactory::getDownloader(m_protocol);
 	}
 
-	Url thisUrl(m_docInfo.getLocation());
-
-	// Get a Downloader, the default one will do
-	m_pDownloader = DownloaderFactory::getDownloader(thisUrl.getProtocol());
 	if (m_pDownloader == NULL)
 	{
 		m_errorNum = UNSUPPORTED_PROTOCOL;
@@ -1234,7 +1249,8 @@ void DownloadingThread::doWork(void)
 		PinotSettings &settings = PinotSettings::getInstance();
 
 		// Set up the proxy
-		if ((settings.m_proxyEnabled == true) &&
+		if ((getDownloader == true) &&
+			(settings.m_proxyEnabled == true) &&
 			(settings.m_proxyAddress.empty() == false))
 		{
 			char portStr[64];
@@ -1262,24 +1278,30 @@ void DownloadingThread::doWork(void)
 IndexingThread::IndexingThread(const DocumentInfo &docInfo, const string &indexLocation,
 	bool allowAllMIMETypes) :
 	DownloadingThread(docInfo),
-	m_docId(0),
+	m_pIndex(NULL),
 	m_indexLocation(indexLocation),
 	m_allowAllMIMETypes(allowAllMIMETypes),
-	m_update(false)
+	m_update(false),
+	m_docId(0)
 {
 }
 
-IndexingThread::IndexingThread() :
+IndexingThread::IndexingThread(const string &indexLocation) :
 	DownloadingThread(),
-	m_docId(0),
-	m_indexLocation(""),
+	m_pIndex(NULL),
+	m_indexLocation(indexLocation),
 	m_allowAllMIMETypes(true),
-	m_update(false)
+	m_update(false),
+	m_docId(0)
 {
 }
 
 IndexingThread::~IndexingThread()
 {
+	if (m_pIndex != NULL)
+	{
+		delete m_pIndex;
+	}
 }
 
 string IndexingThread::getType(void) const
@@ -1309,25 +1331,24 @@ bool IndexingThread::isNewDocument(void) const
 
 void IndexingThread::doWork(void)
 {
-	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
 	Url thisUrl(m_docInfo.getLocation());
 	bool reliableType = false, doDownload = true;
 
 	// First things first, get the index
-	if ((pIndex == NULL) ||
-		(pIndex->isGood() == false))
+	if (m_pIndex == NULL)
+	{
+		m_pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);
+	}
+	if ((m_pIndex == NULL) ||
+		(m_pIndex->isGood() == false))
 	{
 		m_errorNum = INDEX_ERROR;
 		m_errorParam = m_indexLocation;
-		if (pIndex != NULL)
-		{
-			delete pIndex;
-		}
 		return;
 	}
 
 	// Is it an update ?
-	m_docId = pIndex->hasDocument(m_docInfo.getLocation());
+	m_docId = m_pIndex->hasDocument(m_docInfo.getLocation());
 	if (m_docId > 0)
 	{
 		// Ignore robots directives on updates
@@ -1352,7 +1373,6 @@ void IndexingThread::doWork(void)
 		{
 			m_errorNum = UNSUPPORTED_TYPE;
 			m_errorParam = m_docInfo.getType();
-			delete pIndex;
 
 			return;
 		}
@@ -1447,7 +1467,6 @@ void IndexingThread::doWork(void)
 			{
 				m_errorNum = UNSUPPORTED_TYPE;
 				m_errorParam = m_docInfo.getType();
-				delete pIndex;
 
 				return;
 			}
@@ -1455,6 +1474,7 @@ void IndexingThread::doWork(void)
 			// Let FilterWrapper handle unspported documents
 		}
 		else if ((PinotSettings::getInstance().m_ignoreRobotsDirectives == false) &&
+			(thisUrl.isLocal() == false) &&
 			(m_docInfo.getType().length() >= 9) &&
 			(m_docInfo.getType().substr(9) == "text/html"))
 		{
@@ -1480,7 +1500,6 @@ void IndexingThread::doWork(void)
 						// No, it isn't
 						m_errorNum = ROBOTS_FORBIDDEN;
 						m_errorParam = m_docInfo.getLocation();
-						delete pIndex;
 
 						return;
 					}
@@ -1493,7 +1512,7 @@ void IndexingThread::doWork(void)
 
 		if (m_done == false)
 		{
-			FilterWrapper wrapFilter(pIndex);
+			FilterWrapper wrapFilter(m_pIndex);
 
 			// Update an existing document or add to the index ?
 			if (m_update == true)
@@ -1544,11 +1563,11 @@ void IndexingThread::doWork(void)
 				// Flush the index ?
 				if (m_immediateFlush == true)
 				{
-					pIndex->flush();
+					m_pIndex->flush();
 				}
 
 				// The document properties may have changed
-				pIndex->getDocumentInfo(m_docId, m_docInfo);
+				m_pIndex->getDocumentInfo(m_docId, m_docInfo);
 				m_docInfo.setIsIndexed(
 					PinotSettings::getInstance().getIndexPropertiesByLocation(m_indexLocation).m_id,
 					m_docId);
@@ -1560,8 +1579,6 @@ void IndexingThread::doWork(void)
 #ifdef DEBUG
 	else cout << "IndexingThread::doWork: couldn't download " << m_docInfo.getLocation() << endl;
 #endif
-
-	delete pIndex;
 }
 
 UnindexingThread::UnindexingThread(const set<unsigned int> &docIdList) :
@@ -1924,14 +1941,13 @@ void MonitorThread::doWork(void)
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName,
 	const string &indexLocation, unsigned int maxLevel,
 	bool inlineIndexing, bool followSymLinks) :
-	IndexingThread(),
+	IndexingThread(indexLocation),
 	m_dirName(dirName),
 	m_currentLevel(0),
 	m_maxLevel(maxLevel),
 	m_inlineIndexing(inlineIndexing),
 	m_followSymLinks(followSymLinks)
 {
-	m_indexLocation = indexLocation;
 }
 
 DirectoryScannerThread::~DirectoryScannerThread()
