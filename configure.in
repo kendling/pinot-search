@@ -369,7 +369,7 @@ MISC_CFLAGS="$PTHREAD_CFLAGS $VISIB_CFLAGS"
 MISC_LIBS="$PTHREAD_LIBS"
 AC_SUBST(MISC_CFLAGS)
 AC_SUBST(MISC_LIBS)
-AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h])
+AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h linux/sched.h])
 PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
 SHARED_MIME_INFO_PREFIX=`pkg-config --variable=prefix shared-mime-info`
 AC_SUBST(SHARED_MIME_INFO_PREFIX)

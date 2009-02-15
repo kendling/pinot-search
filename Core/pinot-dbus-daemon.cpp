@@ -16,11 +16,17 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #include <stdlib.h>
 #include <libintl.h>
 #include <getopt.h>
+#ifdef HAVE_LINUX_SCHED_H
+#include <linux/sched.h>
+#include <sched.h>
+#else
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
@@ -37,7 +43,6 @@
 #include <glibmm/miscutils.h>
 #include <glibmm/convert.h>
 
-#include "config.h"
 #include "NLS.h"
 #include "FilterFactory.h"
 #include "Languages.h"
@@ -522,13 +527,23 @@ int main(int argc, char **argv)
 
 	atexit(closeAll);
 
+#ifdef HAVE_LINUX_SCHED_H
+	// Set the scheduling policy
+	struct sched_param schedParam;
+	if (sched_getparam(0, &schedParam) == -1)
+	{
+		cerr << "Couldn't get current scheduling policy" << endl;
+	}
+	else if (sched_setscheduler(0, SCHED_IDLE, &schedParam) == -1)
+	{
+		cerr << "Couldn't set scheduling policy" << endl;
+	}
+#else
 	// Change the daemon's priority
 	if (setpriority(PRIO_PROCESS, 0, priority) == -1)
 	{
 		cerr << "Couldn't set scheduling priority to " << priority << endl;
 	}
-#ifdef DEBUG
-	else cout << "Set priority to " << priority << endl;
 #endif
 
 	GError *pError = NULL;
