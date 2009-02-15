@@ -62,6 +62,9 @@ class IndexingState : public ThreadsManager
 			ThreadsManager(indexLocation, 1, 60, true),
 			m_docId(0)
 		{
+			// Disable implicit flushing
+			WorkerThread::immediateFlush(false);
+
 			m_onThreadEndSignal.connect(sigc::mem_fun(*this, &IndexingState::on_thread_end));
 		}
 
@@ -97,6 +100,15 @@ class IndexingState : public ThreadsManager
 
 				// Get the document ID of the URL we have just indexed
 				m_docId = pIndexThread->getDocumentID();
+
+				// Explicitely flush the index once a directory has been crawled
+				IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_defaultIndexLocation);
+				if (pIndex != NULL)
+				{
+					pIndex->flush();
+
+					delete pIndex;
+				}
 			}
 
 			// Delete the thread
@@ -467,7 +479,7 @@ int main(int argc, char **argv)
 		++optind;
 	}
 	delete pIndex;
-	if (g_pState == NULL)
+	if (g_pState != NULL)
 	{
 		delete g_pState;
 	}
