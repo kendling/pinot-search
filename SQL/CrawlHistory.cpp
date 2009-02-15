@@ -340,8 +340,8 @@ bool CrawlHistory::updateItems(const map<string, time_t> urls, CrawlStatus statu
 }
 
 /// Updates the status of items en masse.
-bool CrawlHistory::updateItemsStatus(CrawlStatus newStatus, unsigned int sourceId,
-	bool allSources)
+bool CrawlHistory::updateItemsStatus(CrawlStatus oldStatus, CrawlStatus newStatus,
+	unsigned int sourceId, bool allSources)
 {
 	SQLResults *results = NULL;
 	bool success = false;
@@ -349,15 +349,15 @@ bool CrawlHistory::updateItemsStatus(CrawlStatus newStatus, unsigned int sourceI
 	if (allSources == false)
 	{
 		results = executeStatement("UPDATE CrawlHistory \
-			SET Status='%q' WHERE SourceId='%u';",
-			statusToText(newStatus).c_str(), sourceId);
+			SET Status='%q' WHERE SourceId='%u' AND Status='%q';",
+			statusToText(newStatus).c_str(), sourceId, statusToText(oldStatus).c_str());
 	}
 	else
 	{
 		// Ignore the source
 		results = executeStatement("UPDATE CrawlHistory \
-			SET Status='%q';",
-			statusToText(newStatus).c_str());
+			SET Status='%q' AND Status='%q';",
+			statusToText(newStatus).c_str(), statusToText(oldStatus).c_str());
 	}
 
 	if (results != NULL)

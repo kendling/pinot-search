@@ -305,7 +305,7 @@ void CrawlerThread::doWork(void)
 		cout << "Doing a full scan on " << m_dirName << endl;
 
 		// Update this source's items status so that we can detect files that have been deleted
-		m_crawlHistory.updateItemsStatus(CrawlHistory::TO_CRAWL, m_sourceId);
+		m_crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::TO_CRAWL, m_sourceId);
 	}
 
 	if (scanEntry(m_dirName) == false)

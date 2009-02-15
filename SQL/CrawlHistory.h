@@ -64,8 +64,8 @@ class CrawlHistory : public SQLiteBase
 		bool updateItems(const std::map<std::string, time_t> urls, CrawlStatus status);
 
 		/// Updates the status of items en masse.
-		bool updateItemsStatus(CrawlStatus newStatus, unsigned int sourceId,
-			bool allSources = false);
+		bool updateItemsStatus(CrawlStatus oldStatus, CrawlStatus newStatus,
+			unsigned int sourceId, bool allSources = false);
 
 		/// Gets the error number and date for a URL.
 		int getErrorDetails(const std::string &url, time_t &date);

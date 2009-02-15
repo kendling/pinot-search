@@ -514,7 +514,9 @@ void DaemonState::start(bool forceFullScan, bool isReindex)
 		CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 
 		// Update all items status so that we can get rid of files from deleted sources
-		crawlHistory.updateItemsStatus(CrawlHistory::TO_CRAWL, 0, true);
+		crawlHistory.updateItemsStatus(CrawlHistory::CRAWLING, CrawlHistory::TO_CRAWL, 0, true);
+		crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::TO_CRAWL, 0, true);
+		crawlHistory.updateItemsStatus(CrawlHistory::CRAWL_ERROR, CrawlHistory::TO_CRAWL, 0, true);
 	}
 
 	// Initiate crawling
