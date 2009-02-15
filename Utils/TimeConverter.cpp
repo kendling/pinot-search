@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -146,6 +146,8 @@ string TimeConverter::toTimestamp(time_t aTime, bool inGMTime)
 		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %Z", pTimeTm) > 0)
 #endif
 		{
+			delete pTimeTm;
+
 			return timeStr;
 		}
 	}

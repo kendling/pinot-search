@@ -1394,6 +1394,11 @@ void IndexingThread::doWork(void)
 	}
 	else
 	{
+		if (m_pDoc != NULL)
+		{
+			delete m_pDoc;
+			m_pDoc = NULL;
+		}
 		m_pDoc = new Document(m_docInfo);
 
 		m_pDoc->setTimestamp(m_docInfo.getTimestamp());

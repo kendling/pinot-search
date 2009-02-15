@@ -363,9 +363,13 @@ void CrawlerThread::doWork(void)
 		scanTimer.start();
 
 		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+		if (pIndex == NULL)
+		{
+			return;
+		}
+
 		// Restore user-set metadata, if any
-		while ((pIndex != NULL) &&
-			(pIndex->isGood() == true) &&
+		while ((pIndex->isGood() == true) &&
 			(metaData.getItems(string("file://") + m_dirName, urls,
 				currentOffset, currentOffset + 100) == true))
 		{
@@ -395,6 +399,8 @@ void CrawlerThread::doWork(void)
 		}
 		cout << "Restored user-set metadata for " << currentOffset + urls.size()
 			<< " documents in " << scanTimer.stop() << " ms" << endl;
+
+		delete pIndex;
 	}
 }
 
