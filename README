@@ -168,6 +168,11 @@ http://pinot.berlios.de/
   If you want to exclude any specific files or directories from indexing, use
   patterns as described in section "9. File patterns".
 
+  The pinot-index program allows indexing and peeking at documents' properties
+  from the command-line. Using the -i/--index option with the My Documents or
+  My Web Pages index is not recommended. For more details, see the manual page
+  for pinot-index(1).
+
 
 6. Searching
 
