@@ -430,7 +430,7 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 #ifdef DEBUG
 		cout << "DaemonState::crawl_location: crawling was stopped" << endl;
 #endif
-		return true;
+		return false;
 	}
 
 	if (locationToCrawl.empty() == true)
@@ -529,8 +529,10 @@ void DaemonState::reload(void)
 	m_reload = true;
 }
 
-void DaemonState::start_crawling(void)
+bool DaemonState::start_crawling(void)
 {
+	bool startedCrawler = false;
+
 	if (write_lock_lists() == true)
 	{
 #ifdef DEBUG
@@ -546,7 +548,7 @@ void DaemonState::start_crawling(void)
 			{
 				PinotSettings::IndexableLocation nextLocation(m_crawlQueue.front());
 
-				crawl_location(nextLocation);
+				startedCrawler = crawl_location(nextLocation);
 			}
 			else if (m_fullScan == true)
 			{
@@ -576,6 +578,7 @@ void DaemonState::start_crawling(void)
 		unlock_lists();
 	}
 
+	return startedCrawler;
 }
 
 void DaemonState::stop_crawling(void)
@@ -621,15 +624,6 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		cout << "DaemonState::on_thread_end: done crawling " << pCrawlerThread->getDirectory() << endl;
 #endif
 
-		// Explicitely flush the index once a directory has been crawled
-		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
-		if (pIndex != NULL)
-		{
-			pIndex->flush();
-
-			delete pIndex;
-		}
-
 		if (isStopped == false)
 		{
 			// Pop the queue
@@ -637,7 +631,17 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		}
 		// Else, the directory wasn't fully crawled so better leave it in the queue
 
-		start_crawling();
+		if (start_crawling() == false)
+		{
+			// Flush the index if no new crawler was started
+			IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+			if (pIndex != NULL)
+			{
+				pIndex->flush();
+
+				delete pIndex;
+			}
+		}
 	}
 	else if (type == "IndexingThread")
 	{

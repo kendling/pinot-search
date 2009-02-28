@@ -84,7 +84,7 @@ class DaemonState : public ThreadsManager
 
 		void reload(void);
 
-		void start_crawling(void);
+		bool start_crawling(void);
 
 		void stop_crawling(void);
 
