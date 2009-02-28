@@ -17,6 +17,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <iostream>
 #include <glibmm/miscutils.h>
 
