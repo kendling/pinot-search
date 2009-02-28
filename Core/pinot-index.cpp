@@ -167,8 +167,6 @@ static void closeAll(void)
 {
 	// Close everything
 	ModuleFactory::unloadModules();
-	Dijon::FilterFactory::unloadFilters();
-	Dijon::HtmlFilter::shutdown();
 	DownloaderInterface::shutdown();
 	MIMEScanner::shutdown();
 }
@@ -285,7 +283,6 @@ int main(int argc, char **argv)
 		cerr << "Couldn't load MIME settings" << endl;
 	}
 	DownloaderInterface::initialize();
-	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + string("/pinot/filters"));
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
 	ModuleFactory::loadModules(confDirectory + "/backends");

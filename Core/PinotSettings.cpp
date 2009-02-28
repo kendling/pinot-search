@@ -36,6 +36,7 @@
 
 #include <glibmm/convert.h>
 #include <glibmm/date.h>
+#include <libxml/parser.h>
 #include <libxml++/parsers/domparser.h>
 #include <libxml++/nodes/node.h>
 #include <libxml++/nodes/textnode.h>
@@ -161,6 +162,9 @@ PinotSettings::~PinotSettings()
 
 PinotSettings &PinotSettings::getInstance(void)
 {
+	// Initialize libxml2
+	xmlInitParser();
+
 	return m_instance;
 }
 

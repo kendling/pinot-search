@@ -74,8 +74,6 @@ static void closeAll(void)
 
 	// Close everything
 	ModuleFactory::unloadModules();
-	Dijon::FilterFactory::unloadFilters();
-	Dijon::HtmlFilter::shutdown();
 
 	// Restore the stream buffers
 	if (g_coutBuf != NULL)
@@ -247,7 +245,6 @@ int main(int argc, char **argv)
 	}
 	DownloaderInterface::initialize();
 	// Load filter libraries, if any
-	Dijon::HtmlFilter::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + "/pinot/filters");
 	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
 	// Load backends, if any
