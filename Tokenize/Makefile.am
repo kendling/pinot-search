@@ -10,6 +10,7 @@ noinst_HEADERS = \
 	$(top_srcdir)/Tokenize/filters/FilterFactory.h \
 	$(top_srcdir)/Tokenize/filters/GMimeMboxFilter.h \
 	$(top_srcdir)/Tokenize/filters/HtmlFilter.h \
+	$(top_srcdir)/Tokenize/filters/HtmlParser.h \
 	$(top_srcdir)/Tokenize/filters/TagLibMusicFilter.h \
 	$(top_srcdir)/Tokenize/filters/TextFilter.h \
 	$(top_srcdir)/Tokenize/filters/XmlFilter.h
@@ -57,6 +58,7 @@ libTokenize_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/FilterFactory.cc \
 	$(top_srcdir)/Tokenize/filters/HtmlFilter.cc \
+	$(top_srcdir)/Tokenize/filters/HtmlParser.cc \
 	$(top_srcdir)/Tokenize/filters/TextFilter.cc \
 	$(top_srcdir)/Tokenize/filters/XmlFilter.cc
 
