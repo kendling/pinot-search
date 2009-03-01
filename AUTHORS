@@ -33,7 +33,14 @@ The source in Utils/unac is from unac 1.7.0 (Copyright Loic Dachary
 <loic at senga dot org>).
 
 Some code is borrowed from Xapian Omega, which is "largely the work of
-Olly Betts, Mark Shinwell (omindex-config) and Richard Boulton".
+Olly Betts, Mark Shinwell (omindex-config) and Richard Boulton",
+including its HTML parser. The file Tokenize/filters/HtmlParser.cc is :
+	Copyright 1999,2000,2001 BrightStation PLC
+	Copyright 2001 Ananova Ltd
+	Copyright 2002,2006,2007,2008 Olly Betts
+while the file Tokenize/filters/HtmlParser.h is :
+	Copyright 1999,2000,2001 BrightStation PLC
+	Copyright 2002,2006,2008 Olly Betts
 
 Code for mktime_from_utc() in Utils/TimeConverter.cpp was borrowed from
 wget (http://wget.sunsite.dk/).
@@ -58,6 +65,7 @@ Translations provided by :
 	Japanese - Takeo Mizuki <???>
 	Portuguese - _PN_boy <pedro_nuno_pn at iol dot pt>
 		& Tiago Silva <???>
+		& Flávio Martins <xhaker at gmail dot com>
 	Portuguese (Brazil) - Leonardo Melo <leonardovazmelo at gmail dot com>
 		& Rafael Porto Rodrigues <rafporto at gmail dot com>
 		& André Gondim <andregondim at ubuntu dot com>
