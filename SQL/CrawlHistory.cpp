@@ -75,13 +75,13 @@ CrawlHistory::CrawlStatus CrawlHistory::textToStatus(const string &text)
 {
 	CrawlStatus status = UNKNOWN;
 
-	if (text == "CRAWLING")
-	{
-		status = CRAWLING;
-	}
-	else if (text == "TO_CRAWL")
+	if (text == "TO_CRAWL")
 	{
 		status = TO_CRAWL;
+	}
+	else if (text == "CRAWLING")
+	{
+		status = CRAWLING;
 	}
 	else if (text == "CRAWLED")
 	{
@@ -146,7 +146,7 @@ bool CrawlHistory::create(const string &database)
 	if (createHistoryTable == true)
 	{
 		if (db.executeSimpleStatement("CREATE TABLE CrawlHistory (Url VARCHAR(255) PRIMARY KEY, \
-			Status VARCHAR(255), SourceID INTEGER, DATE INTEGER, ErrorNum INTEGER);") == false)
+			Status VARCHAR(255), SourceID INTEGER, Date INTEGER, ErrorNum INTEGER);") == false)
 		{
 			return false;
 		}
@@ -356,7 +356,7 @@ bool CrawlHistory::updateItemsStatus(CrawlStatus oldStatus, CrawlStatus newStatu
 	{
 		// Ignore the source
 		results = executeStatement("UPDATE CrawlHistory \
-			SET Status='%q' AND Status='%q';",
+			SET Status='%q' WHERE Status='%q';",
 			statusToText(newStatus).c_str(), statusToText(oldStatus).c_str());
 	}
 
