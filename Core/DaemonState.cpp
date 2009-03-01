@@ -312,6 +312,7 @@ DaemonState::DaemonState() :
 	m_fullScan(false),
 	m_isReindex(false),
 	m_reload(false),
+	m_flush(false),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
 	m_pDiskHandler(NULL),
 	m_crawlers(0)
@@ -628,20 +629,11 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		{
 			// Pop the queue
 			m_crawlQueue.pop();
+			m_flush = true;
 		}
 		// Else, the directory wasn't fully crawled so better leave it in the queue
 
-		if (start_crawling() == false)
-		{
-			// Flush the index if no new crawler was started
-			IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
-			if (pIndex != NULL)
-			{
-				pIndex->flush();
-
-				delete pIndex;
-			}
-		}
+		start_crawling();
 	}
 	else if (type == "IndexingThread")
 	{
@@ -756,34 +748,43 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	// Delete the thread
 	delete pThread;
 
-	// Are we supposed to reload the configuration ?
 	// Wait until there are no threads running (except background ones)
-	if ((m_reload == true) &&
-		(get_threads_count() == 0))
+	// to flush the index or reload the configuration
+	if (get_threads_count() == 0)
 	{
-#ifdef DEBUG
-		cout << "DaemonState::on_thread_end: stopping all threads" << endl;
-#endif
-		// Stop background threads
-		stop_threads();
-		// ...clear the queues
-		clear_queues();
+		if (m_flush == true)
+		{
+			m_flush = false;
 
-		// Reload
-		PinotSettings &settings = PinotSettings::getInstance();
-		settings.clear();
-		settings.load(PinotSettings::LOAD_ALL);
-		m_reload = false;
-#ifdef DEBUG
-		cout << "DaemonState::on_thread_end: reloading" << endl;
-#endif
+			IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+			if (pIndex != NULL)
+			{
+				pIndex->flush();
 
-		// ...and restart everything 
-		start(true, false);
+				delete pIndex;
+			}
+		}
+
+		if (m_reload == true)
+		{
+#ifdef DEBUG
+			cout << "DaemonState::on_thread_end: stopping all threads" << endl;
+#endif
+			// Stop background threads
+			stop_threads();
+			// ...clear the queues
+			clear_queues();
+
+			// Reload
+			PinotSettings &settings = PinotSettings::getInstance();
+			settings.clear();
+			settings.load(PinotSettings::LOAD_ALL);
+			m_reload = false;
+
+			// ...and restart everything 
+			start(true, false);
+		}
 	}
-#ifdef DEBUG
-	cout << "DaemonState::on_thread_end: reload status " << m_reload << endl;
-#endif
 
 	// Try to run a queued action unless threads were stopped
 	if (isStopped == false)

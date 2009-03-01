@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -104,6 +104,7 @@ class DaemonState : public ThreadsManager
 		bool m_fullScan;
 		bool m_isReindex;
 		bool m_reload;
+		bool m_flush;
 		fd_set m_flagsSet;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pDiskHandler;
