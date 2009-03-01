@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,9 +39,6 @@ class OnDiskHandler : public MonitorHandler
 
 		/// Initializes things before starting monitoring.
 		virtual void initialize(void);
-
-		/// Handles flushing the index.
-		virtual void flushIndex(void);
 
 		/// Handles file existence events.
 		virtual bool fileExists(const std::string &fileName);

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -308,16 +308,6 @@ void OnDiskHandler::initialize(void)
 #endif
 		}
 	}
-}
-
-void OnDiskHandler::flushIndex(void)
-{
-	pthread_mutex_lock(&m_mutex);
-	if (m_pIndex != NULL)
-	{
-		m_pIndex->flush();
-	}
-	pthread_mutex_unlock(&m_mutex);
 }
 
 bool OnDiskHandler::fileExists(const string &fileName)

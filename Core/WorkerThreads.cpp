@@ -1911,8 +1911,6 @@ void MonitorThread::doWork(void)
 			FD_SET(m_ctrlReadPipe, &listenSet);
 		}
 
-		m_pHandler->flushIndex();
-
 		// The file descriptor may change over time
 		int monitorFd = m_pMonitor->getFileDescriptor();
 		FD_SET(monitorFd, &listenSet);
