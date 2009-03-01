@@ -2098,6 +2098,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 	cout << "DirectoryScannerThread::scanEntry: checking " << entryName << endl;
 #endif
 
+#ifdef HAVE_LSTAT
 	// Stat links, or the stuff it refers to ?
 	if (statLinks == true)
 	{
@@ -2105,8 +2106,11 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 	}
 	else
 	{
+#endif
 		entryStatus = stat(entryName.c_str(), &fileStat);
+#ifdef HAVE_LSTAT
 	}
+#endif
 
 	if (entryStatus == -1)
 	{
@@ -2116,6 +2120,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 		cout << "DirectoryScannerThread::scanEntry: stat failed with error " << entryStatus << endl;
 #endif
 	}
+#ifdef HAVE_LSTAT
 	// Special processing applies if it's a symlink
 	else if (S_ISLNK(fileStat.st_mode))
 	{
@@ -2210,6 +2215,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 			reportFile = true;
 		}
 	}
+#endif
 
 	// Is this item in the database already ?
 	itemExists = wasCrawled(location, itemDate);
@@ -2301,8 +2307,11 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 		}
 	}
 	// Is it some unknown type ?
-	else if ((entryStatus == 0) &&
-		(!S_ISLNK(fileStat.st_mode)))
+	else if ((entryStatus == 0)
+#ifdef HAVE_LSTAT
+		&& (!S_ISLNK(fileStat.st_mode))
+#endif
+		)
 	{
 #ifdef DEBUG
 		cout << "DirectoryScannerThread::scanEntry: unknown entry type" << endl;

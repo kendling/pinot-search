@@ -438,6 +438,7 @@ AC_CHECK_FUNCS(sigaction)
 AC_CHECK_FUNCS(sysconf)
 AC_CHECK_FUNCS(getloadavg)
 AC_CHECK_FUNCS(pipe)
+AC_CHECK_FUNCS(kill)
 
 AC_OUTPUT( pinot.spec Core/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile \

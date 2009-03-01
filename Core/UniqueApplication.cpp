@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Fabrice Colin
+ *  Copyright 2008-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "config.h"
 #include "UniqueApplication.h"
 
 using std::cout;
@@ -136,6 +137,7 @@ bool UniqueApplication::isRunning(const string &pidFileName, const string &proce
 				}
 			}
 
+#ifdef HAVE_KILL
 			if (checkProcess == true)
 			{
 				if (kill(processID, 0) == 0)
@@ -149,6 +151,7 @@ bool UniqueApplication::isRunning(const string &pidFileName, const string &proce
 					processDied = true;
 				}
 			}
+#endif
 #endif
 
 			if (stillRunning == true)
