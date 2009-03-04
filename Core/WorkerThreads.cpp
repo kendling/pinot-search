@@ -494,8 +494,6 @@ void ThreadsManager::clear_queues(void)
 		ActionQueue actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
 
 		actionQueue.expireItems(time(NULL));
-
-		m_backgroundThreadsCount = 0;
 	}
 }
 
