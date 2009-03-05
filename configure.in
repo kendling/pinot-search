@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 0.90,[fabricecolin@users.berlios.de])
+AC_INIT(pinot, 0.91,[fabricecolin@users.berlios.de])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -419,26 +419,26 @@ GTKMM_LIBS="$GIO_LIBS $GTKMM_LIBS"
 fi
 
 dnl Check for specific functions
-AC_CHECK_FUNCS(vsnprintf)
-AC_CHECK_FUNCS(gettimeofday)
-AC_CHECK_FUNCS(timegm)
-AC_CHECK_FUNCS(gmtime_r)
-AC_CHECK_FUNCS(localtime_r)
-AC_CHECK_FUNCS(strptime)
-AC_CHECK_FUNCS(lstat)
-AC_CHECK_FUNCS(mmap)
-AC_CHECK_FUNCS(socketpair)
 AC_CHECK_FUNCS(fork)
-AC_CHECK_FUNCS(setrlimit)
-AC_CHECK_FUNCS(statvfs)
-AC_CHECK_FUNCS(statfs)
-AC_CHECK_FUNCS(sysctlbyname)
-AC_CHECK_FUNCS(mkstemp)
-AC_CHECK_FUNCS(sigaction)
-AC_CHECK_FUNCS(sysconf)
 AC_CHECK_FUNCS(getloadavg)
-AC_CHECK_FUNCS(pipe)
+AC_CHECK_FUNCS(gettimeofday)
+AC_CHECK_FUNCS(gmtime_r)
 AC_CHECK_FUNCS(kill)
+AC_CHECK_FUNCS(localtime_r)
+AC_CHECK_FUNCS(lstat)
+AC_CHECK_FUNCS(mkstemp)
+AC_CHECK_FUNCS(mmap)
+AC_CHECK_FUNCS(pipe)
+AC_CHECK_FUNCS(setrlimit)
+AC_CHECK_FUNCS(sigaction)
+AC_CHECK_FUNCS(socketpair)
+AC_CHECK_FUNCS(statfs)
+AC_CHECK_FUNCS(statvfs)
+AC_CHECK_FUNCS(strptime)
+AC_CHECK_FUNCS(sysconf)
+AC_CHECK_FUNCS(sysctlbyname)
+AC_CHECK_FUNCS(timegm)
+AC_CHECK_FUNCS(vsnprintf)
 
 AC_OUTPUT( pinot.spec Core/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile \

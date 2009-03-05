@@ -4,8 +4,7 @@ Documentation
 - MIME type should be as returned by xdg-utils' 'xdg-mime query filetype ...'
 - Try listing names of dependency packages for most distros
 - How to trouble-shoot with delve, get to a file with filters and labels
-- Explain when indexing and updating are done, eg in the results list, Index on
- a result already indexed doesn't update it
+- Explain when indexing and updating are done
 
 General
 - Fix the FIXMEs
@@ -27,9 +26,11 @@ Tokenize
 - HtmlFilter to look for META tags Author, Creator, Publisher and CreationDate
 - XmlFilter is slow-ish, rewrite file parsing with the TextReader interface
 - Filters should at least return errno when they fail
+- Use libpng to extract PNGs' metadata
 
 SQL
 - Move history files into the index directories
+- Set any PRAGMA ?
 
 Monitor
 - Implement support for Solaris FEM
@@ -66,6 +67,7 @@ Index
 - Indexes have no knowledge of indexId's
 - Be ready to catch DatabaseModifiedError exceptions and reopen the index
 - Think about security issues, especially when indexes are shared, based on http://plg.uwaterloo.ca/~claclark/fast2005.pdf
+- Split "compound_word", index separately and as whole
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -125,10 +127,7 @@ v0.90
 - For each query group in the results list, show Next and Previous buttons to page through results
 - Browse mode to be merged with the new search and page mode
 - The query builder for stored queries should be available for live queries too
-- PinotSettings and threads to be moved outside of UI
-- CLI programs shouldn't require details about backends, should know indexes by name and
- know their backends
-- pinot-search should be able to run stored queries found in the configuration file
-- pinot-index should be able to index directories recursively, as done by the daemon
-- Command-line tools to work with relative paths
+- Make sure all of Core is localized
+- HtmlParser should use CJKVTokenizer's Unicode conversion function
+- Think about how to stage indexing, based on memory usage
 
