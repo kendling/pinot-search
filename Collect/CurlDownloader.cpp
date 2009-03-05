@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,18 +16,19 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <cstdio>
+#include <stdio.h>
 #include <string.h>
 #include <strings.h>
 #include <stdarg.h>
+#ifdef HAVE_REGEX_H
+#include <regex.h>
+#endif
+#include <stdlib.h>
 #include <iostream>
-#include <cstdlib>
 
 #include <curl/curl.h>
 
 #include "Url.h"
-#include "HtmlFilter.h"
-#include "FilterUtils.h"
 #include "CurlDownloader.h"
 
 using namespace std;
@@ -88,6 +89,9 @@ static size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, 
 		while ((pBadChar = memchr((void*)pInfo->m_pContent, '\0', pInfo->m_contentLen)) != NULL)
 		{
 			((char*)pBadChar)[0] = ' ';
+#ifdef DEBUG
+			cout << "writeCallback: bad character" << endl;
+#endif
 		}
 	}
 
@@ -254,33 +258,38 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 					pDocument->setTimestamp(pContentInfo->m_lastModified);
 				}
 
+#ifdef HAVE_REGEX_H
+				regex_t refreshRegex;
+				regmatch_t pMatches[2];
+
 				// Any REFRESH META tag ?
-				Dijon::HtmlFilter htmlFilter("text/html");
-				if ((FilterUtils::feedFilter(*pDocument, &htmlFilter) == true) &&
-					(htmlFilter.next_document() == true))
+				// Look for <meta http-equiv="refresh" content="SECS;url=URL">
+				if (regcomp(&refreshRegex,
+					"<meta http-equiv=\"refresh\" content=\"([0-9]*);url=([^\"]*)\">"
+					REG_EXTENDED|REG_ICASE) == 0)
 				{
-					const map<string, string> &metaData = htmlFilter.get_meta_data();
-					map<string, string>::const_iterator refreshIter = metaData.find("refresh");
-					if (refreshIter != metaData.end())
+					if (regexec(&refreshRegex, pContentInfo->m_pContent, 2,
+						pMatches, REG_NOTBOL|REG_NOTEOL) == 0)
 					{
-						// Try again
-						string::size_type urlPos = refreshIter->second.find("URL=");
-						if (urlPos != string::npos)
-						{
-							url = refreshIter->second.substr(urlPos + 4);
+						url = pMatches[1];
 #ifdef DEBUG
-							cout << "CurlDownloader::retrieveUrl: redirected to URL " << url << endl;
+						cout << "CurlDownloader::retrieveUrl: redirected to URL " << url << endl;
 #endif
-							delete pDocument;
-							pDocument = NULL;
-							freeContentInfo(pContentInfo);
-							++redirectionsCount;
-							continue;
-						}
+						delete pDocument;
+						pDocument = NULL;
+						freeContentInfo(pContentInfo);
+						++redirectionsCount;
+						continue;
 					}
+#ifdef DEBUG
+					else cout << "CurlDownloader::retrieveUrl: no REFRESH META tag" << endl;
+#endif
+
+					regfree(&refreshRegex);
 				}
 #ifdef DEBUG
-				else cout << "CurlDownloader::retrieveUrl: failed to parse HTML" << endl;
+				else cout << "CurlDownloader::retrieveUrl: couldn't look for a REFRESH META tag" << endl;
+#endif
 #endif
 			}
 			else
