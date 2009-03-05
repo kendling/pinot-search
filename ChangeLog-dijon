@@ -1,4 +1,49 @@
 ------------------------------------------------------------------------
+r138 | fabricecolin | 2009-03-05 21:51:00 +0800 (Thu, 05 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/HtmlFilter.cc
+
+Fixed findCharset().
+
+------------------------------------------------------------------------
+r137 | fabricecolin | 2009-03-05 21:19:24 +0800 (Thu, 05 Mar 2009) | 3 lines
+Changed paths:
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/ExternalFilter.h
+   M /trunk/filters/HtmlFilter.cc
+
+If ExternalFilter is getting plain text, it will only grab the first 5Mb.
+Less chatty DEBUG in HtmlFilter.
+
+------------------------------------------------------------------------
+r136 | fabricecolin | 2009-02-28 14:39:52 +0800 (Sat, 28 Feb 2009) | 3 lines
+Changed paths:
+   M /trunk/filters/Filter.h
+   M /trunk/filters/GMimeMboxFilter.cc
+
+Allow initializing of dynamic filters when they are loaded with GCC's
+__attribute__((constructor)).
+
+------------------------------------------------------------------------
+r135 | fabricecolin | 2009-02-28 10:32:22 +0800 (Sat, 28 Feb 2009) | 3 lines
+Changed paths:
+   M /trunk/filters/HtmlFilter.cc
+   M /trunk/filters/HtmlFilter.h
+   A /trunk/filters/HtmlParser.cc
+   A /trunk/filters/HtmlParser.h
+
+Imported Xapian Omega's htmlparse.cc/h files, made some small changes. Rewrote
+HtmlFilter to use that instead of libxml2.
+
+------------------------------------------------------------------------
+r134 | fabricecolin | 2009-02-15 22:39:04 +0800 (Sun, 15 Feb 2009) | 3 lines
+Changed paths:
+   M /trunk/filters/external-filters.xml
+
+A hack to prevent rpm from chocking on text files mistakenly identified as RPMs
+by a broken shared-mime.
+
+------------------------------------------------------------------------
 r132 | fabricecolin | 2009-01-11 12:53:43 +0800 (Sun, 11 Jan 2009) | 2 lines
 Changed paths:
    M /trunk/filters/external-filters.xml
