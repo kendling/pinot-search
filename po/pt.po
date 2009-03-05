@@ -4,9 +4,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.88\n"
+"Project-Id-Version: pinot 0.91\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-01 17:08+0800\n"
+"POT-Creation-Date: 2009-03-05 23:19+0800\n"
 "PO-Revision-Date: 2009-02-22 20:27+0000\n"
 "Last-Translator: Flávio Martins <xhaker@gmail.com>\n"
 "Language-Team: Portuguese <pt@li.org>\n"
@@ -86,7 +86,7 @@ msgstr "Turco"
 #. Add a row to the index tree
 #. Allow this only for internal indexes
 #: Core/PinotSettings.cpp:433 Core/PinotSettings.cpp:1709
-#: Core/WorkerThreads.cpp:1015 UI/GTK2/src/mainWindow.cc:844
+#: Core/WorkerThreads.cpp:1013 UI/GTK2/src/mainWindow.cc:844
 #: UI/GTK2/src/mainWindow.cc:1114 UI/GTK2/src/mainWindow.cc:1377
 #: UI/GTK2/src/mainWindow.cc:1537 UI/GTK2/src/mainWindow.cc:1540
 #: UI/GTK2/src/mainWindow.cc:1641 UI/GTK2/src/mainWindow.cc:1677
@@ -97,7 +97,7 @@ msgstr "As minhas páginas Web"
 
 #. Spawn new threads
 #: Core/PinotSettings.cpp:434 Core/PinotSettings.cpp:1710
-#: Core/WorkerThreads.cpp:1025 UI/GTK2/src/mainWindow.cc:847
+#: Core/WorkerThreads.cpp:1023 UI/GTK2/src/mainWindow.cc:847
 #: UI/GTK2/src/mainWindow.cc:1109 UI/GTK2/src/mainWindow.cc:1367
 #: UI/GTK2/src/mainWindow.cc:1381 UI/GTK2/src/mainWindow.cc:1548
 #: UI/GTK2/src/mainWindow.cc:1551 UI/GTK2/src/mainWindow.cc:2412
@@ -223,7 +223,7 @@ msgstr "A indexação foi parada"
 msgid "Can't index mail here"
 msgstr "Não foi possível indexar o mail aqui"
 
-#: Core/WorkerThreads.cpp:457 Core/WorkerThreads.cpp:742
+#: Core/WorkerThreads.cpp:457 Core/WorkerThreads.cpp:740
 msgid "is already being indexed"
 msgstr "já está a ser indexado"
 
@@ -231,7 +231,7 @@ msgstr "já está a ser indexado"
 msgid "is blacklisted"
 msgstr "está na lista negra"
 
-#: Core/WorkerThreads.cpp:978
+#: Core/WorkerThreads.cpp:976
 msgid "No title"
 msgstr "Sem título"
 
