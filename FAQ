@@ -13,6 +13,17 @@
     You may also want to disable support for spelling. See the README for more
     details.
 
+  * Memory usage is too high ! How can I reduce it ?
+    The environment variable XAPIAN_FLUSH_THRESHOLD controls how many documents
+    are buffered in memory before changes are flushed to the disk. The default
+    value is 10000. The daemon explicitely flushes the index once it has crawled
+    the directories configured in Preferences.
+    Exporting the environment variable GLIBCXX_FORCE_NEW will disable the memory
+    pool maintained by the STL and could reduce memory usage at the cost of a
+    slight performance decrease.
+    If the above doesn't help and there is a large number of documents to index,
+    you may want to configure Pinot to index your corpus in stages.
+
   * Pinot doesn't use my favourite browser XYZ to open HTML documents
     Even if you have set XYZ as your favourite Web browser in your desktop
     environment, it may not be setup as the default application for HTML files.
@@ -73,13 +84,4 @@
     the file /etc/xdg/autostart/pinot-dbus-daemon.desktop to either
     $(kde-config --prefix)/share/autostart (for all users) or ~/.kde/Autostart
     (current user only).
-
-  * Flushing is not directly configurable in Pinot, but some control is
-    possible with the environment variable XAPIAN_FLUSH_THRESHOLD. It can be
-    set to the number of documents after which changes should be flushed to the
-    index. The default value is 10000.
-    The daemon explicitely flushes the index once it has crawled one of the
-    directories configured in Preferences, Indexing. if this directory has more
-    documents than XAPIAN_FLUSH_THRESHOLD, changes will be buffered in RAM until
-    the directory is fully crawled.
 
