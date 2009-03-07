@@ -1,3 +1,29 @@
+2009/03/07 version_0_9_1
+General :
+ - patch by Adel Gadllah for gcc 4.4
+ - removed obsolete Encoding field from .desktop files
+Tokenize :
+ - new HTML filter based on Xapian Omega's HTML parser
+ - prevent rpm from choking on files with the ".rpm" extension that are not RPMs
+ - look for the ROBOTS metatag in remote documents only
+ - only consider the first 5Mb of documents
+IndexSearch :
+ - pinot-search can run stored queries created by the UI
+ - pinot-index can deal with relative paths, index directories and their contents,
+  open My Web Pages, My Documents or other UI-configured index by name
+Daemon :
+ - fixed issue where symlinks would get unindexed every second run
+ - fixed memory leak in time to timestamp conversions
+ - fixed memory leak when reapplying user-set metadata
+ - fixed memory leak when skipping the download of a local file
+ - don't flush the index while files are being indexed
+UI :
+ - fixed spelling suggestions on the live query
+ - the Import URL option can import local directories and their contents in
+  My Web Pages
+ - updated German translation by Gena Haltmair
+ - updated Portuguese translation by Flávio Martins
+
 2009/01/29 version_0_9_0
 General :
  - builds with MingW
@@ -52,7 +78,7 @@ UI :
   clicking the Yes button, a new query based on the selected suggestion will be
   created.
  - restructured menus
- - queries' Index Results option updatea documents already in My Web Pages. This
+ - queries' Index Results option updates documents already in My Web Pages. This
   doesn't apply to those in My Documents
  - on More Like This, selected documents are indexed to My Web Pages if necessary
  - both results and index lists can be exported to CSV or XML
