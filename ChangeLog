@@ -1,4 +1,574 @@
 ------------------------------------------------------------------------
+r1581 | fabricecolin | 2009-03-07 11:11:11 +0800 (Sat, 07 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+Updated NEWS, set 0.91 release date to today.
+
+------------------------------------------------------------------------
+r1580 | fabricecolin | 2009-03-05 22:57:55 +0800 (Thu, 05 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog-dijon
+
+Current Dijon ChangeLog.
+
+------------------------------------------------------------------------
+r1579 | fabricecolin | 2009-03-05 22:30:19 +0800 (Thu, 05 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Updated translations.
+
+------------------------------------------------------------------------
+r1578 | fabricecolin | 2009-03-05 22:27:23 +0800 (Thu, 05 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/UI/GTK2/src/pinot.1
+
+Updated manual pages.
+
+------------------------------------------------------------------------
+r1577 | fabricecolin | 2009-03-05 22:17:21 +0800 (Thu, 05 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/TODO
+   M /trunk/configure.in
+
+Bumped version number to 0.91, added tasks to the TODO list.
+
+------------------------------------------------------------------------
+r1576 | fabricecolin | 2009-03-05 21:33:26 +0800 (Thu, 05 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Collect/CurlDownloader.cpp
+
+Use a regex to get to the refresh META tag, rather than HtmlFilter.
+
+------------------------------------------------------------------------
+r1575 | fabricecolin | 2009-03-05 21:32:25 +0800 (Thu, 05 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/FAQ
+
+Give tips on how to reduce memory usage a bit.
+
+------------------------------------------------------------------------
+r1574 | fabricecolin | 2009-03-05 21:21:13 +0800 (Thu, 05 Mar 2009) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+TokensIndexer guesstimates where it's at in the original document and doesn't
+generate terms past 5Mb.
+
+------------------------------------------------------------------------
+r1573 | fabricecolin | 2009-03-04 21:59:49 +0800 (Wed, 04 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/WorkerThreads.cpp
+
+Don't reset m_backgroundThreadsCount.
+
+------------------------------------------------------------------------
+r1572 | fabricecolin | 2009-03-01 22:34:20 +0800 (Sun, 01 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/po/de.po
+   M /trunk/po/pt.po
+
+Updated translations by Gena Haltmair (German) and Flávio Martins (Portuguese).
+
+------------------------------------------------------------------------
+r1571 | fabricecolin | 2009-03-01 21:37:34 +0800 (Sun, 01 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/SQL/CrawlHistory.cpp
+
+Fixed update query in updateItemsStatus().
+
+------------------------------------------------------------------------
+r1570 | fabricecolin | 2009-03-01 21:36:26 +0800 (Sun, 01 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Utils/DocumentInfo.cpp
+
+Missing include, reported by Adel Gadllah, with gcc 4.4.
+
+------------------------------------------------------------------------
+r1569 | fabricecolin | 2009-03-01 15:54:00 +0800 (Sun, 01 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/OnDiskHandler.cpp
+   M /trunk/Core/OnDiskHandler.h
+   M /trunk/Core/WorkerThreads.cpp
+
+Don't flush the index on file events.
+
+------------------------------------------------------------------------
+r1568 | fabricecolin | 2009-03-01 10:39:08 +0800 (Sun, 01 Mar 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/DaemonState.h
+
+Flush the index when all foreground threads have returned so that it doesn't
+interfere with indexing.
+
+------------------------------------------------------------------------
+r1567 | fabricecolin | 2009-03-01 10:35:42 +0800 (Sun, 01 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/UniqueApplication.cpp
+   M /trunk/Core/WorkerThreads.cpp
+   M /trunk/configure.in
+
+Functions kill() and lstat() may not be available.
+
+------------------------------------------------------------------------
+r1566 | fabricecolin | 2009-02-28 20:44:09 +0800 (Sat, 28 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Utils/Url.cpp
+
+Missing include.
+
+------------------------------------------------------------------------
+r1565 | fabricecolin | 2009-02-28 19:37:26 +0800 (Sat, 28 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/DaemonState.h
+
+Flush the index explicitely when a crawler returns and no other is started.
+
+------------------------------------------------------------------------
+r1564 | fabricecolin | 2009-02-28 14:37:41 +0800 (Sat, 28 Feb 2009) | 4 lines
+Changed paths:
+   M /trunk/Core/PinotSettings.cpp
+   M /trunk/Core/pinot-dbus-daemon.cpp
+   M /trunk/Core/pinot-index.cpp
+   M /trunk/UI/GTK2/src/pinot.cc
+
+PinotSettings::getInstance() will initialize libxml2.
+HtmlFilter doesn't need initializing any more.
+Don't unload filters at exit time to avoid a so far unexplained crash.
+
+------------------------------------------------------------------------
+r1563 | fabricecolin | 2009-02-28 10:46:18 +0800 (Sat, 28 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/Makefile.am
+
+HtmlParser files.
+
+------------------------------------------------------------------------
+r1562 | fabricecolin | 2009-02-18 19:29:22 +0800 (Wed, 18 Feb 2009) | 7 lines
+Changed paths:
+   M /trunk/configure.in
+
+Disable check for linux/sched.h, and therefore support for SCHED_IDLE, for the
+time being. See :
+http://lkml.org/lkml/2009/1/11/70
+http://lkml.org/lkml/2009/1/22/416
+http://lkml.org/lkml/2009/1/30/297
+Thanks to John Werden for reporting this.
+
+------------------------------------------------------------------------
+r1561 | fabricecolin | 2009-02-16 22:14:13 +0800 (Mon, 16 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-index.cpp
+   M /trunk/README
+
+Running pinot-index --index on My Web Pages or My Documents isn't a good idea.
+
+------------------------------------------------------------------------
+r1560 | fabricecolin | 2009-02-15 22:31:13 +0800 (Sun, 15 Feb 2009) | 4 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/ServerThreads.cpp
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/CrawlHistory.h
+
+Be selective when changing the status of crawled items on full scan. The status
+of links shouldn't be changed or they would be skipped during the crawl and
+what they point to would get unindexed.
+
+------------------------------------------------------------------------
+r1559 | fabricecolin | 2009-02-15 20:19:43 +0800 (Sun, 15 Feb 2009) | 5 lines
+Changed paths:
+   M /trunk/Core/WorkerThreads.cpp
+   M /trunk/Core/WorkerThreads.h
+
+Cache what type of downloader DownloadingThread last got to avoid getting a new
+one every time. IndexingThread doesn't get a new Index on every call to its
+doWork() method.
+Look for the ROBOTS meta tag in remote documents only.
+
+------------------------------------------------------------------------
+r1558 | fabricecolin | 2009-02-15 10:25:00 +0800 (Sun, 15 Feb 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.cpp
+   M /trunk/configure.in
+
+If linux/sched.h is available, use sched_setscheduler(SCHED_IDLE) in place of
+setpriority().
+
+------------------------------------------------------------------------
+r1557 | fabricecolin | 2009-02-15 10:23:39 +0800 (Sun, 15 Feb 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+
+Don't allow threads to flush the index.
+Delete the state object before exit.
+
+------------------------------------------------------------------------
+r1556 | fabricecolin | 2009-02-15 10:22:11 +0800 (Sun, 15 Feb 2009) | 5 lines
+Changed paths:
+   M /trunk/Core/ServerThreads.cpp
+   M /trunk/Core/WorkerThreads.cpp
+   M /trunk/Utils/TimeConverter.cpp
+
+Fixed some memory leaks :
+- when converting to a timestamp (struct tm)
+- when reapplying user-set metadata (Index)
+- when skipping the download of local files (Document)
+
+------------------------------------------------------------------------
+r1555 | fabricecolin | 2009-02-14 10:39:19 +0800 (Sat, 14 Feb 2009) | 3 lines
+Changed paths:
+   M /trunk/README
+
+Specify that attachments and documents embedded in mbox email are indexed, and
+can be opened from the UI.
+
+------------------------------------------------------------------------
+r1554 | fabricecolin | 2009-02-12 22:06:02 +0800 (Thu, 12 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/pinot-dbus-daemon.desktop
+   M /trunk/pinot-prefs.desktop
+   M /trunk/pinot.desktop
+
+Removed deprecated Encoding field.
+
+------------------------------------------------------------------------
+r1553 | fabricecolin | 2009-02-12 22:04:00 +0800 (Thu, 12 Feb 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/ServerThreads.cpp
+
+Don't have monitorEntry() return false if no monitor is available, this would
+log an error.
+
+------------------------------------------------------------------------
+r1552 | fabricecolin | 2009-02-12 22:02:28 +0800 (Thu, 12 Feb 2009) | 5 lines
+Changed paths:
+   M /trunk/Core/WorkerThreads.cpp
+   M /trunk/Core/WorkerThreads.h
+   M /trunk/Core/pinot-index.cpp
+   M /trunk/UI/GTK2/src/Makefile.am
+   A /trunk/UI/GTK2/src/UIThreads.cc
+   A /trunk/UI/GTK2/src/UIThreads.hh
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/mainWindow.hh
+   M /trunk/UI/GTK2/src/prefsWindow.hh
+   M /trunk/UI/GTK2/src/statisticsDialog.hh
+   M /trunk/po/POTFILES.in
+
+ThreadsManager needs to know whether local files should be scanned with
+DirectoryScanner or indexed right away with IndexingThread. This only makes
+sense in pinot-index and the UI.
+Moved UI-specific thread classes to UIThreads.
+
+------------------------------------------------------------------------
+r1551 | fabricecolin | 2009-02-07 17:37:40 +0800 (Sat, 07 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-index.cpp
+
+Make it clear that -d/--db is mandatory.
+
+------------------------------------------------------------------------
+r1550 | fabricecolin | 2009-02-07 17:36:04 +0800 (Sat, 07 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Utils/Url.cpp
+
+Fix for previous check-in.
+
+------------------------------------------------------------------------
+r1549 | fabricecolin | 2009-02-07 12:20:06 +0800 (Sat, 07 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+   M /trunk/Core/pinot-index.cpp
+   M /trunk/IndexSearch/pinot-label.cpp
+
+Let Url deal with relative paths.
+
+------------------------------------------------------------------------
+r1548 | fabricecolin | 2009-02-07 12:17:39 +0800 (Sat, 07 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Utils/Url.cpp
+   M /trunk/Utils/Url.h
+
+Additional Url constructor for absolute and relative paths.
+
+------------------------------------------------------------------------
+r1547 | fabricecolin | 2009-02-06 22:49:54 +0800 (Fri, 06 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+
+Swapped DirectoryScanner for Crawler threads.
+
+------------------------------------------------------------------------
+r1546 | fabricecolin | 2009-02-06 22:47:31 +0800 (Fri, 06 Feb 2009) | 4 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+
+IndexingState is a ThreadsManager subclass that enables this program to rely on
+IndexingThread and DirectoryScannerThread. In practice, this means it can index
+directories recursively at last.
+
+------------------------------------------------------------------------
+r1545 | fabricecolin | 2009-02-06 22:43:55 +0800 (Fri, 06 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.cpp
+
+Minor includes fix.
+
+------------------------------------------------------------------------
+r1544 | fabricecolin | 2009-02-06 22:43:22 +0800 (Fri, 06 Feb 2009) | 4 lines
+Changed paths:
+   M /trunk/Core/ServerThreads.cpp
+   M /trunk/Core/ServerThreads.h
+   M /trunk/Core/WorkerThreads.cpp
+   M /trunk/Core/WorkerThreads.h
+
+Moved crawl history and monitoring out of DirectoryScanner so that it's usable
+outside of the daemon, and moved the class to WorkerThreads.
+Crawler inherits from DirectoryScanner and handles crawl history and monitoring.
+
+------------------------------------------------------------------------
+r1543 | fabricecolin | 2009-02-05 21:16:55 +0800 (Thu, 05 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+
+Resolve local URLs only.
+
+------------------------------------------------------------------------
+r1542 | fabricecolin | 2009-02-04 19:36:33 +0800 (Wed, 04 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/ServerThreads.cpp
+
+Use Url::resolvePath().
+
+------------------------------------------------------------------------
+r1541 | fabricecolin | 2009-02-03 21:25:58 +0800 (Tue, 03 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-search.cpp
+
+Support for gettext().
+
+------------------------------------------------------------------------
+r1540 | fabricecolin | 2009-02-03 21:25:11 +0800 (Tue, 03 Feb 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+
+Urls passed as parameters may exclude "file://", be relative paths.
+Support for gettext().
+
+------------------------------------------------------------------------
+r1539 | fabricecolin | 2009-02-03 21:14:49 +0800 (Tue, 03 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Utils/Url.cpp
+   M /trunk/Utils/Url.h
+
+Url::resolvePath() is based on the path resolver code written for ServerThreads.
+
+------------------------------------------------------------------------
+r1538 | fabricecolin | 2009-02-02 21:59:23 +0800 (Mon, 02 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/UI/GTK2/src/pinot.1
+
+Updated manual pages.
+
+------------------------------------------------------------------------
+r1537 | fabricecolin | 2009-02-02 21:44:00 +0800 (Mon, 02 Feb 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+   A /trunk/Core/pinot-index.1 (from /trunk/IndexSearch/pinot-index.1:1536)
+   A /trunk/Core/pinot-index.cpp (from /trunk/IndexSearch/pinot-index.cpp:1536)
+   M /trunk/IndexSearch/Makefile.am
+   D /trunk/IndexSearch/pinot-index.1
+   D /trunk/IndexSearch/pinot-index.cpp
+   M /trunk/Makefile.am
+
+Moved pinot-index to Core. Use PinotSettings for proxy parameters.
+The -d/--db option may be the name of an index.
+
+------------------------------------------------------------------------
+r1536 | fabricecolin | 2009-02-01 22:28:52 +0800 (Sun, 01 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+   M /trunk/Makefile.am
+
+Minor fixes.
+
+------------------------------------------------------------------------
+r1535 | fabricecolin | 2009-02-01 21:59:46 +0800 (Sun, 01 Feb 2009) | 4 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+   A /trunk/Core/pinot-search.1 (from /trunk/IndexSearch/pinot-search.1:1533)
+   A /trunk/Core/pinot-search.cpp (from /trunk/IndexSearch/pinot-search.cpp:1533)
+   M /trunk/IndexSearch/Makefile.am
+   D /trunk/IndexSearch/pinot-search.1
+   D /trunk/IndexSearch/pinot-search.cpp
+   M /trunk/Makefile.am
+
+Moved pinot-search to Core. Use PinotSettings for proxy parameters and plugins'
+editable parameters. Added -r/--storedquery option to find a stored query by
+name and run it.
+
+------------------------------------------------------------------------
+r1534 | fabricecolin | 2009-02-01 21:53:59 +0800 (Sun, 01 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.cpp
+   M /trunk/UI/GTK2/src/pinot.cc
+
+Removed reference to tokenizer libraries.
+
+------------------------------------------------------------------------
+r1533 | fabricecolin | 2009-02-01 19:55:37 +0800 (Sun, 01 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+
+Daemon specifics don't need be in libCore.
+
+------------------------------------------------------------------------
+r1532 | fabricecolin | 2009-02-01 19:49:12 +0800 (Sun, 01 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/po/POTFILES.in
+
+Files were renamed.
+
+------------------------------------------------------------------------
+r1531 | fabricecolin | 2009-02-01 19:47:02 +0800 (Sun, 01 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+   D /trunk/Core/pinot-dbus-daemon.cc
+   A /trunk/Core/pinot-dbus-daemon.cpp (from /trunk/Core/pinot-dbus-daemon.cc:1530)
+   A /trunk/UI/GTK2/src/EnginesTree.cc (from /trunk/UI/GTK2/src/EnginesTree.cpp:1529)
+   D /trunk/UI/GTK2/src/EnginesTree.cpp
+   D /trunk/UI/GTK2/src/EnginesTree.h
+   A /trunk/UI/GTK2/src/EnginesTree.hh (from /trunk/UI/GTK2/src/EnginesTree.h:1529)
+   A /trunk/UI/GTK2/src/IndexPage.cc (from /trunk/UI/GTK2/src/IndexPage.cpp:1529)
+   D /trunk/UI/GTK2/src/IndexPage.cpp
+   D /trunk/UI/GTK2/src/IndexPage.h
+   A /trunk/UI/GTK2/src/IndexPage.hh (from /trunk/UI/GTK2/src/IndexPage.h:1529)
+   M /trunk/UI/GTK2/src/Makefile.am
+   A /trunk/UI/GTK2/src/ModelColumns.cc (from /trunk/UI/GTK2/src/ModelColumns.cpp:1529)
+   D /trunk/UI/GTK2/src/ModelColumns.cpp
+   D /trunk/UI/GTK2/src/ModelColumns.h
+   A /trunk/UI/GTK2/src/ModelColumns.hh (from /trunk/UI/GTK2/src/ModelColumns.h:1529)
+   A /trunk/UI/GTK2/src/Notebook.cc (from /trunk/UI/GTK2/src/Notebook.cpp:1529)
+   D /trunk/UI/GTK2/src/Notebook.cpp
+   D /trunk/UI/GTK2/src/Notebook.h
+   A /trunk/UI/GTK2/src/Notebook.hh (from /trunk/UI/GTK2/src/Notebook.h:1529)
+   A /trunk/UI/GTK2/src/ResultsTree.cc (from /trunk/UI/GTK2/src/ResultsTree.cpp:1529)
+   D /trunk/UI/GTK2/src/ResultsTree.cpp
+   D /trunk/UI/GTK2/src/ResultsTree.h
+   A /trunk/UI/GTK2/src/ResultsTree.hh (from /trunk/UI/GTK2/src/ResultsTree.h:1529)
+   M /trunk/UI/GTK2/src/importDialog.hh
+   M /trunk/UI/GTK2/src/indexDialog.hh
+   M /trunk/UI/GTK2/src/mainWindow.hh
+   M /trunk/UI/GTK2/src/prefsWindow.hh
+   M /trunk/UI/GTK2/src/propertiesDialog.hh
+   M /trunk/UI/GTK2/src/queryDialog.hh
+   M /trunk/UI/GTK2/src/statisticsDialog.hh
+
+Use the same naming conventions as glademm where appropriate.
+
+------------------------------------------------------------------------
+r1530 | fabricecolin | 2009-02-01 19:04:31 +0800 (Sun, 01 Feb 2009) | 2 lines
+Changed paths:
+   A /trunk/Core
+   A /trunk/Core/DaemonState.cpp (from /trunk/UI/GTK2/src/DaemonState.cpp:1529)
+   A /trunk/Core/DaemonState.h (from /trunk/UI/GTK2/src/DaemonState.h:1529)
+   A /trunk/Core/Makefile.am
+   A /trunk/Core/OnDiskHandler.cpp (from /trunk/UI/GTK2/src/OnDiskHandler.cpp:1529)
+   A /trunk/Core/OnDiskHandler.h (from /trunk/UI/GTK2/src/OnDiskHandler.h:1529)
+   A /trunk/Core/PinotSettings.cpp (from /trunk/UI/GTK2/src/PinotSettings.cpp:1529)
+   A /trunk/Core/PinotSettings.h (from /trunk/UI/GTK2/src/PinotSettings.h:1529)
+   A /trunk/Core/PinotUtils.cpp (from /trunk/UI/GTK2/src/PinotUtils.cpp:1529)
+   A /trunk/Core/PinotUtils.h (from /trunk/UI/GTK2/src/PinotUtils.h:1529)
+   A /trunk/Core/ServerThreads.cpp (from /trunk/UI/GTK2/src/ServerThreads.cpp:1529)
+   A /trunk/Core/ServerThreads.h (from /trunk/UI/GTK2/src/ServerThreads.h:1529)
+   A /trunk/Core/UniqueApplication.cpp (from /trunk/UI/GTK2/src/UniqueApplication.cpp:1529)
+   A /trunk/Core/UniqueApplication.h (from /trunk/UI/GTK2/src/UniqueApplication.h:1529)
+   A /trunk/Core/WorkerThreads.cpp (from /trunk/UI/GTK2/src/WorkerThreads.cpp:1529)
+   A /trunk/Core/WorkerThreads.h (from /trunk/UI/GTK2/src/WorkerThreads.h:1529)
+   A /trunk/Core/de.berlios.Pinot.service.in (from /trunk/UI/GTK2/src/de.berlios.Pinot.service.in:1529)
+   A /trunk/Core/pinot-dbus-daemon.1 (from /trunk/UI/GTK2/src/pinot-dbus-daemon.1:1529)
+   A /trunk/Core/pinot-dbus-daemon.cc (from /trunk/UI/GTK2/src/pinot-dbus-daemon.cc:1529)
+   A /trunk/Core/pinot-dbus-daemon.xml (from /trunk/UI/GTK2/src/pinot-dbus-daemon.xml:1529)
+   M /trunk/Makefile.am
+   D /trunk/UI/GTK2/src/DaemonState.cpp
+   D /trunk/UI/GTK2/src/DaemonState.h
+   M /trunk/UI/GTK2/src/Makefile.am
+   D /trunk/UI/GTK2/src/OnDiskHandler.cpp
+   D /trunk/UI/GTK2/src/OnDiskHandler.h
+   D /trunk/UI/GTK2/src/PinotSettings.cpp
+   D /trunk/UI/GTK2/src/PinotSettings.h
+   D /trunk/UI/GTK2/src/PinotUtils.cpp
+   D /trunk/UI/GTK2/src/PinotUtils.h
+   D /trunk/UI/GTK2/src/ServerThreads.cpp
+   D /trunk/UI/GTK2/src/ServerThreads.h
+   D /trunk/UI/GTK2/src/UniqueApplication.cpp
+   D /trunk/UI/GTK2/src/UniqueApplication.h
+   D /trunk/UI/GTK2/src/WorkerThreads.cpp
+   D /trunk/UI/GTK2/src/WorkerThreads.h
+   D /trunk/UI/GTK2/src/de.berlios.Pinot.service.in
+   D /trunk/UI/GTK2/src/pinot-dbus-daemon.1
+   D /trunk/UI/GTK2/src/pinot-dbus-daemon.cc
+   D /trunk/UI/GTK2/src/pinot-dbus-daemon.xml
+   M /trunk/configure.in
+   M /trunk/po/POTFILES.in
+
+Moved daemon and non-UI specific code out of UI/GTK2/src to Core.
+
+------------------------------------------------------------------------
+r1529 | fabricecolin | 2009-02-01 17:53:30 +0800 (Sun, 01 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/DaemonState.cpp
+
+Don't pop actions out of the queue when threads are being stopped.
+
+------------------------------------------------------------------------
+r1528 | fabricecolin | 2009-02-01 17:51:33 +0800 (Sun, 01 Feb 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-search.cpp
+
+Use getResults()'s return by reference as it should be.
+
+------------------------------------------------------------------------
+r1527 | fabricecolin | 2009-01-30 22:53:45 +0800 (Fri, 30 Jan 2009) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+When a spelling suggestion is selected, don't fail if the query can't be found.
+This fixes the bug where nothing happens when the suggestion is on Live query.
+
+------------------------------------------------------------------------
+r1525 | fabricecolin | 2009-01-28 22:43:35 +0800 (Wed, 28 Jan 2009) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Even more current log :-)
+
+------------------------------------------------------------------------
 r1524 | fabricecolin | 2009-01-28 22:41:03 +0800 (Wed, 28 Jan 2009) | 2 lines
 Changed paths:
    M /trunk/ChangeLog
