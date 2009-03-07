@@ -423,10 +423,16 @@ int main(int argc, char **argv)
 			// Connect to threads' finished signal
 			g_pState->connect();
 
-			g_pState->queue_index(docInfo);
-
-			// Run the main loop
-			g_refMainLoop->run();
+			Glib::ustring status(g_pState->queue_index(docInfo));
+			if (status.empty() == true)
+			{
+				// Run the main loop
+				g_refMainLoop->run();
+			}
+			else
+			{
+				cerr << status << endl;
+			}
 
 			// Stop everything
 			g_pState->disconnect();
