@@ -188,6 +188,43 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 	{
 		fedInput = pFilter->set_document_data(pData, dataLength);
 	}
+	// ... to feeding the data through a temporary file
+	if ((fedInput == false) &&
+		((dataLength > 0) && (pData != NULL)) &&
+		(pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_FILE_NAME) == true))
+	{
+		char inTemplate[18] = "/tmp/filterXXXXXX";
+
+#ifdef HAVE_MKSTEMP
+		int inFd = mkstemp(inTemplate);
+#else
+		int inFd = -1;
+		char *pInFile = mktemp(inTemplate);
+		if (pInFile != NULL)
+		{
+			inFd = open(pInFile, O_RDONLY);
+		}
+#endif
+		if (inFd != -1)
+		{
+#ifdef DEBUG
+			cout << "FilterUtils::feedFilter: feeding temporary file " << inTemplate << endl;
+#endif
+
+			// Save the data
+			if (write(inFd, (const void*)pData, dataLength) != -1)
+			{
+				fedInput = pFilter->set_document_file(inTemplate, true);
+				if (fedInput == false)
+				{
+					// We might as well delete the file now
+					unlink(inTemplate);
+				}
+			}
+
+			close(inFd);
+		}
+	}
 	// ... to feeding the file
 	if ((fedInput == false) &&
 		(fileName.empty() == false))
@@ -226,43 +263,6 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 				// The file may be empty
 				fedInput = pFilter->set_document_data(" ", 1);
 			}
-		}
-	}
-	// ... to feeding data through a temporary file
-	if ((fedInput == false) &&
-		((dataLength > 0) && (pData != NULL)) &&
-		(pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_FILE_NAME) == true))
-	{
-		char inTemplate[18] = "/tmp/filterXXXXXX";
-
-#ifdef HAVE_MKSTEMP
-		int inFd = mkstemp(inTemplate);
-#else
-		int inFd = -1;
-		char *pInFile = mktemp(inTemplate);
-		if (pInFile != NULL)
-		{
-			inFd = open(pInFile, O_RDONLY);
-		}
-#endif
-		if (inFd != -1)
-		{
-#ifdef DEBUG
-			cout << "FilterUtils::feedFilter: feeding temporary file " << inTemplate << endl;
-#endif
-
-			// Save the data
-			if (write(inFd, (const void*)pData, dataLength) != -1)
-			{
-				fedInput = pFilter->set_document_file(inTemplate, true);
-				if (fedInput == false)
-				{
-					// We might as well delete the file now
-					unlink(inTemplate);
-				}
-			}
-
-			close(inFd);
 		}
 	}
 
@@ -317,7 +317,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 			}
 			else
 			{
-				doc.setType(StringManip::toLowerCase(metaIter->second));
+				doc.setType(mimeType);
 			}
 		}
 		else if (metaIter->first == "size")
@@ -364,23 +364,25 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 	map<string, string>::const_iterator contentIter = metaData.find("content");
 	if (contentIter != metaData.end())
 	{
-		string utf8Data(converter.toUTF8(contentIter->second, charset));
-
-		if (converter.getErrorsCount() > 0)
-		{
-			cerr << doc.getLocation() << " may not have been fully converted to UTF-8" << endl;
-		}
-		doc.setData(utf8Data.c_str(), utf8Data.length());
-
 		if (checkType == true)
 		{
-			doc.setType(MIMEScanner::scanData(utf8Data.c_str(), utf8Data.length()));
+			doc.setType(MIMEScanner::scanData(contentIter->second.c_str(), contentIter->second.length()));
 		}
 
-#ifdef DEBUG
-		cout << "FilterUtils::populateDocument: set " << utf8Data.length() << "/" << contentIter->second.length()
-			<< " bytes, converted from charset " << charset << endl;
-#endif
+		if (doc.getType().substr(0, 10) == "text/plain")
+		{
+			string utf8Data(converter.toUTF8(contentIter->second, charset));
+
+			if (converter.getErrorsCount() > 0)
+			{
+				cerr << doc.getLocation() << " may not have been fully converted to UTF-8" << endl;
+			}
+			doc.setData(utf8Data.c_str(), utf8Data.length());
+		}
+		else
+		{
+			doc.setData(contentIter->second.c_str(), contentIter->second.length());
+		}
 	}
 	contentIter = metaData.find("title");
 	if (contentIter != metaData.end())
