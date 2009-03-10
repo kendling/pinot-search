@@ -12,10 +12,11 @@ noinst_HEADERS = \
 	$(top_srcdir)/Tokenize/filters/HtmlFilter.h \
 	$(top_srcdir)/Tokenize/filters/HtmlParser.h \
 	$(top_srcdir)/Tokenize/filters/TagLibMusicFilter.h \
+	$(top_srcdir)/Tokenize/filters/TarFilter.h \
 	$(top_srcdir)/Tokenize/filters/TextFilter.h \
 	$(top_srcdir)/Tokenize/filters/XmlFilter.h
 
-lib_LTLIBRARIES = libexifimagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la
+lib_LTLIBRARIES = libexifimagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la libtarfilter.la
 
 noinst_LTLIBRARIES = libTokenize.la
 
@@ -50,6 +51,14 @@ libtaglibfilter_la_SOURCES = \
 libtaglibfilter_la_LDFLAGS = -module @TAGLIB_LIBS@
 
 libtaglibfilter_la_LIBADD =
+
+libtarfilter_la_SOURCES = \
+	$(top_srcdir)/Tokenize/filters/Filter.cc \
+	$(top_srcdir)/Tokenize/filters/TarFilter.cc
+
+libtarfilter_la_LDFLAGS = -module -ltar 
+
+libtarfilter_la_LIBADD =
 
 libTokenize_la_SOURCES = \
 	FilterUtils.cpp \

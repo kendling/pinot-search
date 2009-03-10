@@ -26,11 +26,11 @@ URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: xapian-core-libs >= 1.0.4, libtextcat >= 2.2, sqlite >= 3.3.1, libcurl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.10, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
-Requires: taglib >= 1.4, libexif >= 0.6, unzip, antiword, unrtf, %{pftotext_pkg}
+Requires: taglib >= 1.4, libexif >= 0.6, libtar >= 1.2.11, unzip, antiword, unrtf, %{pftotext_pkg}
 #Suggests: xapian-omega
 BuildRequires: xapian-core-devel >= 1.0.4, libtextcat-devel >= 2.2, sqlite-devel >= 3.3.1, libcurl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.10, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
-BuildRequires: taglib-devel >= 1.4, libexif-devel >= 0.6
+BuildRequires: taglib-devel >= 1.4, libexif-devel >= 0.6, libtar-devel >= 1.2.11
 BuildRequires: gcc-c++
 %if 0%{?_with_soap:1}
 BuildRequires: gsoap >= 2.7.9e
@@ -98,6 +98,7 @@ fi
 %{_libdir}/pinot/filters/libexternalfilter.so*
 %{_libdir}/pinot/filters/libmboxfilter.so*
 %{_libdir}/pinot/filters/libtaglibfilter.so*
+%{_libdir}/pinot/filters/libtarfilter.so*
 %{_libdir}/pinot/backends/lib*backend.so*
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %{_datadir}/pinot/
