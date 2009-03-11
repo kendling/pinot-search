@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
+#include <signal.h>
 #include <iostream>
 #include <string>
 #include <fstream>
