@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,13 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #include <strings.h>
 #include <sys/time.h>
-#include <iostream>
-#include <utility>
-#include <cstring>
-
-#include "config.h"
 extern "C"
 {
 #define USE_TEXTCAT 1
@@ -36,6 +32,9 @@ extern "C"
 #endif
 #endif
 }
+#include <iostream>
+#include <utility>
+#include <cstring>
 
 #include "StringManip.h"
 #include "Timer.h"
@@ -49,31 +48,16 @@ using std::string;
 using std::vector;
 using std::min;
 
-unsigned int LanguageDetector::m_maxTextSize = 1000;
+#define MAX_TEXT_SIZE 1000
 
-LanguageDetector::LanguageDetector()
-{
-}
+LanguageDetector LanguageDetector::m_instance;
 
-LanguageDetector::~LanguageDetector()
-{
-}
-
-/**
-  * Attempts to guess the language.
-  * Returns a list of candidates, or "unknown" if detection failed.
-  */
-void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
-			std::vector<std::string> &candidates)
+LanguageDetector::LanguageDetector() :
+	m_pHandle(NULL)
 {
 #ifdef USE_TEXTCAT
 	string confFile(SYSCONFDIR);
 	char *textCatVersion = textcat_Version();
-#ifdef HAVE_TEXTCAT_CAT
-	const char *catResults[10];
-#endif
-
-	candidates.clear();
 
 	// What configuration file should we use ?
 	confFile += "/pinot/";
@@ -91,22 +75,58 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 	}
 
 	// Initialize
-	void *td = textcat_Init(confFile.c_str());
-	if (td == NULL)
+	pthread_mutex_init(&m_mutex, NULL);
+	m_pHandle = textcat_Init(confFile.c_str());
+#endif
+}
+
+LanguageDetector::~LanguageDetector()
+{
+#ifdef USE_TEXTCAT
+	// Close the descriptor
+	textcat_Done(m_pHandle);
+	pthread_mutex_destroy(&m_mutex);
+#endif
+}
+
+LanguageDetector &LanguageDetector::getInstance(void)
+{
+	return m_instance;
+}
+
+/**
+  * Attempts to guess the language.
+  * Returns a list of candidates, or "unknown" if detection failed.
+  */
+void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
+	vector<string> &candidates)
+{
+#ifdef HAVE_TEXTCAT_CAT
+	const char *catResults[10];
+#endif
+
+	candidates.clear();
+#ifdef USE_TEXTCAT
+	if (m_pHandle == NULL)
 	{
 		candidates.push_back("unknown");
 		return;
 	}
 
-	// Classify
 #ifdef DEBUG
 	Timer timer;
 	timer.start();
-	cout << "LanguageDetector::guessLanguage: starting" << endl;
 #endif
+	// Lock the handle
+	if (pthread_mutex_lock(&m_mutex) != 0)
+	{
+		return;
+	}
+
+	// Classify
 #ifdef HAVE_TEXTCAT_CAT
-	unsigned int resultNum = textcat_Cat(td, pData,
-		min(dataLength, m_maxTextSize), catResults, 10);
+	unsigned int resultNum = textcat_Cat(m_pHandle, pData,
+		min(dataLength, (unsigned int)MAX_TEXT_SIZE), catResults, 10);
 	if (resultNum == 0 )
 	{
 		candidates.push_back("unknown");
@@ -130,8 +150,8 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 		}
 	}
 #else
-	const char *languages = textcat_Classify(td, pData,
-		min(dataLength, m_maxTextSize));
+	const char *languages = textcat_Classify(m_pHandle, pData,
+		min(dataLength, (unsigned int)MAX_TEXT_SIZE));
 	if (languages == NULL)
 	{
 		candidates.push_back("unknown");
@@ -176,13 +196,13 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 		}
 	}
 #endif
+
+	// Unlock
+	pthread_mutex_unlock(&m_mutex);
 #ifdef DEBUG
 	cout << "LanguageDetector::guessLanguage: language guessing took "
 		<< timer.stop() << " ms" << endl;
 #endif
-
-	// Close the descriptor
-	textcat_Done(td);
 #else
 	candidates.push_back("unknown");
 #endif

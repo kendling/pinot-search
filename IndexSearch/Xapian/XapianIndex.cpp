@@ -838,7 +838,6 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 string XapianIndex::scanDocument(const string &suggestedLanguage,
 	const char *pData, unsigned int dataLength)
 {
-	LanguageDetector lang;
 	vector<string> candidates;
 	string language;
 	bool scannedDocument = false;
@@ -851,7 +850,7 @@ string XapianIndex::scanDocument(const string &suggestedLanguage,
 	else
 	{
 		// Try to determine the document's language right away
-		lang.guessLanguage(pData, max(dataLength, (unsigned int)2048), candidates);
+		LanguageDetector::getInstance().guessLanguage(pData, max(dataLength, (unsigned int)2048), candidates);
 
 		scannedDocument = true;
 	}
@@ -878,7 +877,7 @@ string XapianIndex::scanDocument(const string &suggestedLanguage,
 			{
 				// The suggested language is not suitable
 				candidates.clear();
-				lang.guessLanguage(pData, max(dataLength, (unsigned int)2048), candidates);
+				LanguageDetector::getInstance().guessLanguage(pData, max(dataLength, (unsigned int)2048), candidates);
 
 				langIter = candidates.begin();
 				scannedDocument = true;

@@ -19,9 +19,9 @@
 #ifndef _XAPIAN_DATABASE_FACTORY_H
 #define _XAPIAN_DATABASE_FACTORY_H
 
+#include <pthread.h>
 #include <string>
 #include <map>
-#include <pthread.h>
 
 #include "XapianDatabase.h"
 
