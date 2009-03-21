@@ -251,11 +251,12 @@ AC_CHECK_HEADERS([sys/inotify.h],
    [AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
    ])
 
-dnl boost Spirit 
+dnl boost
 AM_CONDITIONAL(HAVE_BOOST_SPIRIT, false)
 AC_CHECK_HEADERS([boost/spirit/core.hpp],
    [AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)
    ])
+AC_CHECK_HEADERS([boost/pool/poolfwd.hpp])
 
 dnl TextCat
 AC_CHECK_HEADERS([textcat.h],,
@@ -369,7 +370,7 @@ MISC_CFLAGS="$PTHREAD_CFLAGS $VISIB_CFLAGS"
 MISC_LIBS="$PTHREAD_LIBS"
 AC_SUBST(MISC_CFLAGS)
 AC_SUBST(MISC_LIBS)
-AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h])
+AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h ext/malloc_allocator.h])
 PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
 SHARED_MIME_INFO_PREFIX=`pkg-config --variable=prefix shared-mime-info`
 AC_SUBST(SHARED_MIME_INFO_PREFIX)
@@ -426,6 +427,9 @@ AC_CHECK_FUNCS(gmtime_r)
 AC_CHECK_FUNCS(kill)
 AC_CHECK_FUNCS(localtime_r)
 AC_CHECK_FUNCS(lstat)
+AC_CHECK_FUNCS(madvise)
+AC_CHECK_FUNCS(mallinfo)
+AC_CHECK_FUNCS(malloc_trim)
 AC_CHECK_FUNCS(mkstemp)
 AC_CHECK_FUNCS(mmap)
 AC_CHECK_FUNCS(pipe)
