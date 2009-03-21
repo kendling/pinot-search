@@ -688,7 +688,7 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 {
 	bool getItem = true;
-	bool foundItem = false;
+	bool emptyQueue = false;
 
 #ifdef DEBUG
 	cout << "ThreadsManager::pop_queue: called" << endl;
@@ -723,6 +723,9 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 			DocumentInfo docInfo;
 			string previousLocation;
 
+			// Assume the queue is empty
+			emptyQueue = true;
+
 			while (actionQueue.popItem(type, docInfo) == true)
 			{
 				ustring status;
@@ -731,6 +734,9 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 				{
 					continue;
 				}
+
+				// The queue isn't actually empty
+				emptyQueue = false;
 
 				if (docInfo.getLocation() == previousLocation)
 				{
@@ -746,7 +752,6 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 
 				if (status.empty() == true)
 				{
-					foundItem = true;
 					break;
 				}
 
@@ -755,7 +760,7 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 		}
 	}
 
-	return foundItem;
+	return emptyQueue;
 }
 
 ListerThread::ListerThread(const PinotSettings::IndexProperties &indexProps,

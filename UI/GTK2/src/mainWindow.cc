@@ -91,7 +91,6 @@ class ReloadHandler : public MonitorHandler
 
 // FIXME: this ought to be configurable
 unsigned int mainWindow::m_maxDocsCount = 100;
-unsigned int mainWindow::m_maxIndexThreads = 2;
 
 mainWindow::ExpandSet::ExpandSet()
 {
@@ -101,8 +100,8 @@ mainWindow::ExpandSet::~ExpandSet()
 {
 }
 
-mainWindow::InternalState::InternalState(unsigned int maxIndexThreads, mainWindow *pWindow) :
-	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads, 60, true),
+mainWindow::InternalState::InternalState(mainWindow *pWindow) :
+	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, 2, 60, true),
 	m_liveQueryLength(0),
 	m_currentPage(0),
 	m_browsingIndex(false)
@@ -127,7 +126,7 @@ mainWindow::mainWindow() :
 	m_pFindMenu(NULL),
 	m_pSettingsMonitor(MonitorFactory::getMonitor()),
 	m_pSettingsHandler(NULL),
-	m_state(m_maxIndexThreads, this)
+	m_state(this)
 {
 	// Reposition and resize the window
 	// Make sure the coordinates and sizes make sense

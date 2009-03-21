@@ -17,7 +17,9 @@
  */
 
 #include "config.h"
+#include <string.h>
 #include <strings.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -308,7 +310,7 @@ bool DBusServletInfo::reply(void)
 #endif
 
 DaemonState::DaemonState() :
-	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 10),
+	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 2),
 	m_fullScan(false),
 	m_isReindex(false),
 	m_reload(false),
@@ -318,6 +320,19 @@ DaemonState::DaemonState() :
 	m_crawlers(0)
 {
 	FD_ZERO(&m_flagsSet);
+
+	// Override the number of indexing threads ?
+	char *pEnvVar = getenv("PINOT_MAXIMUM_INDEX_THREADS");
+	if ((pEnvVar != NULL) &&
+		(strlen(pEnvVar) > 0))
+	{
+		int threadsNum = atoi(pEnvVar);
+
+		if (threadsNum > 0)
+		{
+			m_maxIndexThreads = (unsigned int)threadsNum;
+		}
+	}
 
 	// Check disk usage every minute
 	m_timeoutConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
@@ -599,6 +614,7 @@ void DaemonState::stop_crawling(void)
 void DaemonState::on_thread_end(WorkerThread *pThread)
 {
 	string indexedUrl;
+	bool emptyQueue = false;
 
 	if (pThread == NULL)
 	{
@@ -749,47 +765,52 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	delete pThread;
 
 	// Wait until there are no threads running (except background ones)
-	// to flush the index or reload the configuration
-	if (get_threads_count() == 0)
+	// to reload the configuration
+	if ((m_reload == true) &&
+		(get_threads_count() == 0))
 	{
-		if (m_flush == true)
-		{
-			m_flush = false;
-
-			IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
-			if (pIndex != NULL)
-			{
-				pIndex->flush();
-
-				delete pIndex;
-			}
-		}
-
-		if (m_reload == true)
-		{
 #ifdef DEBUG
-			cout << "DaemonState::on_thread_end: stopping all threads" << endl;
+		cout << "DaemonState::on_thread_end: stopping all threads" << endl;
 #endif
-			// Stop background threads
-			stop_threads();
-			// ...clear the queues
-			clear_queues();
+		// Stop background threads
+		stop_threads();
+		// ...clear the queues
+		clear_queues();
 
-			// Reload
-			PinotSettings &settings = PinotSettings::getInstance();
-			settings.clear();
-			settings.load(PinotSettings::LOAD_ALL);
-			m_reload = false;
+		// Reload
+		PinotSettings &settings = PinotSettings::getInstance();
+		settings.clear();
+		settings.load(PinotSettings::LOAD_ALL);
+		m_reload = false;
 
-			// ...and restart everything 
-			start(true, false);
-		}
+		// ...and restart everything 
+		start(true, false);
 	}
 
 	// Try to run a queued action unless threads were stopped
 	if (isStopped == false)
 	{
-		pop_queue(indexedUrl);
+		emptyQueue = pop_queue(indexedUrl);
+	}
+
+	// Wait until there are no threads running (except background ones)
+	// and the queue is empty to flush the index
+	if ((m_flush == true) &&
+		(emptyQueue == true) &&
+		(get_threads_count() == 0))
+	{
+		m_flush = false;
+
+		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+		if (pIndex != NULL)
+		{
+#ifdef DEBUG
+			cout << "DaemonState::on_thread_end: flushing" << endl;
+#endif
+			pIndex->flush();
+
+			delete pIndex;
+		}
 	}
 }
 

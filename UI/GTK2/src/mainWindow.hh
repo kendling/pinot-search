@@ -187,7 +187,7 @@ private:
 	class InternalState : public ThreadsManager
 	{
 		public:
-			InternalState(unsigned int maxIndexThreads, mainWindow *pWindow);
+			InternalState(mainWindow *pWindow);
 			virtual ~InternalState();
 
 			// Query
@@ -199,7 +199,6 @@ private:
 
 	} m_state;
 	static unsigned int m_maxDocsCount;
-	static unsigned int m_maxIndexThreads;
 
 };
 
