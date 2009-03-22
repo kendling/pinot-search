@@ -19,6 +19,7 @@
 #ifndef _MEMORY_H
 #define _MEMORY_H
 
+#include "config.h"
 #include <string>
 #include <iostream>
 #ifdef HAVE_UMEM_H
