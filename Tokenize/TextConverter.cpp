@@ -146,12 +146,14 @@ string TextConverter::toUTF8(const char *pText, unsigned int textLen, const stri
 #ifdef DEBUG
 		cout << "TextConverter::toUTF8: " << ce.what() << endl;
 #endif
+		outputText.clear();
 	}
 	catch (...)
 	{
 #ifdef DEBUG
 		cout << "TextConverter::toUTF8: unknown exception" << endl;
 #endif
+		outputText.clear();
 	}
 
 	return outputText;
