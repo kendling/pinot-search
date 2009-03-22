@@ -50,7 +50,7 @@ pinot_index_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
 	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
-	-lTokenize -lUtils -lBasicUtils @LIBS@ \
+	-lTokenize -lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
@@ -67,7 +67,7 @@ pinot_search_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
 	-lCore -lIndexSearch -lCollect -lTokenize \
-	-lUtils -lBasicUtils @LIBS@ \
+	-lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ \
 	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
 
@@ -87,7 +87,7 @@ pinot_dbus_daemon_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
 	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
-	-lTokenize -lUtils -lBasicUtils @LIBS@ \
+	-lTokenize -lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 

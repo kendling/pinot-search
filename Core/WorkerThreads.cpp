@@ -37,6 +37,7 @@
 #include "config.h"
 #include "NLS.h"
 #include "Languages.h"
+#include "Memory.h"
 #include "MIMEScanner.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
@@ -500,6 +501,12 @@ void ThreadsManager::clear_queues(void)
 unsigned int ThreadsManager::get_next_id(void)
 {
 	unsigned int nextThreadId = ++m_nextThreadId;
+
+	// Reclaim memory on a regular basis
+	if (nextThreadId % 1000 == 0)
+	{
+		Memory::reclaim();
+	}
 
 	return nextThreadId;
 }
