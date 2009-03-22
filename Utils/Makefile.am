@@ -6,6 +6,7 @@ noinst_HEADERS = \
 	DocumentInfo.h \
 	Languages.h \
 	MIMEScanner.h \
+	Memory.h \
 	NLS.h \
 	StringManip.h \
 	TimeConverter.h \
@@ -46,7 +47,8 @@ libBasicUtils_la_SOURCES = \
 
 libUtils_la_SOURCES = \
 	Languages.cpp \
-	MIMEScanner.cpp
+	MIMEScanner.cpp \
+	Memory.cpp
 
 if HAVE_GIO_MIME
 else

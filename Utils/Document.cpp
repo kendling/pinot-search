@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 
 #include "Document.h"
 #include "TimeConverter.h"
+#include "Memory.h"
 
 using std::cout;
 using std::cerr;
@@ -143,7 +144,7 @@ bool Document::setData(const char *data, unsigned int length)
 	// Discard existing data
 	resetData();
 
-	m_pData = (char *)malloc(sizeof(char) * (length + 1));
+	m_pData = Memory::allocateBuffer(length + 1);
 	if (m_pData != NULL)
 	{
 		memcpy(m_pData, data, length);
@@ -212,16 +213,24 @@ bool Document::setDataFromFile(const string &fileName)
 
 #ifdef HAVE_MMAP
 	// Request a private mapping of the whole file
-	void *mapSpace = mmap(NULL, fileStat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	void *mapSpace = mmap(NULL, (size_t)fileStat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (mapSpace != MAP_FAILED)
 	{
 		m_pData = (char*)mapSpace;
 		m_dataLength = fileStat.st_size;
 		m_isMapped = true;
+#ifdef HAVE_MADVISE
+		if (madvise(mapSpace, (size_t)fileStat.st_size, MADV_SEQUENTIAL) != 0)
+		{
+#ifdef DEBUG
+			cout << "Document::setDataFromFile: ignored memory advice" << endl;
+#endif
+		}
+#endif
 	}
 	else cerr << "Document::setDataFromFile: mapping failed" << endl;
 #else
-	m_pData = (char *)malloc(sizeof(char) * (fileStat.st_size + 1));
+	m_pData = Memory::allocateBuffer(fileStat.st_size + 1);
 	if (m_pData != NULL)
 	{
 		if (read(fd, (void*)m_pData, fileStat.st_size) == fileStat.st_size)
@@ -231,7 +240,7 @@ bool Document::setDataFromFile(const string &fileName)
 		}
 		else
 		{
-			free(m_pData);
+			Memory::freeBuffer(m_pData, fileStat.st_size + 1);
 			m_pData = NULL;
 		}
 	}
@@ -327,13 +336,21 @@ void Document::resetData(void)
 		if (m_isMapped == false)
 		{
 			// Free
-			free(m_pData);
+			Memory::freeBuffer(m_pData, m_dataLength + 1);
 		}
 #ifdef HAVE_MMAP
 		else
 		{
+#ifdef HAVE_MADVISE
+			if (madvise((void*)m_pData, (size_t)m_dataLength, MADV_DONTNEED) != 0)
+			{
+#ifdef DEBUG
+				cout << "Document::resetData: ignored memory advice" << endl;
+#endif
+			}
+#endif
 			// Unmap
-			munmap((void*)m_pData, m_dataLength);
+			munmap((void*)m_pData, (size_t)m_dataLength);
 		}
 #endif
 	}
