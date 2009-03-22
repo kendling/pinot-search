@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2008 Fabrice Colin
+ *  Copyright 2007-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,16 +31,6 @@ using std::endl;
 using std::string;
 using std::set;
 using namespace Dijon;
-
-static string convertToUTF8(const char *pData, unsigned int dataLen, const string &charset)
-{
-	TextConverter converter(20);
-
-#ifdef DEBUG
-	cout << "FilterWrapper::filterDocument: filter requested conversion from " << charset << endl;
-#endif
-	return converter.toUTF8(pData, dataLen, charset);
-}
 
 ReducedAction::ReducedAction()
 {
@@ -183,35 +173,25 @@ bool FilterWrapper::filterDocument(const Document &doc, const string &originalTy
 
 	if (pFilter != NULL)
 	{
-		// The filter may have to convert the content to UTF-8 itself
-    		pFilter->set_utf8_converter(convertToUTF8);
-
 		fedFilter = FilterUtils::feedFilter(doc, pFilter);
-	}
-	else
-	{
-		// Chances are this type is not supported
-		pFilter = new TextFilter("text/plain");
-
-		Document emptyDoc(doc.getTitle(), doc.getLocation(), doc.getType(), doc.getLanguage());
-
-		emptyDoc.setTimestamp(doc.getTimestamp());
-		emptyDoc.setSize(doc.getSize());
-		emptyDoc.setData(" ", 1);
-
-#ifdef DEBUG
-		cout << "FilterWrapper::filterDocument: unsupported type " << doc.getType() << endl;
-#endif
-		fedFilter = FilterUtils::feedFilter(emptyDoc, pFilter);
 	}
 
 	if (fedFilter == false)
 	{
-		delete pFilter;
+		Document docCopy(doc);
 
-		return false;
+		// Take the appropriate action now
+		finalSuccess = action.takeAction(docCopy, false);
+
+		if (pFilter != NULL)
+		{
+			delete pFilter;
+		}
+
+		return finalSuccess;
 	}
 
+	// At this point, pFilter cannot be NULL
 	bool hasDocs = pFilter->has_documents();
 #ifdef DEBUG
 	cout << "FilterWrapper::filterDocument: has documents " << hasDocs << endl;

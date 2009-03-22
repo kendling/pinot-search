@@ -258,11 +258,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 			{
 				fedInput = pFilter->set_document_data(pData, dataLength);
 			}
-			else
-			{
-				// The file may be empty
-				fedInput = pFilter->set_document_data(" ", 1);
-			}
+			// Else, the file may be empty
 		}
 	}
 
@@ -361,17 +357,17 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 	TextConverter converter(20);
 
 	// Content and title may have to be converted
-	map<string, string>::const_iterator contentIter = metaData.find("content");
-	if (contentIter != metaData.end())
+	const dstring &content = pFilter->get_content();
+	if (content.empty() == false)
 	{
 		if (checkType == true)
 		{
-			doc.setType(MIMEScanner::scanData(contentIter->second.c_str(), contentIter->second.length()));
+			doc.setType(MIMEScanner::scanData(content.c_str(), content.length()));
 		}
 
 		if (doc.getType().substr(0, 10) == "text/plain")
 		{
-			string utf8Data(converter.toUTF8(contentIter->second, charset));
+			string utf8Data(converter.toUTF8(content.c_str(), content.length(), charset));
 
 			if (converter.getErrorsCount() > 0)
 			{
@@ -381,13 +377,16 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		}
 		else
 		{
-			doc.setData(contentIter->second.c_str(), contentIter->second.length());
+			doc.setData(content.c_str(), content.length());
 		}
 	}
-	contentIter = metaData.find("title");
-	if (contentIter != metaData.end())
+	map<string, string>::const_iterator contentIter = metaData.find("title");
+	if ((contentIter != metaData.end()) &&
+		(contentIter->second.empty() == false))
 	{
-		doc.setTitle(converter.toUTF8(contentIter->second, charset));
+		string utf8Data(converter.toUTF8(contentIter->second, charset));
+
+		doc.setTitle(utf8Data);
 	}
 
 	return true;
@@ -414,11 +413,10 @@ string FilterUtils::stripMarkup(const string &text)
 	if ((feedFilter(doc, pFilter) == true) &&
 		(pFilter->next_document() == true))
 	{
-		const map<string, string> &metaData = pFilter->get_meta_data();
-		map<string, string>::const_iterator contentIter = metaData.find("content");
-		if (contentIter != metaData.end())
+		const dstring &content = pFilter->get_content();
+		if (content.empty() == false)
 		{
-			strippedText = contentIter->second;
+			strippedText = string(content.c_str(), content.length());
 		}
 	}
 
