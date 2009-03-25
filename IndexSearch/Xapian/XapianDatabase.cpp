@@ -542,7 +542,7 @@ bool XapianDatabase::badRecordField(const string &field)
 
 	// A bad field is one that includes one of our field delimiters
 	if (regcomp(&fieldRegex,
-		"(url|sample|caption|type|modtime|language|size)=",
+		"(url|ipath|sample|caption|type|modtime|language|size)=",
 		REG_EXTENDED|REG_ICASE) == 0)
 	{
 		if (regexec(&fieldRegex, field.c_str(), 1,
@@ -554,13 +554,14 @@ bool XapianDatabase::badRecordField(const string &field)
 	regfree(&fieldRegex);
 #else
 	// A bad field is one that includes one of our field delimiters
-	if ((field.find("url") != string::npos) ||
-		(field.find("sample") != string::npos) ||
-		(field.find("caption") != string::npos) ||
-		(field.find("type") != string::npos) ||
-		(field.find("modtime") != string::npos) ||
-		(field.find("language") != string::npos) ||
-		(field.find("size") != string::npos))
+	if ((field.find("url=") != string::npos) ||
+		(field.find("ipath=") != string::npos) ||
+		(field.find("sample=") != string::npos) ||
+		(field.find("caption=") != string::npos) ||
+		(field.find("type=") != string::npos) ||
+		(field.find("modtime=") != string::npos) ||
+		(field.find("language=") != string::npos) ||
+		(field.find("size=") != string::npos))
 	{
 		isBadField = true;
 	}
@@ -584,6 +585,8 @@ string XapianDatabase::propsToRecord(DocumentInfo *pDoc)
 
 	// Set the document data omindex-style
 	record += pDoc->getLocation();
+	record += "\nipath=";
+	record += Url::escapeUrl(pDoc->getInternalPath());
 	// The sample will be generated at query time
 	record += "\nsample=";
 	record += "\ncaption=";
@@ -640,6 +643,13 @@ void XapianDatabase::recordToProps(const string &record, DocumentInfo *pDoc)
 		url = Url::canonicalizeUrl(url);
 	}
 	pDoc->setLocation(url);
+	// Get the internal path 
+	string ipath(StringManip::extractField(record, "ipath=", "\n"));
+	if (ipath.empty() == false)
+	{
+		ipath = Url::unescapeUrl(ipath);
+	}
+	pDoc->setInternalPath(ipath);
 	// Get the type
 	pDoc->setType(StringManip::extractField(record, "type=", "\n"));
 	// ... the language, if available

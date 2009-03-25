@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2008 Fabrice Colin
+ *  Copyright 2007-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -243,7 +243,7 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 				value = docInfo.getTitle();
 				break;
 			case 1:
-				value = docInfo.getLocation();
+				value = docInfo.getLocation(true);
 				break;
 			case 2:
 				value = docInfo.getType();

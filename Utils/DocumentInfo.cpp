@@ -91,9 +91,19 @@ DocumentInfo& DocumentInfo::operator=(const DocumentInfo& other)
 
 bool DocumentInfo::operator<(const DocumentInfo& other) const
 {
-	if (getField("url") < other.getField("url"))
+	string thisUrl(getField("url"));
+	string otherUrl(other.getField("url"));
+
+	if (thisUrl < otherUrl)
 	{
 		return true;
+	}
+	else if (thisUrl == otherUrl)
+	{
+		if (getField("ipath") < other.getField("ipath"))
+		{
+			return true;
+		}
 	}
 
 	return false;
@@ -160,6 +170,7 @@ void DocumentInfo::deserialize(const string &info, SerialExtent extent)
 	{
 		setField("caption", StringManip::extractField(unescapedInfo, "caption=", "\n"));
 		setField("url", StringManip::extractField(unescapedInfo, "url=", "\n"));
+		setField("ipath", StringManip::extractField(unescapedInfo, "ipath=", "\n"));
 		setField("type", StringManip::extractField(unescapedInfo, "type=", "\n"));
 		setField("language", StringManip::extractField(unescapedInfo, "language=", "\n"));
 		setField("modtime", StringManip::extractField(unescapedInfo, "modtime=", "\n"));
@@ -217,9 +228,36 @@ void DocumentInfo::setLocation(const string &location)
 }
 
 /// Returns the original location of the document.
-string DocumentInfo::getLocation(void) const
+string DocumentInfo::getLocation(bool withIPath) const
 {
-	return getField("url");
+	string url(getField("url"));
+
+	if (withIPath == false)
+	{
+		return url;
+	}
+
+	string ipath(getField("ipath"));
+
+	if (ipath.empty() == false)
+	{
+		url += "?";
+		url += ipath;
+	}
+
+	return url;
+}
+
+/// Sets the internal path to the document.
+void DocumentInfo::setInternalPath(const string &ipath)
+{
+	setField("ipath", ipath);
+}
+
+/// Returns the internal path to the document.
+string DocumentInfo::getInternalPath(void) const
+{
+	return getField("ipath");
 }
 
 /// Sets the type of the document.

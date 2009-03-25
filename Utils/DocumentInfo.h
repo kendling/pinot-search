@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -58,7 +58,13 @@ class PINOT_EXPORT DocumentInfo
 		virtual void setLocation(const std::string &location);
 
 		/// Returns the original location of the document.
-		virtual std::string getLocation(void) const;
+		virtual std::string getLocation(bool withIPath = false) const;
+
+		/// Sets the internal path to the document.
+		void setInternalPath(const std::string &ipath);
+
+		/// Returns the internal path to the document.
+		std::string getInternalPath(void) const;
 
 		/// Sets the type of the document.
 		virtual void setType(const std::string &type);
