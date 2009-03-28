@@ -74,6 +74,32 @@ void Memory::freeBuffer(char *pBuffer, unsigned int length)
 #endif
 }
 
+int Memory::getUsage(void)
+{
+	int inUse = 0;
+
+#ifndef HAVE_UMEM_H
+	// All this only makes sense if umem isn't in use
+#ifdef HAVE_MALLINFO
+	struct mallinfo info = mallinfo();
+	/* arena: total space allocated from the heap (that is, how much the “break” point has moved since the start of the process).
+	 * uordblks:number of bytes allocated and in use.
+	 * fordblks:number of bytes allocated but not in use.
+	 * keepcost:size of the area that can be released with a malloc_trim ().
+	 * hblks:number of chunks allocated via mmap ().
+	 * hblkhd:total number of bytes allocated via mmap ().
+	 */
+	inUse = info.uordblks;
+#ifdef DEBUG
+	std::cout << "Memory::getUsage: allocated on the heap " << info.arena << ", mmap'ed " << info.hblkhd
+		<< ", in use " << inUse << ", not in use " << info.fordblks << ", can be trimmed " << info.keepcost << std::endl;
+#endif
+#endif
+#endif
+
+	return inUse;
+}
+
 void Memory::reclaim(void)
 {
 #ifdef HAVE_BOOST_POOL_POOLFWD_HPP
@@ -90,22 +116,9 @@ void Memory::reclaim(void)
 #endif
 #endif
 
-#ifndef HAVE_UMEM_H
-	// All this only makes sense if umem isn't in use
-#ifdef HAVE_MALLINFO
-	struct mallinfo info = mallinfo();
-	/* arena: total space allocated from the heap (that is, how much the “break” point has moved since the start of the process).
-	 * uordblks:number of bytes allocated and in use.
-	 * fordblks:number of bytes allocated but not in use.
-	 * keepcost:size of the area that can be released with a malloc_trim ().
-	 * hblks:number of chunks allocated via mmap ().
-	 * hblkhd:total number of bytes allocated via mmap ().
-	 */
-#ifdef DEBUG
-	std::cout << "Memory::reclaim: allocated on the heap " << info.arena << ", mmap'ed " << info.hblkhd
-		<< ", in use " << info.uordblks << ", not in use " << info.fordblks << ", can be trimmed " << info.keepcost << std::endl;
-#endif
-#endif
+#ifdef HAVE_UMEM_H
+	umem_reap();
+#else
 #ifdef HAVE_MALLOC_TRIM
 	int trimmedMemory = malloc_trim(0);
 #ifdef DEBUG

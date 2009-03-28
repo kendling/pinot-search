@@ -420,6 +420,9 @@ class PINOT_EXPORT Memory
 		/// Frees a buffer.
 		static void freeBuffer(char *pBuffer, unsigned int length);
 
+		/// Returns the number of bytes in use.
+		static int getUsage(void);
+
 		/// Hints to the OS it can reclaim unused memory.
 		static void reclaim(void);
 
