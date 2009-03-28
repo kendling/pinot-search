@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,9 +21,97 @@
 
 #include "MIMEScanner.h"
 #include "Url.h"
+#include "FilterUtils.h"
 #include "FileCollector.h"
 
 using namespace std;
+
+class LastIPathAction : public ReducedAction
+{
+	public:
+		LastIPathAction(const string &ipath) :
+			ReducedAction(),
+			m_ipath(ipath),
+			m_pDocument(NULL)
+		{
+		}
+		virtual ~LastIPathAction()
+		{
+		}
+
+		virtual bool positionFilter(const Document &doc, Dijon::Filter *pFilter)
+		{
+			string::size_type nextPos = m_ipath.find("&next&");
+			string thisIPath(m_ipath);
+
+			if (nextPos != string::npos)
+			{
+				thisIPath = m_ipath.substr(0, nextPos);
+			}
+
+			if (pFilter != NULL)
+			{
+#ifdef DEBUG
+				cout << "LastIPathAction::positionFilter: moving filter for "
+					<< pFilter->get_mime_type() << " to " << thisIPath << endl;
+#endif
+				// Skip forward
+				pFilter->skip_to_document(thisIPath);
+			}
+
+			if (nextPos != string::npos)
+			{
+				 m_ipath.erase(0, nextPos + 6);
+			}
+			else
+			{
+				m_ipath.clear();
+			}
+
+			return true;
+		}
+
+		virtual bool isReduced(const Document &doc)
+		{
+			if (m_ipath.empty() == false)
+			{
+				// Go one level deeper
+#ifdef DEBUG
+				cout << "LastIPathAction::isReduced: not final" << endl;
+#endif
+				return false;
+			}
+
+			return true;
+		}
+
+		virtual bool takeAction(Document &doc, bool isNested)
+		{
+			if (m_ipath.empty() == true)
+			{
+				m_pDocument = new Document(doc);
+#ifdef DEBUG
+				cout << "LastIPathAction::takeAction: " << doc.getInternalPath() << " final" << endl;
+#endif
+			}
+
+			return true;
+		}
+
+		Document *getDocument(void)
+		{
+			return m_pDocument;
+		}
+
+	protected:
+		string m_ipath;
+		Document *m_pDocument;
+
+	private:
+		LastIPathAction(const LastIPathAction &other);
+		LastIPathAction &operator=(const LastIPathAction &other);
+
+};
 
 FileCollector::FileCollector() :
 	DownloaderInterface()
@@ -42,7 +130,8 @@ FileCollector::~FileCollector()
 Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 {
 	Url thisUrl(docInfo.getLocation());
-	string protocol = thisUrl.getProtocol();
+	string protocol(thisUrl.getProtocol());
+	string ipath(docInfo.getInternalPath());
 
 	if (protocol != "file")
 	{
@@ -61,10 +150,37 @@ Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
 		delete pDocument;
 		return NULL;
 	}
-	if (pDocument->getType().empty() == true)
+
+	// Determine the file type
+	string type(MIMEScanner::scanFile(fileLocation));
+
+	// Stop here ?
+	if (ipath.empty() == true)
 	{
-		// Determine the file type
-		pDocument->setType(MIMEScanner::scanFile(fileLocation));
+		if (pDocument->getType().empty() == true)
+		{
+			pDocument->setType(type);
+		}
+
+		return pDocument;
+	}
+
+	// Reset these to avoid confusing the filters
+	pDocument->setInternalPath("");
+	pDocument->setType(type);
+
+	LastIPathAction action(ipath);
+	bool reduced = FilterUtils::reduceDocument(*pDocument, action);
+	if (reduced == true)
+	{
+		Document *pBottomMostDocument = action.getDocument();
+
+		if (pBottomMostDocument != NULL)
+		{
+			delete pDocument;
+
+			return pBottomMostDocument;
+		}
 	}
 
 	return pDocument;
