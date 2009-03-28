@@ -25,6 +25,7 @@
 #include <set>
 
 #include "config.h"
+#include "Memory.h"
 #include "MIMEScanner.h"
 #include "StringManip.h"
 #include "TimeConverter.h"
@@ -34,6 +35,7 @@
 #include "FilterUtils.h"
 
 #define UNSUPPORTED_TYPE "X-Unsupported"
+#define SIZE_THRESHOLD 5242880
 
 using std::cout;
 using std::cerr;
@@ -44,6 +46,31 @@ using std::map;
 
 set<string> FilterUtils::m_types;
 map<string, string> FilterUtils::m_typeAliases;
+
+ReducedAction::ReducedAction()
+{
+}
+
+ReducedAction::~ReducedAction()
+{
+}
+
+bool ReducedAction::positionFilter(const Document &doc, Dijon::Filter *pFilter)
+{
+	return false;
+}
+
+bool ReducedAction::isReduced(const Document &doc)
+{
+	// Is it reduced to plain text ?
+	if ((doc.getType().length() >= 10) &&
+		(doc.getType().substr(0, 10) == "text/plain"))
+	{
+		return true;
+	}
+
+	return false;
+}
 
 FilterUtils::FilterUtils()
 {
@@ -177,7 +204,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 	}
 
 	if ((urlObj.getProtocol() == "file") &&
-		(location .length() > 7))
+		(location.length() > 7))
 	{
 		fileName = location.substr(7);
 	}
@@ -227,7 +254,8 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 	}
 	// ... to feeding the file
 	if ((fedInput == false) &&
-		(fileName.empty() == false))
+		(fileName.empty() == false) &&
+		(doc.getInternalPath().empty() == true))
 	{ 
 		if (pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_FILE_NAME) == true)
 		{
@@ -264,7 +292,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 
 	if (fedInput == false)
 	{
-		cerr << "Couldn't feed filter for " << doc.getLocation() << endl;
+		cerr << "Couldn't feed filter for " << doc.getLocation(true) << endl;
 
 		return false;
 	}
@@ -275,6 +303,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 {
 	string charset, uri, ipath;
+	off_t size = 0;
 	bool checkType = false;
 
 	if (pFilter == NULL)
@@ -318,7 +347,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		}
 		else if (metaIter->first == "size")
 		{
-			off_t size = (off_t)atoi(metaIter->second.c_str());
+			size = (off_t)atoi(metaIter->second.c_str());
 
 			if (size > 0)
 			{
@@ -333,7 +362,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 			uri = metaIter->second;
 
 			if ((uri.length() >= 18) &&
-				(uri.substr(0, 18) == "file:///tmp/filter"))
+				(uri.find(":///tmp/filter") != string::npos))
 			{
 				// We fed the filter a temporary file
 				uri.clear();
@@ -347,11 +376,17 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 	}
 	if (ipath.empty() == false)
 	{
-		string location(doc.getLocation());
+		string currentIPath(doc.getInternalPath());
 
-		location += "?";
-		location += ipath;
-		doc.setLocation(location);
+		if (currentIPath.empty() == false)
+		{
+			currentIPath += "&next&";
+		}
+		currentIPath += ipath;
+		doc.setInternalPath(currentIPath);
+#ifdef DEBUG
+		cout << "FilterUtils::populateDocument: ipath " << currentIPath << endl;
+#endif
 	}
 
 	TextConverter converter(20);
@@ -371,7 +406,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 
 			if (converter.getErrorsCount() > 0)
 			{
-				cerr << doc.getLocation() << " may not have been fully converted to UTF-8" << endl;
+				cerr << doc.getLocation(true) << " may not have been fully converted to UTF-8" << endl;
 			}
 			doc.setData(utf8Data.c_str(), utf8Data.length());
 		}
@@ -389,7 +424,151 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		doc.setTitle(utf8Data);
 	}
 
+	// If the document is big'ish, try and reclaim memory
+	int inUse = Memory::getUsage();
+	if ((size > SIZE_THRESHOLD) ||
+		(content.length() > SIZE_THRESHOLD))
+	{
+		Memory::reclaim();
+	}
+
 	return true;
+}
+
+bool FilterUtils::filterDocument(const Document &doc, const string &originalType,
+	ReducedAction &action)
+{
+	Dijon::Filter *pFilter = FilterUtils::getFilter(doc.getType());
+	bool fedFilter = false, positionedFilter = false, docSuccess = false, finalSuccess = false;
+
+	if (pFilter != NULL)
+	{
+		fedFilter = FilterUtils::feedFilter(doc, pFilter);
+	}
+	positionedFilter = action.positionFilter(doc, pFilter);
+
+	if (fedFilter == false)
+	{
+		Document docCopy(doc);
+
+		// Take the appropriate action now
+		finalSuccess = action.takeAction(docCopy, false);
+
+		if (pFilter != NULL)
+		{
+			delete pFilter;
+		}
+
+		return finalSuccess;
+	}
+
+	// At this point, pFilter cannot be NULL
+	bool hasDocs = pFilter->has_documents();
+#ifdef DEBUG
+	cout << "FilterUtils::filterDocument: has documents " << hasDocs << endl;
+#endif
+	while (hasDocs == true)
+	{
+		string actualType(originalType);
+		bool isNested = false;
+		bool emptyTitle = false;
+
+		if ((positionedFilter == false) &&
+			(pFilter->next_document() == false))
+		{
+#ifdef DEBUG
+			cout << "FilterUtils::filterDocument: no more documents in " << doc.getLocation(true) << endl;
+#endif
+			break;
+		}
+
+		string originalTitle(doc.getTitle());
+		Document filteredDoc(originalTitle, doc.getLocation(), "text/plain", doc.getLanguage());
+
+		filteredDoc.setInternalPath(doc.getInternalPath());
+		filteredDoc.setTimestamp(doc.getTimestamp());
+		filteredDoc.setSize(doc.getSize());
+		docSuccess = false;
+
+		if (populateDocument(filteredDoc, pFilter) == false)
+		{
+			hasDocs = pFilter->has_documents();
+			continue;
+		}
+
+		// Is this a nested document ?
+		if (filteredDoc.getInternalPath().length() > doc.getInternalPath().length())
+		{
+			actualType = filteredDoc.getType();
+#ifdef DEBUG
+			cout << "FilterUtils::filterDocument: nested document of type " << actualType << endl;
+#endif
+			isNested = true;
+		}
+		else if (originalTitle.empty() == false)
+		{
+			// Preserve the top-level document's title
+			filteredDoc.setTitle(originalTitle);
+		}
+		else if (filteredDoc.getTitle().empty() == true)
+		{
+			emptyTitle = true;
+		}
+
+		// Pass it down to another filter ?
+		if (action.isReduced(filteredDoc) == true)
+		{
+			// Do we need to set a default title ?
+			if (emptyTitle == true)
+			{
+				Url urlObj(doc.getLocation());
+
+				// Default to the file name as title
+				filteredDoc.setTitle(urlObj.getFile());
+#ifdef DEBUG
+				cout << "FilterUtils::filterDocument: set default title " << urlObj.getFile() << endl;
+#endif
+			}
+
+			filteredDoc.setType(actualType);
+
+			// Take the appropriate action
+			docSuccess = action.takeAction(filteredDoc, isNested);
+		}
+		else
+		{
+			docSuccess = filterDocument(filteredDoc, actualType, action);
+		}
+
+		// Consider indexing anything a success
+		if (docSuccess == true)
+		{
+			finalSuccess = true;
+		}
+
+		if (positionedFilter == true)
+		{
+			break;
+		}
+
+		// Next
+		hasDocs = pFilter->has_documents();
+	}
+
+	delete pFilter;
+
+#ifdef DEBUG
+	cout << "FilterUtils::filterDocument: done with " << doc.getLocation(true) << " status " << finalSuccess << endl;
+#endif
+
+	return finalSuccess;
+}
+
+bool FilterUtils::reduceDocument(const Document &doc, ReducedAction &action)
+{
+	string originalType(doc.getType());
+
+	return filterDocument(doc, originalType, action);
 }
 
 string FilterUtils::stripMarkup(const string &text)

@@ -27,30 +27,12 @@
 #include "Filter.h"
 #include "IndexInterface.h"
 
-/// Takes action on a document that's been reduced to text.
-class PINOT_EXPORT ReducedAction
-{
-	public:
-		ReducedAction();
-		virtual ~ReducedAction();
-
-		virtual bool takeAction(Document &doc, bool isNested) = 0;
-
-	private:
-		ReducedAction(const ReducedAction &other);
-		ReducedAction &operator=(const ReducedAction &other);
-
-};
-
 /// A wrapper around Dijon filters.
 class PINOT_EXPORT FilterWrapper
 {
 	public:
 		FilterWrapper(IndexInterface *pIndex);
 		virtual ~FilterWrapper();
-
-		/// Reduces a document to text.
-		bool reduceToText(const Document &doc, ReducedAction &action);
 
 		/// Indexes the given data.
 		bool indexDocument(const Document &doc, const std::set<std::string> &labels,
@@ -64,9 +46,6 @@ class PINOT_EXPORT FilterWrapper
 
 	protected:
 		IndexInterface *m_pIndex;
-
-		bool filterDocument(const Document &doc, const std::string &originalType,
-			ReducedAction &action);
 
 		bool unindexNestedDocuments(const std::string &url);
 

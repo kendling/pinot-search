@@ -32,14 +32,6 @@ using std::string;
 using std::set;
 using namespace Dijon;
 
-ReducedAction::ReducedAction()
-{
-}
-
-ReducedAction::~ReducedAction()
-{
-}
-
 class IndexAction : public ReducedAction
 {
 	public:
@@ -109,14 +101,6 @@ FilterWrapper::~FilterWrapper()
 {
 }
 
-bool FilterWrapper::reduceToText(const Document &doc, ReducedAction &action)
-{
-	string originalType(doc.getType());
-	unsigned int indexId = 0;
-
-	return filterDocument(doc, originalType, action);
-}
-
 bool FilterWrapper::indexDocument(const Document &doc, const set<string> &labels, unsigned int &docId)
 {
 	string originalType(doc.getType());
@@ -130,7 +114,7 @@ bool FilterWrapper::indexDocument(const Document &doc, const set<string> &labels
 
 	IndexAction action(m_pIndex, labels, docId, false);
 
-	bool filteredDoc = filterDocument(doc, originalType, action);
+	bool filteredDoc = FilterUtils::filterDocument(doc, originalType, action);
 	docId = action.getId();
 
 	return filteredDoc;
@@ -150,7 +134,7 @@ bool FilterWrapper::updateDocument(const Document &doc, unsigned int docId)
 
 	IndexAction action(m_pIndex, labels, docId, true);
 
-	return filterDocument(doc, originalType, action);
+	return FilterUtils::filterDocument(doc, originalType, action);
 }
 
 bool FilterWrapper::unindexDocument(const string &location)
@@ -163,129 +147,6 @@ bool FilterWrapper::unindexDocument(const string &location)
 	unindexNestedDocuments(location);
 
 	return m_pIndex->unindexDocument(location);
-}
-
-bool FilterWrapper::filterDocument(const Document &doc, const string &originalType,
-	ReducedAction &action)
-{
-	Filter *pFilter = FilterUtils::getFilter(doc.getType());
-	bool fedFilter = false, docSuccess = false, finalSuccess = false;
-
-	if (pFilter != NULL)
-	{
-		fedFilter = FilterUtils::feedFilter(doc, pFilter);
-	}
-
-	if (fedFilter == false)
-	{
-		Document docCopy(doc);
-
-		// Take the appropriate action now
-		finalSuccess = action.takeAction(docCopy, false);
-
-		if (pFilter != NULL)
-		{
-			delete pFilter;
-		}
-
-		return finalSuccess;
-	}
-
-	// At this point, pFilter cannot be NULL
-	bool hasDocs = pFilter->has_documents();
-#ifdef DEBUG
-	cout << "FilterWrapper::filterDocument: has documents " << hasDocs << endl;
-#endif
-	while (hasDocs == true)
-	{
-		string actualType(originalType);
-		bool isNested = false;
-		bool emptyTitle = false;
-
-		if (pFilter->next_document() == false)
-		{
-#ifdef DEBUG
-			cout << "FilterWrapper::filterDocument: no more documents in " << doc.getLocation() << endl;
-#endif
-			break;
-		}
-
-		string originalTitle(doc.getTitle());
-		Document filteredDoc(originalTitle, doc.getLocation(), "text/plain", doc.getLanguage());
-
-		filteredDoc.setTimestamp(doc.getTimestamp());
-		filteredDoc.setSize(doc.getSize());
-		docSuccess = false;
-
-		if (FilterUtils::populateDocument(filteredDoc, pFilter) == false)
-		{
-			hasDocs = pFilter->has_documents();
-			continue;
-		}
-
-		// Is this a nested document ?
-		if (filteredDoc.getLocation().length() > doc.getLocation().length())
-		{
-			actualType = filteredDoc.getType();
-#ifdef DEBUG
-			cout << "FilterWrapper::filterDocument: nested document of type " << actualType << endl;
-#endif
-			isNested = true;
-		}
-		else if (originalTitle.empty() == false)
-		{
-			// Preserve the top-level document's title
-			filteredDoc.setTitle(originalTitle);
-		}
-		else if (filteredDoc.getTitle().empty() == true)
-		{
-			emptyTitle = true;
-		}
-
-		// Pass it down to another filter ?
-		if ((filteredDoc.getType().length() >= 10) &&
-			(filteredDoc.getType().substr(0, 10) == "text/plain"))
-		{
-			// Do we need to set a default title ?
-			if (emptyTitle == true)
-			{
-				Url urlObj(doc.getLocation());
-
-				// Default to the file name as title
-				filteredDoc.setTitle(urlObj.getFile());
-#ifdef DEBUG
-				cout << "FilterWrapper::filterDocument: set default title " << urlObj.getFile() << endl;
-#endif
-			}
-
-			// No, it's been reduced to plain text
-			filteredDoc.setType(actualType);
-
-			// Take the appropriate action
-			docSuccess = action.takeAction(filteredDoc, isNested);
-		}
-		else
-		{
-			docSuccess = filterDocument(filteredDoc, actualType, action);
-		}
-
-		// Consider indexing anything a success
-		if (docSuccess == true)
-		{
-			finalSuccess = true;
-		}
-
-		// Next
-		hasDocs = pFilter->has_documents();
-	}
-
-	delete pFilter;
-
-#ifdef DEBUG
-	cout << "FilterWrapper::filterDocument: done with " << doc.getLocation() << " status " << finalSuccess << endl;
-#endif
-
-	return finalSuccess;
 }
 
 bool FilterWrapper::unindexNestedDocuments(const string &url)

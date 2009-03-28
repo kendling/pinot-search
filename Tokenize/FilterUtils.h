@@ -26,6 +26,25 @@
 #include "Visibility.h"
 #include "filters/Filter.h"
 
+/// Drives document reduction and takes action on the final document.
+class PINOT_EXPORT ReducedAction
+{
+	public:
+		ReducedAction();
+		virtual ~ReducedAction();
+
+		virtual bool positionFilter(const Document &doc, Dijon::Filter *pFilter);
+
+		virtual bool isReduced(const Document &doc);
+
+		virtual bool takeAction(Document &doc, bool isNested) = 0;
+
+	private:
+		ReducedAction(const ReducedAction &other);
+		ReducedAction &operator=(const ReducedAction &other);
+
+};
+
 /// Utility functions for dealing with Dijon filters.
 class PINOT_EXPORT FilterUtils
 {
@@ -43,6 +62,13 @@ class PINOT_EXPORT FilterUtils
 
 		/// Populates a document based on metadata extracted by the filter.
 		static bool populateDocument(Document &doc, Dijon::Filter *pFilter);
+
+		/// Filters a document until reduced to the minimum.
+		static bool filterDocument(const Document &doc, const std::string &originalType,
+			ReducedAction &action);
+
+		/// Convenient front-end for filterDocument() to reduce documents.
+		static bool reduceDocument(const Document &doc, ReducedAction &action);
 
 		/// Strips markup from a piece of text.
 		static std::string stripMarkup(const std::string &text);
