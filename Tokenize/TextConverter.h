@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Fabrice Colin
+ *  Copyright 2008-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,10 +30,10 @@ class PINOT_EXPORT TextConverter
 		virtual ~TextConverter();
 
 		/// Converts to UTF-8.
-		std::string toUTF8(const std::string &text, const std::string &charset);
+		std::string toUTF8(const std::string &text, std::string &charset);
 
 		/// Converts to UTF-8.
-		std::string toUTF8(const char *pText, unsigned int textLen, const std::string &charset);
+		std::string toUTF8(const char *pText, unsigned int textLen, std::string &charset);
 
 		/// Gets the number of conversion errors for the previous toUTF8() call.
 		unsigned int getErrorsCount(void) const;

@@ -42,7 +42,7 @@ TextConverter::~TextConverter()
 {
 }
 
-string TextConverter::toUTF8(const string &text, const string &charset)
+string TextConverter::toUTF8(const string &text, string &charset)
 {
 	unsigned int textLen = (unsigned int)text.length();
 
@@ -50,7 +50,7 @@ string TextConverter::toUTF8(const string &text, const string &charset)
 	return toUTF8(text.c_str(), textLen, charset);
 }
 
-string TextConverter::toUTF8(const char *pText, unsigned int textLen, const string &charset)
+string TextConverter::toUTF8(const char *pText, unsigned int textLen, string &charset)
 {
 	string textCharset(StringManip::toLowerCase(charset));
 	char outputBuffer[8192];
@@ -147,6 +147,19 @@ string TextConverter::toUTF8(const char *pText, unsigned int textLen, const stri
 		cout << "TextConverter::toUTF8: " << ce.what() << endl;
 #endif
 		outputText.clear();
+
+		string::size_type pos = textCharset.find('_');
+		if (pos != string::npos)
+		{
+			string fixedCharset(StringManip::replaceSubString(textCharset, "_", "-"));
+
+#ifdef DEBUG
+			cout << "TextConverter::toUTF8: trying with charset " << fixedCharset << endl;
+#endif
+
+			textCharset = fixedCharset;
+			outputText = toUTF8(pText, textLen, fixedCharset);
+		}
 	}
 	catch (...)
 	{
@@ -156,6 +169,7 @@ string TextConverter::toUTF8(const char *pText, unsigned int textLen, const stri
 		outputText.clear();
 	}
 
+	charset = textCharset;
 	return outputText;
 }
 

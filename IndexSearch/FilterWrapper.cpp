@@ -23,7 +23,6 @@
 #include "FilterFactory.h"
 #include "TextFilter.h"
 #include "FilterUtils.h"
-#include "TextConverter.h"
 #include "FilterWrapper.h"
 
 using std::cout;
