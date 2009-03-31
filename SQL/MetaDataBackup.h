@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -55,18 +55,18 @@ class MetaDataBackup : public SQLiteBase
 		bool deleteLabel(const std::string &value);
 
         protected:
-		bool setAttribute(const std::string &url,
+		bool setAttribute(const DocumentInfo &docInfo,
 			const std::string &name, const std::string &value,
 			bool noXAttr = false);
 
-		bool getAttribute(const std::string &url,
+		bool getAttribute(const DocumentInfo &docInfo,
 			const std::string &name, std::string &value,
 			bool noXAttr = false);
 
-		bool getAttributes(const std::string &url,
+		bool getAttributes(const DocumentInfo &docInfo,
 			const std::string &name, std::set<std::string> &values);
 
-		bool removeAttribute(const std::string &url,
+		bool removeAttribute(const DocumentInfo &docInfo,
 			const std::string &name,
 			bool noXAttr = false, bool likeName = false);
 

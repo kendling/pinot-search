@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -50,16 +50,18 @@ MetaDataBackup::~MetaDataBackup()
 {
 }
 
-bool MetaDataBackup::setAttribute(const string &url,
+bool MetaDataBackup::setAttribute(const DocumentInfo &docInfo,
 	const string &name, const string &value, bool noXAttr)
 {
+	string url(docInfo.getLocation());
+	string urlWithIPath(docInfo.getLocation(true));
 #ifdef HAVE_ATTR_XATTR_H
 	Url urlObj(url);
 
 	// If the file is local and isn't a nested document, use an extended attribute
 	if ((noXAttr == false) &&
 		(urlObj.isLocal() == true) &&
-		(urlObj.getParameters().empty() == true))
+		(docInfo.getInternalPath().empty() == true))
 	{
 		string fileName(url.substr(urlObj.getProtocol().length() + 3));
 		string attrName("pinot." + name);
@@ -79,7 +81,7 @@ bool MetaDataBackup::setAttribute(const string &url,
 	// Is there already such an item for this URL ?
 	SQLResults *results = executeStatement("SELECT Url FROM MetaDataBackup \
 		WHERE Url='%q' AND Name='%q';",
-		Url::escapeUrl(url).c_str(), name.c_str());
+		Url::escapeUrl(urlWithIPath).c_str(), name.c_str());
 	if (results != NULL)
 	{
 		SQLRow *row = results->nextRow();
@@ -98,13 +100,13 @@ bool MetaDataBackup::setAttribute(const string &url,
 	{
 		results = executeStatement("INSERT INTO MetaDataBackup \
 			VALUES('%q', '%q', '%q');",
-			Url::escapeUrl(url).c_str(), name.c_str(), value.c_str());
+			Url::escapeUrl(urlWithIPath).c_str(), name.c_str(), value.c_str());
 	}
 	else
 	{
 		results = executeStatement("UPDATE MetaDataBackup \
 			SET Value='%q' WHERE Url='%q' AND Name='%q';",
-			value.c_str(), Url::escapeUrl(url).c_str(), name.c_str());
+			value.c_str(), Url::escapeUrl(urlWithIPath).c_str(), name.c_str());
 	}
 	if (results != NULL)
 	{
@@ -117,9 +119,11 @@ bool MetaDataBackup::setAttribute(const string &url,
 
 }
 
-bool MetaDataBackup::getAttribute(const string &url,
+bool MetaDataBackup::getAttribute(const DocumentInfo &docInfo,
 	const string &name, string &value, bool noXAttr)
 {
+	string url(docInfo.getLocation());
+	string urlWithIPath(docInfo.getLocation(true));
 	bool success = false;
 #ifdef HAVE_ATTR_XATTR_H
 	Url urlObj(url);
@@ -127,7 +131,7 @@ bool MetaDataBackup::getAttribute(const string &url,
 	// If the file is local and isn't a nested document, use an extended attribute
 	if ((noXAttr == false) &&
 		(urlObj.isLocal() == true) &&
-		(urlObj.getParameters().empty() == true))
+		(docInfo.getInternalPath().empty() == true))
 	{
 		string fileName(url.substr(urlObj.getProtocol().length() + 3));
 		string attrName("pinot." + name);
@@ -156,7 +160,7 @@ bool MetaDataBackup::getAttribute(const string &url,
 
 	SQLResults *results = executeStatement("SELECT Value FROM MetaDataBackup \
 		WHERE Url='%q' AND Name='%q';",
-		Url::escapeUrl(url).c_str(), name.c_str());
+		Url::escapeUrl(urlWithIPath).c_str(), name.c_str());
 	if (results != NULL)
 	{
 		SQLRow *row = results->nextRow();
@@ -174,16 +178,18 @@ bool MetaDataBackup::getAttribute(const string &url,
 	return success;
 }
 
-bool MetaDataBackup::getAttributes(const string &url,
+bool MetaDataBackup::getAttributes(const DocumentInfo &docInfo,
 	const string &name, set<string> &values)
 {
+	string url(docInfo.getLocation());
+	string urlWithIPath(docInfo.getLocation(true));
 	bool success = false;
 #if 0
 	Url urlObj(url);
 
 	// If the file is local and isn't a nested document, use an extended attribute
 	if ((urlObj.isLocal() == true) &&
-		(urlObj.getParameters().empty() == true))
+		(docInfo.getInternalPath().empty() == true))
 	{
 		string likeName("pinot." + name);
 
@@ -233,7 +239,7 @@ bool MetaDataBackup::getAttributes(const string &url,
 
 	SQLResults *results = executeStatement("SELECT Value FROM MetaDataBackup \
 		WHERE Url='%q' AND Name LIKE '%q%%';",
-		Url::escapeUrl(url).c_str(), name.c_str());
+		Url::escapeUrl(urlWithIPath).c_str(), name.c_str());
 	if (results != NULL)
 	{
 		while (results->hasMoreRows() == true)
@@ -256,11 +262,12 @@ bool MetaDataBackup::getAttributes(const string &url,
 	return success;
 }
 
-bool MetaDataBackup::removeAttribute(const string &url,
+bool MetaDataBackup::removeAttribute(const DocumentInfo &docInfo, 
 	const string &name, bool noXAttr, bool likeName)
 {
+	string url(docInfo.getLocation());
+	string urlWithIPath(docInfo.getLocation(true));
 	bool success = false;
-
 #ifdef HAVE_ATTR_XATTR_H
 	Url urlObj(url);
 
@@ -268,7 +275,7 @@ bool MetaDataBackup::removeAttribute(const string &url,
 	if ((noXAttr == false) &&
 		(url.empty() == false) &&
 		(urlObj.isLocal() == true) &&
-		(urlObj.getParameters().empty() == true))
+		(docInfo.getInternalPath().empty() == true))
 	{
 		string fileName(url.substr(urlObj.getProtocol().length() + 3));
 		string attrName("pinot." + name);
@@ -288,19 +295,19 @@ bool MetaDataBackup::removeAttribute(const string &url,
 	// Delete from MetaDataBackup
 	SQLResults *results = NULL;
 
-	if (url.empty() == false)
+	if (urlWithIPath.empty() == false)
 	{
 		if (likeName == false)
 		{
 			results = executeStatement("DELETE FROM MetaDataBackup \
 				WHERE Url='%q' AND NAME='%q';",
-				Url::escapeUrl(url).c_str(), name.c_str());
+				Url::escapeUrl(urlWithIPath).c_str(), name.c_str());
 		}
 		else
 		{
 			results = executeStatement("DELETE FROM MetaDataBackup \
 				WHERE Url='%q' AND NAME LIKE '%q%%';",
-				Url::escapeUrl(url).c_str(), name.c_str());
+				Url::escapeUrl(urlWithIPath).c_str(), name.c_str());
 		}
 	}
 	else
@@ -351,13 +358,12 @@ bool MetaDataBackup::create(const string &database)
 /// Adds an item.
 bool MetaDataBackup::addItem(const DocumentInfo &docInfo, DocumentInfo::SerialExtent extent)
 {
-	string url(docInfo.getLocation());
 	bool success = false;
 
 	if ((extent == DocumentInfo::SERIAL_FIELDS) ||
 		(extent == DocumentInfo::SERIAL_ALL))
 	{
-		if (setAttribute(url, "fields",
+		if (setAttribute(docInfo, "fields",
 			docInfo.serialize(DocumentInfo::SERIAL_FIELDS)) == false)
 		{
 			return false;
@@ -380,7 +386,7 @@ bool MetaDataBackup::addItem(const DocumentInfo &docInfo, DocumentInfo::SerialEx
 				continue;
 			}
 
-			if (setAttribute(url, string("label.") + *labelIter, *labelIter, true) == false)
+			if (setAttribute(docInfo, string("label.") + *labelIter, *labelIter, true) == false)
 			{
 				success = false;
 			}
@@ -393,13 +399,13 @@ bool MetaDataBackup::addItem(const DocumentInfo &docInfo, DocumentInfo::SerialEx
 /// Gets an item.
 bool MetaDataBackup::getItem(DocumentInfo &docInfo, DocumentInfo::SerialExtent extent)
 {
-	string url(docInfo.getLocation()), value;
+	string value;
 	bool success = false;
 
 	if ((extent == DocumentInfo::SERIAL_FIELDS) ||
 		(extent == DocumentInfo::SERIAL_ALL))
 	{
-		if (getAttribute(url, "fields", value) == false)
+		if (getAttribute(docInfo, "fields", value) == false)
 		{
 			return false;
 		}
@@ -414,7 +420,7 @@ bool MetaDataBackup::getItem(DocumentInfo &docInfo, DocumentInfo::SerialExtent e
 
 		success = true;
 
-		if (getAttributes(url, "label", labels) == false)
+		if (getAttributes(docInfo, "label", labels) == false)
 		{
 			success = false;
 		}
@@ -473,13 +479,12 @@ bool MetaDataBackup::getItems(const string &likeUrl, set<string> &urls,
 bool MetaDataBackup::deleteItem(const DocumentInfo &docInfo, DocumentInfo::SerialExtent extent,
 	const string &value)
 {
-	string url(docInfo.getLocation());
 	bool success = false;
 
 	if ((extent == DocumentInfo::SERIAL_FIELDS) ||
 		(extent == DocumentInfo::SERIAL_ALL))
 	{
-		if (removeAttribute(url, "fields") == false)
+		if (removeAttribute(docInfo, "fields") == false)
 		{
 			return false;
 		}
@@ -491,11 +496,11 @@ bool MetaDataBackup::deleteItem(const DocumentInfo &docInfo, DocumentInfo::Seria
 	{
 		if (value.empty() == false)
 		{
-			success = removeAttribute(url, string("label.") + value, true);
+			success = removeAttribute(docInfo, string("label.") + value, true);
 		}
 		else
 		{
-			success = removeAttribute(url, "label.", true, true);
+			success = removeAttribute(docInfo, "label.", true, true);
 		}
 	}
 
@@ -506,7 +511,8 @@ bool MetaDataBackup::deleteItem(const DocumentInfo &docInfo, DocumentInfo::Seria
 bool MetaDataBackup::deleteLabel(const string &value)
 {
 	if ((value.empty() == true) ||
-		(removeAttribute("", string("label.") + value, true) == false))
+		(removeAttribute(DocumentInfo("", "", "", ""),
+			string("label.") + value, true) == false))
 	{
 		return false;
 	}
