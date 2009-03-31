@@ -5,7 +5,6 @@ noinst_HEADERS = \
 	DownloaderFactory.h \
 	DownloaderInterface.h \
 	FileCollector.h \
-	MboxCollector.h \
 	NeonDownloader.h
 
 noinst_LTLIBRARIES = libCollect.la
@@ -14,8 +13,7 @@ libCollect_la_SOURCES = \
 	@HTTP_DOWNLOADER@.cpp \
 	DownloaderFactory.cpp \
 	DownloaderInterface.cpp \
-	FileCollector.cpp \
-	MboxCollector.cpp
+	FileCollector.cpp
 
 libCollect_la_CXXFLAGS = \
 	@MISC_CFLAGS@ \

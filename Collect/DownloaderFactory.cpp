@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 #endif
 #endif
 #include "FileCollector.h"
-#include "MboxCollector.h"
 #include "DownloaderFactory.h"
 
 using std::string;
@@ -57,10 +56,6 @@ DownloaderInterface *DownloaderFactory::getDownloader(const string &protocol)
 	else if (protocol == "file")
 	{
 		pDownloader = new FileCollector();
-	}
-	else if (protocol == "mailbox")
-	{
-		pDownloader = new MboxCollector();
 	}
 
 	return pDownloader;
