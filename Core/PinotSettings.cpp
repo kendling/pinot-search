@@ -37,6 +37,7 @@
 #include <glibmm/convert.h>
 #include <glibmm/date.h>
 #include <libxml/parser.h>
+#include <libxml/globals.h>
 #include <libxml++/parsers/domparser.h>
 #include <libxml++/nodes/node.h>
 #include <libxml++/nodes/textnode.h>
@@ -121,6 +122,10 @@ PinotSettings::PinotSettings() :
 	string directoryName(getConfigurationDirectory());
 	struct stat fileStat;
 
+	// Initialize libxml2 and check for potential ABI mismatches
+	LIBXML_TEST_VERSION
+	xmlParserDebugEntities = 0;
+
 	// Find out if there is a .pinot directory
 	if (stat(directoryName.c_str(), &fileStat) != 0)
 	{
@@ -158,13 +163,11 @@ PinotSettings::PinotSettings() :
 
 PinotSettings::~PinotSettings()
 {
+	xmlCleanupParser();
 }
 
 PinotSettings &PinotSettings::getInstance(void)
 {
-	// Initialize libxml2
-	xmlInitParser();
-
 	return m_instance;
 }
 
@@ -1930,7 +1933,6 @@ bool PinotSettings::getDefaultPatterns(set<ustring> &defaultPatterns)
 
 	// Skip common image, video and archive types
 	defaultPatterns.insert("*~");
-	defaultPatterns.insert("*.Z");
 	defaultPatterns.insert("*.a");
 	defaultPatterns.insert("*.asf");
 	defaultPatterns.insert("*.avi");
@@ -1951,6 +1953,7 @@ bool PinotSettings::getDefaultPatterns(set<ustring> &defaultPatterns)
 	defaultPatterns.insert("*.mov");
 	defaultPatterns.insert("*.msf");
 	defaultPatterns.insert("*.mpeg");
+	defaultPatterns.insert("*.mp4");
 	defaultPatterns.insert("*.mpg");
 	defaultPatterns.insert("*.mo");
 	defaultPatterns.insert("*.o");
