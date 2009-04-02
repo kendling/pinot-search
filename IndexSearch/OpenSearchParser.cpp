@@ -22,10 +22,7 @@
 #include <iostream>
 #include <glibmm/thread.h>
 #include <glibmm/convert.h>
-#include <libxml/parserInternals.h>
-#include <libxml++/parsers/domparser.h>
-#include <libxml++/nodes/node.h>
-#include <libxml++/nodes/textnode.h>
+#include <libxml++/libxml++.h>
 #include <libxml++/nodes/cdatanode.h>
 
 #include "StringManip.h"
