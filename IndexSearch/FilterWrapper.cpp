@@ -52,6 +52,11 @@ class IndexAction : public ReducedAction
 		{
 			bool docSuccess = false;
 
+			if (m_pIndex == NULL)
+			{
+				return false;
+			}
+
 			// Nested documents can't be updated because they are unindexed
 			// and the ID is that of the base document anyway
 			if ((m_doUpdate == true) &&
