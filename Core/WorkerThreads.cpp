@@ -503,8 +503,9 @@ unsigned int ThreadsManager::get_next_id(void)
 	unsigned int nextThreadId = ++m_nextThreadId;
 
 	// Reclaim memory on a regular basis
-	if (nextThreadId % 1000 == 0)
+	if (nextThreadId % 100 == 0)
 	{
+		int inUse = Memory::getUsage();
 		Memory::reclaim();
 	}
 
@@ -986,7 +987,7 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 	{
 		DocumentInfo currentDoc(*resultIter);
 		string title(_("No title"));
-		string location(currentDoc.getLocation());
+		string location(currentDoc.getLocation(true));
 		string language(currentDoc.getLanguage());
 		unsigned int docId = 0;
 
@@ -1358,7 +1359,7 @@ void IndexingThread::doWork(void)
 	}
 
 	// Is it an update ?
-	m_docId = m_pIndex->hasDocument(m_docInfo.getLocation());
+	m_docId = m_pIndex->hasDocument(m_docInfo.getLocation(true));
 	if (m_docId > 0)
 	{
 		// Ignore robots directives on updates

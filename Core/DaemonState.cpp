@@ -60,6 +60,7 @@
 #include <glibmm/thread.h>
 #include <glibmm/random.h>
 
+#include "Memory.h"
 #include "Url.h"
 #include "MonitorFactory.h"
 #include "CrawlHistory.h"
@@ -310,7 +311,7 @@ bool DBusServletInfo::reply(void)
 #endif
 
 DaemonState::DaemonState() :
-	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 2),
+	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 4),
 	m_fullScan(false),
 	m_isReindex(false),
 	m_reload(false),
@@ -811,6 +812,9 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 
 			delete pIndex;
 		}
+
+		int inUse = Memory::getUsage();
+		Memory::reclaim();
 	}
 }
 
