@@ -572,19 +572,19 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	}
 
 	// Index the full URL with prefix U
-	doc.add_term(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(location), true));
+	doc.add_term(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(info.getLocation(true)), true));
 	// ...the base file with XFILE:
-	string::size_type qmPos = location.find("?");
 	if ((urlObj.isLocal() == true) &&
-		(qmPos != string::npos))
+		(info.getInternalPath().empty() == false))
 	{
-		string fileUrl(location.substr(0, qmPos));
 		string protocol(urlObj.getProtocol());
 
-		doc.add_term(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(fileUrl), true));
+		doc.add_term(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(location), true));
 		if ((urlObj.isLocal() == true) &&
 			(protocol != "file"))
 		{
+			string fileUrl(location);
+
 			// Add another term with file as protocol
 			fileUrl.replace(0, protocol.length(), "file");
 			doc.add_term(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(fileUrl), true));
@@ -690,23 +690,9 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 		return;
 	}
 
-	string language(StringManip::extractField(record, "language=", "\n"));
-
-	docInfo = DocumentInfo(StringManip::extractField(record, "caption=", "\n"),
-		StringManip::extractField(record, "url=", "\n"),
-		StringManip::extractField(record, "type=", "\n"),
-		Languages::toLocale(language));
-	string modTime(StringManip::extractField(record, "modtime=", "\n"));
-	if (modTime.empty() == false)
-	{
-		time_t timeT = (time_t )atol(modTime.c_str());
-		docInfo.setTimestamp(TimeConverter::toTimestamp(timeT));
-	}
-	string bytesSize(StringManip::extractField(record, "size=", ""));
-	if (bytesSize.empty() == false)
-	{
-		docInfo.setSize((off_t )atol(bytesSize.c_str()));
-	}
+	XapianDatabase::recordToProps(record, &docInfo);
+	// XapianDatabase expects the language in English, which is okay here
+	string language(docInfo.getLanguage());
 	Url urlObj(docInfo.getLocation());
 
 	// FIXME: remove terms extracted from the title if they don't have more than one posting
@@ -719,20 +705,20 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 
 	// Location 
 	string location(docInfo.getLocation());
-	commonTerms.insert(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(location), true));
+	commonTerms.insert(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(docInfo.getLocation(true)), true));
 	// Base file
-	string::size_type qmPos = location.find("?");
 	if ((urlObj.isLocal() == true) &&
-		(qmPos != string::npos))
+		(docInfo.getInternalPath().empty() == false))
 	{
-		string fileUrl(location.substr(0, qmPos));
 		string protocol(urlObj.getProtocol());
 
-		commonTerms.insert(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(fileUrl), true));
+		commonTerms.insert(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(location), true));
 
 		if ((urlObj.isLocal() == true) &&
 			(protocol != "file"))
 		{
+			string fileUrl(location);
+
 			// Add another term with file as protocol
 			fileUrl.replace(0, protocol.length(), "file");
 			doc.add_term(string("XFILE:") + XapianDatabase::limitTermLength(Url::escapeUrl(fileUrl), true));
@@ -1789,7 +1775,7 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 					false, m_doSpelling, termPos);
 			}
 #ifdef DEBUG
-			cout << "XapianIndex::indexDocument: " << labels.size() << " labels for URL " << docInfo.getLocation() << endl;
+			cout << "XapianIndex::indexDocument: " << labels.size() << " labels for URL " << docInfo.getLocation(true) << endl;
 #endif
 
 			// Add labels
