@@ -4,6 +4,7 @@ noinst_HEADERS = \
 	FilterUtils.h \
 	TextConverter.h \
 	$(top_srcdir)/IndexSearch/cjkv/CJKVTokenizer.h \
+	$(top_srcdir)/Tokenize/filters/ArchiveFilter.h \
 	$(top_srcdir)/Tokenize/filters/ExifImageFilter.h \
 	$(top_srcdir)/Tokenize/filters/ExternalFilter.h \
 	$(top_srcdir)/Tokenize/filters/Filter.h \
@@ -12,11 +13,10 @@ noinst_HEADERS = \
 	$(top_srcdir)/Tokenize/filters/HtmlFilter.h \
 	$(top_srcdir)/Tokenize/filters/HtmlParser.h \
 	$(top_srcdir)/Tokenize/filters/TagLibMusicFilter.h \
-	$(top_srcdir)/Tokenize/filters/TarFilter.h \
 	$(top_srcdir)/Tokenize/filters/TextFilter.h \
 	$(top_srcdir)/Tokenize/filters/XmlFilter.h
 
-lib_LTLIBRARIES = libexifimagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la libtarfilter.la
+lib_LTLIBRARIES = libexifimagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la
 
 noinst_LTLIBRARIES = libTokenize.la
 
@@ -32,7 +32,7 @@ libexternalfilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/ExternalFilter.cc
 
-libexternalfilter_la_LDFLAGS = -module @XML_LIBS@
+libexternalfilter_la_LDFLAGS = -module
 
 libexternalfilter_la_LIBADD =
 
@@ -51,14 +51,6 @@ libtaglibfilter_la_SOURCES = \
 libtaglibfilter_la_LDFLAGS = -module @TAGLIB_LIBS@
 
 libtaglibfilter_la_LIBADD =
-
-libtarfilter_la_SOURCES = \
-	$(top_srcdir)/Tokenize/filters/Filter.cc \
-	$(top_srcdir)/Tokenize/filters/TarFilter.cc
-
-libtarfilter_la_LDFLAGS = -module -ltar 
-
-libtarfilter_la_LIBADD =
 
 libTokenize_la_SOURCES = \
 	FilterUtils.cpp \
