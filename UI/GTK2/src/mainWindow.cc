@@ -627,9 +627,9 @@ bool mainWindow::get_results_page_details(const ustring &queryName,
 	{
 		if (docIter->getIsIndexed() == false)
 		{
-			locationsToIndex.insert(docIter->getLocation());
+			locationsToIndex.insert(docIter->getLocation(true));
 		}
-		locations.insert(docIter->getLocation());
+		locations.insert(docIter->getLocation(true));
 	}
 
 	if (foundQuery == false)
@@ -862,7 +862,7 @@ void mainWindow::on_document_changed(vector<DocumentInfo> &resultsList,
 		for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
 			resultIter != resultsList.end(); ++resultIter)
 		{
-			string url(resultIter->getLocation());
+			string url(resultIter->getLocation(true));
 			Url urlObj(url);
 			string protocol(urlObj.getProtocol());
 
@@ -1027,7 +1027,7 @@ void mainWindow::on_cache_changed(PinotSettings::CacheProvider cacheProvider)
 				for (vector<DocumentInfo>::iterator resultIter = resultsList.begin();
 					resultIter != resultsList.end(); ++resultIter)
 				{
-					string url(resultIter->getLocation());
+					string url(resultIter->getLocation(true));
 					Url urlObj(url);
 					string protocol(urlObj.getProtocol());
 
@@ -1352,10 +1352,10 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				bool isNewResult = false;
 
 				// Is this a new result or a new query's result ?
-				if (queryHistory.hasItem(queryName, engineName, resultIter->getLocation(), oldestScore) <= 0)
+				if (queryHistory.hasItem(queryName, engineName, resultIter->getLocation(true), oldestScore) <= 0)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::on_thread_end: new result " << resultIter->getLocation() << endl;
+					cout << "mainWindow::on_thread_end: new result " << resultIter->getLocation(true) << endl;
 #endif
 					isNewResult = true;
 				}
@@ -1607,6 +1607,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 					fileName += inTemplate;
 					docInfo.setLocation(fileName);
+					docInfo.setInternalPath("");
 
 					// View this document
 					vector<DocumentInfo> documentsList;
@@ -1668,14 +1669,15 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			{
 				unsigned int rowsCount = pResultsTree->getRowsCount();
 
-				// Ensure the last page is being displayed and is not full
-				if ((pIndexPage->getFirstDocument() + rowsCount == pIndexPage->getDocumentsCount()) &&
-					(rowsCount < m_maxDocsCount))
+				// Refresh the index list if the last page is being displayed
+				if (pIndexPage->getFirstDocument() + rowsCount == pIndexPage->getDocumentsCount()) 
 				{
-					// Add a row to the index tree
-					append_document(pIndexPage, _("My Web Pages"), docInfo);
+					browse_index(_("My Web Pages"), pIndexPage->getQueryName(),
+						pIndexPage->getFirstDocument(), false);
+#ifdef DEBUG
+					cout << "mainWindow::on_thread_end: refreshed My Web Pages" << endl;
+#endif
 				}
-				pIndexPage->setDocumentsCount(pIndexPage->getDocumentsCount() + 1);
 				pIndexPage->updateButtonsState(m_maxDocsCount);
 			}
 
@@ -3418,27 +3420,23 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 		string mimeType(docIter->getType());
 
 #ifdef DEBUG
-		cout << "mainWindow::view_documents: " << url << endl;
+		cout << "mainWindow::view_documents: " << url << "?" << docIter->getInternalPath() << endl;
 #endif
 		if (url.empty() == true)
 		{
 			continue;
 		}
 
-		Url urlObj(url);
-
 		// FIXME: there should be a way to know which protocols can be viewed/indexed
-		if (urlObj.getProtocol() == "mailbox")
+		if (docIter->getInternalPath().empty() == false)
 		{
-			DocumentInfo docInfo("", url, "", "");
-
 			// Get that message
-			start_thread(new DownloadingThread(docInfo));
+			start_thread(new DownloadingThread(*docIter));
 
 			// Record this into the history now, even though it may fail
-			if (viewHistory.hasItem(url) == false)
+			if (viewHistory.hasItem(docIter->getLocation(true)) == false)
 			{
-				viewHistory.insertItem(url);
+				viewHistory.insertItem(docIter->getLocation(true));
 			}
 			continue;
 		}
@@ -3446,6 +3444,8 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 		// What's the MIME type ?
 		if (mimeType.empty() == true)
 		{
+			Url urlObj(docIter->getLocation());
+
 			// Scan for the MIME type
 			mimeType = MIMEScanner::scanUrl(urlObj);
 		}
@@ -3587,46 +3587,6 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 			<< currentType << endl;
 #endif
 	}
-}
-
-//
-// Append a document to the index tree.
-//
-bool mainWindow::append_document(IndexPage *pIndexPage, const ustring &indexName, const DocumentInfo &docInfo)
-{
-	bool appendToList = true;
-
-	if (pIndexPage == NULL)
-	{
-		return false;
-	}
-
-	ResultsTree *pResultsTree = pIndexPage->getTree();
-	if (pResultsTree == NULL)
-	{
-		return false;
-	}
-
-	// Is a query defined ?
-	ustring queryName = pIndexPage->getQueryName();
-	if (queryName.empty() == false)
-	{
-		// FIXME: run the document through the query
-		appendToList = false;
-	}
-
-	if (appendToList == true)
-	{
-		vector<DocumentInfo> docsList;
-
-		// Add a row
-		docsList.push_back(docInfo);
-		pResultsTree->addResults("", docsList, "UTF-8", false);
-
-		return true;
-	}
-
-	return false;
 }
 
 //

@@ -150,7 +150,7 @@ void EngineHistoryThread::doWork(void)
 	{
 		// Get the first result's charset
 		queryHistory.getItemExtract(m_queryProps.getName(), m_engineDisplayableName,
-			m_documentsList.front().getLocation());
+			m_documentsList.front().getLocation(true));
 	}
 }
 
@@ -371,7 +371,7 @@ void UpdateDocumentThread::doWork(void)
 		if (pIndex->updateDocumentInfo(m_docId, m_docInfo) == false)
 		{
 			m_errorNum = UPDATE_FAILED;
-			m_errorParam = m_docInfo.getLocation();
+			m_errorParam = m_docInfo.getLocation(true);
 			return;
 		}
 		// ...and the labels if necessary
@@ -380,7 +380,7 @@ void UpdateDocumentThread::doWork(void)
 			if (pIndex->setDocumentLabels(m_docId, m_docInfo.getLabels()) == false)
 			{
 				m_errorNum = UPDATE_FAILED;
-				m_errorParam = m_docInfo.getLocation();
+				m_errorParam = m_docInfo.getLocation(true);
 				return;
 			}
 		}

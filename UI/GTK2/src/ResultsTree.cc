@@ -546,7 +546,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		resultIter != resultsList.end(); ++resultIter)
 	{
 		ustring title(to_utf8(resultIter->getTitle(), charset));
-		ustring location(to_utf8(resultIter->getLocation(), charset));
+		ustring location(to_utf8(resultIter->getLocation(true), charset));
 		ustring timestamp(to_utf8(resultIter->getTimestamp()));
 		ustring extract(to_utf8(resultIter->getExtract(), charset));
 		string groupName;
@@ -1038,7 +1038,7 @@ bool ResultsTree::updateResult(const DocumentInfo &result)
 		if (docId == row[m_resultsColumns.m_docId])
 		{
 			// FIXME: title, location should be converted based on the result's charset !
-			updateRow(row, result.getTitle(), result.getLocation(),
+			updateRow(row, result.getTitle(), result.getLocation(true),
 				row[m_resultsColumns.m_score], row[m_resultsColumns.m_engines],
 				row[m_resultsColumns.m_indexes], docId,
 				to_utf8(result.getTimestamp()), result.serialize(),
@@ -1387,7 +1387,7 @@ void ResultsTree::exportResults(TreeModel::Children &groupChildren,
 		if (m_groupMode != FLAT)
 		{
 			result.setExtract(queryHistory.getItemExtract(from_utf8(queryName),
-				engineName, result.getLocation()));
+				engineName, result.getLocation(true)));
 		}
 		else
 		{
