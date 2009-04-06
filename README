@@ -42,8 +42,8 @@ http://pinot.berlios.de/
 
   * from 0.50 or older to 0.60 or newer
   The My Documents index was renamed My Web Pages. A new index, appropriately
-  named My Documents ;-), includes all local files including mbox files and is
-  populated by the new D-Bus service.
+  named My Documents ;-), includes all local files and is populated by the new
+  D-Bus service.
   If you used the Import facility to index specific directories on your system,
   it is recommended you manually unindex the corresponding documents from the
   My Web Pages index, and configure these directories to be automatically
@@ -167,6 +167,11 @@ http://pinot.berlios.de/
 
   If you want to exclude any specific files or directories from indexing, use
   patterns as described in section "9. File patterns".
+
+  Since 0.89, Pinot supports stopwords removal. While no such list is provided
+  by default, they can be easily found on the Internet. Each language has its
+  own stopword list, for instance a stopwords list for English should be
+  copied to $PREFIX/share/pinot/stopwords/stopwords.en
 
   The pinot-index program allows indexing and peeking at documents' properties
   from the command-line. Using the -i/--index option with the My Documents or
@@ -452,6 +457,9 @@ http://pinot.berlios.de/
       which the index resides runs out of free space. By default, this means
       less than 50 Mb. To change this value to 100 Mb for instance, use 
       $ export PINOT_MINIMUM_DISK_SPACE=100
+    * PINOT_MAXIMUM_INDEX_THREADS
+      This sets the maximum number of concurrent indexing threads used by the
+      daemon. The default value is 4.
 
   Another environment variable that you may want to tweak comes from Xapian.
   XAPIAN_FLUSH_THRESHOLD can be set to the number of documents after which
@@ -561,6 +569,9 @@ http://www.freedesktop.org/software/desktop-file-utils
 
 TagLib							1.4
 http://ktown.kde.org/~wheeler/taglib/
+
+libarchive						2.5.5
+http://people.freebsd.org/~kientzle/libarchive/
 
 libexif							0.6
 http://libexif.sourceforge.net/

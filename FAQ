@@ -10,17 +10,16 @@
      $ pinot-dbus-daemon -i
     The -i parameter instructs the daemon to ignore the index version number,
     which may not have been set in the compacted index.
-    You may also want to disable support for spelling. See the README for more
-    details.
+    You may also want to disable support for spelling and enable stopwords
+    removal. See the README for more details.
 
   * Memory usage is too high ! How can I reduce it ?
+    Since 0.92, Pinot hints at the OS that it can reclaim unused memory on a
+    regular basis. This works on Linux but maybe not on other OSes. 
     The environment variable XAPIAN_FLUSH_THRESHOLD controls how many documents
     are buffered in memory before changes are flushed to the disk. The default
     value is 10000. The daemon explicitely flushes the index once it has crawled
     the directories configured in Preferences.
-    Exporting the environment variable GLIBCXX_FORCE_NEW will disable the memory
-    pool maintained by the STL and could reduce memory usage at the cost of a
-    slight performance decrease.
     If the above doesn't help and there is a large number of documents to index,
     you may want to configure Pinot to index your corpus in stages.
 
