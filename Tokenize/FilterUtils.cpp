@@ -451,6 +451,14 @@ bool FilterUtils::filterDocument(const Document &doc, const string &originalType
 	{
 		Document docCopy(doc);
 
+		if (docCopy.getTitle().empty() == true)
+		{
+			Url urlObj(doc.getLocation());
+
+			// Default to the file name as title
+			docCopy.setTitle(urlObj.getFile());
+		}
+
 		// Take the appropriate action now
 		finalSuccess = action.takeAction(docCopy, false);
 
