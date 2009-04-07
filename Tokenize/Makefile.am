@@ -16,10 +16,15 @@ noinst_HEADERS = \
 	$(top_srcdir)/Tokenize/filters/TextFilter.h \
 	$(top_srcdir)/Tokenize/filters/XmlFilter.h
 
+if HAVE_LIBARCHIVE
 lib_LTLIBRARIES = libarchivefilter.la libexifimagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la
+else
+lib_LTLIBRARIES = libexifimagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la
+endif
 
 noinst_LTLIBRARIES = libTokenize.la
 
+if HAVE_LIBARCHIVE
 libarchivefilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/ArchiveFilter.cc
@@ -27,6 +32,7 @@ libarchivefilter_la_SOURCES = \
 libarchivefilter_la_LDFLAGS = -module -larchive
 
 libarchivefilter_la_LIBADD =
+endif
 
 libexifimagefilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \

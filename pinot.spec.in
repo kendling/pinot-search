@@ -26,17 +26,21 @@ URL: http://pinot.berlios.de/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: xapian-core-libs >= 1.0.4, libtextcat >= 2.2, sqlite >= 3.3.1, libcurl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.10, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
-Requires: taglib >= 1.4, libarchive >= 2.5.5, libexif >= 0.6, unzip, antiword, unrtf, %{pftotext_pkg}
+Requires: taglib >= 1.4, libexif >= 0.6, unzip, antiword, unrtf, %{pftotext_pkg}
 #Suggests: xapian-omega
 BuildRequires: xapian-core-devel >= 1.0.4, libtextcat-devel >= 2.2, sqlite-devel >= 3.3.1, libcurl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: gtkmm24-devel >= 2.10, libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
-BuildRequires: taglib-devel >= 1.4, libarchive-devel >= 2.5.5, libexif-devel >= 0.6
+BuildRequires: taglib-devel >= 1.4, libexif-devel >= 0.6
 BuildRequires: gcc-c++
 %if 0%{?_with_soap:1}
 BuildRequires: gsoap >= 2.7.9e
 %endif
 %if 0%{?_with_xesam_glib:1}
 BuildRequires: xesam-glib >= 0.3.0
+%endif
+%if 0%{?_with_libarchive:1}
+Requires: libarchive >= 2.6.2
+BuildRequires: libarchive-devel >= 2.6.2
 %endif
 # These used to be independant packages
 Obsoletes: pinot-audio-docs
@@ -61,7 +65,7 @@ The included plugin enables Deskbar to search documents indexed by Pinot.
 %setup -q
 
 %build
-%configure %{?_with_soap:--enable-soap=yes} %{?_with_xesam_glib:--enable-xesam-glib=yes} %{?_with_debug:--enable-debug=yes}
+%configure %{?_with_soap:--enable-soap=yes} %{?_with_xesam_glib:--enable-xesam-glib=yes} %{?_with_libarchive:--enable-libarchive=yes} %{?_with_debug:--enable-debug=yes}
 make %{?_smp_mflags}
 
 %install

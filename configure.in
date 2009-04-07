@@ -277,6 +277,19 @@ AC_CHECK_LIB(textcat, textcat_Cat,
    [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)]
    )
 
+dnl libarchive
+AC_MSG_CHECKING(whether to enable the libarchive filter)
+AC_ARG_ENABLE(libarchive,
+   [AS_HELP_STRING([--enable-libarchive], [enable the libarchive filter [default=no]])],
+   ,[enable_libarchive=no])
+if test "x$enable_libarchive" != "xyes"; then
+   enable_libarchive=no
+   AM_CONDITIONAL(HAVE_LIBARCHIVE, false)
+else
+   AM_CONDITIONAL(HAVE_LIBARCHIVE, true)
+fi
+AC_MSG_RESULT($enable_libarchive)
+
 dnl pthreads
 pthreadlib=""
 AC_SUBST(PTHREAD_LIBS)
