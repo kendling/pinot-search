@@ -1,4 +1,125 @@
 ------------------------------------------------------------------------
+r153 | fabricecolin | 2009-04-07 22:27:22 +0800 (Tue, 07 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+
+Ensure the data buffer isn't accidentally lost on calls to skip_to_document().
+
+------------------------------------------------------------------------
+r152 | fabricecolin | 2009-04-06 21:19:07 +0800 (Mon, 06 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/ArchiveFilter.cc
+
+Removed cpio and zip.
+
+------------------------------------------------------------------------
+r151 | fabricecolin | 2009-04-05 09:54:34 +0800 (Sun, 05 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/ArchiveFilter.cc
+   M /trunk/filters/ArchiveFilter.h
+   M /trunk/filters/TarFilter.cc
+
+Completed ArchiveFilter. Minor changes to TarFilter.
+
+------------------------------------------------------------------------
+r150 | fabricecolin | 2009-04-02 23:30:22 +0800 (Thu, 02 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+
+Minor changes.
+
+------------------------------------------------------------------------
+r149 | fabricecolin | 2009-04-02 23:29:17 +0800 (Thu, 02 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/external-filters.xml
+
+Type application/x-compress was missing.
+
+------------------------------------------------------------------------
+r148 | fabricecolin | 2009-04-02 23:23:28 +0800 (Thu, 02 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/ExternalFilter.cc
+
+Don't initialize and cleanup libxml2, let the application handle that.
+
+------------------------------------------------------------------------
+r147 | fabricecolin | 2009-03-29 17:03:04 +0800 (Sun, 29 Mar 2009) | 4 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/GMimeMboxFilter.h
+
+Use the memory stream functions when passed a buffer, instead of dealing only
+with files. Free the stream after freeing the parser.
+Don't set the URI to "mailbox://...".
+
+------------------------------------------------------------------------
+r146 | fabricecolin | 2009-03-29 17:00:13 +0800 (Sun, 29 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/ExifImageFilter.cc
+
+Minor change.
+
+------------------------------------------------------------------------
+r145 | fabricecolin | 2009-03-25 21:38:25 +0800 (Wed, 25 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/ArchiveFilter.cc
+
+Set ipath to "f=file_name".
+
+------------------------------------------------------------------------
+r144 | fabricecolin | 2009-03-23 23:22:16 +0800 (Mon, 23 Mar 2009) | 3 lines
+Changed paths:
+   A /trunk/filters/ArchiveFilter.cc
+   A /trunk/filters/ArchiveFilter.h
+   M /trunk/filters/external-filters.xml
+
+Filter based on libarchive for tar and cpio files, compressed or not, zip files
+and ISO images.
+
+------------------------------------------------------------------------
+r143 | fabricecolin | 2009-03-23 23:13:30 +0800 (Mon, 23 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/TarFilter.cc
+
+Reset the handle on rewind().
+
+------------------------------------------------------------------------
+r142 | fabricecolin | 2009-03-22 22:00:47 +0800 (Sun, 22 Mar 2009) | 3 lines
+Changed paths:
+   M /trunk/filters/ExifImageFilter.cc
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/Filter.cc
+   M /trunk/filters/Filter.h
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/GMimeMboxFilter.h
+   M /trunk/filters/HtmlFilter.cc
+   M /trunk/filters/HtmlFilter.h
+   M /trunk/filters/TagLibMusicFilter.cc
+   M /trunk/filters/TarFilter.cc
+   M /trunk/filters/TextFilter.cc
+   M /trunk/filters/XmlFilter.cc
+
+Content is handled separately from metadata. Filters expect the application to
+provide a Memory.h that define a basic_string subclass named dstring.
+
+------------------------------------------------------------------------
+r141 | fabricecolin | 2009-03-22 16:24:10 +0800 (Sun, 22 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/external-filters.xml
+
+For OpenXML Presentation and Sheet we didn't get the right file(s) out.
+
+------------------------------------------------------------------------
+r140 | fabricecolin | 2009-03-10 19:56:28 +0800 (Tue, 10 Mar 2009) | 3 lines
+Changed paths:
+   A /trunk/filters/TarFilter.cc
+   A /trunk/filters/TarFilter.h
+   M /trunk/filters/external-filters.xml
+
+TarFilter is a libtar-based filter to extract files from tar archives.
+Modified the rules for compressed tar files in external-filters.xml accordingly.
+
+------------------------------------------------------------------------
 r138 | fabricecolin | 2009-03-05 21:51:00 +0800 (Thu, 05 Mar 2009) | 2 lines
 Changed paths:
    M /trunk/filters/HtmlFilter.cc

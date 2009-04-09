@@ -1,4 +1,353 @@
 ------------------------------------------------------------------------
+r1620 | fabricecolin | 2009-04-09 23:34:40 +0800 (Thu, 09 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+
+Current state.
+
+------------------------------------------------------------------------
+r1619 | fabricecolin | 2009-04-09 20:59:15 +0800 (Thu, 09 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Updated po's.
+
+------------------------------------------------------------------------
+r1618 | fabricecolin | 2009-04-08 20:34:15 +0800 (Wed, 08 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Bumped version number to 0.92, set as minimum index version.
+
+------------------------------------------------------------------------
+r1617 | fabricecolin | 2009-04-07 22:32:55 +0800 (Tue, 07 Apr 2009) | 5 lines
+Changed paths:
+   M /trunk/README
+   M /trunk/Tokenize/Makefile.am
+   M /trunk/configure.in
+   M /trunk/pinot.spec.in
+
+The archive filter causes issues with libarchive 2.5.5 so to be on the safe side
+it's now enabled only if --enable-libarchive is passed to configure.
+Version 2.6.2 is recommended.
+When building RPMs, pass "--with libarchive".
+
+------------------------------------------------------------------------
+r1616 | fabricecolin | 2009-04-07 21:50:43 +0800 (Tue, 07 Apr 2009) | 2 lines
+Changed paths:
+   D /trunk/IndexSearch/Plugins/MozDexDescription.xml
+
+Removed.
+
+------------------------------------------------------------------------
+r1615 | fabricecolin | 2009-04-06 23:01:09 +0800 (Mon, 06 Apr 2009) | 5 lines
+Changed paths:
+   M /trunk/FAQ
+   M /trunk/README
+
+Updated following changes to the number of indexing threads, memory usage.
+List libarchive as a dependency.
+There was no clue as to where the stopwords should be installed and how they
+are useful.
+
+------------------------------------------------------------------------
+r1614 | fabricecolin | 2009-04-06 22:52:07 +0800 (Mon, 06 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/Makefile.am
+   M /trunk/pinot.spec.in
+
+Build and package libarchivefilter.
+
+------------------------------------------------------------------------
+r1613 | fabricecolin | 2009-04-06 22:50:39 +0800 (Mon, 06 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/FilterUtils.cpp
+
+Don't forget to provide a default title to documents not gone through a filter.
+
+------------------------------------------------------------------------
+r1612 | fabricecolin | 2009-04-05 10:22:43 +0800 (Sun, 05 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/configure.in
+
+The memory pool can be optionally disabled.
+
+------------------------------------------------------------------------
+r1611 | fabricecolin | 2009-04-05 10:21:33 +0800 (Sun, 05 Apr 2009) | 4 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/ResultsTree.cc
+   M /trunk/UI/GTK2/src/UIThreads.cc
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/mainWindow.hh
+
+Updated following changes for documents ipath.
+When a new document is indexed, don't simply append it to the My Web Pages list,
+refresh the list.
+
+------------------------------------------------------------------------
+r1610 | fabricecolin | 2009-04-05 10:19:27 +0800 (Sun, 05 Apr 2009) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+Updated to cope with documents ipath.
+Don't parse documents data here, let XapianDatabase::recordToProps() do it.
+
+------------------------------------------------------------------------
+r1609 | fabricecolin | 2009-04-05 10:16:33 +0800 (Sun, 05 Apr 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/WorkerThreads.cpp
+
+Try and reclaim memory more often, after flushing the index.
+Some changes to cope with documents ipath.
+
+------------------------------------------------------------------------
+r1608 | fabricecolin | 2009-04-05 10:14:08 +0800 (Sun, 05 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/pinot.spec.in
+
+Removed dependency on libtar.
+
+------------------------------------------------------------------------
+r1607 | fabricecolin | 2009-04-05 10:12:55 +0800 (Sun, 05 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/Makefile.am
+
+Don't build TarFilter, libtar is unmaintained.
+
+------------------------------------------------------------------------
+r1606 | fabricecolin | 2009-04-02 23:31:30 +0800 (Thu, 02 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/FilterWrapper.cpp
+
+Safety check.
+
+------------------------------------------------------------------------
+r1605 | fabricecolin | 2009-04-02 23:27:47 +0800 (Thu, 02 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/OpenSearchParser.cpp
+
+Removed a bunch of superfluous headers.
+
+------------------------------------------------------------------------
+r1604 | fabricecolin | 2009-04-02 23:25:40 +0800 (Thu, 02 Apr 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/PinotSettings.cpp
+
+Initialize and cleanup libxml2 when PinotSettings is constructed/destroyed.
+Added mp4 to the default blacklist, removed Z.
+
+------------------------------------------------------------------------
+r1603 | fabricecolin | 2009-03-31 21:04:29 +0800 (Tue, 31 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Collect/DownloaderFactory.cpp
+   M /trunk/Collect/Makefile.am
+   D /trunk/Collect/MboxCollector.cpp
+   D /trunk/Collect/MboxCollector.h
+
+Dropped MboxCollector.
+
+------------------------------------------------------------------------
+r1602 | fabricecolin | 2009-03-31 21:00:45 +0800 (Tue, 31 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/SQL/MetaDataBackup.cpp
+   M /trunk/SQL/MetaDataBackup.h
+
+Changes to accomodate ipath.
+
+------------------------------------------------------------------------
+r1601 | fabricecolin | 2009-03-28 11:50:41 +0800 (Sat, 28 Mar 2009) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/FilterWrapper.cpp
+   M /trunk/Tokenize/TextConverter.cpp
+   M /trunk/Tokenize/TextConverter.h
+
+Work-around documents that declare an invalid charset, eg iso_8859_1 instead of
+iso-8859-1.
+
+------------------------------------------------------------------------
+r1600 | fabricecolin | 2009-03-28 10:46:32 +0800 (Sat, 28 Mar 2009) | 3 lines
+Changed paths:
+   M /trunk/Utils/Memory.cpp
+   M /trunk/Utils/Memory.h
+
+Added getUsage().
+In reclaim(), call umem_reap() if umem support is on.
+
+------------------------------------------------------------------------
+r1599 | fabricecolin | 2009-03-28 10:36:40 +0800 (Sat, 28 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Collect/FileCollector.cpp
+
+If ipath isn't empty, drill down with FilterUtils::reduceDocument(). 
+
+------------------------------------------------------------------------
+r1598 | fabricecolin | 2009-03-28 10:33:16 +0800 (Sat, 28 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/FilterWrapper.cpp
+   M /trunk/IndexSearch/FilterWrapper.h
+   M /trunk/Tokenize/FilterUtils.cpp
+   M /trunk/Tokenize/FilterUtils.h
+
+Moved filterDocument() and related to FilterUtils.
+
+------------------------------------------------------------------------
+r1597 | fabricecolin | 2009-03-25 21:41:00 +0800 (Wed, 25 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/DBusIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianDatabase.cpp
+   M /trunk/Utils/DocumentInfo.cpp
+   M /trunk/Utils/DocumentInfo.h
+
+ipath is a property of DocumentInfo.
+
+------------------------------------------------------------------------
+r1596 | fabricecolin | 2009-03-22 22:07:25 +0800 (Sun, 22 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/Makefile.am
+
+Link against libBasicUtils first.
+
+------------------------------------------------------------------------
+r1595 | fabricecolin | 2009-03-22 22:06:39 +0800 (Sun, 22 Mar 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+   M /trunk/Core/WorkerThreads.cpp
+
+Attempt to reclaim, or rather let the OS reclaim, memory every 1000 threads.
+Link against libBasicUtils first.
+
+------------------------------------------------------------------------
+r1594 | fabricecolin | 2009-03-22 22:04:23 +0800 (Sun, 22 Mar 2009) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/FilterWrapper.cpp
+   M /trunk/Tokenize/FilterUtils.cpp
+
+Retrieve content out with Filter::get_content().
+Don't set dummy documents when the file is empty or of an unsupported type, just
+go ahead and index its metadata.
+
+------------------------------------------------------------------------
+r1593 | fabricecolin | 2009-03-22 22:01:54 +0800 (Sun, 22 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/TextConverter.cpp
+
+Clear the output on exception.
+
+------------------------------------------------------------------------
+r1592 | fabricecolin | 2009-03-22 22:01:22 +0800 (Sun, 22 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Utils/Memory.h
+
+Better include config.h since the whole thing is driven by ifdef's.
+
+------------------------------------------------------------------------
+r1591 | fabricecolin | 2009-03-22 09:31:09 +0800 (Sun, 22 Mar 2009) | 3 lines
+Changed paths:
+   M /trunk/Utils/Document.cpp
+   M /trunk/Utils/Document.h
+   M /trunk/Utils/Makefile.am
+
+Document relies on Memory for its internal buffer, uses madvise() if available
+whenever mmap'ing a file.
+
+------------------------------------------------------------------------
+r1590 | fabricecolin | 2009-03-21 19:00:39 +0800 (Sat, 21 Mar 2009) | 5 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/WorkerThreads.cpp
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/mainWindow.hh
+
+Set the number of daemon's indexing threads to 2, unless overriden with the
+environment variable PINOT_MAXIMUM_INDEX_THREADS.
+Changed flushing again, this time to happen when the queue is empty. This means
+that the index will be flushed when everything has been indexed.
+
+------------------------------------------------------------------------
+r1589 | fabricecolin | 2009-03-21 13:03:11 +0800 (Sat, 21 Mar 2009) | 8 lines
+Changed paths:
+   A /trunk/Utils/Memory.cpp
+   A /trunk/Utils/Memory.h
+   M /trunk/configure.in
+
+Check for boost/pool/poolfwd.hpp, ext/malloc_allocator.h, mallinfo(),
+malloc_trim() and madvise().
+Memory wraps all this together. It provides dstring, a basic_string class
+backed by a boost::pool memory pool, and either malloc() or umem as allocators,
+functions to allocate and free buffers out of the same pool, and a function to
+let the OS reclaim memory.
+Support for umem is untested at the moment.
+
+------------------------------------------------------------------------
+r1588 | fabricecolin | 2009-03-17 22:37:13 +0800 (Tue, 17 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/LanguageDetector.cpp
+   M /trunk/IndexSearch/Xapian/LanguageDetector.h
+   M /trunk/IndexSearch/Xapian/XapianDatabaseFactory.h
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+LanguageDetector is a singleton, and textcat is initialized once.
+
+------------------------------------------------------------------------
+r1587 | fabricecolin | 2009-03-11 22:30:17 +0800 (Wed, 11 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+
+Missing include signal.h. Reported by Robert Wotzlaw.
+
+------------------------------------------------------------------------
+r1586 | fabricecolin | 2009-03-10 20:08:56 +0800 (Tue, 10 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/Makefile.am
+   M /trunk/pinot.spec.in
+
+Build the new tar filter by default. This requires libtar >= 1.2.11.
+
+------------------------------------------------------------------------
+r1585 | fabricecolin | 2009-03-10 20:07:31 +0800 (Tue, 10 Mar 2009) | 5 lines
+Changed paths:
+   M /trunk/Tokenize/FilterUtils.cpp
+
+Feeding the data through a temporary file is the second most preferred way to
+feed filters as having the data very likely means that the original file
+already went through one filter.
+There's no point trying to convert to UTF8 stuff that's not plain text.
+
+------------------------------------------------------------------------
+r1584 | fabricecolin | 2009-03-08 06:47:58 +0800 (Sun, 08 Mar 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+
+Don't start the main loop if the document wasn't queued for indexing, eg
+because it's black-listed.
+
+------------------------------------------------------------------------
+r1582 | fabricecolin | 2009-03-07 11:15:02 +0800 (Sat, 07 Mar 2009) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Current ChangeLog.
+
+------------------------------------------------------------------------
 r1581 | fabricecolin | 2009-03-07 11:11:11 +0800 (Sat, 07 Mar 2009) | 2 lines
 Changed paths:
    M /trunk/NEWS
