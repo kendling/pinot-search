@@ -1,3 +1,24 @@
+2009/04/10 version_0_9_2
+General :
+ - fixed successive initialization and cleanup of libxml2 that could lead to
+  a crash with libxml2 2.7.3
+IndexSearch :
+ - work around invalid charset declarations in documents
+ - fixed pinot-index handling of black-listed documents
+ - redesigned how documents nested in other documents (eg mbox...) are indexed
+ - removed MozDex plugin 
+Tokenize :
+ - new filter for tar files and ISO images based on libarchive >= 2.6.2 to
+  index the content of those archive formats. Enable with "./configure ...
+  --enable-libarchive=yes"
+Daemon :
+ - major changes to try and minimize memory usage
+ - PINOT_MAXIMUM_INDEX_THREADS sets the daemon's number of indexing threads and
+  defaults to 4
+ - indexes created with version < 0.92 will be automatically upgraded
+UI :
+ - can open/view files within indexed archives
+
 2009/03/07 version_0_9_1
 General :
  - patch by Adel Gadllah for gcc 4.4

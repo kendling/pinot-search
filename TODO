@@ -41,7 +41,7 @@ Collect
 - Make User-Agent string configurable
 - Make download timeout configurable
 - Support for HTML frames
-- Test NeonDownloader
+- Curl and NeonDownloader don't share much code
 
 Search
 - With engines that provide a redirection URL for results (eg Acoona), it looks like
@@ -90,6 +90,7 @@ Daemon
 - What does a first run mean for the daemon ? ie no configuration file
 - Daemon should use worker threads' doWork() instead of duplicating code
 - Only crawl newly added locations when the configuration changes
+- Some D-Bus methods need not returning anything
 
 UI
 - Show which threads are running, what they are doing, and allow to stop them
@@ -129,5 +130,5 @@ v0.90
 - The query builder for stored queries should be available for live queries too
 - Make sure all of Core is localized
 - HtmlParser should use CJKVTokenizer's Unicode conversion function
-- Think about how to stage indexing, based on memory usage
+- TextConverter to take a dstring
 
