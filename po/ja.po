@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.92\n"
+"Project-Id-Version: pinot 0.93\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-05 17:20+0800\n"
+"POT-Creation-Date: 2009-04-13 11:59+0800\n"
 "PO-Revision-Date: 2009-01-13 00:43+0000\n"
 "Last-Translator: Takeo Mizuki <Unknown>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -18,67 +18,67 @@ msgstr ""
 "X-Generator: Launchpad (build Unknown)\n"
 
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:446 UI/GTK2/src/pinot.cc:255
+#: Core/pinot-dbus-daemon.cpp:440 UI/GTK2/src/pinot.cc:255
 msgid "Unknown"
 msgstr "不明"
 
-#: Core/pinot-dbus-daemon.cpp:447 UI/GTK2/src/pinot.cc:256
+#: Core/pinot-dbus-daemon.cpp:441 UI/GTK2/src/pinot.cc:256
 msgid "Danish"
 msgstr "デンマーク語"
 
-#: Core/pinot-dbus-daemon.cpp:448 UI/GTK2/src/pinot.cc:257
+#: Core/pinot-dbus-daemon.cpp:442 UI/GTK2/src/pinot.cc:257
 msgid "Dutch"
 msgstr "オランダ語"
 
-#: Core/pinot-dbus-daemon.cpp:449 UI/GTK2/src/pinot.cc:258
+#: Core/pinot-dbus-daemon.cpp:443 UI/GTK2/src/pinot.cc:258
 msgid "English"
 msgstr "英語"
 
-#: Core/pinot-dbus-daemon.cpp:450 UI/GTK2/src/pinot.cc:259
+#: Core/pinot-dbus-daemon.cpp:444 UI/GTK2/src/pinot.cc:259
 msgid "Finnish"
 msgstr "フィン語"
 
-#: Core/pinot-dbus-daemon.cpp:451 UI/GTK2/src/pinot.cc:260
+#: Core/pinot-dbus-daemon.cpp:445 UI/GTK2/src/pinot.cc:260
 msgid "French"
 msgstr "フランス語"
 
-#: Core/pinot-dbus-daemon.cpp:452 UI/GTK2/src/pinot.cc:261
+#: Core/pinot-dbus-daemon.cpp:446 UI/GTK2/src/pinot.cc:261
 msgid "German"
 msgstr "ドイツ語"
 
-#: Core/pinot-dbus-daemon.cpp:453 UI/GTK2/src/pinot.cc:262
+#: Core/pinot-dbus-daemon.cpp:447 UI/GTK2/src/pinot.cc:262
 msgid "Hungarian"
 msgstr "ハンガリー語"
 
-#: Core/pinot-dbus-daemon.cpp:454 UI/GTK2/src/pinot.cc:263
+#: Core/pinot-dbus-daemon.cpp:448 UI/GTK2/src/pinot.cc:263
 msgid "Italian"
 msgstr "イタリア語"
 
-#: Core/pinot-dbus-daemon.cpp:455 UI/GTK2/src/pinot.cc:264
+#: Core/pinot-dbus-daemon.cpp:449 UI/GTK2/src/pinot.cc:264
 msgid "Norwegian"
 msgstr "ノルウェー語"
 
-#: Core/pinot-dbus-daemon.cpp:456 UI/GTK2/src/pinot.cc:265
+#: Core/pinot-dbus-daemon.cpp:450 UI/GTK2/src/pinot.cc:265
 msgid "Portuguese"
 msgstr "ポルトガル語"
 
-#: Core/pinot-dbus-daemon.cpp:457 UI/GTK2/src/pinot.cc:266
+#: Core/pinot-dbus-daemon.cpp:451 UI/GTK2/src/pinot.cc:266
 msgid "Romanian"
 msgstr "ルーマニア語"
 
-#: Core/pinot-dbus-daemon.cpp:458 UI/GTK2/src/pinot.cc:267
+#: Core/pinot-dbus-daemon.cpp:452 UI/GTK2/src/pinot.cc:267
 msgid "Russian"
 msgstr "ロシア語"
 
-#: Core/pinot-dbus-daemon.cpp:459 UI/GTK2/src/pinot.cc:268
+#: Core/pinot-dbus-daemon.cpp:453 UI/GTK2/src/pinot.cc:268
 msgid "Spanish"
 msgstr "スペイン語"
 
-#: Core/pinot-dbus-daemon.cpp:460 UI/GTK2/src/pinot.cc:269
+#: Core/pinot-dbus-daemon.cpp:454 UI/GTK2/src/pinot.cc:269
 msgid "Swedish"
 msgstr "スウェーデン語"
 
-#: Core/pinot-dbus-daemon.cpp:461 UI/GTK2/src/pinot.cc:270
+#: Core/pinot-dbus-daemon.cpp:455 UI/GTK2/src/pinot.cc:270
 msgid "Turkish"
 msgstr "トルコ語"
 
