@@ -312,7 +312,6 @@ bool DBusServletInfo::reply(void)
 
 DaemonState::DaemonState() :
 	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 4),
-	m_fullScan(false),
 	m_isReindex(false),
 	m_reload(false),
 	m_flush(false),
@@ -460,12 +459,12 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 		// Monitoring is not necessary, but we still have to pass the handler
 		// so that we can act on documents that have been deleted
 		pCrawlerThread = new CrawlerThread(locationToCrawl, isSource,
-			m_fullScan, m_isReindex, NULL, m_pDiskHandler);
+			m_isReindex, NULL, m_pDiskHandler);
 	}
 	else
 	{
 		pCrawlerThread = new CrawlerThread(locationToCrawl, isSource,
-			m_fullScan, m_isReindex, m_pDiskMonitor, m_pDiskHandler);
+			m_isReindex, m_pDiskMonitor, m_pDiskHandler);
 	}
 	pCrawlerThread->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 
@@ -480,31 +479,11 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 	return false;
 }
 
-void DaemonState::start(bool forceFullScan, bool isReindex)
+void DaemonState::start(bool isReindex)
 {
 	// Disable implicit flushing after a change
 	WorkerThread::immediateFlush(false);
 
-	// Do full scans ?
-	if (forceFullScan == true)
-	{
-		m_fullScan = true;
-	}
-	else
-	{
-		Rand randomStuff;
-		guint32 randomArray[5];
-
-		randomStuff.set_seed(randomArray[2]);
-		gint32 randomNum = randomStuff.get_int_range(0, 10);
-		if (randomNum >= 7)
-		{
-			m_fullScan = true;
-		}
-#ifdef DEBUG
-		cout << "DaemonState::start: picked " << randomNum << endl;
-#endif
-	}
 	m_isReindex = isReindex;
 
 	// Fire up the disk monitor thread
@@ -526,15 +505,12 @@ void DaemonState::start(bool forceFullScan, bool isReindex)
 	cout << "DaemonState::start: " << m_crawlQueue.size() << " locations to crawl" << endl;
 #endif
 
-	if (m_fullScan == true)
-	{
-		CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
+	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 
-		// Update all items status so that we can get rid of files from deleted sources
-		crawlHistory.updateItemsStatus(CrawlHistory::CRAWLING, CrawlHistory::TO_CRAWL, 0, true);
-		crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::TO_CRAWL, 0, true);
-		crawlHistory.updateItemsStatus(CrawlHistory::CRAWL_ERROR, CrawlHistory::TO_CRAWL, 0, true);
-	}
+	// Update all items status so that we can get rid of files from deleted sources
+	crawlHistory.updateItemsStatus(CrawlHistory::CRAWLING, CrawlHistory::TO_CRAWL, 0, true);
+	crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::TO_CRAWL, 0, true);
+	crawlHistory.updateItemsStatus(CrawlHistory::CRAWL_ERROR, CrawlHistory::TO_CRAWL, 0, true);
 
 	// Initiate crawling
 	start_crawling();
@@ -567,7 +543,7 @@ bool DaemonState::start_crawling(void)
 
 				startedCrawler = crawl_location(nextLocation);
 			}
-			else if (m_fullScan == true)
+			else
 			{
 				CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 				set<string> deletedFiles;
@@ -785,7 +761,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		m_reload = false;
 
 		// ...and restart everything 
-		start(true, false);
+		start(false);
 	}
 
 	// Try to run a queued action unless threads were stopped

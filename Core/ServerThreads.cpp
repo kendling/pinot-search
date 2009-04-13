@@ -116,12 +116,11 @@ static bool loadXMLDescription(void)
 }
 
 CrawlerThread::CrawlerThread(const string &dirName,
-	bool isSource, bool fullScan, bool isReindex,
+	bool isSource, bool isReindex,
 	MonitorInterface *pMonitor, MonitorHandler *pHandler) :
 	DirectoryScannerThread(dirName,
 		PinotSettings::getInstance().m_daemonIndexLocation,
 		0, false, true),
-	m_fullScan(fullScan),
 	m_isReindex(isReindex),
 	m_sourceId(0),
 	m_pMonitor(pMonitor),
@@ -175,11 +174,6 @@ string CrawlerThread::getType(void) const
 
 void CrawlerThread::cacheUpdate(const string &location, time_t itemDate)
 {
-	if (m_fullScan == false)
-	{
-		return;
-	}
-
 	m_updateCache[location] = itemDate;
 	if (m_updateCache.size() > 500)
 	{
@@ -225,7 +219,7 @@ void CrawlerThread::recordCrawling(const string &location, bool itemExists, time
 		// Record it
 		m_crawlHistory.insertItem(location, CrawlHistory::CRAWLING, m_sourceId, itemDate);
 	}
-	else if (m_fullScan == true)
+	else
 	{
 		// Change the status from TO_CRAWL to CRAWLING
 		m_crawlHistory.updateItem(location, CrawlHistory::CRAWLING, itemDate);
@@ -294,19 +288,16 @@ void CrawlerThread::doWork(void)
 	}
 	scanTimer.start();
 
+	cout << "Scanning " << m_dirName << endl;
+
 	// Remove errors and links
 	m_crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_ERROR);
 	m_crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_LINK);
 	// ...and entries the previous instance didn't have time to crawl
 	m_crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWLING);
 
-	if (m_fullScan == true)
-	{
-		cout << "Doing a full scan on " << m_dirName << endl;
-
-		// Update this source's items status so that we can detect files that have been deleted
-		m_crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::TO_CRAWL, m_sourceId);
-	}
+	// Update this source's items status so that we can detect files that have been deleted
+	m_crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::TO_CRAWL, m_sourceId);
 
 	if (scanEntry(m_dirName) == false)
 	{
@@ -314,6 +305,7 @@ void CrawlerThread::doWork(void)
 		m_errorParam = m_dirName;
 	}
 	flushUpdates();
+
 	cout << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
 
 	if (m_done == true)
@@ -324,37 +316,35 @@ void CrawlerThread::doWork(void)
 		return;
 	}
 
-	if (m_fullScan == true)
+	scanTimer.start();
+
+	// All files left with status TO_CRAWL were not found in this crawl
+	// Chances are they were removed after the last full scan
+	while ((m_pHandler != NULL) &&
+		(m_crawlHistory.getSourceItems(m_sourceId, CrawlHistory::TO_CRAWL, urls,
+			currentOffset, currentOffset + 100) > 0))
 	{
-		scanTimer.start();
-
-		// All files left with status TO_CRAWL were not found in this crawl
-		// Chances are they were removed after the last full scan
-		while ((m_pHandler != NULL) &&
-			(m_crawlHistory.getSourceItems(m_sourceId, CrawlHistory::TO_CRAWL, urls,
-				currentOffset, currentOffset + 100) > 0))
+		for (set<string>::const_iterator urlIter = urls.begin();
+			urlIter != urls.end(); ++urlIter)
 		{
-			for (set<string>::const_iterator urlIter = urls.begin();
-				urlIter != urls.end(); ++urlIter)
-			{
-				// Inform the MonitorHandler
-				m_pHandler->fileDeleted(urlIter->substr(7));
+			// Inform the MonitorHandler
+			m_pHandler->fileDeleted(urlIter->substr(7));
 
-				// Delete this item
-				m_crawlHistory.deleteItem(*urlIter);
-				metaData.deleteItem(DocumentInfo("", *urlIter, "", ""), DocumentInfo::SERIAL_ALL);
-			}
-
-			// Next
-			if (urls.size() < 100)
-			{
-				break;
-			}
-			currentOffset += 100;
+			// Delete this item
+			m_crawlHistory.deleteItem(*urlIter);
+			metaData.deleteItem(DocumentInfo("", *urlIter, "", ""), DocumentInfo::SERIAL_ALL);
 		}
-		cout << "Cleaned up " << currentOffset + urls.size()
-			<< " history entries in " << scanTimer.stop() << " ms" << endl;
+
+		// Next
+		if (urls.size() < 100)
+		{
+			break;
+		}
+		currentOffset += 100;
 	}
+
+	cout << "Cleaned up " << currentOffset + urls.size()
+		<< " history entries in " << scanTimer.stop() << " ms" << endl;
 
 	if (m_isReindex == true)
 	{

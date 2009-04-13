@@ -66,7 +66,6 @@ static string g_pidFileName;
 static streambuf *g_coutBuf = NULL;
 static streambuf *g_cerrBuf = NULL;
 static struct option g_longOptions[] = {
-	{"fullscan", 0, 0, 'f'},
 	{"help", 0, 0, 'h'},
 	{"ignore-version", 0, 0, 'i'},
 	{"priority", 1, 0, 'p'},
@@ -278,25 +277,20 @@ int main(int argc, char **argv)
 	int longOptionIndex = 0, priority = 15;
 	bool resetHistory = false;
 	bool resetLabels = false;
-	bool fullScan = false;
 	bool reindex = false;
 	bool ignoreVersion = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "fhip:rv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "hip:rv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
 		{
-			case 'f':
-				fullScan = true;
-				break;
 			case 'h':
 				// Help
 				cout << "pinot-dbus-daemon - D-Bus search and index daemon\n\n"
 					<< "Usage: pinot-dbus-daemon [OPTIONS]\n\n"
 					<< "Options:\n"
-					<< "  -f, --fullscan	force a full scan\n"
 					<< "  -h, --help		display this help and exit\n"
 					<< "  -i, --ignore-version	ignore the index version number\n"
 					<< "  -p, --priority	set the daemon's priority (default 15)\n"
@@ -332,7 +326,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "fhip:rv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "hip:rv", g_longOptions, &longOptionIndex);
 	}
 
 #if defined(ENABLE_NLS)
@@ -714,7 +708,7 @@ int main(int argc, char **argv)
 				cout << "System is on battery" << endl;
 			}
 
-			server.start(fullScan, reindex);
+			server.start(reindex);
 
 			// Run the main loop
 			g_refMainLoop->run();

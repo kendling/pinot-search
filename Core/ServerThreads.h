@@ -37,14 +37,13 @@ class CrawlerThread : public DirectoryScannerThread
 {
 	public:
 		CrawlerThread(const std::string &dirName,
-			bool isSource, bool fullScan, bool isReindex,
+			bool isSource, bool isReindex,
 			MonitorInterface *pMonitor, MonitorHandler *pHandler);
 		virtual ~CrawlerThread();
 
 		virtual std::string getType(void) const;
 
 	protected:
-		bool m_fullScan;
 		bool m_isReindex;
 		unsigned int m_sourceId;
 		MonitorInterface *m_pMonitor;

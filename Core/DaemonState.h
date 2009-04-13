@@ -80,7 +80,7 @@ class DaemonState : public ThreadsManager
 
 		typedef enum { LOW_DISK_SPACE = 0, ON_BATTERY, CRAWLING, STOPPED, DISCONNECTED } StatusFlag;
 
-		void start(bool forceFullScan, bool isReindex);
+		void start(bool isReindex);
 
 		void reload(void);
 
@@ -101,7 +101,6 @@ class DaemonState : public ThreadsManager
 		void reset_flag(StatusFlag flag);
 
 	protected:
-		bool m_fullScan;
 		bool m_isReindex;
 		bool m_reload;
 		bool m_flush;
