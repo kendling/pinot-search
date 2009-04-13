@@ -145,25 +145,26 @@ http://pinot.berlios.de/
   directories whose contents seldom change, eg /usr/share/doc.
   Indexing and monitoring of directories is handled by the D-Bus service.
 
-  While Pinot is not currently able to get to and index application-specific
-  data held in dot-directories, it can index common file formats as listed
-  in section "8. File formats".
-
-  All files and directories with a name that starts with a dot, eg ".gaim",
-  are skipped and their content is not indexed. If you wish to include the
-  contents of some dot-directories, create a symlink to a directory that is
-  configured in Preferences. For instance, if your home directory is
-  configured for indexing, create a symlink from "~/.gaim/logs" to
-  "~/Documents/Logs" to index your GAIM log files.
-  Do the same for mbox files held in dot-directories, eg ".thunderbird". Pinot
-  0.74 and older required mbox files to be configured separately. Newer
-  versions are able to fully index (and monitor, if necessary) all mbox files
-  found during a directory crawl, just like any other file type.
-
   In 0.90 and newer, the daemon will skip symlinks that refer to locations
   that have already been crawled, or locations it knows it will have to crawl.
   When skipped, symlinks are not followed but are still indexed, with the MIME
   type "inode/symlink".
+
+  While Pinot is not currently able to get to and index application-specific
+  data held in dot-directories, it can index common file formats as listed
+  in section "8. File formats".
+
+  All files and directories with a name that starts with a dot, eg
+  ".thunderbird", are skipped and their content is not indexed. If you wish
+  to include the contents of some dot-directory, create a symlink to a
+  directory that is configured in Preferences. For instance, if "~/Documents"
+  is configured for indexing, create a symlink from "~/.thunderbird" to
+  "~/Documents/TMail". For this to work, the dot-directory must not be in a
+  directory configured for indexing.
+
+  Pinot 0.74 and older required mbox files to be configured separately. Newer
+  versions are able to fully index (and monitor, if necessary) all mbox files
+  found during a directory crawl, just like any other file type.
 
   If you want to exclude any specific files or directories from indexing, use
   patterns as described in section "9. File patterns".
