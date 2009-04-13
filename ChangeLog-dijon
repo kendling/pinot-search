@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r155 | fabricecolin | 2009-04-13 17:47:49 +0800 (Mon, 13 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+   M /trunk/cjkv/CJKVTokenizer.h
+
+Set a limit to the amount of text that's split and tokenized.
+
+------------------------------------------------------------------------
 r153 | fabricecolin | 2009-04-07 22:27:22 +0800 (Tue, 07 Apr 2009) | 2 lines
 Changed paths:
    M /trunk/filters/GMimeMboxFilter.cc

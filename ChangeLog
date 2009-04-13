@@ -1,4 +1,72 @@
 ------------------------------------------------------------------------
+r1627 | fabricecolin | 2009-04-13 17:52:11 +0800 (Mon, 13 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Updated po's.
+
+------------------------------------------------------------------------
+r1626 | fabricecolin | 2009-04-13 17:51:34 +0800 (Mon, 13 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/NEWS
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Preparing the 0.93 release.
+
+------------------------------------------------------------------------
+r1625 | fabricecolin | 2009-04-13 17:41:28 +0800 (Mon, 13 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+Don't try and guesstimate where we are at, keep generating terms.
+
+------------------------------------------------------------------------
+r1624 | fabricecolin | 2009-04-13 11:34:19 +0800 (Mon, 13 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/README
+
+Clarify how to get dot-directories indexed with symlinks.
+
+------------------------------------------------------------------------
+r1623 | fabricecolin | 2009-04-13 11:22:14 +0800 (Mon, 13 Apr 2009) | 5 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/DaemonState.h
+   M /trunk/Core/ServerThreads.cpp
+   M /trunk/Core/ServerThreads.h
+   M /trunk/Core/pinot-dbus-daemon.cpp
+
+Unless run in full scan mode, the daemon would reindex all files on every run !
+That probably stems from changes made in 0.91.
+There's no justification for not doing a full scan on every run. All scans are
+from now on full by default.
+
+------------------------------------------------------------------------
+r1621 | fabricecolin | 2009-04-09 23:38:04 +0800 (Thu, 09 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/ChangeLog-dijon
+
+Current logs.
+
+------------------------------------------------------------------------
 r1620 | fabricecolin | 2009-04-09 23:34:40 +0800 (Thu, 09 Apr 2009) | 2 lines
 Changed paths:
    M /trunk/NEWS
