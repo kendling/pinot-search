@@ -1,3 +1,10 @@
+2009/04/13 version_0_9_3
+Tokenize :
+ - moved the first 5Mb limit from the terms generator to the tokenizer
+Daemon :
+ - fixed major bug that caused the daemon to reindex all files on each run,
+  unless started in full scan mode
+
 2009/04/10 version_0_9_2
 General :
  - fixed successive initialization and cleanup of libxml2 that could lead to
