@@ -84,8 +84,7 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 			m_nGramCount(0),
 			m_doSpelling(doSpelling),
 			m_termPos(termPos),
-			m_hasCJKV(false),
-			m_totalSize(0)
+			m_hasCJKV(false)
 		{
 		}
 
@@ -105,13 +104,6 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 			if (tok.empty() == true)
 			{
 				return false;
-			}
-
-			m_totalSize += tok.size() + 1;
-			if (m_totalSize > 5242880)
-			{
-				// Enough for this document
-				return true;
 			}
 
 			// Lower case the term and trim spaces
@@ -202,7 +194,6 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 		bool &m_doSpelling;
 		Xapian::termcount &m_termPos;
 		bool m_hasCJKV;
-		unsigned int m_totalSize;
 
 };
 
