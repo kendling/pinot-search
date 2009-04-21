@@ -29,18 +29,18 @@ libarchivefilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/ArchiveFilter.cc
 
-libarchivefilter_la_LDFLAGS = -module -larchive
+libarchivefilter_la_LDFLAGS = -module
 
-libarchivefilter_la_LIBADD =
+libarchivefilter_la_LIBADD = -larchive
 endif
 
 libexifimagefilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/ExifImageFilter.cc
 
-libexifimagefilter_la_LDFLAGS = -module @EXIF_LIBS@
+libexifimagefilter_la_LDFLAGS = -module
 
-libexifimagefilter_la_LIBADD =
+libexifimagefilter_la_LIBADD = @EXIF_LIBS@
 
 libexternalfilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
@@ -48,23 +48,23 @@ libexternalfilter_la_SOURCES = \
 
 libexternalfilter_la_LDFLAGS = -module
 
-libexternalfilter_la_LIBADD =
+libexternalfilter_la_LIBADD = @XML_LIBS@
 
 libmboxfilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/GMimeMboxFilter.cc
 
-libmboxfilter_la_LDFLAGS = -module @GMIME_LIBS@
+libmboxfilter_la_LDFLAGS = -module
 
-libmboxfilter_la_LIBADD =
+libmboxfilter_la_LIBADD = @GMIME_LIBS@
 
 libtaglibfilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/TagLibMusicFilter.cc
 
-libtaglibfilter_la_LDFLAGS = -module @TAGLIB_LIBS@
+libtaglibfilter_la_LDFLAGS = -module
 
-libtaglibfilter_la_LIBADD =
+libtaglibfilter_la_LIBADD = @TAGLIB_LIBS@
 
 libTokenize_la_SOURCES = \
 	FilterUtils.cpp \

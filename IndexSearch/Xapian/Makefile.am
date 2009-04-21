@@ -36,6 +36,7 @@ libxapianbackend_la_LDFLAGS = -module -shared -nostartfiles
 libxapianbackend_la_LIBADD = \
 	-L$(top_builddir)/Utils \
 	-lBasicUtils \
+	@XML_LIBS@ @HTTP_LIBS@ \
 	@INDEX_LIBS@ @MISC_LIBS@
 
 AM_CXXFLAGS = \
