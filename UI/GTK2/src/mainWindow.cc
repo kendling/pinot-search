@@ -838,18 +838,13 @@ void mainWindow::on_indexTreeviewSelection_changed(ustring indexName)
 	}
 
 	bool isDocumentsIndex = true;
-	bool editDocuments = true;
 
 	if (indexName != _("My Web Pages"))
 	{
 		isDocumentsIndex = false;
-		if (indexName != _("My Documents"))
-		{
-			editDocuments = false;
-		}
 	}
 
-	on_document_changed(resultsList, isDocumentsIndex, editDocuments, false);
+	on_document_changed(resultsList, isDocumentsIndex, true, false);
 }
 
 void mainWindow::on_document_changed(vector<DocumentInfo> &resultsList,
@@ -2392,7 +2387,7 @@ void mainWindow::on_properties_activate()
 	set<unsigned int> docIds;
 	string indexName;
 	int width, height;
-	bool docsIndex = false, daemonIndex = false;
+	bool docsIndex = false, daemonIndex = false, readOnlyProps = false;
 
 #ifdef DEBUG
 	cout << "mainWindow::on_properties_activate: called" << endl;
@@ -2405,7 +2400,7 @@ void mainWindow::on_properties_activate()
 		pResultsTree = pIndexPage->getTree();
 	}
 
-	// Allow this only for internal indexes
+	// Is this an internal index ?
 	if (indexName == _("My Web Pages"))
 	{
 		docsIndex = true;
@@ -2416,7 +2411,7 @@ void mainWindow::on_properties_activate()
 	}
 	else
 	{
-		return;
+		readOnlyProps = true;
 	}
 
 	PinotSettings::IndexProperties indexProps(m_settings.getIndexPropertiesByName(indexName));
@@ -2440,14 +2435,12 @@ void mainWindow::on_properties_activate()
 		return;
 	}
 
-	// Let the user set the labels
 	get_size(width, height);
 	propertiesDialog propertiesBox(indexProps.m_location, documentsList);
 	propertiesBox.setHeight(height / 2);
 	propertiesBox.show();
-	// What labels will this show ?
-	const set<string> &labels = propertiesBox.getLabels();
-	if (propertiesBox.run() != RESPONSE_OK)
+	if ((propertiesBox.run() != RESPONSE_OK) ||
+		(readOnlyProps == true))
 	{
 		return;
 	}
@@ -2473,6 +2466,7 @@ void mainWindow::on_properties_activate()
 	{
 		LabelUpdateThread *pThread = NULL;
 		set<unsigned int> empty;
+		const set<string> &labels = propertiesBox.getLabels();
 
 		// Apply the labels en masse
 		if (docsIndex == true)
