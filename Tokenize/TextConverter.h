@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include "Memory.h"
 #include "Visibility.h"
 
 class PINOT_EXPORT TextConverter
@@ -30,10 +31,7 @@ class PINOT_EXPORT TextConverter
 		virtual ~TextConverter();
 
 		/// Converts to UTF-8.
-		std::string toUTF8(const std::string &text, std::string &charset);
-
-		/// Converts to UTF-8.
-		std::string toUTF8(const char *pText, unsigned int textLen, std::string &charset);
+		dstring toUTF8(const dstring &text, std::string &charset);
 
 		/// Gets the number of conversion errors for the previous toUTF8() call.
 		unsigned int getErrorsCount(void) const;

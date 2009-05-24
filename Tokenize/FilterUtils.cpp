@@ -402,7 +402,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 
 		if (doc.getType().substr(0, 10) == "text/plain")
 		{
-			string utf8Data(converter.toUTF8(content.c_str(), content.length(), charset));
+			dstring utf8Data(converter.toUTF8(content, charset));
 
 			if (converter.getErrorsCount() > 0)
 			{
@@ -419,9 +419,11 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 	if ((contentIter != metaData.end()) &&
 		(contentIter->second.empty() == false))
 	{
-		string utf8Data(converter.toUTF8(contentIter->second, charset));
+		dstring title(contentIter->second.c_str(), contentIter->second.length());
 
-		doc.setTitle(utf8Data);
+		dstring utf8Data(converter.toUTF8(title, charset));
+
+		doc.setTitle(string(utf8Data.c_str(), utf8Data.length()));
 	}
 
 	// If the document is big'ish, try and reclaim memory

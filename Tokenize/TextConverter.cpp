@@ -42,28 +42,19 @@ TextConverter::~TextConverter()
 {
 }
 
-string TextConverter::toUTF8(const string &text, string &charset)
-{
-	unsigned int textLen = (unsigned int)text.length();
-
-	// Call overload
-	return toUTF8(text.c_str(), textLen, charset);
-}
-
-string TextConverter::toUTF8(const char *pText, unsigned int textLen, string &charset)
+dstring TextConverter::toUTF8(const dstring &text, string &charset)
 {
 	string textCharset(StringManip::toLowerCase(charset));
 	char outputBuffer[8192];
-	char *pInput = const_cast<char *>(pText);
+	char *pInput = const_cast<char *>(text.c_str());
 
 	m_conversionErrors = 0;
 
-	if ((pText == NULL) ||
-		(textLen == 0) ||
+	if ((text.empty() == true) ||
 		(textCharset == "utf-8"))
 	{
 		// No conversion necessary
-		return string(pText, textLen);
+		return text;
 	}
 
 	if (textCharset.empty() == true)
@@ -71,14 +62,14 @@ string TextConverter::toUTF8(const char *pText, unsigned int textLen, string &ch
 		if (m_utf8Locale == true)
 		{
 			// The current locale uses UTF-8
-			return string(pText, textLen);
+			return text;
 		}
 
 		textCharset = m_localeCharset;
 	}
 
-	string outputText;
-	gsize inputSize = (gsize)textLen;
+	dstring outputText;
+	gsize inputSize = (gsize)text.length();
 	bool invalidSequence = false;
 
 	try
@@ -99,12 +90,12 @@ string TextConverter::toUTF8(const char *pText, unsigned int textLen, string &ch
 					// Conversion was only partially successful
 					++m_conversionErrors;
 #ifdef DEBUG
-					cout << "TextConverter::toUTF8: invalid sequence at " << pInput - pText << endl;
+					cout << "TextConverter::toUTF8: invalid sequence" << endl;
 #endif
 					if (m_conversionErrors >= m_maxErrors)
 					{
 						// Give up
-						return string(pText, textLen);
+						return text;
 					}
 					converter.reset();
 
@@ -125,7 +116,7 @@ string TextConverter::toUTF8(const char *pText, unsigned int textLen, string &ch
 #ifdef DEBUG
 					cout << "TextConverter::toUTF8: unknown error " << errorCode << endl;
 #endif
-					return string(pText, textLen);
+					return text;
 				}
 			}
 			else
@@ -156,9 +147,8 @@ string TextConverter::toUTF8(const char *pText, unsigned int textLen, string &ch
 #ifdef DEBUG
 			cout << "TextConverter::toUTF8: trying with charset " << fixedCharset << endl;
 #endif
-
 			textCharset = fixedCharset;
-			outputText = toUTF8(pText, textLen, fixedCharset);
+			outputText = toUTF8(text, fixedCharset);
 		}
 	}
 	catch (...)
