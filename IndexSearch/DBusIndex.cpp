@@ -58,8 +58,8 @@ static DBusGProxy *getBusProxy(DBusGConnection *pBus)
 		return NULL;
 	}
 
-	return dbus_g_proxy_new_for_name(pBus,
-		"de.berlios.Pinot", "/de/berlios/Pinot", "de.berlios.Pinot");
+	return dbus_g_proxy_new_for_name(pBus, PINOT_DBUS_SERVICE_NAME,
+		PINOT_DBUS_OBJECT_PATH, PINOT_DBUS_SERVICE_NAME);
 }
 
 DBusIndex::DBusIndex(IndexInterface *pROIndex) :
@@ -1029,8 +1029,8 @@ bool DBusIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docIn
 	}
 
 	// FIXME: AFAIK we can't use DBusGProxy with message iterators
-	DBusMessage *pMsg = dbus_message_new_method_call("de.berlios.Pinot",
-		"/de/berlios/Pinot", "de.berlios.Pinot", "SetDocumentInfo");
+	DBusMessage *pMsg = dbus_message_new_method_call(PINOT_DBUS_SERVICE_NAME,
+		PINOT_DBUS_OBJECT_PATH, PINOT_DBUS_SERVICE_NAME, "SetDocumentInfo");
 	if (pMsg == NULL)
 	{
 		cerr << "DBusIndex::updateDocumentInfo: couldn't call method" << endl;
