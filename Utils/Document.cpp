@@ -161,10 +161,9 @@ bool Document::setData(const char *data, unsigned int length)
 bool Document::setDataFromFile(const string &fileName)
 {
 	struct stat fileStat;
-#ifndef O_NOATIME
 	int openFlags = O_RDONLY;
-#else
-	int openFlags = O_RDONLY|O_NOATIME;
+#ifdef O_CLOEXEC
+	openFlags = openFlags|O_CLOEXEC;
 #endif
 
 	if (fileName.empty() == true)
@@ -193,13 +192,17 @@ bool Document::setDataFromFile(const string &fileName)
 	}
 
 	// Open the file in read-only mode
+#ifdef O_NOATIME
+	int fd = open(fileName.c_str(), openFlags|O_NOATIME);
+#else
 	int fd = open(fileName.c_str(), openFlags);
+#endif
 #ifdef O_NOATIME
 	if ((fd < 0) &&
 		(errno == EPERM))
 	{
 		// Try again
-		fd = open(fileName.c_str(), O_RDONLY);
+		fd = open(fileName.c_str(), openFlags);
 	}
 #endif
 	if (fd < 0)
@@ -207,6 +210,10 @@ bool Document::setDataFromFile(const string &fileName)
 		cerr << "Document::setDataFromFile: " << fileName << " couldn't be opened" << endl;
 		return false;
 	}
+#ifndef O_CLOEXEC
+	int fdFlags = fcntl(fd, F_GETFD);
+	fcntl(fd, F_SETFD, fdFlags|FD_CLOEXEC);
+#endif
 
 	// Discard existing data
 	resetData();
