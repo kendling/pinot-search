@@ -406,7 +406,6 @@ bool XapianDatabase::wasObsoleteFormat(void) const
 void XapianDatabase::reopen(void)
 {
 	// This is provided by Xapian::Database
-	// FIXME: get the write lock to make sure read operations are not in progress ?
 	if (pthread_mutex_lock(&m_rwLock) == 0)
 	{
 		if (m_pDatabase != NULL)

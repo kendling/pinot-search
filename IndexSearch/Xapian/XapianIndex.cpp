@@ -2041,6 +2041,7 @@ bool XapianIndex::reopen(void) const
 		cerr << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
+	pDatabase->reopen();
 
 	return true;
 }
