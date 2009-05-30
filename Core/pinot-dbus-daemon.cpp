@@ -73,8 +73,6 @@ static struct option g_longOptions[] = {
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
-static const char *g_pinotDBusService = "de.berlios.Pinot";
-static const char *g_pinotDBusObjectPath = "/de/berlios/Pinot";
 static void unregisteredHandler(DBusConnection *pConnection, void *pData);
 static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData);
 static DBusObjectPathVTable g_callVTable = {
@@ -199,6 +197,8 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 			}
 		}
 		dbus_error_free(&error);
+
+		return DBUS_HANDLER_RESULT_HANDLED;
 	}
 
 	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
@@ -232,12 +232,12 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 	return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-static bool getBatteryState(DBusGConnection *pBus, const string &name, const string &path,
+static bool getBatteryState(const string &name, const string &path,
 	const string &method, gboolean &result)
 {
 	bool callSuccess = true;
 
-	if ((pBus == NULL) ||
+	if ((DBusServletThread::m_pBus == NULL) ||
 		(name.empty() == true) ||
 		(path.empty() == true) ||
 		(method.empty() == true))
@@ -245,7 +245,7 @@ static bool getBatteryState(DBusGConnection *pBus, const string &name, const str
 		return false;
 	}
 
-	DBusGProxy *pBusProxy = dbus_g_proxy_new_for_name(pBus, name.c_str(),
+	DBusGProxy *pBusProxy = dbus_g_proxy_new_for_name(DBusServletThread::m_pBus, name.c_str(),
 		path.c_str(), name.c_str());
 	if (pBusProxy == NULL)
 	{
@@ -538,8 +538,8 @@ int main(int argc, char **argv)
 #endif
 
 	GError *pError = NULL;
-	DBusGConnection *pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
-	if (pBus == NULL)
+	DBusServletThread::m_pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
+	if (DBusServletThread::m_pBus == NULL)
 	{
 		if (pError != NULL)
 		{
@@ -554,7 +554,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	DBusConnection *pConnection = dbus_g_connection_get_connection(pBus);
+	DBusConnection *pConnection = dbus_g_connection_get_connection(DBusServletThread::m_pBus);
 	if (pConnection == NULL)
 	{
 		cerr << "Couldn't get connection" << endl;
@@ -569,12 +569,12 @@ int main(int argc, char **argv)
 	dbus_connection_set_exit_on_disconnect(pConnection, FALSE);
 	dbus_connection_setup_with_g_main(pConnection, NULL);
 
-	if (dbus_connection_register_object_path(pConnection, g_pinotDBusObjectPath,
+	if (dbus_connection_register_object_path(pConnection, PINOT_DBUS_OBJECT_PATH,
 		&g_callVTable, &server) == TRUE)
 	{
 		// Request to be identified by this name
 		// FIXME: flags are currently broken ?
-		dbus_bus_request_name(pConnection, g_pinotDBusService, 0, &error);
+		dbus_bus_request_name(pConnection, PINOT_DBUS_SERVICE_NAME, 0, &error);
 		if (dbus_error_is_set(&error) == FALSE)
 		{
 			// See power management signals
@@ -588,7 +588,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			cerr << "Couldn't obtain name " << g_pinotDBusService << endl;
+			cerr << "Couldn't obtain name " << PINOT_DBUS_SERVICE_NAME << endl;
 			if (error.message != NULL)
 			{
 				cerr << "Error is " << error.message << endl;
@@ -681,9 +681,9 @@ int main(int argc, char **argv)
 
 			// Try and get the battery state
 			gboolean result = FALSE;
-			if ((getBatteryState(pBus, "org.freedesktop.PowerManagement",
+			if ((getBatteryState("org.freedesktop.PowerManagement",
 				"/org/freedesktop/PowerManagement", "GetOnBattery", result) == true) ||
-				(getBatteryState(pBus, "org.freedesktop.PowerManagement",
+				(getBatteryState("org.freedesktop.PowerManagement",
 				"/org/freedesktop/PowerManagement", "GetBatteryState", result) == true))
 			{
 				if (result == TRUE)
@@ -691,7 +691,7 @@ int main(int argc, char **argv)
 					onBattery = true;
 				}
 			}
-			else if (getBatteryState(pBus, "org.gnome.PowerManager",
+			else if (getBatteryState("org.gnome.PowerManager",
 				"/org/gnome/PowerManager", "GetOnAc", result) == true)
 			{
 				if (result == FALSE)

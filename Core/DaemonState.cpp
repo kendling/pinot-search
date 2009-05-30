@@ -194,8 +194,11 @@ bool DBusServletInfo::newErrorReply(const string &name, const string &message)
 		m_pReply = NULL;
 	}
 
+	string fullName(PINOT_DBUS_SERVICE_NAME);
+	fullName += ".";
+	fullName += name;
 	m_pReply = dbus_message_new_error(m_pRequest,
-		name.c_str(), message.c_str());
+		fullName.c_str(), message.c_str());
         if (m_pReply != NULL)
         {
                 return true;
@@ -263,7 +266,7 @@ bool DBusServletInfo::newQueryReply(const vector<DocumentInfo> &resultsList,
 			// The document ID isn't needed here
 			if (DBusIndex::documentInfoToDBus(&subIter, 0, *resultIter) == false)
 			{
-				newErrorReply("de.berlios.Pinot.Query", "Unknown error");
+				newErrorReply("Query", "Unknown error");
 				return false;
 			}
 		}
@@ -781,10 +784,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
 		if (pIndex != NULL)
 		{
-#ifdef DEBUG
-			cout << "DaemonState::on_thread_end: flushing" << endl;
-#endif
-			pIndex->flush();
+			DBusServletThread::flushIndexAndSignal(pIndex);
 
 			delete pIndex;
 		}

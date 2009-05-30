@@ -27,6 +27,10 @@
 
 #include "DocumentInfo.h"
 #include "CrawlHistory.h"
+#include "IndexInterface.h"
+#ifdef HAVE_DBUS
+#include "DBusIndex.h"
+#endif
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
 #include "QueryProperties.h"
@@ -77,6 +81,10 @@ class DBusServletThread : public WorkerThread
 	public:
 		DBusServletThread(DaemonState *pServer, DBusServletInfo *pInfo);
 		virtual ~DBusServletThread();
+
+		static DBusGConnection *m_pBus;
+
+		static void flushIndexAndSignal(IndexInterface *pIndex);
 
 		virtual std::string getType(void) const;
 

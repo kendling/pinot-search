@@ -36,9 +36,6 @@
 #include "Timer.h"
 #include "Url.h"
 #include "MetaDataBackup.h"
-#ifdef HAVE_DBUS
-#include "DBusIndex.h"
-#endif
 #include "ModuleFactory.h"
 #include "DaemonState.h"
 #include "PinotSettings.h"
@@ -395,6 +392,8 @@ void CrawlerThread::doWork(void)
 }
 
 #ifdef HAVE_DBUS
+DBusGConnection *DBusServletThread::m_pBus = NULL;
+
 DBusServletThread::DBusServletThread(DaemonState *pServer, DBusServletInfo *pInfo) :
 	WorkerThread(),
 	m_pServer(pServer),
@@ -405,6 +404,44 @@ DBusServletThread::DBusServletThread(DaemonState *pServer, DBusServletInfo *pInf
 
 DBusServletThread::~DBusServletThread()
 {
+}
+
+void DBusServletThread::flushIndexAndSignal(IndexInterface *pIndex)
+{
+	if (pIndex == NULL)
+	{
+		return;
+	}
+#ifdef DEBUG
+	cout << "DBusServletThread::flushIndexAndSignal: flushing" << endl;
+#endif
+
+	// Flush
+	pIndex->flush();
+
+	// Signal
+	if (m_pBus != NULL)
+	{
+		DBusMessage *pMessage = dbus_message_new_signal(PINOT_DBUS_OBJECT_PATH,
+			PINOT_DBUS_SERVICE_NAME, "IndexFlushed");
+		unsigned int docsCount = pIndex->getDocumentsCount();
+
+		dbus_message_append_args(pMessage,
+			DBUS_TYPE_UINT32, &docsCount,
+			DBUS_TYPE_INVALID);
+		DBusConnection *pConnection = dbus_g_connection_get_connection(m_pBus);
+		if (pConnection != NULL)
+		{
+			dbus_connection_send(pConnection, pMessage, NULL);
+#ifdef DEBUG
+			cout << "DBusServletThread::flushIndexAndSignal: sent signal IndexFlushed " << docsCount << endl;
+#endif
+		}
+		dbus_message_unref(pMessage);
+	}
+#ifdef DEBUG
+	else cout << "DBusServletThread::flushIndexAndSignal: no bus" << endl;
+#endif
 }
 
 string DBusServletThread::getType(void) const
@@ -458,7 +495,7 @@ void DBusServletThread::doWork(void)
 	}
 #endif
 
-	if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "GetStatistics") == TRUE)
+	if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "GetStatistics") == TRUE)
 	{
 		CrawlHistory crawlHistory(settings.getHistoryDatabaseName());
 		unsigned int crawledFilesCount = crawlHistory.getItemsCount(CrawlHistory::CRAWLED);
@@ -497,7 +534,7 @@ void DBusServletThread::doWork(void)
 				DBUS_TYPE_INVALID);
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "Reload") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "Reload") == TRUE)
 	{
 		if (dbus_message_get_args(m_pServletInfo->m_pRequest, &error,
 			DBUS_TYPE_INVALID) == TRUE)
@@ -518,7 +555,7 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "Stop") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "Stop") == TRUE)
 	{
 		if (dbus_message_get_args(m_pServletInfo->m_pRequest, &error,
 			DBUS_TYPE_INVALID) == TRUE)
@@ -541,7 +578,7 @@ void DBusServletThread::doWork(void)
 			m_mustQuit = true;
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "HasDocument") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "HasDocument") == TRUE)
 	{
 		char *pUrl = NULL;
 		unsigned int docId = 0;
@@ -570,7 +607,7 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "GetLabels") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "GetLabels") == TRUE)
 	{
 #ifdef DEBUG
 		cout << "DBusServletThread::doWork: received GetLabels" << endl;
@@ -589,7 +626,7 @@ void DBusServletThread::doWork(void)
 		// Prepare the reply
 		m_pServletInfo->newReplyWithArray();
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "AddLabel") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "AddLabel") == TRUE)
 	{
 		char *pLabel = NULL;
 
@@ -624,7 +661,7 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "RenameLabel") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "RenameLabel") == TRUE)
 	{
 		char *pOldLabel = NULL;
 		char *pNewLabel = NULL;
@@ -648,7 +685,7 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "DeleteLabel") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "DeleteLabel") == TRUE)
 	{
 		char *pLabel = NULL;
 
@@ -684,7 +721,7 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "GetDocumentLabels") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "GetDocumentLabels") == TRUE)
 	{
 		unsigned int docId = 0;
 
@@ -714,12 +751,12 @@ void DBusServletThread::doWork(void)
 			}
 			else
 			{
-				m_pServletInfo->newErrorReply("de.berlios.Pinot.GetDocumentLabels",
+				m_pServletInfo->newErrorReply("GetDocumentLabels",
 					" failed");
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "SetDocumentLabels") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "SetDocumentLabels") == TRUE)
 	{
 		char **ppLabels = NULL;
 		dbus_uint32_t labelsCount = 0;
@@ -774,7 +811,7 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "SetDocumentsLabels") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "SetDocumentsLabels") == TRUE)
 	{
 		char **ppDocIds = NULL;
 		char **ppLabels = NULL;
@@ -848,7 +885,7 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "GetDocumentInfo") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "GetDocumentInfo") == TRUE)
 	{
 		unsigned int docId = 0;
 
@@ -872,19 +909,19 @@ void DBusServletThread::doWork(void)
 					if (DBusIndex::documentInfoToDBus(&iter, 0, docInfo) == false)
 					{
 						dbus_message_unref(m_pServletInfo->m_pReply);
-						m_pServletInfo->newErrorReply("de.berlios.Pinot.GetDocumentInfo",
+						m_pServletInfo->newErrorReply("GetDocumentInfo",
 							"Unknown error");
 					}
 				}
 			}
 			else
 			{
-				m_pServletInfo->newErrorReply("de.berlios.Pinot.GetDocumentInfo",
+				m_pServletInfo->newErrorReply("GetDocumentInfo",
 					"Unknown document");
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "SetDocumentInfo") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "SetDocumentInfo") == TRUE)
 	{
 		DBusMessageIter iter;
 		DocumentInfo docInfo;
@@ -893,7 +930,7 @@ void DBusServletThread::doWork(void)
 		dbus_message_iter_init(m_pServletInfo->m_pRequest, &iter);
 		if (DBusIndex::documentInfoFromDBus(&iter, docId, docInfo) == false)
 		{
-			m_pServletInfo->newErrorReply("de.berlios.Pinot.SetDocumentInfo",
+			m_pServletInfo->newErrorReply("SetDocumentInfo",
 				"Unknown error");
 		}
 		else
@@ -917,7 +954,7 @@ void DBusServletThread::doWork(void)
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "Query") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "Query") == TRUE)
 	{
 		char *pSearchText = NULL;
 		char *pEngineType = NULL;
@@ -969,13 +1006,13 @@ void DBusServletThread::doWork(void)
 
 			if (replyWithError == true)
 			{
-				m_pServletInfo->newErrorReply("de.berlios.Pinot.SimpleQuery",
+				m_pServletInfo->newErrorReply("SimpleQuery",
 					"Query failed");
 			}
 		}
 	}
 	// FIXME: this method will soon be obsoleted
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "SimpleQuery") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "SimpleQuery") == TRUE)
 	{
 		char *pSearchText = NULL;
 		dbus_uint32_t maxHits = 0;
@@ -1008,12 +1045,12 @@ void DBusServletThread::doWork(void)
 
 			if (replyWithError == true)
 			{
-				m_pServletInfo->newErrorReply("de.berlios.Pinot.SimpleQuery",
+				m_pServletInfo->newErrorReply("SimpleQuery",
 					"Query failed");
 			}
 		}
 	}
-	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "de.berlios.Pinot", "UpdateDocument") == TRUE)
+	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "UpdateDocument") == TRUE)
 	{
 		unsigned int docId = 0;
 
@@ -1095,8 +1132,7 @@ void DBusServletThread::doWork(void)
 	// Flush the index ?
 	if (flushIndex == true)
 	{
-		// Flush now for the sake of the client application
-		pIndex->flush();
+		flushIndexAndSignal(pIndex);
 	}
 
 	delete pIndex;

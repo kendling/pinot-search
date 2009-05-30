@@ -23,19 +23,11 @@
 #include <string>
 #include <queue>
 #include <set>
-#ifdef HAVE_DBUS
-extern "C"
-{
-#if DBUS_VERSION < 1000000
-#define DBUS_API_SUBJECT_TO_CHANGE
-#endif
-#include <dbus/dbus.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-}
-#endif
 #include <sigc++/sigc++.h>
 
+#ifdef HAVE_DBUS
+#include "DBusIndex.h"
+#endif
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
 #include "PinotSettings.h"
