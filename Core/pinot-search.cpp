@@ -356,7 +356,7 @@ int main(int argc, char **argv)
 				vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 				while (resultIter != resultsList.end())
 				{
-					string rawUrl(resultIter->getLocation());
+					string rawUrl(resultIter->getLocation(true));
 
 					if (locationOnly == false)
 					{

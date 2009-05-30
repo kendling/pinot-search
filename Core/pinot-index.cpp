@@ -449,7 +449,7 @@ int main(int argc, char **argv)
 
 			if (pIndex->getDocumentInfo(docId, docInfo) == true)
 			{
-				cout << "Location : '" << docInfo.getLocation() << "'" << endl;
+				cout << "Location : '" << docInfo.getLocation(true) << "'" << endl;
 				cout << "Title    : " << docInfo.getTitle() << endl;
 				cout << "Type     : " << docInfo.getType() << endl;
 				cout << "Language : " << docInfo.getLanguage() << endl;
