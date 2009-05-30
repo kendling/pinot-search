@@ -30,17 +30,6 @@
 #include <glibmm/miscutils.h>
 #include <glibmm/convert.h>
 #include "config.h"
-#ifdef HAVE_DBUS
-extern "C"
-{
-#if DBUS_NUM_VERSION < 1000000
-#define DBUS_API_SUBJECT_TO_CHANGE
-#endif
-#include <dbus/dbus.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-}
-#endif
 #include <gtkmm/main.h>
 
 #include "NLS.h"
@@ -52,6 +41,9 @@ extern "C"
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "DownloaderInterface.h"
+#ifdef HAVE_DBUS
+#include "DBusIndex.h"
+#endif
 #include "PinotSettings.h"
 #include "mainWindow.hh"
 #include "prefsWindow.hh"
@@ -95,6 +87,59 @@ static void quitAll(int sigNum)
 	cout << "Quitting..." << endl;
 
 	Gtk::Main::quit();
+}
+
+static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
+{
+	// Are we about to be disconnected ?
+	if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_LOCAL, "Disconnected") == TRUE)
+	{
+#ifdef DEBUG
+		cout << "filterHandler: received Disconnected" << endl;
+#endif
+	}
+	else if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_DBUS, "NameOwnerChanged") == TRUE)
+	{
+#ifdef DEBUG
+		cout << "filterHandler: received NameOwnerChanged" << endl;
+#endif
+	}
+	else if (dbus_message_is_signal(pMessage, PINOT_DBUS_SERVICE_NAME, "IndexFlushed") == TRUE)
+	{
+		DBusError error;
+		gboolean onBattery = FALSE;
+		unsigned int docsCount = 0;
+
+#ifdef DEBUG
+		cout << "filterHandler: received IndexFlushed" << endl;
+#endif
+		dbus_error_init(&error);
+		if ((dbus_message_get_args(pMessage, &error,
+			DBUS_TYPE_UINT32, &docsCount,
+			DBUS_TYPE_INVALID) == TRUE))
+		{
+			PinotSettings &settings = PinotSettings::getInstance();
+
+#ifdef DEBUG
+			cout << "filterHandler: reopening index, now with " << docsCount << " documents" << endl;
+#endif
+			IndexInterface *pIndex = settings.getIndex(settings.m_daemonIndexLocation);
+			if (pIndex != NULL)
+			{
+				pIndex->reopen();
+
+				delete pIndex;
+			}
+#ifdef DEBUG
+			cout << "filterHandler: reopened index" << endl;
+#endif
+		}
+		dbus_error_free(&error);
+
+		return DBUS_HANDLER_RESULT_HANDLED;
+	}
+
+	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
 int main(int argc, char **argv)
@@ -336,6 +381,48 @@ int main(int argc, char **argv)
 
 	if (prefsMode == false)
 	{
+		GError *pError = NULL;
+		DBusGConnection *pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
+		DBusConnection *pConnection = NULL;
+
+		if (pBus == NULL)
+		{
+			if (pError != NULL)
+			{
+				cerr << "Couldn't open bus connection: " << pError->message << endl;
+				if (pError->message != NULL)
+				{
+					cerr << "Error is " << pError->message << endl;
+				}
+				g_error_free(pError);
+			}
+		}
+		else
+		{
+			pConnection = dbus_g_connection_get_connection(pBus);
+		}
+
+		if (pConnection != NULL)
+		{
+			DBusError error;
+
+			dbus_error_init(&error);
+			dbus_connection_set_exit_on_disconnect(pConnection, FALSE);
+			dbus_connection_setup_with_g_main(pConnection, NULL);
+
+			string rule("type='signal',interface='");
+			rule += PINOT_DBUS_SERVICE_NAME;
+			rule += "'";
+
+			// See signals coming from the daemon
+			dbus_bus_add_match(pConnection, rule.c_str(), &error);
+
+			dbus_connection_add_filter(pConnection,
+				(DBusHandleMessageFunction)filterHandler, NULL, NULL);
+
+			dbus_error_free(&error);
+		}
+
 		IndexInterface *pIndex = settings.getIndex(settings.m_docsIndexLocation);
 		if (pIndex != NULL)
 		{
