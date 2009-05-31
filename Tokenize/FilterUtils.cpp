@@ -304,7 +304,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 {
 	string charset, uri, ipath;
 	off_t size = 0;
-	bool checkType = false;
+	bool checkDataType = false, checkFileType = false;
 
 	if (pFilter == NULL)
 	{
@@ -338,7 +338,11 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 
 			if (mimeType == "scan")
 			{
-				checkType = true;
+				checkDataType = true;
+			}
+			else if (mimeType == "scantitle")
+			{
+				checkFileType = true;
 			}
 			else
 			{
@@ -389,13 +393,41 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 #endif
 	}
 
+	// Content and title may have to be converted
 	TextConverter converter(20);
 
-	// Content and title may have to be converted
+	map<string, string>::const_iterator contentIter = metaData.find("title");
+	if ((contentIter != metaData.end()) &&
+		(contentIter->second.empty() == false))
+	{
+		dstring nonUTF8Title(contentIter->second.c_str(), contentIter->second.length());
+
+		dstring utf8Data(converter.toUTF8(nonUTF8Title, charset));
+
+		doc.setTitle(string(utf8Data.c_str(), utf8Data.length()));
+	}
+
 	const dstring &content = pFilter->get_content();
 	if (content.empty() == false)
 	{
-		if (checkType == true)
+		// Scan for the MIME type ?
+		if (checkFileType == true)
+		{
+			// Assume the title is actually a file name
+			string mimeType(MIMEScanner::scanFile(doc.getTitle()));
+
+			if ((mimeType.empty() == true) ||
+				(mimeType == "application/octet-stream"))
+			{
+				// Revert to scanning the content 
+				checkDataType = true;
+			}
+			else
+			{
+				doc.setType(mimeType);
+			}
+		}
+		if (checkDataType == true)
 		{
 			doc.setType(MIMEScanner::scanData(content.c_str(), content.length()));
 		}
@@ -414,16 +446,6 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		{
 			doc.setData(content.c_str(), content.length());
 		}
-	}
-	map<string, string>::const_iterator contentIter = metaData.find("title");
-	if ((contentIter != metaData.end()) &&
-		(contentIter->second.empty() == false))
-	{
-		dstring title(contentIter->second.c_str(), contentIter->second.length());
-
-		dstring utf8Data(converter.toUTF8(title, charset));
-
-		doc.setTitle(string(utf8Data.c_str(), utf8Data.length()));
 	}
 
 	// If the document is big'ish, try and reclaim memory
