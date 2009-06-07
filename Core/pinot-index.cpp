@@ -406,11 +406,26 @@ int main(int argc, char **argv)
 		{
 			if (pIndex->isGood() == true)
 			{
+				set<unsigned int> docIds;
+
 				docId = pIndex->hasDocument(urlParam);
 				if (docId > 0)
 				{
 					cout << urlParam << ": document ID " << docId << endl;
 					success = true;
+				}
+				else if ((pIndex->listDocuments(urlParam, docIds, IndexInterface::BY_FILE, 100, 0) == true) &&
+					(docIds.empty() == false))
+				{
+					docId = *(docIds.begin());
+
+					cout << urlParam << ": document ID " << docId
+						<< " and at least " << docIds.size() - 1 << " others" << endl;
+					success = true;
+				}
+				else
+				{
+					cout << urlParam << ": not found" << endl;
 				}
 			}
 		}
