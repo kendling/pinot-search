@@ -345,6 +345,7 @@ int main(int argc, char **argv)
 	if (pEngine->runQuery(queryProps) == true)
 	{
 		string resultsPage;
+		unsigned int estimatedResultsCount = pEngine->getResultsCountEstimate();
 
 		const vector<DocumentInfo> &resultsList = pEngine->getResults();
 		if (resultsList.empty() == false)
@@ -352,6 +353,11 @@ int main(int argc, char **argv)
 			if (printResults == true)
 			{
 				unsigned int count = 0;
+
+				if (locationOnly == false)
+				{
+					cout << "Showing " << resultsList.size() << " results of about " << estimatedResultsCount << endl;
+				}
 
 				vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
 				while (resultIter != resultsList.end())
