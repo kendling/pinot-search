@@ -628,6 +628,7 @@ int main(int argc, char **argv)
 				{
 					// Reset the index so that all documents are reindexed
 					pIndex->reset();
+					DBusServletThread::flushIndexAndSignal(pIndex);
 
 					cout << "Reset index" << endl;
 
