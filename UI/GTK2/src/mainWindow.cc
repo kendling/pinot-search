@@ -1743,10 +1743,10 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 	}
 
 	// Delete the thread
-	delete pThread;;
+	delete pThread;
 
 	// We might be able to run a queued action
-	if (m_state.pop_queue(indexedUrl) == false)
+	if (m_state.pop_queue(indexedUrl) == true)
 	{
 		expand_locations();
 	}
