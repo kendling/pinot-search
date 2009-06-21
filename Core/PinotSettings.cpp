@@ -463,7 +463,7 @@ bool PinotSettings::load(LoadWhat what)
 
 			if (userName.empty() == false)
 			{
-				QueryProperties queryProps(_("Me"), userName);
+				QueryProperties queryProps(_("Me"), string("\"") + userName + string("\""));
 
 				queryProps.setSortOrder(QueryProperties::DATE);
 				addQuery(queryProps);
