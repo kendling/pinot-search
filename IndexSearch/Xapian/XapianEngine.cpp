@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -694,6 +694,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_prefix("title", "S");
 	parser.add_boolean_prefix("url", "U");
 	parser.add_boolean_prefix("dir", "XDIR:");
+	parser.add_boolean_prefix("inurl", "XFILE:");
 	parser.add_prefix("path", "XPATH:");
 	parser.add_boolean_prefix("lang", "L");
 	parser.add_boolean_prefix("type", "T");
