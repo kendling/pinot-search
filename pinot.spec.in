@@ -98,7 +98,9 @@ fi
 %{_bindir}/pinot-label
 %{_bindir}/pinot-prefs
 %{_bindir}/pinot-search
+%if 0%{?_with_libarchive:1}
 %{_libdir}/pinot/filters/libarchivefilter.so*
+%endif
 %{_libdir}/pinot/filters/libexifimagefilter.so*
 %{_libdir}/pinot/filters/libexternalfilter.so*
 %{_libdir}/pinot/filters/libmboxfilter.so*
