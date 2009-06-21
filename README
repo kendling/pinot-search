@@ -204,6 +204,7 @@ http://pinot.berlios.de/
       "title" for title, eg "title:pinot"
       "url" for URL, eg "url:http://pinot.berlios.de/"
       "dir" for directory, eg "dir:/home/fabrice"
+      "inurl" for documents embedded in a URL, eg "inurl:file:///home/fabrice/Documents/backup.tar.gz"
       "lang" for ISO language code, eg "lang:en"
       "type" for MIME type, eg "type:text/html"
       "class" for MIME type classification, eg "class:text"
@@ -278,8 +279,10 @@ http://pinot.berlios.de/
     * HTML
     * XML
     * mbox, including attachments and embedded documents
-    * MP3 and Ogg Vorbis
+    * MP3, Ogg Vorbis, FLAC
     * JPEG
+    * common archive formats (tar, Z, gz, bzip2, deb)
+    * ISO 9660 images
 
   The following document types are supported through external programs :
     * PDF (pdftotext required)
@@ -291,7 +294,6 @@ http://pinot.berlios.de/
     * DVI (catdvi required)
     * DjVu (djvutext required)
     * RPM (rpm required)
-    * DEB (dpkg required)
 
   For other document types, Pinot will only index metadata such as name,
   location etc... If you wish to add support for another document type, and
@@ -313,7 +315,7 @@ http://pinot.berlios.de/
   related to these files.
 
   If you have never run Pinot before, the list will be pre-configured to skip
-  common picture, video and archive types such as GIF, MPG and RAR.
+  some picture, video and archive file types such as GIF, MPG and RAR.
 
 
 10. Digging deeper
@@ -553,10 +555,10 @@ http://libxmlplusplus.sourceforge.net/
 libtextcat						2.2
 http://software.wise-guys.nl/libtextcat/
 
-gmime							2.1.9
+gmime (3)						2.4.0
 http://spruce.sourceforge.net/gmime
 
-boost (3)						1.32.0
+boost (4)						1.32.0
 http://www.boost.org/
 
 D-Bus with GLib bindings				0.61
@@ -571,16 +573,16 @@ http://www.freedesktop.org/software/desktop-file-utils
 TagLib							1.4
 http://ktown.kde.org/~wheeler/taglib/
 
-libarchive						2.6.2
+libarchive (5)						2.6.2
 http://people.freebsd.org/~kientzle/libarchive/
 
 libexif							0.6
 http://libexif.sourceforge.net/
 
-xesam-glib (4)						0.4.0
+xesam-glib (6)						0.4.0
 http://xesam.org/people/kamstrup/xesam-glib/
 
-openssh-askpass (5)					4.3
+openssh-askpass (7)					4.3
 http://www.openssh.com/portable.html
 
 ---------------------------------------------------------------
@@ -609,12 +611,14 @@ catppt
 xls2csv
 http://www.wagner.pp.ru/~vitus/software/catdoc/
 
-----------------------------------------------------------------
+---------------------------------------------------------------------
 Notes :
 (1) enabled with "./configure --with-http=neon|curl"
-(2) enabled with "./configure --enable-soap=yes" (not recommended)
-(3) for building only
-(4) enabled with "./configure --enable-xesam-glib=yes
-(5) experimental - required only if _SSH_TUNNEL is set
-----------------------------------------------------------------
+(2) obsolete - enabled with "./configure --enable-soap=yes"
+(3) for gmime 2.0 support, edit configure.in
+(4) for building only
+(5) experimental - enabled with "./configure --enable-libarchive=yes"
+(6) enabled with "./configure --enable-xesam-glib=yes
+(7) experimental - required only if _SSH_TUNNEL is set
+---------------------------------------------------------------------
 
