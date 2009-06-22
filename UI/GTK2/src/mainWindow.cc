@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <errno.h>
 #include <time.h>
 #include <string>
@@ -63,6 +64,19 @@ using namespace std;
 using namespace Glib;
 using namespace Gdk;
 using namespace Gtk;
+
+// A function object to delete temporary files with for_each()
+struct DeleteTemporaryFileFunc
+{
+	public:
+		void operator()(const string fileName)
+		{
+			if (fileName.empty() == false)
+			{
+				unlink(fileName.c_str());
+			}
+		}
+};
 
 class ReloadHandler : public MonitorHandler
 {
@@ -309,6 +323,9 @@ mainWindow::~mainWindow()
 
 	// Save the settings
 	m_settings.save(PinotSettings::SAVE_CONFIG);
+
+	// Delete temporary files created for viewing documents
+	for_each(m_temporaryFiles.begin(), m_temporaryFiles.end(), DeleteTemporaryFileFunc());
 }
 
 //
@@ -1610,6 +1627,8 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 					view_documents(documentsList);
 					// FIXME: how do we know when to delete this document ?
 				}
+
+				m_temporaryFiles.insert(inTemplate);
 			}
 		}
 	}

@@ -181,6 +181,8 @@ private:
 	// Monitoring
 	MonitorInterface *m_pSettingsMonitor;
 	MonitorHandler *m_pSettingsHandler;
+	// Viewing
+	std::set<std::string> m_temporaryFiles;
 	// Internal state
 	class InternalState : public ThreadsManager
 	{
