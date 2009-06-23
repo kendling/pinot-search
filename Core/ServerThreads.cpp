@@ -370,9 +370,12 @@ void CrawlerThread::doWork(void)
 				}
 
 				DocumentInfo docInfo("", *urlIter, "", "");
-				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_ALL) == true)
+				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_FIELDS) == true)
 				{
 					pIndex->updateDocumentInfo(docId, docInfo);
+				}
+				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_LABELS) == true)
+				{
 					pIndex->setDocumentLabels(docId, docInfo.getLabels(), true);
 				}
 			}
