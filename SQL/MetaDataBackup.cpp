@@ -405,28 +405,25 @@ bool MetaDataBackup::getItem(DocumentInfo &docInfo, DocumentInfo::SerialExtent e
 	if ((extent == DocumentInfo::SERIAL_FIELDS) ||
 		(extent == DocumentInfo::SERIAL_ALL))
 	{
-		if (getAttribute(docInfo, "fields", value) == false)
+		if (getAttribute(docInfo, "fields", value) == true)
 		{
-			return false;
+			docInfo.deserialize(value, DocumentInfo::SERIAL_FIELDS);
+			success = true;
 		}
-
-		docInfo.deserialize(value, DocumentInfo::SERIAL_FIELDS);
-		success = true;
 	}
 	if ((extent == DocumentInfo::SERIAL_LABELS) ||
 		(extent == DocumentInfo::SERIAL_ALL))
 	{
 		set<string> labels;
 
-		success = true;
-
-		if (getAttributes(docInfo, "label", labels) == false)
+		if (getAttributes(docInfo, "label.", labels) == false)
 		{
 			success = false;
 		}
 		else
 		{
 			docInfo.setLabels(labels);
+			success = true;
 		}
 	}
 
