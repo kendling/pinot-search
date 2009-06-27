@@ -85,7 +85,6 @@ Daemon
 - Prefer ustring to string whenever possible
 - Queue unindexing too
 - Follow updates to Xesam specs
-- Send a signal when crawling is done so that the UI can reopen the index
 - The daemon should ask for permission before reindexing, especially if the corpus is large
 - What does a first run mean for the daemon ? ie no configuration file
 - Daemon should use worker threads' doWork() instead of duplicating code
@@ -104,19 +103,16 @@ UI
  the Viewed or Indexed icons (the latter after IndexingThread returns)
 - Make use of GTKmm 2.10 StatusIcon
 - Unknown exceptions in IndexingThread or elsewhere should be logged as errors
-- Delete all temporary files when exiting
 - Query expansion should be interactive
 - Default cache provider should be configurable
-- Offer to index newly mounted volumes
-- UI doesn't show documents indexed by the daemon the very first time it's run,
- at least until it's restarted
-- Status dialog to show time of latest update 
 - Unique preferences
 - Use gtk2 2.14's gtk_show_uri()
-- Reload settings after preferences exit
 - Changing set group by mode a few times will show index results under engine "xapian", why ?
 - getIndexNames() to return ustring's
 - Always call getIndexPropertiesByName() with a ustring, store engine names as ustring's
+- Live and stored queries shouldn't cap on the number of results but the number of results per page
+- For each query group in the results list, show Next and Previous buttons to page through results
+- Browse mode to be merged with the new search and page mode
 
 v0.90
 - Filters should have a version number so that new versions only reindex documents
@@ -124,11 +120,9 @@ v0.90
 - Queries should be cancellable
 - Queries should return the top N results first, then the rest
 - D-Bus (Simple)Query shouldn't let the bus connection time out before replying
-- Live and stored queries shouldn't cap on the number of results but the number of results per page
-- For each query group in the results list, show Next and Previous buttons to page through results
-- Browse mode to be merged with the new search and page mode
 - The query builder for stored queries should be available for live queries too
 - Make sure all of Core is localized
 - HtmlParser should use CJKVTokenizer's Unicode conversion function
-- TextConverter to take a dstring
+- Status dialog to show time of latest update 
+- Send a signal when preferences are modified so that the UI and the daemon can reload them
 
