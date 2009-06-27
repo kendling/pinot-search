@@ -113,6 +113,8 @@ class DaemonState : public ThreadsManager
 
 		bool crawl_location(const PinotSettings::IndexableLocation &location);
 
+		void flush_and_reclaim(void);
+
 };
 
 #endif // _DAEMONSTATE_HH

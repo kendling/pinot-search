@@ -40,15 +40,13 @@
 class CrawlerThread : public DirectoryScannerThread
 {
 	public:
-		CrawlerThread(const std::string &dirName,
-			bool isSource, bool isReindex,
+		CrawlerThread(const std::string &dirName, bool isSource,
 			MonitorInterface *pMonitor, MonitorHandler *pHandler);
 		virtual ~CrawlerThread();
 
 		virtual std::string getType(void) const;
 
 	protected:
-		bool m_isReindex;
 		unsigned int m_sourceId;
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
@@ -105,5 +103,22 @@ class DBusServletThread : public WorkerThread
 
 };
 #endif
+
+class RestoreMetaDataThread : public WorkerThread
+{
+	public:
+		RestoreMetaDataThread();
+		virtual ~RestoreMetaDataThread();
+
+		virtual std::string getType(void) const;
+
+	protected:
+		virtual void doWork(void);
+
+	private:
+		RestoreMetaDataThread(const RestoreMetaDataThread &other);
+		RestoreMetaDataThread &operator=(const RestoreMetaDataThread &other);
+
+};
 
 #endif // _SERVERTHREADS_HH

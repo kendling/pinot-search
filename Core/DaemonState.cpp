@@ -462,12 +462,12 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 		// Monitoring is not necessary, but we still have to pass the handler
 		// so that we can act on documents that have been deleted
 		pCrawlerThread = new CrawlerThread(locationToCrawl, isSource,
-			m_isReindex, NULL, m_pDiskHandler);
+			NULL, m_pDiskHandler);
 	}
 	else
 	{
 		pCrawlerThread = new CrawlerThread(locationToCrawl, isSource,
-			m_isReindex, m_pDiskMonitor, m_pDiskHandler);
+			m_pDiskMonitor, m_pDiskHandler);
 	}
 	pCrawlerThread->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 
@@ -480,6 +480,20 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 	}
 
 	return false;
+}
+
+void DaemonState::flush_and_reclaim(void)
+{
+	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
+	if (pIndex != NULL)
+	{
+		DBusServletThread::flushIndexAndSignal(pIndex);
+
+		delete pIndex;
+	}
+
+	int inUse = Memory::getUsage();
+	Memory::reclaim();
 }
 
 void DaemonState::start(bool isReindex)
@@ -625,6 +639,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		{
 			// Pop the queue
 			m_crawlQueue.pop();
+
 			m_flush = true;
 		}
 		// Else, the directory wasn't fully crawled so better leave it in the queue
@@ -740,6 +755,11 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		}
 #endif
 	}
+	else if (type == "RestoreMetaDataThread")
+	{
+		// Do the actual flush here
+		flush_and_reclaim();
+	}
 
 	// Delete the thread
 	delete pThread;
@@ -781,16 +801,18 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	{
 		m_flush = false;
 
-		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
-		if (pIndex != NULL)
+		if ((m_isReindex == true) &&
+			(m_crawlQueue.empty() == true))
 		{
-			DBusServletThread::flushIndexAndSignal(pIndex);
-
-			delete pIndex;
+			// Restore metadata on documents and flush when the tread returns
+			RestoreMetaDataThread *pRestoreThread = new RestoreMetaDataThread();
+			start_thread(pRestoreThread);
 		}
-
-		int inUse = Memory::getUsage();
-		Memory::reclaim();
+		else
+		{
+			// Flush now
+			flush_and_reclaim();
+		}
 	}
 }
 

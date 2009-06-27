@@ -112,13 +112,11 @@ static bool loadXMLDescription(void)
 	return readFile;
 }
 
-CrawlerThread::CrawlerThread(const string &dirName,
-	bool isSource, bool isReindex,
+CrawlerThread::CrawlerThread(const string &dirName, bool isSource,
 	MonitorInterface *pMonitor, MonitorHandler *pHandler) :
 	DirectoryScannerThread(dirName,
 		PinotSettings::getInstance().m_daemonIndexLocation,
 		0, false, true),
-	m_isReindex(isReindex),
 	m_sourceId(0),
 	m_pMonitor(pMonitor),
 	m_pHandler(pHandler),
@@ -342,56 +340,6 @@ void CrawlerThread::doWork(void)
 
 	cout << "Cleaned up " << currentOffset + urls.size()
 		<< " history entries in " << scanTimer.stop() << " ms" << endl;
-
-	if (m_isReindex == true)
-	{
-		urls.clear();
-		currentOffset = 0;
-		scanTimer.start();
-
-		IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
-		if (pIndex == NULL)
-		{
-			return;
-		}
-
-		// Restore user-set metadata, if any
-		while ((pIndex->isGood() == true) &&
-			(metaData.getItems(string("file://") + m_dirName, urls,
-				currentOffset, currentOffset + 100) == true))
-		{
-			for (set<string>::const_iterator urlIter = urls.begin();
-				urlIter != urls.end(); ++urlIter)
-			{
-				unsigned int docId = pIndex->hasDocument(*urlIter);
-				if (docId == 0)
-				{
-					continue;
-				}
-
-				DocumentInfo docInfo("", *urlIter, "", "");
-				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_FIELDS) == true)
-				{
-					pIndex->updateDocumentInfo(docId, docInfo);
-				}
-				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_LABELS) == true)
-				{
-					pIndex->setDocumentLabels(docId, docInfo.getLabels(), true);
-				}
-			}
-
-			// Next
-			if (urls.size() < 100)
-			{
-				break;
-			}
-			currentOffset += 100;
-		}
-		cout << "Restored user-set metadata for " << currentOffset + urls.size()
-			<< " documents in " << scanTimer.stop() << " ms" << endl;
-
-		delete pIndex;
-	}
 }
 
 #ifdef HAVE_DBUS
@@ -1141,4 +1089,93 @@ void DBusServletThread::doWork(void)
 	delete pIndex;
 }
 #endif
+
+RestoreMetaDataThread::RestoreMetaDataThread() :
+	WorkerThread()
+{
+}
+
+RestoreMetaDataThread::~RestoreMetaDataThread()
+{
+}
+
+string RestoreMetaDataThread::getType(void) const
+{
+	return "RestoreMetaDataThread";
+}
+
+void RestoreMetaDataThread::doWork(void)
+{
+	PinotSettings &settings = PinotSettings::getInstance();
+	MetaDataBackup metaData(settings.getHistoryDatabaseName());
+	Timer restoreTimer;
+	set<string> urls;
+	unsigned int currentOffset = 0, totalCount = 0;
+
+	IndexInterface *pIndex = settings.getIndex(settings.m_daemonIndexLocation);
+	if (pIndex == NULL)
+	{
+		return;
+	}
+	if (pIndex->isGood() == false)
+	{
+		delete pIndex;
+		return;
+	}
+
+	// Restore user-set metadata on all documents 
+	for (set<PinotSettings::IndexableLocation>::const_iterator locationIter = settings.m_indexableLocations.begin();
+		locationIter != settings.m_indexableLocations.end(); ++locationIter)
+	{
+		string dirName(locationIter->m_name);
+
+		restoreTimer.start();
+
+		while (metaData.getItems(string("file://") + dirName, urls,
+			currentOffset, currentOffset + 100) == true)
+		{
+			for (set<string>::const_iterator urlIter = urls.begin();
+				urlIter != urls.end(); ++urlIter)
+			{
+				unsigned int docId = pIndex->hasDocument(*urlIter);
+				if (docId == 0)
+				{
+#ifdef DEBUG
+					cout << "RestoreMetaDataThread::doWork: " << *urlIter << " is not indexed, can't be restored" << endl;
+#endif
+					continue;
+				}
+
+				DocumentInfo docInfo("", *urlIter, "", "");
+				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_FIELDS) == true)
+				{
+#ifdef DEBUG
+					cout << "RestoreMetaDataThread::doWork: restored fields on " << *urlIter << endl;
+#endif
+					pIndex->updateDocumentInfo(docId, docInfo);
+				}
+				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_LABELS) == true)
+				{
+#ifdef DEBUG
+					cout << "RestoreMetaDataThread::doWork: restored " << docInfo.getLabels().size() << " labels on " << *urlIter << endl;
+#endif
+					pIndex->setDocumentLabels(docId, docInfo.getLabels(), true);
+				}
+			}
+
+			// Next
+			totalCount += urls.size();
+			if (urls.size() < 100)
+			{
+				break;
+			}
+			currentOffset += 100;
+			urls.clear();
+		}
+		cout << "Restored user-set metadata for " << totalCount << " documents in "
+			<< dirName << ", in " << restoreTimer.stop() << " ms" << endl;
+	}
+
+	delete pIndex;
+}
 
