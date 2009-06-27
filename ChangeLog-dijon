@@ -1,4 +1,68 @@
 ------------------------------------------------------------------------
+r164 | fabricecolin | 2009-06-27 09:53:49 +0800 (Sat, 27 Jun 2009) | 3 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+
+GMime 2.4 doesn't require objects returned by g_mime_message_get_mime_part()
+to be unref'ed.
+
+------------------------------------------------------------------------
+r163 | fabricecolin | 2009-06-23 20:06:33 +0800 (Tue, 23 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/GMimeMboxFilter.h
+
+Only the last message's first part was retrieved, the rest was skipped.
+
+------------------------------------------------------------------------
+r162 | fabricecolin | 2009-06-22 20:45:28 +0800 (Mon, 22 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/GMimeMboxFilter.h
+
+Fix type mismatch with gmime 2.4. Rely on stream length rather than file size.
+
+------------------------------------------------------------------------
+r161 | fabricecolin | 2009-06-21 20:14:34 +0800 (Sun, 21 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/HtmlFilter.cc
+
+Replace tags with spaces in titles and links too.
+
+------------------------------------------------------------------------
+r160 | fabricecolin | 2009-05-31 14:10:25 +0800 (Sun, 31 May 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/ArchiveFilter.cc
+   M /trunk/filters/TarFilter.cc
+
+Since title is set to file names, set mimetype to the new SCANTITLE.
+
+------------------------------------------------------------------------
+r159 | fabricecolin | 2009-05-31 14:09:23 +0800 (Sun, 31 May 2009) | 3 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/GMimeMboxFilter.h
+
+Get the file name of MIME parts and use that as title, rather than the
+message's subject.
+
+------------------------------------------------------------------------
+r158 | fabricecolin | 2009-05-31 11:37:32 +0800 (Sun, 31 May 2009) | 2 lines
+Changed paths:
+   M /trunk/filters/external-filters.xml
+
+Removed application/x-deb, it's now handled by ArchiveFilter.
+
+------------------------------------------------------------------------
+r157 | fabricecolin | 2009-05-31 11:36:18 +0800 (Sun, 31 May 2009) | 3 lines
+Changed paths:
+   M /trunk/filters/ArchiveFilter.cc
+   M /trunk/filters/GMimeMboxFilter.cc
+
+Set the close-on-exec flag, either on open() or after open() with fcntl().
+In ArchiveFilter, add support for ar archives and deb's.
+
+------------------------------------------------------------------------
 r155 | fabricecolin | 2009-04-13 17:47:49 +0800 (Mon, 13 Apr 2009) | 2 lines
 Changed paths:
    M /trunk/cjkv/CJKVTokenizer.cc

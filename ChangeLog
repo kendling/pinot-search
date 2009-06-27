@@ -1,4 +1,265 @@
 ------------------------------------------------------------------------
+r1659 | fabricecolin | 2009-06-27 11:31:13 +0800 (Sat, 27 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Updated po's.
+
+------------------------------------------------------------------------
+r1658 | fabricecolin | 2009-06-27 11:30:29 +0800 (Sat, 27 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+Changes in this release.
+
+------------------------------------------------------------------------
+r1657 | fabricecolin | 2009-06-27 11:27:16 +0800 (Sat, 27 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/TODO
+
+Current TODO list.
+
+------------------------------------------------------------------------
+r1656 | fabricecolin | 2009-06-27 11:26:08 +0800 (Sat, 27 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Plugins/Freshmeat.src
+
+Fixed results extraction.
+
+------------------------------------------------------------------------
+r1655 | fabricecolin | 2009-06-27 10:23:33 +0800 (Sat, 27 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/configure.in
+
+Bumped release number to 0.94, made GMime 2.4 default.
+
+------------------------------------------------------------------------
+r1654 | fabricecolin | 2009-06-27 10:22:22 +0800 (Sat, 27 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/pinot-dbus-daemon.desktop
+
+Cosmetic changes.
+
+------------------------------------------------------------------------
+r1653 | fabricecolin | 2009-06-27 09:50:47 +0800 (Sat, 27 Jun 2009) | 5 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/DaemonState.h
+   M /trunk/Core/ServerThreads.cpp
+   M /trunk/Core/ServerThreads.h
+
+Metadata needs to be restored en-bloc at the end of indexing (no queued actions,
+no threads) and crawling (empty crawl queue). Previously it was restored after
+crawling a directory but potentially before all documents to restore have been
+indexed.
+
+------------------------------------------------------------------------
+r1652 | fabricecolin | 2009-06-23 20:04:00 +0800 (Tue, 23 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/SQL/MetaDataBackup.cpp
+
+getItem() would skip labels and fail if there were no fields to deserialize.
+
+------------------------------------------------------------------------
+r1651 | fabricecolin | 2009-06-23 20:01:28 +0800 (Tue, 23 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/ServerThreads.cpp
+
+Retrieve and restore labels separately from other metadata.
+
+------------------------------------------------------------------------
+r1650 | fabricecolin | 2009-06-22 20:46:41 +0800 (Mon, 22 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/mainWindow.hh
+
+Keep track of temporary files created for viewing documents.
+
+------------------------------------------------------------------------
+r1649 | fabricecolin | 2009-06-21 21:40:10 +0800 (Sun, 21 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/README
+
+Document "inurl", clarify document types and build options.
+
+------------------------------------------------------------------------
+r1648 | fabricecolin | 2009-06-21 20:19:34 +0800 (Sun, 21 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/PinotSettings.cpp
+
+Stored query Me should do a phrase search.
+
+------------------------------------------------------------------------
+r1647 | fabricecolin | 2009-06-21 18:08:08 +0800 (Sun, 21 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/pinot.spec.in
+
+Package libarchivefilter only if _with_libarchive is set.
+
+------------------------------------------------------------------------
+r1646 | fabricecolin | 2009-06-21 18:06:37 +0800 (Sun, 21 Jun 2009) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+   M /trunk/UI/GTK2/src/queryDialog.cc
+
+Map the search filter "inurl" to the XFILE prefix to allow finding files
+embedded in a mailbox/archive at a given URL.
+
+------------------------------------------------------------------------
+r1645 | fabricecolin | 2009-06-15 12:29:51 +0800 (Mon, 15 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-search.cpp
+
+Show the total results estimate.
+
+------------------------------------------------------------------------
+r1644 | fabricecolin | 2009-06-15 12:29:00 +0800 (Mon, 15 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.cpp
+
+When the index is reset, flush and signal.
+
+------------------------------------------------------------------------
+r1643 | fabricecolin | 2009-06-15 12:25:13 +0800 (Mon, 15 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+More On Like This on a Web result didn't work when the queue was empty.
+
+------------------------------------------------------------------------
+r1642 | fabricecolin | 2009-06-15 12:13:46 +0800 (Mon, 15 Jun 2009) | 2 lines
+Changed paths:
+   A /trunk/IndexSearch/Plugins/Bing.src
+   D /trunk/IndexSearch/Plugins/MSN.src
+
+Bing replaces MSN search.
+
+------------------------------------------------------------------------
+r1641 | fabricecolin | 2009-06-07 15:41:28 +0800 (Sun, 07 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+
+In check mode, if no document has the given URL, look for embedded documents.
+
+------------------------------------------------------------------------
+r1640 | fabricecolin | 2009-05-31 14:07:05 +0800 (Sun, 31 May 2009) | 7 lines
+Changed paths:
+   M /trunk/Tokenize/FilterUtils.cpp
+
+Filters that return file names as titles (eg those that deal with archives) may
+set mimetype to SCANTITLE. The content type is then checked with
+MIMEScanner::scanFile(), with scanData() as fall-back.
+Odddly enough, this gives more accurate results for types like tar.gz : instead
+of being identified as application/x-gzip, they are identified as
+application/x-compressed-tar just like they would if they were regular files.
+
+------------------------------------------------------------------------
+r1639 | fabricecolin | 2009-05-30 12:39:25 +0800 (Sat, 30 May 2009) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/pinot.cc
+
+Expect am IndexFlushed signal from the daemon upon which the index should be
+reopened.
+
+------------------------------------------------------------------------
+r1638 | fabricecolin | 2009-05-30 12:15:47 +0800 (Sat, 30 May 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+   M /trunk/Core/pinot-search.cpp
+
+Display the full URLs with ipath.
+
+------------------------------------------------------------------------
+r1637 | fabricecolin | 2009-05-30 12:15:05 +0800 (Sat, 30 May 2009) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianDatabase.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+XapianIndex::reopen() didn't actually reopen anything.
+Removed obsolete comment in XapianDatabase.
+
+------------------------------------------------------------------------
+r1636 | fabricecolin | 2009-05-30 12:13:19 +0800 (Sat, 30 May 2009) | 3 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/DaemonState.h
+   M /trunk/Core/ServerThreads.cpp
+   M /trunk/Core/ServerThreads.h
+   M /trunk/Core/pinot-dbus-daemon.cpp
+   M /trunk/Core/pinot-dbus-daemon.xml
+
+Send the signal IndexFlushed when the index is flushed.
+Synced with changes to DBusIndex. Some cleanup.
+
+------------------------------------------------------------------------
+r1635 | fabricecolin | 2009-05-24 17:25:15 +0800 (Sun, 24 May 2009) | 2 lines
+Changed paths:
+   M /trunk/configure.in
+
+Set _FILE_OFFSET_BITS=64.
+
+------------------------------------------------------------------------
+r1634 | fabricecolin | 2009-05-24 12:26:59 +0800 (Sun, 24 May 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/DBusIndex.cpp
+   M /trunk/IndexSearch/DBusIndex.h
+
+Added defines for the D-Bus service name and object path.
+
+------------------------------------------------------------------------
+r1633 | fabricecolin | 2009-05-24 12:25:39 +0800 (Sun, 24 May 2009) | 2 lines
+Changed paths:
+   M /trunk/Utils/Document.cpp
+
+Set the close-on-exec flag, either on open() or after open() with fcntl().
+
+------------------------------------------------------------------------
+r1632 | fabricecolin | 2009-05-24 12:24:04 +0800 (Sun, 24 May 2009) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Show properties of external indices' documents read-only.
+
+------------------------------------------------------------------------
+r1631 | fabricecolin | 2009-05-24 11:56:53 +0800 (Sun, 24 May 2009) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/FilterUtils.cpp
+   M /trunk/Tokenize/TextConverter.cpp
+   M /trunk/Tokenize/TextConverter.h
+
+TextConverter now dstring-enabled.
+
+------------------------------------------------------------------------
+r1630 | fabricecolin | 2009-04-21 21:28:44 +0800 (Tue, 21 Apr 2009) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/IndexSearch/Xapian/Makefile.am
+   M /trunk/Tokenize/Makefile.am
+
+Funda Wang's linkage patch from
+http://svn.mandriva.com/svn/packages/cooker/pinot/current/SOURCES/pinot-0.93-linkage.patch
+
+------------------------------------------------------------------------
+r1628 | fabricecolin | 2009-04-13 17:56:43 +0800 (Mon, 13 Apr 2009) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/ChangeLog-dijon
+
+Current logs.
+
+------------------------------------------------------------------------
 r1627 | fabricecolin | 2009-04-13 17:52:11 +0800 (Mon, 13 Apr 2009) | 2 lines
 Changed paths:
    M /trunk/po/de.po
