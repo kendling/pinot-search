@@ -1,3 +1,36 @@
+2009/06/27 version_0_9_4
+General :
+ - set _FILE_OFFSET_BITS=64 and fix Debian bug #530572
+ - merged Funda Wang's linkage patch for Mandriva
+ - gmime 2.4 is required
+Tokenize :
+ - mbox filter now fully works with gmime 2.4
+ - archives filter supports Debian packages
+ - set the close-on-exec flag on document files
+ - better MIME type detection removes superfluous calls to external
+  uncompressor programs when dealing with archives
+ - use file names as title for files attached to mbox messages
+ - fixed "quashing" of results titles
+ - fixed indexing of the last document's attachments in an mbox
+IndexSearch :
+ - new search filter "inurl" allows finding files from an mbox or archive
+  at a given URL
+ - pinot-index --check on an mbox or archive will return the ID of the
+  first nested document
+ - pinot-search shows an estimate of the total number of results
+ - the Bing plugin replaces the MSN plugin
+ - fixed Freshmeat plugin
+Daemon :
+ - send a IndexFlushed signal over D-Bus when the index changes on disk 
+ - fixed restoring of user-set metadata
+UI :
+ - better MIME type detection fixes cases where documents nested in
+  archives couldn't be open and viewed
+ - reopen the index upon receiving the IndexFlushed signal
+ - show properties of external indices' documents read-only
+ - on exit, delete temporary files created for viewing some documents
+ - fixed More Like This on Web results
+
 2009/04/13 version_0_9_3
 Tokenize :
  - moved the first 5Mb limit from the terms generator to the tokenizer
@@ -243,7 +276,7 @@ General :
  - synced with gtk+'s xdgmime
 Tokenize :
  - new libexif-based filter to extract image metadata
- - better conversion of mbox messages and HTML documents to UTF8
+ - better conversion of mbox messages and HTML documents to UTF-8
  - tweaks to the CJKV tokenizer
 SQL :
  - more abstract database interface
