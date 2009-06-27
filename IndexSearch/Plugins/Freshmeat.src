@@ -20,9 +20,9 @@
 <interpret 
     browserResultType="result" 
     baseUrl="http://freshmeat.net"
-    resultListStart="<hr"
-    resultListEnd=""
-    resultItemStart='<td valign="top">'
-    resultItemEnd='<small>Version:</small>'
+    resultListStart='<div class="search-results">'
+    resultListEnd=''
+    resultItemStart='<span class="releasedate">'
+    resultItemEnd='<div class="meta'
 >
 </search>
