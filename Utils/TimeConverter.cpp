@@ -137,14 +137,23 @@ string TimeConverter::toTimestamp(time_t aTime, bool inGMTime)
 		)
 	{
 		char timeStr[64];
+		size_t formattedSize = 0;
 
-		// FIXME: don't use this extension ?
+		if (inGMTime == true)
+		{
+			formattedSize = strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S GMT", pTimeTm);
+		}
+		else
+		{
+			// FIXME: don't use this extension ?
 #if defined(__GNU_LIBRARY__)
-		// %z is a GNU extension
-		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %z", pTimeTm) > 0)
+			// %z is a GNU extension
+			formattedSize = strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %z", pTimeTm);
 #else
-		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %Z", pTimeTm) > 0)
+			formattedSize = strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %Z", pTimeTm);
 #endif
+		}
+		if (formattedSize > 0)
 		{
 			delete pTimeTm;
 
