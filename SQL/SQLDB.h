@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Fabrice Colin
+ *  Copyright 2008-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -71,6 +71,8 @@ class SQLDB
 	public:
 		virtual ~SQLDB();
 
+		virtual bool isReadOnly(void) const;
+
 		virtual bool isOpen(void) const = 0;
 
 		virtual bool alterTable(const std::string &tableName,
@@ -83,8 +85,10 @@ class SQLDB
 
 	protected:
 		std::string m_databaseName;
+		bool m_readOnly;
 
-		SQLDB(const std::string &databaseName);
+		SQLDB(const std::string &databaseName,
+			bool readOnly = false);
 
 	private:
 		SQLDB(const SQLDB &other);

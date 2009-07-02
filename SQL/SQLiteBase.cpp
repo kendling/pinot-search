@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -136,8 +136,9 @@ SQLRow *SQLiteResults::nextRow(void)
 	return new SQLiteRow(rowColumns, m_nColumns);
 }
 
-SQLiteBase::SQLiteBase(const string &databaseName, bool onDemand) :
-	SQLDB(databaseName),
+SQLiteBase::SQLiteBase(const string &databaseName,
+	bool readOnly, bool onDemand) :
+	SQLDB(databaseName, readOnly),
 	m_onDemand(onDemand),
 	m_pDatabase(NULL)
 {
@@ -173,8 +174,16 @@ bool SQLiteBase::check(const string &databaseName)
 
 void SQLiteBase::open(void)
 {
+	int openFlags = SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE;
+
+	if (m_readOnly == true)
+	{
+		openFlags = SQLITE_OPEN_READONLY;
+	}
+
 	// Open the new database
-	if (sqlite3_open(m_databaseName.c_str(), &m_pDatabase) != SQLITE_OK)
+	if (sqlite3_open_v2(m_databaseName.c_str(), &m_pDatabase,
+		openFlags, NULL) != SQLITE_OK)
 	{
 		// An handle is returned even when an error occurs !
 		if (m_pDatabase != NULL)

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -64,7 +64,8 @@ class SQLiteResults : public SQLResults
 class SQLiteBase : public SQLDB
 {
 	public:
-		SQLiteBase(const std::string &databaseName, bool onDemand = true);
+		SQLiteBase(const std::string &databaseName,
+			bool readOnly = false, bool onDemand = true);
 		virtual ~SQLiteBase();
 
 		static bool check(const std::string &databaseName);

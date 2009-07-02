@@ -32,7 +32,7 @@ using std::set;
 using std::map;
 
 CrawlHistory::CrawlHistory(const string &database) :
-	SQLiteBase(database, false)
+	SQLiteBase(database, false, false)
 {
 }
 

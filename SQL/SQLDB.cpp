@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Fabrice Colin
+ *  Copyright 2008-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -78,12 +78,19 @@ bool SQLResults::rewind(void)
 	return true;
 }
 
-SQLDB::SQLDB(const string &databaseName) :
-	m_databaseName(databaseName)
+SQLDB::SQLDB(const string &databaseName,
+	bool readOnly) :
+	m_databaseName(databaseName),
+	m_readOnly(readOnly)
 {
 }
 
 SQLDB::~SQLDB()
 {
+}
+
+bool SQLDB::isReadOnly(void) const
+{
+	return m_readOnly;
 }
 
