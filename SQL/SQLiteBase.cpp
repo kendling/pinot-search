@@ -25,8 +25,7 @@
 
 #include "SQLiteBase.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
 using std::endl;
 using std::string;
 using std::vector;
@@ -165,7 +164,7 @@ bool SQLiteBase::check(const string &databaseName)
 		(!S_ISREG(dbStat.st_mode)))
 	{
 		// It exists, but it's not a file as expected
-		cerr << databaseName << " is not a file" << endl;
+		clog << databaseName << " is not a file" << endl;
 		return false;
 	}
 
@@ -188,14 +187,14 @@ void SQLiteBase::open(void)
 		// An handle is returned even when an error occurs !
 		if (m_pDatabase != NULL)
 		{
-			cerr << sqlite3_errmsg(m_pDatabase) << endl;
+			clog << sqlite3_errmsg(m_pDatabase) << endl;
 			close();
 			m_pDatabase = NULL;
 		}
 	}
 	else if (m_pDatabase == NULL)
 	{
-		cerr << "Couldn't open " << m_databaseName << endl;
+		clog << "Couldn't open " << m_databaseName << endl;
 	}
 	else
 	{
@@ -258,7 +257,7 @@ bool SQLiteBase::alterTable(const string &tableName,
 	sql += tableName;
 	sql += "_backup; COMMIT;";
 #ifdef DEBUG
-	cout << "SQLiteBase::alterTable: " << sql << endl;
+	clog << "SQLiteBase::alterTable: " << sql << endl;
 #endif
 
 	return executeSimpleStatement(sql);
@@ -290,7 +289,7 @@ bool SQLiteBase::executeSimpleStatement(const string &sql)
 	{
 		if (errMsg != NULL)
 		{
-			cerr << "Statement <" << sql << "> failed: " << errMsg << endl;
+			clog << "Statement <" << sql << "> failed: " << errMsg << endl;
 
 			sqlite3_free(errMsg);
 		}
@@ -333,7 +332,7 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	if (numChars <= 0)
 	{
 #ifdef DEBUG
-		cout << "SQLiteBase::executeStatement: couldn't format statement" << endl;
+		clog << "SQLiteBase::executeStatement: couldn't format statement" << endl;
 #endif
 		if (m_onDemand == true)
 		{
@@ -345,7 +344,7 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	{
 		// Not enough space
 #ifdef DEBUG
-		cout << "SQLiteBase::executeStatement: not enough space (" << numChars << ")" << endl;
+		clog << "SQLiteBase::executeStatement: not enough space (" << numChars << ")" << endl;
 #endif
 		if (m_onDemand == true)
 		{
@@ -359,7 +358,7 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	if (stringBuff == NULL)
 	{
 #ifdef DEBUG
-		cout << "SQLiteBase::executeStatement: couldn't format statement" << endl;
+		clog << "SQLiteBase::executeStatement: couldn't format statement" << endl;
 #endif
 		if (m_onDemand == true)
 		{
@@ -381,7 +380,7 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	{
 		if (errMsg != NULL)
 		{
-			cerr << "Statement <" << stringBuff << "> failed: " << errMsg << endl;
+			clog << "Statement <" << stringBuff << "> failed: " << errMsg << endl;
 
 			sqlite3_free(errMsg);
 		}

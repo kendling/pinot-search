@@ -31,7 +31,7 @@
 
 using std::string;
 using std::set;
-using std::cout;
+using std::clog;
 using std::endl;
 
 ActionQueue::ActionQueue(const string &database, const string queueId) :
@@ -92,7 +92,7 @@ bool ActionQueue::create(const string &database)
 	if (db.executeSimpleStatement("SELECT * FROM ActionQueue LIMIT 1;") == false)
 	{
 #ifdef DEBUG
-		cout << "ActionQueue::create: ActionQueue doesn't exist" << endl;
+		clog << "ActionQueue::create: ActionQueue doesn't exist" << endl;
 #endif
 		// Create the table
 		if (db.executeSimpleStatement("CREATE TABLE ActionQueue (QueueId VARCHAR(255), \
@@ -123,7 +123,7 @@ bool ActionQueue::pushItem(ActionType type, const DocumentInfo &docInfo)
 		if (row != NULL)
 		{
 #ifdef DEBUG
-			cout << "ActionQueue::pushItem: item "
+			clog << "ActionQueue::pushItem: item "
 				<< Url::unescapeUrl(row->getColumn(0)) << " exists" << endl;
 #endif
 			update = true;
@@ -152,7 +152,7 @@ bool ActionQueue::pushItem(ActionType type, const DocumentInfo &docInfo)
 	if (results != NULL)
 	{
 #ifdef DEBUG
-		cout << "ActionQueue::pushItem: queue " << m_queueId
+		clog << "ActionQueue::pushItem: queue " << m_queueId
 			<< ": " << type << " on " << url << ", " << update << endl;
 #endif
 		success = true;
@@ -175,7 +175,7 @@ bool ActionQueue::popItem(ActionType &type, DocumentInfo &docInfo)
 	}
 	url = docInfo.getLocation();
 #ifdef DEBUG
-	cout << "ActionQueue::popItem: queue " << m_queueId
+	clog << "ActionQueue::popItem: queue " << m_queueId
 		<< ": " << type << " on " << url << endl;
 #endif
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "Url.h"
 #include "ViewHistory.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 
@@ -55,7 +55,7 @@ bool ViewHistory::create(const string &database)
 	if (db.executeSimpleStatement("SELECT * FROM ViewHistory LIMIT 1;") == false)
 	{
 #ifdef DEBUG
-		cout << "ViewHistory::create: ViewHistory doesn't exist" << endl;
+		clog << "ViewHistory::create: ViewHistory doesn't exist" << endl;
 #endif
 		createTable = true;
 	}
@@ -65,7 +65,7 @@ bool ViewHistory::create(const string &database)
 		if (db.executeSimpleStatement("SELECT Date FROM ViewHistory LIMIT 1;") == false)
 		{
 #ifdef DEBUG
-			cout << "ViewHistory::create: ViewHistory needs updating" << endl;
+			clog << "ViewHistory::create: ViewHistory needs updating" << endl;
 #endif
 			// Ideally, we would use ALTER TABLE but it's not supported by SQLite
 			if (db.executeSimpleStatement("DROP TABLE ViewHistory; VACUUM;") == true)
@@ -118,7 +118,7 @@ bool ViewHistory::hasItem(const string &url)
 		{
 			// If this returns anything, it's the URL we are looking for
 #ifdef DEBUG
-			cout << "ViewHistory::hasItem: URL " << row->getColumn(0) << endl;
+			clog << "ViewHistory::hasItem: URL " << row->getColumn(0) << endl;
 #endif
 			success = true;
 

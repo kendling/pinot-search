@@ -109,7 +109,7 @@ static time_t mktime_from_utc (struct tm *t)
 
 #include "TimeConverter.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 
@@ -240,7 +240,7 @@ time_t TimeConverter::fromYYYYMMDDString(const string &yyyymmdd, bool inGMTime)
 	timeTm.tm_mday = atoi(yyyymmdd.substr(6, 2).c_str());
 #endif
 #ifdef DEBUG
-	cout << "TimeConverter::fromYYYYMMDDString: " << timeTm.tm_year << " " << timeTm.tm_mon << " " << timeTm.tm_mday << endl;
+	clog << "TimeConverter::fromYYYYMMDDString: " << timeTm.tm_year << " " << timeTm.tm_mon << " " << timeTm.tm_mday << endl;
 #endif
 	if (inGMTime == true)
 	{
@@ -310,7 +310,7 @@ time_t TimeConverter::fromHHMMSSString(const string &hhmmss, bool inGMTime)
 	timeTm.tm_sec = atoi(hhmmss.substr(4, 2).c_str());
 #endif
 #ifdef DEBUG
-	cout << "TimeConverter::fromHHMMSSString: " << timeTm.tm_hour << " " << timeTm.tm_min << " " << timeTm.tm_sec << endl;
+	clog << "TimeConverter::fromHHMMSSString: " << timeTm.tm_hour << " " << timeTm.tm_min << " " << timeTm.tm_sec << endl;
 #endif
 	if (inGMTime == true)
 	{

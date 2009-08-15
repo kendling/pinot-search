@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "CommandLine.h"
 #include "Url.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 using std::vector;
@@ -60,7 +60,7 @@ bool CommandLine::runSync(const string &commandLine, string &output)
 		return true;
 	}
 #ifdef DEBUG
-	cout << "CommandLine::runSync: exit status is " << exitStatus
+	clog << "CommandLine::runSync: exit status is " << exitStatus
 		<< " for \"" << commandLine << "\"" << endl;
 #endif
 
@@ -93,7 +93,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 			pFilesList = g_list_prepend(pFilesList, g_file_new_for_uri((*firstArg).c_str()));
 		}
 #ifdef DEBUG
-		else cout << "CommandLine::runAsync: can't open URL " << *firstArg << endl;
+		else clog << "CommandLine::runAsync: can't open URL " << *firstArg << endl;
 #endif
 
 		// Next
@@ -153,7 +153,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 		return false;
 	}
 #ifdef DEBUG
-	cout << "CommandLine::runAsync: " << arguments.size() << " arguments for application '"
+	clog << "CommandLine::runAsync: " << arguments.size() << " arguments for application '"
 		<< action.m_exec << "'" << endl;
 #endif
 
@@ -309,7 +309,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 		}
 
 #ifdef DEBUG
-		cout << "CommandLine::runAsync: spawning '" << commandLine << "'" << endl;
+		clog << "CommandLine::runAsync: spawning '" << commandLine << "'" << endl;
 #endif
 		Glib::spawn_command_line_async(commandLine);
 

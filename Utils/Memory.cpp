@@ -42,6 +42,8 @@ typedef fixed_singleton_pool<fixed_pool_allocator_tag,
 #endif
 #endif
 
+using std::clog;
+using std::endl;
 using std::string;
 
 Memory::Memory()
@@ -91,8 +93,8 @@ int Memory::getUsage(void)
 	 */
 	inUse = info.uordblks;
 #ifdef DEBUG
-	std::cout << "Memory::getUsage: allocated on the heap " << info.arena << ", mmap'ed " << info.hblkhd
-		<< ", in use " << inUse << ", not in use " << info.fordblks << ", can be trimmed " << info.keepcost << std::endl;
+	clog << "Memory::getUsage: allocated on the heap " << info.arena << ", mmap'ed " << info.hblkhd
+		<< ", in use " << inUse << ", not in use " << info.fordblks << ", can be trimmed " << info.keepcost << endl;
 #endif
 #endif
 #endif
@@ -106,12 +108,12 @@ void Memory::reclaim(void)
 #ifdef HAVE_UMEM_H
 	bool releasedMemory = fixed_singleton_pool<fixed_pool_allocator_tag, sizeof(char), umem_allocator, boost::details::pool::default_mutex, 131072>::release_memory();
 #ifdef DEBUG
-	std::cout << "Memory::reclaim: released umem allocated memory pool (" << releasedMemory << ")" << std::endl;
+	clog << "Memory::reclaim: released umem allocated memory pool (" << releasedMemory << ")" << endl;
 #endif
 #else
 	bool releasedMemory = fixed_singleton_pool<fixed_pool_allocator_tag, sizeof(char), boost::default_user_allocator_malloc_free, boost::details::pool::default_mutex, 131072>::release_memory();
 #ifdef DEBUG
-	std::cout << "Memory::reclaim: released malloc allocated memory pool (" << releasedMemory << ")" << std::endl;
+	clog << "Memory::reclaim: released malloc allocated memory pool (" << releasedMemory << ")" << endl;
 #endif
 #endif
 #endif
@@ -122,7 +124,7 @@ void Memory::reclaim(void)
 #ifdef HAVE_MALLOC_TRIM
 	int trimmedMemory = malloc_trim(0);
 #ifdef DEBUG
-	std::cout << "Memory::reclaim: trimmed malloc allocated memory (" << trimmedMemory << ")" << std::endl;
+	clog << "Memory::reclaim: trimmed malloc allocated memory (" << trimmedMemory << ")" << endl;
 #endif
 #endif
 #endif

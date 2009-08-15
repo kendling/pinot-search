@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2009 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 #include "Url.h"
 #include "QueryHistory.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 using std::set;
@@ -71,7 +71,7 @@ bool QueryHistory::create(const string &database)
 		if (db.executeSimpleStatement("SELECT Language FROM QueryHistory LIMIT 1;") == true)
 		{
 #ifdef DEBUG
-			cout << "QueryHistory::create: QueryHistory needs updating" << endl;
+			clog << "QueryHistory::create: QueryHistory needs updating" << endl;
 #endif
 			db.alterTable("QueryHistory",
 				"QueryName, EngineName, HostName, Url, Title, Extract, Score, Date",

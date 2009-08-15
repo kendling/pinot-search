@@ -36,10 +36,10 @@
 #include "TimeConverter.h"
 #include "MetaDataBackup.h"
 
+using std::clog;
+using std::endl;
 using std::string;
 using std::set;
-using std::cout;
-using std::endl;
 
 MetaDataBackup::MetaDataBackup(const string &database) :
 	SQLiteBase(database)
@@ -71,7 +71,7 @@ bool MetaDataBackup::setAttribute(const DocumentInfo &docInfo,
 			value.c_str(), (size_t)value.length(), 0) != 0)
 		{
 #ifdef DEBUG
-			cout << "MetaDataBackup::setAttribute: setxattr failed with " << strerror(errno) << endl;
+			clog << "MetaDataBackup::setAttribute: setxattr failed with " << strerror(errno) << endl;
 #endif
 		}
 	}
@@ -342,7 +342,7 @@ bool MetaDataBackup::create(const string &database)
 	if (db.executeSimpleStatement("SELECT * FROM MetaDataBackup LIMIT 1;") == false)
 	{
 #ifdef DEBUG
-		cout << "MetaDataBackup::create: MetaDataBackup doesn't exist" << endl;
+		clog << "MetaDataBackup::create: MetaDataBackup doesn't exist" << endl;
 #endif
 		// Create the table
 		if (db.executeSimpleStatement("CREATE TABLE MetaDataBackup (Url VARCHAR(255), \

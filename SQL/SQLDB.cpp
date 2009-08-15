@@ -25,8 +25,7 @@
 
 #include "SQLDB.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
 using std::endl;
 using std::string;
 

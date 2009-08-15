@@ -25,7 +25,7 @@
 #include "Url.h"
 #include "CrawlHistory.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 using std::set;
@@ -133,7 +133,7 @@ bool CrawlHistory::create(const string &database)
 		if (db.executeSimpleStatement("SELECT ErrorNum FROM CrawlHistory LIMIT 1;") == false)
 		{
 #ifdef DEBUG
-			cout << "CrawlHistory::create: CrawlHistory needs updating" << endl;
+			clog << "CrawlHistory::create: CrawlHistory needs updating" << endl;
 #endif
 			// Ideally, we would use ALTER TABLE but it's not supported by SQLite
 			if (db.executeSimpleStatement("DROP TABLE CrawlHistory; VACUUM;") == true)

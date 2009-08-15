@@ -25,7 +25,7 @@
 #include "Url.h"
 
 using std::string;
-using std::cout;
+using std::clog;
 using std::endl;
 
 static const int g_rfc2396Encoded[] = {
@@ -513,7 +513,7 @@ string Url::resolvePath(const string &currentDir, const string &location)
 			currentLocation += path;
 		}
 #ifdef DEBUG
-		cout << "Url::resolvePath: partially resolved to " << currentLocation << endl;
+		clog << "Url::resolvePath: partially resolved to " << currentLocation << endl;
 #endif
 
 		if (slashPos + 1 >= location.length())
@@ -545,7 +545,7 @@ string Url::resolvePath(const string &currentDir, const string &location)
 		}
 	}
 #ifdef DEBUG
-	cout << "Url::resolvePath: resolved to " << currentLocation << endl;
+	clog << "Url::resolvePath: resolved to " << currentLocation << endl;
 #endif
 
 	return currentLocation;

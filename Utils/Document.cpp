@@ -38,8 +38,7 @@
 #include "TimeConverter.h"
 #include "Memory.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
 using std::endl;
 using std::string;
 using std::set;
@@ -207,7 +206,7 @@ bool Document::setDataFromFile(const string &fileName)
 #endif
 	if (fd < 0)
 	{
-		cerr << "Document::setDataFromFile: " << fileName << " couldn't be opened" << endl;
+		clog << "Document::setDataFromFile: " << fileName << " couldn't be opened" << endl;
 		return false;
 	}
 #ifndef O_CLOEXEC
@@ -230,12 +229,12 @@ bool Document::setDataFromFile(const string &fileName)
 		if (madvise(mapSpace, (size_t)fileStat.st_size, MADV_SEQUENTIAL) != 0)
 		{
 #ifdef DEBUG
-			cout << "Document::setDataFromFile: ignored memory advice" << endl;
+			clog << "Document::setDataFromFile: ignored memory advice" << endl;
 #endif
 		}
 #endif
 	}
-	else cerr << "Document::setDataFromFile: mapping failed" << endl;
+	else clog << "Document::setDataFromFile: mapping failed" << endl;
 #else
 	m_pData = Memory::allocateBuffer(fileStat.st_size + 1);
 	if (m_pData != NULL)
@@ -251,7 +250,7 @@ bool Document::setDataFromFile(const string &fileName)
 			m_pData = NULL;
 		}
 	}
-	else cerr << "Document::setDataFromFile: reading failed" << endl;
+	else clog << "Document::setDataFromFile: reading failed" << endl;
 #endif
 
 	setTimestamp(TimeConverter::toTimestamp(fileStat.st_mtime));
@@ -290,7 +289,7 @@ bool Document::setDataFromFile(const string &fileName)
 				if (pAttr != NULL)
 				{
 #ifdef DEBUG
-					cout << "Document::setDataFromFile: xattr " << attrName << "=" << pAttr << endl;
+					clog << "Document::setDataFromFile: xattr " << attrName << "=" << pAttr << endl;
 #endif
 					delete[] pAttr;
 				}
@@ -321,7 +320,7 @@ bool Document::setDataFromFile(const string &fileName)
 	if (close(fd) == -1)
 	{
 #ifdef DEBUG
-		cout << "Document::setDataFromFile: close failed" << endl;
+		clog << "Document::setDataFromFile: close failed" << endl;
 #endif
 	}
 
@@ -352,7 +351,7 @@ void Document::resetData(void)
 			if (madvise((void*)m_pData, (size_t)m_dataLength, MADV_DONTNEED) != 0)
 			{
 #ifdef DEBUG
-				cout << "Document::resetData: ignored memory advice" << endl;
+				clog << "Document::resetData: ignored memory advice" << endl;
 #endif
 			}
 #endif
@@ -382,7 +381,7 @@ bool Document::isBinary(void) const
 		if (isascii(m_pData[i]) == 0)
 		{
 #ifdef DEBUG
-			cout << "Document::isBinary: " << m_pData[i] << endl;
+			clog << "Document::isBinary: " << m_pData[i] << endl;
 #endif
 			return true;
 		}

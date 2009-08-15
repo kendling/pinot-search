@@ -36,7 +36,7 @@
 #define MIME_CACHE_SECTION	"MIME Cache"
 #define UNKNOWN_MIME_TYPE	"application/octet-stream";
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 using std::list;
@@ -332,7 +332,7 @@ bool MIMECache::findDesktopFile(const string &desktopFile, const string &mimeTyp
 		// It's here, we need to read it off the disk
 		MIMEAction typeAction(desktopFile);
 #ifdef DEBUG
-		cout << "MIMECache::findDesktopFile: read " << desktopFile << endl;
+		clog << "MIMECache::findDesktopFile: read " << desktopFile << endl;
 #endif
 
 		if (typeAction.m_exec.empty() == false)
@@ -376,7 +376,7 @@ bool MIMECache::load(const list<string> &desktopFilesPaths)
 	if (pError == NULL)
 	{
 #ifdef DEBUG
-		cout << "MIMECache::load: loaded " << m_file << endl;
+		clog << "MIMECache::load: loaded " << m_file << endl;
 #endif
 
 		gchar **pMimeTypes = g_key_file_get_keys(pDefaults, m_section.c_str(),
@@ -430,7 +430,7 @@ bool MIMECache::load(const list<string> &desktopFilesPaths)
 	else
 	{
 #ifdef DEBUG
-		cout << "MIMECache::load: failed to load " << m_file << endl;
+		clog << "MIMECache::load: failed to load " << m_file << endl;
 #endif
 		g_error_free(pError);
 	}
@@ -488,7 +488,7 @@ bool MIMEScanner::initialize(const string &userPrefix, const string &systemPrefi
 		desktopFilesPaths.push_front(userDirectory);
 
 #ifdef DEBUG
-		cout << "MIMEScanner::initialize: user-specific directory " << userDirectory << endl;
+		clog << "MIMEScanner::initialize: user-specific directory " << userDirectory << endl;
 #endif
 		foundActions |= addCache(userDirectory + MIME_DEFAULTS_LIST,
 			MIME_DEFAULTS_SECTION, desktopFilesPaths);
@@ -505,7 +505,7 @@ bool MIMEScanner::initialize(const string &userPrefix, const string &systemPrefi
 		desktopFilesPaths.push_front(systemDirectory);
 
 #ifdef DEBUG
-		cout << "MIMEScanner::initialize: system-wide directory " << systemDirectory << endl;
+		clog << "MIMEScanner::initialize: system-wide directory " << systemDirectory << endl;
 #endif
 		foundActions |= addCache(systemDirectory + MIME_DEFAULTS_LIST,
 			MIME_DEFAULTS_SECTION, desktopFilesPaths);
@@ -615,7 +615,7 @@ string MIMEScanner::scanFileType(const string &fileName)
 	g_free(pType);
 #endif
 #ifdef DEBUG
-	cout << "MIMEScanner::scanFileType: " << fileName << " " << mimeType << endl;
+	clog << "MIMEScanner::scanFileType: " << fileName << " " << mimeType << endl;
 #endif
 
 	return mimeType;
@@ -698,7 +698,7 @@ string MIMEScanner::scanFile(const string &fileName)
 	}
 #endif
 #ifdef DEBUG
-	cout << "MIMEScanner::scanFile: " << fileName << " " << mimeType << endl;
+	clog << "MIMEScanner::scanFile: " << fileName << " " << mimeType << endl;
 #endif
 
 	return mimeType;
@@ -744,7 +744,7 @@ string MIMEScanner::scanUrl(const Url &urlObj)
 	}
 #endif
 #ifdef DEBUG
-	cout << "MIMEScanner::scanUrl: " << urlObj.getFile() << " " << mimeType << endl;
+	clog << "MIMEScanner::scanUrl: " << urlObj.getFile() << " " << mimeType << endl;
 #endif
 
 	return mimeType;
@@ -796,7 +796,7 @@ string MIMEScanner::scanData(const char *pData, unsigned int length)
 	g_free(pType);
 #endif
 #ifdef DEBUG
-	cout << "MIMEScanner::scanData: " << mimeType << endl;
+	clog << "MIMEScanner::scanData: " << mimeType << endl;
 #endif
 
 	return mimeType;
@@ -819,7 +819,7 @@ bool MIMEScanner::getParentTypes(const string &mimeType,
 		if (g_content_type_is_a(mimeType.c_str(), typeIter->c_str()) == TRUE)
 		{
 #ifdef DEBUG
-			cout << "MIMEScanner::getParentTypes: " << mimeType << " is a " << *typeIter << endl;
+			clog << "MIMEScanner::getParentTypes: " << mimeType << " is a " << *typeIter << endl;
 #endif
 			parentMimeTypes.insert(*typeIter);
 		}
@@ -887,7 +887,7 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &
 		MIMEAction action(pDefAppInfo1);
 
 #ifdef DEBUG
-		cout << "MIMEScanner::getDefaultActionsForType: default action " << action.m_name << endl;
+		clog << "MIMEScanner::getDefaultActionsForType: default action " << action.m_name << endl;
 #endif
 		actionNames.insert(action.m_name);
 		typeActions.push_back(action);
@@ -902,7 +902,7 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &
 		if (actionNames.find(action.m_name) == actionNames.end())
 		{
 #ifdef DEBUG
-			cout << "MIMEScanner::getDefaultActionsForType: non-URI default action " << action.m_name << endl;
+			clog << "MIMEScanner::getDefaultActionsForType: non-URI default action " << action.m_name << endl;
 #endif
 			actionNames.insert(action.m_name);
 			typeActions.push_back(action);
@@ -938,7 +938,7 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &
 		if (actionNames.find(action.m_name) == actionNames.end())
 		{
 #ifdef DEBUG
-			cout << "MIMEScanner::getDefaultActionsForType: action " << action.m_name << endl;
+			clog << "MIMEScanner::getDefaultActionsForType: action " << action.m_name << endl;
 #endif
 			actionNames.insert(action.m_name);
 			typeActions.push_back(action);
@@ -971,7 +971,7 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &
 			if (actionNames.find(actionIter->second.m_name) == actionNames.end())
 			{
 #ifdef DEBUG
-				cout << "MIMEScanner::getDefaultActionsForType: action " << actionIter->second.m_name
+				clog << "MIMEScanner::getDefaultActionsForType: action " << actionIter->second.m_name
 					<< " at " << actionIter->second.m_location << endl;
 #endif
 				actionNames.insert(actionIter->second.m_name);
@@ -995,7 +995,7 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 	typeActions.clear();
   
 #ifdef DEBUG
-	cout << "MIMEScanner::getDefaultActions: searching for " << mimeType << endl;
+	clog << "MIMEScanner::getDefaultActions: searching for " << mimeType << endl;
 #endif
 	bool foundAction = getDefaultActionsForType(mimeType, actionNames, typeActions);
 #ifndef USE_GIO
@@ -1011,7 +1011,7 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 				string parentType(pParentTypes[i]);
 
 #ifdef DEBUG
-				cout << "MIMEScanner::getDefaultActions: searching for parent type " << parentType << endl;
+				clog << "MIMEScanner::getDefaultActions: searching for parent type " << parentType << endl;
 #endif
 				foundAction = getDefaultActionsForType(parentType, actionNames, typeActions);
 				if (foundAction)
@@ -1023,7 +1023,7 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 			free(pParentTypes);
 		}
 #ifdef DEBUG
-		else cout << "MIMEScanner::getDefaultActions: " << mimeType << " has no parent types" << endl;
+		else clog << "MIMEScanner::getDefaultActions: " << mimeType << " has no parent types" << endl;
 #endif
 	}
 #endif
