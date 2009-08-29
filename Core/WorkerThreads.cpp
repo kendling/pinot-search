@@ -27,6 +27,10 @@
 #include <signal.h>
 #include <time.h>
 #include <errno.h>
+#ifdef __OpenBSD__
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#endif
 #include <exception>
 #include <iostream>
 #include <fstream>
@@ -285,8 +289,20 @@ ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	pthread_rwlock_init(&m_threadsLock, NULL);
 	pthread_rwlock_init(&m_listsLock, NULL);
 
+#ifdef __OpenBSD__
+	int mib[2], ncpus;
+
+	mib[0] = CTL_HW;
+	mib[1] = HW_NCPU;
+	size_t len = sizeof(ncpus);
+	if (sysctl(mib, 2, &ncpus, &len, NULL, 0) > 0)
+	{
+		m_numCPUs = ncpus;
+	}
+#else
 #ifdef HAVE_SYSCONF
 	m_numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
 #endif
 }
 

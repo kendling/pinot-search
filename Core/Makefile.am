@@ -40,7 +40,7 @@ AM_CXXFLAGS += -DHAVE_DBUS
 endif
 
 pinot_index_LDFLAGS = \
-	-rdynamic
+	-export-dynamic
 
 pinot_index_LDADD = \
 	-L$(top_builddir)/Utils \
@@ -59,7 +59,7 @@ pinot_index_SOURCES = pinot-index.cpp
 pinot_index_DEPENDENCIES = libCore.la
 
 pinot_search_LDFLAGS = \
-	-rdynamic
+	-export-dynamic
 
 pinot_search_LDADD = \
 	-L$(top_builddir)/Utils \
@@ -77,7 +77,7 @@ pinot_search_SOURCES = \
 pinot_search_DEPENDENCIES = libCore.la
 
 pinot_dbus_daemon_LDFLAGS = \
-	-rdynamic
+	-export-dynamic
 
 pinot_dbus_daemon_LDADD = \
 	-L$(top_builddir)/Utils \

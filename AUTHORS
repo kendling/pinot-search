@@ -29,6 +29,7 @@ Small patches, bug reports and helpful comments :
 	Martin Michlmayr <tbm at cyrius dot com>
 	John Werden <jwerden at hotpop dot com>
 	Funda Wang <fundawang at gmail dot com>
+	Antoine Jacoutot <ajacoutot at bsdfrog dot org>
 
 The source in Utils/unac is from unac 1.7.0 (Copyright Loic Dachary
 <loic at senga dot org>).
@@ -57,6 +58,7 @@ Translations provided by :
 		& Balaam's Miracle <balaam at balaamsmiracle dot com>
 	French - Nicolas Velin <nsv at fr dot st>
 		& Frédéric Grosshans <frederic dot grosshans at gmail dot com>
+		& Thierry Thomas <thierry at freebsd dot org>
 	German - Christian Dywan <christian at twotoasts dot de>
 		& Gena Haltmair <gena at haltmair dot com>
 	Hebrew - Yaron <sh dot yaron at gmail dot com>

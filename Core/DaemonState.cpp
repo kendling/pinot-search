@@ -36,6 +36,9 @@
       #define CHECK_DISK_SPACE 1
     #else
       #ifdef HAVE_SYS_MOUNT_H
+        #if defined(__OpenBSD__)
+          #include <sys/param.h>
+        #endif
         #include <sys/mount.h>
         #define CHECK_DISK_SPACE 1
       #endif
