@@ -65,6 +65,7 @@ static ofstream g_outputFile;
 static string g_pidFileName;
 static streambuf *g_coutBuf = NULL;
 static streambuf *g_cerrBuf = NULL;
+static streambuf *g_clogBuf = NULL;
 static struct option g_longOptions[] = {
 	{"help", 0, 0, 'h'},
 	{"ignore-version", 0, 0, 'i'},
@@ -97,6 +98,10 @@ static void closeAll(void)
 	if (g_cerrBuf != NULL)
 	{
 		cerr.rdbuf(g_cerrBuf);
+	}
+	if (g_clogBuf != NULL)
+	{
+		clog.rdbuf(g_clogBuf);
 	}
 	g_outputFile.close();
 	if (g_pidFileName.empty() == false)
@@ -405,8 +410,10 @@ int main(int argc, char **argv)
 		g_outputFile.open(fileName.c_str());
 		g_coutBuf = cout.rdbuf();
 		g_cerrBuf = cerr.rdbuf();
+		g_clogBuf = clog.rdbuf();
 		cout.rdbuf(g_outputFile.rdbuf());
 		cerr.rdbuf(g_outputFile.rdbuf());
+		clog.rdbuf(g_outputFile.rdbuf());
 	}
 	else
 	{
