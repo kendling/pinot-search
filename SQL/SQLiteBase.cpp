@@ -289,7 +289,7 @@ bool SQLiteBase::executeSimpleStatement(const string &sql)
 	{
 		if (errMsg != NULL)
 		{
-			clog << "Statement <" << sql << "> failed: " << errMsg << endl;
+			clog << m_databaseName << ": statement <" << sql << "> failed: " << errMsg << endl;
 
 			sqlite3_free(errMsg);
 		}
@@ -380,7 +380,7 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	{
 		if (errMsg != NULL)
 		{
-			clog << "Statement <" << stringBuff << "> failed: " << errMsg << endl;
+			clog << m_databaseName << ": statement <" << stringBuff << "> failed: " << errMsg << endl;
 
 			sqlite3_free(errMsg);
 		}
