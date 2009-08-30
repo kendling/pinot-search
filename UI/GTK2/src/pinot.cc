@@ -94,6 +94,7 @@ static void quitAll(int sigNum)
 	Gtk::Main::quit();
 }
 
+#ifdef HAVE_DBUS
 static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
 	// Are we about to be disconnected ?
@@ -146,6 +147,7 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 
 	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
+#endif
 
 int main(int argc, char **argv)
 {
@@ -388,6 +390,7 @@ int main(int argc, char **argv)
 
 	if (prefsMode == false)
 	{
+#ifdef HAVE_DBUS
 		GError *pError = NULL;
 		DBusGConnection *pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
 		DBusConnection *pConnection = NULL;
@@ -429,6 +432,7 @@ int main(int argc, char **argv)
 
 			dbus_error_free(&error);
 		}
+#endif
 
 		IndexInterface *pIndex = settings.getIndex(settings.m_docsIndexLocation);
 		if (pIndex != NULL)

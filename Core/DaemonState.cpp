@@ -24,6 +24,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #ifdef HAVE_STATFS
@@ -73,7 +74,6 @@
 #include "DaemonState.h"
 #include "OnDiskHandler.h"
 #include "PinotSettings.h"
-#include "PinotUtils.h"
 #include "ServerThreads.h"
 
 using namespace std;
@@ -490,7 +490,9 @@ void DaemonState::flush_and_reclaim(void)
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(PinotSettings::getInstance().m_daemonIndexLocation);
 	if (pIndex != NULL)
 	{
+#ifdef HAVE_DBUS
 		DBusServletThread::flushIndexAndSignal(pIndex);
+#endif
 
 		delete pIndex;
 	}

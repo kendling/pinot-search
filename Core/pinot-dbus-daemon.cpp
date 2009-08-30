@@ -74,6 +74,7 @@ static struct option g_longOptions[] = {
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
 };
+#ifdef HAVE_DBUS
 static void unregisteredHandler(DBusConnection *pConnection, void *pData);
 static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData);
 static DBusObjectPathVTable g_callVTable = {
@@ -81,6 +82,7 @@ static DBusObjectPathVTable g_callVTable = {
         (DBusObjectPathMessageFunction)messageHandler,
 	NULL,
 };
+#endif
 static Glib::RefPtr<Glib::MainLoop> g_refMainLoop;
 
 static void closeAll(void)
@@ -123,6 +125,7 @@ static void quitAll(int sigNum)
 	}
 }
 
+#ifdef HAVE_DBUS
 static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
 	DaemonState *pServer = (DaemonState *)pData;
@@ -276,9 +279,15 @@ static bool getBatteryState(const string &name, const string &path,
 
 	return callSuccess;
 }
+#endif
 
 int main(int argc, char **argv)
 {
+#ifdef HAVE_DBUS
+	string programName("pinot-dbus-daemon");
+#else
+	string programName("pinot-daemon");
+#endif
 	int longOptionIndex = 0, priority = 15;
 	bool resetHistory = false;
 	bool resetLabels = false;
@@ -293,8 +302,8 @@ int main(int argc, char **argv)
 		{
 			case 'h':
 				// Help
-				cout << "pinot-dbus-daemon - D-Bus search and index daemon\n\n"
-					<< "Usage: pinot-dbus-daemon [OPTIONS]\n\n"
+				cout << programName << " - D-Bus search and index daemon\n\n"
+					<< "Usage: " << programName << " [OPTIONS]\n\n"
 					<< "Options:\n"
 					<< "  -h, --help		display this help and exit\n"
 					<< "  -i, --ignore-version	ignore the index version number\n"
@@ -321,7 +330,7 @@ int main(int argc, char **argv)
 				reindex = true;
 				break;
 			case 'v':
-				cout << "pinot-dbus-daemon - " << PACKAGE_STRING << "\n\n" 
+				cout << programName << " - " << PACKAGE_STRING << "\n\n" 
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
 					<< "the GNU General Public License <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n"
 					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
@@ -350,10 +359,16 @@ int main(int argc, char **argv)
 #if DBUS_NUM_VERSION > 1000000
 	dbus_threads_init_default();
 #endif
+#ifdef HAVE_DBUS
 	dbus_g_thread_init();
+#endif
 
 	g_refMainLoop = Glib::MainLoop::create();
+#ifdef HAVE_DBUS
 	Glib::set_application_name("Pinot DBus Daemon");
+#else
+	Glib::set_application_name("Pinot Daemon");
+#endif
 
 	// This should make Xapian use Flint rather than Quartz
 	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
@@ -394,19 +409,25 @@ int main(int argc, char **argv)
 	}
 
 	// Make sure only one instance runs
+#ifdef HAVE_DBUS
 	UniqueApplication uniqueApp("de.berlios.PinotDBusDaemon");
+#else
+	UniqueApplication uniqueApp("de.berlios.PinotDaemon");
+#endif
 	string confDirectory(PinotSettings::getConfigurationDirectory());
-	g_pidFileName = confDirectory + "/pinot-dbus-daemon.pid";
+	g_pidFileName = confDirectory + "/" + programName + ".pid";
 	if (chdir(confDirectory.c_str()) == 0)
 	{
-		if (uniqueApp.isRunning(g_pidFileName, "pinot-dbus-daemon") == true)
+		if (uniqueApp.isRunning(g_pidFileName, programName) == true)
 		{
 			return EXIT_SUCCESS;
 		}
 
 		// Redirect cout and cerr to a file
 		string fileName(confDirectory);
-		fileName += "/pinot-dbus-daemon.log";
+		fileName += "/";
+		fileName += programName;
+		fileName += ".log";
 		g_outputFile.open(fileName.c_str());
 		g_coutBuf = cout.rdbuf();
 		g_cerrBuf = cerr.rdbuf();
@@ -544,6 +565,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
+#ifdef HAVE_DBUS
 	GError *pError = NULL;
 	DBusServletThread::m_pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
 	if (DBusServletThread::m_pBus == NULL)
@@ -567,11 +589,13 @@ int main(int argc, char **argv)
 		cerr << "Couldn't get connection" << endl;
 		return EXIT_FAILURE;
 	}
+#endif
 
-	DBusError error;
 	DaemonState server;
 	IndexInterface *pIndex = NULL;
 
+#ifdef HAVE_DBUS
+	DBusError error;
 	dbus_error_init(&error);
 	dbus_connection_set_exit_on_disconnect(pConnection, FALSE);
 	dbus_connection_setup_with_g_main(pConnection, NULL);
@@ -601,6 +625,7 @@ int main(int argc, char **argv)
 				cerr << "Error is " << error.message << endl;
 			}
 		}
+#endif
 
 		try
 		{
@@ -635,7 +660,9 @@ int main(int argc, char **argv)
 				{
 					// Reset the index so that all documents are reindexed
 					pIndex->reset();
+#ifdef HAVE_DBUS
 					DBusServletThread::flushIndexAndSignal(pIndex);
+#endif
 
 					cout << "Reset index" << endl;
 
@@ -687,6 +714,7 @@ int main(int argc, char **argv)
 			// Connect to threads' finished signal
 			server.connect();
 
+#ifdef HAVE_DBUS
 			// Try and get the battery state
 			gboolean result = FALSE;
 			if ((getBatteryState("org.freedesktop.PowerManagement",
@@ -715,6 +743,7 @@ int main(int argc, char **argv)
 
 				cout << "System is on battery" << endl;
 			}
+#endif
 
 			server.start(reindex);
 
@@ -737,12 +766,14 @@ int main(int argc, char **argv)
 			cerr << "Unknown exception" << endl;
 			return EXIT_FAILURE;
 		}
+#ifdef HAVE_DBUS
 	}
 	else
 	{
 		cerr << "Couldn't register object path" << endl;
 	}
 	dbus_error_free(&error);
+#endif
 
 	if (pIndex != NULL)
 	{
@@ -767,3 +798,4 @@ int main(int argc, char **argv)
 
 	return EXIT_SUCCESS;
 }
+
