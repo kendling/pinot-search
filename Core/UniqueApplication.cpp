@@ -101,18 +101,15 @@ bool UniqueApplication::isRunning(const string &pidFileName, const string &proce
 		if (processID > 0)
 		{
 #ifdef HAVE_UNIQUE
-			if (m_pApp != NULL)
+			if (isRunning() == true)
 			{
-				if (unique_app_is_running(m_pApp) == TRUE)
-				{
-					// It's still running
-					stillRunning = true;
-				}
-				else
-				{
-					// It most likely died
-					processDied = true;
-				}
+				// It's still running
+				stillRunning = true;
+			}
+			else
+			{
+				// It most likely died
+				processDied = true;
 			}
 #else
 			fstream cmdLineFile;
