@@ -36,7 +36,7 @@
 #include "DBusIndex.h"
 #endif
 #include "ModuleFactory.h"
-#include "PinotUtils.h"
+#include "PinotUtils.hh"
 #include "prefsWindow.hh"
 
 using namespace std;

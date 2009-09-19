@@ -27,7 +27,7 @@
 #include "StringManip.h"
 #include "NLS.h"
 #include "PinotSettings.h"
-#include "PinotUtils.h"
+#include "PinotUtils.hh"
 #include "propertiesDialog.hh"
 
 using namespace std;

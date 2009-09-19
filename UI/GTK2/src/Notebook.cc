@@ -21,7 +21,7 @@
 
 #include "config.h"
 #include "NLS.h"
-#include "PinotUtils.h"
+#include "PinotUtils.hh"
 #include "Notebook.hh"
 
 using namespace std;

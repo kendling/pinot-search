@@ -22,7 +22,7 @@
 #include "NLS.h"
 #include "Url.h"
 #include "PinotSettings.h"
-#include "PinotUtils.h"
+#include "PinotUtils.hh"
 #include "indexDialog.hh"
 
 using namespace std;

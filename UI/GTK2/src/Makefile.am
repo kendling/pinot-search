@@ -21,6 +21,7 @@ noinst_HEADERS = \
 	IndexPage.hh \
 	ModelColumns.hh \
 	Notebook.hh \
+	PinotUtils.hh \
 	ResultsTree.hh \
 	UIThreads.hh
 
@@ -46,6 +47,7 @@ pinot_SOURCES = \
 	IndexPage.cc \
 	ModelColumns.cc \
 	Notebook.cc \
+	PinotUtils.cc \
 	ResultsTree.cc \
 	UIThreads.cc
 

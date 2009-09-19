@@ -30,7 +30,7 @@
 #include "NLS.h"
 #include "ModuleFactory.h"
 #include "PinotSettings.h"
-#include "PinotUtils.h"
+#include "PinotUtils.hh"
 #include "EnginesTree.hh"
 
 using namespace std;

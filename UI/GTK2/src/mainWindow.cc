@@ -51,7 +51,7 @@
 #include "QueryHistory.h"
 #include "ViewHistory.h"
 #include "ModuleFactory.h"
-#include "PinotUtils.h"
+#include "PinotUtils.hh"
 #include "mainWindow.hh"
 #include "importDialog.hh"
 #include "indexDialog.hh"

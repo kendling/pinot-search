@@ -25,7 +25,7 @@
 #include "NLS.h"
 #include "Languages.h"
 #include "TimeConverter.h"
-#include "PinotUtils.h"
+#include "PinotUtils.hh"
 #include "queryDialog.hh"
 
 using namespace std;

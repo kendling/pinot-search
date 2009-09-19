@@ -23,7 +23,7 @@
 #include "NLS.h"
 #include "Url.h"
 #include "PinotSettings.h"
-#include "PinotUtils.h"
+#include "PinotUtils.hh"
 
 using namespace std;
 using namespace Glib;

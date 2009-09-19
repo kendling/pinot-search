@@ -34,7 +34,7 @@
 #endif
 #include "ModuleFactory.h"
 #include "PinotSettings.h"
-#include "PinotUtils.h"
+#include "PinotUtils.hh"
 #include "statisticsDialog.hh"
 
 using namespace std;
