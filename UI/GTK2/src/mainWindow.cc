@@ -27,6 +27,7 @@
 #include <iostream>
 #include <fstream>
 #include <list>
+#include <glibmmconfig.h>
 #include <glibmm/ustring.h>
 #include <glibmm/stringutils.h>
 #include <glibmm/convert.h>
@@ -183,6 +184,16 @@ mainWindow::mainWindow() :
 	m_refLiveQueryCompletion->set_popup_completion(true);
 	liveQueryEntry->set_completion(m_refLiveQueryCompletion);
 
+#if GTKMM_MAJOR_VERSION>=2 && GTKMM_MINOR_VERSION>=16
+	// Enable the find icon
+	liveQueryEntry->set_icon_from_stock(Stock::FIND, ENTRY_ICON_SECONDARY);
+	liveQueryEntry->signal_icon_press().connect(sigc::mem_fun(*this, &mainWindow::on_liveQueryEntry_icon), false);
+	liveQueryEntry->set_icon_sensitive(ENTRY_ICON_SECONDARY, false);
+#else
+	findButton->set_sensitive(false);
+	findVbuttonbox->show();
+#endif
+
 	// Associate the columns model to the query tree
 	m_refQueryTree = ListStore::create(m_queryColumns);
 	queryTreeview->set_model(m_refQueryTree);
@@ -230,17 +241,20 @@ mainWindow::mainWindow() :
 		sigc::mem_fun(*this, &mainWindow::on_switch_page), false);
 
 	// Gray out menu items
-	removeQueryButton->set_sensitive(false);
-	queryHistoryButton->set_sensitive(false);
-	findQueryButton->set_sensitive(false);
 	show_pagebased_menuitems(false);
 	show_selectionbased_menuitems(false);
 	// ...and buttons
 	removeIndexButton->set_sensitive(false);
+	removeQueryButton->set_sensitive(false);
+	queryHistoryButton->set_sensitive(false);
 
 	// Set tooltips
 	m_tooltips.set_tip(*enginesTogglebutton, _("Show all search engines"));
+#if GTKMM_MAJOR_VERSION>=2 && GTKMM_MINOR_VERSION>=16
+	liveQueryEntry->set_icon_tooltip_text(_("Find documents that match the query"), ENTRY_ICON_SECONDARY);
+#else
 	m_tooltips.set_tip(*findButton, _("Find documents that match the query string"));
+#endif
 	m_tooltips.set_tip(*addIndexButton, _("Add an index"));
 	m_tooltips.set_tip(*removeIndexButton, _("Remove an index"));
 	m_tooltips.set_tip(*addQueryButton, _("Add a query"));
@@ -2719,13 +2733,26 @@ void mainWindow::on_enginesTogglebutton_toggled()
 //
 void mainWindow::on_liveQueryEntry_changed()
 {
+	ustring term(liveQueryEntry->get_text());
+	bool enableFindButton = true;
+
+	if (term.empty() == true)
+	{
+		enableFindButton = false;
+	}
+#if GTKMM_MAJOR_VERSION>=2 && GTKMM_MINOR_VERSION>=16
+	liveQueryEntry->set_icon_sensitive(ENTRY_ICON_SECONDARY, enableFindButton);
+#else
+	findButton->set_sensitive(enableFindButton);
+#endif
+
 	if (m_settings.m_suggestQueryTerms == false)
 	{
-		// This functionality is disabled
+		// Suggestions are disabled
 		return;
 	}
 
-	ustring prefix, term = liveQueryEntry->get_text();
+	ustring prefix;
 	unsigned int liveQueryLength = term.length();
 
 	// Reset the list
@@ -2782,7 +2809,18 @@ void mainWindow::on_liveQueryEntry_changed()
 	}
 }
 
+//
+// Live query entry activate
+//
 void mainWindow::on_liveQueryEntry_activate()
+{
+	on_findButton_clicked();
+}
+
+//
+// Live query entry icon press
+//
+void mainWindow::on_liveQueryEntry_icon(EntryIconPosition position, const GdkEventButton *ev)
 {
 	on_findButton_clicked();
 }

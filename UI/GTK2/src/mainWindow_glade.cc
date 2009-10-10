@@ -452,7 +452,6 @@ mainWindow_glade::mainWindow_glade(
    liveQueryLabel->show();
    liveQueryEntry->show();
    findButton->show();
-   findVbuttonbox->show();
    liveQueryHbox->show();
    queryTreeview->show();
    queryScrolledwindow->show();

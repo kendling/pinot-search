@@ -114,6 +114,7 @@ protected:
         virtual void on_enginesTogglebutton_toggled();
         virtual void on_liveQueryEntry_changed();
         virtual void on_liveQueryEntry_activate();
+	virtual void on_liveQueryEntry_icon(Gtk::EntryIconPosition position, const GdkEventButton *ev);
         virtual void on_findButton_clicked();
         virtual bool on_queryTreeview_button_press_event(GdkEventButton *ev);
         virtual void on_addQueryButton_clicked();

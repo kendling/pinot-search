@@ -674,7 +674,7 @@
 
 		  <child>
 		    <widget class="GtkVButtonBox" id="findVbuttonbox">
-		      <property name="visible">True</property>
+		      <property name="visible">False</property>
 		      <property name="layout_style">GTK_BUTTONBOX_DEFAULT_STYLE</property>
 		      <property name="spacing">0</property>
 
