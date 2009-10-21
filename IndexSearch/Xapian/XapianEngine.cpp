@@ -77,7 +77,8 @@ static void checkFilter(const string &freeQuery, string::size_type filterValueSt
 	// In XapianIndex, these are escaped and hashed
 	if ((filterName == "file") ||
 		(filterName =="dir") ||
-		(filterName == "url"))
+		(filterName == "url") ||
+		(filterName == "path"))
 	{
 		escapeValue = hashValue = true;
 	}
@@ -593,7 +594,7 @@ XapianEngine::~XapianEngine()
 
 Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 	const string &stemLanguage, DefaultOperator defaultOperator,
-	const string &limitQuery, string &correctedFreeQuery, bool minimal)
+	string &correctedFreeQuery, bool minimal)
 {
 	Xapian::QueryParser parser;
 	CJKVTokenizer tokenizer;
@@ -702,20 +703,6 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_boolean_prefix("label", "XLABEL:");
 	parser.add_boolean_prefix("tokens", "XTOK:");
 
-	// Any limit on what documents should be searched ?
-	if (limitQuery.empty() == false)
-	{
-		string limitedQuery(limitQuery);
-
-		limitedQuery += " AND ( ";
-		limitedQuery += freeQuery;
-		limitedQuery += " )";
-		freeQuery = limitedQuery;
-#ifdef DEBUG
-		cout << "XapianEngine::parseQuery: " << freeQuery << endl;
-#endif
-	}
-
 	// Date range
 	Xapian::DateValueRangeProcessor dateProcessor(0);
 	parser.add_valuerangeprocessor(&dateProcessor);
@@ -810,6 +797,9 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 				escapedValue = XapianDatabase::limitTermLength(escapedValue);
 			}
 
+#ifdef DEBUG
+			cout << "XapianEngine::parseQuery: escaping to " << escapedValue << endl;
+#endif
 			freeQuery.replace(escapedFilterStart + 1, escapedFilterEnd - escapedFilterStart,
 				escapedValue);
 			escapedFilterEnd = escapedFilterEnd + escapedValue.length() - filterValue.length();
@@ -840,8 +830,21 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	}
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
 #ifdef DEBUG
-	cout << "XapianEngine::parseQuery: " << parsedQuery.get_description() << endl;
+	cout << "XapianEngine::parseQuery: query is " << parsedQuery.get_description() << endl;
 #endif
+
+	// Any limit on what documents should be searched ?
+	if (m_limitDocuments.empty() == false)
+	{
+		Xapian::Query filterQuery(Xapian::Query::OP_OR,
+			m_limitDocuments.begin(), m_limitDocuments.end());
+
+		parsedQuery = Xapian::Query(Xapian::Query::OP_FILTER,
+			parsedQuery, filterQuery);
+#ifdef DEBUG
+		cout << "XapianEngine::parseQuery: limited query is " << parsedQuery.get_description() << endl;
+#endif
+	}
 
 	if (minimal == false)
 	{
@@ -1075,39 +1078,17 @@ void XapianEngine::freeAll(void)
 /// Sets the set of documents to limit to.
 bool XapianEngine::setLimitSet(const set<string> &docsSet)
 {
-	unsigned int bracketsLevel = 1;
-	bool firstLocation = true;
-
-	m_limitQuery.clear();
-
-	if (docsSet.empty() == true)
-	{
-		return true;
-	}
-
-	// FIXME: there must be a better way !
-	m_limitQuery = "( ";
 	for (set<string>::const_iterator docIter = docsSet.begin();
 		docIter != docsSet.end(); ++docIter)
 	{
-		if (firstLocation == false)
-		{
-			m_limitQuery += " OR ( ";
-			++bracketsLevel;
-		}
+		string urlFilter("U");
 
-		m_limitQuery += "url:\"";
-		m_limitQuery += *docIter;
-		m_limitQuery += "\"";
-
-		firstLocation = false;
-	}
-	for (unsigned int count = 0; count < bracketsLevel; ++count)
-	{
-		m_limitQuery += " )";
+		// Escape and hash
+		urlFilter += XapianDatabase::limitTermLength(Url::escapeUrl(*docIter), true);
+		m_limitDocuments.insert(urlFilter);
 	}
 #ifdef DEBUG
-	cout << "XapianEngine::setLimitSet: " << m_limitQuery << endl;
+	cout << "XapianEngine::setLimitSet: " << m_limitDocuments.size() << " documents" << endl;
 #endif
 
 	return true;
@@ -1177,7 +1158,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 		// 1. no stemming, exact matches only
 		// 2. stem terms if a language is defined for the query
 		Xapian::Query fullQuery = parseQuery(pIndex, queryProps, "",
-			m_defaultOperator, m_limitQuery, m_correctedFreeQuery);
+			m_defaultOperator, m_correctedFreeQuery);
 		while (fullQuery.empty() == false)
 		{
 			// Query the database
@@ -1196,7 +1177,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 					cout << "XapianEngine::runQuery: trying again with stemming" << endl;
 #endif
 					fullQuery = parseQuery(pIndex, queryProps, stemLanguage,
-						m_defaultOperator, m_limitQuery, m_correctedFreeQuery);
+						m_defaultOperator, m_correctedFreeQuery);
 					++searchStep;
 					continue;
 				}

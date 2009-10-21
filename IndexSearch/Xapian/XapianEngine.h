@@ -60,7 +60,7 @@ class XapianEngine : public SearchEngineInterface
 
 	protected:
 		std::string m_databaseName;
-		std::string m_limitQuery;
+		std::set<std::string> m_limitDocuments;
 		std::set<std::string> m_expandDocuments;
 		Xapian::Stem m_stemmer;
 
@@ -70,7 +70,7 @@ class XapianEngine : public SearchEngineInterface
 
 		Xapian::Query parseQuery(Xapian::Database *pIndex, const QueryProperties &queryProps,
 			const string &stemLanguage, DefaultOperator defaultOperator,
-			const string &limitQuery, string &correctedFreeQuery, bool minimal = false);
+			string &correctedFreeQuery, bool minimal = false);
 
 	private:
 		XapianEngine(const XapianEngine &other);
