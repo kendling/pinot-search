@@ -15,13 +15,20 @@
 
   * Memory usage is too high ! How can I reduce it ?
     Since 0.92, Pinot hints at the OS that it can reclaim unused memory on a
-    regular basis. This works on Linux but maybe not on other OSes. 
-    The environment variable XAPIAN_FLUSH_THRESHOLD controls how many documents
-    are buffered in memory before changes are flushed to the disk. The default
-    value is 10000. The daemon explicitely flushes the index once it has crawled
-    the directories configured in Preferences.
-    If the above doesn't help and there is a large number of documents to index,
-    you may want to configure Pinot to index your corpus in stages.
+    regular basis. This works on Linux but maybe not on other OSes.
+    If your system is memory constrained, you can :
+    - increase the frequency at which memory is returned to the OS by setting
+      MALLOC_TRIM_THRESHOLD_ to a value lower than 128kb (the default) :
+      $ export MALLOC_TRIM_THRESHOLD_=65536
+    - reduce the number of indexing threads (defaults to 4) :
+      $ export PINOT_MAXIMUM_INDEX_THREADS=1
+    - reduce the number of documents Xapian buffers in memory before changes
+      are flushed to the disk (default is 10000) :
+      $ export XAPIAN_FLUSH_THRESHOLD=1000
+    Note that the daemon explicitely flushes the index once it has crawled one
+    of the directory configured in Preferences.
+    If the above doesn't help and there is a large number of big documents to
+    index, you may want to configure Pinot to index your corpus in stages.
 
   * Pinot doesn't use my favourite browser XYZ to open HTML documents
     Even if you have set XYZ as your favourite Web browser in your desktop
