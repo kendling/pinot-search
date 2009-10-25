@@ -104,9 +104,6 @@ XapianDatabase::~XapianDatabase()
 		delete m_pDatabase;
 	}
 	pthread_mutex_destroy(&m_rwLock);
-#ifdef DEBUG
-	pthread_mutexattr_destroy(&m_rwLockAttr);
-#endif
 }
 
 XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
@@ -138,13 +135,7 @@ XapianDatabase &XapianDatabase::operator=(const XapianDatabase &other)
 
 void XapianDatabase::initializeLock(void)
 {
-#ifdef DEBUG
-	pthread_mutexattr_init(&m_rwLockAttr);
-	pthread_mutexattr_settype(&m_rwLockAttr, PTHREAD_MUTEX_ERRORCHECK);
-	pthread_mutex_init(&m_rwLock, &m_rwLockAttr);
-#else
 	pthread_mutex_init(&m_rwLock, NULL);
-#endif
 }
 
 void XapianDatabase::openDatabase(void)

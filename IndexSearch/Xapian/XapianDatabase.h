@@ -86,9 +86,6 @@ class XapianDatabase
 		bool m_overwrite;
 		bool m_obsoleteFormat;
 		pthread_mutex_t m_rwLock;
-#ifdef DEBUG
-		pthread_mutexattr_t m_rwLockAttr;
-#endif
 		Xapian::Database *m_pDatabase;
 		bool m_isOpen;
 		bool m_merge;
