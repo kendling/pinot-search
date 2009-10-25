@@ -169,7 +169,7 @@ class XapianIndex : public IndexInterface
 
 		void removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
 			const Xapian::WritableDatabase &db, const std::string &prefix,
-			const std::string &language, bool noStemming, bool &doSpelling) const;
+			bool noStemming, bool &doSpelling) const;
 
 		void addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
 			const Xapian::WritableDatabase &db, Xapian::termcount &termPos);

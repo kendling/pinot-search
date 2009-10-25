@@ -388,7 +388,7 @@ void XapianIndex::addPostingsToDocument(Dijon::CJKVTokenizer &tokenizer, Xapian:
 		doSpelling, termPos);
 
 	// Get the terms
-	tokenizer.tokenize(text, handler);
+	tokenizer.tokenize(text, handler, true);
 #ifdef DEBUG
 	cout << "XapianIndex::addPostingsToDocument: terms to position " << termPos << endl;
 #endif
@@ -422,7 +422,7 @@ void XapianIndex::addLabelsToDocument(Xapian::Document &doc, const set<string> &
 }
 
 void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, Xapian::Document &doc,
-	const Xapian::WritableDatabase &db, const string &prefix, const string &language,
+	const Xapian::WritableDatabase &db, const string &prefix,
 	bool noStemming, bool &doSpelling) const
 {
 	Xapian::Document termsDoc;
@@ -545,8 +545,6 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
 	const Xapian::WritableDatabase &db, Xapian::termcount &termPos)
 {
-	Dijon::CJKVTokenizer pathTokenizer;
-	vector<string> paths;
 	string title(info.getTitle());
 	string location(info.getLocation());
 	string type(removeCharsetFromType(info.getType()));
@@ -614,12 +612,9 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 		}
 
 		// ...and all components as XPATH:
-		pathTokenizer.tokenize(tree, paths);
-		for (vector<string>::iterator pathIter = paths.begin();
-			pathIter != paths.end(); ++pathIter)
-		{
-			doc.add_term(string("XPATH:") + XapianDatabase::limitTermLength(Url::escapeUrl(StringManip::toLowerCase(*pathIter)), true));
-		}
+		bool doSpellingOnPaths = false;
+		addPostingsToDocument(Xapian::Utf8Iterator(tree), doc, db, "XPATH:",
+			true, doSpellingOnPaths, termPos);
 	}
 	else
 	{
@@ -634,14 +629,11 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 		doc.add_term(string("P") + XapianDatabase::limitTermLength(Url::escapeUrl(fileName), true));
 		if (fileName.find(' ') != string::npos)
 		{
+			bool doSpellingOnPaths = false;
+
 			// Add more XPATH: terms if there's a space in the file name
-			paths.clear();
-			pathTokenizer.tokenize(fileName, paths);
-			for (vector<string>::iterator pathIter = paths.begin();
-				pathIter != paths.end(); ++pathIter)
-			{
-				doc.add_term(string("XPATH:") + XapianDatabase::limitTermLength(Url::escapeUrl(StringManip::toLowerCase(*pathIter)), true));
-			}
+			addPostingsToDocument(Xapian::Utf8Iterator(fileName), doc, db, "XPATH:",
+				true, doSpellingOnPaths, termPos);
 		}
 
 		// Does it have an extension ?
@@ -667,9 +659,7 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::WritableDatabase &db)
 {
 	DocumentInfo docInfo;
-	Dijon::CJKVTokenizer pathTokenizer;
 	set<string> commonTerms;
-	vector<string> paths;
 	string record(doc.get_data());
 
 	// First, remove the magic term
@@ -691,7 +681,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 	if (title.empty() == false)
 	{
 		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, db, "S",
-			language, true, m_doSpelling);
+			true, m_doSpelling);
 	}
 
 	// Location 
@@ -748,12 +738,9 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 		}
 
 		// ...paths
-		pathTokenizer.tokenize(tree, paths);
-		for (vector<string>::iterator pathIter = paths.begin();
-			pathIter != paths.end(); ++pathIter)
-		{
-			commonTerms.insert(string("XPATH:") + XapianDatabase::limitTermLength(Url::escapeUrl(StringManip::toLowerCase(*pathIter)), true));
-		}
+		bool doSpellingOnPaths = false;
+		removePostingsFromDocument(Xapian::Utf8Iterator(tree), doc, db, "XPATH:",
+			true, doSpellingOnPaths);
 	}
 	else
 	{
@@ -768,13 +755,10 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 		commonTerms.insert(string("P") + XapianDatabase::limitTermLength(Url::escapeUrl(fileName), true));
 		if (fileName.find(' ') != string::npos)
 		{
-			paths.clear();
-			pathTokenizer.tokenize(fileName, paths);
-			for (vector<string>::iterator pathIter = paths.begin();
-				pathIter != paths.end(); ++pathIter)
-			{
-				commonTerms.insert(string("XPATH:") + XapianDatabase::limitTermLength(Url::escapeUrl(StringManip::toLowerCase(*pathIter)), true));
-			}
+			bool doSpellingOnPaths = false;
+
+			removePostingsFromDocument(Xapian::Utf8Iterator(fileName), doc, db, "XPATH:",
+				true, doSpellingOnPaths);
 		}
 
 		// Does it have an extension ?
