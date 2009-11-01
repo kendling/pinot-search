@@ -21,6 +21,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <algorithm>
+#include <utility>
 #include <iostream>
 
 #include "SQLiteBase.h"
@@ -29,6 +30,8 @@ using std::clog;
 using std::endl;
 using std::string;
 using std::vector;
+using std::map;
+using std::pair;
 
 static int busyHandler(void *pData, int lockNum)
 {
@@ -36,8 +39,22 @@ static int busyHandler(void *pData, int lockNum)
 	return 1;
 }
 
+// A function object to delete statements with for_each()
+struct DeleteStatementsFunc
+{
+	public:
+		void operator()(map<string, sqlite3_stmt*>::value_type &p)
+		{
+			if (p.second != NULL)
+			{
+				sqlite3_finalize(p.second);
+			}
+		}
+};
+
 SQLiteRow::SQLiteRow(const vector<string> &rowColumns, unsigned int nColumns) :
-	SQLRow(nColumns)
+	SQLRow(nColumns),
+	m_pStatement(NULL)
 {
 	if (rowColumns.empty() == false)
 	{
@@ -54,12 +71,32 @@ SQLiteRow::SQLiteRow(const vector<string> &rowColumns, unsigned int nColumns) :
 	}
 }
 
+SQLiteRow::SQLiteRow(sqlite3_stmt *pStatement, unsigned int nColumns) :
+	SQLRow(nColumns),
+	m_pStatement(pStatement)
+{
+}
+
 SQLiteRow::~SQLiteRow()
 {
 }
 
 string SQLiteRow::getColumn(unsigned int nColumn) const
 {
+	if (m_pStatement != NULL)
+	{
+		const unsigned char *pTextColumn = sqlite3_column_text(m_pStatement, nColumn);
+		if (pTextColumn != NULL)
+		{
+			return (const char*)pTextColumn;
+		}
+#ifdef DEBUG
+		clog << "SQLiteRow::getColumn: couldn't get column " << nColumn << endl;
+#endif
+
+		return "";
+	}
+
 	if (nColumn < m_nColumns)
 	{
 		vector<string>::const_iterator colIter = m_columns.begin();
@@ -80,7 +117,8 @@ string SQLiteRow::getColumn(unsigned int nColumn) const
 
 SQLiteResults::SQLiteResults(char **results, unsigned long nRows, unsigned int nColumns) :
 	SQLResults(nRows, nColumns),
-	m_results(results)
+	m_results(results),
+	m_pStatement(NULL)
 {
 	// Check we actually have results
 	if ((m_results == NULL) ||
@@ -91,13 +129,43 @@ SQLiteResults::SQLiteResults(char **results, unsigned long nRows, unsigned int n
 	}
 }
 
+SQLiteResults::SQLiteResults(sqlite3_stmt *pStatement) :
+	SQLResults(0, sqlite3_column_count(pStatement)),
+	m_results(NULL),
+	m_pStatement(pStatement)
+{
+}
+
 SQLiteResults::~SQLiteResults()
 {
-	sqlite3_free_table(m_results);
+	if (m_results != NULL)
+	{
+		sqlite3_free_table(m_results);
+	}
+	if (m_pStatement != NULL)
+	{
+		rewind();
+	}
+}
+
+bool SQLiteResults::hasMoreRows(void) const
+{
+	if (m_pStatement != NULL)
+	{
+		// There's no way to tell
+		return true;
+	}
+
+	return SQLResults::hasMoreRows();
 }
 
 string SQLiteResults::getColumnName(unsigned int nColumn) const
 {
+	if (m_pStatement != NULL)
+	{
+		return sqlite3_column_name(m_pStatement, (int)nColumn);
+	}
+
 	if (nColumn < m_nColumns)
 	{
 		return m_results[nColumn];
@@ -108,6 +176,20 @@ string SQLiteResults::getColumnName(unsigned int nColumn) const
 
 SQLRow *SQLiteResults::nextRow(void)
 {
+	if (m_pStatement != NULL)
+	{
+		if (sqlite3_step(m_pStatement) == SQLITE_ROW)
+		{
+			++m_nCurrentRow;
+			return new SQLiteRow(m_pStatement, m_nColumns);
+		}
+#ifdef DEBUG
+		clog << "SQLiteResults::nextRow: no more row" << endl;
+#endif
+
+		return NULL;
+	}
+
 	if ((m_nCurrentRow < 0) ||
 		(m_nCurrentRow >= m_nRows))
 	{
@@ -133,6 +215,17 @@ SQLRow *SQLiteResults::nextRow(void)
 	++m_nCurrentRow;
 
 	return new SQLiteRow(rowColumns, m_nColumns);
+}
+
+bool SQLiteResults::rewind(void)
+{
+	SQLResults::rewind();
+	if (m_pStatement != NULL)
+	{
+		sqlite3_reset(m_pStatement);
+	}
+
+	return true;
 }
 
 SQLiteBase::SQLiteBase(const string &databaseName,
@@ -207,6 +300,9 @@ void SQLiteBase::close(void)
 {
 	if (m_pDatabase != NULL)
 	{
+		for_each(m_statements.begin(), m_statements.end(),
+			DeleteStatementsFunc());
+
 		sqlite3_close(m_pDatabase);
 	}
 }
@@ -261,6 +357,28 @@ bool SQLiteBase::alterTable(const string &tableName,
 #endif
 
 	return executeSimpleStatement(sql);
+}
+
+bool SQLiteBase::beginTransaction(void)
+{
+	if (m_onDemand == true)
+	{
+		// Not applicable
+		return true;
+	}
+
+	return executeSimpleStatement("BEGIN TRANSACTION;");
+}
+
+bool SQLiteBase::endTransaction(void)
+{
+	if (m_onDemand == true)
+	{
+		// Not applicable
+		return true;
+	}
+
+	return executeSimpleStatement("END TRANSACTION;");
 }
 
 bool SQLiteBase::executeSimpleStatement(const string &sql)
@@ -372,11 +490,11 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	char *errMsg;
 	int nRows, nColumns;
 	if (sqlite3_get_table(m_pDatabase,
-			stringBuff,
-			&results,
-			&nRows,
-			&nColumns,
-			&errMsg) != SQLITE_OK)
+		stringBuff,
+		&results,
+		&nRows,
+		&nColumns,
+		&errMsg) != SQLITE_OK)
 	{
 		if (errMsg != NULL)
 		{
@@ -400,3 +518,84 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 
 	return pResults;
 }
+
+bool SQLiteBase::prepareStatement(const string &statementId,
+	const string &sqlFormat)
+{
+	if ((sqlFormat.empty() == true) ||
+		(m_onDemand == true) ||
+		(m_pDatabase == NULL))
+	{
+		return false;
+	}
+
+	map<string, sqlite3_stmt*>::iterator statIter = m_statements.find(statementId);
+	if (statIter != m_statements.end())
+	{
+#ifdef DEBUG
+		clog << "SQLiteBase::prepareStatement: invalid statement ID " << statementId << endl;
+#endif
+		return false;
+	}
+
+	sqlite3_stmt *pStatement = NULL;
+	if (sqlite3_prepare_v2(m_pDatabase,
+		sqlFormat.c_str(),
+		(int)sqlFormat.length(),
+		&pStatement,
+		NULL) == SQLITE_OK)
+	{
+		if (pStatement != NULL)
+		{
+#ifdef DEBUG
+			clog << "SQLiteBase::prepareStatement: compiled statement ID " << statementId << endl;
+#endif
+			m_statements.insert(pair<string, sqlite3_stmt*>(statementId, pStatement));
+			return true;
+		}
+	}
+
+	clog << m_databaseName << ": failed to compile statement <" << sqlFormat << ">" << endl;
+
+	return false;
+}
+
+SQLResults * SQLiteBase::executePreparedStatement(const string &statementId,
+	const vector<string> &values)
+{
+	int paramIndex = 1;
+
+	map<string, sqlite3_stmt*>::iterator statIter = m_statements.find(statementId);
+	if (statIter == m_statements.end())
+	{
+#ifdef DEBUG
+		clog << "SQLiteBase::executePreparedStatement: invalid statement ID " << statementId << endl;
+#endif
+		return NULL;
+	}
+
+	// Bind values
+	// The left-most parameter's index is 1
+	for (vector<string>::const_iterator valueIter = values.begin();
+		valueIter != values.end(); ++valueIter, ++paramIndex)
+	{
+		int errorCode = sqlite3_bind_text(statIter->second, paramIndex,
+			valueIter->c_str(), -1, SQLITE_TRANSIENT);
+		if (errorCode != SQLITE_OK)
+		{
+			clog << m_databaseName << ": failed to bind parameter " << paramIndex
+				<< " to statement ID " << statementId << ": error " << errorCode << endl;
+			return NULL;
+		}
+#ifdef DEBUG
+		clog << "SQLiteBase::executePreparedStatement: bound parameter " << paramIndex
+			<< " size " << valueIter->length() << " to statement ID " << statementId << endl;
+#endif
+	}
+
+#ifdef DEBUG
+	clog << "SQLiteBase::executePreparedStatement: statement ID " << statementId << endl;
+#endif
+	return new SQLiteResults(statIter->second);
+}
+

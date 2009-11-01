@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include <sqlite3.h>
 
@@ -31,12 +32,14 @@ class SQLiteRow : public SQLRow
 {
 	public:
 		SQLiteRow(const std::vector<std::string> &rowColumns, unsigned int nColumns);
+		SQLiteRow(sqlite3_stmt *pStatement, unsigned int nColumns);
 		virtual ~SQLiteRow();
 
 		virtual std::string getColumn(unsigned int nColumn) const;
 
 	protected:
 		std::vector<std::string> m_columns;
+		sqlite3_stmt *m_pStatement;
 
 };
 
@@ -45,14 +48,20 @@ class SQLiteResults : public SQLResults
 {
 	public:
 		SQLiteResults(char **results, unsigned long nRows, unsigned int nColumns);
+		SQLiteResults(sqlite3_stmt *pStatement);
 		virtual ~SQLiteResults();
+
+		virtual bool hasMoreRows(void) const;
 
 		virtual std::string getColumnName(unsigned int nColumn) const;
 
 		virtual SQLRow *nextRow(void);
 
+		virtual bool rewind(void);
+
 	protected:
 		char **m_results;
+		sqlite3_stmt *m_pStatement;
 
 	private:
 		SQLiteResults(const SQLiteResults &other);
@@ -76,13 +85,24 @@ class SQLiteBase : public SQLDB
 			const std::string &columns,
 			const std::string &newDefinition);
 
+		virtual bool beginTransaction(void);
+
+		virtual bool endTransaction(void);
+
 		virtual bool executeSimpleStatement(const std::string &sql);
 
 		virtual SQLResults *executeStatement(const char *sqlFormat, ...);
 
+		virtual bool prepareStatement(const std::string &statementId,
+			const std::string &sqlFormat);
+
+		virtual SQLResults *executePreparedStatement(const std::string &statementId,
+			const std::vector<std::string> &values);
+
 	protected:
 		bool m_onDemand;
 		sqlite3 *m_pDatabase;
+		std::map<std::string, sqlite3_stmt*> m_statements;
 
 		void open(void);
 		void close(void);

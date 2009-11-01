@@ -20,6 +20,7 @@
 #define _SQL_DB_H
 
 #include <string>
+#include <vector>
 
 /// A row in a table.
 class SQLRow
@@ -44,7 +45,7 @@ class SQLResults
 	public:
 		virtual ~SQLResults();
 
-		bool hasMoreRows(void) const;
+		virtual bool hasMoreRows(void) const;
 
 		virtual std::string getColumnName(unsigned int nColumn) const = 0;
 
@@ -79,9 +80,19 @@ class SQLDB
 			const std::string &columns,
 			const std::string &newDefinition) = 0;
 
+		virtual bool beginTransaction(void) = 0;
+
+		virtual bool endTransaction(void) = 0;
+
 		virtual bool executeSimpleStatement(const std::string &sql) = 0;
 
 		virtual SQLResults *executeStatement(const char *sqlFormat, ...) = 0;
+
+		virtual bool prepareStatement(const std::string &statementId,
+			const std::string &sqlFormat) = 0;
+
+		virtual SQLResults *executePreparedStatement(const std::string &statementId,
+			const std::vector<std::string> &values) = 0;
 
 	protected:
 		std::string m_databaseName;
