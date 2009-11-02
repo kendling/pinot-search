@@ -26,6 +26,8 @@
 
 #include "SQLiteBase.h"
 
+class ClassItem;
+
 /// Manages crawl history.
 class CrawlHistory : public SQLiteBase
 {
@@ -61,7 +63,7 @@ class CrawlHistory : public SQLiteBase
 		bool updateItem(const std::string &url, CrawlStatus status, time_t date, int errNum = 0);
 
 		/// Updates URLs.
-		bool updateItems(const std::map<std::string, time_t> urls, CrawlStatus status);
+		bool updateItems(const std::map<std::string, class CrawlItem> &items);
 
 		/// Updates the status of items en masse.
 		bool updateItemsStatus(CrawlStatus oldStatus, CrawlStatus newStatus,
@@ -101,6 +103,40 @@ class CrawlHistory : public SQLiteBase
 	private:
 		CrawlHistory(const CrawlHistory &other);
 		CrawlHistory &operator=(const CrawlHistory &other);
+
+};
+
+/// An item in CrawlHistory.
+class CrawlItem
+{
+	public:
+		CrawlItem() :
+			m_itemStatus(CrawlHistory::UNKNOWN),
+			m_itemDate(0),
+			m_errNum(0)
+		{
+		}
+		CrawlItem(CrawlHistory::CrawlStatus itemStatus,
+			time_t itemDate,
+			int errNum) :
+			m_itemStatus(itemStatus),
+			m_itemDate(itemDate),
+			m_errNum(errNum)
+		{
+		}
+		CrawlItem(const CrawlItem &other) :
+			m_itemStatus(other.m_itemStatus),
+			m_itemDate(other.m_itemDate),
+			m_errNum(other.m_errNum)
+		{
+		}
+		~CrawlItem()
+		{
+		}
+
+		CrawlHistory::CrawlStatus m_itemStatus;
+		time_t m_itemDate;
+		int m_errNum;
 
 };
 

@@ -31,13 +31,19 @@
 
 using std::string;
 using std::set;
+using std::vector;
 using std::clog;
 using std::endl;
 
 ActionQueue::ActionQueue(const string &database, const string queueId) :
-	SQLiteBase(database),
+	SQLiteBase(database, false, false),
 	m_queueId(queueId)
 {
+	prepareStatement("select-url",
+		"SELECT Url FROM ActionQueue WHERE QueueId=? AND Url=?;");
+	prepareStatement("select-oldest-url",
+		"SELECT Type, Info FROM ActionQueue "
+		"WHERE QueueId=? ORDER BY Date DESC LIMIT 1;");
 }
 
 ActionQueue::~ActionQueue()
@@ -109,14 +115,15 @@ bool ActionQueue::create(const string &database)
 /// Pushes an item.
 bool ActionQueue::pushItem(ActionType type, const DocumentInfo &docInfo)
 {
+	vector<string> values;
 	string url(docInfo.getLocation());
 	string info(docInfo.serialize());
 	bool update = false, success = false;
 
 	// Is there already an item for this URL ?
-	SQLResults *results = executeStatement("SELECT Url FROM ActionQueue \
-		WHERE QueueId='%q' AND Url='%q';",
-		m_queueId.c_str(), Url::escapeUrl(url).c_str());
+	values.push_back(m_queueId);
+	values.push_back(Url::escapeUrl(url));
+	SQLResults *results = executePreparedStatement("select-url", values);
 	if (results != NULL)
 	{
 		SQLRow *row = results->nextRow();
@@ -194,11 +201,11 @@ bool ActionQueue::popItem(ActionType &type, DocumentInfo &docInfo)
 
 bool ActionQueue::getOldestItem(ActionType &type, DocumentInfo &docInfo)
 {
+	vector<string> values;
 	bool success = false;
 
-	SQLResults *results = executeStatement("SELECT Type, Info FROM ActionQueue \
-		WHERE QueueId='%q' ORDER BY Date DESC LIMIT 1;",
-		m_queueId.c_str());
+	values.push_back(m_queueId);
+	SQLResults *results = executePreparedStatement("select-oldest-url", values);
 	if (results != NULL)
 	{
 		SQLRow *row = results->nextRow();
@@ -248,6 +255,11 @@ bool ActionQueue::expireItems(time_t expiryDate)
 {
 	bool success = false;
 
+	if (beginTransaction() == false)
+	{
+		return false;
+	}
+
 	SQLResults *results = executeStatement("DELETE FROM ActionQueue \
 		WHERE QueueId='%q' AND Date<'%d';",
 		m_queueId.c_str(), expiryDate);
@@ -257,5 +269,11 @@ bool ActionQueue::expireItems(time_t expiryDate)
 		delete results;
 	}
 
+	if (endTransaction() == false)
+	{
+		return false;
+	}
+
 	return success;
 }
+
