@@ -24,7 +24,9 @@ manuals:
 	@help2man --no-info --name "Index documents from the command-line" Core/pinot-index >Core/pinot-index.1
 	@help2man --no-info --name "Label files from the command-line" IndexSearch/pinot-label     >IndexSearch/pinot-label.1
 	@help2man --no-info --name "Query search engines from the command-line" Core/pinot-search  >Core/pinot-search.1
+if HAVE_DBUS
 	@help2man --no-info --name "D-Bus search and index daemon" Core/pinot-dbus-daemon          >Core/pinot-dbus-daemon.1
+endif
 	@help2man --no-info --name "A metasearch tool for the Free Desktop" UI/GTK2/src/pinot      >UI/GTK2/src/pinot.1
 
 install-data-local:
@@ -34,9 +36,12 @@ install-data-local:
 	$(INSTALL_DATA) $(srcdir)/globalconfig.xml $(DESTDIR)$(sysconfdir)/pinot/globalconfig.xml
 	$(INSTALL_DATA) $(srcdir)/textcat_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat_conf.txt
 	$(INSTALL_DATA) $(srcdir)/textcat3_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat3_conf.txt
-	@mkdir -p $(DESTDIR)$(datadir)/pinot $(DESTDIR)$(datadir)/dbus-1/services
-	$(INSTALL_DATA) $(builddir)/Core/de.berlios.Pinot.service $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
+	@mkdir -p $(DESTDIR)$(datadir)/pinot
+if HAVE_DBUS
 	$(INSTALL_DATA) $(srcdir)/Core/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml
+	@mkdir -p $(DESTDIR)$(datadir)/dbus-1/services
+	$(INSTALL_DATA) $(builddir)/Core/de.berlios.Pinot.service $(DESTDIR)$(datadir)/dbus-1/services/de.berlios.Pinot.service
+endif
 	$(INSTALL_DATA) $(srcdir)/UI/GTK2/xapian-powered.png $(DESTDIR)$(datadir)/pinot/xapian-powered.png
 	$(INSTALL_DATA) $(srcdir)/UI/GTK2/metase-gtk2.glade $(DESTDIR)$(datadir)/pinot/metase-gtk2.glade
 	$(INSTALL_DATA) $(srcdir)/UI/GTK2/metase-gtk2.gladep $(DESTDIR)$(datadir)/pinot/metase-gtk2.gladep
@@ -65,7 +70,9 @@ install-data-local:
 	@desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications $(srcdir)/pinot.desktop
 	@desktop-file-install --vendor="" --dir=$(DESTDIR)$(datadir)/applications $(srcdir)/pinot-prefs.desktop
 	@mkdir -p $(DESTDIR)${sysconfdir}/xdg/autostart
+if HAVE_DBUS
 	@desktop-file-install --vendor="" --dir=$(DESTDIR)${sysconfdir}/xdg/autostart $(srcdir)/pinot-dbus-daemon.desktop
+endif
 	@mkdir -p $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 	$(INSTALL_DATA) $(srcdir)/scripts/python/pinot-live.py $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 	@mkdir -p $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/
