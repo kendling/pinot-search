@@ -4,7 +4,6 @@ noinst_HEADERS = \
 	DaemonState.h \
 	OnDiskHandler.h \
 	PinotSettings.h \
-	PinotUtils.h \
 	ServerThreads.h \
 	UniqueApplication.h \
 	WorkerThreads.h
@@ -13,7 +12,6 @@ noinst_LTLIBRARIES = libCore.la
 
 libCore_la_SOURCES = \
 	PinotSettings.cpp \
-	PinotUtils.cpp \
 	UniqueApplication.cpp \
 	WorkerThreads.cpp
 
