@@ -49,8 +49,6 @@
 #include "Url.h"
 #include "HtmlFilter.h"
 #include "FilterUtils.h"
-#include "ActionQueue.h"
-#include "CrawlHistory.h"
 #include "DownloaderFactory.h"
 #include "FilterWrapper.h"
 #include "ModuleFactory.h"
@@ -278,6 +276,7 @@ unsigned int ThreadsManager::m_nextThreadId = 1;
 ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	unsigned int maxIndexThreads, unsigned int maxThreadsTime,
 	bool scanLocalFiles) :
+	m_actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name()),
 	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(maxIndexThreads),
 	m_backgroundThreadsCount(0),
@@ -508,9 +507,7 @@ void ThreadsManager::clear_queues(void)
 
 		unlock_lists();
 
-		ActionQueue actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
-
-		actionQueue.expireItems(time(NULL));
+		m_actionQueue.expireItems(time(NULL));
 	}
 }
 
@@ -699,9 +696,7 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 
 	if (addToQueue == true)
 	{
-		ActionQueue actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
-
-		actionQueue.pushItem(ActionQueue::INDEX, docInfo);
+		m_actionQueue.pushItem(ActionQueue::INDEX, docInfo);
 
 		return "";
 	}
@@ -742,7 +737,6 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 		// Get an item ?
 		if (getItem == true)
 		{
-			ActionQueue actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name());
 			ActionQueue::ActionType type;
 			DocumentInfo docInfo;
 			string previousLocation;
@@ -750,7 +744,7 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 			// Assume the queue is empty
 			emptyQueue = true;
 
-			while (actionQueue.popItem(type, docInfo) == true)
+			while (m_actionQueue.popItem(type, docInfo) == true)
 			{
 				ustring status;
 
@@ -1730,6 +1724,7 @@ MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandle
 	WorkerThread(),
 	m_ctrlReadPipe(-1),
 	m_ctrlWritePipe(-1),
+	m_crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName()),
 	m_pMonitor(pMonitor),
 	m_pHandler(pHandler),
 	m_checkHistory(checkHistory)
@@ -1774,7 +1769,6 @@ void MonitorThread::stop(void)
 
 void MonitorThread::processEvents(void)
 {
-	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 	queue<MonitorEvent> events;
 
 #ifdef DEBUG
@@ -1850,7 +1844,7 @@ void MonitorThread::processEvents(void)
 				{
 					m_pHandler->fileModified(event.m_location);
 				}
-				else if (crawlHistory.hasItem("file://" + event.m_location, status, itemDate) == true)
+				else if (m_crawlHistory.hasItem("file://" + event.m_location, status, itemDate) == true)
 				{
 					// Was the file actually modified ?
 					if ((stat(event.m_location.c_str(), &fileStat) == 0) &&
@@ -2015,7 +2009,7 @@ sigc::signal2<void, DocumentInfo, bool>& DirectoryScannerThread::getFileFoundSig
 	return m_signalFileFound;
 }
 
-void DirectoryScannerThread::cacheUpdate(const string &location, time_t itemDate)
+void DirectoryScannerThread::recordCrawled(const string &location, time_t itemDate)
 {
 	// Nothing to do by default
 }
@@ -2378,7 +2372,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 	else if ((itemExists == false) ||
 		(reportFile == true))
 	{
-		cacheUpdate(location, fileStat.st_mtime);
+		recordCrawled(location, fileStat.st_mtime);
 	}
 
 	// If a major error occured, this won't be true

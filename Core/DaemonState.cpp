@@ -321,6 +321,7 @@ DaemonState::DaemonState() :
 	m_isReindex(false),
 	m_reload(false),
 	m_flush(false),
+	m_crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName()),
 	m_pDiskMonitor(MonitorFactory::getMonitor()),
 	m_pDiskHandler(NULL),
 	m_crawlers(0)
@@ -527,12 +528,10 @@ void DaemonState::start(bool isReindex)
 	cout << "DaemonState::start: " << m_crawlQueue.size() << " locations to crawl" << endl;
 #endif
 
-	CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
-
 	// Update all items status so that we can get rid of files from deleted sources
-	crawlHistory.updateItemsStatus(CrawlHistory::CRAWLING, CrawlHistory::TO_CRAWL, 0, true);
-	crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::TO_CRAWL, 0, true);
-	crawlHistory.updateItemsStatus(CrawlHistory::CRAWL_ERROR, CrawlHistory::TO_CRAWL, 0, true);
+	m_crawlHistory.updateItemsStatus(CrawlHistory::CRAWLING, CrawlHistory::TO_CRAWL, 0, true);
+	m_crawlHistory.updateItemsStatus(CrawlHistory::CRAWLED, CrawlHistory::TO_CRAWL, 0, true);
+	m_crawlHistory.updateItemsStatus(CrawlHistory::CRAWL_ERROR, CrawlHistory::TO_CRAWL, 0, true);
 
 	// Initiate crawling
 	start_crawling();
@@ -567,12 +566,11 @@ bool DaemonState::start_crawling(void)
 			}
 			else
 			{
-				CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
 				set<string> deletedFiles;
 
 				// All files left with status TO_CRAWL belong to deleted sources
 				if ((m_pDiskHandler != NULL) &&
-					(crawlHistory.getItems(CrawlHistory::TO_CRAWL, deletedFiles) > 0))
+					(m_crawlHistory.getItems(CrawlHistory::TO_CRAWL, deletedFiles) > 0))
 				{
 #ifdef DEBUG
 					cout << "DaemonState::start_crawling: " << deletedFiles.size() << " orphaned files" << endl;
@@ -584,7 +582,7 @@ bool DaemonState::start_crawling(void)
 						m_pDiskHandler->fileDeleted(fileIter->substr(7));
 
 						// Delete this item
-						crawlHistory.deleteItem(*fileIter);
+						m_crawlHistory.deleteItem(*fileIter);
 					}
 				}
 			}
@@ -668,10 +666,8 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		if ((errorNum > 0) &&
 			(indexedUrl.empty() == false))
 		{
-			CrawlHistory crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName());
-
 			// An entry should already exist for this
-			crawlHistory.updateItem(indexedUrl, CrawlHistory::CRAWL_ERROR, time(NULL), errorNum);
+			m_crawlHistory.updateItem(indexedUrl, CrawlHistory::CRAWL_ERROR, time(NULL), errorNum);
 		}
 	}
 	else if (type == "UnindexingThread")

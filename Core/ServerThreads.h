@@ -51,11 +51,11 @@ class CrawlerThread : public DirectoryScannerThread
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
 		CrawlHistory m_crawlHistory;
-		std::map<std::string, time_t> m_updateCache;
+		std::map<std::string, CrawlItem> m_crawlCache;
 		std::stack<std::string> m_currentLinks;
 		std::stack<std::string> m_currentLinkReferrees;
 
-		virtual void cacheUpdate(const std::string &location, time_t itemDate);
+		virtual void recordCrawled(const std::string &location, time_t itemDate);
 		virtual bool isIndexable(const std::string &entryName) const;
 		virtual bool wasCrawled(const std::string &location, time_t &itemDate);
 		virtual void recordCrawling(const std::string &location, bool itemExists, time_t &itemDate);

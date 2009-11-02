@@ -25,6 +25,7 @@
 #include <set>
 #include <sigc++/sigc++.h>
 
+#include "CrawlHistory.h"
 #ifdef HAVE_DBUS
 #include "DBusIndex.h"
 #endif
@@ -97,6 +98,7 @@ class DaemonState : public ThreadsManager
 		bool m_reload;
 		bool m_flush;
 		fd_set m_flagsSet;
+		CrawlHistory m_crawlHistory;
 		MonitorInterface *m_pDiskMonitor;
 		MonitorHandler *m_pDiskHandler;
 		sigc::connection m_timeoutConnection;

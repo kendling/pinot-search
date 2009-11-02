@@ -167,12 +167,21 @@ string CrawlerThread::getType(void) const
 	return "CrawlerThread";
 }
 
-void CrawlerThread::cacheUpdate(const string &location, time_t itemDate)
+void CrawlerThread::recordCrawled(const string &location, time_t itemDate)
 {
-	m_updateCache[location] = itemDate;
-	if (m_updateCache.size() > 500)
+	// It may still be in the cache
+	map<string, CrawlItem>::iterator updateIter = m_crawlCache.find(location);
+	if (updateIter != m_crawlCache.end())
 	{
-		flushUpdates();
+		updateIter->second.m_itemStatus = CrawlHistory::CRAWLED;
+	}
+	else
+	{
+		m_crawlCache[location] = CrawlItem(CrawlHistory::CRAWLED, itemDate, 0);
+		if (m_crawlCache.size() > 500)
+		{
+			flushUpdates();
+		}
 	}
 }
 
@@ -204,6 +213,16 @@ bool CrawlerThread::wasCrawled(const string &location, time_t &itemDate)
 {
 	CrawlHistory::CrawlStatus itemStatus = CrawlHistory::UNKNOWN;
 
+	// Is it in the cache ?
+	map<string, CrawlItem>::const_iterator updateIter = m_crawlCache.find(location);
+	if (updateIter != m_crawlCache.end())
+	{
+		itemStatus = updateIter->second.m_itemStatus;
+		itemDate = updateIter->second.m_itemDate;
+
+		return true;
+	}
+
 	return m_crawlHistory.hasItem(location, itemStatus, itemDate);
 }
 
@@ -217,13 +236,32 @@ void CrawlerThread::recordCrawling(const string &location, bool itemExists, time
 	else
 	{
 		// Change the status from TO_CRAWL to CRAWLING
-		m_crawlHistory.updateItem(location, CrawlHistory::CRAWLING, itemDate);
+		m_crawlCache[location] = CrawlItem(CrawlHistory::CRAWLING, itemDate, 0);
+		if (m_crawlCache.size() > 500)
+		{
+			flushUpdates();
+		}
 	}
 }
 
 void CrawlerThread::recordError(const string &location, int errorCode)
 {
-	m_crawlHistory.updateItem(location, CrawlHistory::CRAWL_ERROR, time(NULL), errorCode);
+	// It may still be in the cache
+	map<string, CrawlItem>::iterator updateIter = m_crawlCache.find(location);
+	if (updateIter != m_crawlCache.end())
+	{
+		updateIter->second.m_itemStatus = CrawlHistory::CRAWL_ERROR;
+		updateIter->second.m_itemDate = time(NULL);
+		updateIter->second.m_errNum = errorCode;
+	}
+	else
+	{
+		m_crawlCache[location] = CrawlItem(CrawlHistory::CRAWL_ERROR, time(NULL), errorCode);
+		if (m_crawlCache.size() > 500)
+		{
+			flushUpdates();
+		}
+	}
 }
 
 void CrawlerThread::recordSymlink(const string &location, time_t itemDate)
@@ -262,8 +300,8 @@ void CrawlerThread::flushUpdates(void)
 #endif
 
 	// Update these records
-	m_crawlHistory.updateItems(m_updateCache, CrawlHistory::CRAWLED);
-	m_updateCache.clear();
+	m_crawlHistory.updateItems(m_crawlCache);
+	m_crawlCache.clear();
 
 #ifdef DEBUG
 	cout << "CrawlerThread::flushUpdates: flushed updates" << endl;

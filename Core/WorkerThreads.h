@@ -33,6 +33,8 @@
 #include <glibmm/ustring.h>
 
 #include "Document.h"
+#include "ActionQueue.h"
+#include "CrawlHistory.h"
 #include "DownloaderInterface.h"
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
@@ -145,6 +147,7 @@ class ThreadsManager : virtual public sigc::trackable
 		pthread_rwlock_t m_threadsLock;
 		pthread_rwlock_t m_listsLock;
 		std::map<unsigned int, WorkerThread *> m_threads;
+		ActionQueue m_actionQueue;
 		std::string m_defaultIndexLocation;
 		unsigned int m_maxIndexThreads;
 		unsigned int m_backgroundThreadsCount;
@@ -375,6 +378,7 @@ class MonitorThread : public WorkerThread
 	protected:
 		int m_ctrlReadPipe;
 		int m_ctrlWritePipe;
+		CrawlHistory m_crawlHistory;
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
 		bool m_checkHistory;
@@ -414,7 +418,7 @@ class DirectoryScannerThread : public IndexingThread
 		std::stack<std::string> m_currentLinks;
 		std::stack<std::string> m_currentLinkReferrees;
 
-		virtual void cacheUpdate(const std::string &location, time_t itemDate);
+		virtual void recordCrawled(const std::string &location, time_t itemDate);
 		virtual bool isIndexable(const std::string &entryName) const;
 		virtual bool wasCrawled(const std::string &location, time_t &itemDate);
 		virtual void recordCrawling(const std::string &location, bool itemExists, time_t &itemDate);
