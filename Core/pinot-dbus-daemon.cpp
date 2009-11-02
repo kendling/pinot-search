@@ -675,16 +675,16 @@ int main(int argc, char **argv)
 
 			if (resetHistory == true)
 			{
-				CrawlHistory history(historyDatabase);
+				CrawlHistory crawlHistory(historyDatabase);
 				map<unsigned int, string> sources;
 
 				// Reset the history
-				history.getSources(sources);
+				crawlHistory.getSources(sources);
 				for (std::map<unsigned int, string>::iterator sourceIter = sources.begin();
 					sourceIter != sources.end(); ++sourceIter)
 				{
-					history.deleteItems(sourceIter->first);
-					history.deleteSource(sourceIter->first);
+					crawlHistory.deleteItems(sourceIter->first);
+					crawlHistory.deleteSource(sourceIter->first);
 				}
 
 				cout << "Reset crawler history" << endl;
