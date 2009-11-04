@@ -16,10 +16,10 @@
 <INPUTNEXT NAME="first" FACTOR="10">
 
 <INTERPRET
-resultListStart='<div id="results">'
+resultListStart='<div id="results_container">'
 resultListEnd='</html>'
 resultItemStart='<div class="sb_tlst">'
-resultItemEnd=' </ul></li>'
+resultItemEnd='</div></li>'
 >
 
 </SEARCH>
