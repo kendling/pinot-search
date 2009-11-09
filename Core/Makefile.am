@@ -18,7 +18,7 @@ libCore_la_SOURCES = \
 if HAVE_DBUS
 bin_PROGRAMS = pinot-index pinot-search pinot-dbus-daemon
 else
-bin_PROGRAMS = pinot-index pinot-search
+bin_PROGRAMS = pinot-index pinot-search pinot-daemon
 endif
 
 AM_CXXFLAGS = \
@@ -96,4 +96,27 @@ pinot_dbus_daemon_SOURCES = \
 	pinot-dbus-daemon.cpp
 
 pinot_dbus_daemon_DEPENDENCIES = libCore.la
+
+pinot_daemon_LDFLAGS = \
+	-export-dynamic
+
+pinot_daemon_LDADD = \
+	-L$(top_builddir)/Utils \
+	-L$(top_builddir)/Tokenize \
+	-L$(top_builddir)/SQL \
+	-L$(top_builddir)/Monitor \
+	-L$(top_builddir)/Collect \
+	-L$(top_builddir)/IndexSearch \
+	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
+	-lTokenize -lBasicUtils -lUtils @LIBS@ \
+	@GLIBMM_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
+	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
+
+pinot_daemon_SOURCES = \
+	DaemonState.cpp \
+	OnDiskHandler.cpp \
+	ServerThreads.cpp \
+	pinot-dbus-daemon.cpp
+
+pinot_daemon_DEPENDENCIES = libCore.la
 
