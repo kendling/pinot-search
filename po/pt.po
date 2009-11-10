@@ -4,80 +4,80 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.94\n"
+"Project-Id-Version: pinot 0.95\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-27 11:03+0800\n"
-"PO-Revision-Date: 2009-02-22 20:27+0000\n"
-"Last-Translator: Flávio Martins <xhaker@gmail.com>\n"
+"POT-Creation-Date: 2009-09-19 14:25+0800\n"
+"PO-Revision-Date: 2009-11-04 18:36+0000\n"
+"Last-Translator: Bernardo Lopes <Unknown>\n"
 "Language-Team: Portuguese <pt@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2009-02-28 15:40+0000\n"
+"X-Launchpad-Export-Date: 2009-11-09 21:48+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:440 UI/GTK2/src/pinot.cc:300
+#: Core/pinot-dbus-daemon.cpp:468 UI/GTK2/src/pinot.cc:309
 msgid "Unknown"
 msgstr "Desconhecido"
 
-#: Core/pinot-dbus-daemon.cpp:441 UI/GTK2/src/pinot.cc:301
+#: Core/pinot-dbus-daemon.cpp:469 UI/GTK2/src/pinot.cc:310
 msgid "Danish"
 msgstr "Dinamarquês"
 
-#: Core/pinot-dbus-daemon.cpp:442 UI/GTK2/src/pinot.cc:302
+#: Core/pinot-dbus-daemon.cpp:470 UI/GTK2/src/pinot.cc:311
 msgid "Dutch"
 msgstr "Holandês"
 
-#: Core/pinot-dbus-daemon.cpp:443 UI/GTK2/src/pinot.cc:303
+#: Core/pinot-dbus-daemon.cpp:471 UI/GTK2/src/pinot.cc:312
 msgid "English"
 msgstr "Inglês"
 
-#: Core/pinot-dbus-daemon.cpp:444 UI/GTK2/src/pinot.cc:304
+#: Core/pinot-dbus-daemon.cpp:472 UI/GTK2/src/pinot.cc:313
 msgid "Finnish"
 msgstr "Finlândes"
 
-#: Core/pinot-dbus-daemon.cpp:445 UI/GTK2/src/pinot.cc:305
+#: Core/pinot-dbus-daemon.cpp:473 UI/GTK2/src/pinot.cc:314
 msgid "French"
 msgstr "Francês"
 
-#: Core/pinot-dbus-daemon.cpp:446 UI/GTK2/src/pinot.cc:306
+#: Core/pinot-dbus-daemon.cpp:474 UI/GTK2/src/pinot.cc:315
 msgid "German"
 msgstr "Alemão"
 
-#: Core/pinot-dbus-daemon.cpp:447 UI/GTK2/src/pinot.cc:307
+#: Core/pinot-dbus-daemon.cpp:475 UI/GTK2/src/pinot.cc:316
 msgid "Hungarian"
 msgstr "Húngaro"
 
-#: Core/pinot-dbus-daemon.cpp:448 UI/GTK2/src/pinot.cc:308
+#: Core/pinot-dbus-daemon.cpp:476 UI/GTK2/src/pinot.cc:317
 msgid "Italian"
 msgstr "Italiano"
 
-#: Core/pinot-dbus-daemon.cpp:449 UI/GTK2/src/pinot.cc:309
+#: Core/pinot-dbus-daemon.cpp:477 UI/GTK2/src/pinot.cc:318
 msgid "Norwegian"
 msgstr "Norueguês"
 
-#: Core/pinot-dbus-daemon.cpp:450 UI/GTK2/src/pinot.cc:310
+#: Core/pinot-dbus-daemon.cpp:478 UI/GTK2/src/pinot.cc:319
 msgid "Portuguese"
 msgstr "Português"
 
-#: Core/pinot-dbus-daemon.cpp:451 UI/GTK2/src/pinot.cc:311
+#: Core/pinot-dbus-daemon.cpp:479 UI/GTK2/src/pinot.cc:320
 msgid "Romanian"
 msgstr "Romeno"
 
-#: Core/pinot-dbus-daemon.cpp:452 UI/GTK2/src/pinot.cc:312
+#: Core/pinot-dbus-daemon.cpp:480 UI/GTK2/src/pinot.cc:321
 msgid "Russian"
 msgstr "Russo"
 
-#: Core/pinot-dbus-daemon.cpp:453 UI/GTK2/src/pinot.cc:313
+#: Core/pinot-dbus-daemon.cpp:481 UI/GTK2/src/pinot.cc:322
 msgid "Spanish"
 msgstr "Espanhol"
 
-#: Core/pinot-dbus-daemon.cpp:454 UI/GTK2/src/pinot.cc:314
+#: Core/pinot-dbus-daemon.cpp:482 UI/GTK2/src/pinot.cc:323
 msgid "Swedish"
 msgstr "Sueco"
 
-#: Core/pinot-dbus-daemon.cpp:455 UI/GTK2/src/pinot.cc:315
+#: Core/pinot-dbus-daemon.cpp:483 UI/GTK2/src/pinot.cc:324
 msgid "Turkish"
 msgstr "Turco"
 
@@ -85,7 +85,7 @@ msgstr "Turco"
 #. Apply this label
 #. Is this an internal index ?
 #: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1712
-#: Core/WorkerThreads.cpp:1026 UI/GTK2/src/mainWindow.cc:859
+#: Core/WorkerThreads.cpp:1042 UI/GTK2/src/mainWindow.cc:859
 #: UI/GTK2/src/mainWindow.cc:1125 UI/GTK2/src/mainWindow.cc:1388
 #: UI/GTK2/src/mainWindow.cc:1548 UI/GTK2/src/mainWindow.cc:1551
 #: UI/GTK2/src/mainWindow.cc:1655 UI/GTK2/src/mainWindow.cc:1689
@@ -96,7 +96,7 @@ msgstr "As minhas páginas Web"
 
 #. Spawn new threads
 #: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1713
-#: Core/WorkerThreads.cpp:1036 UI/GTK2/src/mainWindow.cc:1120
+#: Core/WorkerThreads.cpp:1052 UI/GTK2/src/mainWindow.cc:1120
 #: UI/GTK2/src/mainWindow.cc:1378 UI/GTK2/src/mainWindow.cc:1392
 #: UI/GTK2/src/mainWindow.cc:1559 UI/GTK2/src/mainWindow.cc:1562
 #: UI/GTK2/src/mainWindow.cc:2427 UI/GTK2/src/statisticsDialog.cc:163
@@ -148,88 +148,88 @@ msgstr "10kb e menor"
 msgid "Unclassified"
 msgstr "Não classificado"
 
-#: Core/WorkerThreads.cpp:94
+#: Core/WorkerThreads.cpp:98
 msgid "Index error"
 msgstr "Erro na indexação"
 
-#: Core/WorkerThreads.cpp:96
+#: Core/WorkerThreads.cpp:100
 msgid "Couldn't index document"
 msgstr "Não foi possível indexar o documento"
 
-#: Core/WorkerThreads.cpp:98
+#: Core/WorkerThreads.cpp:102
 msgid "Couldn't update document"
 msgstr "Não foi possível actualizar o documento"
 
-#: Core/WorkerThreads.cpp:100
+#: Core/WorkerThreads.cpp:104
 msgid "Couldn't unindex document(s)"
 msgstr "Não foi possível remover documento(s) do índice"
 
-#: Core/WorkerThreads.cpp:102
+#: Core/WorkerThreads.cpp:106
 msgid "Couldn't run query on search engine"
 msgstr "Não foi possível efectuar consulta no mecanismo de pesquisa"
 
-#: Core/WorkerThreads.cpp:104
+#: Core/WorkerThreads.cpp:108
 msgid "Couldn't get history for search engine"
 msgstr "Não foi possível obter o histórico do mecanismo de pesquisa"
 
-#: Core/WorkerThreads.cpp:106
+#: Core/WorkerThreads.cpp:110
 msgid "Couldn't retrieve document"
 msgstr "Não foi possível obter o documento"
 
-#: Core/WorkerThreads.cpp:108
+#: Core/WorkerThreads.cpp:112
 msgid "File monitor error"
 msgstr "Monitor de erros de ficheiro"
 
-#: Core/WorkerThreads.cpp:110
+#: Core/WorkerThreads.cpp:114
 msgid "Couldn't open directory"
 msgstr "Não foi possível abrir o directório"
 
-#: Core/WorkerThreads.cpp:112
+#: Core/WorkerThreads.cpp:116
 msgid "Index doesn't exist"
 msgstr "Índice não existe"
 
-#: Core/WorkerThreads.cpp:114
+#: Core/WorkerThreads.cpp:118
 msgid "Couldn't create search engine"
 msgstr "Não foi possível criar mecanismo de pesquisa"
 
-#: Core/WorkerThreads.cpp:116
+#: Core/WorkerThreads.cpp:120
 msgid "Cannot index document type"
 msgstr "Impossível indexar tipo de ficheiro"
 
-#: Core/WorkerThreads.cpp:118
+#: Core/WorkerThreads.cpp:122
 msgid "No downloader for this protocol"
 msgstr "Não existe programa para efectuar a transferência neste protocolo"
 
-#: Core/WorkerThreads.cpp:120
+#: Core/WorkerThreads.cpp:124
 msgid "Robots META tag forbids indexing"
 msgstr "Robots META tag não são permitidos no índice"
 
-#: Core/WorkerThreads.cpp:122
+#: Core/WorkerThreads.cpp:126
 msgid "No monitoring handler"
 msgstr "Nenhum programa de monitorização"
 
-#: Core/WorkerThreads.cpp:127 UI/GTK2/src/statisticsDialog.cc:245
+#: Core/WorkerThreads.cpp:131 UI/GTK2/src/statisticsDialog.cc:245
 #: UI/GTK2/src/statisticsDialog.cc:263
 msgid "Unknown error"
 msgstr "Erro desconhecido"
 
-#: Core/WorkerThreads.cpp:424
+#: Core/WorkerThreads.cpp:440
 msgid "Indexing was stopped"
 msgstr "A indexação foi parada"
 
-#: Core/WorkerThreads.cpp:437
+#: Core/WorkerThreads.cpp:453
 msgid "Can't index mail here"
 msgstr "Não foi possível indexar o mail aqui"
 
-#: Core/WorkerThreads.cpp:458 Core/WorkerThreads.cpp:754
+#: Core/WorkerThreads.cpp:474 Core/WorkerThreads.cpp:770
 msgid "is already being indexed"
 msgstr "já está a ser indexado"
 
-#: Core/WorkerThreads.cpp:468
+#: Core/WorkerThreads.cpp:484
 msgid "is blacklisted"
 msgstr "está na lista negra"
 
-#: Core/WorkerThreads.cpp:989
+#: Core/WorkerThreads.cpp:1005
 msgid "No title"
 msgstr "Sem título"
 
@@ -381,7 +381,8 @@ msgstr "Pronto"
 
 #: UI/GTK2/src/mainWindow.cc:280
 msgid "Updating all documents in My Web Pages is recommended"
-msgstr "A actualizar todos os documentos nas Minhas Páginas Web é recomendado"
+msgstr ""
+"A actualizar todos os documentos nas Minhas Páginas Web é recomendado"
 
 #: UI/GTK2/src/mainWindow.cc:288
 msgid "Don't warn me again"
@@ -668,21 +669,21 @@ msgstr "Quis dizer ?"
 msgid "Close"
 msgstr "Fechar"
 
-#: UI/GTK2/src/pinot.cc:341
+#: UI/GTK2/src/pinot.cc:350
 msgid "Couldn't open index"
 msgstr "Não foi possível abrir o índice"
 
-#: UI/GTK2/src/pinot.cc:362
+#: UI/GTK2/src/pinot.cc:371
 msgid "Couldn't create history database"
 msgstr "Não foi possível criar base de dados do histórico"
 
 #: UI/GTK2/src/prefsWindow.cc:149
 msgid "File Indexing and Search"
-msgstr ""
+msgstr "Indexação de Ficheiros e Pesquisa"
 
 #: UI/GTK2/src/prefsWindow.cc:150
 msgid "Configure Pinot to index your files"
-msgstr ""
+msgstr "Configurar Pinot para indexar os seus ficheiros"
 
 #: UI/GTK2/src/prefsWindow.cc:208
 msgid "Name"
@@ -717,7 +718,8 @@ msgid "New Label"
 msgstr "Novo título"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:69
-msgid "These directories will be indexed and optionally monitored for changes:"
+msgid ""
+"These directories will be indexed and optionally monitored for changes:"
 msgstr ""
 "Directórios que serão indexados e opcionalmente serão monitorizadas as "
 "alterações:"
@@ -854,9 +856,8 @@ msgid "Directory"
 msgstr "Directório"
 
 #: UI/GTK2/src/queryDialog.cc:116
-#, fuzzy
 msgid "In URL"
-msgstr "URL"
+msgstr ""
 
 #: UI/GTK2/src/queryDialog.cc:117
 msgid "Path"
@@ -1006,7 +1007,3 @@ msgstr "A recolher"
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "Erros"
-
-#, fuzzy
-#~ msgid "File container"
-#~ msgstr "Nome do ficheiro"

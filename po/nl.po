@@ -4,9 +4,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.94\n"
+"Project-Id-Version: pinot 0.95\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-10-21 00:44+0800\n"
+"POT-Creation-Date: 2009-11-09 22:24+0800\n"
 "PO-Revision-Date: 2009-10-20 18:58+0000\n"
 "Last-Translator: JW <jw00000@gmail.com>\n"
 "Language-Team: Dutch <nl@li.org>\n"
@@ -85,7 +85,7 @@ msgstr "Turks"
 #. Apply this label
 #. Is this an internal index ?
 #: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1712
-#: Core/WorkerThreads.cpp:1042 UI/GTK2/src/mainWindow.cc:873
+#: Core/WorkerThreads.cpp:1036 UI/GTK2/src/mainWindow.cc:873
 #: UI/GTK2/src/mainWindow.cc:1139 UI/GTK2/src/mainWindow.cc:1402
 #: UI/GTK2/src/mainWindow.cc:1562 UI/GTK2/src/mainWindow.cc:1565
 #: UI/GTK2/src/mainWindow.cc:1669 UI/GTK2/src/mainWindow.cc:1703
@@ -96,7 +96,7 @@ msgstr "Mijn webpagina's"
 
 #. Spawn new threads
 #: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1713
-#: Core/WorkerThreads.cpp:1052 UI/GTK2/src/mainWindow.cc:1134
+#: Core/WorkerThreads.cpp:1046 UI/GTK2/src/mainWindow.cc:1134
 #: UI/GTK2/src/mainWindow.cc:1392 UI/GTK2/src/mainWindow.cc:1406
 #: UI/GTK2/src/mainWindow.cc:1573 UI/GTK2/src/mainWindow.cc:1576
 #: UI/GTK2/src/mainWindow.cc:2441 UI/GTK2/src/statisticsDialog.cc:163
@@ -148,88 +148,88 @@ msgstr "10kb en kleiner"
 msgid "Unclassified"
 msgstr "Niet geclassificeerd"
 
-#: Core/WorkerThreads.cpp:98
+#: Core/WorkerThreads.cpp:96
 msgid "Index error"
 msgstr "Indexfout"
 
-#: Core/WorkerThreads.cpp:100
+#: Core/WorkerThreads.cpp:98
 msgid "Couldn't index document"
 msgstr "Het document kon niet geïndexeerd worden"
 
-#: Core/WorkerThreads.cpp:102
+#: Core/WorkerThreads.cpp:100
 msgid "Couldn't update document"
 msgstr "Kan document niet actualiseren"
 
-#: Core/WorkerThreads.cpp:104
+#: Core/WorkerThreads.cpp:102
 msgid "Couldn't unindex document(s)"
 msgstr "Kan indexering van bestand(en) niet ongedaan maken"
 
-#: Core/WorkerThreads.cpp:106
+#: Core/WorkerThreads.cpp:104
 msgid "Couldn't run query on search engine"
 msgstr "Kon query niet uitvoeren op zoekmachine"
 
-#: Core/WorkerThreads.cpp:108
+#: Core/WorkerThreads.cpp:106
 msgid "Couldn't get history for search engine"
 msgstr "De geschiedenis voor de zoekmachine kon niet verkregen worden"
 
-#: Core/WorkerThreads.cpp:110
+#: Core/WorkerThreads.cpp:108
 msgid "Couldn't retrieve document"
 msgstr "Het document kon niet verkregen worden"
 
-#: Core/WorkerThreads.cpp:112
+#: Core/WorkerThreads.cpp:110
 msgid "File monitor error"
 msgstr "Fout bij het bijhouden van bestanden"
 
-#: Core/WorkerThreads.cpp:114
+#: Core/WorkerThreads.cpp:112
 msgid "Couldn't open directory"
 msgstr "De map kon niet geopend worden"
 
-#: Core/WorkerThreads.cpp:116
+#: Core/WorkerThreads.cpp:114
 msgid "Index doesn't exist"
 msgstr "De index bestaat niet"
 
-#: Core/WorkerThreads.cpp:118
+#: Core/WorkerThreads.cpp:116
 msgid "Couldn't create search engine"
 msgstr "Kon zoekmachine niet maken"
 
-#: Core/WorkerThreads.cpp:120
+#: Core/WorkerThreads.cpp:118
 msgid "Cannot index document type"
 msgstr "Kan documenttype niet indexeren"
 
-#: Core/WorkerThreads.cpp:122
+#: Core/WorkerThreads.cpp:120
 msgid "No downloader for this protocol"
 msgstr "Er is geen downloader voor dit protocol"
 
-#: Core/WorkerThreads.cpp:124
+#: Core/WorkerThreads.cpp:122
 msgid "Robots META tag forbids indexing"
 msgstr "Robots META taf verbiedt indexeren"
 
-#: Core/WorkerThreads.cpp:126
+#: Core/WorkerThreads.cpp:124
 msgid "No monitoring handler"
 msgstr "Geen monitoring handler"
 
-#: Core/WorkerThreads.cpp:131 UI/GTK2/src/statisticsDialog.cc:245
+#: Core/WorkerThreads.cpp:129 UI/GTK2/src/statisticsDialog.cc:245
 #: UI/GTK2/src/statisticsDialog.cc:263
 msgid "Unknown error"
 msgstr "Onbekende fout."
 
-#: Core/WorkerThreads.cpp:440
+#: Core/WorkerThreads.cpp:439
 msgid "Indexing was stopped"
 msgstr "Indexeren is gestopt"
 
-#: Core/WorkerThreads.cpp:453
+#: Core/WorkerThreads.cpp:452
 msgid "Can't index mail here"
 msgstr "Kan mail hier niet indexeren"
 
-#: Core/WorkerThreads.cpp:474 Core/WorkerThreads.cpp:770
+#: Core/WorkerThreads.cpp:473 Core/WorkerThreads.cpp:764
 msgid "is already being indexed"
 msgstr "wordt al geindexeerd"
 
-#: Core/WorkerThreads.cpp:484
+#: Core/WorkerThreads.cpp:483
 msgid "is blacklisted"
 msgstr "staat op blacklist"
 
-#: Core/WorkerThreads.cpp:1005
+#: Core/WorkerThreads.cpp:999
 msgid "No title"
 msgstr "Geen titel"
 
