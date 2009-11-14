@@ -1,3 +1,26 @@
+2009/11/14 version_0_9_5
+General :
+ - OpenBSD support, thanks to the work of Antoine Jacoutot
+ - fixed build when HAVE_DBUS isn't set
+SQL :
+ - use prepared statements on most common queries, transactions on mass updates
+Tokenize :
+ - better handling of acronyms
+IndexSearch :
+ - updated Bing plugin
+ - removed plugins for Exalead and IOI
+Xapian :
+ - fixed the "path:" operator. Reindexing may be necessary
+ - rewrote Search This For feature
+UI :
+ - if gtkmm >= 2.16 is available, the Find button is replaced with an icon
+ - updated Dutch translation by JW
+ - updated French translation by Thierry Thomas
+ - updated German translation by Fabian Affolter and Marco Jahn
+ - updated Hebrew translation by Ddorda
+ - updated Portuguese translation by Bernardo Lopes
+ - updated Spanish translation by Jesus Tramullas and DiegoJ
+
 2009/06/27 version_0_9_4
 General :
  - set _FILE_OFFSET_BITS=64 and fix Debian bug #530572

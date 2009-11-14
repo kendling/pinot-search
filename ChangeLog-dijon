@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r166 | fabricecolin | 2009-10-25 13:05:41 +0800 (Sun, 25 Oct 2009) | 3 lines
+Changed paths:
+   M /trunk/cjkv/CJKVTokenizer.cc
+   M /trunk/cjkv/CJKVTokenizer.h
+
+Don't skip dots, they are useful for acronyms.
+Both overloads of tokenize() take break_ascii_only_on_space.
+
+------------------------------------------------------------------------
 r164 | fabricecolin | 2009-06-27 09:53:49 +0800 (Sat, 27 Jun 2009) | 3 lines
 Changed paths:
    M /trunk/filters/GMimeMboxFilter.cc
