@@ -587,15 +587,8 @@ SQLResults * SQLiteBase::executePreparedStatement(const string &statementId,
 				<< " to statement ID " << statementId << ": error " << errorCode << endl;
 			return NULL;
 		}
-#ifdef DEBUG
-		clog << "SQLiteBase::executePreparedStatement: bound parameter " << paramIndex
-			<< " size " << valueIter->length() << " to statement ID " << statementId << endl;
-#endif
 	}
 
-#ifdef DEBUG
-	clog << "SQLiteBase::executePreparedStatement: statement ID " << statementId << endl;
-#endif
 	return new SQLiteResults(statIter->second);
 }
 
