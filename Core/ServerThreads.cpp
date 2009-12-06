@@ -381,7 +381,8 @@ void CrawlerThread::doWork(void)
 }
 
 #ifdef HAVE_DBUS
-DBusGConnection *DBusServletThread::m_pBus = NULL;
+DBusGConnection *DBusServletThread::m_pSystemBus = NULL;
+DBusGConnection *DBusServletThread::m_pSessionBus = NULL;
 
 DBusServletThread::DBusServletThread(DaemonState *pServer, DBusServletInfo *pInfo) :
 	WorkerThread(),
@@ -409,7 +410,7 @@ void DBusServletThread::flushIndexAndSignal(IndexInterface *pIndex)
 	pIndex->flush();
 
 	// Signal
-	if (m_pBus != NULL)
+	if (m_pSessionBus != NULL)
 	{
 		DBusMessage *pMessage = dbus_message_new_signal(PINOT_DBUS_OBJECT_PATH,
 			PINOT_DBUS_SERVICE_NAME, "IndexFlushed");
@@ -418,7 +419,7 @@ void DBusServletThread::flushIndexAndSignal(IndexInterface *pIndex)
 		dbus_message_append_args(pMessage,
 			DBUS_TYPE_UINT32, &docsCount,
 			DBUS_TYPE_INVALID);
-		DBusConnection *pConnection = dbus_g_connection_get_connection(m_pBus);
+		DBusConnection *pConnection = dbus_g_connection_get_connection(m_pSessionBus);
 		if (pConnection != NULL)
 		{
 			dbus_connection_send(pConnection, pMessage, NULL);

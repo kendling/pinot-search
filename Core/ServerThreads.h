@@ -80,7 +80,9 @@ class DBusServletThread : public WorkerThread
 		DBusServletThread(DaemonState *pServer, DBusServletInfo *pInfo);
 		virtual ~DBusServletThread();
 
-		static DBusGConnection *m_pBus;
+		static DBusGConnection *m_pSystemBus;
+
+		static DBusGConnection *m_pSessionBus;
 
 		static void flushIndexAndSignal(IndexInterface *pIndex);
 

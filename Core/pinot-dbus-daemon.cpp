@@ -126,9 +126,94 @@ static void quitAll(int sigNum)
 }
 
 #ifdef HAVE_DBUS
+static bool getBatteryState(const string &name, bool systemBus,
+	const string &path, const string &interfaceName,
+	const string &method, const string &parameter,
+	gboolean &result)
+{
+	if ((name.empty() == true) ||
+		(path.empty() == true) ||
+		(interfaceName.empty() == true) ||
+		(method.empty() == true))
+	{
+		return false;
+	}
+
+	DBusGProxy *pBusProxy = NULL;
+	GError *pError = NULL;
+	gboolean callStatus = FALSE;
+
+	if ((systemBus == true) &&
+		(DBusServletThread::m_pSystemBus != NULL))
+	{
+		pBusProxy = dbus_g_proxy_new_for_name(DBusServletThread::m_pSystemBus,
+			name.c_str(), path.c_str(), interfaceName.c_str());
+	}
+	else if (DBusServletThread::m_pSessionBus != NULL)
+	{
+		pBusProxy = dbus_g_proxy_new_for_name(DBusServletThread::m_pSessionBus,
+			name.c_str(), path.c_str(), interfaceName.c_str());
+	}
+	if (pBusProxy != NULL)
+	{
+		if (parameter.empty() == false)
+		{
+			GHashTable *pProps = NULL;
+			const char *pParameter = parameter.c_str();
+
+			// Battery status is provided by the OnBattery property
+			// This only works for org.freedesktop.DeviceKit.Power
+			callStatus = dbus_g_proxy_call(pBusProxy, method.c_str(), &pError,
+				G_TYPE_STRING, pParameter,
+				G_TYPE_INVALID,
+				dbus_g_type_get_map("GHashTable", G_TYPE_STRING, G_TYPE_VALUE), &pProps,
+				G_TYPE_INVALID);
+			if (callStatus == TRUE)
+			{
+				GValue *pValue = (GValue *)g_hash_table_lookup(pProps, "OnBattery");
+				if (pValue != NULL)
+				{
+					result = g_value_get_boolean(pValue);
+				}
+			}
+
+			if (pProps != NULL)
+			{
+				g_hash_table_unref(pProps);
+			}
+		}
+		else
+		{
+			// Battery status is returned by the method
+			// This works for other interfaces
+			callStatus = dbus_g_proxy_call(pBusProxy, method.c_str(), &pError,
+				G_TYPE_INVALID,
+				G_TYPE_BOOLEAN, &result,
+				G_TYPE_INVALID);
+		}
+
+		g_object_unref(pBusProxy);
+	}
+
+	if (callStatus == FALSE)
+	{
+		if (pError != NULL)
+		{
+			cerr << "Couldn't get battery state: " << pError->message << endl;
+			g_error_free(pError);
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
 static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage *pMessage, void *pData)
 {
 	DaemonState *pServer = (DaemonState *)pData;
+	gboolean onBattery = FALSE;
+	bool batteryChange = false;
 
 #ifdef DEBUG
 	cout << "filterHandler: called" << endl;
@@ -151,13 +236,25 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 		cout << "filterHandler: received NameOwnerChanged" << endl;
 #endif
 	}
+	else if (dbus_message_is_signal(pMessage, "org.freedesktop.DeviceKit.Power", "Changed") == TRUE)
+	{
+#ifdef DEBUG
+		cout << "filterHandler: received Changed" << endl;
+#endif
+		// Properties changed, check again
+		batteryChange = getBatteryState("org.freedesktop.DeviceKit.Power", true,
+			"/org/freedesktop/DeviceKit/Power",
+			"org.freedesktop.DBus.Properties",
+			"GetAll",
+			"org.freedesktop.DeviceKit.Power",
+			onBattery);
+	}
 	// The first two signals are specified by the freedesktop.org Power Management spec v0.1 and v0.2
 	else if ((dbus_message_is_signal(pMessage, "org.freedesktop.PowerManagement", "BatteryStateChanged") == TRUE) ||
 		(dbus_message_is_signal(pMessage, "org.freedesktop.PowerManagement", "OnBatteryChanged") == TRUE) ||
 		(dbus_message_is_signal(pMessage, "org.gnome.PowerManager", "OnAcChanged") == TRUE))
 	{
 		DBusError error;
-		gboolean onBattery = FALSE;
 
 #ifdef DEBUG
 		cout << "filterHandler: received OnBatteryChanged" << endl;
@@ -181,30 +278,35 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 				}
 			}
 
-			if (onBattery == TRUE)
-			{
-				// We are now on battery
-				if (pServer != NULL)
-				{
-					pServer->set_flag(DaemonState::ON_BATTERY);
-					pServer->stop_crawling();
-				}
-
-				cout << "System is now on battery" << endl;
-			}
-			else
-			{
-				// Back on-line
-				if (pServer != NULL)
-				{
-					pServer->reset_flag(DaemonState::ON_BATTERY);
-					pServer->start_crawling();
-				}
-
-				cout << "System is now on AC" << endl;
-			}
+			batteryChange = true;
 		}
 		dbus_error_free(&error);
+	}
+
+	if (batteryChange == true)
+	{
+		if (onBattery == TRUE)
+		{
+			// We are now on battery
+			if (pServer != NULL)
+			{
+				pServer->set_flag(DaemonState::ON_BATTERY);
+				pServer->stop_crawling();
+			}
+
+			cout << "System is now on battery" << endl;
+		}
+		else
+		{
+			// Back on-line
+			if (pServer != NULL)
+			{
+				pServer->reset_flag(DaemonState::ON_BATTERY);
+				pServer->start_crawling();
+			}
+
+			cout << "System is now on AC" << endl;
+		}
 
 		return DBUS_HANDLER_RESULT_HANDLED;
 	}
@@ -238,46 +340,6 @@ static DBusHandlerResult messageHandler(DBusConnection *pConnection, DBusMessage
 	}
 
 	return DBUS_HANDLER_RESULT_HANDLED;
-}
-
-static bool getBatteryState(const string &name, const string &path,
-	const string &method, gboolean &result)
-{
-	bool callSuccess = true;
-
-	if ((DBusServletThread::m_pBus == NULL) ||
-		(name.empty() == true) ||
-		(path.empty() == true) ||
-		(method.empty() == true))
-	{
-		return false;
-	}
-
-	DBusGProxy *pBusProxy = dbus_g_proxy_new_for_name(DBusServletThread::m_pBus, name.c_str(),
-		path.c_str(), name.c_str());
-	if (pBusProxy == NULL)
-	{
-		return false;
-	}
-
-	GError *pError = NULL;
-	if (dbus_g_proxy_call(pBusProxy, method.c_str(), &pError,
-		G_TYPE_INVALID,
-		G_TYPE_BOOLEAN, &result,
-		G_TYPE_INVALID) == FALSE)
-	{
-		if (pError != NULL)
-		{
-			cerr << "Couldn't get battery state: " << pError->message << endl;
-			g_error_free(pError);
-		}
-
-		callSuccess = false;
-	}
-
-	g_object_unref(pBusProxy);
-
-	return callSuccess;
 }
 #endif
 
@@ -567,12 +629,29 @@ int main(int argc, char **argv)
 
 #ifdef HAVE_DBUS
 	GError *pError = NULL;
-	DBusServletThread::m_pBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
-	if (DBusServletThread::m_pBus == NULL)
+
+	// Get on the bus(es) !
+	DBusServletThread::m_pSystemBus = dbus_g_bus_get(DBUS_BUS_SYSTEM, &pError);
+	if (DBusServletThread::m_pSystemBus == NULL)
 	{
 		if (pError != NULL)
 		{
-			cerr << "Couldn't open bus connection: " << pError->message << endl;
+			cerr << "Couldn't open system bus connection: " << pError->message << endl;
+			if (pError->message != NULL)
+			{
+				cerr << "Error is " << pError->message << endl;
+			}
+			g_error_free(pError);
+		}
+
+		return EXIT_FAILURE;
+	}
+	DBusServletThread::m_pSessionBus = dbus_g_bus_get(DBUS_BUS_SESSION, &pError);
+	if (DBusServletThread::m_pSessionBus == NULL)
+	{
+		if (pError != NULL)
+		{
+			cerr << "Couldn't open session bus connection: " << pError->message << endl;
 			if (pError->message != NULL)
 			{
 				cerr << "Error is " << pError->message << endl;
@@ -583,10 +662,16 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	DBusConnection *pConnection = dbus_g_connection_get_connection(DBusServletThread::m_pBus);
-	if (pConnection == NULL)
+	DBusConnection *pSystemConnection = dbus_g_connection_get_connection(DBusServletThread::m_pSystemBus);
+	if (pSystemConnection == NULL)
 	{
-		cerr << "Couldn't get connection" << endl;
+		cerr << "Couldn't get system connection" << endl;
+		return EXIT_FAILURE;
+	}
+	DBusConnection *pSessionConnection = dbus_g_connection_get_connection(DBusServletThread::m_pSessionBus);
+	if (pSessionConnection == NULL)
+	{
+		cerr << "Couldn't get session connection" << endl;
 		return EXIT_FAILURE;
 	}
 #endif
@@ -597,24 +682,29 @@ int main(int argc, char **argv)
 #ifdef HAVE_DBUS
 	DBusError error;
 	dbus_error_init(&error);
-	dbus_connection_set_exit_on_disconnect(pConnection, FALSE);
-	dbus_connection_setup_with_g_main(pConnection, NULL);
+	dbus_connection_set_exit_on_disconnect(pSystemConnection, FALSE);
+	dbus_connection_set_exit_on_disconnect(pSessionConnection, FALSE);
+	dbus_connection_setup_with_g_main(pSessionConnection, NULL);
 
-	if (dbus_connection_register_object_path(pConnection, PINOT_DBUS_OBJECT_PATH,
+	if (dbus_connection_register_object_path(pSessionConnection, PINOT_DBUS_OBJECT_PATH,
 		&g_callVTable, &server) == TRUE)
 	{
 		// Request to be identified by this name
 		// FIXME: flags are currently broken ?
-		dbus_bus_request_name(pConnection, PINOT_DBUS_SERVICE_NAME, 0, &error);
+		dbus_bus_request_name(pSessionConnection, PINOT_DBUS_SERVICE_NAME, 0, &error);
 		if (dbus_error_is_set(&error) == FALSE)
 		{
 			// See power management signals
-			dbus_bus_add_match(pConnection,
+			dbus_bus_add_match(pSystemConnection,
+				"type='signal',interface='org.freedesktop.DeviceKit.Power'", &error);
+			dbus_bus_add_match(pSessionConnection,
 				"type='signal',interface='org.freedesktop.PowerManagement'", &error);
-			dbus_bus_add_match(pConnection,
+			dbus_bus_add_match(pSessionConnection,
 				"type='signal',interface='org.gnome.PowerManager'", &error);
 
-			dbus_connection_add_filter(pConnection,
+			dbus_connection_add_filter(pSystemConnection,
+				(DBusHandleMessageFunction)filterHandler, &server, NULL);
+			dbus_connection_add_filter(pSessionConnection,
 				(DBusHandleMessageFunction)filterHandler, &server, NULL);
 		}
 		else
@@ -717,18 +807,36 @@ int main(int argc, char **argv)
 #ifdef HAVE_DBUS
 			// Try and get the battery state
 			gboolean result = FALSE;
-			if ((getBatteryState("org.freedesktop.PowerManagement",
-				"/org/freedesktop/PowerManagement", "GetOnBattery", result) == true) ||
-				(getBatteryState("org.freedesktop.PowerManagement",
-				"/org/freedesktop/PowerManagement", "GetBatteryState", result) == true))
+			if ((getBatteryState("org.freedesktop.DeviceKit.Power", true,
+	                        "/org/freedesktop/DeviceKit/Power",
+				"org.freedesktop.DBus.Properties",
+	                        "GetAll",
+	                        "org.freedesktop.DeviceKit.Power",
+                        	result) == true) ||
+				(getBatteryState("org.freedesktop.PowerManagement", false,
+				"/org/freedesktop/PowerManagement",
+				"org.freedesktop.PowerManagement",
+				"GetOnBattery",
+				"",
+				result) == true) ||
+				(getBatteryState("org.freedesktop.PowerManagement", false,
+				"/org/freedesktop/PowerManagement",
+				"org.freedesktop.PowerManagement",
+				"GetBatteryState",
+				"",
+				result) == true))
 			{
 				if (result == TRUE)
 				{
 					onBattery = true;
 				}
 			}
-			else if (getBatteryState("org.gnome.PowerManager",
-				"/org/gnome/PowerManager", "GetOnAc", result) == true)
+			else if (getBatteryState("org.gnome.PowerManager", false,
+				"/org/gnome/PowerManager",
+				"org.gnome.PowerManager",
+				"GetOnAc",
+				"",
+				result) == true)
 			{
 				if (result == FALSE)
 				{
@@ -742,6 +850,10 @@ int main(int argc, char **argv)
 				server.stop_crawling();
 
 				cout << "System is on battery" << endl;
+			}
+			else
+			{
+				cout << "System is on AC" << endl;
 			}
 #endif
 
