@@ -6,78 +6,78 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.95\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-09 22:24+0800\n"
-"PO-Revision-Date: 2009-01-10 23:12+0000\n"
-"Last-Translator: Henrique P. Machado <zehrique@gmail.com>\n"
+"POT-Creation-Date: 2009-12-06 17:50+0800\n"
+"PO-Revision-Date: 2010-03-20 16:46+0000\n"
+"Last-Translator: andbelo <Unknown>\n"
 "Language-Team: Portuguese (Brazil) <pt_BR@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2009-01-11 04:36+0000\n"
+"X-Launchpad-Export-Date: 2010-03-21 13:08+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:468 UI/GTK2/src/pinot.cc:309
+#: Core/pinot-dbus-daemon.cpp:530 UI/GTK2/src/pinot.cc:309
 msgid "Unknown"
 msgstr "Desconhecido"
 
-#: Core/pinot-dbus-daemon.cpp:469 UI/GTK2/src/pinot.cc:310
+#: Core/pinot-dbus-daemon.cpp:531 UI/GTK2/src/pinot.cc:310
 msgid "Danish"
 msgstr "Danish"
 
-#: Core/pinot-dbus-daemon.cpp:470 UI/GTK2/src/pinot.cc:311
+#: Core/pinot-dbus-daemon.cpp:532 UI/GTK2/src/pinot.cc:311
 msgid "Dutch"
 msgstr "Dutch"
 
-#: Core/pinot-dbus-daemon.cpp:471 UI/GTK2/src/pinot.cc:312
+#: Core/pinot-dbus-daemon.cpp:533 UI/GTK2/src/pinot.cc:312
 msgid "English"
 msgstr "English"
 
-#: Core/pinot-dbus-daemon.cpp:472 UI/GTK2/src/pinot.cc:313
+#: Core/pinot-dbus-daemon.cpp:534 UI/GTK2/src/pinot.cc:313
 msgid "Finnish"
 msgstr "Terminar"
 
-#: Core/pinot-dbus-daemon.cpp:473 UI/GTK2/src/pinot.cc:314
+#: Core/pinot-dbus-daemon.cpp:535 UI/GTK2/src/pinot.cc:314
 msgid "French"
 msgstr "French"
 
-#: Core/pinot-dbus-daemon.cpp:474 UI/GTK2/src/pinot.cc:315
+#: Core/pinot-dbus-daemon.cpp:536 UI/GTK2/src/pinot.cc:315
 msgid "German"
 msgstr "German"
 
-#: Core/pinot-dbus-daemon.cpp:475 UI/GTK2/src/pinot.cc:316
+#: Core/pinot-dbus-daemon.cpp:537 UI/GTK2/src/pinot.cc:316
 msgid "Hungarian"
 msgstr "Húngaro"
 
-#: Core/pinot-dbus-daemon.cpp:476 UI/GTK2/src/pinot.cc:317
+#: Core/pinot-dbus-daemon.cpp:538 UI/GTK2/src/pinot.cc:317
 msgid "Italian"
 msgstr "Italiano"
 
-#: Core/pinot-dbus-daemon.cpp:477 UI/GTK2/src/pinot.cc:318
+#: Core/pinot-dbus-daemon.cpp:539 UI/GTK2/src/pinot.cc:318
 msgid "Norwegian"
 msgstr "Norueguês"
 
-#: Core/pinot-dbus-daemon.cpp:478 UI/GTK2/src/pinot.cc:319
+#: Core/pinot-dbus-daemon.cpp:540 UI/GTK2/src/pinot.cc:319
 msgid "Portuguese"
 msgstr "Português"
 
-#: Core/pinot-dbus-daemon.cpp:479 UI/GTK2/src/pinot.cc:320
+#: Core/pinot-dbus-daemon.cpp:541 UI/GTK2/src/pinot.cc:320
 msgid "Romanian"
 msgstr "Romeno"
 
-#: Core/pinot-dbus-daemon.cpp:480 UI/GTK2/src/pinot.cc:321
+#: Core/pinot-dbus-daemon.cpp:542 UI/GTK2/src/pinot.cc:321
 msgid "Russian"
 msgstr "Russian"
 
-#: Core/pinot-dbus-daemon.cpp:481 UI/GTK2/src/pinot.cc:322
+#: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:322
 msgid "Spanish"
 msgstr "Spanish"
 
-#: Core/pinot-dbus-daemon.cpp:482 UI/GTK2/src/pinot.cc:323
+#: Core/pinot-dbus-daemon.cpp:544 UI/GTK2/src/pinot.cc:323
 msgid "Swedish"
 msgstr "Swedish"
 
-#: Core/pinot-dbus-daemon.cpp:483 UI/GTK2/src/pinot.cc:324
+#: Core/pinot-dbus-daemon.cpp:545 UI/GTK2/src/pinot.cc:324
 msgid "Turkish"
 msgstr "Turco"
 
@@ -678,11 +678,11 @@ msgstr "Não foi possível criar base de histórico"
 
 #: UI/GTK2/src/prefsWindow.cc:149
 msgid "File Indexing and Search"
-msgstr ""
+msgstr "Indexação e procura de arquivo"
 
 #: UI/GTK2/src/prefsWindow.cc:150
 msgid "Configure Pinot to index your files"
-msgstr ""
+msgstr "Configurar Pinot para indexar seus arquivos"
 
 #: UI/GTK2/src/prefsWindow.cc:208
 msgid "Name"
@@ -854,9 +854,8 @@ msgid "Directory"
 msgstr "Diretório"
 
 #: UI/GTK2/src/queryDialog.cc:116
-#, fuzzy
 msgid "In URL"
-msgstr "URL"
+msgstr "Na URL"
 
 #: UI/GTK2/src/queryDialog.cc:117
 msgid "Path"
@@ -1006,7 +1005,3 @@ msgstr "Rastreando"
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "Erros"
-
-#, fuzzy
-#~ msgid "File container"
-#~ msgstr "Nome do arquivo"
