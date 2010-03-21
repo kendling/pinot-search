@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  */
 
 #include "config.h"
+#include <sys/types.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #ifdef HAVE_SYS_INOTIFY_H
 #include <sys/inotify.h>

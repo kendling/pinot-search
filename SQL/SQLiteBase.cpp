@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -285,7 +285,8 @@ void SQLiteBase::open(void)
 			m_pDatabase = NULL;
 		}
 	}
-	else if (m_pDatabase == NULL)
+
+	if (m_pDatabase == NULL)
 	{
 		clog << "Couldn't open " << m_databaseName << endl;
 	}
@@ -533,9 +534,9 @@ bool SQLiteBase::prepareStatement(const string &statementId,
 	if (statIter != m_statements.end())
 	{
 #ifdef DEBUG
-		clog << "SQLiteBase::prepareStatement: invalid statement ID " << statementId << endl;
+		clog << "SQLiteBase::prepareStatement: already compiled statement ID " << statementId << endl;
 #endif
-		return false;
+		return true;
 	}
 
 	sqlite3_stmt *pStatement = NULL;

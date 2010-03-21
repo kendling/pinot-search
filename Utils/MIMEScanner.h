@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -153,8 +153,10 @@ class PINOT_EXPORT MIMEScanner
 
 		static std::string scanFileType(const std::string &fileName);
   
+#ifndef USE_GIO
 		static bool addCache(const std::string &file, const std::string &section,
 			const std::list<std::string> &desktopFilesPaths);
+#endif
   
 		static bool getDefaultActionsForType(const std::string &mimeType, std::set<std::string> &actionNames,
 			std::vector<MIMEAction> &typeActions);

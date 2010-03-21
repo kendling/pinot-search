@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -517,12 +517,12 @@ bool MIMEScanner::initialize(const string &userPrefix, const string &systemPrefi
 #endif
 }
 
+#ifndef USE_GIO
 bool MIMEScanner::addCache(const string &file, const string &section,
 	const list<string> &desktopFilesPaths)
 {
 	bool addedCache = false;
 
-#ifndef USE_GIO
 	if (pthread_rwlock_wrlock(&m_cachesLock) == 0)
 	{
 		m_caches.push_back(MIMECache(file, section));
@@ -531,10 +531,10 @@ bool MIMEScanner::addCache(const string &file, const string &section,
 
 		pthread_rwlock_unlock(&m_cachesLock);
 	}
-#endif
 
 	return addedCache;
 }
+#endif
 
 void MIMEScanner::shutdown(void)
 {
