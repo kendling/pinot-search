@@ -62,6 +62,7 @@ class SQLiteResults : public SQLResults
 	protected:
 		char **m_results;
 		sqlite3_stmt *m_pStatement;
+		bool m_done;
 
 	private:
 		SQLiteResults(const SQLiteResults &other);

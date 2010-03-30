@@ -35,7 +35,8 @@ using std::pair;
 
 static int busyHandler(void *pData, int lockNum)
 {
-	// Try again
+	// Try again after 100 ms
+	usleep(100000);
 	return 1;
 }
 
@@ -100,7 +101,7 @@ string SQLiteRow::getColumn(unsigned int nColumn) const
 	if (nColumn < m_nColumns)
 	{
 		vector<string>::const_iterator colIter = m_columns.begin();
-		for (int i = 0; (i < m_nColumns) && (colIter != m_columns.end()); ++i)
+		for (unsigned int i = 0; (i < m_nColumns) && (colIter != m_columns.end()); ++i)
 		{
 			if (i == nColumn)
 			{
@@ -118,7 +119,8 @@ string SQLiteRow::getColumn(unsigned int nColumn) const
 SQLiteResults::SQLiteResults(char **results, unsigned long nRows, unsigned int nColumns) :
 	SQLResults(nRows, nColumns),
 	m_results(results),
-	m_pStatement(NULL)
+	m_pStatement(NULL),
+	m_done(false)
 {
 	// Check we actually have results
 	if ((m_results == NULL) ||
@@ -132,7 +134,8 @@ SQLiteResults::SQLiteResults(char **results, unsigned long nRows, unsigned int n
 SQLiteResults::SQLiteResults(sqlite3_stmt *pStatement) :
 	SQLResults(0, sqlite3_column_count(pStatement)),
 	m_results(NULL),
-	m_pStatement(pStatement)
+	m_pStatement(pStatement),
+	m_done(false)
 {
 }
 
@@ -152,8 +155,7 @@ bool SQLiteResults::hasMoreRows(void) const
 {
 	if (m_pStatement != NULL)
 	{
-		// There's no way to tell
-		return true;
+		return !m_done;
 	}
 
 	return SQLResults::hasMoreRows();
@@ -178,10 +180,20 @@ SQLRow *SQLiteResults::nextRow(void)
 {
 	if (m_pStatement != NULL)
 	{
-		if (sqlite3_step(m_pStatement) == SQLITE_ROW)
+		if (m_done == true)
+		{
+			return NULL;
+		}
+
+		int stepCode = sqlite3_step(m_pStatement);
+		if (stepCode == SQLITE_ROW)
 		{
 			++m_nCurrentRow;
 			return new SQLiteRow(m_pStatement, m_nColumns);
+		}
+		else if (stepCode == SQLITE_DONE)
+		{
+			m_done = true;
 		}
 #ifdef DEBUG
 		clog << "SQLiteResults::nextRow: no more row" << endl;
@@ -222,7 +234,14 @@ bool SQLiteResults::rewind(void)
 	SQLResults::rewind();
 	if (m_pStatement != NULL)
 	{
+		if (m_done == false)
+		{
+			// Complete the statement
+			sqlite3_step(m_pStatement);
+		}
+
 		sqlite3_reset(m_pStatement);
+		m_done = false;
 	}
 
 	return true;
