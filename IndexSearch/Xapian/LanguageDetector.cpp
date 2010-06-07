@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -83,8 +83,11 @@ LanguageDetector::LanguageDetector() :
 LanguageDetector::~LanguageDetector()
 {
 #ifdef USE_TEXTCAT
-	// Close the descriptor
-	textcat_Done(m_pHandle);
+	if (m_pHandle != NULL)
+	{
+		// Close the descriptor
+		textcat_Done(m_pHandle);
+	}
 	pthread_mutex_destroy(&m_mutex);
 #endif
 }
