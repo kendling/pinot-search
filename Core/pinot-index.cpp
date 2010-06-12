@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -271,8 +271,8 @@ int main(int argc, char **argv)
 	g_refMainLoop = Glib::MainLoop::create();
 	Glib::set_application_name("Pinot Indexer");
 
-	// This should make Xapian use Flint rather than Quartz
-	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
+	// This should make Xapian use Chert rather than Flint
+	Glib::setenv("XAPIAN_PREFER_CHERT", "1");
 
 	// This will create the necessary directories on the first run
 	PinotSettings &settings = PinotSettings::getInstance();

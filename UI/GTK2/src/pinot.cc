@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -223,8 +223,8 @@ int main(int argc, char **argv)
 		Glib::set_application_name("Pinot Preferences");
 	}
 
-	// This should make Xapian use Flint rather than Quartz
-	Glib::setenv("XAPIAN_PREFER_FLINT", "1");
+	// This should make Xapian use Chert rather than Flint
+	Glib::setenv("XAPIAN_PREFER_CHERT", "1");
 	// This will be useful for indexes served by xapian-progsrv+ssh
 	Glib::setenv("SSH_ASKPASS", prefixDir + "/libexec/openssh/ssh-askpass");
 
