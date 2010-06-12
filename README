@@ -194,8 +194,10 @@ http://pinot.berlios.de/
   expressed in a very natural way, using a combination of operators, filters
   and ranges. This query syntax is the syntax supported natively by Xapian's
   QueryParser and is documented at http://www.xapian.org/docs/queryparser.html
-  For instance, the query "type:text/html and lang:en and (tcp near ip)" will
-  look for HTML files in English that mention TCP/IP. 
+  For instance, the query "type:text/html AND lang:en AND (tcp NEAR ip)" will
+  look for HTML files in English that mention TCP/IP. Note that all operators
+  should be specified in capitals, eg "AND" not "and". The latter will be
+  treated as a regular term.
 
   Pinot supports these query filters :
       "site" for host name, eg "site:pinot.berlios.de"
@@ -211,8 +213,8 @@ http://pinot.berlios.de/
       "label" for label, eg "label:Important"
 
   The directory filter is recursive, ie it applies to sub-directories.
-  Allowed language codes are "da", "nl", "en", "fi", "fr", "de", "it", "nn", "pt",
-  "ru", "es" and "sv".
+  Allowed language codes are "da", "nl", "en", "fi", "fr", "de", "hu", "it",
+  "nn", "pt", "ro", "ru", "es", "sv" and "tr".
 
   Stemming is available to stored queries for which a stemming language is
   defined. If such a query doesn't return any exact match, the query terms are
