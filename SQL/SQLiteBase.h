@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -88,6 +88,8 @@ class SQLiteBase : public SQLDB
 
 		virtual bool beginTransaction(void);
 
+		virtual bool rollbackTransaction(void);
+
 		virtual bool endTransaction(void);
 
 		virtual bool executeSimpleStatement(const std::string &sql);
@@ -102,10 +104,14 @@ class SQLiteBase : public SQLDB
 
 	protected:
 		bool m_onDemand;
+		bool m_inTransaction;
 		sqlite3 *m_pDatabase;
 		std::map<std::string, sqlite3_stmt*> m_statements;
 
+		void executeSimpleStatement(const std::string &sql, int &execError);
+
 		void open(void);
+
 		void close(void);
 
 	private:

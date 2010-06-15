@@ -24,6 +24,8 @@
 #include <utility>
 #include <iostream>
 
+#include "config.h"
+#include "NLS.h"
 #include "SQLiteBase.h"
 
 using std::clog;
@@ -195,9 +197,6 @@ SQLRow *SQLiteResults::nextRow(void)
 		{
 			m_done = true;
 		}
-#ifdef DEBUG
-		clog << "SQLiteResults::nextRow: no more row" << endl;
-#endif
 
 		return NULL;
 	}
@@ -251,6 +250,7 @@ SQLiteBase::SQLiteBase(const string &databaseName,
 	bool readOnly, bool onDemand) :
 	SQLDB(databaseName, readOnly),
 	m_onDemand(onDemand),
+	m_inTransaction(false),
 	m_pDatabase(NULL)
 {
 	if (m_onDemand == false)
@@ -283,6 +283,25 @@ bool SQLiteBase::check(const string &databaseName)
 	return true;
 }
 
+void SQLiteBase::executeSimpleStatement(const string &sql, int &execError)
+{
+	char *errMsg = NULL;
+
+	execError = sqlite3_exec(m_pDatabase,
+		sql.c_str(), 
+		NULL, NULL, // No callback
+		&errMsg);
+	if (execError != SQLITE_OK)
+	{
+		if (errMsg != NULL)
+		{
+			clog << m_databaseName << ": " << errMsg << endl;
+
+			sqlite3_free(errMsg);
+		}
+	}
+}
+
 void SQLiteBase::open(void)
 {
 	int openFlags = SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE;
@@ -293,15 +312,15 @@ void SQLiteBase::open(void)
 	}
 
 	// Open the new database
+	// FIXME: ensure it's in mode SQLITE_CONFIG_SERIALIZED
 	if (sqlite3_open_v2(m_databaseName.c_str(), &m_pDatabase,
 		openFlags, NULL) != SQLITE_OK)
 	{
 		// An handle is returned even when an error occurs !
 		if (m_pDatabase != NULL)
 		{
-			clog << sqlite3_errmsg(m_pDatabase) << endl;
+			clog << m_databaseName << ": " << sqlite3_errmsg(m_pDatabase) << endl;
 			close();
-			m_pDatabase = NULL;
 		}
 	}
 
@@ -322,8 +341,10 @@ void SQLiteBase::close(void)
 	{
 		for_each(m_statements.begin(), m_statements.end(),
 			DeleteStatementsFunc());
+		m_statements.clear();
 
 		sqlite3_close(m_pDatabase);
+		m_pDatabase = NULL;
 	}
 }
 
@@ -381,24 +402,95 @@ bool SQLiteBase::alterTable(const string &tableName,
 
 bool SQLiteBase::beginTransaction(void)
 {
-	if (m_onDemand == true)
+	if ((m_pDatabase == NULL) ||
+		(m_onDemand == true) ||
+		(m_inTransaction == true))
 	{
 		// Not applicable
 		return true;
 	}
 
-	return executeSimpleStatement("BEGIN TRANSACTION;");
+	if (executeSimpleStatement("BEGIN TRANSACTION;") == true)
+	{
+		m_inTransaction = true;
+		return true;
+	}
+
+	clog << m_databaseName << ": " << _("failed to begin transaction") << endl;
+
+	return false;
+}
+
+bool SQLiteBase::rollbackTransaction(void)
+{
+	if ((m_pDatabase == NULL) ||
+		(m_onDemand == true) ||
+		(m_inTransaction == false))
+	{
+		// Not applicable
+		return true;
+	}
+
+	int execError = SQLITE_OK;
+
+	do
+	{
+		executeSimpleStatement("ROLLBACK TRANSACTION;", execError);
+		if (execError == SQLITE_OK)
+		{
+			m_inTransaction = false;
+			return true;
+		}
+		if (execError != SQLITE_BUSY)
+		{
+			return false;
+		}
+
+		// This failed because operations are pending
+		// Sleep roughly a sixth of a second, ie around 10 write operations
+		usleep(150000);
+	}
+	while (execError != SQLITE_OK);
+
+	clog << m_databaseName << ": " << _("failed to rollback transaction") << endl;
+
+	return false;
 }
 
 bool SQLiteBase::endTransaction(void)
 {
-	if (m_onDemand == true)
+	if ((m_pDatabase == NULL) ||
+		(m_onDemand == true) ||
+		(m_inTransaction == false))
 	{
 		// Not applicable
 		return true;
 	}
 
-	return executeSimpleStatement("END TRANSACTION;");
+	int execError = SQLITE_OK;
+
+	do
+	{
+		executeSimpleStatement("END TRANSACTION;", execError);
+		if (execError == SQLITE_OK)
+		{
+			m_inTransaction = false;
+			return true;
+		}
+		if (execError != SQLITE_BUSY)
+		{
+			return false;
+		}
+
+		// This failed because write operations are pending
+		// Sleep roughly a sixth of a second, ie around 10 write operations
+		usleep(150000);
+	}
+	while (execError != SQLITE_OK);
+
+	clog << m_databaseName << ": " << _("failed to end transaction") << endl;
+
+	return false;
 }
 
 bool SQLiteBase::executeSimpleStatement(const string &sql)
@@ -420,19 +512,12 @@ bool SQLiteBase::executeSimpleStatement(const string &sql)
 		return false;
 	}
 
-	if (sqlite3_exec(m_pDatabase,
-		sql.c_str(), 
-		NULL, NULL, // No callback
-		&errMsg) != SQLITE_OK)
+	int execError = SQLITE_OK;
+
+	executeSimpleStatement(sql, execError);
+	if (execError == SQLITE_OK)
 	{
-		if (errMsg != NULL)
-		{
-			clog << m_databaseName << ": statement <" << sql << "> failed: " << errMsg << endl;
-
-			sqlite3_free(errMsg);
-		}
-
-		success = false;
+		success = true;
 	}
 	if (m_onDemand == true)
 	{
@@ -445,9 +530,6 @@ bool SQLiteBase::executeSimpleStatement(const string &sql)
 SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 {
 	SQLiteResults *pResults = NULL;
-#ifdef _USE_VSNPRINTF
-	char stringBuff[2048];
-#endif
 	va_list ap;
 
 	if (sqlFormat == NULL)
@@ -465,46 +547,17 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	}
 
 	va_start(ap, sqlFormat);
-#ifdef _USE_VSNPRINTF
-	int numChars = vsnprintf(stringBuff, 2048, sqlFormat, ap);
-	if (numChars <= 0)
-	{
-#ifdef DEBUG
-		clog << "SQLiteBase::executeStatement: couldn't format statement" << endl;
-#endif
-		if (m_onDemand == true)
-		{
-			close();
-		}
-		return NULL;
-	}
-	if (numChars >= 2048)
-	{
-		// Not enough space
-#ifdef DEBUG
-		clog << "SQLiteBase::executeStatement: not enough space (" << numChars << ")" << endl;
-#endif
-		if (m_onDemand == true)
-		{
-			close();
-		}
-		return NULL;
-	}
-	stringBuff[numChars] = '\0';
-#else
 	char *stringBuff = sqlite3_vmprintf(sqlFormat, ap);
 	if (stringBuff == NULL)
 	{
-#ifdef DEBUG
-		clog << "SQLiteBase::executeStatement: couldn't format statement" << endl;
-#endif
+		clog << m_databaseName << ": " << _("couldn't format SQL statement") << endl;
+
 		if (m_onDemand == true)
 		{
 			close();
 		}
 		return NULL;
 	}
-#endif
 
 	char **results;
 	char *errMsg;
@@ -518,7 +571,7 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	{
 		if (errMsg != NULL)
 		{
-			clog << m_databaseName << ": statement <" << stringBuff << "> failed: " << errMsg << endl;
+			clog << m_databaseName << ": SQL statement <" << stringBuff << "> failed: " << errMsg << endl;
 
 			sqlite3_free(errMsg);
 		}
@@ -528,9 +581,8 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 		pResults = new SQLiteResults(results, (unsigned long)nRows, (unsigned int)nColumns);
 	}
 	va_end(ap);
-#ifndef _USE_VSNPRINTF
 	sqlite3_free(stringBuff);
-#endif
+
 	if (m_onDemand == true)
 	{
 		close();
@@ -553,7 +605,7 @@ bool SQLiteBase::prepareStatement(const string &statementId,
 	if (statIter != m_statements.end())
 	{
 #ifdef DEBUG
-		clog << "SQLiteBase::prepareStatement: already compiled statement ID " << statementId << endl;
+		clog << "SQLiteBase::prepareStatement: already compiled SQL statement ID " << statementId << endl;
 #endif
 		return true;
 	}
@@ -568,14 +620,14 @@ bool SQLiteBase::prepareStatement(const string &statementId,
 		if (pStatement != NULL)
 		{
 #ifdef DEBUG
-			clog << "SQLiteBase::prepareStatement: compiled statement ID " << statementId << endl;
+			clog << "SQLiteBase::prepareStatement: compiled SQL statement ID " << statementId << endl;
 #endif
 			m_statements.insert(pair<string, sqlite3_stmt*>(statementId, pStatement));
 			return true;
 		}
 	}
 
-	clog << m_databaseName << ": failed to compile statement <" << sqlFormat << ">" << endl;
+	clog << m_databaseName << ": failed to compile SQL statement " << statementId << endl;
 
 	return false;
 }
@@ -589,7 +641,7 @@ SQLResults * SQLiteBase::executePreparedStatement(const string &statementId,
 	if (statIter == m_statements.end())
 	{
 #ifdef DEBUG
-		clog << "SQLiteBase::executePreparedStatement: invalid statement ID " << statementId << endl;
+		clog << "SQLiteBase::executePreparedStatement: invalid SQL statement ID " << statementId << endl;
 #endif
 		return NULL;
 	}
@@ -604,7 +656,7 @@ SQLResults * SQLiteBase::executePreparedStatement(const string &statementId,
 		if (errorCode != SQLITE_OK)
 		{
 			clog << m_databaseName << ": failed to bind parameter " << paramIndex
-				<< " to statement ID " << statementId << ": error " << errorCode << endl;
+				<< " to SQL statement ID " << statementId << ": error " << errorCode << endl;
 			return NULL;
 		}
 	}
