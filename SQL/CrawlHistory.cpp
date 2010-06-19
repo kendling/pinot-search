@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,14 +37,36 @@ using std::stringstream;
 CrawlHistory::CrawlHistory(const string &database) :
 	SQLiteBase(database, false, false)
 {
+	prepareStatement("has-source",
+		"SELECT SourceID FROM CrawlSources WHERE Url=?;");
+	prepareStatement("get-sources",
+		"SELECT SourceID, Url FROM CrawlSources;");
+	prepareStatement("insert-item",
+		"INSERT INTO CrawlHistory VALUES(?, ?, ?, ?, ?);");
 	prepareStatement("has-item",
 		"SELECT Status, Date FROM CrawlHistory WHERE Url=?;");
+	prepareStatement("update-item",
+		"UPDATE CrawlHistory SET Status=?, Date=?, ErrorNum=? WHERE Url=?;");
+	prepareStatement("update-items-status1",
+		"UPDATE CrawlHistory SET Status=? WHERE Status=?;");
+	prepareStatement("update-items-status2",
+		"UPDATE CrawlHistory SET Status=? WHERE SourceId=? AND Status=?;");
 	prepareStatement("get-items",
 		"SELECT Url FROM CrawlHistory WHERE Status=?;");
 	prepareStatement("get-source-items1",
 		"SELECT Url FROM CrawlHistory WHERE SourceId=? AND Status=? AND Date>? LIMIT ? OFFSET ?;");
 	prepareStatement("get-source-items2",
 		"SELECT Url FROM CrawlHistory WHERE SourceId=? AND Status=? LIMIT ? OFFSET ?;");
+	prepareStatement("get-items-count",
+		"SELECT COUNT(*) FROM CrawlHistory WHERE Status=?;");
+	prepareStatement("delete-item",
+		"DELETE FROM CrawlHistory WHERE Url=?;");
+	prepareStatement("delete-items1",
+		"DELETE FROM CrawlHistory WHERE SourceID=?;");
+	prepareStatement("delete-items2",
+		"DELETE FROM CrawlHistory WHERE SourceID=? AND Status=?;");
+	prepareStatement("expire-items",
+		"DELETE FROM CrawlHistory WHERE Date<?;");
 }
 
 CrawlHistory::~CrawlHistory()
@@ -200,10 +222,12 @@ unsigned int CrawlHistory::insertSource(const string &url)
 /// Checks if the source exists.
 bool CrawlHistory::hasSource(const string &url, unsigned int &sourceId)
 {
+	vector<string> values;
 	bool success = false;
 
-	SQLResults *results = executeStatement("SELECT SourceID FROM CrawlSources \
-		WHERE Url='%q';", Url::escapeUrl(url).c_str());
+	values.push_back(Url::escapeUrl(url));
+
+	SQLResults *results = executePreparedStatement("has-source", values);
 	if (results != NULL)
 	{
 		SQLRow *row = results->nextRow();
@@ -224,9 +248,10 @@ bool CrawlHistory::hasSource(const string &url, unsigned int &sourceId)
 /// Returns sources.
 unsigned int CrawlHistory::getSources(map<unsigned int, string> &sources)
 {
+	vector<string> values;
 	unsigned int count = 0;
 
-	SQLResults *results = executeStatement("SELECT SourceID, Url FROM CrawlSources;");
+	SQLResults *results = executePreparedStatement("get-sources", values);
 	if (results != NULL)
 	{
 		while (results->hasMoreRows() == true)
@@ -269,12 +294,27 @@ bool CrawlHistory::deleteSource(unsigned int sourceId)
 bool CrawlHistory::insertItem(const string &url, CrawlStatus status, unsigned int sourceId,
 	time_t date, int errNum)
 {
+	vector<string> values;
+	stringstream numStr;
 	bool success = false;
 
-	SQLResults *results = executeStatement("INSERT INTO CrawlHistory \
-		VALUES('%q', '%q', '%u', '%d', '%d');",
-		Url::escapeUrl(url).c_str(), statusToText(status).c_str(), sourceId,
-		(date == 0 ? time(NULL) : date), errNum);
+	if (date == 0)
+	{
+		date = time(NULL);
+	}
+
+	values.push_back(Url::escapeUrl(url));
+	values.push_back(statusToText(status));
+	numStr << sourceId;
+	values.push_back(numStr.str());
+	numStr.clear();
+	numStr << date;
+	values.push_back(numStr.str());
+	numStr.clear();
+	numStr << errNum;
+	values.push_back(numStr.str());
+
+	SQLResults *results = executePreparedStatement("insert-item", values);
 	if (results != NULL)
 	{
 		success = true;
@@ -314,12 +354,24 @@ bool CrawlHistory::hasItem(const string &url, CrawlStatus &status, time_t &date)
 /// Updates an URL.
 bool CrawlHistory::updateItem(const string &url, CrawlStatus status, time_t date, int errNum)
 {
+	vector<string> values;
+	stringstream numStr;
 	bool success = false;
 
-	SQLResults *results = executeStatement("UPDATE CrawlHistory \
-		SET Status='%q', Date='%d', ErrorNum='%d' WHERE Url='%q';",
-		statusToText(status).c_str(), (date == 0 ? time(NULL) : date), errNum,
-		Url::escapeUrl(url).c_str());
+	if (date == 0)
+	{
+		date = time(NULL);
+	}
+
+	values.push_back(statusToText(status));
+	numStr << date;
+	values.push_back(numStr.str());
+	numStr.clear();
+	numStr << errNum;
+	values.push_back(numStr.str());
+	values.push_back(Url::escapeUrl(url));
+
+	SQLResults *results = executePreparedStatement("update-item", values);
 	if (results != NULL)
 	{
 		success = true;
@@ -342,16 +394,10 @@ bool CrawlHistory::updateItems(const map<string, CrawlItem> &items)
 	for (map<string, CrawlItem>::const_iterator updateIter = items.begin();
 		updateIter != items.end(); ++updateIter)
 	{
-		SQLResults *results = executeStatement("UPDATE CrawlHistory \
-			SET Status='%q', Date='%d', ErrorNum='%d' WHERE Url='%q';",
-			statusToText(updateIter->second.m_itemStatus).c_str(),
-			(updateIter->second.m_itemDate == 0 ? time(NULL) : updateIter->second.m_itemDate),
-			updateIter->second.m_errNum,
-			Url::escapeUrl(updateIter->first).c_str());
-		if (results != NULL)
+		if (updateItem(updateIter->first, updateIter->second.m_itemStatus,
+			updateIter->second.m_itemDate, updateIter->second.m_errNum) == true)
 		{
 			success = true;
-			delete results;
 		}
 	}
 
@@ -367,8 +413,11 @@ bool CrawlHistory::updateItems(const map<string, CrawlItem> &items)
 bool CrawlHistory::updateItemsStatus(CrawlStatus oldStatus, CrawlStatus newStatus,
 	unsigned int sourceId, bool allSources)
 {
+	vector<string> values;
 	SQLResults *results = NULL;
 	bool success = false;
+
+	values.push_back(statusToText(newStatus));
 
 	if (beginTransaction() == false)
 	{
@@ -377,16 +426,20 @@ bool CrawlHistory::updateItemsStatus(CrawlStatus oldStatus, CrawlStatus newStatu
 
 	if (allSources == false)
 	{
-		results = executeStatement("UPDATE CrawlHistory \
-			SET Status='%q' WHERE SourceId='%u' AND Status='%q';",
-			statusToText(newStatus).c_str(), sourceId, statusToText(oldStatus).c_str());
+		stringstream numStr;
+
+		numStr << sourceId;
+		values.push_back(numStr.str());
+		values.push_back(statusToText(oldStatus));
+
+		results = executePreparedStatement("update-items-status2", values);
 	}
 	else
 	{
+		values.push_back(statusToText(oldStatus));
+
 		// Ignore the source
-		results = executeStatement("UPDATE CrawlHistory \
-			SET Status='%q' WHERE Status='%q';",
-			statusToText(newStatus).c_str(), statusToText(oldStatus).c_str());
+		results = executePreparedStatement("update-items-status1", values);
 	}
 
 	if (results != NULL)
@@ -523,10 +576,12 @@ unsigned int CrawlHistory::getSourceItems(unsigned int sourceId, CrawlStatus sta
 /// Returns the number of URLs.
 unsigned int CrawlHistory::getItemsCount(CrawlStatus status)
 {
+	vector<string> values;
 	unsigned int count = 0;
 
-	SQLResults *results = executeStatement("SELECT COUNT(*) FROM CrawlHistory WHERE Status='%q';",
-		statusToText(status).c_str());
+	values.push_back(statusToText(status));
+
+	SQLResults *results = executePreparedStatement("get-items-count", values);
 	if (results != NULL)
 	{
 		SQLRow *row = results->nextRow();
@@ -546,10 +601,12 @@ unsigned int CrawlHistory::getItemsCount(CrawlStatus status)
 /// Deletes an URL.
 bool CrawlHistory::deleteItem(const string &url)
 {
+	vector<string> values;
 	bool success = false;
 
-	SQLResults *results = executeStatement("DELETE FROM CrawlHistory \
-		WHERE Url='%q';", Url::escapeUrl(url).c_str());
+	values.push_back(Url::escapeUrl(url));
+
+	SQLResults *results = executePreparedStatement("delete-item", values);
 	if (results != NULL)
 	{
 		success = true;
@@ -588,8 +645,13 @@ bool CrawlHistory::deleteItems(const string &url)
 /// Deletes URLs belonging to a source.
 bool CrawlHistory::deleteItems(unsigned int sourceId, CrawlStatus status)
 {
+	vector<string> values;
+	stringstream numStr;
 	SQLResults *results = NULL;
 	bool success = false;
+
+	numStr << sourceId;
+	values.push_back(numStr.str());
 
 	if (beginTransaction() == false)
 	{
@@ -598,14 +660,13 @@ bool CrawlHistory::deleteItems(unsigned int sourceId, CrawlStatus status)
 
 	if (status == UNKNOWN)
 	{
-		results = executeStatement("DELETE FROM CrawlHistory \
-			WHERE SourceID='%u';", sourceId);
+		results = executePreparedStatement("delete-items1", values);
 	}
 	else
 	{
-		results = executeStatement("DELETE FROM CrawlHistory \
-			WHERE SourceID='%u' AND Status='%q';",
-			sourceId, statusToText(status).c_str());
+		values.push_back(statusToText(status));
+
+		results = executePreparedStatement("delete-items2", values);
 	}
 
 	if (results != NULL)
@@ -625,15 +686,19 @@ bool CrawlHistory::deleteItems(unsigned int sourceId, CrawlStatus status)
 /// Expires items older than the given date.
 bool CrawlHistory::expireItems(time_t expiryDate)
 {
+	vector<string> values;
+	stringstream numStr;
 	bool success = false;
+
+	numStr << expiryDate;
+	values.push_back(numStr.str());
 
 	if (beginTransaction() == false)
 	{
 		return false;
 	}
 
-	SQLResults *results = executeStatement("DELETE FROM CrawlHistory \
-		WHERE Date<'%d';", expiryDate);
+	SQLResults *results = executePreparedStatement("expire-items", values);
 	if (results != NULL)
 	{
 		success = true;
