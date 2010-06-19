@@ -374,6 +374,9 @@ else
   {
     char *content_type;
     char *mime_type;
+
+    g_type_init();
+
     content_type = g_content_type_guess (NULL, data, data_size, NULL);  
     mime_type = g_content_type_get_mime_type (content_type);
     return !!strcmp (mime_type, "image/png");
@@ -390,7 +393,7 @@ AC_MSG_RESULT($gio_can_sniff)
 
 dnl Other libraries
 MISC_CFLAGS="$PTHREAD_CFLAGS $VISIB_CFLAGS -D_FILE_OFFSET_BITS=64"
-MISC_LIBS="$PTHREAD_LIBS"
+MISC_LIBS="$PTHREAD_LIBS -ldl"
 AC_SUBST(MISC_CFLAGS)
 AC_SUBST(MISC_LIBS)
 AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h ext/malloc_allocator.h])
@@ -412,7 +415,7 @@ HTTP_CFLAGS="$NEON_CFLAGS $CURL_CFLAGS $SSL_CFLAGS $EXTRA_HTTP_CFLAGS"
 HTTP_LIBS="$NEON_LIBS $CURL_LIBS $SSL_LIBS"
 AC_SUBST(HTTP_CFLAGS)
 AC_SUBST(HTTP_LIBS)
-PKG_CHECK_MODULES(GMIME, gmime-2.4 >= 2.0 )
+PKG_CHECK_MODULES(GMIME, gmime-2.6 >= 2.5 )
 AC_SUBST(GMIME_CFLAGS)
 AC_SUBST(GMIME_LIBS)
 PKG_CHECK_MODULES(XML, libxml++-2.6 >= 2.12 )
