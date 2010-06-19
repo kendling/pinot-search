@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1934,7 +1934,7 @@ void mainWindow::on_status_activate()
 
 void mainWindow::on_preferences_activate()
 {
-	MIMEAction prefsAction("pinot-prefs", "pinot-prefs");
+	MIMEAction prefsAction("pinot-prefs", "pinot -p");
 	vector<string> arguments;
 
 	// Save the settings first as any change in preferences will make the daemon reload the whole thing
@@ -2586,7 +2586,7 @@ void mainWindow::on_about_activate()
 
 	aboutBox.set_comments(_("A metasearch tool for the Free Desktop") + string(".\n") +
 		_("Search the Web and your documents !"));
-	aboutBox.set_copyright("(C) 2005-2009 Fabrice Colin");
+	aboutBox.set_copyright("(C) 2005-2010 Fabrice Colin");
 	aboutBox.set_name("Pinot");
 	aboutBox.set_version(VERSION);
 	aboutBox.set_website("http://pinot.berlios.de/");
