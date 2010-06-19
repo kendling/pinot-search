@@ -1,4 +1,5 @@
 # List of source files containing translatable strings.
+SQL/SQLiteBase.cpp
 Core/DaemonState.cpp
 Core/OnDiskHandler.cpp
 Core/pinot-dbus-daemon.cpp
