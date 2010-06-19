@@ -2147,7 +2147,9 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 		string entryNameReferree;
 		bool isInIndexableLocation = false;
 
-		if (m_followSymLinks == false)
+		// If symlinks are followed, check if this symlink is blacklisted
+		if ((m_followSymLinks == false) ||
+			(PinotSettings::getInstance().isBlackListed(entryName) == false))
 		{
 #ifdef DEBUG
 			cout << "DirectoryScannerThread::scanEntry: skipped symlink " << entryName << endl;
