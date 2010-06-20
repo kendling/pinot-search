@@ -162,7 +162,7 @@ static bool getBatteryState(const string &name, bool systemBus,
 			const char *pParameter = parameter.c_str();
 
 			// Battery status is provided by the OnBattery property
-			// This only works for org.freedesktop.DeviceKit.Power
+			// This only works for org.freedesktop.(UPower|DeviceKit.Power)
 			callStatus = dbus_g_proxy_call(pBusProxy, method.c_str(), &pError,
 				G_TYPE_STRING, pParameter,
 				G_TYPE_INVALID,
@@ -247,6 +247,19 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 			"org.freedesktop.DBus.Properties",
 			"GetAll",
 			"org.freedesktop.DeviceKit.Power",
+			onBattery);
+	}
+	else if (dbus_message_is_signal(pMessage, "org.freedesktop.UPower", "Changed") == TRUE)
+	{
+#ifdef DEBUG
+		cout << "filterHandler: received Changed" << endl;
+#endif
+		// Properties changed, check again
+		batteryChange = getBatteryState("org.freedesktop.UPower", true,
+			"/org/freedesktop/UPower",
+			"org.freedesktop.DBus.Properties",
+			"GetAll",
+			"org.freedesktop.UPower",
 			onBattery);
 	}
 	// The first two signals are specified by the freedesktop.org Power Management spec v0.1 and v0.2
@@ -696,6 +709,8 @@ int main(int argc, char **argv)
 		{
 			// See power management signals
 			dbus_bus_add_match(pSystemConnection,
+				"type='signal',interface='org.freedesktop.UPower'", &error);
+			dbus_bus_add_match(pSystemConnection,
 				"type='signal',interface='org.freedesktop.DeviceKit.Power'", &error);
 			dbus_bus_add_match(pSessionConnection,
 				"type='signal',interface='org.freedesktop.PowerManagement'", &error);
@@ -807,7 +822,13 @@ int main(int argc, char **argv)
 #ifdef HAVE_DBUS
 			// Try and get the battery state
 			gboolean result = FALSE;
-			if ((getBatteryState("org.freedesktop.DeviceKit.Power", true,
+			if ((getBatteryState("org.freedesktop.UPower", true,
+	                        "/org/freedesktop/UPower",
+				"org.freedesktop.DBus.Properties",
+	                        "GetAll",
+	                        "org.freedesktop.UPower",
+                        	result) == true) ||
+				(getBatteryState("org.freedesktop.DeviceKit.Power", true,
 	                        "/org/freedesktop/DeviceKit/Power",
 				"org.freedesktop.DBus.Properties",
 	                        "GetAll",
