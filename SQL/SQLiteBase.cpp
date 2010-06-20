@@ -496,7 +496,7 @@ bool SQLiteBase::endTransaction(void)
 bool SQLiteBase::executeSimpleStatement(const string &sql)
 {
 	char *errMsg = NULL;
-	bool success = true;
+	bool success = false;
 
 	if (sql.empty() == true)
 	{
