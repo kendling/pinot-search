@@ -4,80 +4,96 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.95\n"
+"Project-Id-Version: pinot 0.96\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-09 22:24+0800\n"
-"PO-Revision-Date: 2009-09-24 18:23+0000\n"
+"POT-Creation-Date: 2010-06-20 16:10+0800\n"
+"PO-Revision-Date: 2010-06-20 08:45+0000\n"
 "Last-Translator: marco.jahn <Unknown>\n"
 "Language-Team: German <de@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2009-11-02 14:44+0000\n"
+"X-Launchpad-Export-Date: 2010-06-24 07:48+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
+#: SQL/SQLiteBase.cpp:419
+msgid "failed to begin transaction"
+msgstr ""
+
+#: SQL/SQLiteBase.cpp:455
+msgid "failed to rollback transaction"
+msgstr ""
+
+#: SQL/SQLiteBase.cpp:491
+msgid "failed to end transaction"
+msgstr ""
+
+#: SQL/SQLiteBase.cpp:553
+msgid "couldn't format SQL statement"
+msgstr ""
+
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:468 UI/GTK2/src/pinot.cc:309
+#: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:309
 msgid "Unknown"
 msgstr "Unbekannt"
 
-#: Core/pinot-dbus-daemon.cpp:469 UI/GTK2/src/pinot.cc:310
+#: Core/pinot-dbus-daemon.cpp:544 UI/GTK2/src/pinot.cc:310
 msgid "Danish"
 msgstr "Dänisch"
 
-#: Core/pinot-dbus-daemon.cpp:470 UI/GTK2/src/pinot.cc:311
+#: Core/pinot-dbus-daemon.cpp:545 UI/GTK2/src/pinot.cc:311
 msgid "Dutch"
 msgstr "Niederlänisch"
 
-#: Core/pinot-dbus-daemon.cpp:471 UI/GTK2/src/pinot.cc:312
+#: Core/pinot-dbus-daemon.cpp:546 UI/GTK2/src/pinot.cc:312
 msgid "English"
 msgstr "Englisch"
 
-#: Core/pinot-dbus-daemon.cpp:472 UI/GTK2/src/pinot.cc:313
+#: Core/pinot-dbus-daemon.cpp:547 UI/GTK2/src/pinot.cc:313
 msgid "Finnish"
 msgstr "Finnisch"
 
-#: Core/pinot-dbus-daemon.cpp:473 UI/GTK2/src/pinot.cc:314
+#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:314
 msgid "French"
 msgstr "Französisch"
 
-#: Core/pinot-dbus-daemon.cpp:474 UI/GTK2/src/pinot.cc:315
+#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:315
 msgid "German"
 msgstr "Deutsch"
 
-#: Core/pinot-dbus-daemon.cpp:475 UI/GTK2/src/pinot.cc:316
+#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:316
 msgid "Hungarian"
 msgstr "Ungarisch"
 
-#: Core/pinot-dbus-daemon.cpp:476 UI/GTK2/src/pinot.cc:317
+#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:317
 msgid "Italian"
 msgstr "Italienisch"
 
-#: Core/pinot-dbus-daemon.cpp:477 UI/GTK2/src/pinot.cc:318
+#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:318
 msgid "Norwegian"
 msgstr "Norwegisch"
 
-#: Core/pinot-dbus-daemon.cpp:478 UI/GTK2/src/pinot.cc:319
+#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:319
 msgid "Portuguese"
 msgstr "Portugiesisch"
 
-#: Core/pinot-dbus-daemon.cpp:479 UI/GTK2/src/pinot.cc:320
+#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:320
 msgid "Romanian"
 msgstr "Rumänisch"
 
-#: Core/pinot-dbus-daemon.cpp:480 UI/GTK2/src/pinot.cc:321
+#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:321
 msgid "Russian"
 msgstr "Russisch"
 
-#: Core/pinot-dbus-daemon.cpp:481 UI/GTK2/src/pinot.cc:322
+#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:322
 msgid "Spanish"
 msgstr "Spanisch"
 
-#: Core/pinot-dbus-daemon.cpp:482 UI/GTK2/src/pinot.cc:323
+#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:323
 msgid "Swedish"
 msgstr "Schwedisch"
 
-#: Core/pinot-dbus-daemon.cpp:483 UI/GTK2/src/pinot.cc:324
+#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:324
 msgid "Turkish"
 msgstr "Türkisch"
 
@@ -704,7 +720,8 @@ msgstr "Dateiendung"
 
 #: UI/GTK2/src/prefsWindow.cc:572
 msgid "Exclude these patterns from indexing"
-msgstr "Dateien mit folgenden Dateiendungen von der Indizierungs ausschliessen"
+msgstr ""
+"Dateien mit folgenden Dateiendungen von der Indizierungs ausschliessen"
 
 #: UI/GTK2/src/prefsWindow.cc:573
 msgid "Only index these patterns"
@@ -719,7 +736,8 @@ msgid "New Label"
 msgstr "Neue Kategorie"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:69
-msgid "These directories will be indexed and optionally monitored for changes:"
+msgid ""
+"These directories will be indexed and optionally monitored for changes:"
 msgstr ""
 "Diese Verzeichnisse werden indiziert und optional auf Änderungen überwacht:"
 
