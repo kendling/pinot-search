@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,6 +45,9 @@ class ActionQueue : public SQLiteBase
 
 		/// Returns the number of items of a particular type.
 		unsigned int getItemsCount(ActionType type);
+
+		/// Deletes all items under a given URL.
+		bool deleteItems(const std::string &url);
 
 		/// Expires items older than the given date.
 		bool expireItems(time_t expiryDate);
