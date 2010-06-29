@@ -2772,7 +2772,7 @@ void mainWindow::on_liveQueryEntry_changed()
 	// if it's a filter or a range, don't offer suggestions
 	if ((m_state.m_liveQueryLength > liveQueryLength) ||
 		(term.empty() == true) ||
-		(m_refLiveQueryCompletion->get_minimum_key_length() > term.length()) ||
+		(m_refLiveQueryCompletion->get_minimum_key_length() > (int)term.length()) ||
 		(term.find(':') != string::npos) ||
 		(term.find("..") != string::npos))
 	{

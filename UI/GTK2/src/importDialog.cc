@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -176,7 +176,7 @@ void importDialog::on_locationEntry_changed()
 	// attempt to offer suggestions
 	if ((m_locationLength > locationLength) ||
 		(fileName.empty() == true) ||
-		(m_refLocationCompletion->get_minimum_key_length() > fileName.length()))
+		(m_refLocationCompletion->get_minimum_key_length() > (int)fileName.length()))
 	{
 		m_locationLength = locationLength;
 		return;

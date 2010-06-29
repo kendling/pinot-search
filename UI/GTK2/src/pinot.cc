@@ -113,7 +113,6 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 	else if (dbus_message_is_signal(pMessage, PINOT_DBUS_SERVICE_NAME, "IndexFlushed") == TRUE)
 	{
 		DBusError error;
-		gboolean onBattery = FALSE;
 		unsigned int docsCount = 0;
 
 #ifdef DEBUG
