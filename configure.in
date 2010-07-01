@@ -120,25 +120,6 @@ fi
 AC_SUBST(SOAP_CFLAGS)
 AC_SUBST(SOAP_LIBS)
 
-dnl Xesam GLib
-AC_MSG_CHECKING(whether to enable Xesam GLib support)
-AC_ARG_ENABLE(xesam-glib,
-   [AS_HELP_STRING([--enable-xesam-glib], [enable Xesam GLib support [default=no]])],
-   ,[enable_xesam_glib=no])
-if test "x$enable_xesam_glib" != "xyes"; then
-   XESAMGLIB_CFLAGS=""
-   XESAMGLIB_LIBS=""
-   enable_xesam_glib=no
-fi
-AC_MSG_RESULT($enable_xesam_glib)
-AM_CONDITIONAL(HAVE_XESAM_GLIB, false)
-if test "x$enable_xesam_glib" = "xyes"; then
-   PKG_CHECK_MODULES(XESAMGLIB, xesam-glib)
-   AM_CONDITIONAL(HAVE_XESAM_GLIB, true)
-fi
-AC_SUBST(XESAMGLIB_CFLAGS)
-AC_SUBST(XESAMGLIB_LIBS)
-
 dnl DBus
 AC_MSG_CHECKING(whether to enable DBus support)
 AC_ARG_ENABLE(dbus,
@@ -328,6 +309,16 @@ else
    fi
 fi
 
+dnl dlopen() in libdl or libc ?
+AC_SUBST(DL_LIBS)
+AC_CHECK_LIB(dl, dlopen,
+   [DL_LIBS="-ldl"],
+   [AC_CHECK_LIB(c, dlopen,
+      [DL_LIBS=""],
+      [AC_MSG_ERROR([Can't find the library providing dlopen])]
+   ])
+)
+
 dnl Check whether we can use GIO instead of xdgmime
 AM_CONDITIONAL(HAVE_GIO_MIME, false)
 AC_MSG_CHECKING([if gio can sniff png])
@@ -393,7 +384,7 @@ AC_MSG_RESULT($gio_can_sniff)
 
 dnl Other libraries
 MISC_CFLAGS="$PTHREAD_CFLAGS $VISIB_CFLAGS -D_FILE_OFFSET_BITS=64"
-MISC_LIBS="$PTHREAD_LIBS -ldl"
+MISC_LIBS="$PTHREAD_LIBS $DL_LIBS"
 AC_SUBST(MISC_CFLAGS)
 AC_SUBST(MISC_LIBS)
 AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h ext/malloc_allocator.h])
@@ -473,6 +464,6 @@ AC_CHECK_FUNCS(vsnprintf)
 
 AC_OUTPUT( pinot.spec Core/de.berlios.Pinot.service Makefile \
 	Utils/Makefile Tokenize/Makefile SQL/Makefile po/Makefile.in Collect/Makefile \
-	IndexSearch/Google/Makefile IndexSearch/Xapian/Makefile IndexSearch/XesamGLib/Makefile \
+	IndexSearch/Google/Makefile IndexSearch/Xapian/Makefile \
 	IndexSearch/Makefile Monitor/Makefile Core/Makefile UI/GTK2/src/Makefile )
 
