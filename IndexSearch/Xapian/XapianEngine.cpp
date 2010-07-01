@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,11 +37,6 @@
 #include "XapianDatabaseFactory.h"
 #include "AbstractGenerator.h"
 #include "XapianEngine.h"
-#include "xesam/XapianQueryBuilder.h"
-#include "xesam/XesamQLParser.h"
-#ifdef HAVE_BOOST_SPIRIT
-#include "xesam/XesamULParser.h"
-#endif
 
 using std::string;
 using std::multimap;
@@ -725,39 +720,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	QueryProperties::QueryType type = queryProps.getType();
 	if (type != QueryProperties::XAPIAN_QP)
 	{
-		map<string, string> fieldMapping;
-
-		// Bare minimum mapping between Xesam fields and our prefixes 
-		fieldMapping["dc:title"] = "S";
-
-		XapianQueryBuilder builder(parser, fieldMapping);
-		XesamParser *pParser = NULL;
-		bool parsedQuery = false;
-
-		// Get a Xesam parser
-		if (type == QueryProperties::XESAM_QL)
-		{
-			pParser = new XesamQLParser();
-		}
-#ifdef HAVE_BOOST_SPIRIT_CORE_HPP
-		else if (type == QueryProperties::XESAM_UL)
-		{
-			pParser = new XesamULParser();
-		}
-#endif
-
-		if (pParser != NULL)
-		{
-			parsedQuery = pParser->parse(freeQuery, builder);
-
-			delete pParser;
-		}
-
-		if (parsedQuery == true)
-		{
-			return builder.get_query();
-		}
-
+		// This isn't supported
 		return Xapian::Query();
 	}
 

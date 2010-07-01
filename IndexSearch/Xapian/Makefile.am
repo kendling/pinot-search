@@ -6,12 +6,7 @@ noinst_HEADERS = \
 	XapianDatabase.h \
 	XapianDatabaseFactory.h \
 	XapianIndex.h \
-	XapianEngine.h \
-	$(top_srcdir)/IndexSearch/xesam/XapianQueryBuilder.h \
-	$(top_srcdir)/IndexSearch/xesam/XesamParser.h \
-	$(top_srcdir)/IndexSearch/xesam/XesamQLParser.h \
-	$(top_srcdir)/IndexSearch/xesam/XesamQueryBuilder.h \
-	$(top_srcdir)/IndexSearch/xesam/XesamULParser.h
+	XapianEngine.h
 
 lib_LTLIBRARIES = libxapianbackend.la
 
@@ -22,14 +17,7 @@ libxapianbackend_la_SOURCES = \
 	XapianDatabase.cpp \
 	XapianDatabaseFactory.cpp \
 	XapianIndex.cpp \
-	XapianEngine.cpp \
-	$(top_srcdir)/IndexSearch/xesam/XapianQueryBuilder.cc \
-	$(top_srcdir)/IndexSearch/xesam/XesamQLParser.cc \
-	$(top_srcdir)/IndexSearch/xesam/XesamQueryBuilder.cc
-
-if HAVE_BOOST_SPIRIT
-libxapianbackend_la_SOURCES += $(top_srcdir)/IndexSearch/xesam/XesamULParser.cc
-endif
+	XapianEngine.cpp
 
 libxapianbackend_la_LDFLAGS = -module -avoid-version -shared -nostartfiles
 
@@ -46,7 +34,6 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/Tokenize/filters \
 	-I$(top_srcdir)/IndexSearch \
 	-I$(top_srcdir)/IndexSearch/cjkv \
-	-I$(top_srcdir)/IndexSearch/xesam \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ @GLIBMM_CFLAGS@
 
 if HAVE_BOOST_SPIRIT

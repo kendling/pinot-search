@@ -35,9 +35,6 @@ BuildRequires: gcc-c++
 %if 0%{?_with_soap:1}
 BuildRequires: gsoap >= 2.7.9e
 %endif
-%if 0%{?_with_xesam_glib:1}
-BuildRequires: xesam-glib >= 0.3.0
-%endif
 %if 0%{?_with_libarchive:1}
 Requires: libarchive >= 2.6.2
 BuildRequires: libarchive-devel >= 2.6.2
@@ -65,7 +62,7 @@ The included plugin enables Deskbar to search documents indexed by Pinot.
 %setup -q
 
 %build
-%configure %{?_with_soap:--enable-soap=yes} %{?_with_xesam_glib:--enable-xesam-glib=yes} %{?_with_libarchive:--enable-libarchive=yes} %{?_with_debug:--enable-debug=yes}
+%configure %{?_with_soap:--enable-soap=yes} %{?_with_libarchive:--enable-libarchive=yes} %{?_with_debug:--enable-debug=yes}
 make %{?_smp_mflags}
 
 %install

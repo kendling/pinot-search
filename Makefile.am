@@ -1,5 +1,5 @@
 
-SUBDIRS = po Utils Tokenize SQL Collect IndexSearch/Google IndexSearch IndexSearch/Xapian IndexSearch/XesamGLib Monitor Core UI/GTK2/src
+SUBDIRS = po Utils Tokenize SQL Collect IndexSearch/Google IndexSearch IndexSearch/Xapian Monitor Core UI/GTK2/src
 
 # TODO: Fix that when cleaning up for distcheck! - crazy -
 EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \

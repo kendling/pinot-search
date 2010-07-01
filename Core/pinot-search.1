@@ -35,12 +35,6 @@ file to export results in XML format to
 .TP
 \fB\-v\fR, \fB\-\-version\fR
 output version information and exit
-.TP
-\fB\-q\fR, \fB\-\-xesamql\fR
-query input is a file containing Xesam QL
-.TP
-\fB\-u\fR, \fB\-\-xesamul\fR
-query input is a file containing Xesam UL
 .PP
 Supported search engine types are : 'opensearch' 'sherlock' 'xapian'
 .SH EXAMPLES
@@ -53,10 +47,6 @@ pinot\-search googleapi mygoogleapikey "clowns"
 pinot\-search xapian ~/.pinot/index "label:Clowns"
 .PP
 pinot\-search \fB\-\-stemming\fR english xapian somehostname:12345 "clowning"
-.PP
-pinot\-search \fB\-\-xesamul\fR xapian ~/.pinot/index some_xesamul_query.txt
-.PP
-pinot\-search \fB\-\-xesamql\fR xesam \- some_xesamql_query.xml
 .SH "REPORTING BUGS"
 Report bugs to fabricecolin@users.berlios.de
 .PP

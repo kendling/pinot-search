@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,38 +46,8 @@ static struct option g_longOptions[] = {
 	{"tocsv", 1, 0, 'c'},
 	{"toxml", 1, 0, 'x'},
 	{"version", 0, 0, 'v'},
-	{"xesamql", 0, 0, 'q'},
-	{"xesamul", 0, 0, 'u'},
 	{0, 0, 0, 0}
 };
-
-static bool loadFile(const string &xesamFile, string &fileContents)
-{
-	ifstream inputFile;
-	bool readFile = false;
-
-	inputFile.open(xesamFile.c_str());
-	if (inputFile.good() == true)
-	{
-		inputFile.seekg(0, ios::end);
-		int length = inputFile.tellg();
-		inputFile.seekg(0, ios::beg);
-
-		char *pFileBuffer = new char[length + 1];
-		inputFile.read(pFileBuffer, length);
-		if (inputFile.fail() == false)
-		{
-			pFileBuffer[length] = '\0';
-
-			fileContents = string(pFileBuffer, length);
-			readFile = true;
-		}
-		delete[] pFileBuffer;
-	}
-	inputFile.close();
-
-	return readFile;
-}
 
 static void printHelp(void)
 {
@@ -99,8 +69,6 @@ static void printHelp(void)
 		<< "  -c, --tocsv               file to export results in CSV format to\n"
 		<< "  -x, --toxml               file to export results in XML format to\n"
 		<< "  -v, --version             output version information and exit\n"
-		<< "  -q, --xesamql             query input is a file containing Xesam QL\n"
-		<< "  -u, --xesamul             query input is a file containing Xesam UL\n\n"
 		<< "Supported search engine types are :";
 	for (map<ModuleProperties, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
 	{
@@ -112,8 +80,6 @@ static void printHelp(void)
 		<< "pinot-search googleapi mygoogleapikey \"clowns\"\n\n"
 		<< "pinot-search xapian ~/.pinot/index \"label:Clowns\"\n\n"
 		<< "pinot-search --stemming english xapian somehostname:12345 \"clowning\"\n\n"
-		<< "pinot-search --xesamul xapian ~/.pinot/index some_xesamul_query.txt\n\n"
-		<< "pinot-search --xesamql xesam - some_xesamql_query.xml\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }
 
@@ -129,7 +95,7 @@ int main(int argc, char **argv)
 	bool isStoredQuery = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "c:dhlm:qrs:uvx:", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "c:dhlm:rs:vx:", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -156,9 +122,6 @@ int main(int argc, char **argv)
 					maxResultsCount = (unsigned int )atoi(optarg);
 				}
 				break;
-			case 'q':
-				queryType = QueryProperties::XESAM_QL;
-				break;
 			case 'r':
 				isStoredQuery = true;
 				break;
@@ -167,9 +130,6 @@ int main(int argc, char **argv)
 				{
 					stemLanguage = optarg;
 				}
-				break;
-			case 'u':
-				queryType = QueryProperties::XESAM_UL;
 				break;
 			case 'v':
 				cout << "pinot-search - " << PACKAGE_STRING << "\n\n"
@@ -189,7 +149,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "c:dhlm:qrs:uvx:", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "c:dhlm:rs:vx:", g_longOptions, &longOptionIndex);
 	}
 
 #if defined(ENABLE_NLS)
@@ -275,32 +235,6 @@ int main(int argc, char **argv)
 		{
 			queryProps.setFreeQuery(pQueryInput);
 		}
-	}
-	else if (isStoredQuery == true)
-	{
-		cerr << "Options -r and -q/-u are incompatible" << endl;
-
-		DownloaderInterface::shutdown();
-		MIMEScanner::shutdown();
-
-		return EXIT_FAILURE;
-	}
-	else
-	{
-		string fileContents;
-
-		// Load the query from file
-		if (loadFile(pQueryInput, fileContents) == false)
-		{
-			cerr << "Couldn't load query from file " << pQueryInput << endl;
-
-			DownloaderInterface::shutdown();
-			MIMEScanner::shutdown();
-
-			return EXIT_FAILURE;
-		}
-
-		queryProps.setFreeQuery(fileContents);
 	}
 	queryProps.setStemmingLanguage(stemLanguage);
 	queryProps.setMaximumResultsCount(maxResultsCount);

@@ -14,8 +14,7 @@ noinst_HEADERS = \
 	SearchEngineInterface.h \
 	SearchPluginProperties.h \
 	SherlockParser.h \
-	WebEngine.h \
-	XesamLog.h
+	WebEngine.h
 
 if HAVE_DBUS
 noinst_LTLIBRARIES = libIndex.la libIndexSearch.la
@@ -70,7 +69,6 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/IndexSearch/cjkv \
 	-I$(top_srcdir)/IndexSearch/Google \
-	-I$(top_srcdir)/IndexSearch/xesam \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ \
 	@INDEX_CFLAGS@ @GLIBMM_CFLAGS@
 
