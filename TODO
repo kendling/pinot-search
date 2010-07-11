@@ -67,7 +67,7 @@ Index
 - Indexes have no knowledge of indexId's
 - Be ready to catch DatabaseModifiedError exceptions and reopen the index
 - Think about security issues, especially when indexes are shared, based on http://plg.uwaterloo.ca/~claclark/fast2005.pdf
-- Split "compound_word", index separately and as whole
+- Index "compound_word" separately and as a whole
 
 Mail
 - Find out what kind of locking scheme Mozilla uses (POSIX lock ?) and use that
@@ -84,7 +84,6 @@ Daemon
 - Clean up method names
 - Prefer ustring to string whenever possible
 - Queue unindexing too
-- Follow updates to Xesam specs
 - The daemon should ask for permission before reindexing, especially if the corpus is large
 - What does a first run mean for the daemon ? ie no configuration file
 - Daemon should use worker threads' doWork() instead of duplicating code
@@ -125,4 +124,6 @@ v0.90
 - HtmlParser should use CJKVTokenizer's Unicode conversion function
 - Status dialog to show time of latest update 
 - Send a signal when preferences are modified so that the UI and the daemon can reload them
+- The first non-empty line of plain text output to be used as title
+- When removing a location to index, delete queued actions for this location
 

@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r168 | fabricecolin | 2010-07-05 21:04:27 +0800 (Mon, 05 Jul 2010) | 2 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/GMimeMboxFilter.h
+
+Support for messages of type message/external-body.
+
+------------------------------------------------------------------------
 r166 | fabricecolin | 2009-10-25 13:05:41 +0800 (Sun, 25 Oct 2009) | 3 lines
 Changed paths:
    M /trunk/cjkv/CJKVTokenizer.cc

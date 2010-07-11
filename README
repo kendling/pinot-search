@@ -230,21 +230,8 @@ http://pinot.berlios.de/
       "HHMMSS..HHMMSS" for time ranges, eg "090000..180000"
       "size0..size1b" for size in bytes, eg "0..10240b"
 
-  Pinot also has support for the Xesam desktop search specifications. As of
-  v0.87, provided that the xesam-glib library is found at compilation time,
-  users can query a search engine that implements the Xesam interface. Note
-  that the daemon doesn't itself implement that interface just yet.
-
-  The following rules of thumb apply :
-    * when querying a Web engine, queries should be entered in a format
-      understood by the engine.
-    * when querying the Xesam engine using the UI, queries should be entered
-      in the Xesam User Language format.
-    * when querying the Xesam engine using pinot-search with the -q/--xesamql
-      option, queries should be entered in the Xesam Query Language format;
-      otherwise, in the Xesam User Language format.
-    * when querying an internal index using pinot-search, the -q/--xesamql
-      and -u/--xesamul options determine the format of the query.
+  Support for the Xesam desktop search specifications was introduced in v0.87
+  and dropped in v0.96.
 
   See the manual page for pinot-search(1) for examples.
 
