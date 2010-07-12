@@ -1,4 +1,614 @@
 ------------------------------------------------------------------------
+r1723 | fabricecolin | 2010-07-12 22:08:59 +0800 (Mon, 12 Jul 2010) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog-dijon
+   M /trunk/NEWS
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+News for 0.96.
+
+------------------------------------------------------------------------
+r1722 | fabricecolin | 2010-07-12 21:55:31 +0800 (Mon, 12 Jul 2010) | 2 lines
+Changed paths:
+   M /trunk/Core/PinotSettings.cpp
+
+Removed unused variable.
+
+------------------------------------------------------------------------
+r1721 | fabricecolin | 2010-07-11 15:57:41 +0800 (Sun, 11 Jul 2010) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog-dijon
+   M /trunk/README
+   M /trunk/TODO
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Current po's and misc files.
+
+------------------------------------------------------------------------
+r1720 | fabricecolin | 2010-07-01 18:34:37 +0800 (Thu, 01 Jul 2010) | 3 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+
+Completed fr.po, added missing accents etc...
+Updated he.po by Yaron.
+
+------------------------------------------------------------------------
+r1719 | fabricecolin | 2010-07-01 18:32:32 +0800 (Thu, 01 Jul 2010) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-search.1
+   M /trunk/Core/pinot-search.cpp
+   M /trunk/IndexSearch/Makefile.am
+   M /trunk/IndexSearch/QueryProperties.cpp
+   M /trunk/IndexSearch/QueryProperties.h
+   M /trunk/IndexSearch/Xapian/Makefile.am
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+   M /trunk/Makefile.am
+   M /trunk/pinot.spec.in
+
+Dropped Xesam support.
+
+------------------------------------------------------------------------
+r1718 | fabricecolin | 2010-07-01 18:28:57 +0800 (Thu, 01 Jul 2010) | 3 lines
+Changed paths:
+   M /trunk/configure.in
+
+Dropped option --enable-xesam-glib, don't build IndexSearch/XesamGLib.
+Look for dlopen() in libc if not found in libdl (helps with build on BSD).
+
+------------------------------------------------------------------------
+r1717 | fabricecolin | 2010-07-01 18:26:40 +0800 (Thu, 01 Jul 2010) | 2 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+
+FreeBSD build patch by Thierry Thomas.
+
+------------------------------------------------------------------------
+r1716 | fabricecolin | 2010-06-29 22:06:52 +0800 (Tue, 29 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/importDialog.cc
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/pinot.cc
+
+Minor fixes.
+
+------------------------------------------------------------------------
+r1715 | fabricecolin | 2010-06-28 04:47:21 +0800 (Mon, 28 Jun 2010) | 3 lines
+Changed paths:
+   M /trunk/README
+   M /trunk/configure.in
+
+Be smart, check for gmime 2.4 first then 2.5.
+This partially undoes SVN r1705.
+
+------------------------------------------------------------------------
+r1714 | fabricecolin | 2010-06-27 20:01:01 +0800 (Sun, 27 Jun 2010) | 3 lines
+Changed paths:
+   M /trunk/SQL/ActionQueue.cpp
+   M /trunk/SQL/ActionQueue.h
+
+Prepare more statements.
+New method ActionQueue::deleteItems().
+
+------------------------------------------------------------------------
+r1713 | fabricecolin | 2010-06-27 19:11:56 +0800 (Sun, 27 Jun 2010) | 4 lines
+Changed paths:
+   M /trunk/AUTHORS
+   A /trunk/ltmain.sh
+
+Added ltmain.sh to SVN so that everybody can enjoy the changes for --as-needed
+as used in the Debian package, contributed by Jonas Smedegaard.
+Also mention Jens Wilhelm Wulf's feedback.
+
+------------------------------------------------------------------------
+r1712 | fabricecolin | 2010-06-24 17:08:05 +0800 (Thu, 24 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Current translations.
+
+------------------------------------------------------------------------
+r1711 | fabricecolin | 2010-06-24 15:46:06 +0800 (Thu, 24 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Bumped version number to 0.96.
+
+------------------------------------------------------------------------
+r1710 | fabricecolin | 2010-06-20 16:13:58 +0800 (Sun, 20 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.cpp
+
+Support for upower.
+
+------------------------------------------------------------------------
+r1709 | fabricecolin | 2010-06-20 16:11:12 +0800 (Sun, 20 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLiteBase.cpp
+
+Fixed executeSimpleStatement().
+
+------------------------------------------------------------------------
+r1708 | fabricecolin | 2010-06-19 17:31:00 +0800 (Sat, 19 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/zh_CN.po
+
+Updates from verdy_p, Yaron, andbelo and Eleanor Chen respectively. 
+
+------------------------------------------------------------------------
+r1707 | fabricecolin | 2010-06-19 17:30:07 +0800 (Sat, 19 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/Core/WorkerThreads.cpp
+
+Check symlinks against the blacklist.
+
+------------------------------------------------------------------------
+r1706 | fabricecolin | 2010-06-19 17:18:46 +0800 (Sat, 19 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/po/POTFILES.in
+
+Added SQLiteBase.cpp to the list.
+
+------------------------------------------------------------------------
+r1705 | fabricecolin | 2010-06-19 16:59:58 +0800 (Sat, 19 Jun 2010) | 4 lines
+Changed paths:
+   M /trunk/README
+   M /trunk/configure.in
+
+Added call to g_type_init() in the test program for GIO sniffing.
+Set gmime dependency to "gmime-2.6 >= 2.5".
+Link with -ldl.
+
+------------------------------------------------------------------------
+r1704 | fabricecolin | 2010-06-19 16:53:48 +0800 (Sat, 19 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/CrawlHistory.h
+
+Prepare a lot more statements.
+
+------------------------------------------------------------------------
+r1703 | fabricecolin | 2010-06-19 16:53:13 +0800 (Sat, 19 Jun 2010) | 3 lines
+Changed paths:
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Extended about box copyright to 2010.
+Launch preferences with pinot -p in case the pinot-prefs symlink doesn't exist.
+
+------------------------------------------------------------------------
+r1702 | fabricecolin | 2010-06-16 00:12:17 +0800 (Wed, 16 Jun 2010) | 4 lines
+Changed paths:
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Slightly better transaction support, error reporting.
+Clear compiled statements on close().
+Removed _USE_VSNPRINTF conditioned code.
+
+------------------------------------------------------------------------
+r1701 | fabricecolin | 2010-06-12 12:37:51 +0800 (Sat, 12 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.cpp
+   M /trunk/Core/pinot-index.cpp
+   M /trunk/UI/GTK2/src/pinot.cc
+
+Prefer Chert to Flint.
+
+------------------------------------------------------------------------
+r1700 | fabricecolin | 2010-06-12 12:06:41 +0800 (Sat, 12 Jun 2010) | 3 lines
+Changed paths:
+   M /trunk/README
+
+Make it clear operators should be upper-case.
+"hu", "ro" and "tr" were missing from the list of language codes.
+
+------------------------------------------------------------------------
+r1699 | fabricecolin | 2010-06-07 23:40:23 +0800 (Mon, 07 Jun 2010) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/LanguageDetector.cpp
+
+Check the handle before attempting to close it.
+
+------------------------------------------------------------------------
+r1698 | fabricecolin | 2010-03-30 21:05:52 +0800 (Tue, 30 Mar 2010) | 3 lines
+Changed paths:
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Fix for INSERT, UPDATE and DELETE as prepared statements.
+Don't be greedy, if the database is busy, sleep for a short while!
+
+------------------------------------------------------------------------
+r1697 | fabricecolin | 2010-03-21 21:22:53 +0800 (Sun, 21 Mar 2010) | 2 lines
+Changed paths:
+   M /trunk/Monitor/INotifyMonitor.cpp
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/Utils/MIMEScanner.cpp
+   M /trunk/Utils/MIMEScanner.h
+
+Tweaks and missing headers.
+
+------------------------------------------------------------------------
+r1696 | fabricecolin | 2010-03-21 21:20:43 +0800 (Sun, 21 Mar 2010) | 2 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/po/fr.po
+   M /trunk/po/pt_BR.po
+
+fr and pt_BR updates by verdy_p and andbelo.
+
+------------------------------------------------------------------------
+r1695 | fabricecolin | 2009-12-06 16:50:38 +0800 (Sun, 06 Dec 2009) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLiteBase.cpp
+
+Less DEBUG.
+
+------------------------------------------------------------------------
+r1694 | fabricecolin | 2009-12-06 16:50:05 +0800 (Sun, 06 Dec 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/ServerThreads.cpp
+   M /trunk/Core/ServerThreads.h
+   M /trunk/Core/pinot-dbus-daemon.cpp
+
+Battery status can now be obtained from DeviceKit-power.
+
+------------------------------------------------------------------------
+r1692 | fabricecolin | 2009-11-14 12:10:40 +0800 (Sat, 14 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog-dijon
+   M /trunk/NEWS
+   M /trunk/po/es.po
+   M /trunk/po/pt.po
+
+Releasing 0.95 today.
+
+------------------------------------------------------------------------
+r1691 | fabricecolin | 2009-11-10 21:44:54 +0800 (Tue, 10 Nov 2009) | 4 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/configure.in
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Bumped version number to 0.95.
+Included language updates from Fabian Affolter and Marco Jahn (German), Ddorda
+(Hebrew), Bernardo Lopes (Portuguese) and DiegoJ (Spanish).
+
+------------------------------------------------------------------------
+r1690 | fabricecolin | 2009-11-09 21:24:41 +0800 (Mon, 09 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+
+Build the daemon as pinot-daemon if D-Bus support is turned off.
+
+------------------------------------------------------------------------
+r1689 | fabricecolin | 2009-11-05 21:36:39 +0800 (Thu, 05 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/configure.in
+
+Last chunk of the OpenBSD patches, confirmed not to affect other ports.
+
+------------------------------------------------------------------------
+r1688 | fabricecolin | 2009-11-04 20:11:54 +0800 (Wed, 04 Nov 2009) | 2 lines
+Changed paths:
+   D /trunk/IndexSearch/Plugins/Exalead.src
+   D /trunk/IndexSearch/Plugins/IOIDescription.xml
+
+These engines have fallen off the face of the Earth :-)
+
+------------------------------------------------------------------------
+r1687 | fabricecolin | 2009-11-04 20:11:05 +0800 (Wed, 04 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Plugins/Bing.src
+
+Fixed results parsing for Bing.
+
+------------------------------------------------------------------------
+r1686 | fabricecolin | 2009-11-02 22:25:09 +0800 (Mon, 02 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.cpp
+
+Cosmetic edit.
+
+------------------------------------------------------------------------
+r1685 | fabricecolin | 2009-11-02 22:24:12 +0800 (Mon, 02 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/po/POTFILES.in
+
+PinotUtils was moved.
+
+------------------------------------------------------------------------
+r1684 | fabricecolin | 2009-11-02 22:22:26 +0800 (Mon, 02 Nov 2009) | 4 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/DaemonState.h
+   M /trunk/Core/ServerThreads.cpp
+   M /trunk/Core/ServerThreads.h
+   M /trunk/Core/WorkerThreads.cpp
+   M /trunk/Core/WorkerThreads.h
+
+DaemonState and MonitorThread use one CrawlHistory object from start to finish,
+ThreadsManager one ActionQueue object.
+CrawlerThread's cache applies to all updates.
+
+------------------------------------------------------------------------
+r1683 | fabricecolin | 2009-11-02 22:17:41 +0800 (Mon, 02 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/SQL/ActionQueue.cpp
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/CrawlHistory.h
+
+Use prepared statements for common queries, transactions for masse updates.
+
+------------------------------------------------------------------------
+r1682 | fabricecolin | 2009-11-02 09:35:55 +0800 (Mon, 02 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+
+PinotUtils was moved out.
+
+------------------------------------------------------------------------
+r1681 | fabricecolin | 2009-11-02 09:35:26 +0800 (Mon, 02 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/Makefile.am
+
+Install D-Bus related stuff if HAVE_DBUS is set.
+
+------------------------------------------------------------------------
+r1680 | fabricecolin | 2009-11-01 22:48:44 +0800 (Sun, 01 Nov 2009) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLDB.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Support for prepared statements, transactions.
+
+------------------------------------------------------------------------
+r1679 | fabricecolin | 2009-10-25 16:33:44 +0800 (Sun, 25 Oct 2009) | 2 lines
+Changed paths:
+   M /trunk/FAQ
+
+Summarize all environment variables that can be tuned to lower memeory usage.
+
+------------------------------------------------------------------------
+r1678 | fabricecolin | 2009-10-25 16:31:57 +0800 (Sun, 25 Oct 2009) | 2 lines
+Changed paths:
+   M /trunk/po/de.po
+
+Update from Fabian Affolter.
+
+------------------------------------------------------------------------
+r1677 | fabricecolin | 2009-10-25 16:14:47 +0800 (Sun, 25 Oct 2009) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianDatabase.cpp
+   M /trunk/IndexSearch/Xapian/XapianDatabase.h
+
+Removed error checking on mutex.
+
+------------------------------------------------------------------------
+r1676 | fabricecolin | 2009-10-25 16:13:51 +0800 (Sun, 25 Oct 2009) | 6 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.h
+
+XPATH/path is a probabilistic term prefix, and path terms should be generated
+with positional information.
+Get the tokenizer to break on spaces only. With the recent changes to the
+CJKVTokenizer, this should preserve dots, eg dots in acronyms and version
+numbers, similarly to what the QueryParser does.
+
+------------------------------------------------------------------------
+r1675 | fabricecolin | 2009-10-25 12:15:01 +0800 (Sun, 25 Oct 2009) | 2 lines
+Changed paths:
+   M /trunk/po/nl.po
+
+Update from JW.
+
+------------------------------------------------------------------------
+r1674 | fabricecolin | 2009-10-21 22:06:19 +0800 (Wed, 21 Oct 2009) | 2 lines
+Changed paths:
+   M /trunk/pinot-dbus-daemon.desktop
+
+Added Encoding and Version.
+
+------------------------------------------------------------------------
+r1673 | fabricecolin | 2009-10-21 21:22:04 +0800 (Wed, 21 Oct 2009) | 4 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+   M /trunk/IndexSearch/Xapian/XapianEngine.h
+
+Use the Query API to limit the query to a set of documents (Search This For)
+instead of mangling the query string.
+Escape and hash terms with prefix "path".
+
+------------------------------------------------------------------------
+r1672 | fabricecolin | 2009-10-10 19:52:09 +0800 (Sat, 10 Oct 2009) | 2 lines
+Changed paths:
+   M /trunk/UI/GTK2/metase-gtk2.glade
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/mainWindow.hh
+   M /trunk/UI/GTK2/src/mainWindow_glade.cc
+
+If gtkmm >= 2.16 is available, replace the find button with a QueryEntry icon.
+
+------------------------------------------------------------------------
+r1671 | fabricecolin | 2009-09-19 12:45:58 +0800 (Sat, 19 Sep 2009) | 2 lines
+Changed paths:
+   D /trunk/Core/PinotUtils.cpp
+   D /trunk/Core/PinotUtils.h
+   M /trunk/UI/GTK2/src/EnginesTree.cc
+   M /trunk/UI/GTK2/src/IndexPage.cc
+   M /trunk/UI/GTK2/src/Makefile.am
+   M /trunk/UI/GTK2/src/Notebook.cc
+   A /trunk/UI/GTK2/src/PinotUtils.cc (from /trunk/Core/PinotUtils.cpp:1665)
+   A /trunk/UI/GTK2/src/PinotUtils.hh (from /trunk/Core/PinotUtils.h:1665)
+   M /trunk/UI/GTK2/src/ResultsTree.cc
+   M /trunk/UI/GTK2/src/importDialog.cc
+   M /trunk/UI/GTK2/src/indexDialog.cc
+   M /trunk/UI/GTK2/src/launcherDialog.cc
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/prefsWindow.cc
+   M /trunk/UI/GTK2/src/propertiesDialog.cc
+   M /trunk/UI/GTK2/src/queryDialog.cc
+   M /trunk/UI/GTK2/src/statisticsDialog.cc
+
+Moved PinotUtils out of Core.
+
+------------------------------------------------------------------------
+r1670 | fabricecolin | 2009-08-30 09:07:46 +0800 (Sun, 30 Aug 2009) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLiteBase.cpp
+
+Show the name of the database when a statement fails.
+
+------------------------------------------------------------------------
+r1669 | fabricecolin | 2009-08-30 09:07:01 +0800 (Sun, 30 Aug 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/pinot-dbus-daemon.cpp
+   M /trunk/UI/GTK2/src/pinot.cc
+
+Build those when HAVE_DBUS isn't set.
+
+------------------------------------------------------------------------
+r1668 | fabricecolin | 2009-08-30 09:04:33 +0800 (Sun, 30 Aug 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/UniqueApplication.cpp
+
+Cleanup.
+
+------------------------------------------------------------------------
+r1667 | fabricecolin | 2009-08-29 13:33:42 +0800 (Sat, 29 Aug 2009) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/Core/DaemonState.cpp
+   M /trunk/Core/Makefile.am
+   M /trunk/Core/WorkerThreads.cpp
+   M /trunk/IndexSearch/Makefile.am
+   M /trunk/IndexSearch/Xapian/Makefile.am
+   M /trunk/README
+   M /trunk/Tokenize/Makefile.am
+   M /trunk/UI/GTK2/src/Makefile.am
+
+OpenBSD port patches, from Antoine Jacoutot.
+See http://www.openbsd.org/cgi-bin/cvsweb/ports/x11/pinot/patches/
+
+------------------------------------------------------------------------
+r1666 | fabricecolin | 2009-08-29 13:23:09 +0800 (Sat, 29 Aug 2009) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.cpp
+   M /trunk/UI/GTK2/src/pinot.cc
+
+Redirect clog too.
+
+------------------------------------------------------------------------
+r1665 | fabricecolin | 2009-08-15 18:11:22 +0800 (Sat, 15 Aug 2009) | 2 lines
+Changed paths:
+   M /trunk/SQL/ActionQueue.cpp
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/MetaDataBackup.cpp
+   M /trunk/SQL/QueryHistory.cpp
+   M /trunk/SQL/SQLDB.cpp
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/ViewHistory.cpp
+   M /trunk/Utils/CommandLine.cpp
+   M /trunk/Utils/Document.cpp
+   M /trunk/Utils/MIMEScanner.cpp
+   M /trunk/Utils/Memory.cpp
+   M /trunk/Utils/TimeConverter.cpp
+   M /trunk/Utils/Url.cpp
+
+Prefer clog to cout and cerr.
+
+------------------------------------------------------------------------
+r1664 | fabricecolin | 2009-07-02 21:37:20 +0800 (Thu, 02 Jul 2009) | 2 lines
+Changed paths:
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/SQLDB.cpp
+   M /trunk/SQL/SQLDB.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Allow opening databases in read-only mode.
+
+------------------------------------------------------------------------
+r1663 | fabricecolin | 2009-07-01 23:22:38 +0800 (Wed, 01 Jul 2009) | 2 lines
+Changed paths:
+   M /trunk/Utils/TimeConverter.cpp
+
+When requesting GM time, the timezone should be GMT !
+
+------------------------------------------------------------------------
+r1662 | fabricecolin | 2009-06-29 23:08:05 +0800 (Mon, 29 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/po/fr.po
+
+Translation update by Thierry Thomas.
+
+------------------------------------------------------------------------
+r1660 | fabricecolin | 2009-06-27 11:36:22 +0800 (Sat, 27 Jun 2009) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/ChangeLog-dijon
+
+Current logs.
+
+------------------------------------------------------------------------
 r1659 | fabricecolin | 2009-06-27 11:31:13 +0800 (Sat, 27 Jun 2009) | 2 lines
 Changed paths:
    M /trunk/po/de.po
