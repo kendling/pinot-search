@@ -1,3 +1,32 @@
+2010/07/12 version_0_9_6
+General :
+ - fixed "GIO can sniff PNG" program used at configure time
+ - README clarifies that operators should be upper-case
+ - builds with gmime-2.4 or 2.6
+ - link with the library that has dlopen() and fix Debian bug #556062
+ - merged Debian's patch for --as-needed support
+ - merged FreeBSD build patch
+ - dropped support for Xesam
+SQL :
+ - fixed prepared statements interface to work with insertion and deletion
+ - sleep then retry operations if the database is busy
+ - better transaction support
+Tokenize :
+ - the mbox filter now supports messages of type "message/external-body"
+IndexSearch :
+ - fixed possible crash at exit time when the textcat configuration file
+  points to non-existing model files
+Xapian :
+ - prefer the Chert back-end if available. Applicable to Xapian >= 1.2.0.
+Daemon :
+ - check symlinks against black-list
+ - the battery status can now be obtained from DeviceKit-power or upower
+UI :
+ - updated Simplified Chinese translation by Eleanor Chen
+ - updated French translation by verdy_p and Fabrice Colin
+ - updated Hebrew translation by Yaron
+ - updated Brazilian Portuguese translation by andbelo
+
 2009/11/14 version_0_9_5
 General :
  - OpenBSD support, thanks to the work of Antoine Jacoutot

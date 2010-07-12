@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r169 | fabricecolin | 2010-07-12 21:59:08 +0800 (Mon, 12 Jul 2010) | 3 lines
+Changed paths:
+   M /trunk/filters/GMimeMboxFilter.cc
+
+Fixed bug that would stop parsing when not being able to get the last part.
+External parts of unknown access types are assigned application/octet-stream.
+
+------------------------------------------------------------------------
 r168 | fabricecolin | 2010-07-05 21:04:27 +0800 (Mon, 05 Jul 2010) | 2 lines
 Changed paths:
    M /trunk/filters/GMimeMboxFilter.cc
