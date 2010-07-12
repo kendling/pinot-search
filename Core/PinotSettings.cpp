@@ -1716,8 +1716,6 @@ void PinotSettings::clearIndexes(void)
 /// Returns properties of the given index.
 PinotSettings::IndexProperties PinotSettings::getIndexPropertiesByName(const string &name) const
 {
-	unsigned int indexId = 0;
-
 	for (set<IndexProperties>::const_iterator propsIter = m_indexes.begin();
 		propsIter != m_indexes.end(); ++propsIter)
 	{
