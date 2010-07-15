@@ -2149,7 +2149,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 
 		// If symlinks are followed, check if this symlink is blacklisted
 		if ((m_followSymLinks == false) ||
-			(PinotSettings::getInstance().isBlackListed(entryName) == false))
+			(PinotSettings::getInstance().isBlackListed(entryName) == true))
 		{
 #ifdef DEBUG
 			cout << "DirectoryScannerThread::scanEntry: skipped symlink " << entryName << endl;
