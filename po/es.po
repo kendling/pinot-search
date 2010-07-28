@@ -5,95 +5,94 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.96\n"
+"Project-Id-Version: pinot 0.95\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-07-12 22:14+0800\n"
-"PO-Revision-Date: 2010-06-20 08:46+0000\n"
-"Last-Translator: DiegoJ <diegojromerolopez@gmail.com>\n"
+"POT-Creation-Date: 2010-06-20 16:10+0800\n"
+"PO-Revision-Date: 2010-07-26 18:15+0000\n"
+"Last-Translator: Juan Miguel Boyero Corral <Unknown>\n"
 "Language-Team: es <fabricecolin@users.berlios.de>\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: SQL/SQLiteBase.cpp:419
 msgid "failed to begin transaction"
-msgstr ""
+msgstr "No se pudo iniciar la transacción"
 
 #: SQL/SQLiteBase.cpp:455
 msgid "failed to rollback transaction"
-msgstr ""
+msgstr "No se pudo deshacer la transacción"
 
 #: SQL/SQLiteBase.cpp:491
 msgid "failed to end transaction"
-msgstr ""
+msgstr "No se pudo finalizar la transacción"
 
 #: SQL/SQLiteBase.cpp:553
 msgid "couldn't format SQL statement"
-msgstr ""
+msgstr "No se pudo formatear la sentencia SQL"
 
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:308
+#: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:309
 msgid "Unknown"
 msgstr "Desconocido"
 
-#: Core/pinot-dbus-daemon.cpp:544 UI/GTK2/src/pinot.cc:309
+#: Core/pinot-dbus-daemon.cpp:544 UI/GTK2/src/pinot.cc:310
 msgid "Danish"
 msgstr "Danés"
 
-#: Core/pinot-dbus-daemon.cpp:545 UI/GTK2/src/pinot.cc:310
+#: Core/pinot-dbus-daemon.cpp:545 UI/GTK2/src/pinot.cc:311
 msgid "Dutch"
 msgstr "Holandés"
 
-#: Core/pinot-dbus-daemon.cpp:546 UI/GTK2/src/pinot.cc:311
+#: Core/pinot-dbus-daemon.cpp:546 UI/GTK2/src/pinot.cc:312
 msgid "English"
 msgstr "Inglés"
 
-#: Core/pinot-dbus-daemon.cpp:547 UI/GTK2/src/pinot.cc:312
+#: Core/pinot-dbus-daemon.cpp:547 UI/GTK2/src/pinot.cc:313
 msgid "Finnish"
 msgstr "Finlandés"
 
-#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:313
+#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:314
 msgid "French"
 msgstr "Francés"
 
-#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:314
+#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:315
 msgid "German"
 msgstr "Alemán"
 
-#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:315
+#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:316
 msgid "Hungarian"
 msgstr "Húngaro"
 
-#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:316
+#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:317
 msgid "Italian"
 msgstr "Italiano"
 
-#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:317
+#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:318
 msgid "Norwegian"
 msgstr "Noruego"
 
-#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:318
+#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:319
 msgid "Portuguese"
 msgstr "Portugués"
 
-#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:319
+#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:320
 msgid "Romanian"
 msgstr "Rumano"
 
-#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:320
+#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:321
 msgid "Russian"
 msgstr "Ruso"
 
-#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:321
+#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:322
 msgid "Spanish"
 msgstr "Español"
 
-#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:322
+#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:323
 msgid "Swedish"
 msgstr "Sueco"
 
-#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:323
+#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:324
 msgid "Turkish"
 msgstr "Turco"
 
@@ -684,11 +683,11 @@ msgstr "¿Qué quiere decir?"
 msgid "Close"
 msgstr "Cerrar"
 
-#: UI/GTK2/src/pinot.cc:349
+#: UI/GTK2/src/pinot.cc:350
 msgid "Couldn't open index"
 msgstr "No se pudo abrir el índice"
 
-#: UI/GTK2/src/pinot.cc:370
+#: UI/GTK2/src/pinot.cc:371
 msgid "Couldn't create history database"
 msgstr "No se pudo crear la base de datos del histórico"
 
@@ -733,7 +732,8 @@ msgid "New Label"
 msgstr "Nueva etiqueta"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:69
-msgid "These directories will be indexed and optionally monitored for changes:"
+msgid ""
+"These directories will be indexed and optionally monitored for changes:"
 msgstr "Estas carpetas van a estar indexar automáticamente"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:74 UI/GTK2/src/prefsWindow_glade.cc:90
