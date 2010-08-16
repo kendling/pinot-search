@@ -7,93 +7,92 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.96\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-07-12 22:14+0800\n"
-"PO-Revision-Date: 2010-06-20 08:47+0000\n"
+"POT-Creation-Date: 2010-06-20 16:10+0800\n"
+"PO-Revision-Date: 2010-08-16 05:23+0000\n"
 "Last-Translator: Takeo Mizuki <Unknown>\n"
 "Language-Team: Japanese <ja@li.org>\n"
-"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: SQL/SQLiteBase.cpp:419
 msgid "failed to begin transaction"
-msgstr ""
+msgstr "トランザクションの開始に失敗しました。"
 
 #: SQL/SQLiteBase.cpp:455
 msgid "failed to rollback transaction"
-msgstr ""
+msgstr "トランザクションのロールバックに失敗しました。"
 
 #: SQL/SQLiteBase.cpp:491
 msgid "failed to end transaction"
-msgstr ""
+msgstr "トランザクションの終了に失敗しました。"
 
 #: SQL/SQLiteBase.cpp:553
 msgid "couldn't format SQL statement"
-msgstr ""
+msgstr "SQLステートメントをフォーマットできませんでした。"
 
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:308
+#: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:309
 msgid "Unknown"
 msgstr "不明"
 
-#: Core/pinot-dbus-daemon.cpp:544 UI/GTK2/src/pinot.cc:309
+#: Core/pinot-dbus-daemon.cpp:544 UI/GTK2/src/pinot.cc:310
 msgid "Danish"
 msgstr "デンマーク語"
 
-#: Core/pinot-dbus-daemon.cpp:545 UI/GTK2/src/pinot.cc:310
+#: Core/pinot-dbus-daemon.cpp:545 UI/GTK2/src/pinot.cc:311
 msgid "Dutch"
 msgstr "オランダ語"
 
-#: Core/pinot-dbus-daemon.cpp:546 UI/GTK2/src/pinot.cc:311
+#: Core/pinot-dbus-daemon.cpp:546 UI/GTK2/src/pinot.cc:312
 msgid "English"
 msgstr "英語"
 
-#: Core/pinot-dbus-daemon.cpp:547 UI/GTK2/src/pinot.cc:312
+#: Core/pinot-dbus-daemon.cpp:547 UI/GTK2/src/pinot.cc:313
 msgid "Finnish"
 msgstr "フィン語"
 
-#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:313
+#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:314
 msgid "French"
 msgstr "フランス語"
 
-#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:314
+#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:315
 msgid "German"
 msgstr "ドイツ語"
 
-#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:315
+#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:316
 msgid "Hungarian"
 msgstr "ハンガリー語"
 
-#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:316
+#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:317
 msgid "Italian"
 msgstr "イタリア語"
 
-#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:317
+#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:318
 msgid "Norwegian"
 msgstr "ノルウェー語"
 
-#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:318
+#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:319
 msgid "Portuguese"
 msgstr "ポルトガル語"
 
-#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:319
+#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:320
 msgid "Romanian"
 msgstr "ルーマニア語"
 
-#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:320
+#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:321
 msgid "Russian"
 msgstr "ロシア語"
 
-#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:321
+#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:322
 msgid "Spanish"
 msgstr "スペイン語"
 
-#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:322
+#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:323
 msgid "Swedish"
 msgstr "スウェーデン語"
 
-#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:323
+#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:324
 msgid "Turkish"
 msgstr "トルコ語"
 
@@ -142,11 +141,11 @@ msgstr "最新より表示"
 
 #: Core/PinotSettings.cpp:477
 msgid "Home Stuff"
-msgstr ""
+msgstr "ホーム関連"
 
 #: Core/PinotSettings.cpp:478
 msgid "With Label New"
-msgstr ""
+msgstr "新規ラベルを付ける"
 
 #: Core/PinotSettings.cpp:479
 msgid "Have CJKV"
@@ -154,11 +153,11 @@ msgstr "CJKVである"
 
 #: Core/PinotSettings.cpp:480
 msgid "In English"
-msgstr ""
+msgstr "英語"
 
 #: Core/PinotSettings.cpp:481
 msgid "10kb And Smaller"
-msgstr ""
+msgstr "10kbまたはそれ以下"
 
 #: Core/PinotSettings.cpp:526
 msgid "Unclassified"
@@ -549,8 +548,7 @@ msgstr "次のキーワードに対する履歴はありませんでした。"
 
 #: UI/GTK2/src/mainWindow.cc:2994 UI/GTK2/src/prefsWindow.cc:960
 msgid "At least one task hasn't completed yet. Quit now ?"
-msgstr ""
-"少なくともひとつ以上のタスクが未だ完了していません。いま直ぐ終了しますか？"
+msgstr "少なくともひとつ以上のタスクが未だ完了していません。いま直ぐ終了しますか？"
 
 #: UI/GTK2/src/mainWindow.cc:2996 UI/GTK2/src/prefsWindow.cc:962
 msgid "Quit"
@@ -614,7 +612,7 @@ msgstr "キャッシュを開く。"
 
 #: UI/GTK2/src/mainWindow_glade.cc:168
 msgid "Open Parent"
-msgstr ""
+msgstr "親を開く"
 
 #: UI/GTK2/src/mainWindow_glade.cc:174
 msgid "_Add To Index"
@@ -685,21 +683,21 @@ msgstr ""
 msgid "Close"
 msgstr "閉じる"
 
-#: UI/GTK2/src/pinot.cc:349
+#: UI/GTK2/src/pinot.cc:350
 msgid "Couldn't open index"
 msgstr "インデックスを開けません"
 
-#: UI/GTK2/src/pinot.cc:370
+#: UI/GTK2/src/pinot.cc:371
 msgid "Couldn't create history database"
 msgstr "履歴データベースを作成できません"
 
 #: UI/GTK2/src/prefsWindow.cc:149
 msgid "File Indexing and Search"
-msgstr ""
+msgstr "ファイルインデックスと検索"
 
 #: UI/GTK2/src/prefsWindow.cc:150
 msgid "Configure Pinot to index your files"
-msgstr ""
+msgstr "ファイルのインデックスのためにPinotを設定"
 
 #: UI/GTK2/src/prefsWindow.cc:208
 msgid "Name"
@@ -734,9 +732,9 @@ msgid "New Label"
 msgstr "新規ラベル"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:69
-msgid "These directories will be indexed and optionally monitored for changes:"
-msgstr ""
-"このディレクトリはインデックス化され、変更をモニターすることも可能です。"
+msgid ""
+"These directories will be indexed and optionally monitored for changes:"
+msgstr "このディレクトリはインデックス化され、変更をモニターすることも可能です。"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:74 UI/GTK2/src/prefsWindow_glade.cc:90
 #: UI/GTK2/src/prefsWindow_glade.cc:106
@@ -871,7 +869,7 @@ msgstr "ディレクトリ"
 
 #: UI/GTK2/src/queryDialog.cc:116
 msgid "In URL"
-msgstr ""
+msgstr "URL"
 
 #: UI/GTK2/src/queryDialog.cc:117
 msgid "Path"
@@ -941,7 +939,7 @@ msgstr "語形変化"
 
 #: UI/GTK2/src/queryDialog_glade.cc:94
 msgid "Only index new results"
-msgstr ""
+msgstr "新しい結果のみインデックス化"
 
 #: UI/GTK2/src/queryDialog_glade.cc:208
 msgid "Query parameters"
@@ -971,7 +969,7 @@ msgstr "デーモン"
 
 #: UI/GTK2/src/statisticsDialog.cc:216
 msgid "Viewed"
-msgstr ""
+msgstr "表示済み"
 
 #: UI/GTK2/src/statisticsDialog.cc:216
 msgid "results"
