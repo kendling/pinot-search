@@ -6,9 +6,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.96\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-07-12 22:14+0800\n"
-"PO-Revision-Date: 2010-06-20 08:47+0000\n"
-"Last-Translator: andbelo <Unknown>\n"
+"POT-Creation-Date: 2010-08-01 15:56+0800\n"
+"PO-Revision-Date: 2010-08-22 08:34+0000\n"
+"Last-Translator: feen <Unknown>\n"
 "Language-Team: Portuguese (Brazil) <pt_BR@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -17,19 +17,19 @@ msgstr ""
 
 #: SQL/SQLiteBase.cpp:419
 msgid "failed to begin transaction"
-msgstr ""
+msgstr "falha em iniciar transação"
 
 #: SQL/SQLiteBase.cpp:455
 msgid "failed to rollback transaction"
-msgstr ""
+msgstr "falha em reduzir transação"
 
 #: SQL/SQLiteBase.cpp:491
 msgid "failed to end transaction"
-msgstr ""
+msgstr "falha em finalizar transação"
 
 #: SQL/SQLiteBase.cpp:553
 msgid "couldn't format SQL statement"
-msgstr ""
+msgstr "impossível formatar frase SQL"
 
 #. Localize language names
 #: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:308
