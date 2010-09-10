@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -163,8 +163,10 @@ sigc::signal2<void, ustring, ustring>& ResultsPage::getSuggestSignal(void)
 //
 // Append a suggestion.
 //
-void ResultsPage::appendSuggestion(const ustring &text)
+bool ResultsPage::appendSuggestion(const ustring &text)
 {
+	bool appended = false;
+
 	if ((text.empty() == false) &&
 		(m_suggestions.find(text) == m_suggestions.end()))
 	{
@@ -183,6 +185,8 @@ void ResultsPage::appendSuggestion(const ustring &text)
 		{
 			m_pCombobox->set_active_text(activeText);
 		}
+
+		appended = true;
 	}
 
 	m_pLabel->show();
@@ -191,6 +195,8 @@ void ResultsPage::appendSuggestion(const ustring &text)
 	m_pCloseImage->show();
 	m_pCloseButton->show();
 	m_pHBox->show();
+
+	return appended;
 }
 
 bool NotebookTabBox::m_initialized = false;

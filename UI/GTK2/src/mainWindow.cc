@@ -1482,10 +1482,10 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 
 		// Suggest the correction to the user
 		if ((pResultsPage != NULL) &&
-			(wasCorrected == true))
+			(wasCorrected == true) &&
+			(pResultsPage->appendSuggestion(queryProps.getFreeQuery()) == true))
 		{
 			pResultsPage->getSuggestSignal().connect(sigc::mem_fun(*this, &mainWindow::on_suggestQueryButton_clicked));
-			pResultsPage->appendSuggestion(queryProps.getFreeQuery());
 		}
 
 		// Now that results are displayed, go ahead and index documents
