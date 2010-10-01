@@ -6,9 +6,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.96\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-07-12 22:14+0800\n"
-"PO-Revision-Date: 2010-06-20 08:46+0000\n"
-"Last-Translator: MarcoBazzani <alfred.einstein@gmail.com>\n"
+"POT-Creation-Date: 2010-09-11 00:15+0800\n"
+"PO-Revision-Date: 2010-09-28 06:22+0000\n"
+"Last-Translator: Davide Vidal <davide.vidal@gmail.com>\n"
 "Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -17,7 +17,7 @@ msgstr ""
 
 #: SQL/SQLiteBase.cpp:419
 msgid "failed to begin transaction"
-msgstr ""
+msgstr "impossibile iniziare la transazione"
 
 #: SQL/SQLiteBase.cpp:455
 msgid "failed to rollback transaction"
@@ -25,7 +25,7 @@ msgstr ""
 
 #: SQL/SQLiteBase.cpp:491
 msgid "failed to end transaction"
-msgstr ""
+msgstr "impossibile finire la transazione"
 
 #: SQL/SQLiteBase.cpp:553
 msgid "couldn't format SQL statement"
@@ -681,7 +681,7 @@ msgstr "Pinot"
 msgid "Did you mean ?"
 msgstr "Forse intendevi ?"
 
-#: UI/GTK2/src/Notebook.cc:95 UI/GTK2/src/Notebook.cc:236
+#: UI/GTK2/src/Notebook.cc:95 UI/GTK2/src/Notebook.cc:242
 msgid "Close"
 msgstr "Chiudi"
 
@@ -695,11 +695,11 @@ msgstr "Impossibile creare una cronologia del database"
 
 #: UI/GTK2/src/prefsWindow.cc:149
 msgid "File Indexing and Search"
-msgstr ""
+msgstr "Indicizzazione e ricerca di files"
 
 #: UI/GTK2/src/prefsWindow.cc:150
 msgid "Configure Pinot to index your files"
-msgstr ""
+msgstr "Configura Pinot per indicizzare i tuoi files"
 
 #: UI/GTK2/src/prefsWindow.cc:208
 msgid "Name"
