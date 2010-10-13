@@ -6,22 +6,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.96\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-07-12 22:14+0800\n"
-"PO-Revision-Date: 2008-08-23 16:14+0000\n"
-"Last-Translator: Sergey Vostrikov <s.vostrikov@gmail.com>\n"
+"POT-Creation-Date: 2010-06-20 16:10+0800\n"
+"PO-Revision-Date: 2010-10-04 06:20+0000\n"
+"Last-Translator: Alexander 'FONTER' Zinin <spore_09@mail.ru>\n"
 "Language-Team: Russian <ru@li.org>\n"
-"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: SQL/SQLiteBase.cpp:419
 msgid "failed to begin transaction"
-msgstr ""
+msgstr "Не удалось начать транзакцию"
 
 #: SQL/SQLiteBase.cpp:455
 msgid "failed to rollback transaction"
-msgstr ""
+msgstr "Не удалось откатить транзакцию"
 
 #: SQL/SQLiteBase.cpp:491
 msgid "failed to end transaction"
@@ -32,69 +31,69 @@ msgid "couldn't format SQL statement"
 msgstr ""
 
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:308
+#: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:309
 msgid "Unknown"
 msgstr "Неизвестный"
 
-#: Core/pinot-dbus-daemon.cpp:544 UI/GTK2/src/pinot.cc:309
+#: Core/pinot-dbus-daemon.cpp:544 UI/GTK2/src/pinot.cc:310
 msgid "Danish"
 msgstr "Датский"
 
-#: Core/pinot-dbus-daemon.cpp:545 UI/GTK2/src/pinot.cc:310
+#: Core/pinot-dbus-daemon.cpp:545 UI/GTK2/src/pinot.cc:311
 msgid "Dutch"
 msgstr "Голландский"
 
-#: Core/pinot-dbus-daemon.cpp:546 UI/GTK2/src/pinot.cc:311
+#: Core/pinot-dbus-daemon.cpp:546 UI/GTK2/src/pinot.cc:312
 msgid "English"
 msgstr "Английский"
 
-#: Core/pinot-dbus-daemon.cpp:547 UI/GTK2/src/pinot.cc:312
+#: Core/pinot-dbus-daemon.cpp:547 UI/GTK2/src/pinot.cc:313
 msgid "Finnish"
 msgstr "Финский"
 
-#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:313
+#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:314
 msgid "French"
 msgstr "Французский"
 
-#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:314
+#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:315
 msgid "German"
 msgstr "Немецкий"
 
-#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:315
+#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:316
 msgid "Hungarian"
-msgstr ""
+msgstr "Венгерский"
 
-#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:316
+#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:317
 msgid "Italian"
 msgstr "Итальянский"
 
-#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:317
+#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:318
 msgid "Norwegian"
 msgstr "Норвежский"
 
-#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:318
+#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:319
 msgid "Portuguese"
 msgstr "Португальский"
 
-#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:319
+#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:320
 msgid "Romanian"
-msgstr ""
+msgstr "Румынский"
 
-#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:320
+#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:321
 msgid "Russian"
 msgstr "Русский"
 
-#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:321
+#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:322
 msgid "Spanish"
 msgstr "Испанский"
 
-#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:322
+#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:323
 msgid "Swedish"
 msgstr "Шведский"
 
-#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:323
+#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:324
 msgid "Turkish"
-msgstr ""
+msgstr "Турецкий"
 
 #. Internal indices
 #. Apply this label
@@ -157,7 +156,7 @@ msgstr ""
 
 #: Core/PinotSettings.cpp:481
 msgid "10kb And Smaller"
-msgstr ""
+msgstr "10kb и меньше"
 
 #: Core/PinotSettings.cpp:526
 msgid "Unclassified"
@@ -165,7 +164,7 @@ msgstr "Неопределенный"
 
 #: Core/WorkerThreads.cpp:96
 msgid "Index error"
-msgstr ""
+msgstr "Ошибка индекса"
 
 #: Core/WorkerThreads.cpp:98
 msgid "Couldn't index document"
@@ -185,11 +184,11 @@ msgstr "Не удается запустить запрос в поисково�
 
 #: Core/WorkerThreads.cpp:106
 msgid "Couldn't get history for search engine"
-msgstr ""
+msgstr "Не удалось получить историю для поисковой системы"
 
 #: Core/WorkerThreads.cpp:108
 msgid "Couldn't retrieve document"
-msgstr ""
+msgstr "Не удалось получить документ"
 
 #: Core/WorkerThreads.cpp:110
 msgid "File monitor error"
@@ -226,11 +225,11 @@ msgstr "Нет контроля обработчика"
 #: Core/WorkerThreads.cpp:129 UI/GTK2/src/statisticsDialog.cc:245
 #: UI/GTK2/src/statisticsDialog.cc:263
 msgid "Unknown error"
-msgstr ""
+msgstr "Неизвестная ошибка"
 
 #: Core/WorkerThreads.cpp:439
 msgid "Indexing was stopped"
-msgstr ""
+msgstr "Индексация была остановлена"
 
 #: Core/WorkerThreads.cpp:452
 msgid "Can't index mail here"
@@ -290,7 +289,7 @@ msgstr "Порт:"
 
 #: UI/GTK2/src/indexDialog_glade.cc:78 UI/GTK2/src/prefsWindow_glade.cc:125
 msgid "Address:"
-msgstr ""
+msgstr "Адрес:"
 
 #: UI/GTK2/src/indexDialog_glade.cc:182
 msgid "External index"
@@ -326,7 +325,7 @@ msgstr "Показать Следующую"
 
 #: UI/GTK2/src/IndexPage.cc:180
 msgid "All"
-msgstr ""
+msgstr "Все"
 
 #: UI/GTK2/src/launcherDialog_glade.cc:63
 msgid ""
@@ -369,11 +368,11 @@ msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:258
 msgid "Add an index"
-msgstr ""
+msgstr "Добавить индекс"
 
 #: UI/GTK2/src/mainWindow.cc:259
 msgid "Remove an index"
-msgstr ""
+msgstr "Удалить индекс"
 
 #: UI/GTK2/src/mainWindow.cc:260
 msgid "Add a query"
@@ -398,7 +397,7 @@ msgstr ""
 
 #: UI/GTK2/src/mainWindow.cc:302
 msgid "Don't warn me again"
-msgstr ""
+msgstr "Не предупреждать меня больше"
 
 #: UI/GTK2/src/mainWindow.cc:310 UI/GTK2/src/mainWindow_glade.cc:177
 msgid "Update"
@@ -410,7 +409,7 @@ msgstr "N/A"
 
 #: UI/GTK2/src/mainWindow.cc:389
 msgid "Undefined"
-msgstr ""
+msgstr "Неопределенный"
 
 #. Find this query
 #: UI/GTK2/src/mainWindow.cc:628 UI/GTK2/src/mainWindow.cc:2833
@@ -490,11 +489,11 @@ msgstr "Редактирование индекса"
 
 #: UI/GTK2/src/mainWindow.cc:2165
 msgid "Export"
-msgstr ""
+msgstr "Экспорт"
 
 #: UI/GTK2/src/mainWindow.cc:2210
 msgid "Couldn't find similar documents"
-msgstr ""
+msgstr "Не удалось найти подобные документы"
 
 #: UI/GTK2/src/mainWindow.cc:2453
 msgid "Index"
@@ -542,7 +541,7 @@ msgstr "Невозможно удалить индекс"
 
 #: UI/GTK2/src/mainWindow.cc:2922
 msgid "No history for"
-msgstr ""
+msgstr "Нет истории"
 
 #: UI/GTK2/src/mainWindow.cc:2994 UI/GTK2/src/prefsWindow.cc:960
 msgid "At least one task hasn't completed yet. Quit now ?"
@@ -550,7 +549,7 @@ msgstr "По крайней мере одна задача еще не заве�
 
 #: UI/GTK2/src/mainWindow.cc:2996 UI/GTK2/src/prefsWindow.cc:962
 msgid "Quit"
-msgstr ""
+msgstr "Выход"
 
 #: UI/GTK2/src/mainWindow.cc:3180
 msgid "Query name"
@@ -598,7 +597,7 @@ msgstr "Запрос:"
 
 #: UI/GTK2/src/mainWindow_glade.cc:140 UI/GTK2/src/statisticsDialog.cc:184
 msgid "History"
-msgstr ""
+msgstr "Журнал"
 
 #: UI/GTK2/src/mainWindow_glade.cc:145
 msgid "Stored queries"
@@ -606,7 +605,7 @@ msgstr "Сохраненные запросы"
 
 #: UI/GTK2/src/mainWindow_glade.cc:165
 msgid "Open Cache"
-msgstr ""
+msgstr "Открыть кэш"
 
 #: UI/GTK2/src/mainWindow_glade.cc:168
 msgid "Open Parent"
@@ -651,11 +650,11 @@ msgstr ""
 #: UI/GTK2/src/mainWindow_glade.cc:249 UI/GTK2/src/statisticsDialog.cc:121
 #: UI/GTK2/src/statisticsDialog_glade.cc:86
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
 #: UI/GTK2/src/mainWindow_glade.cc:255
 msgid "_File"
-msgstr ""
+msgstr "_Файл"
 
 #: UI/GTK2/src/mainWindow_glade.cc:258
 msgid "_Edit"
@@ -663,7 +662,7 @@ msgstr "_Правка"
 
 #: UI/GTK2/src/mainWindow_glade.cc:261
 msgid "_Options"
-msgstr ""
+msgstr "_Параметры"
 
 #: UI/GTK2/src/mainWindow_glade.cc:264
 msgid "_Help"
@@ -679,13 +678,13 @@ msgstr ""
 
 #: UI/GTK2/src/Notebook.cc:95 UI/GTK2/src/Notebook.cc:236
 msgid "Close"
-msgstr ""
+msgstr "Закрыть"
 
-#: UI/GTK2/src/pinot.cc:349
+#: UI/GTK2/src/pinot.cc:350
 msgid "Couldn't open index"
 msgstr "Невозможно открыть индекс"
 
-#: UI/GTK2/src/pinot.cc:370
+#: UI/GTK2/src/pinot.cc:371
 msgid "Couldn't create history database"
 msgstr "Не удается создать базу данных истории"
 
@@ -730,7 +729,8 @@ msgid "New Label"
 msgstr "Новая метка"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:69
-msgid "These directories will be indexed and optionally monitored for changes:"
+msgid ""
+"These directories will be indexed and optionally monitored for changes:"
 msgstr ""
 "Эти каталоги будут индексироваться и необязательны для контроля изменений:"
 
@@ -741,11 +741,11 @@ msgstr "Добавить"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:82
 msgid "File patterns:"
-msgstr ""
+msgstr "Файлы шаблона:"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:95
 msgid "Reset"
-msgstr ""
+msgstr "Сброс"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:100
 msgid "Indexing"
@@ -765,15 +765,15 @@ msgstr "Метки"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:122
 msgid "Direct connection to the Internet"
-msgstr ""
+msgstr "Прямое подключение к сети Интернет"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:123
 msgid "Manual proxy configuration:"
-msgstr ""
+msgstr "Настройка прокси вручную:"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:136
 msgid "Network"
-msgstr ""
+msgstr "Сеть"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:137
 msgid "Google API key:"
@@ -801,11 +801,11 @@ msgstr "Новые результаты:"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:149
 msgid "Miscellaneous"
-msgstr ""
+msgstr "Разное"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:523
 msgid "Pinot Preferences"
-msgstr ""
+msgstr "Настройки Pinot"
 
 #: UI/GTK2/src/propertiesDialog.cc:105
 msgid "Per document"
@@ -825,15 +825,15 @@ msgstr "Тип MIME:"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:66
 msgid "Size:"
-msgstr ""
+msgstr "Размер:"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:67
 msgid "Terms:"
-msgstr ""
+msgstr "Условия:"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:77
 msgid "bytes"
-msgstr ""
+msgstr "байт"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:224
 msgid "Properties"
@@ -867,11 +867,11 @@ msgstr "Домашняя директория"
 
 #: UI/GTK2/src/queryDialog.cc:116
 msgid "In URL"
-msgstr ""
+msgstr "В URL"
 
 #: UI/GTK2/src/queryDialog.cc:117
 msgid "Path"
-msgstr ""
+msgstr "Путь"
 
 #: UI/GTK2/src/queryDialog.cc:118
 msgid "Language code"
@@ -892,24 +892,24 @@ msgstr "Метка"
 #. The last column is for the timestamp
 #: UI/GTK2/src/queryDialog.cc:124 UI/GTK2/src/ResultsTree.cc:159
 msgid "Date"
-msgstr ""
+msgstr "Дата"
 
 #: UI/GTK2/src/queryDialog.cc:125
 msgid "Time"
-msgstr ""
+msgstr "Время"
 
 #: UI/GTK2/src/queryDialog.cc:126
 msgid "Size"
-msgstr ""
+msgstr "Размер"
 
 #. Sort order
 #: UI/GTK2/src/queryDialog.cc:130
 msgid "By relevance"
-msgstr ""
+msgstr "По актуальности"
 
 #: UI/GTK2/src/queryDialog.cc:131
 msgid "By date"
-msgstr ""
+msgstr "По дате"
 
 #: UI/GTK2/src/queryDialog_glade.cc:71
 msgid "New filter or range:"
@@ -929,7 +929,7 @@ msgstr "Количество результатов:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:89
 msgid "Sort order:"
-msgstr ""
+msgstr "Порядок сортировки:"
 
 #: UI/GTK2/src/queryDialog_glade.cc:93
 msgid "Stemming:"
@@ -950,11 +950,11 @@ msgstr "Счет"
 
 #: UI/GTK2/src/ResultsTree.cc:1555
 msgid "No results"
-msgstr ""
+msgstr "Ничего не найдено"
 
 #: UI/GTK2/src/statisticsDialog.cc:154
 msgid "Indexes"
-msgstr ""
+msgstr "Индексы"
 
 #: UI/GTK2/src/statisticsDialog.cc:160 UI/GTK2/src/statisticsDialog.cc:166
 #: UI/GTK2/src/statisticsDialog.cc:197
@@ -963,7 +963,7 @@ msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:194
 msgid "Daemon"
-msgstr ""
+msgstr "Демон"
 
 #: UI/GTK2/src/statisticsDialog.cc:216
 msgid "Viewed"
@@ -971,7 +971,7 @@ msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:216
 msgid "results"
-msgstr ""
+msgstr "Результаты"
 
 #: UI/GTK2/src/statisticsDialog.cc:222
 msgid "Crawled"
@@ -979,11 +979,11 @@ msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:222
 msgid "files"
-msgstr ""
+msgstr "файлы"
 
 #: UI/GTK2/src/statisticsDialog.cc:239 UI/GTK2/src/statisticsDialog.cc:255
 msgid "documents"
-msgstr ""
+msgstr "документы"
 
 #. FIXME: check whether it's actually running !
 #: UI/GTK2/src/statisticsDialog.cc:284
@@ -992,7 +992,7 @@ msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:306
 msgid "Disconnected from D-Bus"
-msgstr ""
+msgstr "Отключен от D-Bus"
 
 #: UI/GTK2/src/statisticsDialog.cc:310
 msgid "Stopped"
@@ -1000,11 +1000,11 @@ msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:314
 msgid "Currently not running"
-msgstr ""
+msgstr "В настоящее время не работает"
 
 #: UI/GTK2/src/statisticsDialog.cc:328
 msgid "Low disk space"
-msgstr ""
+msgstr "Недостаточно места на диске"
 
 #: UI/GTK2/src/statisticsDialog.cc:345
 msgid "System on battery"
@@ -1016,4 +1016,4 @@ msgstr ""
 
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
-msgstr ""
+msgstr "Ошибки"
