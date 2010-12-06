@@ -499,7 +499,7 @@ http://pinot.berlios.de/
   The manual way is to delete the index with
   $ rm ~/.pinot/daemon/*
   and remove historical data with
-  $ sqlite3 ~/.pinot/history-daemon "delete from CrawlHistory; delete from CrawlSources;"
+  $ sqlite3 ~/.pinot/history-daemon "delete from CrawlHistory; delete from CrawlSources; delete from ActionQueue;"
 
   The automated way is to tell the daemon to reindex everything by launching
   it with the "--reindex" option, ie
