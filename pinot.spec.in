@@ -116,8 +116,8 @@ fi
 
 %files deskbar
 %defattr(-,root,root,-)
-%{_libdir}/deskbar-applet/handlers/pinot-*
-%{_libdir}/deskbar-applet/modules-2.20-compatible/pinot-*
+%{_libexecdir}/deskbar-applet/handlers/pinot-*
+%{_libexecdir}/deskbar-applet/modules-2.20-compatible/pinot-*
 
 %changelog
 
