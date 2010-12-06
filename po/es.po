@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.96\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-08-01 15:56+0800\n"
-"PO-Revision-Date: 2010-09-08 03:15+0000\n"
-"Last-Translator: Matias Fonzo <selkfoster@gmail.com>\n"
+"POT-Creation-Date: 2010-12-06 21:15+0800\n"
+"PO-Revision-Date: 2010-12-01 14:03+0000\n"
+"Last-Translator: Fitoschido <Unknown>\n"
 "Language-Team: es <fabricecolin@users.berlios.de>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -101,7 +101,7 @@ msgstr "Turco"
 #. Apply this label
 #. Is this an internal index ?
 #: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1712
-#: Core/WorkerThreads.cpp:1036 UI/GTK2/src/mainWindow.cc:873
+#: Core/WorkerThreads.cpp:1048 UI/GTK2/src/mainWindow.cc:873
 #: UI/GTK2/src/mainWindow.cc:1139 UI/GTK2/src/mainWindow.cc:1402
 #: UI/GTK2/src/mainWindow.cc:1562 UI/GTK2/src/mainWindow.cc:1565
 #: UI/GTK2/src/mainWindow.cc:1669 UI/GTK2/src/mainWindow.cc:1703
@@ -112,7 +112,7 @@ msgstr "Mis Paginas Web"
 
 #. Spawn new threads
 #: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1713
-#: Core/WorkerThreads.cpp:1046 UI/GTK2/src/mainWindow.cc:1134
+#: Core/WorkerThreads.cpp:1058 UI/GTK2/src/mainWindow.cc:1134
 #: UI/GTK2/src/mainWindow.cc:1392 UI/GTK2/src/mainWindow.cc:1406
 #: UI/GTK2/src/mainWindow.cc:1573 UI/GTK2/src/mainWindow.cc:1576
 #: UI/GTK2/src/mainWindow.cc:2441 UI/GTK2/src/statisticsDialog.cc:163
@@ -229,23 +229,23 @@ msgstr "No hay monitorización"
 msgid "Unknown error"
 msgstr "Error desconocido"
 
-#: Core/WorkerThreads.cpp:439
+#: Core/WorkerThreads.cpp:451
 msgid "Indexing was stopped"
 msgstr "La indexación fue detenida"
 
-#: Core/WorkerThreads.cpp:452
+#: Core/WorkerThreads.cpp:464
 msgid "Can't index mail here"
 msgstr "No se puede indexar el correo aquí"
 
-#: Core/WorkerThreads.cpp:473 Core/WorkerThreads.cpp:764
+#: Core/WorkerThreads.cpp:485 Core/WorkerThreads.cpp:776
 msgid "is already being indexed"
 msgstr "Ya se está indexando"
 
-#: Core/WorkerThreads.cpp:483
+#: Core/WorkerThreads.cpp:495
 msgid "is blacklisted"
 msgstr "Está excluido"
 
-#: Core/WorkerThreads.cpp:999
+#: Core/WorkerThreads.cpp:1011
 msgid "No title"
 msgstr "Sin título"
 
@@ -662,7 +662,7 @@ msgstr "_Archivo"
 
 #: UI/GTK2/src/mainWindow_glade.cc:258
 msgid "_Edit"
-msgstr "Editar"
+msgstr "_Editar"
 
 #: UI/GTK2/src/mainWindow_glade.cc:261
 msgid "_Options"
@@ -680,7 +680,7 @@ msgstr "Pinot"
 msgid "Did you mean ?"
 msgstr "¿Te refieres a?"
 
-#: UI/GTK2/src/Notebook.cc:95 UI/GTK2/src/Notebook.cc:236
+#: UI/GTK2/src/Notebook.cc:95 UI/GTK2/src/Notebook.cc:242
 msgid "Close"
 msgstr "Cerrar"
 
@@ -741,7 +741,7 @@ msgstr ""
 #: UI/GTK2/src/prefsWindow_glade.cc:74 UI/GTK2/src/prefsWindow_glade.cc:90
 #: UI/GTK2/src/prefsWindow_glade.cc:106
 msgid "Add"
-msgstr "Agregar"
+msgstr "Añadir"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:82
 msgid "File patterns:"
