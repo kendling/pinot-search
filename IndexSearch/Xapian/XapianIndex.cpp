@@ -115,6 +115,50 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 				return true;
 			}
 
+			// Does it end with a dot ?
+			if (term[term.length() - 1] == '.')
+			{
+				bool foundNonDot = false;
+
+#ifdef DEBUG
+				cout << "TokensIndexer::handle_token: dot at end of " << term << endl;
+#endif
+				string::size_type pos = term.length() - 1;
+				while (pos >= 0)
+				{
+					if (term[pos] != '.')
+					{
+						foundNonDot = true;
+
+						// Any dot before that ?
+						if ((pos == 0) ||
+							(term.find_last_of(".", pos - 1) == string::npos))
+						{
+							// No, all dots are at the end, trim them
+							term.erase(pos + 1);
+#ifdef DEBUG
+							cout << "TokensIndexer::handle_token: trimmed to " << term << " " << pos + 1 << endl;
+#endif
+						}
+#ifdef DEBUG
+						else cout << "TokensIndexer::handle_token: keeping potential acronym " << term << endl;
+#endif
+						break;
+					}
+
+					if (pos == 0)
+					{
+						break;
+					}
+					--pos;
+				}
+
+				if (foundNonDot == false)
+				{
+					// It's all dots !
+					return true;
+				}
+			}
 			m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(term), m_termPos);
 
 			// Is this CJKV ?
