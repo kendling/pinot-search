@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2009 Fabrice Colin
+ *  Copyright 2008-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -57,8 +57,7 @@ protected:
 	class InternalState : public ThreadsManager
 	{
 	public:
-		InternalState(unsigned int maxIndexThreads,
-			prefsWindow *pWindow);
+		InternalState(prefsWindow *pWindow);
 		~InternalState();
 
 		bool m_savedPrefs;

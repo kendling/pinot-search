@@ -60,7 +60,7 @@ class IndexingState : public ThreadsManager
 {
 	public:
 		IndexingState(const string &indexLocation) :
-			ThreadsManager(indexLocation, 1, 60, true),
+			ThreadsManager(indexLocation, 60, true),
 			m_docId(0)
 		{
 			// Disable implicit flushing

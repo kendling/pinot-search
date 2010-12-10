@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -91,8 +91,8 @@ class DaemonStatusThread : public WorkerThread
 };
 #endif
 
-statisticsDialog::InternalState::InternalState(unsigned int maxIndexThreads, statisticsDialog *pWindow) :
-        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
+statisticsDialog::InternalState::InternalState(statisticsDialog *pWindow) :
+        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation),
 	m_getStats(true),
 	m_gettingStats(false),
 	m_lowDiskSpace(false),
@@ -112,7 +112,7 @@ statisticsDialog::statisticsDialog() :
 	m_hasDiskSpace(false),
 	m_hasBattery(false),
 	m_hasCrawl(false),
-	m_state(10, this)
+	m_state(this)
 {
 	// Associate the columns model to the engines tree
 	m_refStore = TreeStore::create(m_statsColumns);

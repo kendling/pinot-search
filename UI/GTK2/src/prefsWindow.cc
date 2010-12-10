@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2009 Fabrice Colin
+ *  Copyright 2008-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -129,8 +129,8 @@ class GetLabelsThread : public WorkerThread
 
 };
 
-prefsWindow::InternalState::InternalState(unsigned int maxIndexThreads, prefsWindow *pWindow) :
-        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, maxIndexThreads),
+prefsWindow::InternalState::InternalState(prefsWindow *pWindow) :
+        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation),
 	m_savedPrefs(false)
 {
         m_onThreadEndSignal.connect(sigc::mem_fun(*pWindow, &prefsWindow::on_thread_end));
@@ -143,7 +143,7 @@ prefsWindow::InternalState::~InternalState()
 prefsWindow::prefsWindow() :
 	prefsWindow_glade(),
 	m_settings(PinotSettings::getInstance()),
-	m_state(10, this)
+	m_state(this)
 {
 	Color newColour;
 	ustring desktopName(_("File Indexing and Search"));

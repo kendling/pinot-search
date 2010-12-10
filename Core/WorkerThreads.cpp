@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -274,11 +274,10 @@ void WorkerThread::emitSignal(void)
 unsigned int ThreadsManager::m_nextThreadId = 1;
 
 ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
-	unsigned int maxIndexThreads, unsigned int maxThreadsTime,
-	bool scanLocalFiles) :
+	unsigned int maxThreadsTime, bool scanLocalFiles) :
 	m_actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name()),
 	m_defaultIndexLocation(defaultIndexLocation),
-	m_maxIndexThreads(maxIndexThreads),
+	m_maxIndexThreads(1),
 	m_backgroundThreadsCount(0),
 	m_foregroundThreadsMaxTime(maxThreadsTime),
 	m_scanLocalFiles(scanLocalFiles),
@@ -287,6 +286,19 @@ ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 {
 	pthread_rwlock_init(&m_threadsLock, NULL);
 	pthread_rwlock_init(&m_listsLock, NULL);
+
+	// Override the number of indexing threads ?
+	char *pEnvVar = getenv("PINOT_MAXIMUM_INDEX_THREADS");
+	if ((pEnvVar != NULL) &&
+		(strlen(pEnvVar) > 0))
+	{
+		int threadsNum = atoi(pEnvVar);
+
+		if (threadsNum > 0)
+		{
+			m_maxIndexThreads = (unsigned int)threadsNum;
+		}
+	}
 
 #ifdef __OpenBSD__
 	int mib[2], ncpus;

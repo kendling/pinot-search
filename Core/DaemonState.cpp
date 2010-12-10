@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -317,7 +317,7 @@ bool DBusServletInfo::reply(void)
 #endif
 
 DaemonState::DaemonState() :
-	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation, 4),
+	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation),
 	m_isReindex(false),
 	m_reload(false),
 	m_flush(false),
@@ -327,19 +327,6 @@ DaemonState::DaemonState() :
 	m_crawlers(0)
 {
 	FD_ZERO(&m_flagsSet);
-
-	// Override the number of indexing threads ?
-	char *pEnvVar = getenv("PINOT_MAXIMUM_INDEX_THREADS");
-	if ((pEnvVar != NULL) &&
-		(strlen(pEnvVar) > 0))
-	{
-		int threadsNum = atoi(pEnvVar);
-
-		if (threadsNum > 0)
-		{
-			m_maxIndexThreads = (unsigned int)threadsNum;
-		}
-	}
 
 	// Check disk usage every minute
 	m_timeoutConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
@@ -441,10 +428,11 @@ void DaemonState::check_battery_state(void)
 
 bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &location)
 {
+	CrawlerThread *pCrawlerThread = NULL;
 	string locationToCrawl(location.m_name);
 	bool doMonitoring = location.m_monitor;
 	bool isSource = location.m_isSource;
-	CrawlerThread *pCrawlerThread = NULL;
+	bool inlineIndexing = false;
 
 	// Can we go ahead and crawl ?
 	if ((is_flag_set(LOW_DISK_SPACE) == true) ||
@@ -461,17 +449,22 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 		return false;
 	}
 
+	if (m_maxIndexThreads < 2)
+	{
+		inlineIndexing = true;
+	}
+
 	if (doMonitoring == false)
 	{
 		// Monitoring is not necessary, but we still have to pass the handler
 		// so that we can act on documents that have been deleted
 		pCrawlerThread = new CrawlerThread(locationToCrawl, isSource,
-			NULL, m_pDiskHandler);
+			NULL, m_pDiskHandler, inlineIndexing);
 	}
 	else
 	{
 		pCrawlerThread = new CrawlerThread(locationToCrawl, isSource,
-			m_pDiskMonitor, m_pDiskHandler);
+			m_pDiskMonitor, m_pDiskHandler, inlineIndexing);
 	}
 	pCrawlerThread->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 

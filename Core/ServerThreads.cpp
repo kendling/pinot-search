@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -113,10 +113,11 @@ static bool loadXMLDescription(void)
 }
 
 CrawlerThread::CrawlerThread(const string &dirName, bool isSource,
-	MonitorInterface *pMonitor, MonitorHandler *pHandler) :
+	MonitorInterface *pMonitor, MonitorHandler *pHandler,
+	bool inlineIndexing) :
 	DirectoryScannerThread(dirName,
 		PinotSettings::getInstance().m_daemonIndexLocation,
-		0, false, true),
+		0, inlineIndexing, true),
 	m_sourceId(0),
 	m_pMonitor(pMonitor),
 	m_pHandler(pHandler),

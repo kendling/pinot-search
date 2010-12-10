@@ -116,7 +116,7 @@ mainWindow::ExpandSet::~ExpandSet()
 }
 
 mainWindow::InternalState::InternalState(mainWindow *pWindow) :
-	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, 2, 60, true),
+	ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation, 60, true),
 	m_liveQueryLength(0),
 	m_currentPage(0),
 	m_browsingIndex(false)

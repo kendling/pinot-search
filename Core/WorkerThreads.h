@@ -112,7 +112,6 @@ class ThreadsManager : virtual public sigc::trackable
 {
 	public:
 		ThreadsManager(const std::string &defaultIndexLocation,
-			unsigned int maxIndexThreads,
 			unsigned int maxThreadsTime = 300,
 			bool scanLocalFiles = false);
 		virtual ~ThreadsManager();
