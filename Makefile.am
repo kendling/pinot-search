@@ -73,8 +73,8 @@ endif
 if HAVE_DBUS
 	@desktop-file-install --vendor="" --dir=$(DESTDIR)${sysconfdir}/xdg/autostart $(srcdir)/pinot-dbus-daemon.desktop
 endif
-	@mkdir -p $(DESTDIR)$(libexecdir)/deskbar-applet/handlers/
-	$(INSTALL_DATA) $(srcdir)/scripts/python/pinot-live.py $(DESTDIR)$(libexecdir)/deskbar-applet/handlers/
+	@mkdir -p $(DESTDIR)$(libdir)/deskbar-applet/handlers/
+	$(INSTALL_DATA) $(srcdir)/scripts/python/pinot-live.py $(DESTDIR)$(libdir)/deskbar-applet/handlers/
 	@mkdir -p $(DESTDIR)$(libexecdir)/deskbar-applet/modules-2.20-compatible/
 	$(INSTALL_DATA) $(srcdir)/scripts/python/pinot-module.py $(DESTDIR)$(libexecdir)/deskbar-applet/modules-2.20-compatible/
 	$(INSTALL_DATA) $(srcdir)/scripts/bash/*.sh $(DESTDIR)$(datadir)/pinot/
@@ -92,5 +92,5 @@ uninstall-local:
 	@rm -rf $(DESTDIR)$(datadir)/applications/pinot.desktop
 	@rm -rf $(DESTDIR)${sysconfdir}/xdg/autostart/pinot-dbus-daemon.desktop
 	@rm -rf $(DESTDIR)$(libdir)/deskbar-applet/handlers/pinot-live.py*
-	@rm -rf $(DESTDIR)$(libdir)/deskbar-applet/modules-2.20-compatible/pinot-module.py*
+	@rm -rf $(DESTDIR)$(libexecdir)/deskbar-applet/modules-2.20-compatible/pinot-module.py*
 
