@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009 Fabrice Colin
+ *  Copyright 2009-2010 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,13 +30,13 @@
 #ifdef HAVE_BOOST_POOL_POOLFWD_HPP
 #ifdef HAVE_UMEM_H
 // Memory pool with umem
-typedef fixed_singleton_pool<umem_allocator_tag,
+typedef boost::singleton_pool<umem_allocator_tag,
 	sizeof(char), umem_allocator,
 	boost::details::pool::default_mutex, 131072> filter_pool;
 #else
 // Memory pool with malloc (glibc's or any other implementation)
 // The tag is actually ignored
-typedef fixed_singleton_pool<fixed_pool_allocator_tag,
+typedef boost::singleton_pool<boost::pool_allocator_tag,
 	sizeof(char), boost::default_user_allocator_malloc_free,
 	boost::details::pool::default_mutex, 131072> filter_pool;
 #endif
@@ -105,16 +105,9 @@ int Memory::getUsage(void)
 void Memory::reclaim(void)
 {
 #ifdef HAVE_BOOST_POOL_POOLFWD_HPP
-#ifdef HAVE_UMEM_H
-	bool releasedMemory = fixed_singleton_pool<fixed_pool_allocator_tag, sizeof(char), umem_allocator, boost::details::pool::default_mutex, 131072>::release_memory();
+	bool releasedMemory = filter_pool::release_memory();
 #ifdef DEBUG
-	clog << "Memory::reclaim: released umem allocated memory pool (" << releasedMemory << ")" << endl;
-#endif
-#else
-	bool releasedMemory = fixed_singleton_pool<fixed_pool_allocator_tag, sizeof(char), boost::default_user_allocator_malloc_free, boost::details::pool::default_mutex, 131072>::release_memory();
-#ifdef DEBUG
-	clog << "Memory::reclaim: released malloc allocated memory pool (" << releasedMemory << ")" << endl;
-#endif
+	clog << "Memory::reclaim: released allocated memory pool (" << releasedMemory << ")" << endl;
 #endif
 #endif
 
@@ -124,7 +117,7 @@ void Memory::reclaim(void)
 #ifdef HAVE_MALLOC_TRIM
 	int trimmedMemory = malloc_trim(0);
 #ifdef DEBUG
-	clog << "Memory::reclaim: trimmed malloc allocated memory (" << trimmedMemory << ")" << endl;
+	clog << "Memory::reclaim: trimmed allocated memory (" << trimmedMemory << ")" << endl;
 #endif
 #endif
 #endif
