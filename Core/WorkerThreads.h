@@ -136,7 +136,9 @@ class ThreadsManager : virtual public sigc::trackable
 
 		void unlock_lists(void);
 
-		Glib::ustring queue_index(const DocumentInfo &docInfo);
+		bool mustQuit(bool quit = false);
+
+		virtual Glib::ustring queue_index(const DocumentInfo &docInfo);
 
 		bool pop_queue(const std::string &urlWasIndexed = "");
 
@@ -146,6 +148,7 @@ class ThreadsManager : virtual public sigc::trackable
 		pthread_rwlock_t m_threadsLock;
 		pthread_rwlock_t m_listsLock;
 		std::map<unsigned int, WorkerThread *> m_threads;
+		bool m_mustQuit;
 		ActionQueue m_actionQueue;
 		std::string m_defaultIndexLocation;
 		unsigned int m_maxIndexThreads;

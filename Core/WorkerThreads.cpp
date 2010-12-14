@@ -275,6 +275,7 @@ unsigned int ThreadsManager::m_nextThreadId = 1;
 
 ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	unsigned int maxThreadsTime, bool scanLocalFiles) :
+	m_mustQuit(false),
 	m_actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name()),
 	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(1),
@@ -675,6 +676,17 @@ void ThreadsManager::on_thread_signal()
 		return;
 	}
 	m_onThreadEndSignal(pThread);
+}
+
+bool ThreadsManager::mustQuit(bool quit)
+{
+	if (quit == true)
+	{
+		m_mustQuit = true;
+		stop_threads();
+	}
+
+	return m_mustQuit;
 }
 
 ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
@@ -1424,7 +1436,7 @@ void IndexingThread::doWork(void)
 
 		if (pFilter != NULL)
 		{
-			// We may able to feed the document directly to the filter
+			// We may be able to feed the document directly to the filter
 			if (((pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_FILE_NAME) == true) &&
 				(thisUrl.getProtocol() == "file")) ||
 				((pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_URI) == true) &&
