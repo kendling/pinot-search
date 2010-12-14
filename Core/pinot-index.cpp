@@ -32,6 +32,7 @@
 #include "config.h"
 #include "NLS.h"
 #include "Languages.h"
+#include "Memory.h"
 #include "MIMEScanner.h"
 #include "Url.h"
 #include "FilterFactory.h"
@@ -71,6 +72,12 @@ class IndexingState : public ThreadsManager
 
 		~IndexingState()
 		{
+		}
+
+		virtual Glib::ustring queue_index(const DocumentInfo &docInfo)
+		{
+			// Index directly
+			return index_document(docInfo);
 		}
 
 		void on_thread_end(WorkerThread *pThread)
@@ -114,6 +121,8 @@ class IndexingState : public ThreadsManager
 
 			// Delete the thread
 			delete pThread;
+
+			Memory::reclaim();
 
 			// Stop there
 			g_refMainLoop->quit();
@@ -178,6 +187,10 @@ static void quitAll(int sigNum)
 	{
 		cout << "Quitting..." << endl;
 
+		if (g_pState != NULL)
+		{
+			g_pState->mustQuit(true);
+		}
 		g_refMainLoop->quit();
 	}
 }
@@ -454,6 +467,10 @@ int main(int argc, char **argv)
 			g_pState->disconnect();
 
 			docId = g_pState->getDocumentID();
+			if (g_pState->mustQuit() == true)
+			{
+				break;
+			}
 		}
 		if ((showInfo == true) &&
 			(docId > 0))
@@ -502,6 +519,7 @@ int main(int argc, char **argv)
 	if (g_pState != NULL)
 	{
 		delete g_pState;
+		g_pState = NULL;
 	}
 
 	// Did whatever operation we carried out succeed ?

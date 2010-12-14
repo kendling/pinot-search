@@ -84,6 +84,7 @@ static DBusObjectPathVTable g_callVTable = {
 };
 #endif
 static Glib::RefPtr<Glib::MainLoop> g_refMainLoop;
+static ThreadsManager *g_pState = NULL;
 
 static void closeAll(void)
 {
@@ -121,6 +122,10 @@ static void quitAll(int sigNum)
 	{
 		cout << "Quitting..." << endl;
 
+		if (g_pState != NULL)
+		{
+			g_pState->mustQuit(true);
+		}
 		g_refMainLoop->quit();
 	}
 }
@@ -692,6 +697,7 @@ int main(int argc, char **argv)
 	DaemonState server;
 	IndexInterface *pIndex = NULL;
 
+	g_pState = &server;
 #ifdef HAVE_DBUS
 	DBusError error;
 	dbus_error_init(&error);
@@ -927,7 +933,8 @@ int main(int argc, char **argv)
 
 	// Stop everything
 	server.disconnect();
-	server.stop_threads();
+	server.mustQuit(true);
+	g_pState = NULL;
 
 	return EXIT_SUCCESS;
 }
