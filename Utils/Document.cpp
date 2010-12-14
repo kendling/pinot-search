@@ -218,8 +218,16 @@ bool Document::setDataFromFile(const string &fileName)
 	resetData();
 
 #ifdef HAVE_MMAP
-	// Request a private mapping of the whole file
-	void *mapSpace = mmap(NULL, (size_t)fileStat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	// Don't try and map more than 2Gb !
+	if (fileStat.st_size > 2147483647)
+	{
+#ifdef DEBUG
+		clog << "Document::setDataFromFile: reached large file cap" << endl;
+#endif
+		fileStat.st_size = 2147483647;
+	}
+	// Request a mapping of the whole file
+	void *mapSpace = mmap(NULL, (size_t)fileStat.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	if (mapSpace != MAP_FAILED)
 	{
 		m_pData = (char*)mapSpace;
