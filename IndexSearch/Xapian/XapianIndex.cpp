@@ -140,9 +140,7 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 							cout << "TokensIndexer::handle_token: trimmed to " << term << " " << pos + 1 << endl;
 #endif
 						}
-#ifdef DEBUG
-						else cout << "TokensIndexer::handle_token: keeping potential acronym " << term << endl;
-#endif
+						// Else, it's probably an acronym
 						break;
 					}
 
@@ -191,6 +189,50 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 						m_doc.add_term("Z" + XapianDatabase::limitTermLength(stemmedTerm));
 					}
 #endif
+				}
+
+				// Does it include dots ?
+				string::size_type dotPos = term.find('.');
+				if (dotPos != string::npos)
+				{
+					string::size_type startPos = 0;
+					bool addRemainder = true;
+
+#ifdef DEBUG
+					cout << "TokensIndexer::handle_token: found dots in " << term << endl;
+#endif
+					while (dotPos != string::npos)
+					{
+						string component(term.substr(startPos, dotPos - startPos));
+
+						if (component.empty() == false)
+						{
+#ifdef DEBUG
+							cout << "TokensIndexer::handle_token: adding posting for " << component << endl;
+#endif
+							m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(component), m_termPos);
+							++m_termPos;
+						}
+
+						// Next
+						if (dotPos == term.length() - 1)
+						{
+							addRemainder = false;
+							break;
+						}
+						startPos = dotPos + 1;
+						dotPos = term.find('.', startPos);
+					}
+
+					if (addRemainder == true)
+					{
+						string lastComponent(term.substr(startPos));
+
+#ifdef DEBUG
+						cout << "TokensIndexer::handle_token: adding last posting for " << lastComponent << endl;
+#endif
+						m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(lastComponent), m_termPos);
+					}
 				}
 
 				addSpelling = m_doSpelling;

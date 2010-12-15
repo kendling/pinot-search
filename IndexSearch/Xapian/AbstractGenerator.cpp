@@ -171,7 +171,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	{
 #ifdef DEBUG
 		cout << "AbstractGenerator::generateAbstract: position " << winIter->first
-			<< " weights " << winIter->second.m_backWeight 
+			<< " weighs " << winIter->second.m_backWeight 
 			<< "/" << winIter->second.m_forwardWeight << endl;
 #endif
 		if (bestWeight < winIter->second.m_forwardWeight)
@@ -224,7 +224,13 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 				if ((startPosition <= termPos + 1) &&
 					(termPos < startPosition + m_wordsCount))
 				{
-					wordsBuffer[termPos] = termName;
+					// If several terms exist at this position, prefer the shortest one
+					map<Xapian::termpos, string>::const_iterator wordIter = wordsBuffer.find(termPos);
+					if ((wordIter == wordsBuffer.end()) ||
+						(wordIter->second.length() > termName.length()))
+					{
+						wordsBuffer[termPos] = termName;
+					}
 				}
 			}
 		}
