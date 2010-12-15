@@ -76,6 +76,7 @@ class PINOT_EXPORT FilterUtils
 	protected:
 		static std::set<std::string> m_types;
 		static std::map<std::string, std::string> m_typeAliases;
+		static std::string m_maxNestedSize;
 
 		FilterUtils();
 

@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <iostream>
@@ -46,6 +47,7 @@ using std::map;
 
 set<string> FilterUtils::m_types;
 map<string, string> FilterUtils::m_typeAliases;
+string FilterUtils::m_maxNestedSize;
 
 ReducedAction::ReducedAction()
 {
@@ -74,6 +76,16 @@ bool ReducedAction::isReduced(const Document &doc)
 
 FilterUtils::FilterUtils()
 {
+	char *pEnvVar = getenv("PINOT_MAXIMUM_NESTED_SIZE");
+	if ((pEnvVar != NULL) &&
+		(strlen(pEnvVar) > 0))
+	{
+		off_t maxSize = (off_t)atoll(pEnvVar);
+		if (maxSize > 0)
+		{
+			m_maxNestedSize = pEnvVar;
+		}
+	}
 }
 
 FilterUtils::~FilterUtils()
@@ -467,6 +479,11 @@ bool FilterUtils::filterDocument(const Document &doc, const string &originalType
 
 	if (pFilter != NULL)
 	{
+		// Limit the size of nested documents ?
+		if (m_maxNestedSize.empty() == false)
+		{
+			pFilter->set_property(Dijon::Filter::MAXIMUM_NESTED_SIZE, m_maxNestedSize);
+		}
 		fedFilter = FilterUtils::feedFilter(doc, pFilter);
 	}
 	positionedFilter = action.positionFilter(doc, pFilter);
