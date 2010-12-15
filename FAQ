@@ -20,8 +20,6 @@
     - increase the frequency at which memory is returned to the OS by setting
       MALLOC_TRIM_THRESHOLD_ to a value lower than 128kb (the default) :
       $ export MALLOC_TRIM_THRESHOLD_=65536
-    - reduce the number of indexing threads (defaults to 4) :
-      $ export PINOT_MAXIMUM_INDEX_THREADS=1
     - reduce the number of documents Xapian buffers in memory before changes
       are flushed to the disk (default is 10000) :
       $ export XAPIAN_FLUSH_THRESHOLD=1000

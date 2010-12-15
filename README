@@ -15,7 +15,7 @@ http://pinot.berlios.de/
 10. Digging deeper
 11. Saving results
 12. D-Bus service
-13. Deskbar Applet plugins
+13. DeskbarApplet plugins
 14. CJKV support
 15. Environment variables and aliases
 16. How to reset indexes
@@ -173,6 +173,9 @@ http://pinot.berlios.de/
   by default, they can be easily found on the Internet. Each language has its
   own stopword list, for instance a stopwords list for English should be
   copied to $PREFIX/share/pinot/stopwords/stopwords.en
+
+  Language detection is done with libtextcat. Ensure that the paths listed in
+  /etc/pinot/textcat_conf.txt are correct.
 
   The pinot-index program allows indexing and peeking at documents' properties
   from the command-line. Using the -i/--index option with the My Documents or
@@ -383,10 +386,10 @@ http://pinot.berlios.de/
   in the file pinot-dbus-daemon.xml.
 
 
-13. Deskbar Applet plugins
+13. DeskbarApplet plugins
 
 
-  Deskbar Applet provides an omnipresent versatile search interface for Gnome.
+  DeskbarApplet provides an omnipresent versatile search interface for Gnome.
   Searching documents indexed by Pinot with the applet is possible.
 
   Starting with Pinot 0.81, two plugins are available : a "module" for Deskbar
@@ -395,13 +398,13 @@ http://pinot.berlios.de/
 
   The module is at scripts/python/pinot-module.py, while the handler is at
   scripts/python/pinot-live.py. The module should be copied into
-  $LIBS/deskbar-applet/modules-2.20-compatible and the handler in
-  $LIBS/deskbar-applet/handlers for use by all users.
+  /usr/libexec/deskbar-applet/modules-2.20-compatible and the handler in
+  /usr/libexec/deskbar-applet/handlers for use by all users.
   For use only by the current user, the directories to copy to are
   ~/.gnome2/deskbar-applet/modules-2.20-compatible and
   ~/.gnome2/deskbar-applet/handlers respectively.
 
-  Deskbar Applet appears to sort results by names, so it may not present
+  DeskbarApplet appears to sort results by names, so it may not present
   results in the same order as the Pinot UI. Additionally, searches run through
   the D-Bus interface are treated a bit differently, as terms are OR'ed
   together if no exact match is found.
@@ -451,7 +454,11 @@ http://pinot.berlios.de/
       $ export PINOT_MINIMUM_DISK_SPACE=100
     * PINOT_MAXIMUM_INDEX_THREADS
       This sets the maximum number of concurrent indexing threads used by the
-      daemon. The default value is 4.
+      daemon. The default value is 1.
+    * PINOT_MAXIMUM_NESTED_SIZE
+      This limits the extraction of documents nested inside others, such as
+      archives or mail messages, based on their size. By default, this is
+      deactivated and set to 0.
 
   Another environment variable that you may want to tweak comes from Xapian.
   XAPIAN_FLUSH_THRESHOLD can be set to the number of documents after which
@@ -568,11 +575,11 @@ http://people.freebsd.org/~kientzle/libarchive/
 libexif							0.6
 http://libexif.sourceforge.net/
 
-xesam-glib (6)						0.4.0
-http://xesam.org/people/kamstrup/xesam-glib/
-
-openssh-askpass (7)					4.3
+openssh-askpass (6)					4.3
 http://www.openssh.com/portable.html
+
+DeskbarApplet (7)					2.30
+http://live.gnome.org/DeskbarApplet
 
 ---------------------------------------------------------------
 External filter programs
@@ -607,7 +614,7 @@ Notes :
 (3) for gmime 2.0 support, edit configure.in
 (4) for building only
 (5) experimental - enabled with "./configure --enable-libarchive=yes"
-(6) enabled with "./configure --enable-xesam-glib=yes
-(7) experimental - required only if _SSH_TUNNEL is set
+(6) experimental - required only if _SSH_TUNNEL is set
+(7) optional DeskbarApplet plugins 
 ---------------------------------------------------------------------
 
