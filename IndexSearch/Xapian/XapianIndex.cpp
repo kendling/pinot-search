@@ -120,9 +120,6 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 			{
 				bool foundNonDot = false;
 
-#ifdef DEBUG
-				cout << "TokensIndexer::handle_token: dot at end of " << term << endl;
-#endif
 				string::size_type pos = term.length() - 1;
 				while (pos >= 0)
 				{
@@ -136,9 +133,6 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 						{
 							// No, all dots are at the end, trim them
 							term.erase(pos + 1);
-#ifdef DEBUG
-							cout << "TokensIndexer::handle_token: trimmed to " << term << " " << pos + 1 << endl;
-#endif
 						}
 						// Else, it's probably an acronym
 						break;
@@ -207,9 +201,6 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 
 						if (component.empty() == false)
 						{
-#ifdef DEBUG
-							cout << "TokensIndexer::handle_token: adding posting for " << component << endl;
-#endif
 							m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(component), m_termPos);
 							++m_termPos;
 						}
@@ -228,9 +219,6 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 					{
 						string lastComponent(term.substr(startPos));
 
-#ifdef DEBUG
-						cout << "TokensIndexer::handle_token: adding last posting for " << lastComponent << endl;
-#endif
 						m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(lastComponent), m_termPos);
 					}
 				}
