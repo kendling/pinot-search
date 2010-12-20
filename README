@@ -1,5 +1,5 @@
 Pinot
-Copyright 2005-2009 Fabrice Colin <fabricecolin at users dot berlios dot de>
+Copyright 2005-2010 Fabrice Colin <fabricecolin at users dot berlios dot de>
 http://pinot.berlios.de/
 
 
@@ -459,6 +459,10 @@ http://pinot.berlios.de/
       This limits the extraction of documents nested inside others, such as
       archives or mail messages, based on their size. By default, this is
       deactivated and set to 0.
+    * PINOT_MAXIMUM_QUERY_RESULTS
+      This overrides the number of results returned by queries run through
+      the UI's Query field as well as the number of results initially set
+      for new stored queries.
 
   Another environment variable that you may want to tweak comes from Xapian.
   XAPIAN_FLUSH_THRESHOLD can be set to the number of documents after which

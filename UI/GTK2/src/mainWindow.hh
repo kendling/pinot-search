@@ -200,6 +200,7 @@ private:
 
 	} m_state;
 	static unsigned int m_maxDocsCount;
+	unsigned int m_maxResultsCount;
 
 };
 

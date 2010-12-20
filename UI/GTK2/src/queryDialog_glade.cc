@@ -83,7 +83,7 @@ queryDialog_glade::queryDialog_glade(
    labelNameCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    
    Gtk::Label *resultsCountLabel = Gtk::manage(new class Gtk::Label(_("Number of results:")));
-   Gtk::Adjustment *resultsCountSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(10, 10, 100, 10, 20, 0));
+   Gtk::Adjustment *resultsCountSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(10, 10, 1000, 10, 20, 0));
    resultsCountSpinbutton = Gtk::manage(new class Gtk::SpinButton(*resultsCountSpinbutton_adj, 1, 0));
    
    Gtk::Label *sortOrderLabel = Gtk::manage(new class Gtk::Label(_("Sort order:")));

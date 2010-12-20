@@ -141,8 +141,22 @@ mainWindow::mainWindow() :
 	m_pFindMenu(NULL),
 	m_pSettingsMonitor(MonitorFactory::getMonitor()),
 	m_pSettingsHandler(NULL),
-	m_state(this)
+	m_state(this),
+	m_maxResultsCount(10)
 {
+	// Override the number of query results ?
+	char *pEnvVar = getenv("PINOT_MAXIMUM_QUERY_RESULTS");
+	if ((pEnvVar != NULL) &&
+		(strlen(pEnvVar) > 0))
+	{
+		int threadsNum = atoi(pEnvVar);
+
+		if (threadsNum > 0)
+		{
+			m_maxResultsCount = (unsigned int)threadsNum;
+		}
+	}
+
 	// Reposition and resize the window
 	// Make sure the coordinates and sizes make sense
 	if ((m_settings.m_xPos >= 0) &&
@@ -2832,6 +2846,8 @@ void mainWindow::on_findButton_clicked()
 {
 	QueryProperties queryProps(_("Live query"), liveQueryEntry->get_text());
 
+	queryProps.setMaximumResultsCount(m_maxResultsCount);
+
 	run_search(queryProps);
 }
 
@@ -3001,14 +3017,10 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 		{
 			return true;
 		}
+	}
 
-		m_state.disconnect();
-		m_state.stop_threads();
-	}
-	else
-	{
-		m_state.disconnect();
-	}
+	m_state.disconnect();
+	m_state.mustQuit(true);
 
 	// Disconnect UI signals
 	m_pageSwitchConnection.disconnect();
@@ -3163,6 +3175,11 @@ void mainWindow::edit_query(QueryProperties &queryProps, bool newQuery)
 	{
 		// Backup the current name
 		queryName = queryProps.getName();
+	}
+	else
+	{
+		// Initialize the number of results
+		queryProps.setMaximumResultsCount(m_maxResultsCount);
 	}
 
 	// Edit the query's properties

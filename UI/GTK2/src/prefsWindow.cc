@@ -969,7 +969,7 @@ bool prefsWindow::on_prefsWindow_delete_event(GdkEventAny *ev)
 		}
 
 		m_state.disconnect();
-		m_state.stop_threads();
+		m_state.mustQuit(true);
 	}
 	else
 	{
