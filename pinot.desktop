@@ -32,4 +32,4 @@ StartupNotify=true
 Icon=pinot
 Terminal=false
 Type=Application
-Categories=GTK;Core;Network;Filesystem;
+Categories=GTK;Core;Network;System;Filesystem;
