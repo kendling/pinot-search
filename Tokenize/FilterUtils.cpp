@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2009 Fabrice Colin
+ *  Copyright 2007-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -363,7 +363,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		}
 		else if (metaIter->first == "size")
 		{
-			size = (off_t)atoi(metaIter->second.c_str());
+			size = (off_t)atoll(metaIter->second.c_str());
 
 			if (size > 0)
 			{

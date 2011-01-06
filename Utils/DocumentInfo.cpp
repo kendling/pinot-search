@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sstream>
 #include <algorithm>
 
 #include "StringManip.h"
@@ -28,6 +29,7 @@
 #include "Url.h"
 
 using std::string;
+using std::stringstream;
 using std::map;
 using std::set;
 using std::copy;
@@ -299,10 +301,10 @@ string DocumentInfo::getTimestamp(void) const
 /// Sets the document's size in bytes.
 void DocumentInfo::setSize(off_t size)
 {
-	char sizeStr[64];
+	stringstream sizeStr;
 
-	snprintf(sizeStr, 64, "%u", size);
-	setField("size", sizeStr);
+	sizeStr << size;
+	setField("size", sizeStr.str());
 }
 
 /// Returns the document's size in bytes.
@@ -315,7 +317,7 @@ off_t DocumentInfo::getSize(void) const
 		return 0;
 	}
 
-	return (off_t)atoi(sizeStr.c_str());
+	return (off_t)atoll(sizeStr.c_str());
 }
 
 /// Sets the document's extract.

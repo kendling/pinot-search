@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2009 Fabrice Colin
+ *  Copyright 2008-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 
 			size_t conversions = converter.iconv(&pInput, &inputSize, &pOutput, &outputSize);
 			int errorCode = errno;
-			if (conversions == -1)
+			if (conversions == static_cast<size_t>(-1))
 			{
 				if (errorCode == EILSEQ)
 				{

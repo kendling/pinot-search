@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2009 Fabrice Colin
+ *  Copyright 2007-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 
 #include "Languages.h"
 #include "DBusIndex.h"
@@ -27,6 +28,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+using std::stringstream;
 using std::set;
 using std::map;
 using std::min;
@@ -235,7 +237,7 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 	for (unsigned int fieldNum = 0; g_fieldNames[fieldNum] != NULL; ++fieldNum)
 	{
 		string value;
-		char numStr[64];
+		stringstream numStr;
 
 		switch (fieldNum)
 		{
@@ -255,15 +257,15 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 				value = docInfo.getTimestamp();
 				break;
 			case 5:
-				snprintf(numStr, 64, "%u", docInfo.getSize());
-				value = numStr;
+				numStr << docInfo.getSize();
+				value = numStr.str();
 				break;
 			case 6:
 				value = docInfo.getExtract();
 				break;
 			case 7:
-				snprintf(numStr, 64, "%f", docInfo.getScore());
-				value = numStr;
+				numStr << docInfo.getScore();
+				value = numStr.str();
 				break;
 			default:
 				break;
