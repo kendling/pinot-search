@@ -4,9 +4,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.96\n"
+"Project-Id-Version: pinot 0.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-12-06 21:15+0800\n"
+"POT-Creation-Date: 2011-01-06 11:44+0100\n"
 "PO-Revision-Date: 2010-10-30 20:15+0000\n"
 "Last-Translator: simone.sandri <Unknown>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -32,67 +32,67 @@ msgid "couldn't format SQL statement"
 msgstr "Impossibile formattare lo stato SQL"
 
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:543 UI/GTK2/src/pinot.cc:308
+#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:308
 msgid "Unknown"
 msgstr "Sconosciuto"
 
-#: Core/pinot-dbus-daemon.cpp:544 UI/GTK2/src/pinot.cc:309
+#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:309
 msgid "Danish"
 msgstr "Danese"
 
-#: Core/pinot-dbus-daemon.cpp:545 UI/GTK2/src/pinot.cc:310
+#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:310
 msgid "Dutch"
 msgstr "Olandese"
 
-#: Core/pinot-dbus-daemon.cpp:546 UI/GTK2/src/pinot.cc:311
+#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:311
 msgid "English"
 msgstr "Inglese"
 
-#: Core/pinot-dbus-daemon.cpp:547 UI/GTK2/src/pinot.cc:312
+#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:312
 msgid "Finnish"
 msgstr "Finlandese"
 
-#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:313
+#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:313
 msgid "French"
 msgstr "Francese"
 
-#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:314
+#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:314
 msgid "German"
 msgstr "Tedesco"
 
-#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:315
+#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:315
 msgid "Hungarian"
 msgstr "Ungherese"
 
-#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:316
+#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:316
 msgid "Italian"
 msgstr "Italiano"
 
-#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:317
+#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:317
 msgid "Norwegian"
 msgstr "Norvegese"
 
-#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:318
+#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:318
 msgid "Portuguese"
 msgstr "Portoghese"
 
-#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:319
+#: Core/pinot-dbus-daemon.cpp:559 UI/GTK2/src/pinot.cc:319
 msgid "Romanian"
 msgstr "Romeno"
 
-#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:320
+#: Core/pinot-dbus-daemon.cpp:560 UI/GTK2/src/pinot.cc:320
 msgid "Russian"
 msgstr "Russo"
 
-#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:321
+#: Core/pinot-dbus-daemon.cpp:561 UI/GTK2/src/pinot.cc:321
 msgid "Spanish"
 msgstr "Spagnolo"
 
-#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:322
+#: Core/pinot-dbus-daemon.cpp:562 UI/GTK2/src/pinot.cc:322
 msgid "Swedish"
 msgstr "Svedese"
 
-#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:323
+#: Core/pinot-dbus-daemon.cpp:563 UI/GTK2/src/pinot.cc:323
 msgid "Turkish"
 msgstr "Turco"
 
@@ -100,21 +100,21 @@ msgstr "Turco"
 #. Apply this label
 #. Is this an internal index ?
 #: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1712
-#: Core/WorkerThreads.cpp:1048 UI/GTK2/src/mainWindow.cc:873
-#: UI/GTK2/src/mainWindow.cc:1139 UI/GTK2/src/mainWindow.cc:1402
-#: UI/GTK2/src/mainWindow.cc:1562 UI/GTK2/src/mainWindow.cc:1565
-#: UI/GTK2/src/mainWindow.cc:1669 UI/GTK2/src/mainWindow.cc:1703
-#: UI/GTK2/src/mainWindow.cc:1728 UI/GTK2/src/mainWindow.cc:2437
+#: Core/WorkerThreads.cpp:1060 UI/GTK2/src/mainWindow.cc:887
+#: UI/GTK2/src/mainWindow.cc:1153 UI/GTK2/src/mainWindow.cc:1416
+#: UI/GTK2/src/mainWindow.cc:1576 UI/GTK2/src/mainWindow.cc:1579
+#: UI/GTK2/src/mainWindow.cc:1683 UI/GTK2/src/mainWindow.cc:1717
+#: UI/GTK2/src/mainWindow.cc:1742 UI/GTK2/src/mainWindow.cc:2451
 #: UI/GTK2/src/statisticsDialog.cc:157
 msgid "My Web Pages"
 msgstr "Pagine Web Personali"
 
 #. Spawn new threads
 #: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1713
-#: Core/WorkerThreads.cpp:1058 UI/GTK2/src/mainWindow.cc:1134
-#: UI/GTK2/src/mainWindow.cc:1392 UI/GTK2/src/mainWindow.cc:1406
-#: UI/GTK2/src/mainWindow.cc:1573 UI/GTK2/src/mainWindow.cc:1576
-#: UI/GTK2/src/mainWindow.cc:2441 UI/GTK2/src/statisticsDialog.cc:163
+#: Core/WorkerThreads.cpp:1070 UI/GTK2/src/mainWindow.cc:1148
+#: UI/GTK2/src/mainWindow.cc:1406 UI/GTK2/src/mainWindow.cc:1420
+#: UI/GTK2/src/mainWindow.cc:1587 UI/GTK2/src/mainWindow.cc:1590
+#: UI/GTK2/src/mainWindow.cc:2455 UI/GTK2/src/statisticsDialog.cc:163
 msgid "My Documents"
 msgstr "Documenti Personali"
 
@@ -228,23 +228,23 @@ msgstr "Nessun servizio di monitoraggio"
 msgid "Unknown error"
 msgstr "Errore sconosciuto"
 
-#: Core/WorkerThreads.cpp:451
+#: Core/WorkerThreads.cpp:452
 msgid "Indexing was stopped"
 msgstr "L'indicizzazione è stata fermata"
 
-#: Core/WorkerThreads.cpp:464
+#: Core/WorkerThreads.cpp:465
 msgid "Can't index mail here"
 msgstr "Impossibile indicizzare la mail qui"
 
-#: Core/WorkerThreads.cpp:485 Core/WorkerThreads.cpp:776
+#: Core/WorkerThreads.cpp:486 Core/WorkerThreads.cpp:788
 msgid "is already being indexed"
 msgstr "è gia' stato indicizzato"
 
-#: Core/WorkerThreads.cpp:495
+#: Core/WorkerThreads.cpp:496
 msgid "is blacklisted"
 msgstr "è segnato come da non indicizzare"
 
-#: Core/WorkerThreads.cpp:1011
+#: Core/WorkerThreads.cpp:1023
 msgid "No title"
 msgstr "Senza titolo"
 
@@ -344,255 +344,255 @@ msgstr "Usa questo comando per aprire altri documenti dello stesso tipo"
 msgid "Helper application"
 msgstr "Applicazione associata"
 
-#: UI/GTK2/src/mainWindow.cc:200
+#: UI/GTK2/src/mainWindow.cc:214
 msgid "Query Name"
 msgstr "Nome da interrogare"
 
-#: UI/GTK2/src/mainWindow.cc:205
+#: UI/GTK2/src/mainWindow.cc:219
 msgid "Last Run"
 msgstr "Ultima Esecuzione"
 
-#: UI/GTK2/src/mainWindow.cc:210
+#: UI/GTK2/src/mainWindow.cc:224
 msgid "Summary"
 msgstr "Sommario"
 
 #. Set tooltips
-#: UI/GTK2/src/mainWindow.cc:252
+#: UI/GTK2/src/mainWindow.cc:266
 msgid "Show all search engines"
 msgstr "Mostrare tutti i motori di ricerca"
 
-#: UI/GTK2/src/mainWindow.cc:254 UI/GTK2/src/mainWindow.cc:263
+#: UI/GTK2/src/mainWindow.cc:268 UI/GTK2/src/mainWindow.cc:277
 msgid "Find documents that match the query"
 msgstr "Trova i documenti che corrispondono alla ricerca"
 
-#: UI/GTK2/src/mainWindow.cc:256
+#: UI/GTK2/src/mainWindow.cc:270
 msgid "Find documents that match the query string"
 msgstr "Trova i documenti che corrispondono alla stringa di ricerca."
 
-#: UI/GTK2/src/mainWindow.cc:258
+#: UI/GTK2/src/mainWindow.cc:272
 msgid "Add an index"
 msgstr "Aggiungi un indice"
 
-#: UI/GTK2/src/mainWindow.cc:259
+#: UI/GTK2/src/mainWindow.cc:273
 msgid "Remove an index"
 msgstr "Rimuovi un indice"
 
-#: UI/GTK2/src/mainWindow.cc:260
+#: UI/GTK2/src/mainWindow.cc:274
 msgid "Add a query"
 msgstr "Aggiungi una ricerca"
 
-#: UI/GTK2/src/mainWindow.cc:261
+#: UI/GTK2/src/mainWindow.cc:275
 msgid "Remove a query"
 msgstr "Rimuovi una ricerca"
 
-#: UI/GTK2/src/mainWindow.cc:262
+#: UI/GTK2/src/mainWindow.cc:276
 msgid "Show the query's previous results"
 msgstr "Mostra i risultati della ricerca precedente"
 
 #. Now we are ready
-#: UI/GTK2/src/mainWindow.cc:282
+#: UI/GTK2/src/mainWindow.cc:296
 msgid "Ready"
 msgstr "Pronto"
 
-#: UI/GTK2/src/mainWindow.cc:294
+#: UI/GTK2/src/mainWindow.cc:308
 msgid "Updating all documents in My Web Pages is recommended"
 msgstr ""
 "E' consigliato aggiornare tutti i documenti presenti nelle pagine web "
 "personali"
 
-#: UI/GTK2/src/mainWindow.cc:302
+#: UI/GTK2/src/mainWindow.cc:316
 msgid "Don't warn me again"
 msgstr "Non avvisarmi più"
 
-#: UI/GTK2/src/mainWindow.cc:310 UI/GTK2/src/mainWindow_glade.cc:177
+#: UI/GTK2/src/mainWindow.cc:324 UI/GTK2/src/mainWindow_glade.cc:177
 msgid "Update"
 msgstr "Aggiornamento"
 
-#: UI/GTK2/src/mainWindow.cc:371
+#: UI/GTK2/src/mainWindow.cc:385
 msgid "N/A"
 msgstr "N/D"
 
-#: UI/GTK2/src/mainWindow.cc:389
+#: UI/GTK2/src/mainWindow.cc:403
 msgid "Undefined"
 msgstr "Non Definito"
 
 #. Find this query
-#: UI/GTK2/src/mainWindow.cc:628 UI/GTK2/src/mainWindow.cc:2833
+#: UI/GTK2/src/mainWindow.cc:642 UI/GTK2/src/mainWindow.cc:2847
 msgid "Live query"
 msgstr "Ricerca Istantanea"
 
 #. Show the URL of the first document in the status bar
-#: UI/GTK2/src/mainWindow.cc:901
+#: UI/GTK2/src/mainWindow.cc:915
 msgid "Document location is"
 msgstr "La posizione Documento è"
 
-#: UI/GTK2/src/mainWindow.cc:1120
+#: UI/GTK2/src/mainWindow.cc:1134
 msgid "Couldn't search in results"
 msgstr "Impossibile cercare nei risultati"
 
-#: UI/GTK2/src/mainWindow.cc:1130
+#: UI/GTK2/src/mainWindow.cc:1144
 msgid "In Results"
 msgstr "Nei Risultati"
 
-#: UI/GTK2/src/mainWindow.cc:1303
+#: UI/GTK2/src/mainWindow.cc:1317
 msgid "Showing"
 msgstr "Mostrando"
 
-#: UI/GTK2/src/mainWindow.cc:1311
+#: UI/GTK2/src/mainWindow.cc:1325
 msgid "of"
 msgstr "di"
 
-#: UI/GTK2/src/mainWindow.cc:1353
+#: UI/GTK2/src/mainWindow.cc:1367
 msgid "Query"
 msgstr "Ricerca"
 
-#: UI/GTK2/src/mainWindow.cc:1357 UI/GTK2/src/mainWindow.cc:3378
+#: UI/GTK2/src/mainWindow.cc:1371 UI/GTK2/src/mainWindow.cc:3395
 msgid "on"
 msgstr "sul"
 
-#: UI/GTK2/src/mainWindow.cc:1361
+#: UI/GTK2/src/mainWindow.cc:1375
 msgid "ended"
 msgstr "concluso"
 
-#: UI/GTK2/src/mainWindow.cc:1516
+#: UI/GTK2/src/mainWindow.cc:1530
 msgid "More Like"
 msgstr "Molti Come"
 
-#: UI/GTK2/src/mainWindow.cc:1583
+#: UI/GTK2/src/mainWindow.cc:1597
 msgid "Updated label(s)"
 msgstr "Etichetta(e) Aggiornata"
 
 #. Yes, it did
-#: UI/GTK2/src/mainWindow.cc:1679 UI/GTK2/src/mainWindow.cc:1769
+#: UI/GTK2/src/mainWindow.cc:1693 UI/GTK2/src/mainWindow.cc:1783
 msgid "Updated document"
 msgstr "Documento aggiornato"
 
-#: UI/GTK2/src/mainWindow.cc:1692
+#: UI/GTK2/src/mainWindow.cc:1706
 msgid "Indexed"
 msgstr "Indicizzato"
 
-#: UI/GTK2/src/mainWindow.cc:1729
+#: UI/GTK2/src/mainWindow.cc:1743
 msgid "Unindexed document(s)"
 msgstr "Documento/i non Indicizzato/i"
 
-#: UI/GTK2/src/mainWindow.cc:1824
+#: UI/GTK2/src/mainWindow.cc:1838
 msgid "Couldn't rename index, name"
 msgstr "Impossibile rinominare l'indice, nome"
 
-#: UI/GTK2/src/mainWindow.cc:1828 UI/GTK2/src/mainWindow.cc:2637
-#: UI/GTK2/src/mainWindow.cc:3184
+#: UI/GTK2/src/mainWindow.cc:1842 UI/GTK2/src/mainWindow.cc:2651
+#: UI/GTK2/src/mainWindow.cc:3201
 msgid "is already in use"
 msgstr "è già in uso"
 
-#: UI/GTK2/src/mainWindow.cc:1840
+#: UI/GTK2/src/mainWindow.cc:1854
 msgid "Couldn't rename index"
 msgstr "Impossibile rinominare l'indice"
 
-#: UI/GTK2/src/mainWindow.cc:1855
+#: UI/GTK2/src/mainWindow.cc:1869
 msgid "Edited index"
 msgstr "Indice modificato"
 
-#: UI/GTK2/src/mainWindow.cc:2165
+#: UI/GTK2/src/mainWindow.cc:2179
 msgid "Export"
 msgstr "Esporta"
 
-#: UI/GTK2/src/mainWindow.cc:2210
+#: UI/GTK2/src/mainWindow.cc:2224
 msgid "Couldn't find similar documents"
 msgstr "Impossibile trovare documenti simili"
 
-#: UI/GTK2/src/mainWindow.cc:2453
+#: UI/GTK2/src/mainWindow.cc:2467
 msgid "Index"
 msgstr "Indice"
 
-#: UI/GTK2/src/mainWindow.cc:2457
+#: UI/GTK2/src/mainWindow.cc:2471
 msgid "doesn't exist"
 msgstr "non esiste"
 
-#: UI/GTK2/src/mainWindow.cc:2524
+#: UI/GTK2/src/mainWindow.cc:2538
 msgid "Remove this document from the index ?"
 msgstr "Rimuovere questo documento dall'indice?"
 
-#: UI/GTK2/src/mainWindow.cc:2543
+#: UI/GTK2/src/mainWindow.cc:2557
 msgid "Remove these documents from the index ?"
 msgstr "Rimuovere questi documenti dall'indice?"
 
-#: UI/GTK2/src/mainWindow.cc:2548 UI/GTK2/src/mainWindow_glade.cc:180
+#: UI/GTK2/src/mainWindow.cc:2562 UI/GTK2/src/mainWindow_glade.cc:180
 msgid "Unindex"
 msgstr "Rimuovi dall'indice"
 
-#: UI/GTK2/src/mainWindow.cc:2587
+#: UI/GTK2/src/mainWindow.cc:2601
 msgid "A metasearch tool for the Free Desktop"
 msgstr "Un metamotore di ricerca per il Free Desktop"
 
-#: UI/GTK2/src/mainWindow.cc:2588
+#: UI/GTK2/src/mainWindow.cc:2602
 msgid "Search the Web and your documents !"
 msgstr "Cerca nel Web e nei documenti !"
 
-#: UI/GTK2/src/mainWindow.cc:2633
+#: UI/GTK2/src/mainWindow.cc:2647
 msgid "Index name"
 msgstr "Nome indice"
 
-#: UI/GTK2/src/mainWindow.cc:2647
+#: UI/GTK2/src/mainWindow.cc:2661
 msgid "Couldn't add index"
 msgstr "Impossibile aggiungere l'indice"
 
-#: UI/GTK2/src/mainWindow.cc:2663
+#: UI/GTK2/src/mainWindow.cc:2677
 msgid "Added new index"
 msgstr "Nuovo indice aggiunto"
 
-#: UI/GTK2/src/mainWindow.cc:2698
+#: UI/GTK2/src/mainWindow.cc:2712
 msgid "Couldn't remove index"
 msgstr "Impossibile rimuovere l'indice"
 
-#: UI/GTK2/src/mainWindow.cc:2922
+#: UI/GTK2/src/mainWindow.cc:2938
 msgid "No history for"
 msgstr "Nessuna cronologia per"
 
-#: UI/GTK2/src/mainWindow.cc:2994 UI/GTK2/src/prefsWindow.cc:960
+#: UI/GTK2/src/mainWindow.cc:3010 UI/GTK2/src/prefsWindow.cc:960
 msgid "At least one task hasn't completed yet. Quit now ?"
 msgstr "Almeno un'operazione non è stata ancora completata. Uscire comunque?"
 
-#: UI/GTK2/src/mainWindow.cc:2996 UI/GTK2/src/prefsWindow.cc:962
+#: UI/GTK2/src/mainWindow.cc:3012 UI/GTK2/src/prefsWindow.cc:962
 msgid "Quit"
 msgstr "Esci"
 
-#: UI/GTK2/src/mainWindow.cc:3180
+#: UI/GTK2/src/mainWindow.cc:3197
 msgid "Query name"
 msgstr "Nome della ricerca"
 
-#: UI/GTK2/src/mainWindow.cc:3207
+#: UI/GTK2/src/mainWindow.cc:3224
 msgid "Couldn't update query"
 msgstr "Impossibile aggiornare la ricerca"
 
-#: UI/GTK2/src/mainWindow.cc:3218
+#: UI/GTK2/src/mainWindow.cc:3235
 msgid "Edited query"
 msgstr "Ricerca Modificata"
 
-#: UI/GTK2/src/mainWindow.cc:3225
+#: UI/GTK2/src/mainWindow.cc:3242
 msgid "Couldn't add query"
 msgstr "Impossibile aggiungere la ricerca"
 
-#: UI/GTK2/src/mainWindow.cc:3233
+#: UI/GTK2/src/mainWindow.cc:3250
 msgid "Added new query"
 msgstr "Nuova ricerca aggiunta"
 
-#: UI/GTK2/src/mainWindow.cc:3267
+#: UI/GTK2/src/mainWindow.cc:3284
 msgid "Query is not set"
 msgstr "Ricerca non ancora configurata"
 
-#: UI/GTK2/src/mainWindow.cc:3278
+#: UI/GTK2/src/mainWindow.cc:3295
 msgid "No search engine selected"
 msgstr "Nessun motore di ricerca selezionato"
 
-#: UI/GTK2/src/mainWindow.cc:3365
+#: UI/GTK2/src/mainWindow.cc:3382
 msgid "Please set the Google API key first"
 msgstr "Prima inserisci la tua Google API key"
 
-#: UI/GTK2/src/mainWindow.cc:3374
+#: UI/GTK2/src/mainWindow.cc:3391
 msgid "Running query"
 msgstr "Ricerca in esecuzione"
 
-#: UI/GTK2/src/mainWindow.cc:3581
+#: UI/GTK2/src/mainWindow.cc:3598
 msgid "No default application defined for type"
 msgstr "Nessuna applicazione predefinita esistente"
 
