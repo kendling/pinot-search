@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include <exception>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <glibmm/miscutils.h>
 #include <glibmm/convert.h>
 #include <glibmm/exception.h>
@@ -56,8 +57,8 @@
 #include "PinotSettings.h"
 #include "WorkerThreads.h"
 
-using namespace Glib;
 using namespace std;
+using namespace Glib;
 
 // A function object to stop threads with for_each()
 struct StopThreadFunc
