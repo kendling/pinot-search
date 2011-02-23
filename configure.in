@@ -271,6 +271,19 @@ else
 fi
 AC_MSG_RESULT($enable_libarchive)
 
+dnl chmlib
+AC_MSG_CHECKING(whether to enable the chmlib filter)
+AC_ARG_ENABLE(chmlib,
+   [AS_HELP_STRING([--enable-chmlib], [enable the chmlib filter [default=no]])],
+   ,[enable_chmlib=no])
+if test "x$enable_chmlib" != "xyes"; then
+   enable_chmlib=no
+   AM_CONDITIONAL(HAVE_CHMLIB, false)
+else
+   AM_CONDITIONAL(HAVE_CHMLIB, true)
+fi
+AC_MSG_RESULT($enable_chmlib)
+
 dnl pthreads
 pthreadlib=""
 AC_SUBST(PTHREAD_LIBS)

@@ -39,6 +39,10 @@ BuildRequires: gsoap >= 2.7.9e
 Requires: libarchive >= 2.6.2
 BuildRequires: libarchive-devel >= 2.6.2
 %endif
+%if 0%{?_with_chmlib:1}
+Requires: chmlib >= 0.40
+BuildRequires: chmlib-devel >= 0.40
+%endif
 # These used to be independant packages
 Obsoletes: pinot-audio-docs
 Obsoletes: pinot-omega
@@ -62,7 +66,7 @@ The included plugin enables Deskbar to search documents indexed by Pinot.
 %setup -q
 
 %build
-%configure %{?_with_soap:--enable-soap=yes} %{?_with_libarchive:--enable-libarchive=yes} %{?_with_debug:--enable-debug=yes}
+%configure %{?_with_soap:--enable-soap=yes} %{?_with_libarchive:--enable-libarchive=yes} %{?_with_chmlib:--enable-chmlib=yes} %{?_with_debug:--enable-debug=yes}
 make %{?_smp_mflags}
 
 %install
@@ -97,6 +101,9 @@ fi
 %{_bindir}/pinot-search
 %if 0%{?_with_libarchive:1}
 %{_libdir}/pinot/filters/libarchivefilter.so*
+%endif
+%if 0%{?_with_chmlib:1}
+%{_libdir}/pinot/filters/libchmfilter.so*
 %endif
 %{_libdir}/pinot/filters/libexifimagefilter.so*
 %{_libdir}/pinot/filters/libexternalfilter.so*

@@ -5,8 +5,10 @@ noinst_HEADERS = \
 	TextConverter.h \
 	$(top_srcdir)/IndexSearch/cjkv/CJKVTokenizer.h \
 	$(top_srcdir)/Tokenize/filters/ArchiveFilter.h \
+	$(top_srcdir)/Tokenize/filters/ChmFilter.h \
 	$(top_srcdir)/Tokenize/filters/ExifImageFilter.h \
 	$(top_srcdir)/Tokenize/filters/ExternalFilter.h \
+	$(top_srcdir)/Tokenize/filters/FileOutputFilter.h \
 	$(top_srcdir)/Tokenize/filters/Filter.h \
 	$(top_srcdir)/Tokenize/filters/FilterFactory.h \
 	$(top_srcdir)/Tokenize/filters/GMimeMboxFilter.h \
@@ -16,10 +18,12 @@ noinst_HEADERS = \
 	$(top_srcdir)/Tokenize/filters/TextFilter.h \
 	$(top_srcdir)/Tokenize/filters/XmlFilter.h
 
-if HAVE_LIBARCHIVE
-lib_LTLIBRARIES = libarchivefilter.la libexifimagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la
-else
 lib_LTLIBRARIES = libexifimagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la
+if HAVE_LIBARCHIVE
+lib_LTLIBRARIES += libarchivefilter.la
+endif
+if HAVE_CHMLIB
+lib_LTLIBRARIES += libchmfilter.la
 endif
 
 noinst_LTLIBRARIES = libTokenize.la
@@ -34,6 +38,16 @@ libarchivefilter_la_LDFLAGS = -module -avoid-version
 libarchivefilter_la_LIBADD = -larchive
 endif
 
+if HAVE_CHMLIB
+libchmfilter_la_SOURCES = \
+	$(top_srcdir)/Tokenize/filters/Filter.cc \
+	$(top_srcdir)/Tokenize/filters/ChmFilter.cc
+
+libchmfilter_la_LDFLAGS = -module -avoid-version
+
+libchmfilter_la_LIBADD = -lchm
+endif
+
 libexifimagefilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/ExifImageFilter.cc
@@ -44,7 +58,8 @@ libexifimagefilter_la_LIBADD = @EXIF_LIBS@
 
 libexternalfilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
-	$(top_srcdir)/Tokenize/filters/ExternalFilter.cc
+	$(top_srcdir)/Tokenize/filters/ExternalFilter.cc \
+	$(top_srcdir)/Tokenize/filters/FileOutputFilter.cc
 
 libexternalfilter_la_LDFLAGS = -module -avoid-version
 
