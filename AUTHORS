@@ -33,6 +33,7 @@ Small patches, bug reports and helpful comments :
 	Jonas Smedegaard <dr at jones dot dk>
 	Jens Wilhelm Wulf <jens_w2 at gmx dot net>
 	Nikolay Kachanov <nikolay dot kachanov at gmail dot com>
+	Martijn Verstrate <martijn dot verstrate at wm-m dot net>
 
 The source in Utils/unac is from unac 1.7.0 (Copyright Loic Dachary
 <loic at senga dot org>).
@@ -62,6 +63,7 @@ Translations provided by :
 		& JW <jw00000 at gmail dot com>
 		& Balaam's Miracle <balaam at balaamsmiracle dot com>
 		& Dirk Roos <???>
+		& Martijn Verstrate <???>
 	French - Nicolas Velin <nsv at fr dot st>
 		& Frédéric Grosshans <frederic dot grosshans at gmail dot com>
 		& Thierry Thomas <thierry at freebsd dot org>
