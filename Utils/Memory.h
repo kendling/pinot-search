@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009-2010 Fabrice Colin
+ *  Copyright 2009-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -193,10 +193,10 @@ class PINOT_EXPORT Memory
 {
 	public:
 		/// Allocates a buffer.
-		static char *allocateBuffer(unsigned int length);
+		static char *allocateBuffer(off_t length);
 
 		/// Frees a buffer.
-		static void freeBuffer(char *pBuffer, unsigned int length);
+		static void freeBuffer(char *pBuffer, off_t length);
 
 		/// Returns the number of bytes in use.
 		static int getUsage(void);

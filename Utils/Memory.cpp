@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009-2010 Fabrice Colin
+ *  Copyright 2009-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ Memory::Memory()
 {
 }
 
-char *Memory::allocateBuffer(unsigned int length)
+char *Memory::allocateBuffer(off_t length)
 {
 #ifdef HAVE_BOOST_POOL_POOLFWD_HPP
 	return static_cast<char*>(filter_pool::ordered_malloc(length));
@@ -63,7 +63,7 @@ char *Memory::allocateBuffer(unsigned int length)
 #endif
 }
 
-void Memory::freeBuffer(char *pBuffer, unsigned int length)
+void Memory::freeBuffer(char *pBuffer, off_t length)
 {
 #ifdef HAVE_BOOST_POOL_POOLFWD_HPP
 	filter_pool::ordered_free(static_cast<void*>(pBuffer), length);
