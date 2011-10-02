@@ -1939,7 +1939,6 @@ bool PinotSettings::getDefaultPatterns(set<ustring> &defaultPatterns)
 	defaultPatterns.insert("*.cap");
 	defaultPatterns.insert("*.divx");
 	defaultPatterns.insert("*.flv");
-	defaultPatterns.insert("*.gif");
 	defaultPatterns.insert("*.git");
 	defaultPatterns.insert("*.gmo");
 	defaultPatterns.insert("*.iso");
@@ -1959,14 +1958,12 @@ bool PinotSettings::getDefaultPatterns(set<ustring> &defaultPatterns)
 	defaultPatterns.insert("*.orig");
 	defaultPatterns.insert("*.part");
 	defaultPatterns.insert("*.pc");
-	defaultPatterns.insert("*.png");
 	defaultPatterns.insert("*.po");
 	defaultPatterns.insert("*.rar");
 	defaultPatterns.insert("*.rej");
 	defaultPatterns.insert("*.sh");
 	defaultPatterns.insert("*.so");
 	defaultPatterns.insert("*.svn");
-	defaultPatterns.insert("*.tiff");
 	defaultPatterns.insert("*.tmp");
 	defaultPatterns.insert("*.torrent");
 	defaultPatterns.insert("*.vm*");

@@ -57,14 +57,19 @@ LanguageDetector::LanguageDetector() :
 {
 #ifdef USE_TEXTCAT
 	string confFile(SYSCONFDIR);
-	char *textCatVersion = textcat_Version();
+	const char *textCatVersion = textcat_Version();
 
 	// What configuration file should we use ?
 	confFile += "/pinot/";
 #ifdef DEBUG
 	cout << "LanguageDetector::guessLanguage: detected " << textCatVersion << endl;
 #endif
-	if (strncasecmp(textCatVersion, "TextCat 3", 9) == 0)
+	if (strncasecmp(textCatVersion, "3.1.0", 9) == 0)
+	{
+		// Version 3
+		confFile += "textcat31_conf.txt";
+	}
+	else if (strncasecmp(textCatVersion, "TextCat 3", 9) == 0)
 	{
 		// Version 3
 		confFile += "textcat3_conf.txt";

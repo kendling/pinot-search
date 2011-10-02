@@ -1,11 +1,10 @@
 
-SUBDIRS = po Utils Tokenize SQL Collect IndexSearch/Google IndexSearch IndexSearch/Xapian Monitor Core UI/GTK2/src
+SUBDIRS = po Utils Tokenize SQL Collect IndexSearch IndexSearch/Xapian Monitor Core UI/GTK2/src
 
 # TODO: Fix that when cleaning up for distcheck! - crazy -
 EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	Tokenize/filters/external-filters.xml globalconfig.xml \
-	textcat_conf.txt textcat3_conf.txt \
-	pinot*.desktop pinot.spec \
+	textcat*conf.txt pinot*.desktop pinot.spec \
 	IndexSearch/Plugins/*src IndexSearch/Plugins/*.xml \
 	Core/pinot-index.1 IndexSearch/pinot-label.1 \
 	Core/pinot-search.1 UI/GTK2/src/pinot.1 \
@@ -34,8 +33,7 @@ install-data-local:
 	@mkdir -p $(DESTDIR)$(sysconfdir)/pinot
 	$(INSTALL_DATA) $(srcdir)/Tokenize/filters/external-filters.xml $(DESTDIR)$(sysconfdir)/pinot/external-filters.xml
 	$(INSTALL_DATA) $(srcdir)/globalconfig.xml $(DESTDIR)$(sysconfdir)/pinot/globalconfig.xml
-	$(INSTALL_DATA) $(srcdir)/textcat_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat_conf.txt
-	$(INSTALL_DATA) $(srcdir)/textcat3_conf.txt $(DESTDIR)$(sysconfdir)/pinot/textcat3_conf.txt
+	$(INSTALL_DATA) $(srcdir)/textcat*conf.txt $(DESTDIR)$(sysconfdir)/pinot/
 	@mkdir -p $(DESTDIR)$(datadir)/pinot
 if HAVE_DBUS
 	$(INSTALL_DATA) $(srcdir)/Core/pinot-dbus-daemon.xml $(DESTDIR)$(datadir)/pinot/pinot-dbus-daemon.xml

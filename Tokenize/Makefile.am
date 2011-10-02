@@ -7,6 +7,7 @@ noinst_HEADERS = \
 	$(top_srcdir)/Tokenize/filters/ArchiveFilter.h \
 	$(top_srcdir)/Tokenize/filters/ChmFilter.h \
 	$(top_srcdir)/Tokenize/filters/ExifImageFilter.h \
+	$(top_srcdir)/Tokenize/filters/Exiv2ImageFilter.h \
 	$(top_srcdir)/Tokenize/filters/ExternalFilter.h \
 	$(top_srcdir)/Tokenize/filters/FileOutputFilter.h \
 	$(top_srcdir)/Tokenize/filters/Filter.h \
@@ -18,7 +19,7 @@ noinst_HEADERS = \
 	$(top_srcdir)/Tokenize/filters/TextFilter.h \
 	$(top_srcdir)/Tokenize/filters/XmlFilter.h
 
-lib_LTLIBRARIES = libexifimagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la
+lib_LTLIBRARIES = libexiv2imagefilter.la libexternalfilter.la libmboxfilter.la libtaglibfilter.la
 if HAVE_LIBARCHIVE
 lib_LTLIBRARIES += libarchivefilter.la
 endif
@@ -48,13 +49,13 @@ libchmfilter_la_LDFLAGS = -module -avoid-version
 libchmfilter_la_LIBADD = -lchm
 endif
 
-libexifimagefilter_la_SOURCES = \
+libexiv2imagefilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
-	$(top_srcdir)/Tokenize/filters/ExifImageFilter.cc
+	$(top_srcdir)/Tokenize/filters/Exiv2ImageFilter.cc
 
-libexifimagefilter_la_LDFLAGS = -module -avoid-version
+libexiv2imagefilter_la_LDFLAGS = -module -avoid-version
 
-libexifimagefilter_la_LIBADD = @EXIF_LIBS@
+libexiv2imagefilter_la_LIBADD = @EXIV2_LIBS@
 
 libexternalfilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
@@ -95,7 +96,7 @@ libTokenize_la_SOURCES = \
 AM_CXXFLAGS = \
 	@MISC_CFLAGS@ \
 	-I$(top_srcdir)/Utils -Ifilters \
-	@GMIME_CFLAGS@ @XML_CFLAGS@ @EXIF_CFLAGS@ @TAGLIB_CFLAGS@ \
+	@GMIME_CFLAGS@ @XML_CFLAGS@ @EXIV2_CFLAGS@ @TAGLIB_CFLAGS@ \
 	-D_DYNAMIC_DIJON_FILTERS \
 	-D_DIJON_EXTERNALFILTER_CONFFILE=\"$(sysconfdir)/pinot/external-filters.xml\"
 
