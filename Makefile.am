@@ -1,7 +1,6 @@
 
 SUBDIRS = po Utils Tokenize SQL Collect IndexSearch IndexSearch/Xapian Monitor Core UI/GTK2/src
 
-# TODO: Fix that when cleaning up for distcheck! - crazy -
 EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	Tokenize/filters/external-filters.xml globalconfig.xml \
 	textcat*conf.txt pinot*.desktop pinot.spec \

@@ -28,7 +28,7 @@ libMonitor_la_CXXFLAGS = \
 	-I$(top_srcdir)/Index \
 	-I$(top_srcdir)/Search \
 	@HTTP_CFLAGS@ @XML_CFLAGS@ @INDEX_CFLAGS@ \
-	@SOAP_CFLAGS@ @GMIME_CFLAGS@ @SIGCPP_CFLAGS@
+	@GMIME_CFLAGS@ @SIGCPP_CFLAGS@
 
 if HAVE_LINUX_INOTIFY
 libMonitor_la_CXXFLAGS += -DHAVE_LINUX_INOTIFY
