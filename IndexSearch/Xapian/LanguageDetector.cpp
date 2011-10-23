@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,9 @@
 extern "C"
 {
 #define USE_TEXTCAT 1
+#ifdef HAVE_LIBEXTTEXTCAT_TEXTCAT_H
+#include <libexttextcat/textcat.h>
+#else
 #ifdef HAVE_LIBTEXTCAT_TEXTCAT_H
 #include <libtextcat/textcat.h>
 #else
@@ -29,6 +32,7 @@ extern "C"
 #include <textcat.h>
 #else
 #undef USE_TEXTCAT
+#endif
 #endif
 #endif
 }

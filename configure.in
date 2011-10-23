@@ -231,12 +231,20 @@ fi
 
 dnl TextCat
 AC_CHECK_HEADERS([textcat.h],,
-   [AC_CHECK_HEADERS([libtextcat/textcat.h])
+   [AC_CHECK_HEADERS([libtextcat/textcat.h],,
+    AC_CHECK_HEADERS([libexttextcat/textcat.h],[is_libexttextcat=yes],[is_libexttextcat=no]))
    ])
-AC_CHECK_LIB(textcat, textcat_Cat,
-   [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)],
-   [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)]
-   )
+if test "x$is_libexttextcat" != "xyes"; then
+   is_libexttextcat="no"
+fi
+if test "x$is_libexttextcat" = "no"; then
+   AC_CHECK_LIB(textcat, textcat_Cat,
+      [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)],
+      [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)]
+      )
+else
+   AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)
+fi
 
 dnl libarchive
 AC_MSG_CHECKING(whether to enable the libarchive filter)
