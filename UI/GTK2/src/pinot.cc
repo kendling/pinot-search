@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,6 +47,8 @@
 #include "PinotSettings.h"
 #include "mainWindow.hh"
 #include "prefsWindow.hh"
+
+#define EXPIRY_PERIOD	(3600 * 24 * 30 * 6)
 
 using namespace std;
 
@@ -380,9 +382,9 @@ int main(int argc, char **argv)
 
 		// Expire all actions left from last time
 		actionQueue.expireItems(timeNow);
-		// Expire items older than a month
-		queryHistory.expireItems(timeNow - 2592000);
-		viewHistory.expireItems(timeNow - 2592000);
+		// Expire items
+		queryHistory.expireItems(timeNow - EXPIRY_PERIOD);
+		viewHistory.expireItems(timeNow - EXPIRY_PERIOD);
 	}
 
 	atexit(closeAll);
