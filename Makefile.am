@@ -45,7 +45,6 @@ endif
 	@mkdir -p $(DESTDIR)$(datadir)/pinot/engines
 	$(INSTALL_DATA) $(srcdir)/IndexSearch/Plugins/*.src $(DESTDIR)$(datadir)/pinot/engines/
 	$(INSTALL_DATA) $(srcdir)/IndexSearch/Plugins/*.xml $(DESTDIR)$(datadir)/pinot/engines/
-	@mv $(DESTDIR)$(datadir)/pinot/engines/YahooBOSS.src $(DESTDIR)$(datadir)/pinot/
 	@mkdir -p $(DESTDIR)$(libdir)/pinot/filters
 	@rm -f $(DESTDIR)$(libdir)/lib*filter.a $(DESTDIR)$(libdir)/lib*filter.la
 	@mv $(DESTDIR)$(libdir)/lib*filter* $(DESTDIR)$(libdir)/pinot/filters/
