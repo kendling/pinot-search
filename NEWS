@@ -1,3 +1,18 @@
+2011/11/07 version_0_9_8
+Tokenize :
+ - new exiv2-based filter
+ - new chmlib-based filter
+IndexSearch :
+ - support for LibreOffice's libexttextcat v3.1, and possibly v3.1.1
+ - dropped plugins for Yahoo! REST API, Yahoo! BOSS, Google Code Search
+  and RollYO
+UI :
+ - query results and view history are expired after 6 months
+ - updated Dutch translation by Martijn Verstrate and Tico
+ - updated German translation by Fitoschido
+ - updated Russian translation by Nikolay Kachanov
+ - updated Spanish translation by pkramerruiz
+
 2011/01/09 version_0_9_7
 General :
  - replaced custom memory pool class with Boost's
@@ -22,9 +37,9 @@ UI :
  - updated Japanese translation by Mizuki-san
  - updated Brazilian Portuguese translation by feen
  - updated Portuguese translation by Almufadado
+ - updated Russian translation by Alexander Zinin and Nikolay Kachanov
  - updated Spanish translation by Juan Miguel Boyero Corral, Matias Fonzo
   and Fitoschido
- - updated Russian translation by Alexander Zinin and Nikolay Kachanov
 
 2010/07/12 version_0_9_6
 General :

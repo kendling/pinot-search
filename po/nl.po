@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-02-13 21:19+0800\n"
+"POT-Creation-Date: 2011-10-23 13:53+0800\n"
 "PO-Revision-Date: 2011-03-07 14:16+0000\n"
 "Last-Translator: Tico <Unknown>\n"
 "Language-Team: Dutch <nl@li.org>\n"
@@ -32,67 +32,67 @@ msgid "couldn't format SQL statement"
 msgstr "kon het SQL statement niet aanmaken"
 
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:308
+#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:310
 msgid "Unknown"
 msgstr "Niet bekend"
 
-#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:309
+#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:311
 msgid "Danish"
 msgstr "Deens"
 
-#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:310
+#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:312
 msgid "Dutch"
 msgstr "Nederlands"
 
-#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:311
+#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:313
 msgid "English"
 msgstr "Engels"
 
-#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:312
+#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:314
 msgid "Finnish"
 msgstr "Fins"
 
-#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:313
+#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:315
 msgid "French"
 msgstr "Frans"
 
-#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:314
+#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:316
 msgid "German"
 msgstr "Duits"
 
-#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:315
+#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:317
 msgid "Hungarian"
 msgstr "Hongaars"
 
-#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:316
+#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:318
 msgid "Italian"
 msgstr "Italiaans"
 
-#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:317
+#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:319
 msgid "Norwegian"
 msgstr "Noors"
 
-#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:318
+#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:320
 msgid "Portuguese"
 msgstr "Portugees"
 
-#: Core/pinot-dbus-daemon.cpp:559 UI/GTK2/src/pinot.cc:319
+#: Core/pinot-dbus-daemon.cpp:559 UI/GTK2/src/pinot.cc:321
 msgid "Romanian"
 msgstr "Roemeens"
 
-#: Core/pinot-dbus-daemon.cpp:560 UI/GTK2/src/pinot.cc:320
+#: Core/pinot-dbus-daemon.cpp:560 UI/GTK2/src/pinot.cc:322
 msgid "Russian"
 msgstr "Russisch"
 
-#: Core/pinot-dbus-daemon.cpp:561 UI/GTK2/src/pinot.cc:321
+#: Core/pinot-dbus-daemon.cpp:561 UI/GTK2/src/pinot.cc:323
 msgid "Spanish"
 msgstr "Spaans"
 
-#: Core/pinot-dbus-daemon.cpp:562 UI/GTK2/src/pinot.cc:322
+#: Core/pinot-dbus-daemon.cpp:562 UI/GTK2/src/pinot.cc:324
 msgid "Swedish"
 msgstr "Zweeds"
 
-#: Core/pinot-dbus-daemon.cpp:563 UI/GTK2/src/pinot.cc:323
+#: Core/pinot-dbus-daemon.cpp:563 UI/GTK2/src/pinot.cc:325
 msgid "Turkish"
 msgstr "Turks"
 
@@ -684,11 +684,11 @@ msgstr "Bedoelde u?"
 msgid "Close"
 msgstr "Sluiten"
 
-#: UI/GTK2/src/pinot.cc:349
+#: UI/GTK2/src/pinot.cc:351
 msgid "Couldn't open index"
 msgstr "Kan index niet openen"
 
-#: UI/GTK2/src/pinot.cc:370
+#: UI/GTK2/src/pinot.cc:372
 msgid "Couldn't create history database"
 msgstr "Kon historische database niet maken"
 
