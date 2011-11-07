@@ -1,4 +1,50 @@
 ------------------------------------------------------------------------
+r174 | fabricecolin | 2011-10-02 13:00:28 +0800 (Sun, 02 Oct 2011) | 2 lines
+Changed paths:
+   A /trunk/filters/Exiv2ImageFilter.cc
+   A /trunk/filters/Exiv2ImageFilter.h
+
+EXIF, IPTC and XMP filter based on exiv2 (http://www.exiv2.org/).
+
+------------------------------------------------------------------------
+r173 | fabricecolin | 2011-02-21 21:54:24 +0800 (Mon, 21 Feb 2011) | 2 lines
+Changed paths:
+   A /trunk/filters/ChmFilter.cc
+   A /trunk/filters/ChmFilter.h
+
+Filter for CHM files based on chmlib from http://www.jedrea.com/chmlib/
+
+------------------------------------------------------------------------
+r172 | fabricecolin | 2011-02-20 18:04:50 +0800 (Sun, 20 Feb 2011) | 2 lines
+Changed paths:
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/ExternalFilter.h
+   A /trunk/filters/FileOutputFilter.cc
+   A /trunk/filters/FileOutputFilter.h
+
+Moved read_file() to class FileOutputFilter.
+
+------------------------------------------------------------------------
+r171 | fabricecolin | 2010-12-15 21:22:55 +0800 (Wed, 15 Dec 2010) | 4 lines
+Changed paths:
+   M /trunk/filters/ArchiveFilter.cc
+   M /trunk/filters/ArchiveFilter.h
+   M /trunk/filters/ExternalFilter.cc
+   M /trunk/filters/ExternalFilter.h
+   M /trunk/filters/Filter.h
+   M /trunk/filters/GMimeMboxFilter.cc
+   M /trunk/filters/GMimeMboxFilter.h
+   M /trunk/filters/TagLibMusicFilter.cc
+   M /trunk/filters/TarFilter.cc
+   M /trunk/filters/TarFilter.h
+   M /trunk/filters/TextFilter.cc
+   M /trunk/filters/XmlFilter.cc
+
+New property MAXIMUM_NESTED_SIZE to limit how much of nested documents filters
+will return.
+Extra DEBUG elsewhere.
+
+------------------------------------------------------------------------
 r169 | fabricecolin | 2010-07-12 21:59:08 +0800 (Mon, 12 Jul 2010) | 3 lines
 Changed paths:
    M /trunk/filters/GMimeMboxFilter.cc
