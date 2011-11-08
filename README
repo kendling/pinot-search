@@ -576,13 +576,16 @@ http://ktown.kde.org/~wheeler/taglib/
 libarchive (5)						2.6.2
 http://people.freebsd.org/~kientzle/libarchive/
 
-libexif							0.6
-http://libexif.sourceforge.net/
+exiv2							0.21
+http://www.exiv2.org/
 
-openssh-askpass (6)					4.3
+chmlib (6)						0.40
+http://www.jedrea.com/chmlib/
+
+openssh-askpass (7)					4.3
 http://www.openssh.com/portable.html
 
-DeskbarApplet (7)					2.30
+DeskbarApplet (8)					2.30
 http://live.gnome.org/DeskbarApplet
 
 ---------------------------------------------------------------
@@ -618,7 +621,8 @@ Notes :
 (3) for gmime 2.0 support, edit configure.in
 (4) for building only
 (5) experimental - enabled with "./configure --enable-libarchive=yes"
-(6) experimental - required only if _SSH_TUNNEL is set
-(7) optional DeskbarApplet plugins 
+(6) experimental - enabled with "./configure --enable-chmlib=yes"
+(7) experimental - required only if _SSH_TUNNEL is set
+(8) optional DeskbarApplet plugins 
 ---------------------------------------------------------------------
 
