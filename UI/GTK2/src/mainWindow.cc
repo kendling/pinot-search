@@ -2604,8 +2604,8 @@ void mainWindow::on_about_activate()
 	aboutBox.set_copyright("(C) 2005-2011 Fabrice Colin");
 	aboutBox.set_name("Pinot");
 	aboutBox.set_version(VERSION);
-	aboutBox.set_website("http://pinot.berlios.de/");
-	aboutBox.set_website_label("http://pinot.berlios.de/");
+	aboutBox.set_website("http://code.google.com/p/pinot-search/");
+	aboutBox.set_website_label("http://code.google.com/p/pinot-search/");
 	aboutBox.show();
 	aboutBox.run();
 }

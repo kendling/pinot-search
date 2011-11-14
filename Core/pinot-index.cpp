@@ -168,7 +168,7 @@ static void printHelp(void)
 	ModuleFactory::unloadModules();
 	cout << "\n\nExamples:\n"
 		<< "pinot-index --check --showinfo --backend xapian --db ~/.pinot/daemon ../Bozo.txt\n\n"
-		<< "pinot-index --index --db CoolStuff http://pinot.berlios.de/\n\n"
+		<< "pinot-index --index --db PinotOnTheWeb http://code.google.com/p/pinot-search/\n\n"
 		<< "Indexing documents to My Web Pages or My Documents with pinot-index is not recommended\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }

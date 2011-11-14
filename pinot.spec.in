@@ -22,7 +22,7 @@ Release: 1%{?dist}
 License: GPL
 Group: Applications/Internet 
 Source: %{name}-%{version}.tar.gz
-URL: http://pinot.berlios.de/
+URL: http://code.google.com/p/pinot-search/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: xapian-core-libs >= 1.0.4, libtextcat >= 2.2, sqlite >= 3.3.1, libcurl >= 7.13, gmime >= 2.1
 Requires: gtkmm24 >= 2.10, libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
