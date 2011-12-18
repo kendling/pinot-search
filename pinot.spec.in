@@ -50,15 +50,6 @@ for changes, as well as a GTK-based user interface that enables to query
 the index built by the service and your favourite Web engines, and display and
 analyze the results.
 
-%package deskbar
-Summary: Pinot plugin for DeskbarApplet
-Group: Applications/Internet
-Requires: %{name} = %{version}
-Requires: deskbar-applet
-
-%description deskbar
-The included plugin enables Deskbar to search documents indexed by Pinot.
-
 %prep
 %setup -q
 
@@ -117,11 +108,6 @@ fi
 %{_sysconfdir}/xdg/autostart/*.desktop
 %{_datadir}/applications/*.desktop
 %{_mandir}/man1/pinot*
-
-%files deskbar
-%defattr(-,root,root,-)
-%{_libdir}/deskbar-applet/handlers/pinot-*
-%{_libexecdir}/deskbar-applet/modules-2.20-compatible/pinot-*
 
 %changelog
 
