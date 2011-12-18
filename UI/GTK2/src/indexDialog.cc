@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -121,10 +121,18 @@ void indexDialog::populate_typeCombobox(void)
 {
 	ustring servedBy(_("Served by"));
 
+#if GTK_VERSION_LT(3, 0)
 	typeCombobox->append_text(_("Local"));
 	typeCombobox->append_text(servedBy + " xapian-tcpsrv");
 #ifdef _SSH_TUNNEL
 	typeCombobox->append_text(servedBy + " xapian-progsrv+ssh");
+#endif
+#else
+	typeCombobox->append(_("Local"));
+	typeCombobox->append(servedBy + " xapian-tcpsrv");
+#ifdef _SSH_TUNNEL
+	typeCombobox->append(servedBy + " xapian-progsrv+ssh");
+#endif
 #endif
 }
 

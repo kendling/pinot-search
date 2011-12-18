@@ -82,15 +82,29 @@ propertiesDialog_glade::propertiesDialog_glade(
    Gtk::HBox *propertiesHbox = Gtk::manage(new class Gtk::HBox(false, 0));
    labelsTreeview = Gtk::manage(new class Gtk::TreeView());
    
+#if GTK_VERSION_LT(3, 0)
    Gtk::Viewport *viewport1 = Gtk::manage(new class Gtk::Viewport(*manage(new Gtk::Adjustment(0,0,1)), *manage(new Gtk::Adjustment(0,0,1))));
+#else
+   Gtk::Viewport *viewport1 = Gtk::manage(new class Gtk::Viewport(Gtk::Adjustment::create(0,0,1), Gtk::Adjustment::create(0,0,1)));
+#endif
    labelsScrolledwindow = Gtk::manage(new class Gtk::ScrolledWindow());
    
    Gtk::VBox *propertiesVbox = Gtk::manage(new class Gtk::VBox(false, 0));
+#if GTK_VERSION_LT(3, 0)
    cancelbutton2->set_flags(Gtk::CAN_FOCUS);
    cancelbutton2->set_flags(Gtk::CAN_DEFAULT);
+#else
+   cancelbutton2->set_can_focus();
+   cancelbutton2->set_can_default();
+#endif
    cancelbutton2->set_relief(Gtk::RELIEF_NORMAL);
+#if GTK_VERSION_LT(3, 0)
    labelOkButton->set_flags(Gtk::CAN_FOCUS);
    labelOkButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   labelOkButton->set_can_focus();
+   labelOkButton->set_can_default();
+#endif
    labelOkButton->set_relief(Gtk::RELIEF_NORMAL);
    propertiesDialog->get_action_area()->property_layout_style().set_value(Gtk::BUTTONBOX_END);
    titleLabel->set_alignment(0,0.5);
@@ -148,13 +162,21 @@ propertiesDialog_glade::propertiesDialog_glade(
    propsLeftVbox->pack_start(*typeLabel, Gtk::PACK_EXPAND_WIDGET, 4);
    propsLeftVbox->pack_start(*sizeLabel, Gtk::PACK_EXPAND_WIDGET, 4);
    propsLeftVbox->pack_start(*termsLabel, Gtk::PACK_EXPAND_WIDGET, 4);
+#if GTK_VERSION_LT(3, 0)
    titleEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   titleEntry->set_can_focus();
+#endif
    titleEntry->set_visibility(true);
    titleEntry->set_editable(true);
    titleEntry->set_max_length(0);
    titleEntry->set_has_frame(true);
    titleEntry->set_activates_default(false);
+#if GTK_VERSION_LT(3, 0)
    typeEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   typeEntry->set_can_focus();
+#endif
    typeEntry->set_visibility(true);
    typeEntry->set_editable(false);
    typeEntry->set_max_length(0);
@@ -165,13 +187,21 @@ propertiesDialog_glade::propertiesDialog_glade(
    propertiesFirstTable->attach(*titleEntry, 0, 1, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::FILL, 4, 4);
    propertiesFirstTable->attach(*typeEntry, 0, 1, 2, 3, Gtk::EXPAND|Gtk::FILL, Gtk::FILL, 4, 4);
    propertiesFirstTable->attach(*languageCombobox, 0, 1, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::FILL, 4, 4);
+#if GTK_VERSION_LT(3, 0)
    sizeEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   sizeEntry->set_can_focus();
+#endif
    sizeEntry->set_visibility(true);
    sizeEntry->set_editable(false);
    sizeEntry->set_max_length(0);
    sizeEntry->set_has_frame(true);
    sizeEntry->set_activates_default(false);
+#if GTK_VERSION_LT(3, 0)
    termsEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   termsEntry->set_can_focus();
+#endif
    termsEntry->set_visibility(true);
    termsEntry->set_editable(false);
    termsEntry->set_max_length(0);
@@ -187,7 +217,11 @@ propertiesDialog_glade::propertiesDialog_glade(
    bytesLabel->set_width_chars(-1);
    bytesLabel->set_angle(0);
    bytesLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    saveTermsButton->set_flags(Gtk::CAN_FOCUS);
+#else
+   saveTermsButton->set_can_focus();
+#endif
    saveTermsButton->set_relief(Gtk::RELIEF_NORMAL);
    propertiesSecondTable->set_row_spacings(0);
    propertiesSecondTable->set_col_spacings(0);
@@ -199,7 +233,11 @@ propertiesDialog_glade::propertiesDialog_glade(
    propsRightVbox->pack_start(*propertiesSecondTable);
    propertiesHbox->pack_start(*propsLeftVbox);
    propertiesHbox->pack_start(*propsRightVbox);
+#if GTK_VERSION_LT(3, 0)
    labelsTreeview->set_flags(Gtk::CAN_FOCUS);
+#else
+   labelsTreeview->set_can_focus();
+#endif
    labelsTreeview->set_headers_visible(true);
    labelsTreeview->set_rules_hint(false);
    labelsTreeview->set_reorderable(false);
@@ -211,7 +249,11 @@ propertiesDialog_glade::propertiesDialog_glade(
 #endif //
    viewport1->set_shadow_type(Gtk::SHADOW_IN);
    viewport1->add(*labelsTreeview);
+#if GTK_VERSION_LT(3, 0)
    labelsScrolledwindow->set_flags(Gtk::CAN_FOCUS);
+#else
+   labelsScrolledwindow->set_can_focus();
+#endif
    labelsScrolledwindow->set_shadow_type(Gtk::SHADOW_NONE);
    labelsScrolledwindow->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
    labelsScrolledwindow->property_window_placement().set_value(Gtk::CORNER_TOP_LEFT);
@@ -226,7 +268,9 @@ propertiesDialog_glade::propertiesDialog_glade(
    propertiesDialog->property_window_position().set_value(Gtk::WIN_POS_NONE);
    propertiesDialog->set_resizable(true);
    propertiesDialog->property_destroy_with_parent().set_value(false);
+#if GTK_VERSION_LT(3, 0)
    propertiesDialog->set_has_separator(true);
+#endif
    propertiesDialog->add_action_widget(*cancelbutton2, -6);
    propertiesDialog->add_action_widget(*labelOkButton, -5);
    cancelbutton2->show();

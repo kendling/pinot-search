@@ -66,11 +66,21 @@ launcherDialog_glade::launcherDialog_glade(
    rememberCheckbutton = Gtk::manage(new class Gtk::CheckButton(_("Use this command for other documents of the same type.")));
    
    Gtk::VBox *launcherVbox = Gtk::manage(new class Gtk::VBox(false, 0));
+#if GTK_VERSION_LT(3, 0)
    cancelbutton3->set_flags(Gtk::CAN_FOCUS);
    cancelbutton3->set_flags(Gtk::CAN_DEFAULT);
+#else
+   cancelbutton3->set_can_focus();
+   cancelbutton3->set_can_default();
+#endif
    cancelbutton3->set_relief(Gtk::RELIEF_NORMAL);
+#if GTK_VERSION_LT(3, 0)
    okbutton1->set_flags(Gtk::CAN_FOCUS);
    okbutton1->set_flags(Gtk::CAN_DEFAULT);
+#else
+   okbutton1->set_can_focus();
+   okbutton1->set_can_default();
+#endif
    okbutton1->set_relief(Gtk::RELIEF_NORMAL);
    launcherDialog->get_action_area()->property_layout_style().set_value(Gtk::BUTTONBOX_END);
    noLauncherLabel->set_alignment(0.5,0.5);
@@ -79,13 +89,21 @@ launcherDialog_glade::launcherDialog_glade(
    noLauncherLabel->set_line_wrap(false);
    noLauncherLabel->set_use_markup(false);
    noLauncherLabel->set_selectable(false);
+#if GTK_VERSION_LT(3, 0)
    launcherEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   launcherEntry->set_can_focus();
+#endif
    launcherEntry->set_visibility(true);
    launcherEntry->set_editable(true);
    launcherEntry->set_max_length(0);
    launcherEntry->set_has_frame(true);
    launcherEntry->set_activates_default(false);
+#if GTK_VERSION_LT(3, 0)
    rememberCheckbutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   rememberCheckbutton->set_can_focus();
+#endif
    rememberCheckbutton->set_relief(Gtk::RELIEF_NORMAL);
    rememberCheckbutton->set_mode(true);
    rememberCheckbutton->set_active(true);
@@ -100,7 +118,9 @@ launcherDialog_glade::launcherDialog_glade(
    launcherDialog->property_window_position().set_value(Gtk::WIN_POS_NONE);
    launcherDialog->set_resizable(true);
    launcherDialog->property_destroy_with_parent().set_value(false);
+#if GTK_VERSION_LT(3, 0)
    launcherDialog->set_has_separator(true);
+#endif
    launcherDialog->add_action_widget(*cancelbutton3, -6);
    launcherDialog->add_action_widget(*okbutton1, -5);
    cancelbutton3->show();

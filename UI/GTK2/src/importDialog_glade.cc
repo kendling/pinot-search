@@ -69,14 +69,28 @@ importDialog_glade::importDialog_glade(
    Gtk::Label *labelNameLabel = Gtk::manage(new class Gtk::Label(_("Apply label:")));
    locationEntry = Gtk::manage(new class Gtk::Entry());
    docTable = Gtk::manage(new class Gtk::Table(2, 2, false));
+#if GTK_VERSION_LT(3, 0)
    cancelButton->set_flags(Gtk::CAN_FOCUS);
    cancelButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   cancelButton->set_can_focus();
+   cancelButton->set_can_default();
+#endif
    cancelButton->set_relief(Gtk::RELIEF_NORMAL);
+#if GTK_VERSION_LT(3, 0)
    importButton->set_flags(Gtk::CAN_FOCUS);
    importButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   importButton->set_can_focus();
+   importButton->set_can_default();
+#endif
    importButton->set_relief(Gtk::RELIEF_NORMAL);
    importDialog->get_action_area()->property_layout_style().set_value(Gtk::BUTTONBOX_END);
+#if GTK_VERSION_LT(3, 0)
    titleEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   titleEntry->set_can_focus();
+#endif
    titleEntry->set_visibility(true);
    titleEntry->set_editable(true);
    titleEntry->set_max_length(0);
@@ -112,7 +126,11 @@ importDialog_glade::importDialog_glade(
    labelNameLabel->set_width_chars(-1);
    labelNameLabel->set_angle(0);
    labelNameLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    locationEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   locationEntry->set_can_focus();
+#endif
    locationEntry->set_visibility(true);
    locationEntry->set_editable(true);
    locationEntry->set_max_length(0);
@@ -134,7 +152,9 @@ importDialog_glade::importDialog_glade(
    importDialog->property_window_position().set_value(Gtk::WIN_POS_NONE);
    importDialog->set_resizable(true);
    importDialog->property_destroy_with_parent().set_value(false);
+#if GTK_VERSION_LT(3, 0)
    importDialog->set_has_separator(true);
+#endif
    importDialog->add_action_widget(*cancelButton, -6);
    importDialog->add_action_widget(*importButton, -5);
    cancelButton->show();

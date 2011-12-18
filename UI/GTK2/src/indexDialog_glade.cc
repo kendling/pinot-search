@@ -71,19 +71,34 @@ indexDialog_glade::indexDialog_glade(
    Gtk::Label *portLabel = Gtk::manage(new class Gtk::Label(_("Port:")));
    nameEntry = Gtk::manage(new class Gtk::Entry());
    
+#if GTK_VERSION_LT(3, 0)
    Gtk::Adjustment *portSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(1024, 1, 65535, 1, 10, 0));
    portSpinbutton = Gtk::manage(new class Gtk::SpinButton(*portSpinbutton_adj, 1, 0));
+#else
+   Glib::RefPtr<Gtk::Adjustment> portSpinbutton_adj = Gtk::Adjustment::create(1024, 1, 65535, 1, 10, 0);
+   portSpinbutton = Gtk::manage(new class Gtk::SpinButton(portSpinbutton_adj, 1, 0));
+#endif
    typeCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    
    Gtk::Label *hostLabel = Gtk::manage(new class Gtk::Label(_("Address:")));
    hostEntry = Gtk::manage(new class Gtk::Entry());
    
    Gtk::Table *indexTable = Gtk::manage(new class Gtk::Table(2, 2, false));
+#if GTK_VERSION_LT(3, 0)
    indexCancelbutton->set_flags(Gtk::CAN_FOCUS);
    indexCancelbutton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   indexCancelbutton->set_can_focus();
+   indexCancelbutton->set_can_default();
+#endif
    indexCancelbutton->set_relief(Gtk::RELIEF_NORMAL);
+#if GTK_VERSION_LT(3, 0)
    indexOkbutton->set_flags(Gtk::CAN_FOCUS);
    indexOkbutton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   indexOkbutton->set_can_focus();
+   indexOkbutton->set_can_default();
+#endif
    indexOkbutton->set_relief(Gtk::RELIEF_NORMAL);
    indexDialog->get_action_area()->property_layout_style().set_value(Gtk::BUTTONBOX_END);
    nameLabel->set_alignment(0,0.5);
@@ -96,14 +111,23 @@ indexDialog_glade::indexDialog_glade(
    nameLabel->set_width_chars(-1);
    nameLabel->set_angle(0);
    nameLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    locationEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   locationEntry->set_can_focus();
+#endif
    locationEntry->set_visibility(true);
    locationEntry->set_editable(true);
    locationEntry->set_max_length(0);
    locationEntry->set_has_frame(true);
    locationEntry->set_activates_default(false);
+#if GTK_VERSION_LT(3, 0)
    locationButton->set_flags(Gtk::CAN_FOCUS);
    locationButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   locationButton->set_can_focus();
+   locationButton->set_can_default();
+#endif
    locationButton->set_relief(Gtk::RELIEF_NORMAL);
    locationHbox->pack_start(*locationEntry);
    locationHbox->pack_start(*locationButton, Gtk::PACK_SHRINK, 0);
@@ -137,13 +161,21 @@ indexDialog_glade::indexDialog_glade(
    portLabel->set_width_chars(-1);
    portLabel->set_angle(0);
    portLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    nameEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   nameEntry->set_can_focus();
+#endif
    nameEntry->set_visibility(true);
    nameEntry->set_editable(true);
    nameEntry->set_max_length(0);
    nameEntry->set_has_frame(true);
    nameEntry->set_activates_default(false);
+#if GTK_VERSION_LT(3, 0)
    portSpinbutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   portSpinbutton->set_can_focus();
+#endif
    portSpinbutton->set_update_policy(Gtk::UPDATE_ALWAYS);
    portSpinbutton->set_numeric(false);
    portSpinbutton->set_digits(0);
@@ -158,7 +190,11 @@ indexDialog_glade::indexDialog_glade(
    hostLabel->set_width_chars(-1);
    hostLabel->set_angle(0);
    hostLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    hostEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   hostEntry->set_can_focus();
+#endif
    hostEntry->set_visibility(true);
    hostEntry->set_editable(true);
    hostEntry->set_max_length(0);
@@ -184,7 +220,9 @@ indexDialog_glade::indexDialog_glade(
    indexDialog->property_window_position().set_value(Gtk::WIN_POS_NONE);
    indexDialog->set_resizable(true);
    indexDialog->property_destroy_with_parent().set_value(false);
+#if GTK_VERSION_LT(3, 0)
    indexDialog->set_has_separator(true);
+#endif
    indexDialog->add_action_widget(*indexCancelbutton, -6);
    indexDialog->add_action_widget(*indexOkbutton, -5);
    indexCancelbutton->show();

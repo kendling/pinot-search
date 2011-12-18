@@ -60,11 +60,20 @@ statisticsDialog_glade::statisticsDialog_glade(
    Gtk::Button *closebutton1 = Gtk::manage(new class Gtk::Button(Gtk::StockID("gtk-close")));
    statisticsTreeview = Gtk::manage(new class Gtk::TreeView());
    statisticsScrolledwindow = Gtk::manage(new class Gtk::ScrolledWindow());
+#if GTK_VERSION_LT(3, 0)
    closebutton1->set_flags(Gtk::CAN_FOCUS);
    closebutton1->set_flags(Gtk::CAN_DEFAULT);
+#else
+   closebutton1->set_can_focus();
+   closebutton1->set_can_default();
+#endif
    closebutton1->set_relief(Gtk::RELIEF_NORMAL);
    statisticsDialog->get_action_area()->property_layout_style().set_value(Gtk::BUTTONBOX_END);
+#if GTK_VERSION_LT(3, 0)
    statisticsTreeview->set_flags(Gtk::CAN_FOCUS);
+#else
+   statisticsTreeview->set_can_focus();
+#endif
    statisticsTreeview->set_headers_visible(false);
    statisticsTreeview->set_rules_hint(false);
    statisticsTreeview->set_reorderable(false);
@@ -74,7 +83,11 @@ statisticsDialog_glade::statisticsDialog_glade(
    statisticsTreeview->set_hover_selection(false);
    statisticsTreeview->set_hover_expand(false);
 #endif //
+#if GTK_VERSION_LT(3, 0)
    statisticsScrolledwindow->set_flags(Gtk::CAN_FOCUS);
+#else
+   statisticsScrolledwindow->set_can_focus();
+#endif
    statisticsScrolledwindow->set_border_width(4);
    statisticsScrolledwindow->set_shadow_type(Gtk::SHADOW_NONE);
    statisticsScrolledwindow->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
@@ -89,7 +102,9 @@ statisticsDialog_glade::statisticsDialog_glade(
    statisticsDialog->property_window_position().set_value(Gtk::WIN_POS_NONE);
    statisticsDialog->set_resizable(true);
    statisticsDialog->property_destroy_with_parent().set_value(false);
+#if GTK_VERSION_LT(3, 0)
    statisticsDialog->set_has_separator(true);
+#endif
    statisticsDialog->add_action_widget(*closebutton1, -7);
    closebutton1->show();
    statisticsTreeview->show();

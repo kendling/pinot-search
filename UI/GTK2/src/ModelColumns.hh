@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@
 #include <gdkmm/event.h>
 #include <gtkmm/treemodel.h>
 #include <gtkmm/treemodelcolumn.h>
-#include <gtkmm/optionmenu.h>
 
 #include "QueryProperties.h"
 

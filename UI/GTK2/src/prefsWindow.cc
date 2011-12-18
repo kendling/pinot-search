@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2010 Fabrice Colin
+ *  Copyright 2008-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -392,7 +392,11 @@ void prefsWindow::attach_value_widgets(const string &name, const string &value, 
 	valueLabel->set_angle(0);
 	valueLabel->set_single_line_mode(false);
 
+#if GTK_VERSION_LT(3, 0)
 	valueEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+	valueEntry->set_can_focus();
+#endif
 	valueEntry->set_visibility(true);
 	valueEntry->set_editable(true);
 	valueEntry->set_max_length(0);
@@ -412,9 +416,15 @@ void prefsWindow::attach_value_widgets(const string &name, const string &value, 
 
 void prefsWindow::populate_proxyTypeCombobox()
 {
+#if GTK_VERSION_LT(3, 0)
 	proxyTypeCombobox->append_text("HTTP");
 	proxyTypeCombobox->append_text("SOCKS v4");
 	proxyTypeCombobox->append_text("SOCKS v5");
+#else
+	proxyTypeCombobox->append("HTTP");
+	proxyTypeCombobox->append("SOCKS v4");
+	proxyTypeCombobox->append("SOCKS v5");
+#endif
 }
 
 void prefsWindow::populate_labelsTreeview()
@@ -569,8 +579,13 @@ bool prefsWindow::save_directoriesTreeview()
 
 void prefsWindow::populate_patternsCombobox()
 {
+#if GTK_VERSION_LT(3, 0)
 	patternsCombobox->append_text(_("Exclude these patterns from indexing"));
 	patternsCombobox->append_text(_("Only index these patterns"));
+#else
+	patternsCombobox->append(_("Exclude these patterns from indexing"));
+	patternsCombobox->append(_("Only index these patterns"));
+#endif
 }
 
 void prefsWindow::populate_patternsTreeview(const set<ustring> &patternsList, bool isBlackList)

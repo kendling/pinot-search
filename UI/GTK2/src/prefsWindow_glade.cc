@@ -127,8 +127,13 @@ prefsWindow_glade::prefsWindow_glade(
    
    Gtk::Label *proxyTypeLabel = Gtk::manage(new class Gtk::Label(_("Type:")));
    Gtk::Label *proxyPortLabel = Gtk::manage(new class Gtk::Label(_("Port:")));
+#if GTK_VERSION_LT(3, 0)
    Gtk::Adjustment *proxyPortSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(80, 1, 65535, 1, 10, 0));
    proxyPortSpinbutton = Gtk::manage(new class Gtk::SpinButton(*proxyPortSpinbutton_adj, 1, 0));
+#else
+   Glib::RefPtr<Gtk::Adjustment> proxyPortSpinbutton_adj = Gtk::Adjustment::create(80, 1, 65535, 1, 10, 0);
+   proxyPortSpinbutton = Gtk::manage(new class Gtk::SpinButton(proxyPortSpinbutton_adj, 1, 0));
+#endif
    proxyTypeCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    
    Gtk::Table *table3 = Gtk::manage(new class Gtk::Table(2, 2, false));
@@ -150,12 +155,20 @@ prefsWindow_glade::prefsWindow_glade(
    prefsNotebook = Gtk::manage(new class Gtk::Notebook());
    
    Gtk::VBox *vbox1 = Gtk::manage(new class Gtk::VBox(false, 0));
+#if GTK_VERSION_LT(3, 0)
    prefsCancelbutton->set_flags(Gtk::CAN_FOCUS);
    prefsCancelbutton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   prefsCancelbutton->set_can_focus();
+   prefsCancelbutton->set_can_default();
+#endif
    prefsCancelbutton->set_border_width(4);
    prefsCancelbutton->set_relief(Gtk::RELIEF_NORMAL);
-   prefsOkbutton->set_flags(Gtk::CAN_FOCUS);
-   prefsOkbutton->set_flags(Gtk::CAN_DEFAULT);
+#if GTK_VERSION_LT(3, 0)
+   prefsOkbutton->set_can_focus();
+   prefsOkbutton->set_can_default();
+#else
+#endif
    prefsOkbutton->set_border_width(4);
    prefsOkbutton->set_relief(Gtk::RELIEF_NORMAL);
    hbuttonbox1->property_layout_style().set_value(Gtk::BUTTONBOX_END);
@@ -171,12 +184,20 @@ prefsWindow_glade::prefsWindow_glade(
    directoriesLabel->set_width_chars(-1);
    directoriesLabel->set_angle(0);
    directoriesLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    directoriesTreeview->set_flags(Gtk::CAN_FOCUS);
+#else
+   directoriesTreeview->set_can_focus();
+#endif
    directoriesTreeview->set_headers_visible(true);
    directoriesTreeview->set_rules_hint(false);
    directoriesTreeview->set_reorderable(false);
    directoriesTreeview->set_enable_search(true);
+#if GTK_VERSION_LT(3, 0)
    scrolledwindow2->set_flags(Gtk::CAN_FOCUS);
+#else
+   scrolledwindow2->set_can_focus();
+#endif
    scrolledwindow2->set_border_width(4);
    scrolledwindow2->set_shadow_type(Gtk::SHADOW_NONE);
    scrolledwindow2->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
@@ -197,13 +218,23 @@ prefsWindow_glade::prefsWindow_glade(
    hbox61->pack_start(*image727, Gtk::PACK_SHRINK, 0);
    hbox61->pack_start(*label75, Gtk::PACK_SHRINK, 0);
    alignment39->add(*hbox61);
+#if GTK_VERSION_LT(3, 0)
    addDirectoryButton->set_flags(Gtk::CAN_FOCUS);
    addDirectoryButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   addDirectoryButton->set_can_focus();
+   addDirectoryButton->set_can_default();
+#endif
    addDirectoryButton->set_border_width(4);
    addDirectoryButton->set_relief(Gtk::RELIEF_NORMAL);
    addDirectoryButton->add(*alignment39);
+#if GTK_VERSION_LT(3, 0)
    removeDirectoryButton->set_flags(Gtk::CAN_FOCUS);
    removeDirectoryButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   removeDirectoryButton->set_can_focus();
+   removeDirectoryButton->set_can_default();
+#endif
    removeDirectoryButton->set_border_width(4);
    removeDirectoryButton->set_relief(Gtk::RELIEF_NORMAL);
    vbuttonbox2->pack_start(*addDirectoryButton);
@@ -220,12 +251,20 @@ prefsWindow_glade::prefsWindow_glade(
    label76->set_width_chars(-1);
    label76->set_angle(0);
    label76->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    patternsTreeview->set_flags(Gtk::CAN_FOCUS);
+#else
+   patternsTreeview->set_can_focus();
+#endif
    patternsTreeview->set_headers_visible(true);
    patternsTreeview->set_rules_hint(false);
    patternsTreeview->set_reorderable(false);
    patternsTreeview->set_enable_search(true);
+#if GTK_VERSION_LT(3, 0)
    scrolledwindow3->set_flags(Gtk::CAN_FOCUS);
+#else
+   scrolledwindow3->set_can_focus();
+#endif
    scrolledwindow3->set_border_width(4);
    scrolledwindow3->set_shadow_type(Gtk::SHADOW_NONE);
    scrolledwindow3->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
@@ -248,17 +287,32 @@ prefsWindow_glade::prefsWindow_glade(
    hbox63->pack_start(*image728, Gtk::PACK_SHRINK, 0);
    hbox63->pack_start(*label77, Gtk::PACK_SHRINK, 0);
    alignment40->add(*hbox63);
+#if GTK_VERSION_LT(3, 0)
    addPatternButton->set_flags(Gtk::CAN_FOCUS);
    addPatternButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   addPatternButton->set_can_focus();
+   addPatternButton->set_can_default();
+#endif
    addPatternButton->set_border_width(4);
    addPatternButton->set_relief(Gtk::RELIEF_NORMAL);
    addPatternButton->add(*alignment40);
+#if GTK_VERSION_LT(3, 0)
    removePatternButton->set_flags(Gtk::CAN_FOCUS);
    removePatternButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   removePatternButton->set_can_focus();
+   removePatternButton->set_can_default();
+#endif
    removePatternButton->set_border_width(4);
    removePatternButton->set_relief(Gtk::RELIEF_NORMAL);
+#if GTK_VERSION_LT(3, 0)
    resetPatternsButton->set_flags(Gtk::CAN_FOCUS);
    resetPatternsButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   resetPatternsButton->set_can_focus();
+   resetPatternsButton->set_can_default();
+#endif
    resetPatternsButton->set_border_width(4);
    resetPatternsButton->set_relief(Gtk::RELIEF_NORMAL);
    vbuttonbox3->pack_start(*addPatternButton);
@@ -290,12 +344,20 @@ prefsWindow_glade::prefsWindow_glade(
    indexLabelsLabel->set_width_chars(-1);
    indexLabelsLabel->set_angle(0);
    indexLabelsLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    labelsTreeview->set_flags(Gtk::CAN_FOCUS);
+#else
+   labelsTreeview->set_can_focus();
+#endif
    labelsTreeview->set_headers_visible(true);
    labelsTreeview->set_rules_hint(false);
    labelsTreeview->set_reorderable(false);
    labelsTreeview->set_enable_search(true);
+#if GTK_VERSION_LT(3, 0)
    scrolledwindow1->set_flags(Gtk::CAN_FOCUS);
+#else
+   scrolledwindow1->set_can_focus();
+#endif
    scrolledwindow1->set_border_width(4);
    scrolledwindow1->set_shadow_type(Gtk::SHADOW_NONE);
    scrolledwindow1->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
@@ -316,8 +378,13 @@ prefsWindow_glade::prefsWindow_glade(
    hbox58->pack_start(*image725, Gtk::PACK_SHRINK, 0);
    hbox58->pack_start(*label71, Gtk::PACK_SHRINK, 0);
    alignment37->add(*hbox58);
+#if GTK_VERSION_LT(3, 0)
    addLabelButton->set_flags(Gtk::CAN_FOCUS);
    addLabelButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   addLabelButton->set_can_focus();
+   addLabelButton->set_can_default();
+#endif
    addLabelButton->set_border_width(4);
    addLabelButton->set_relief(Gtk::RELIEF_NORMAL);
    addLabelButton->add(*alignment37);
@@ -336,8 +403,13 @@ prefsWindow_glade::prefsWindow_glade(
    hbox59->pack_start(*image726, Gtk::PACK_SHRINK, 0);
    hbox59->pack_start(*label72, Gtk::PACK_SHRINK, 0);
    alignment38->add(*hbox59);
+#if GTK_VERSION_LT(3, 0)
    removeLabelButton->set_flags(Gtk::CAN_FOCUS);
    removeLabelButton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   removeLabelButton->set_can_focus();
+   removeLabelButton->set_can_default();
+#endif
    removeLabelButton->set_border_width(4);
    removeLabelButton->set_relief(Gtk::RELIEF_NORMAL);
    removeLabelButton->add(*alignment38);
@@ -357,11 +429,19 @@ prefsWindow_glade::prefsWindow_glade(
    labelsLabel->set_width_chars(-1);
    labelsLabel->set_angle(0);
    labelsLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    directConnectionRadiobutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   directConnectionRadiobutton->set_can_focus();
+#endif
    directConnectionRadiobutton->set_relief(Gtk::RELIEF_NORMAL);
    directConnectionRadiobutton->set_mode(true);
    directConnectionRadiobutton->set_active(true);
+#if GTK_VERSION_LT(3, 0)
    proxyRadiobutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   proxyRadiobutton->set_can_focus();
+#endif
    proxyRadiobutton->set_relief(Gtk::RELIEF_NORMAL);
    proxyRadiobutton->set_mode(true);
    proxyRadiobutton->set_active(false);
@@ -375,7 +455,11 @@ prefsWindow_glade::prefsWindow_glade(
    proxyAddressLabel->set_width_chars(-1);
    proxyAddressLabel->set_angle(0);
    proxyAddressLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    proxyAddressEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   proxyAddressEntry->set_can_focus();
+#endif
    proxyAddressEntry->set_visibility(true);
    proxyAddressEntry->set_editable(true);
    proxyAddressEntry->set_max_length(0);
@@ -401,7 +485,11 @@ prefsWindow_glade::prefsWindow_glade(
    proxyPortLabel->set_width_chars(-1);
    proxyPortLabel->set_angle(0);
    proxyPortLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    proxyPortSpinbutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   proxyPortSpinbutton->set_can_focus();
+#endif
    proxyPortSpinbutton->set_update_policy(Gtk::UPDATE_ALWAYS);
    proxyPortSpinbutton->set_numeric(false);
    proxyPortSpinbutton->set_digits(0);
@@ -439,7 +527,11 @@ prefsWindow_glade::prefsWindow_glade(
    apiKeyLabel->set_width_chars(-1);
    apiKeyLabel->set_angle(0);
    apiKeyLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    apiKeyEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   apiKeyEntry->set_can_focus();
+#endif
    apiKeyEntry->set_visibility(true);
    apiKeyEntry->set_editable(true);
    apiKeyEntry->set_max_length(0);
@@ -455,12 +547,21 @@ prefsWindow_glade::prefsWindow_glade(
    queriesLabel->set_width_chars(-1);
    queriesLabel->set_angle(0);
    queriesLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    enableCompletionCheckbutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   enableCompletionCheckbutton->set_can_focus();
+#endif
    enableCompletionCheckbutton->set_relief(Gtk::RELIEF_NORMAL);
    enableCompletionCheckbutton->set_mode(true);
    enableCompletionCheckbutton->set_active(false);
+#if GTK_VERSION_LT(3, 0)
    newResultsColorbutton->set_flags(Gtk::CAN_FOCUS);
    ignoreRobotsCheckbutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   newResultsColorbutton->set_can_focus();
+   ignoreRobotsCheckbutton->set_can_focus();
+#endif
    ignoreRobotsCheckbutton->set_relief(Gtk::RELIEF_NORMAL);
    ignoreRobotsCheckbutton->set_mode(true);
    ignoreRobotsCheckbutton->set_active(false);
@@ -504,19 +605,31 @@ prefsWindow_glade::prefsWindow_glade(
    miscLabel->set_width_chars(-1);
    miscLabel->set_angle(0);
    miscLabel->set_single_line_mode(false);
+#if GTK_VERSION_LT(3, 0)
    prefsNotebook->set_flags(Gtk::CAN_FOCUS);
+#else
+   prefsNotebook->set_can_focus();
+#endif
    prefsNotebook->set_show_tabs(true);
    prefsNotebook->set_show_border(true);
    prefsNotebook->set_tab_pos(Gtk::POS_TOP);
    prefsNotebook->set_scrollable(false);
    prefsNotebook->append_page(*vbox3, *indexingLabel);
+#if GTK_VERSION_LT(3, 0)
    prefsNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+#endif
    prefsNotebook->append_page(*vbox2, *labelsLabel);
+#if GTK_VERSION_LT(3, 0)
    prefsNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+#endif
    prefsNotebook->append_page(*table2, *networkLabel);
+#if GTK_VERSION_LT(3, 0)
    prefsNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+#endif
    prefsNotebook->append_page(*generalTable, *miscLabel);
+#if GTK_VERSION_LT(3, 0)
    prefsNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+#endif
    vbox1->set_border_width(4);
    vbox1->pack_start(*prefsNotebook);
    vbox1->pack_start(*hbuttonbox1, Gtk::PACK_SHRINK, 0);

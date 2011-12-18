@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,7 +80,11 @@ const DocumentInfo &importDialog::getDocumentInfo(void) const
 void importDialog::on_data_received(const RefPtr<DragContext> &context,
 	int x, int y, const SelectionData &data, guint info, guint time)
 {
+#if GTK_VERSION_LT(3, 0)
 	list<ustring> droppedUris = data.get_uris();
+#else
+	vector<ustring> droppedUris = data.get_uris();
+#endif
 	bool goodDrop = false;
 
 	cout << "importDialog::on_data_received: data type "
@@ -98,7 +102,11 @@ void importDialog::on_data_received(const RefPtr<DragContext> &context,
 
 void importDialog::populate_comboboxes(void)
 {
+#if GTK_VERSION_LT(3, 0)
 	labelNameCombobox->append_text(_("None"));
+#else
+	labelNameCombobox->append(_("None"));
+#endif
 	labelNameCombobox->set_active(0);
 
 	// Add all labels
@@ -106,7 +114,11 @@ void importDialog::populate_comboboxes(void)
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
 	{
+#if GTK_VERSION_LT(3, 0)
 		labelNameCombobox->append_text(to_utf8(*labelIter));
+#else
+		labelNameCombobox->append(to_utf8(*labelIter));
+#endif
 	}
 }
 

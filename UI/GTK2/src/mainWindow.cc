@@ -199,7 +199,7 @@ mainWindow::mainWindow() :
 	m_refLiveQueryCompletion->set_popup_completion(true);
 	liveQueryEntry->set_completion(m_refLiveQueryCompletion);
 
-#if GTKMM_MAJOR_VERSION>=2 && GTKMM_MINOR_VERSION>=16
+#if GTK_VERSION_GT(2, 16)
 	// Enable the find icon
 	liveQueryEntry->set_icon_from_stock(Stock::FIND, ENTRY_ICON_SECONDARY);
 	liveQueryEntry->signal_icon_press().connect(sigc::mem_fun(*this, &mainWindow::on_liveQueryEntry_icon), false);
@@ -246,7 +246,11 @@ mainWindow::mainWindow() :
 
 	// Create a notebook, without any page initially
 	m_pNotebook = manage(new Notebook());
+#if GTK_VERSION_LT(3, 0)
 	m_pNotebook->set_flags(Gtk::CAN_FOCUS);
+#else
+	m_pNotebook->set_can_focus();
+#endif
 	m_pNotebook->set_show_tabs(true);
 	m_pNotebook->set_show_border(true);
 	m_pNotebook->set_tab_pos(Gtk::POS_TOP);
@@ -264,6 +268,16 @@ mainWindow::mainWindow() :
 	queryHistoryButton->set_sensitive(false);
 
 	// Set tooltips
+#if GTK_VERSION_GT(3, 0)
+	enginesTogglebutton->set_tooltip_text(_("Show all search engines"));
+	liveQueryEntry->set_icon_tooltip_text(_("Find documents that match the query"), ENTRY_ICON_SECONDARY);
+	addIndexButton->set_tooltip_text(_("Add an index"));
+	removeIndexButton->set_tooltip_text(_("Remove an index"));
+	addQueryButton->set_tooltip_text(_("Add a query"));
+	removeQueryButton->set_tooltip_text(_("Remove a query"));
+	queryHistoryButton->set_tooltip_text(_("Show the query's previous results"));
+	findQueryButton->set_tooltip_text(_("Find documents that match the query"));
+#else
 	m_tooltips.set_tip(*enginesTogglebutton, _("Show all search engines"));
 #if GTKMM_MAJOR_VERSION>=2 && GTKMM_MINOR_VERSION>=16
 	liveQueryEntry->set_icon_tooltip_text(_("Find documents that match the query"), ENTRY_ICON_SECONDARY);
@@ -276,6 +290,7 @@ mainWindow::mainWindow() :
 	m_tooltips.set_tip(*removeQueryButton, _("Remove a query"));
 	m_tooltips.set_tip(*queryHistoryButton, _("Show the query's previous results"));
 	m_tooltips.set_tip(*findQueryButton, _("Find documents that match the query"));
+#endif
 
 	// Connect to threads' finished signal
 	m_state.connect();
@@ -311,11 +326,15 @@ mainWindow::mainWindow() :
 		CheckButton *warnCheckbutton = NULL;
 
 		// The index version is not as expected
-		VBox *pVbox = msgDialog.get_vbox();
+		Box *pVbox = msgDialog.get_vbox();
 		if (pVbox != NULL)
 		{
 			warnCheckbutton = manage(new CheckButton(_("Don't warn me again")));
+#if GTK_VERSION_LT(3, 0)
 			warnCheckbutton->set_flags(Gtk::CAN_FOCUS);
+#else
+			warnCheckbutton->set_can_focus();
+#endif
 			warnCheckbutton->set_relief(Gtk::RELIEF_NORMAL);
 			warnCheckbutton->set_mode(true);
 			warnCheckbutton->set_active(false);
@@ -449,15 +468,21 @@ void mainWindow::save_queryTreeview()
 //
 void mainWindow::populate_cacheMenu()
 {
+	bool setMenu = false;
+
 	if (m_pCacheMenu == NULL)
 	{
 		m_pCacheMenu = manage(new Menu());
-		opencache1->set_submenu(*m_pCacheMenu);
+		setMenu = true;
 	}
 	else
 	{
 		// Clear the submenu
+#if GTK_VERSION_LT(3, 0)
 		m_pCacheMenu->items().clear();
+#else
+		// FIXME: m_pCacheMenu->unset_submenu(); ?
+#endif
 	}
 
 	sigc::slot1<void, PinotSettings::CacheProvider> cacheSlot = sigc::mem_fun(*this, &mainWindow::on_cache_changed);
@@ -473,13 +498,32 @@ void mainWindow::populate_cacheMenu()
 		for (vector<PinotSettings::CacheProvider>::iterator cacheIter = m_settings.m_cacheProviders.begin();
 			cacheIter != m_settings.m_cacheProviders.end(); ++cacheIter)
 		{
+#if GTK_VERSION_LT(3, 0)
 			m_pCacheMenu->items().push_back(Menu_Helpers::MenuElem(cacheIter->m_name));
 			MenuItem *pCacheMenuItem = &m_pCacheMenu->items().back();
+#else
+			MenuItem *pCacheMenuItem = manage(new MenuItem(cacheIter->m_name));
+#endif
 
 			// Bind the callback's parameter to the cache provider
 			sigc::slot0<void> cachedDocumentsActivateSlot = sigc::bind(cacheSlot, (*cacheIter));
 			pCacheMenuItem->signal_activate().connect(cachedDocumentsActivateSlot);
+#if GTK_CHECK_VERSION(3, 0, 0)
+			m_pCacheMenu->append(*pCacheMenuItem);
+#endif
+#ifdef DEBUG
+			cout << "mainWindow::populate_cacheMenu: appended menuitem " << cacheIter->m_name << endl;
+#endif
 		}
+	}
+
+	if (setMenu == true)
+	{
+		opencache1->set_submenu(*m_pCacheMenu);
+		opencache1->show_all_children();
+#ifdef DEBUG
+		cout << "mainWindow::populate_cacheMenu: set submenu" << endl;
+#endif
 	}
 }
 
@@ -488,15 +532,21 @@ void mainWindow::populate_cacheMenu()
 //
 void mainWindow::populate_indexMenu()
 {
+	bool setMenu = false;
+
 	if (m_pIndexMenu == NULL)
 	{
 		m_pIndexMenu = manage(new Menu());
-		listcontents1->set_submenu(*m_pIndexMenu);
+		setMenu = true;
 	}
 	else
 	{
 		// Clear the submenu
+#if GTK_VERSION_LT(3, 0)
 		m_pIndexMenu->items().clear();
+#else
+		// FIXME: m_pIndexMenu->unset_submenu();
+#endif
 	}
 
 	sigc::slot1<void, ustring> indexSlot = sigc::mem_fun(*this, &mainWindow::on_index_changed);
@@ -507,11 +557,30 @@ void mainWindow::populate_indexMenu()
 	{
 		ustring indexName(indexIter->m_name);
 
+#if GTK_VERSION_LT(3, 0)
 		m_pIndexMenu->items().push_back(Menu_Helpers::MenuElem(indexName));
-		MenuItem &menuItem = m_pIndexMenu->items().back();
+		MenuItem *pIndexMenuItem = &m_pIndexMenu->items().back();
+#else
+		MenuItem *pIndexMenuItem = manage(new MenuItem(indexName));
+#endif
 		// Bind the callback's parameter to the index name
 		sigc::slot0<void> menuItemSlot = sigc::bind(indexSlot, indexName);
-		menuItem.signal_activate().connect(menuItemSlot);
+		pIndexMenuItem->signal_activate().connect(menuItemSlot);
+#if GTK_CHECK_VERSION(3, 0, 0)
+		m_pIndexMenu->append(*pIndexMenuItem);
+#endif
+#ifdef DEBUG
+		cout << "mainWindow::populate_indexMenu: appended menuitem " << indexIter->m_name << endl;
+#endif
+	}
+
+	if (setMenu == true)
+	{
+		listcontents1->set_submenu(*m_pIndexMenu);
+		listcontents1->show_all_children();
+#ifdef DEBUG
+		cout << "mainWindow::populate_indexMenu: set submenu" << endl;
+#endif
 	}
 }
 
@@ -520,15 +589,21 @@ void mainWindow::populate_indexMenu()
 //
 void mainWindow::populate_findMenu()
 {
+	bool setMenu = false;
+
 	if (m_pFindMenu == NULL)
 	{
 		m_pFindMenu = manage(new Menu());
-		searchthisfor1->set_submenu(*m_pFindMenu);
+		setMenu = true;
 	}
 	else
 	{
 		// Clear the submenu
+#if GTK_VERSION_LT(3, 0)
 		m_pFindMenu->items().clear();
+#else
+		// FIXME: m_pFindMenu->unset_submenu();
+#endif
 	}
 
 	sigc::slot1<void, ustring> findSlot = sigc::mem_fun(*this, &mainWindow::on_searchthis_changed);
@@ -540,11 +615,30 @@ void mainWindow::populate_findMenu()
 		TreeModel::Row row = *iter;
 		ustring queryName(row[m_queryColumns.m_name]);
 
+#if GTK_VERSION_LT(3, 0)
 		m_pFindMenu->items().push_back(Menu_Helpers::MenuElem(queryName));
-		MenuItem &menuItem = m_pFindMenu->items().back();
+		MenuItem *pFindMenuItem = &m_pFindMenu->items().back();
+#else
+		MenuItem *pFindMenuItem = manage(new MenuItem(queryName));
+#endif
 		// Bind the callback's parameter to the query name
 		sigc::slot0<void> menuItemSlot = sigc::bind(findSlot, queryName);
-		menuItem.signal_activate().connect(menuItemSlot);
+		pFindMenuItem->signal_activate().connect(menuItemSlot);
+#if GTK_CHECK_VERSION(3, 0, 0)
+		m_pIndexMenu->append(*pFindMenuItem);
+#endif
+#ifdef DEBUG
+		cout << "mainWindow::populate_findMenu: appended menuitem " << queryName << endl;
+#endif
+	}
+
+	if (setMenu == true)
+	{
+		searchthisfor1->set_submenu(*m_pFindMenu);
+		searchthisfor1->show_all_children();
+#ifdef DEBUG
+		cout << "mainWindow::populate_findMenu: set submenu" << endl;
+#endif
 	}
 }
 
@@ -701,7 +795,11 @@ bool mainWindow::get_results_page_details(const ustring &queryName,
 void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 	int x, int y, const SelectionData &data, guint info, guint dataTime)
 {
+#if GTK_VERSION_LT(3, 0)
 	list<ustring> droppedUris = data.get_uris();
+#else
+	vector<ustring> droppedUris = data.get_uris();
+#endif
 	ustring droppedText(data.get_text());
 	bool goodDrop = false;
 
@@ -717,8 +815,13 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 
 		expandSet.m_queryProps.setFreeQuery("dir:/");
 
+#if GTK_VERSION_LT(3, 0)
 		for (list<ustring>::iterator uriIter = droppedUris.begin();
 			uriIter != droppedUris.end(); ++uriIter)
+#else
+		for (vector<ustring>::iterator uriIter = droppedUris.begin();
+			uriIter != droppedUris.end(); ++uriIter)
+#endif
 		{
 			string uri(*uriIter);
 
@@ -797,14 +900,22 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 //
 void mainWindow::on_enginesTreeviewSelection_changed()
 {
+#if GTK_VERSION_LT(3, 0)
 	list<TreeModel::Path> selectedEngines = m_pEnginesTree->getSelection();
+#else
+	vector<TreeModel::Path> selectedEngines = m_pEnginesTree->getSelection();
+#endif
 	// If there are more than one row selected, don't bother
 	if (selectedEngines.size() != 1)
 	{
 		return;
 	}
 
+#if GTK_VERSION_LT(3, 0)
 	list<TreeModel::Path>::iterator enginePath = selectedEngines.begin();
+#else
+	vector<TreeModel::Path>::iterator enginePath = selectedEngines.begin();
+#endif
 	if (enginePath == selectedEngines.end())
 	{
 		return;
@@ -1029,7 +1140,9 @@ void mainWindow::on_index_changed(ustring indexName)
 			int pageNum = m_pNotebook->append_page(*pIndexPage, *pTab);
 			if (pageNum >= 0)
 			{
+#if GTK_VERSION_LT(3, 0)
 				m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+#endif
 				// Allow reordering
 				m_pNotebook->set_tab_reorderable(*pIndexPage);
 				foundPage = true;
@@ -1176,9 +1289,13 @@ void mainWindow::on_query_changed(ustring indexName, ustring queryName)
 //
 // Notebook page switch
 //
-void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
+#if GTK_VERSION_LT(3, 0)
+void mainWindow::on_switch_page(GtkNotebookPage *pPage, guint pageNum)
+#else
+void mainWindow::on_switch_page(Widget *pPage, guint pageNum)
+#endif
 {
-	NotebookPageBox *pNotebookPage = dynamic_cast<NotebookPageBox*>(m_pNotebook->get_nth_page(p1));
+	NotebookPageBox *pNotebookPage = dynamic_cast<NotebookPageBox*>(m_pNotebook->get_nth_page(pageNum));
 	if (pNotebookPage != NULL)
 	{
 		NotebookPageBox::PageType type = pNotebookPage->getType();
@@ -1201,18 +1318,18 @@ void mainWindow::on_switch_page(GtkNotebookPage *p0, guint p1)
 			}
 		}
 #ifdef DEBUG
-		cout << "mainWindow::on_switch_page: page " << p1 << " has type " << type << endl;
+		cout << "mainWindow::on_switch_page: page " << pageNum << " has type " << type << endl;
 #endif
 	}
 
 	show_pagebased_menuitems(true);
 
 	// Did the page change ?
-	if (m_state.m_currentPage != p1)
+	if (m_state.m_currentPage != pageNum)
 	{
 		show_selectionbased_menuitems(false);
 	}
-	m_state.m_currentPage = p1;
+	m_state.m_currentPage = pageNum;
 }
 
 //
@@ -1475,7 +1592,9 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				pageNum = m_pNotebook->append_page(*pResultsPage, *pTab);
 				if (pageNum >= 0)
 				{
+#if GTK_VERSION_LT(3, 0)
 					m_pNotebook->pages().back().set_tab_label_packing(false, true, Gtk::PACK_START);
+#endif
 					// Allow reordering
 					m_pNotebook->set_tab_reorderable(*pResultsPage);
 					// Switch to this new page
@@ -2178,7 +2297,12 @@ void mainWindow::on_export_activate()
 		if (pResultsTree != NULL)
 		{
 			FileChooserDialog fileChooser(_("Export"));
+#if GTK_VERSION_LT(3, 0)
 			FileFilter csvFilter, xmlFilter;
+#else
+			RefPtr<FileFilter> csvFilter = FileFilter::create();
+			RefPtr<FileFilter> xmlFilter = FileFilter::create();
+#endif
 			ustring location(m_settings.getHomeDirectory());
 			bool exportToCSV = true;
 
@@ -2188,11 +2312,21 @@ void mainWindow::on_export_activate()
 			prepare_file_chooser(fileChooser, location, false);
 
 			// Add filters
+#if GTK_VERSION_LT(3, 0)
 			csvFilter.add_mime_type("application/csv");
 			csvFilter.set_name("CSV");
+#else
+			csvFilter->add_mime_type("application/csv");
+			csvFilter->set_name("CSV");
+#endif
 			fileChooser.add_filter(csvFilter);
+#if GTK_VERSION_LT(3, 0)
 			xmlFilter.add_mime_type("application/xml");
 			xmlFilter.set_name("OpenSearch response");
+#else
+			xmlFilter->add_mime_type("application/xml");
+			xmlFilter->set_name("OpenSearch response");
+#endif
 			fileChooser.add_filter(xmlFilter);
 
 			fileChooser.show();
@@ -2201,9 +2335,14 @@ void mainWindow::on_export_activate()
 				// Retrieve the chosen location
 				location = filename_to_utf8(fileChooser.get_filename());
 				// What file format was selected ?
+#if GTK_VERSION_LT(3, 0)
 				const FileFilter *pFilter = fileChooser.get_filter();
 				if ((pFilter != NULL) &&
 					(pFilter->get_name() != "CSV"))
+#else
+				RefPtr<FileFilter> pFilter = fileChooser.get_filter();
+				if (pFilter->get_name() != "CSV")
+#endif
 				{
 					exportToCSV = false;
 				}
@@ -2683,14 +2822,22 @@ void mainWindow::on_addIndexButton_clicked()
 //
 void mainWindow::on_removeIndexButton_clicked()
 {
+#if GTK_VERSION_LT(3, 0)
 	list<TreeModel::Path> selectedEngines = m_pEnginesTree->getSelection();
+#else
+	vector<TreeModel::Path> selectedEngines = m_pEnginesTree->getSelection();
+#endif
 	// If there are more than one row selected, don't bother
 	if (selectedEngines.size() != 1)
 	{
 		return;
 	}
 
+#if GTK_VERSION_LT(3, 0)
 	list<TreeModel::Path>::iterator enginePath = selectedEngines.begin();
+#else
+	vector<TreeModel::Path>::iterator enginePath = selectedEngines.begin();
+#endif
 	if (enginePath == selectedEngines.end())
 	{
 		return;
@@ -3290,7 +3437,11 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 #endif
 
 	// Check a search engine has been selected
+#if GTK_VERSION_LT(3, 0)
 	list<TreeModel::Path> selectedEngines = m_pEnginesTree->getSelection();
+#else
+	vector<TreeModel::Path> selectedEngines = m_pEnginesTree->getSelection();
+#endif
 	if (selectedEngines.empty() == true)
 	{
 		set_status(_("No search engine selected"));
@@ -3298,10 +3449,19 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 	}
 
 	// Go through the tree and check selected nodes
+#if GTK_VERSION_LT(3, 0)
 	list<TreeModel::iterator> engineIters;
+#else
+	vector<TreeModel::iterator> engineIters;
+#endif
 	EnginesModelColumns &engineColumns = m_pEnginesTree->getColumnRecord();
+#if GTK_VERSION_LT(3, 0)
 	for (list<TreeModel::Path>::iterator enginePath = selectedEngines.begin();
 		enginePath != selectedEngines.end(); ++enginePath)
+#else
+	for (vector<TreeModel::Path>::iterator enginePath = selectedEngines.begin();
+		enginePath != selectedEngines.end(); ++enginePath)
+#endif
 	{
 		TreeModel::iterator engineIter = m_pEnginesTree->getIter(*enginePath);
 		TreeModel::Row engineRow = *engineIter;
@@ -3335,7 +3495,11 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 		else if (engineType == EnginesModelColumns::INTERNAL_INDEX_ENGINE)
 		{
 			// Push this at the beginning of the list
+#if GTK_VERSION_LT(3, 0)
 			engineIters.push_front(engineIter);
+#else
+			engineIters.insert(engineIters.begin(), engineIter);
+#endif
 		}
 		else
 		{
@@ -3349,8 +3513,13 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 
 	// Now go through the selected search engines
 	set<ustring> engineDisplayableNames;
+#if GTK_VERSION_LT(3, 0)
 	for (list<TreeModel::iterator>::iterator iter = engineIters.begin();
 		iter != engineIters.end(); ++iter)
+#else
+	for (vector<TreeModel::iterator>::iterator iter = engineIters.begin();
+		iter != engineIters.end(); ++iter)
+#endif
 	{
 		TreeModel::Row engineRow = **iter;
 

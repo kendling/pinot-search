@@ -83,9 +83,14 @@ queryDialog_glade::queryDialog_glade(
    labelNameCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    
    Gtk::Label *resultsCountLabel = Gtk::manage(new class Gtk::Label(_("Number of results:")));
+#if GTK_VERSION_LT(3, 0)
    Gtk::Adjustment *resultsCountSpinbutton_adj = Gtk::manage(new class Gtk::Adjustment(10, 10, 1000, 10, 20, 0));
    resultsCountSpinbutton = Gtk::manage(new class Gtk::SpinButton(*resultsCountSpinbutton_adj, 1, 0));
-   
+#else
+   Glib::RefPtr<Gtk::Adjustment> resultsCountSpinbutton_adj = Gtk::Adjustment::create(10, 10, 1000, 10, 20, 0);
+   resultsCountSpinbutton = Gtk::manage(new class Gtk::SpinButton(resultsCountSpinbutton_adj, 1, 0));
+#endif
+
    Gtk::Label *sortOrderLabel = Gtk::manage(new class Gtk::Label(_("Sort order:")));
    sortOrderCombobox = Gtk::manage(new class Gtk::ComboBoxText());
    stemmingCombobox = Gtk::manage(new class Gtk::ComboBoxText());
@@ -95,11 +100,21 @@ queryDialog_glade::queryDialog_glade(
    
    Gtk::Table *actionsTable = Gtk::manage(new class Gtk::Table(2, 2, false));
    Gtk::VBox *queryVbox = Gtk::manage(new class Gtk::VBox(false, 0));
+#if GTK_VERSION_LT(3, 0)
    queryCancelbutton->set_flags(Gtk::CAN_FOCUS);
    queryCancelbutton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   queryCancelbutton->set_can_focus();
+   queryCancelbutton->set_can_default();
+#endif
    queryCancelbutton->set_relief(Gtk::RELIEF_NORMAL);
+#if GTK_VERSION_LT(3, 0)
    queryOkbutton->set_flags(Gtk::CAN_FOCUS);
    queryOkbutton->set_flags(Gtk::CAN_DEFAULT);
+#else
+   queryOkbutton->set_can_focus();
+   queryOkbutton->set_can_default();
+#endif
    queryOkbutton->set_relief(Gtk::RELIEF_NORMAL);
    queryDialog->get_action_area()->property_layout_style().set_value(Gtk::BUTTONBOX_END);
    nameLabel->set_alignment(0.5,0.5);
@@ -108,7 +123,11 @@ queryDialog_glade::queryDialog_glade(
    nameLabel->set_line_wrap(false);
    nameLabel->set_use_markup(false);
    nameLabel->set_selectable(false);
+#if GTK_VERSION_LT(3, 0)
    nameEntry->set_flags(Gtk::CAN_FOCUS);
+#else
+   nameEntry->set_can_focus();
+#endif
    nameEntry->set_visibility(true);
    nameEntry->set_editable(true);
    nameEntry->set_max_length(0);
@@ -124,12 +143,20 @@ queryDialog_glade::queryDialog_glade(
    filterLabel->set_line_wrap(false);
    filterLabel->set_use_markup(false);
    filterLabel->set_selectable(false);
+#if GTK_VERSION_LT(3, 0)
    addFilterButton->set_flags(Gtk::CAN_FOCUS);
+#else
+   addFilterButton->set_can_focus();
+#endif
    addFilterButton->set_relief(Gtk::RELIEF_NORMAL);
    queryHbox->pack_start(*filterLabel, Gtk::PACK_SHRINK, 0);
    queryHbox->pack_start(*filterCombobox, Gtk::PACK_EXPAND_WIDGET, 4);
    queryHbox->pack_start(*addFilterButton, Gtk::PACK_EXPAND_WIDGET, 4);
+#if GTK_VERSION_LT(3, 0)
    queryTextview->set_flags(Gtk::CAN_FOCUS);
+#else
+   queryTextview->set_can_focus();
+#endif
    queryTextview->set_editable(true);
    queryTextview->set_cursor_visible(true);
    queryTextview->set_pixels_above_lines(0);
@@ -140,7 +167,11 @@ queryDialog_glade::queryDialog_glade(
    queryTextview->set_indent(0);
    queryTextview->set_wrap_mode(Gtk::WRAP_WORD);
    queryTextview->set_justification(Gtk::JUSTIFY_LEFT);
+#if GTK_VERSION_LT(3, 0)
    queryScrolledwindow->set_flags(Gtk::CAN_FOCUS);
+#else
+   queryScrolledwindow->set_can_focus();
+#endif
    queryScrolledwindow->set_shadow_type(Gtk::SHADOW_IN);
    queryScrolledwindow->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
    queryScrolledwindow->property_window_placement().set_value(Gtk::CORNER_TOP_LEFT);
@@ -156,7 +187,11 @@ queryDialog_glade::queryDialog_glade(
    queryFrame->set_label_align(0,0.5);
    queryFrame->add(*queryFrameAlignment);
    queryFrame->set_label_widget(*queryFrameLabel);
+#if GTK_VERSION_LT(3, 0)
    indexCheckbutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   indexCheckbutton->set_can_focus();
+#endif
    indexCheckbutton->set_relief(Gtk::RELIEF_NORMAL);
    indexCheckbutton->set_mode(true);
    indexCheckbutton->set_active(false);
@@ -166,7 +201,11 @@ queryDialog_glade::queryDialog_glade(
    resultsCountLabel->set_line_wrap(false);
    resultsCountLabel->set_use_markup(false);
    resultsCountLabel->set_selectable(false);
+#if GTK_VERSION_LT(3, 0)
    resultsCountSpinbutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   resultsCountSpinbutton->set_can_focus();
+#endif
    resultsCountSpinbutton->set_update_policy(Gtk::UPDATE_ALWAYS);
    resultsCountSpinbutton->set_numeric(false);
    resultsCountSpinbutton->set_digits(0);
@@ -183,7 +222,11 @@ queryDialog_glade::queryDialog_glade(
    stemmingLabel->set_line_wrap(false);
    stemmingLabel->set_use_markup(false);
    stemmingLabel->set_selectable(false);
+#if GTK_VERSION_LT(3, 0)
    indexNewCheckbutton->set_flags(Gtk::CAN_FOCUS);
+#else
+   indexNewCheckbutton->set_can_focus();
+#endif
    indexNewCheckbutton->set_relief(Gtk::RELIEF_NORMAL);
    indexNewCheckbutton->set_mode(true);
    indexNewCheckbutton->set_active(false);
@@ -210,7 +253,9 @@ queryDialog_glade::queryDialog_glade(
    queryDialog->property_window_position().set_value(Gtk::WIN_POS_NONE);
    queryDialog->set_resizable(true);
    queryDialog->property_destroy_with_parent().set_value(false);
+#if GTK_VERSION_LT(3, 0)
    queryDialog->set_has_separator(true);
+#endif
    queryDialog->add_action_widget(*queryCancelbutton, -6);
    queryDialog->add_action_widget(*queryOkbutton, -5);
    queryCancelbutton->show();

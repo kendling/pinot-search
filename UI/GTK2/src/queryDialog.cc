@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -107,6 +107,7 @@ void queryDialog::populate_comboboxes()
 
 	// All supported filters
 	filterCombobox->set_row_separator_func(sigc::mem_fun(*this, &queryDialog::is_separator));
+#if GTK_VERSION_LT(3, 0)
 	filterCombobox->append_text(_("Host name"));
 	filterCombobox->append_text(_("File name"));
 	filterCombobox->append_text(_("File extension"));
@@ -124,11 +125,35 @@ void queryDialog::populate_comboboxes()
 	filterCombobox->append_text(_("Date"));
 	filterCombobox->append_text(_("Time"));
 	filterCombobox->append_text(_("Size"));
+#else
+	filterCombobox->append(_("Host name"));
+	filterCombobox->append(_("File name"));
+	filterCombobox->append(_("File extension"));
+	filterCombobox->append(_("Title"));
+	filterCombobox->append(_("URL"));
+	filterCombobox->append(_("Directory"));
+	filterCombobox->append(_("In URL"));
+	filterCombobox->append(_("Path"));
+	filterCombobox->append(_("Language code"));
+	filterCombobox->append(_("MIME type"));
+	filterCombobox->append(_("MIME class"));
+	filterCombobox->append(_("Label"));
+	// And separate numerical ranges
+	filterCombobox->append("===");
+	filterCombobox->append(_("Date"));
+	filterCombobox->append(_("Time"));
+	filterCombobox->append(_("Size"));
+#endif
 	filterCombobox->set_active(0);
 
 	// Sort order
+#if GTK_VERSION_LT(3, 0)
 	sortOrderCombobox->append_text(_("By relevance"));
 	sortOrderCombobox->append_text(_("By date"));
+#else
+	sortOrderCombobox->append(_("By relevance"));
+	sortOrderCombobox->append(_("By date"));
+#endif
 	if (m_properties.getSortOrder() == QueryProperties::DATE)
 	{
 		sortOrderCombobox->set_active(1);
@@ -139,14 +164,22 @@ void queryDialog::populate_comboboxes()
 	}
 
 	// Stemming language
+#if GTK_VERSION_LT(3, 0)
 	stemmingCombobox->append_text(_("None"));
+#else
+	stemmingCombobox->append(_("None"));
+#endif
 	stemmingCombobox->set_active(0);
 	string language(m_properties.getStemmingLanguage());
 	for (unsigned int languageNum = 1; languageNum < Languages::m_count; ++languageNum)
 	{
 		ustring languageName(Languages::getIntlName(languageNum));
 
+#if GTK_VERSION_LT(3, 0)
 		stemmingCombobox->append_text(languageName);
+#else
+		stemmingCombobox->append(languageName);
+#endif
 		// Is this the language we are looking for ?
 		if (language == languageName)
 		{
@@ -155,7 +188,11 @@ void queryDialog::populate_comboboxes()
 	}
 
 	// Labels
+#if GTK_VERSION_LT(3, 0)
 	labelNameCombobox->append_text(_("None"));
+#else
+	labelNameCombobox->append(_("None"));
+#endif
 	labelNameCombobox->set_active(0);
 	// Add all labels to the label combo and select the one defined for the query
 	set<string> &labels = PinotSettings::getInstance().m_labels;
@@ -163,7 +200,11 @@ void queryDialog::populate_comboboxes()
 	{
 		string labelName(*labelIter);
 
+#if GTK_VERSION_LT(3, 0)
 		labelNameCombobox->append_text(to_utf8(labelName));
+#else
+		labelNameCombobox->append(to_utf8(labelName));
+#endif
 		if (labelName == m_properties.getLabelName())
 		{
 			labelNameCombobox->set_active(labelNum);

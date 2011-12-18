@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -160,7 +160,11 @@ void propertiesDialog::populate_languageCombobox(const string &language)
 
 	if (m_notALanguageName == true)
 	{
+#if GTK_VERSION_LT(3, 0)
 		languageCombobox->append_text(language);
+#else
+		languageCombobox->append(language);
+#endif
 		languageCombobox->set_active(0);
 		unknownLanguagePos = 1;
 	}
@@ -170,7 +174,11 @@ void propertiesDialog::populate_languageCombobox(const string &language)
 	{
 		string languageName(Languages::getIntlName(languageNum));
 
+#if GTK_VERSION_LT(3, 0)
 		languageCombobox->append_text(languageName);
+#else
+		languageCombobox->append(languageName);
+#endif
 		// Is this the language we are looking for ?
 		if ((m_notALanguageName == false) &&
 			(language.empty() == false) &&

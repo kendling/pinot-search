@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,14 +26,18 @@
 #include <gdkmm/pixbuf.h>
 #include <gdkmm/color.h>
 #include <gtkmm/entrycompletion.h>
+#if GTK_VERSION_LT(2, 90)
 #include <gtkmm/rc.h>
+#endif
 #include <gtkmm/notebook.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/treestore.h>
 #include <gtkmm/treeselection.h>
 #include <gtkmm/selectiondata.h>
 #include <gtkmm/menu.h>
+#if GTK_VERSION_LT(2, 90)
 #include <gtkmm/tooltips.h>
+#endif
 
 #include "DocumentInfo.h"
 #include "QueryProperties.h"
@@ -81,7 +85,11 @@ protected:
 	void on_cache_changed(PinotSettings::CacheProvider cacheProvider);
 	void on_searchthis_changed(Glib::ustring queryName);
 	void on_query_changed(Glib::ustring indexName, Glib::ustring queryName);
-	void on_switch_page(GtkNotebookPage *p0, guint p1);
+#if GTK_VERSION_LT(2, 90)
+	void on_switch_page(GtkNotebookPage *pPage, guint pageNum);
+#else
+	void on_switch_page(Gtk::Widget *pPage, guint pageNum);
+#endif
 	void on_close_page(Glib::ustring title, NotebookPageBox::PageType type);
 	void on_thread_end(WorkerThread *pThread);
 	void on_editindex(Glib::ustring indexName, Glib::ustring location);
@@ -173,8 +181,10 @@ private:
 	// Index
 	ComboModelColumns m_indexNameColumns;
 	Glib::RefPtr<Gtk::ListStore> m_refIndexNameTree;
+#if GTK_VERSION_LT(2, 90)
 	// Tooltips
 	Gtk::Tooltips m_tooltips;
+#endif
 	// Page switching
 	sigc::connection m_pageSwitchConnection;
 	// Activity timeout
