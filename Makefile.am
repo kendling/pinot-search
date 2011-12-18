@@ -13,7 +13,7 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	UI/icons/32x32/pinot.png UI/icons/24x24/pinot.png \
 	UI/icons/22x22/pinot.png UI/icons/16x16/pinot.png \
 	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
-	scripts/bash/*.sh scripts/python/*.py
+	scripts/bash/*.sh
 
 man_MANS = Core/pinot-index.1 IndexSearch/pinot-label.1 \
 	Core/pinot-search.1 Core/pinot-dbus-daemon.1 UI/GTK2/src/pinot.1
