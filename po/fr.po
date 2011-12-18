@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 0.97\n"
+"Project-Id-Version: pinot 0.98\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-23 13:53+0800\n"
+"POT-Creation-Date: 2011-11-14 21:56+0800\n"
 "PO-Revision-Date: 2011-02-14 01:26+0000\n"
 "Last-Translator: FabriceColin <fabrice.colin@gmail.com>\n"
 "Language-Team: fr <fabricecolin@users.berlios.de>\n"
