@@ -1,14 +1,11 @@
-# Freshmeat Search Plugin
+# Freecode Search Plugin
 # Based on the work of rcoscali@rcsnet.net
 
 <search 
-   name="Freshmeat"
-   description="Freshmeat Projects Search"
+   name="Freecode"
+   description="Freecode Projects Search"
    method="GET"
-   action="http://freshmeat.net/search/"
-   update="http://www.rcsnet.net/mozilla/freshmeat.src"
-   updateIcon="http://www.rcsnet.net/mozilla/freshmeat.gif"
-   updateCheckDays=7
+   action="http://freecode.com/search/"
    routeType="Software"
 >
 
@@ -19,7 +16,7 @@
 
 <interpret 
     browserResultType="result" 
-    baseUrl="http://freshmeat.net"
+    baseUrl="http://freecode.com"
     resultListStart='<div class="search-results">'
     resultListEnd=''
     resultItemStart='<span class="releasedate">'
