@@ -519,6 +519,9 @@ void mainWindow::populate_cacheMenu()
 
 	if (setMenu == true)
 	{
+#if GTK_CHECK_VERSION(3, 0, 0)
+		m_pCacheMenu->show_all();
+#endif
 		opencache1->set_submenu(*m_pCacheMenu);
 		opencache1->show_all_children();
 #ifdef DEBUG
@@ -576,6 +579,9 @@ void mainWindow::populate_indexMenu()
 
 	if (setMenu == true)
 	{
+#if GTK_CHECK_VERSION(3, 0, 0)
+		m_pIndexMenu->show_all();
+#endif
 		listcontents1->set_submenu(*m_pIndexMenu);
 		listcontents1->show_all_children();
 #ifdef DEBUG
@@ -625,7 +631,7 @@ void mainWindow::populate_findMenu()
 		sigc::slot0<void> menuItemSlot = sigc::bind(findSlot, queryName);
 		pFindMenuItem->signal_activate().connect(menuItemSlot);
 #if GTK_CHECK_VERSION(3, 0, 0)
-		m_pIndexMenu->append(*pFindMenuItem);
+		m_pFindMenu->append(*pFindMenuItem);
 #endif
 #ifdef DEBUG
 		cout << "mainWindow::populate_findMenu: appended menuitem " << queryName << endl;
@@ -634,6 +640,9 @@ void mainWindow::populate_findMenu()
 
 	if (setMenu == true)
 	{
+#if GTK_CHECK_VERSION(3, 0, 0)
+		m_pFindMenu->show_all();
+#endif
 		searchthisfor1->set_submenu(*m_pFindMenu);
 		searchthisfor1->show_all_children();
 #ifdef DEBUG
