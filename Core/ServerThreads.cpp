@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2011 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -456,7 +456,7 @@ void DBusServletThread::doWork(void)
 	IndexInterface *pIndex = settings.getIndex(settings.m_daemonIndexLocation);
 	MetaDataBackup metaData(settings.getHistoryDatabaseName());
 	DBusError error;
-	bool processedMessage = true, updateLabelsCache = false, flushIndex = false;
+	bool updateLabelsCache = false, flushIndex = false;
 
 	if ((m_pServer == NULL) ||
 		(m_pServletInfo == NULL) ||
@@ -1093,7 +1093,6 @@ void DBusServletThread::doWork(void)
 		cout << "DBusServletThread::doWork: foreign message for/from " << dbus_message_get_interface(m_pServletInfo->m_pRequest)
 			<< " " << dbus_message_get_member(m_pServletInfo->m_pRequest) << endl;
 #endif
-		processedMessage = false;
 	}
 
 	// Did an error occur ?
