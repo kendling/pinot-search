@@ -68,9 +68,9 @@ LanguageDetector::LanguageDetector() :
 #ifdef DEBUG
 	cout << "LanguageDetector::guessLanguage: detected " << textCatVersion << endl;
 #endif
-	if (strncasecmp(textCatVersion, "3.1.0", 9) == 0)
+	if (strncasecmp(textCatVersion, "3.", 2) == 0)
 	{
-		// Version 3
+		// Version 3.1 and above
 		confFile += "textcat31_conf.txt";
 	}
 	else if (strncasecmp(textCatVersion, "TextCat 3", 9) == 0)
