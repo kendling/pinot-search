@@ -20,11 +20,11 @@
 <input name="oe" value="utf-8">
 
 <interpret 
-    browserResultType="result" 
-    charset = "UTF-8"
-    resultListStart="<div id=res" 
-    resultListEnd="<div id=navbar" 
-    resultItemStart=" class=g>" 
-    resultItemEnd="</div>"
+    browserResultType="result"
+    charset="UTF-8"
+    resultListStart='<div id="res'
+    resultListEnd='<div id="foot'
+    resultItemStart='<h3 class="r">'
+    resultItemEnd='</div></div>'
 >
 </search>
