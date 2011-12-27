@@ -854,7 +854,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		{
 			// By relevance, only
 #if XAPIAN_NUM_VERSION >= 1001000
-			enquire.set_sort_by_relevance_then_value(4, false);
+			enquire.set_sort_by_relevance_then_value(4, true);
 #else
 			enquire.set_sort_by_relevance_then_value(4);
 #endif
@@ -866,7 +866,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		{
 			// By date, and then by relevance
 #if XAPIAN_NUM_VERSION >= 1001000
-			enquire.set_sort_by_value_then_relevance(4, false);
+			enquire.set_sort_by_value_then_relevance(4, true);
 #else
 			enquire.set_sort_by_value_then_relevance(4);
 #endif
