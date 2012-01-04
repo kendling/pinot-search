@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -876,39 +876,24 @@ void MIMEScanner::addDefaultAction(const string &mimeType, const MIMEAction &typ
 #endif
 }
 
-bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &actionNames,
-	vector<MIMEAction> &typeActions)
+bool MIMEScanner::getDefaultActionsForType(const string &mimeType, bool isLocal,
+	set<string> &actionNames, vector<MIMEAction> &typeActions)
 {
 #ifdef USE_GIO
 	// Get default actions first
-	GAppInfo *pDefAppInfo1 = g_app_info_get_default_for_type(mimeType.c_str(), TRUE);
+	GAppInfo *pDefAppInfo1 = g_app_info_get_default_for_type(mimeType.c_str(), (isLocal == false ? TRUE : FALSE));
 	if (pDefAppInfo1 != NULL)
 	{
 		MIMEAction action(pDefAppInfo1);
 
 #ifdef DEBUG
-		clog << "MIMEScanner::getDefaultActionsForType: default action " << action.m_name << endl;
+		clog << "MIMEScanner::getDefaultActionsForType: default action "
+			<< isLocal << " " << action.m_name << endl;
 #endif
 		actionNames.insert(action.m_name);
 		typeActions.push_back(action);
 
 		g_object_unref(pDefAppInfo1);
-	}
-	GAppInfo *pDefAppInfo2 = g_app_info_get_default_for_type(mimeType.c_str(), FALSE);
-	if (pDefAppInfo2 != NULL)
-	{
-		MIMEAction action(pDefAppInfo2);
-
-		if (actionNames.find(action.m_name) == actionNames.end())
-		{
-#ifdef DEBUG
-			clog << "MIMEScanner::getDefaultActionsForType: non-URI default action " << action.m_name << endl;
-#endif
-			actionNames.insert(action.m_name);
-			typeActions.push_back(action);
-		}
-
-		g_object_unref(pDefAppInfo2);
 	}
 
 	// Get all other actions
@@ -988,7 +973,8 @@ bool MIMEScanner::getDefaultActionsForType(const string &mimeType, set<string> &
 }
 
 /// Determines the default action(s) for the given type.
-bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &typeActions)
+bool MIMEScanner::getDefaultActions(const string &mimeType, bool isLocal,
+	vector<MIMEAction> &typeActions)
 {
 	set<string> actionNames;
 	
@@ -997,7 +983,7 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 #ifdef DEBUG
 	clog << "MIMEScanner::getDefaultActions: searching for " << mimeType << endl;
 #endif
-	bool foundAction = getDefaultActionsForType(mimeType, actionNames, typeActions);
+	bool foundAction = getDefaultActionsForType(mimeType, isLocal, actionNames, typeActions);
 #ifndef USE_GIO
 	if (foundAction == false)
 	{
@@ -1013,7 +999,7 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, vector<MIMEAction> &
 #ifdef DEBUG
 				clog << "MIMEScanner::getDefaultActions: searching for parent type " << parentType << endl;
 #endif
-				foundAction = getDefaultActionsForType(parentType, actionNames, typeActions);
+				foundAction = getDefaultActionsForType(parentType, isLocal, actionNames, typeActions);
 				if (foundAction)
 				{
 					break;

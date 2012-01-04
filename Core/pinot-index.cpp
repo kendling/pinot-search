@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -504,7 +504,7 @@ int main(int argc, char **argv)
 			}
 
 			vector<MIMEAction> typeActions;
-			MIMEScanner::getDefaultActions(docInfo.getType(), typeActions);
+			MIMEScanner::getDefaultActions(docInfo.getType(), thisUrl.isLocal(), typeActions);
 			for (vector<MIMEAction>::const_iterator actionIter = typeActions.begin();
 				actionIter != typeActions.end(); ++actionIter)
 			{

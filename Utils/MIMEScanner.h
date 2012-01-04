@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -137,7 +137,8 @@ class PINOT_EXPORT MIMEScanner
 		static void addDefaultAction(const std::string &mimeType, const MIMEAction &typeAction);
 
 		/// Determines the default action(s) for the given type.
-		static bool getDefaultActions(const std::string &mimeType, std::vector<MIMEAction> &typeActions);
+		static bool getDefaultActions(const std::string &mimeType, bool isLocal,
+			std::vector<MIMEAction> &typeActions);
 
 	protected:
 #ifndef USE_GIO
@@ -158,8 +159,8 @@ class PINOT_EXPORT MIMEScanner
 			const std::list<std::string> &desktopFilesPaths);
 #endif
   
-		static bool getDefaultActionsForType(const std::string &mimeType, std::set<std::string> &actionNames,
-			std::vector<MIMEAction> &typeActions);
+		static bool getDefaultActionsForType(const std::string &mimeType, bool isLocal,
+			std::set<std::string> &actionNames, std::vector<MIMEAction> &typeActions);
 
 	private:
 		MIMEScanner(const MIMEScanner &other);

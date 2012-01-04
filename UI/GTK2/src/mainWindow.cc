@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2011 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -2749,7 +2749,7 @@ void mainWindow::on_about_activate()
 
 	aboutBox.set_comments(_("A metasearch tool for the Free Desktop") + string(".\n") +
 		_("Search the Web and your documents !"));
-	aboutBox.set_copyright("(C) 2005-2011 Fabrice Colin");
+	aboutBox.set_copyright("(C) 2005-2012 Fabrice Colin");
 	aboutBox.set_name("Pinot");
 	aboutBox.set_version(VERSION);
 	aboutBox.set_website("http://code.google.com/p/pinot-search/");
@@ -3746,7 +3746,7 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 				cout << "mainWindow::view_documents: defaulting to text/html" << endl;
 #endif
 			}
-			bool foundAction = MIMEScanner::getDefaultActions(type, actionsList);
+			bool foundAction = MIMEScanner::getDefaultActions(type, urlObj.isLocal(), actionsList);
 			if (foundAction == false)
 			{
 				if ((type.length() > 5) &&
@@ -3755,7 +3755,7 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 					// It's a subtype of text
 					// FIXME: MIMEScanner should return parent types !
 					type = "text/plain";
-					foundAction = MIMEScanner::getDefaultActions(type, actionsList);
+					foundAction = MIMEScanner::getDefaultActions(type, urlObj.isLocal(), actionsList);
 #ifdef DEBUG
 					cout << "mainWindow::view_documents: defaulting to text/plain" << endl;
 #endif
