@@ -1,5 +1,5 @@
 /*
- *  Copyright 2011 Fabrice Colin
+ *  Copyright 2011-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ bool FileOutputFilter::read_file(int fd, ssize_t maxSize, ssize_t &totalSize)
 #ifdef DEBUG
 	if (fstat(fd, &fdStats) == 0)
 	{
-		cout << "ExternalFilter::read_file: file size " << fdStats.st_size << endl;
+		cout << "FileOutputFilter::read_file: file size " << fdStats.st_size << endl;
 	}
 #endif
 
@@ -61,7 +61,7 @@ bool FileOutputFilter::read_file(int fd, ssize_t maxSize, ssize_t &totalSize)
 			(totalSize >= maxSize))
 		{
 #ifdef DEBUG
-			cout << "ExternalFilter::read_file: stopping at " << totalSize << endl;
+			cout << "FileOutputFilter::read_file: stopping at " << totalSize << endl;
 #endif
 			break;
 		}
