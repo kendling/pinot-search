@@ -382,7 +382,11 @@ int main(int argc, char **argv)
 		{
 			case 'h':
 				// Help
+#ifdef HAVE_DBUS
 				cout << programName << " - D-Bus search and index daemon\n\n"
+#else
+				cout << programName << " - Search and index daemon\n\n"
+#endif
 					<< "Usage: " << programName << " [OPTIONS]\n\n"
 					<< "Options:\n"
 					<< "  -h, --help		display this help and exit\n"

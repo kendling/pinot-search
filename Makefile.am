@@ -5,9 +5,8 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	Tokenize/filters/external-filters.xml globalconfig.xml \
 	textcat*conf.txt pinot*.desktop pinot.spec \
 	IndexSearch/Plugins/*src IndexSearch/Plugins/*.xml \
-	Core/pinot-index.1 IndexSearch/pinot-label.1 \
-	Core/pinot-search.1 UI/GTK2/src/pinot.1 \
-	Core/pinot-dbus-daemon.1 Core/pinot-dbus-daemon.xml \
+	Core/pinot-*.1 IndexSearch/pinot-*.1 \
+	UI/GTK2/src/pinot.1 Core/pinot-dbus-daemon.xml \
 	Core/de.berlios.Pinot.service \
 	UI/GTK2/xapian-powered.png UI/icons/48x48/pinot.png \
 	UI/icons/32x32/pinot.png UI/icons/24x24/pinot.png \
@@ -15,15 +14,24 @@ EXTRA_DIST = AUTHORS ChangeLog ChangeLog-dijon FAQ NEWS README TODO \
 	UI/GTK2/metase-gtk2.glade UI/GTK2/metase-gtk2.gladep \
 	scripts/bash/*.sh
 
+if HAVE_DBUS
 man_MANS = Core/pinot-index.1 IndexSearch/pinot-label.1 \
 	Core/pinot-search.1 Core/pinot-dbus-daemon.1 UI/GTK2/src/pinot.1
+else
+man_MANS = Core/pinot-index.1 Core/pinot-search.1 Core/pinot-daemon.1 \
+	UI/GTK2/src/pinot.1
+endif
 
 manuals:
 	@help2man --no-info --name "Index documents from the command-line" Core/pinot-index >Core/pinot-index.1
+if HAVE_DBUS
 	@help2man --no-info --name "Label files from the command-line" IndexSearch/pinot-label     >IndexSearch/pinot-label.1
+endif
 	@help2man --no-info --name "Query search engines from the command-line" Core/pinot-search  >Core/pinot-search.1
 if HAVE_DBUS
 	@help2man --no-info --name "D-Bus search and index daemon" Core/pinot-dbus-daemon          >Core/pinot-dbus-daemon.1
+else
+	@help2man --no-info --name "Search and index daemon" Core/pinot-daemon                     >Core/pinot-daemon.1
 endif
 	@help2man --no-info --name "A metasearch tool for the Free Desktop" UI/GTK2/src/pinot      >UI/GTK2/src/pinot.1
 
