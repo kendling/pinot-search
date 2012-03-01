@@ -12,7 +12,7 @@ if [ $? != 0 ]; then
 fi
 WHICH_PI=`which pinot-index`
 if [ $? != 0 ]; then
-  echo "Couldn't find sed. Is the pinot package installed ?"
+  echo "Couldn't find pinot-index. Is the pinot package installed ?"
   exit 1
 fi
 
