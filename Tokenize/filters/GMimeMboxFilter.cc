@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2010 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -535,7 +535,10 @@ bool GMimeMboxFilter::nextPart(const string &subject)
 				m_metaData.clear();
 				m_metaData["title"] = mboxPart.m_subject;
 				m_metaData["mimetype"] = mboxPart.m_contentType;
-				m_metaData["date"] = m_messageDate;
+				if (m_messageDate.empty() == false)
+				{
+					m_metaData["date"] = m_messageDate;
+				}
 				m_metaData["charset"] = m_partCharset;
 				snprintf(posStr, 128, "%u", m_content.length());
 				m_metaData["size"] = posStr;
@@ -892,6 +895,10 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 
 				// How old is this message ?
 				const char *pDate = g_mime_object_get_header(GMIME_OBJECT(m_pMimeMessage), "Date");
+				if (pDate == NULL)
+				{
+					pDate = g_mime_object_get_header(GMIME_OBJECT(m_pMimeMessage), "Resent-Date");
+				}
 				if (pDate != NULL)
 				{
 					m_messageDate = pDate;
@@ -910,7 +917,13 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 					{
 						char timeStr[64];
 
+						// FIXME: don't use this extension ?
+#if defined(__GNU_LIBRARY__)
+						// %z is a GNU extension
+						if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %z", pTimeTm) > 0)
+#else
 						if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %Z", pTimeTm) > 0)
+#endif
 						{
 							m_messageDate = timeStr;
 						}
