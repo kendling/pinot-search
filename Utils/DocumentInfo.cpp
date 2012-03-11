@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2011 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -342,6 +342,19 @@ void DocumentInfo::setScore(float score)
 float DocumentInfo::getScore(void) const
 {
 	return m_score;
+}
+
+/// Sets a foreign field.
+void DocumentInfo::setOther(const string &name,
+	const string &value)
+{
+	setField(name, value);
+}
+
+/// Returns a foreign field.
+string DocumentInfo::getOther(const string &name) const
+{
+	return getField(name);
 }
 
 /// Sets the document's labels.

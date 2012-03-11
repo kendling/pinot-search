@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -101,6 +101,13 @@ class PINOT_EXPORT DocumentInfo
 
 		/// Returns the document's score.
 		float getScore(void) const;
+
+		/// Sets a foreign field.
+		void setOther(const std::string &name,
+			const std::string &value);
+
+		/// Returns a foreign field.
+		std::string getOther(const std::string &name) const;
 
 		/// Sets the document's labels.
 		virtual void setLabels(const std::set<std::string> &labels);

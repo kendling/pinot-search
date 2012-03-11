@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2011 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -383,6 +383,10 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 				// We fed the filter a temporary file
 				uri.clear();
 			}
+		}
+		else
+		{
+			doc.setOther(metaIter->first, metaIter->second);
 		}
 	}
 
