@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Fabrice Colin
+ *  Copyright 2008-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 #include "config.h"
 #include "Visibility.h"
+#include "FieldMapperInterface.h"
 #include "ModuleProperties.h"
 #include "GoogleAPIEngine.h"
 
@@ -29,6 +30,7 @@ extern "C"
 {
 	PINOT_EXPORT ModuleProperties *getModuleProperties(void);
 	PINOT_EXPORT SearchEngineInterface *getSearchEngine(const string &apiKey);
+	PINOT_EXPORT void setFieldMapper(FieldMapperInterface *pMapper);
 	PINOT_EXPORT void closeAll(void);
 }
 
@@ -40,6 +42,10 @@ ModuleProperties *getModuleProperties(void)
 SearchEngineInterface *getSearchEngine(const string &apiKey)
 {
 	return new GoogleAPIEngine(apiKey);
+}
+
+void setFieldMapper(FieldMapperInterface *pMapper)
+{
 }
 
 void closeAll(void)

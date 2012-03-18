@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2008 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@
 #define MERGEINDEXESFUNC	"mergeIndexes"
 #define GETINDEXFUNC		"getIndex"
 #define GETSEARCHENGINEFUNC	"getSearchEngine"
+#define SETFIELDMAPPERFUNC	"setFieldMapper"
 #define CLOSEALLFUNC		"closeAll"
 
 typedef ModuleProperties *(getModulePropertiesFunc)(void);
@@ -53,6 +54,7 @@ typedef bool (openOrCreateIndexFunc)(const string &, bool &, bool, bool);
 typedef bool (mergeIndexesFunc)(const string &, const string &, const string &);
 typedef IndexInterface *(getIndexFunc)(const string &);
 typedef SearchEngineInterface *(getSearchEngineFunc)(const string &);
+typedef void (setFieldMapperFunc)(FieldMapperInterface *pMapper);
 typedef void (closeAllFunc)(void);
 
 using std::cout;
@@ -487,6 +489,29 @@ bool ModuleFactory::isSupported(const string &type, bool asIndex)
 	}
 
 	return false;	
+}
+
+void ModuleFactory::setFieldMapper(FieldMapperInterface *pMapper)
+{
+	for (map<string, LoadableModule>::iterator typeIter = m_types.begin(); typeIter != m_types.end(); ++typeIter)
+	{
+		void *pHandle = typeIter->second.m_pHandle;
+		if (pHandle == NULL)
+		{
+			continue;
+		}
+
+#ifdef HAVE_DLFCN_H
+		setFieldMapperFunc *pFunc = (setFieldMapperFunc *)dlsym(pHandle, SETFIELDMAPPERFUNC);
+		if (pFunc != NULL)
+		{
+			(*pFunc)(pMapper);
+		}
+#ifdef DEBUG
+		else cout << "ModuleFactory::setFieldMapper: couldn't find export setFieldMapper" << endl;
+#endif
+#endif
+	}
 }
 
 void ModuleFactory::unloadModules(void)

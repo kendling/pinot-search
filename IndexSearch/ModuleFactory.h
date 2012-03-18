@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2008 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <string>
 #include <map>
 
+#include "FieldMapperInterface.h"
 #include "IndexInterface.h"
 #include "SearchPluginProperties.h"
 #include "SearchEngineInterface.h"
@@ -76,6 +77,9 @@ class ModuleFactory
 
 		/// Indicates whether a search engine or index is supported or not.
 		static bool isSupported(const std::string &type, bool asIndex = false);
+
+		/// Sets a field mapper.
+		static void setFieldMapper(FieldMapperInterface *pMapper);
 
 		/// Unloads all libraries.
 		static void unloadModules(void);

@@ -2,6 +2,7 @@
 
 noinst_HEADERS = \
 	DBusIndex.h \
+	FieldMapperInterface.h \
 	FilterWrapper.h \
 	IndexInterface.h \
 	ModuleFactory.h \

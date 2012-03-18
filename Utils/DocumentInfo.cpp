@@ -57,15 +57,13 @@ DocumentInfo::DocumentInfo(const string &title, const string &location,
 }
 
 DocumentInfo::DocumentInfo(const DocumentInfo &other) :
+	m_fields(other.m_fields),
 	m_extract(other.m_extract),
 	m_score(other.m_score),
+	m_labels(other.m_labels),
 	m_indexId(other.m_indexId),
 	m_docId(other.m_docId)
 {
-	copy(other.m_fields.begin(), other.m_fields.end(),
-		inserter(m_fields, m_fields.begin()));
-	copy(other.m_labels.begin(), other.m_labels.end(),
-		inserter(m_labels, m_labels.begin()));
 }
 
 DocumentInfo::~DocumentInfo()
@@ -76,14 +74,10 @@ DocumentInfo& DocumentInfo::operator=(const DocumentInfo& other)
 {
 	if (this != &other)
 	{
-		m_fields.clear();
-		copy(other.m_fields.begin(), other.m_fields.end(),
-			inserter(m_fields, m_fields.begin()));
+		m_fields = other.m_fields;
 		m_extract = other.m_extract;
 		m_score = other.m_score;
-		m_labels.clear();
-		copy(other.m_labels.begin(), other.m_labels.end(),
-			inserter(m_labels, m_labels.begin()));
+		m_labels = other.m_labels;
 		m_indexId = other.m_indexId;
 		m_docId = other.m_docId;
 	}

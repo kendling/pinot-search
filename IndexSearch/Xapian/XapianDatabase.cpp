@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
+#include "FieldMapperInterface.h"
 #include "XapianDatabase.h"
 
 using std::cout;
@@ -41,6 +42,8 @@ using std::cerr;
 using std::endl;
 using std::string;
 using std::stringstream;
+
+extern FieldMapperInterface *g_pMapper;
 
 // This puts a limit to terms length.
 const unsigned int XapianDatabase::m_maxTermLength = 230;
@@ -563,17 +566,24 @@ bool XapianDatabase::badRecordField(const string &field)
 /// Returns a record for the document's properties.
 string XapianDatabase::propsToRecord(DocumentInfo *pDoc)
 {
+	string record;
+
 	if (pDoc == NULL)
 	{
 		return "";
 	}
 
-	string record("url=");
+	if (g_pMapper != NULL)
+	{
+		g_pMapper->toRecord(pDoc, record);
+	}
+
 	string title(pDoc->getTitle());
 	string timestamp(pDoc->getTimestamp());
 	time_t timeT = TimeConverter::fromTimestamp(timestamp);
 
 	// Set the document data omindex-style
+	record += "url=";
 	record += pDoc->getLocation();
 	record += "\nipath=";
 	record += Url::escapeUrl(pDoc->getInternalPath());
@@ -622,6 +632,11 @@ void XapianDatabase::recordToProps(const string &record, DocumentInfo *pDoc)
 	if (pDoc == NULL)
 	{
 		return;
+	}
+
+	if (g_pMapper != NULL)
+	{
+		g_pMapper->fromRecord(pDoc, record);
 	}
 
 	// Get the title

@@ -37,6 +37,7 @@
 #include "StringManip.h"
 #include "TimeConverter.h"
 #include "Url.h"
+#include "FieldMapperInterface.h"
 #include "LanguageDetector.h"
 #include "XapianDatabaseFactory.h"
 #include "XapianIndex.h"
@@ -55,6 +56,8 @@ using std::set;
 using std::map;
 using std::min;
 using std::max;
+
+extern FieldMapperInterface *g_pMapper;
 
 static string removeCharsetFromType(const string &type)
 {
@@ -616,13 +619,12 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 	}
 }
 
-void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc,
+void XapianIndex::addCommonTerms(const DocumentInfo &docInfo, Xapian::Document &doc,
 	const Xapian::WritableDatabase &db, Xapian::termcount &termPos)
 {
-	string title(info.getTitle());
-	string location(info.getLocation());
-	string type(removeCharsetFromType(info.getType()));
-	string externalId(info.getOther("id"));
+	string title(docInfo.getTitle());
+	string location(docInfo.getLocation());
+	string type(removeCharsetFromType(docInfo.getType()));
 	Url urlObj(location);
 
 	// Add a magic term :-)
@@ -636,10 +638,10 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 	}
 
 	// Index the full URL with prefix U
-	doc.add_term(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(info.getLocation(true)), true));
+	doc.add_term(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(docInfo.getLocation(true)), true));
 	// ...the base file with XFILE:
 	if ((urlObj.isLocal() == true) &&
-		(info.getInternalPath().empty() == false))
+		(docInfo.getInternalPath().empty() == false))
 	{
 		string protocol(urlObj.getProtocol());
 
@@ -730,15 +732,23 @@ void XapianIndex::addCommonTerms(const DocumentInfo &info, Xapian::Document &doc
 		doc.add_term(string("XCLASS:") + type.substr(0, slashPos));
 	}
 	// Others
-	if (externalId.empty() == false)
+	if (g_pMapper != NULL)
 	{
-		doc.add_term(string("Q") + XapianDatabase::limitTermLength(externalId));
+		map<string, string> prefixedTerms;
+
+		g_pMapper->mapTerms(docInfo, prefixedTerms);
+
+		for (map<string, string>::const_iterator termIter = prefixedTerms.begin();
+			termIter != prefixedTerms.end(); ++termIter)
+		{
+			doc.add_term(termIter->second + XapianDatabase::limitTermLength(termIter->first));
+		}
 	}
 }
 
 void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::WritableDatabase &db)
 {
-	DocumentInfo info;
+	DocumentInfo docInfo;
 	set<string> commonTerms;
 	string record(doc.get_data());
 
@@ -751,13 +761,13 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 		return;
 	}
 
-	XapianDatabase::recordToProps(record, &info);
+	XapianDatabase::recordToProps(record, &docInfo);
 	// XapianDatabase expects the language in English, which is okay here
-	string language(info.getLanguage());
-	Url urlObj(info.getLocation());
+	string language(docInfo.getLanguage());
+	Url urlObj(docInfo.getLocation());
 
 	// FIXME: remove terms extracted from the title if they don't have more than one posting
-	string title(info.getTitle());
+	string title(docInfo.getTitle());
 	if (title.empty() == false)
 	{
 		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, db, "S",
@@ -765,11 +775,11 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 	}
 
 	// Location 
-	string location(info.getLocation());
-	commonTerms.insert(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(info.getLocation(true)), true));
+	string location(docInfo.getLocation());
+	commonTerms.insert(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(docInfo.getLocation(true)), true));
 	// Base file
 	if ((urlObj.isLocal() == true) &&
-		(info.getInternalPath().empty() == false))
+		(docInfo.getInternalPath().empty() == false))
 	{
 		string protocol(urlObj.getProtocol());
 
@@ -853,7 +863,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 	// Language code
 	commonTerms.insert(string("L") + Languages::toCode(language));
 	// MIME type
-	string type(removeCharsetFromType(info.getType()));
+	string type(removeCharsetFromType(docInfo.getType()));
 	commonTerms.insert(string("T") + type);
 	string::size_type slashPos = type.find('/');
 	if (slashPos != string::npos)
@@ -861,10 +871,17 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 		commonTerms.insert(string("XCLASS:") + type.substr(0, slashPos));
 	}
 	// Others
-	string externalId(info.getOther("id"));
-	if (externalId.empty() == false)
+	if (g_pMapper != NULL)
 	{
-		commonTerms.insert(string("Q") + XapianDatabase::limitTermLength(externalId));
+		map<string, string> prefixedTerms;
+
+		g_pMapper->mapTerms(docInfo, prefixedTerms);
+
+		for (map<string, string>::const_iterator termIter = prefixedTerms.begin();
+			termIter != prefixedTerms.end(); ++termIter)
+		{
+			commonTerms.insert(termIter->second + XapianDatabase::limitTermLength(termIter->first));
+		}
 	}
 
 	for (set<string>::const_iterator termIter = commonTerms.begin(); termIter != commonTerms.end(); ++termIter)
@@ -946,10 +963,10 @@ string XapianIndex::scanDocument(const string &suggestedLanguage,
 	return language;
 }
 
-void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &doc,
+void XapianIndex::setDocumentData(const DocumentInfo &docInfo, Xapian::Document &doc,
 	const string &language) const
 {
-	time_t timeT = TimeConverter::fromTimestamp(info.getTimestamp());
+	time_t timeT = TimeConverter::fromTimestamp(docInfo.getTimestamp());
 	struct tm *tm = localtime(&timeT);
 	string yyyymmdd(TimeConverter::toYYYYMMDDString(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday));
 	string hhmmss(TimeConverter::toHHMMSSString(tm->tm_hour, tm->tm_min, tm->tm_sec));
@@ -958,13 +975,13 @@ void XapianIndex::setDocumentData(const DocumentInfo &info, Xapian::Document &do
 	doc.add_value(0, yyyymmdd);
 	// FIXME: checksum in value 1
 	// Size
-	doc.add_value(2, Xapian::sortable_serialise((double )info.getSize()));
+	doc.add_value(2, Xapian::sortable_serialise((double )docInfo.getSize()));
 	// Time
 	doc.add_value(3, hhmmss);
 	// Date and time, for results sorting
 	doc.add_value(4, yyyymmdd + hhmmss);
 
-	DocumentInfo docCopy(info);
+	DocumentInfo docCopy(docInfo);
 	// XapianDatabase expects the language in English, which is okay here
 	docCopy.setLanguage(language);
 	doc.set_data(XapianDatabase::propsToRecord(&docCopy));
@@ -1112,7 +1129,7 @@ string XapianIndex::getLocation(void) const
 }
 
 /// Returns a document's properties.
-bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &info) const
+bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) const
 {
 	bool foundDocument = false;
 
@@ -1139,9 +1156,9 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &info) const
 			// Get the current document data
 			if (record.empty() == false)
 			{
-				XapianDatabase::recordToProps(record, &info);
+				XapianDatabase::recordToProps(record, &docInfo);
 				// XapianDatabase stored the language in English
-				info.setLanguage(Languages::toLocale(info.getLanguage()));
+				docInfo.setLanguage(Languages::toLocale(docInfo.getLanguage()));
 				foundDocument = true;
 			}
 		}
@@ -1260,7 +1277,7 @@ bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string>
 				gotTerms = true;
 			}
 
-			// Append terms without positional information as if they were at the end of the document
+			// Append terms without positional docInformation as if they were at the end of the document
 			for (vector<string>::const_iterator noPosIter = noPosTerms.begin();
 				noPosIter != noPosTerms.end(); ++noPosIter)
 			{
@@ -1803,19 +1820,19 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	}
 
 	// Cache the document's properties
-	DocumentInfo info(document);
-	info.setLocation(Url::canonicalizeUrl(document.getLocation()));
+	DocumentInfo docInfo(document);
+	docInfo.setLocation(Url::canonicalizeUrl(document.getLocation()));
 
 	unsigned int dataLength = 0;
 	const char *pData = document.getData(dataLength);
 
 	// Don't scan the document if a language is specified
-	m_stemLanguage = Languages::toEnglish(info.getLanguage());
+	m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
 	if ((pData != NULL) &&
 		(dataLength > 0))
 	{
 		m_stemLanguage = scanDocument(m_stemLanguage, pData, dataLength);
-		info.setLanguage(Languages::toLocale(m_stemLanguage));
+		docInfo.setLanguage(Languages::toLocale(m_stemLanguage));
 	}
 
 	try
@@ -1827,7 +1844,7 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 			Xapian::termcount termPos = 0;
 
 			// Populate the Xapian document
-			addCommonTerms(info, doc, *pIndex, termPos);
+			addCommonTerms(docInfo, doc, *pIndex, termPos);
 			if ((pData != NULL) &&
 				(dataLength > 0))
 			{
@@ -1836,14 +1853,14 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 					false, m_doSpelling, termPos);
 			}
 #ifdef DEBUG
-			cout << "XapianIndex::indexDocument: " << labels.size() << " labels for URL " << info.getLocation(true) << endl;
+			cout << "XapianIndex::indexDocument: " << labels.size() << " labels for URL " << docInfo.getLocation(true) << endl;
 #endif
 
 			// Add labels
 			addLabelsToDocument(doc, labels, false);
 
 			// Set data
-			setDocumentData(info, doc, m_stemLanguage);
+			setDocumentData(docInfo, doc, m_stemLanguage);
 
 			// Add this document to the Xapian index
 			docId = pIndex->add_document(doc);
@@ -1876,19 +1893,19 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 	}
 
 	// Cache the document's properties
-	DocumentInfo info(document);
-	info.setLocation(Url::canonicalizeUrl(document.getLocation()));
+	DocumentInfo docInfo(document);
+	docInfo.setLocation(Url::canonicalizeUrl(document.getLocation()));
 
 	unsigned int dataLength = 0;
 	const char *pData = document.getData(dataLength);
 
 	// Don't scan the document if a language is specified
-	m_stemLanguage = Languages::toEnglish(info.getLanguage());
+	m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
 	if ((pData != NULL) &&
 		(dataLength > 0))
 	{
 		m_stemLanguage = scanDocument(m_stemLanguage, pData, dataLength);
-		info.setLanguage(Languages::toLocale(m_stemLanguage));
+		docInfo.setLanguage(Languages::toLocale(m_stemLanguage));
 	}
 
 	Xapian::WritableDatabase *pIndex = NULL;
@@ -1907,7 +1924,7 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 			Xapian::termcount termPos = 0;
 
 			// Populate the Xapian document
-			addCommonTerms(info, doc, *pIndex, termPos);
+			addCommonTerms(docInfo, doc, *pIndex, termPos);
 			if ((pData != NULL) &&
 				(dataLength > 0))
 			{
@@ -1920,7 +1937,7 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 			addLabelsToDocument(doc, labels, false);
 
 			// Set data
-			setDocumentData(info, doc, m_stemLanguage);
+			setDocumentData(docInfo, doc, m_stemLanguage);
 
 			// Update the document in the database
 			pIndex->replace_document(docId, doc);
@@ -1944,7 +1961,7 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 }
 
 /// Updates a document's properties.
-bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &info)
+bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docInfo)
 {
 	bool updated = false;
 
@@ -1969,10 +1986,10 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &inf
 			Xapian::termcount termPos = 0;
 
 			// Update the document data with the current language
-			m_stemLanguage = Languages::toEnglish(info.getLanguage());
+			m_stemLanguage = Languages::toEnglish(docInfo.getLanguage());
 			removeCommonTerms(doc, *pIndex);
-			addCommonTerms(info, doc, *pIndex, termPos);
-			setDocumentData(info, doc, m_stemLanguage);
+			addCommonTerms(docInfo, doc, *pIndex, termPos);
+			setDocumentData(docInfo, doc, m_stemLanguage);
 
 			pIndex->replace_document(docId, doc);
 			updated = true;

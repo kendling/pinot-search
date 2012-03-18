@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2008 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include "Visibility.h"
+#include "FieldMapperInterface.h"
 #include "ModuleProperties.h"
 #include "XapianDatabaseFactory.h"
 #include "XapianEngine.h"
@@ -37,8 +38,11 @@ extern "C"
 		const string &firstDatabaseName, const string &secondDatabaseName);
 	PINOT_EXPORT IndexInterface *getIndex(const string &databaseName);
 	PINOT_EXPORT SearchEngineInterface *getSearchEngine(const string &databaseName);
+	PINOT_EXPORT void setFieldMapper(FieldMapperInterface *pMapper);
 	PINOT_EXPORT void closeAll(void);
 }
+
+FieldMapperInterface *g_pMapper = NULL;
 
 ModuleProperties *getModuleProperties(void)
 {
@@ -88,6 +92,11 @@ IndexInterface *getIndex(const string &databaseName)
 SearchEngineInterface *getSearchEngine(const string &databaseName)
 {
 	return new XapianEngine(databaseName);
+}
+
+void setFieldMapper(FieldMapperInterface *pMapper)
+{
+	g_pMapper = pMapper;
 }
 
 void closeAll(void)
