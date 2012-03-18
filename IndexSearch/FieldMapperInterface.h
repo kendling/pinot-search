@@ -32,7 +32,7 @@ class PINOT_EXPORT FieldMapperInterface
 		FieldMapperInterface(const FieldMapperInterface &other) {};
 		virtual ~FieldMapperInterface() {};
 
-		/// Maps to terms and their prefixes.
+		/// Maps the document to terms and their prefixes.
 		virtual void mapTerms(const DocumentInfo &docInfo,
 			std::map<std::string, std::string> &prefixedTerms) = 0;
 
@@ -43,6 +43,12 @@ class PINOT_EXPORT FieldMapperInterface
 		/// Retrieves terms from record data.
 		virtual void fromRecord(DocumentInfo *pDocInfo,
 			const std::string &record) = 0;
+
+		/// Returns whether terms with the prefix this filter corresponds to were escaped.
+		virtual bool isEscaped(const std::string &filterName) = 0;
+
+		/// Returns boolean query filters and their prefixes.
+		virtual void getBooleanFilters(std::map<std::string, std::string> &filters) = 0;
 
 	protected:
 		FieldMapperInterface() { };

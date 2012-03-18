@@ -34,6 +34,7 @@
 #include "Timer.h"
 #include "Url.h"
 #include "CJKVTokenizer.h"
+#include "FieldMapperInterface.h"
 #include "XapianDatabaseFactory.h"
 #include "AbstractGenerator.h"
 #include "XapianEngine.h"
@@ -48,6 +49,8 @@ using std::inserter;
 using std::getline;
 using std::ifstream;
 using namespace Dijon;
+
+extern FieldMapperInterface *g_pMapper;
 
 static void checkFilter(const string &freeQuery, string::size_type filterValueStart,
 	bool &escapeValue, bool &hashValue)
@@ -81,6 +84,10 @@ static void checkFilter(const string &freeQuery, string::size_type filterValueSt
 	else if (filterName == "label")
 	{
 		escapeValue = true;
+	}
+	else if (g_pMapper != NULL)
+	{
+		escapeValue = g_pMapper->isEscaped(filterName);
 	}
 }
 
@@ -697,6 +704,18 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	parser.add_boolean_prefix("class", "XCLASS:");
 	parser.add_boolean_prefix("label", "XLABEL:");
 	parser.add_boolean_prefix("tokens", "XTOK:");
+	if (g_pMapper != NULL)
+	{
+		map<string, string> filters;
+
+		g_pMapper->getBooleanFilters(filters);
+
+		for (map<string, string>::const_iterator filterIter = filters.begin();
+			filterIter != filters.end(); ++filterIter)
+		{
+			parser.add_boolean_prefix(filterIter->first, filterIter->second);
+		}
+	}
 
 	// Date range
 	Xapian::DateValueRangeProcessor dateProcessor(0);
