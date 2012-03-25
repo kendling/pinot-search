@@ -894,6 +894,17 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 #endif
 		}
 
+		// Collapse results ?
+		if (g_pMapper != NULL)
+		{
+			unsigned int valueNumber;
+
+			if (g_pMapper->collapseOnValue(valueNumber) == true)
+			{
+				enquire.set_collapse_key(valueNumber, 1);
+			}
+		}
+
 		// Get the top results of the query
 		Xapian::MSet matches = enquire.get_mset(startDoc, maxResultsCount, (2 * maxResultsCount) + 1);
 		m_resultsCountEstimate = matches.get_matches_estimated();

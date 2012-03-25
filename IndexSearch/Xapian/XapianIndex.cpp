@@ -56,6 +56,7 @@ using std::set;
 using std::map;
 using std::min;
 using std::max;
+using std::pair;
 
 extern FieldMapperInterface *g_pMapper;
 
@@ -734,11 +735,11 @@ void XapianIndex::addCommonTerms(const DocumentInfo &docInfo, Xapian::Document &
 	// Others
 	if (g_pMapper != NULL)
 	{
-		map<string, string> prefixedTerms;
+		vector<pair<string, string> > prefixedTerms;
 
-		g_pMapper->mapTerms(docInfo, prefixedTerms);
+		g_pMapper->getTerms(docInfo, prefixedTerms);
 
-		for (map<string, string>::const_iterator termIter = prefixedTerms.begin();
+		for (vector<pair<string, string> >::const_iterator termIter = prefixedTerms.begin();
 			termIter != prefixedTerms.end(); ++termIter)
 		{
 			doc.add_term(termIter->second + XapianDatabase::limitTermLength(termIter->first));
@@ -873,11 +874,11 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 	// Others
 	if (g_pMapper != NULL)
 	{
-		map<string, string> prefixedTerms;
+		vector<pair<string, string> > prefixedTerms;
 
-		g_pMapper->mapTerms(docInfo, prefixedTerms);
+		g_pMapper->getTerms(docInfo, prefixedTerms);
 
-		for (map<string, string>::const_iterator termIter = prefixedTerms.begin();
+		for (vector<pair<string, string> >::const_iterator termIter = prefixedTerms.begin();
 			termIter != prefixedTerms.end(); ++termIter)
 		{
 			commonTerms.insert(termIter->second + XapianDatabase::limitTermLength(termIter->first));

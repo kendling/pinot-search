@@ -20,7 +20,9 @@
 #define _FIELD_MAPPER_INTERFACE_H
 
 #include <string>
+#include <vector>
 #include <map>
+#include <utility>
 
 #include "DocumentInfo.h"
 #include "Visibility.h"
@@ -32,9 +34,13 @@ class PINOT_EXPORT FieldMapperInterface
 		FieldMapperInterface(const FieldMapperInterface &other) {};
 		virtual ~FieldMapperInterface() {};
 
-		/// Maps the document to terms and their prefixes.
-		virtual void mapTerms(const DocumentInfo &docInfo,
-			std::map<std::string, std::string> &prefixedTerms) = 0;
+		/// Gets terms from the document and their prefixes.
+		virtual void getTerms(const DocumentInfo &docInfo,
+			std::vector<std::pair<std::string, std::string> > &prefixedTerms) = 0;
+
+		/// Gets values.
+		virtual void getValues(const DocumentInfo &docInfo,
+			std::map<unsigned int, std::string> &values) = 0;
 
 		/// Saves terms as record data.
 		virtual void toRecord(const DocumentInfo *pDocInfo,
@@ -49,6 +55,9 @@ class PINOT_EXPORT FieldMapperInterface
 
 		/// Returns boolean query filters and their prefixes.
 		virtual void getBooleanFilters(std::map<std::string, std::string> &filters) = 0;
+
+		/// Returns the valuenumber  to collapse on, if any.
+		virtual bool collapseOnValue(unsigned int &valueNumber) = 0;
 
 	protected:
 		FieldMapperInterface() { };
