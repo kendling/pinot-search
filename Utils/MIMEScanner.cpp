@@ -1017,3 +1017,22 @@ bool MIMEScanner::getDefaultActions(const string &mimeType, bool isLocal,
 	return foundAction;
 }
 
+string MIMEScanner::getDescription(const string &mimeType)
+{
+#ifdef USE_GIO
+	char *pDesc = g_content_type_get_description(mimeType.c_str());
+	if (pDesc != NULL)
+	{
+		string description(pDesc);
+
+		// Upper-case the first character
+		description[0] = (char)toupper((int)pDesc[0]);
+		g_free(pDesc);
+
+		return description;
+	}
+#endif
+
+	return mimeType;
+}
+

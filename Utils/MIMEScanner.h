@@ -140,6 +140,9 @@ class PINOT_EXPORT MIMEScanner
 		static bool getDefaultActions(const std::string &mimeType, bool isLocal,
 			std::vector<MIMEAction> &typeActions);
 
+		/// Returns a description for the given type.
+		static std::string getDescription(const std::string &mimeType);
+
 	protected:
 #ifndef USE_GIO
 		/// Mutex to protect access to xdgmime.
