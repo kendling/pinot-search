@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,6 +45,16 @@ struct ToLower
 		}
 };
 
+// A function object to upper case strings with for_each()
+struct ToUpper
+{
+	public:
+		void operator()(char &c)
+		{
+			c = (char)toupper((int)c);
+		}
+};
+
 StringManip::StringManip()
 {
 }
@@ -55,6 +65,16 @@ string StringManip::toLowerCase(const string &str)
 	string tmp(str);
 
 	for_each(tmp.begin(), tmp.end(), ToLower());
+
+	return tmp;
+}
+
+/// Converts to uppercase.
+string StringManip::toUpperCase(const string &str)
+{
+	string tmp(str);
+
+	for_each(tmp.begin(), tmp.end(), ToUpper());
 
 	return tmp;
 }

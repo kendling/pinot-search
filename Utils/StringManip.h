@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@ class PINOT_EXPORT StringManip
 	public:
 		/// Converts to lowercase.
 		static std::string toLowerCase(const std::string &str);
+
+		/// Converts to uppercase.
+		static std::string toUpperCase(const std::string &str);
 
 		/// Strips diacritics.
 		static std::string stripDiacritics(const std::string &str);
