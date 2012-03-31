@@ -53,8 +53,17 @@ ReducedAction::ReducedAction()
 {
 }
 
+ReducedAction::ReducedAction(const ReducedAction &other)
+{
+}
+
 ReducedAction::~ReducedAction()
 {
+}
+
+ReducedAction &ReducedAction::operator=(const ReducedAction &other)
+{
+	return *this;
 }
 
 bool ReducedAction::positionFilter(const Document &doc, Dijon::Filter *pFilter)

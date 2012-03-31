@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2008 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,17 +31,16 @@ class PINOT_EXPORT ReducedAction
 {
 	public:
 		ReducedAction();
+		ReducedAction(const ReducedAction &other);
 		virtual ~ReducedAction();
+
+		ReducedAction &operator=(const ReducedAction &other);
 
 		virtual bool positionFilter(const Document &doc, Dijon::Filter *pFilter);
 
 		virtual bool isReduced(const Document &doc);
 
 		virtual bool takeAction(Document &doc, bool isNested) = 0;
-
-	private:
-		ReducedAction(const ReducedAction &other);
-		ReducedAction &operator=(const ReducedAction &other);
 
 };
 

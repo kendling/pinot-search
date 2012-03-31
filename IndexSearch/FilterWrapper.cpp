@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2009 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 #include "Url.h"
 #include "FilterFactory.h"
 #include "TextFilter.h"
-#include "FilterUtils.h"
 #include "FilterWrapper.h"
 
 using std::cout;
@@ -31,117 +30,105 @@ using std::string;
 using std::set;
 using namespace Dijon;
 
-class IndexAction : public ReducedAction
-{
-	public:
-		IndexAction(IndexInterface *pIndex, const set<string> &labels,
-			unsigned int docId, bool doUpdate) :
-			ReducedAction(),
-			m_pIndex(pIndex),
-			m_labels(labels),
-			m_docId(docId),
-			m_doUpdate(doUpdate)
-		{
-		}
-
-		virtual ~IndexAction()
-		{
-		}
-
-		virtual bool takeAction(Document &doc, bool isNested)
-		{
-			bool docSuccess = false;
-
-			if (m_pIndex == NULL)
-			{
-				return false;
-			}
-
-			// Nested documents can't be updated because they are unindexed
-			// and the ID is that of the base document anyway
-			if ((m_doUpdate == true) &&
-				(isNested == false))
-			{
-				docSuccess = m_pIndex->updateDocument(m_docId, doc);
-			}
-			else
-			{
-				unsigned int newDocId = m_docId;
-
-				docSuccess = m_pIndex->indexDocument(doc, m_labels, newDocId);
-				// Make sure we return the base document's ID, not the last nested document's ID
-				if (isNested == false)
-				{
-					m_docId = newDocId;
-				}
-			}
-
-			return docSuccess;
-		}
-
-		unsigned int getId(void) const
-		{
-			return m_docId;
-		}
-
-	public:
-		IndexInterface *m_pIndex;
-		const set<string> &m_labels;
-		unsigned int m_docId;
-		bool m_doUpdate;
-
-	private:
-		IndexAction(const IndexAction &other);
-		IndexAction &operator=(const IndexAction &other);
-
-};
-
-FilterWrapper::FilterWrapper(IndexInterface *pIndex) :
-	m_pIndex(pIndex)
+IndexAction::IndexAction(IndexInterface *pIndex) :
+	ReducedAction(),
+	m_pIndex(pIndex),
+	m_docId(0),
+	m_doUpdate(false)
 {
 }
 
-FilterWrapper::~FilterWrapper()
+IndexAction::IndexAction(const IndexAction &other) :
+	ReducedAction(other),
+	m_pIndex(other.m_pIndex),
+	m_labels(other.m_labels),
+	m_docId(other.m_docId),
+	m_doUpdate(other.m_doUpdate)
+{
+	
+}
+
+IndexAction::~IndexAction()
 {
 }
 
-bool FilterWrapper::indexDocument(const Document &doc, const set<string> &labels, unsigned int &docId)
+IndexAction &IndexAction::operator=(const IndexAction &other)
 {
-	string originalType(doc.getType());
+	ReducedAction::operator=(other);
+
+	if (this != &other)
+	{
+		m_pIndex = other.m_pIndex;
+		m_labels = other.m_labels;
+		m_docId = other.m_docId;
+		m_doUpdate = other.m_doUpdate;
+	}
+
+	return *this;
+}
+
+void IndexAction::setIndexingMode(const set<string> &labels)
+{
+	m_labels = labels;
+	m_docId = 0;
+	m_doUpdate = false;
+}
+
+void IndexAction::setUpdatingMode(unsigned int docId)
+{
+	m_labels.clear();
+	m_docId = docId;
+	m_doUpdate = true;
+}
+
+bool IndexAction::takeAction(Document &doc, bool isNested)
+{
+	bool docSuccess = false;
 
 	if (m_pIndex == NULL)
 	{
 		return false;
 	}
 
-	unindexNestedDocuments(doc.getLocation());
+	// Nested documents can't be updated because they are unindexed
+	// and the ID is that of the base document anyway
+	if ((m_doUpdate == true) &&
+		(isNested == false))
+	{
+		docSuccess = m_pIndex->updateDocument(m_docId, doc);
+	}
+	else
+	{
+		unsigned int newDocId = m_docId;
 
-	IndexAction action(m_pIndex, labels, docId, false);
+		docSuccess = m_pIndex->indexDocument(doc, m_labels, newDocId);
+		// Make sure we return the base document's ID, not the last nested document's ID
+		if (isNested == false)
+		{
+			m_docId = newDocId;
+		}
+	}
 
-	bool filteredDoc = FilterUtils::filterDocument(doc, originalType, action);
-	docId = action.getId();
-
-	return filteredDoc;
+	return docSuccess;
 }
 
-bool FilterWrapper::updateDocument(const Document &doc, unsigned int docId)
+unsigned int IndexAction::getId(void) const
 {
-	set<string> labels;
-	string originalType(doc.getType());
+	return m_docId;
+}
 
+bool IndexAction::unindexNestedDocuments(const string &url)
+{
 	if (m_pIndex == NULL)
 	{
 		return false;
 	}
 
-	unindexNestedDocuments(doc.getLocation());
-
-	IndexAction action(m_pIndex, labels, docId, true);
-
-	return FilterUtils::filterDocument(doc, originalType, action);
+	// Unindex all documents that stem from this file
+	return m_pIndex->unindexDocuments(url, IndexInterface::BY_FILE);
 }
 
-bool FilterWrapper::unindexDocument(const string &location)
+bool IndexAction::unindexDocument(const string &location)
 {
 	if (m_pIndex == NULL)
 	{
@@ -153,8 +140,44 @@ bool FilterWrapper::unindexDocument(const string &location)
 	return m_pIndex->unindexDocument(location);
 }
 
-bool FilterWrapper::unindexNestedDocuments(const string &url)
+FilterWrapper::FilterWrapper(IndexInterface *pIndex) :
+	m_action(pIndex)
 {
-	// Unindex all documents that stem from this file
-	return m_pIndex->unindexDocuments(url, IndexInterface::BY_FILE);
+}
+
+FilterWrapper::FilterWrapper(IndexAction &action) :
+	m_action(action)
+{
+}
+
+FilterWrapper::~FilterWrapper()
+{
+}
+
+bool FilterWrapper::indexDocument(const Document &doc, const set<string> &labels, unsigned int &docId)
+{
+	string originalType(doc.getType());
+
+	m_action.unindexNestedDocuments(doc.getLocation());
+	m_action.setIndexingMode(labels);
+
+	bool filteredDoc = FilterUtils::filterDocument(doc, originalType, m_action);
+	docId = m_action.getId();
+
+	return filteredDoc;
+}
+
+bool FilterWrapper::updateDocument(const Document &doc, unsigned int docId)
+{
+	string originalType(doc.getType());
+
+	m_action.unindexNestedDocuments(doc.getLocation());
+	m_action.setUpdatingMode(docId);
+
+	return FilterUtils::filterDocument(doc, originalType, m_action);
+}
+
+bool FilterWrapper::unindexDocument(const string &location)
+{
+	return m_action.unindexDocument(location);
 }
