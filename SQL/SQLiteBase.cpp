@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -93,9 +93,15 @@ string SQLiteRow::getColumn(unsigned int nColumn) const
 		{
 			return (const char*)pTextColumn;
 		}
+
+		// We may sometime not be able to get a column, eg a sum of 0 records will have type SQLITE_NULL
+		int columnType = sqlite3_column_type(m_pStatement, nColumn);
+		if (columnType != SQLITE_NULL)
+		{
 #ifdef DEBUG
-		clog << "SQLiteRow::getColumn: couldn't get column " << nColumn << endl;
+			clog << "SQLiteRow::getColumn: couldn't get column " << nColumn << ", type " << columnType << endl;
 #endif
+		}
 
 		return "";
 	}
@@ -122,7 +128,9 @@ SQLiteResults::SQLiteResults(char **results, unsigned long nRows, unsigned int n
 	SQLResults(nRows, nColumns),
 	m_results(results),
 	m_pStatement(NULL),
-	m_done(false)
+	m_done(false),
+	m_firstStep(true),
+	m_stepCode(SQLITE_BUSY)
 {
 	// Check we actually have results
 	if ((m_results == NULL) ||
@@ -137,8 +145,13 @@ SQLiteResults::SQLiteResults(sqlite3_stmt *pStatement) :
 	SQLResults(0, sqlite3_column_count(pStatement)),
 	m_results(NULL),
 	m_pStatement(pStatement),
-	m_done(false)
+	m_done(false),
+	m_firstStep(true),
+	m_stepCode(SQLITE_BUSY)
 {
+	// If the statement returns rows, this will get the first row
+	// If not, this will be evaluate and "complete" the statement
+	step();
 }
 
 SQLiteResults::~SQLiteResults()
@@ -151,6 +164,30 @@ SQLiteResults::~SQLiteResults()
 	{
 		rewind();
 	}
+}
+
+void SQLiteResults::step(void)
+{
+	if (m_pStatement == NULL)
+	{
+		return;
+	}
+
+	m_stepCode = SQLITE_BUSY;
+	while (m_stepCode == SQLITE_BUSY)
+	{
+		m_stepCode = sqlite3_step(m_pStatement);
+		if (m_stepCode == SQLITE_BUSY)
+		{
+			// Sleep roughly a sixth of a second, ie around 10 write operations
+			usleep(150000);
+		}
+	}
+}
+
+int SQLiteResults::getStepCode(void) const
+{
+	return m_stepCode;
 }
 
 bool SQLiteResults::hasMoreRows(void) const
@@ -187,15 +224,26 @@ SQLRow *SQLiteResults::nextRow(void)
 			return NULL;
 		}
 
-		int stepCode = sqlite3_step(m_pStatement);
-		if (stepCode == SQLITE_ROW)
+		if (m_firstStep == false)
+		{
+			step();
+		}
+		else
+		{
+			m_firstStep = false;
+		}
+		if (m_stepCode == SQLITE_ROW)
 		{
 			++m_nCurrentRow;
 			return new SQLiteRow(m_pStatement, m_nColumns);
 		}
-		else if (stepCode == SQLITE_DONE)
+		else if (m_stepCode == SQLITE_DONE)
 		{
 			m_done = true;
+		}
+		else
+		{
+			clog << "Failed to get next result row, error code " << m_stepCode << endl;
 		}
 
 		return NULL;
@@ -233,12 +281,7 @@ bool SQLiteResults::rewind(void)
 	SQLResults::rewind();
 	if (m_pStatement != NULL)
 	{
-		if (m_done == false)
-		{
-			// Complete the statement
-			sqlite3_step(m_pStatement);
-		}
-
+		// The constructor made sure that step() ran at least once
 		sqlite3_reset(m_pStatement);
 		m_done = false;
 	}
@@ -295,7 +338,7 @@ void SQLiteBase::executeSimpleStatement(const string &sql, int &execError)
 	{
 		if (errMsg != NULL)
 		{
-			clog << m_databaseName << ": " << errMsg << endl;
+			clog << m_databaseName << ": SQL <" << sql << "> failed with error " << execError << ": " << errMsg << endl;
 
 			sqlite3_free(errMsg);
 		}
@@ -324,27 +367,14 @@ void SQLiteBase::open(void)
 		}
 	}
 
-	if (m_pDatabase == NULL)
-	{
-		clog << "Couldn't open " << m_databaseName << endl;
-	}
-	else
+	if (m_pDatabase != NULL)
 	{
 		// Set up a busy handler
 		sqlite3_busy_handler(m_pDatabase, busyHandler, NULL);
 	}
-}
-
-void SQLiteBase::close(void)
-{
-	if (m_pDatabase != NULL)
+	else
 	{
-		for_each(m_statements.begin(), m_statements.end(),
-			DeleteStatementsFunc());
-		m_statements.clear();
-
-		sqlite3_close(m_pDatabase);
-		m_pDatabase = NULL;
+		clog << "Couldn't open " << m_databaseName << endl;
 	}
 }
 
@@ -400,6 +430,19 @@ bool SQLiteBase::alterTable(const string &tableName,
 	return executeSimpleStatement(sql);
 }
 
+void SQLiteBase::close(void)
+{
+	if (m_pDatabase != NULL)
+	{
+		for_each(m_statements.begin(), m_statements.end(),
+			DeleteStatementsFunc());
+		m_statements.clear();
+
+		sqlite3_close(m_pDatabase);
+		m_pDatabase = NULL;
+	}
+}
+
 bool SQLiteBase::beginTransaction(void)
 {
 	if ((m_pDatabase == NULL) ||
@@ -416,7 +459,7 @@ bool SQLiteBase::beginTransaction(void)
 		return true;
 	}
 
-	clog << m_databaseName << ": " << _("failed to begin transaction") << endl;
+	clog << m_databaseName << ": failed to begin transaction" << endl;
 
 	return false;
 }
@@ -443,6 +486,7 @@ bool SQLiteBase::rollbackTransaction(void)
 		}
 		if (execError != SQLITE_BUSY)
 		{
+			clog << m_databaseName << ": failed to rollback transaction with error " << execError << endl;
 			return false;
 		}
 
@@ -452,7 +496,7 @@ bool SQLiteBase::rollbackTransaction(void)
 	}
 	while (execError != SQLITE_OK);
 
-	clog << m_databaseName << ": " << _("failed to rollback transaction") << endl;
+	clog << m_databaseName << ": failed to rollback transaction" << endl;
 
 	return false;
 }
@@ -479,6 +523,7 @@ bool SQLiteBase::endTransaction(void)
 		}
 		if (execError != SQLITE_BUSY)
 		{
+			clog << m_databaseName << ": failed to end transaction with error " << execError << endl;
 			return false;
 		}
 
@@ -488,14 +533,13 @@ bool SQLiteBase::endTransaction(void)
 	}
 	while (execError != SQLITE_OK);
 
-	clog << m_databaseName << ": " << _("failed to end transaction") << endl;
+	clog << m_databaseName << ": failed to end transaction" << endl;
 
 	return false;
 }
 
 bool SQLiteBase::executeSimpleStatement(const string &sql)
 {
-	char *errMsg = NULL;
 	bool success = false;
 
 	if (sql.empty() == true)
@@ -550,7 +594,7 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	char *stringBuff = sqlite3_vmprintf(sqlFormat, ap);
 	if (stringBuff == NULL)
 	{
-		clog << m_databaseName << ": " << _("couldn't format SQL statement") << endl;
+		clog << m_databaseName << ": couldn't format SQL statement" << endl;
 
 		if (m_onDemand == true)
 		{
@@ -562,16 +606,18 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 	char **results;
 	char *errMsg;
 	int nRows, nColumns;
-	if (sqlite3_get_table(m_pDatabase,
+	int errorCode = sqlite3_get_table(m_pDatabase,
 		stringBuff,
 		&results,
 		&nRows,
 		&nColumns,
-		&errMsg) != SQLITE_OK)
+		&errMsg);
+
+	if (errorCode != SQLITE_OK)
 	{
 		if (errMsg != NULL)
 		{
-			clog << m_databaseName << ": SQL statement <" << stringBuff << "> failed: " << errMsg << endl;
+			clog << m_databaseName << ": SQL <" << stringBuff << "> failed with error " << errorCode << ": " << errMsg << endl;
 
 			sqlite3_free(errMsg);
 		}
@@ -581,7 +627,6 @@ SQLResults *SQLiteBase::executeStatement(const char *sqlFormat, ...)
 		pResults = new SQLiteResults(results, (unsigned long)nRows, (unsigned int)nColumns);
 	}
 	va_end(ap);
-	sqlite3_free(stringBuff);
 
 	if (m_onDemand == true)
 	{
@@ -619,9 +664,6 @@ bool SQLiteBase::prepareStatement(const string &statementId,
 	{
 		if (pStatement != NULL)
 		{
-#ifdef DEBUG
-			clog << "SQLiteBase::prepareStatement: compiled SQL statement ID " << statementId << endl;
-#endif
 			m_statements.insert(pair<string, sqlite3_stmt*>(statementId, pStatement));
 			return true;
 		}
@@ -632,7 +674,7 @@ bool SQLiteBase::prepareStatement(const string &statementId,
 	return false;
 }
 
-SQLResults * SQLiteBase::executePreparedStatement(const string &statementId,
+SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
 	const vector<string> &values)
 {
 	int paramIndex = 1;
@@ -655,12 +697,21 @@ SQLResults * SQLiteBase::executePreparedStatement(const string &statementId,
 			valueIter->c_str(), -1, SQLITE_TRANSIENT);
 		if (errorCode != SQLITE_OK)
 		{
-			clog << m_databaseName << ": failed to bind parameter " << paramIndex
-				<< " to SQL statement ID " << statementId << ": error " << errorCode << endl;
+			clog << m_databaseName << ": failed to bind parameter to statement "
+				<< statementId << " (" << paramIndex << "/" << *valueIter
+				<< ") with error " << errorCode << endl;
 			return NULL;
 		}
 	}
 
-	return new SQLiteResults(statIter->second);
+	SQLiteResults *pResults = new SQLiteResults(statIter->second);
+	if (pResults->getStepCode() == SQLITE_BUSY)
+	{
+		delete pResults;
+
+		return NULL;
+	}
+
+	return pResults;
 }
 

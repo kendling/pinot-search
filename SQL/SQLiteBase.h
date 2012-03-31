@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,6 +51,8 @@ class SQLiteResults : public SQLResults
 		SQLiteResults(sqlite3_stmt *pStatement);
 		virtual ~SQLiteResults();
 
+		int getStepCode(void) const;
+
 		virtual bool hasMoreRows(void) const;
 
 		virtual std::string getColumnName(unsigned int nColumn) const;
@@ -63,6 +65,10 @@ class SQLiteResults : public SQLResults
 		char **m_results;
 		sqlite3_stmt *m_pStatement;
 		bool m_done;
+		bool m_firstStep;
+		int m_stepCode;
+
+		void step(void);
 
 	private:
 		SQLiteResults(const SQLiteResults &other);
