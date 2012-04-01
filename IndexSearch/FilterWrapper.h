@@ -63,7 +63,7 @@ class PINOT_EXPORT FilterWrapper
 {
 	public:
 		FilterWrapper(IndexInterface *pIndex);
-		FilterWrapper(IndexAction &action);
+		FilterWrapper(IndexAction *pAction);
 		virtual ~FilterWrapper();
 
 		/// Indexes the given data.
@@ -77,7 +77,8 @@ class PINOT_EXPORT FilterWrapper
 		bool unindexDocument(const std::string &location);
 
 	protected:
-		IndexAction m_action;
+		IndexAction *m_pAction;
+		bool m_ownAction;
 
 	private:
 		FilterWrapper(const FilterWrapper &other);

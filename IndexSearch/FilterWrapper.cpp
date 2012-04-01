@@ -141,28 +141,40 @@ bool IndexAction::unindexDocument(const string &location)
 }
 
 FilterWrapper::FilterWrapper(IndexInterface *pIndex) :
-	m_action(pIndex)
+	m_pAction(new IndexAction(pIndex)),
+	m_ownAction(true)
 {
 }
 
-FilterWrapper::FilterWrapper(IndexAction &action) :
-	m_action(action)
+FilterWrapper::FilterWrapper(IndexAction *pAction) :
+	m_pAction(pAction),
+	m_ownAction(false)
 {
 }
 
 FilterWrapper::~FilterWrapper()
 {
+	if ((m_ownAction == true) &&
+		(m_pAction != NULL))
+	{
+		delete m_pAction;
+	}
 }
 
 bool FilterWrapper::indexDocument(const Document &doc, const set<string> &labels, unsigned int &docId)
 {
 	string originalType(doc.getType());
 
-	m_action.unindexNestedDocuments(doc.getLocation());
-	m_action.setIndexingMode(labels);
+	if (m_pAction == NULL)
+	{
+		return false;
+	}
 
-	bool filteredDoc = FilterUtils::filterDocument(doc, originalType, m_action);
-	docId = m_action.getId();
+	m_pAction->unindexNestedDocuments(doc.getLocation());
+	m_pAction->setIndexingMode(labels);
+
+	bool filteredDoc = FilterUtils::filterDocument(doc, originalType, *m_pAction);
+	docId = m_pAction->getId();
 
 	return filteredDoc;
 }
@@ -171,13 +183,23 @@ bool FilterWrapper::updateDocument(const Document &doc, unsigned int docId)
 {
 	string originalType(doc.getType());
 
-	m_action.unindexNestedDocuments(doc.getLocation());
-	m_action.setUpdatingMode(docId);
+	if (m_pAction == NULL)
+	{
+		return false;
+	}
 
-	return FilterUtils::filterDocument(doc, originalType, m_action);
+	m_pAction->unindexNestedDocuments(doc.getLocation());
+	m_pAction->setUpdatingMode(docId);
+
+	return FilterUtils::filterDocument(doc, originalType, *m_pAction);
 }
 
 bool FilterWrapper::unindexDocument(const string &location)
 {
-	return m_action.unindexDocument(location);
+	if (m_pAction == NULL)
+	{
+		return false;
+	}
+
+	return m_pAction->unindexDocument(location);
 }
