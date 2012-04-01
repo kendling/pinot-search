@@ -56,7 +56,7 @@ DIJON_FILTER_EXPORT bool get_filter_types(std::set<std::string> &mime_types)
 	mime_types.insert("image/png");
 	mime_types.insert("image/pgf");
 	mime_types.insert("image/x-fuji-raf");
-	mime_types.insert("image/gif ");
+	mime_types.insert("image/gif");
 	mime_types.insert("image/x-photoshop");
 	mime_types.insert("image/targa");
 	mime_types.insert("image/x-ms-bmp");
