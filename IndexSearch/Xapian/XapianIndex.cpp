@@ -196,9 +196,6 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 					string::size_type startPos = 0;
 					bool addRemainder = true;
 
-#ifdef DEBUG
-					cout << "TokensIndexer::handle_token: found dots in " << term << endl;
-#endif
 					while (dotPos != string::npos)
 					{
 						string component(term.substr(startPos, dotPos - startPos));

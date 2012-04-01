@@ -649,9 +649,6 @@ bool SQLiteBase::prepareStatement(const string &statementId,
 	map<string, sqlite3_stmt*>::iterator statIter = m_statements.find(statementId);
 	if (statIter != m_statements.end())
 	{
-#ifdef DEBUG
-		clog << "SQLiteBase::prepareStatement: already compiled SQL statement ID " << statementId << endl;
-#endif
 		return true;
 	}
 
