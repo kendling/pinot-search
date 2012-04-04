@@ -283,10 +283,12 @@ void XapianDatabase::openDatabase(void)
 		}
 		createDatabase = true;
 	}
-	else if (!S_ISDIR(dbStat.st_mode))
+	// Else, databases may be directories or file-based stub databases
+	else if ((!S_ISDIR(dbStat.st_mode)) &&
+		(!S_ISREG(dbStat.st_mode)))
 	{
 		cerr << "XapianDatabase::openDatabase: " << m_databaseName
-			<< " is not a directory" << endl;
+			<< " is neither a directory nor a file" << endl;
 		return;
 	}
 

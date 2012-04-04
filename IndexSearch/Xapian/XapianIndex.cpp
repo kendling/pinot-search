@@ -978,6 +978,18 @@ void XapianIndex::setDocumentData(const DocumentInfo &docInfo, Xapian::Document 
 	doc.add_value(3, hhmmss);
 	// Date and time, for results sorting
 	doc.add_value(4, yyyymmdd + hhmmss);
+	// Any custom value ?
+	if (g_pMapper != NULL)
+	{
+		map<unsigned int, string> values;
+
+		g_pMapper->getValues(docInfo, values);
+		for (map<unsigned int, string>::const_iterator valIter = values.begin();
+			valIter != values.end(); ++valIter)
+		{
+			doc.add_value(valIter->first, valIter->second);
+		}
+	}
 
 	DocumentInfo docCopy(docInfo);
 	// XapianDatabase expects the language in English, which is okay here
