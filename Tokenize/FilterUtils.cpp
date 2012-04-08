@@ -544,12 +544,20 @@ bool FilterUtils::filterDocument(const Document &doc, const string &originalType
 			break;
 		}
 
+		const DocumentInfo *pInfo = dynamic_cast<const DocumentInfo*>(&doc);
 		string originalTitle(doc.getTitle());
-		Document filteredDoc(originalTitle, doc.getLocation(), "text/plain", doc.getLanguage());
 
-		filteredDoc.setInternalPath(doc.getInternalPath());
-		filteredDoc.setTimestamp(doc.getTimestamp());
-		filteredDoc.setSize(doc.getSize());
+		if (pInfo == NULL)
+		{
+#ifdef DEBUG
+			cout << "FilterUtils::filterDocument: couldn't duplicate document information" << endl;
+#endif
+			break;
+		}
+
+		Document filteredDoc(*pInfo);
+
+		filteredDoc.setType("text/plain");
 		docSuccess = false;
 
 		if (populateDocument(filteredDoc, pFilter) == false)

@@ -55,6 +55,8 @@ class LastIPathAction : public ReducedAction
 				cout << "LastIPathAction::positionFilter: moving filter for "
 					<< pFilter->get_mime_type() << " to " << thisIPath << endl;
 #endif
+				pFilter->set_property(Dijon::Filter::OPERATING_MODE, "view");
+
 				// Skip forward
 				pFilter->skip_to_document(thisIPath);
 			}
