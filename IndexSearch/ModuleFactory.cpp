@@ -57,8 +57,8 @@ typedef SearchEngineInterface *(getSearchEngineFunc)(const string &);
 typedef void (setFieldMapperFunc)(FieldMapperInterface *pMapper);
 typedef void (closeAllFunc)(void);
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::map;
@@ -150,7 +150,7 @@ IndexInterface *ModuleFactory::getLibraryIndex(const string &type, const string 
 	}
 #endif
 #ifdef DEBUG
-	cout << "ModuleFactory::getLibraryIndex: couldn't find export getIndex" << endl;
+	clog << "ModuleFactory::getLibraryIndex: couldn't find export getIndex" << endl;
 #endif
 
 	return NULL;
@@ -180,7 +180,7 @@ SearchEngineInterface *ModuleFactory::getLibrarySearchEngine(const string &type,
 	}
 #endif
 #ifdef DEBUG
-	cout << "ModuleFactory::getLibrarySearchEngine: couldn't find export getSearchEngine" << endl;
+	clog << "ModuleFactory::getLibrarySearchEngine: couldn't find export getSearchEngine" << endl;
 #endif
 
 	return NULL;
@@ -201,7 +201,7 @@ unsigned int ModuleFactory::loadModules(const string &directory)
 	if ((stat(directory.c_str(), &fileStat) == -1) ||
 		(!S_ISDIR(fileStat.st_mode)))
 	{
-		cerr << "ModuleFactory::loadModules: " << directory << " is not a directory" << endl;
+		clog << "ModuleFactory::loadModules: " << directory << " is not a directory" << endl;
 		return 0;
 	}
 
@@ -271,17 +271,17 @@ unsigned int ModuleFactory::loadModules(const string &directory)
 							// Add a record for this module
 							m_types.insert(pair<string, LoadableModule>(moduleType, module));
 #ifdef DEBUG
-							cout << "ModuleFactory::loadModules: " << moduleType
+							clog << "ModuleFactory::loadModules: " << moduleType
 								<< " is supported by " << pEntryName << endl;
 #endif
 						}
 					}
-					else cerr << "ModuleFactory::loadModules: " << dlerror() << endl;
+					else clog << "ModuleFactory::loadModules: " << dlerror() << endl;
 				}
-				else cerr << "ModuleFactory::loadModules: " << dlerror() << endl;
+				else clog << "ModuleFactory::loadModules: " << dlerror() << endl;
 			}
 #ifdef DEBUG
-			else cout << "ModuleFactory::loadModules: "
+			else clog << "ModuleFactory::loadModules: "
 				<< pEntryName << " is not a file" << endl;
 #endif
 		}
@@ -321,7 +321,7 @@ bool ModuleFactory::openOrCreateIndex(const string &type, const string &option,
 	}
 #endif
 #ifdef DEBUG
-	cout << "ModuleFactory::openOrCreateIndex: couldn't find export openOrCreateIndex" << endl;
+	clog << "ModuleFactory::openOrCreateIndex: couldn't find export openOrCreateIndex" << endl;
 #endif
 
 	return false;
@@ -353,7 +353,7 @@ bool ModuleFactory::mergeIndexes(const string &type, const string &option0,
 	}
 #endif
 #ifdef DEBUG
-	cout << "ModuleFactory::mergeIndexes: couldn't find export mergeIndexes" << endl;
+	clog << "ModuleFactory::mergeIndexes: couldn't find export mergeIndexes" << endl;
 #endif
 
 	return false;
@@ -368,7 +368,7 @@ IndexInterface *ModuleFactory::getIndex(const string &type, const string &option
 	if (type.substr(0, 5) == "dbus-")
 	{
 #ifdef DEBUG
-		cout << "ModuleFactory::mergeIndexes: sub-type " << type.substr(5) << endl;
+		clog << "ModuleFactory::mergeIndexes: sub-type " << type.substr(5) << endl;
 #endif
 		pIndex = getLibraryIndex(type.substr(5), option);
 		if (pIndex != NULL)
@@ -508,7 +508,7 @@ void ModuleFactory::setFieldMapper(FieldMapperInterface *pMapper)
 			(*pFunc)(pMapper);
 		}
 #ifdef DEBUG
-		else cout << "ModuleFactory::setFieldMapper: couldn't find export setFieldMapper" << endl;
+		else clog << "ModuleFactory::setFieldMapper: couldn't find export setFieldMapper" << endl;
 #endif
 #endif
 	}
@@ -531,13 +531,13 @@ void ModuleFactory::unloadModules(void)
 			(*pFunc)();
 		}
 #ifdef DEBUG
-		else cout << "ModuleFactory::unloadModules: couldn't find export closeAll" << endl;
+		else clog << "ModuleFactory::unloadModules: couldn't find export closeAll" << endl;
 #endif
 
 		if (dlclose(pHandle) != 0)
 		{
 #ifdef DEBUG
-			cout << "ModuleFactory::unloadModules: failed on " << typeIter->first << endl;
+			clog << "ModuleFactory::unloadModules: failed on " << typeIter->first << endl;
 #endif
 		}
 #endif

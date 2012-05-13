@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ class INotifyMonitor : public MonitorInterface
 		/// Adds a watch for the specified location.
 		virtual bool addLocation(const std::string &location, bool isDirectory);
 
-		/// Removed the watch for the specified location.
+		/// Removes the watch for the specified location.
 		virtual bool removeLocation(const std::string &location);
 
 		/// Retrieves pending events.

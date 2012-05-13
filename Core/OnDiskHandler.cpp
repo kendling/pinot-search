@@ -73,7 +73,7 @@ bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFile
 	bool handledEvent = false;
 
 #ifdef DEBUG
-	cout << "OnDiskHandler::fileMoved: " << fileName << endl;
+	clog << "OnDiskHandler::fileMoved: " << fileName << endl;
 #endif
 	if (m_pIndex == NULL)
 	{
@@ -104,7 +104,7 @@ bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFile
 			DocumentInfo docInfo;
 
 #ifdef DEBUG
-			cout << "OnDiskHandler::fileMoved: moving " << *iter << endl;
+			clog << "OnDiskHandler::fileMoved: moving " << *iter << endl;
 #endif
 			if (m_pIndex->getDocumentInfo(*iter, docInfo) == true)
 			{
@@ -131,17 +131,17 @@ bool OnDiskHandler::fileMoved(const string &fileName, const string &previousFile
 
 					handledEvent = replaceFile(*iter, docInfo);
 #ifdef DEBUG
-					cout << "OnDiskHandler::fileMoved: moved " << *iter << ", " << docInfo.getLocation() << endl;
+					clog << "OnDiskHandler::fileMoved: moved " << *iter << ", " << docInfo.getLocation() << endl;
 #endif
 				}
 #ifdef DEBUG
-				else cout << "OnDiskHandler::fileMoved: skipping " << newLocation << endl;
+				else clog << "OnDiskHandler::fileMoved: skipping " << newLocation << endl;
 #endif
 			}
 		}
 	}
 #ifdef DEBUG
-	else cout << "OnDiskHandler::fileMoved: no documents in " << previousFileName << endl;
+	else clog << "OnDiskHandler::fileMoved: no documents in " << previousFileName << endl;
 #endif
 	pthread_mutex_unlock(&m_mutex);
 
@@ -155,7 +155,7 @@ bool OnDiskHandler::fileDeleted(const string &fileName, IndexInterface::NameType
 	bool unindexedDocs = false, handledEvent = false;
 
 #ifdef DEBUG
-	cout << "OnDiskHandler::fileDeleted: " << fileName << endl;
+	clog << "OnDiskHandler::fileDeleted: " << fileName << endl;
 #endif
 	if (m_pIndex == NULL)
 	{
@@ -223,14 +223,14 @@ bool OnDiskHandler::indexFile(const string &fileName, bool isDirectory, unsigned
 			// That's the one
 			labelStream << "X-SOURCE" << sourceIter->first;
 #ifdef DEBUG
-			cout << "OnDiskHandler::indexFile: source label for " << location << " is " << labelStream.str() << endl;
+			clog << "OnDiskHandler::indexFile: source label for " << location << " is " << labelStream.str() << endl;
 #endif
 			labels.insert(labelStream.str());
 			docInfo.setLabels(labels);
 			break;
 		}
 #ifdef DEBUG
-		else cout << "OnDiskHandler::indexFile: not " << sourceIter->second << endl;
+		else clog << "OnDiskHandler::indexFile: not " << sourceIter->second << endl;
 #endif
 	}
 
@@ -290,7 +290,7 @@ void OnDiskHandler::initialize(void)
 				labelStream << "X-SOURCE" << sourceId;
 
 #ifdef DEBUG
-				cout << "OnDiskHandler::initialize: " << sourceIter->second
+				clog << "OnDiskHandler::initialize: " << sourceIter->second
 					<< ", source " << sourceId << " was removed" << endl;
 #endif
 				// All documents with this label will be unindexed
@@ -303,7 +303,7 @@ void OnDiskHandler::initialize(void)
 				}
 			}
 #ifdef DEBUG
-			else cout << "OnDiskHandler::initialize: " << sourceIter->second
+			else clog << "OnDiskHandler::initialize: " << sourceIter->second
 				<< " is still configured" << endl;
 #endif
 		}
@@ -322,7 +322,7 @@ bool OnDiskHandler::fileCreated(const string &fileName)
 	bool handledEvent = false;
 
 #ifdef DEBUG
-	cout << "OnDiskHandler::fileCreated: " << fileName << endl;
+	clog << "OnDiskHandler::fileCreated: " << fileName << endl;
 #endif
 	pthread_mutex_lock(&m_mutex);
 	// The file may exist in the index
@@ -354,7 +354,7 @@ bool OnDiskHandler::directoryCreated(const string &dirName)
 	bool handledEvent = false;
 
 #ifdef DEBUG
-	cout << "OnDiskHandler::directoryCreated: " << dirName << endl;
+	clog << "OnDiskHandler::directoryCreated: " << dirName << endl;
 #endif
 	pthread_mutex_lock(&m_mutex);
 	handledEvent = indexFile(dirName, true, sourceId);
@@ -370,7 +370,7 @@ bool OnDiskHandler::fileModified(const string &fileName)
 	bool handledEvent = false;
 
 #ifdef DEBUG
-	cout << "OnDiskHandler::fileModified: " << fileName << endl;
+	clog << "OnDiskHandler::fileModified: " << fileName << endl;
 #endif
 	pthread_mutex_lock(&m_mutex);
 	// Update the file, or index if necessary

@@ -25,8 +25,8 @@
 #include "DocumentInfo.h"
 #include "XesamEngine.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::vector;
 
@@ -113,7 +113,7 @@ static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int hitN
 
 			// Use the first language specified, assuming it's in the locale
 #ifdef DEBUG
-			cout << "XesamEngine::pushHit: language " << language << endl;
+			clog << "XesamEngine::pushHit: language " << language << endl;
 #endif
 			docInfo.setLanguage(language);
 		}
@@ -149,7 +149,7 @@ static void pushHit(XesamGHit *pHit, vector<DocumentInfo> &resultsList, int hitN
 		docInfo.setScore((float )(100 - hitNum));
 	}
 #ifdef DEBUG
-	cout << "XesamEngine::pushHit: hit " << xesam_g_hit_get_id(pHit)
+	clog << "XesamEngine::pushHit: hit " << xesam_g_hit_get_id(pHit)
 		<< " on " << docInfo.getLocation() << endl;
 #endif
 
@@ -169,7 +169,7 @@ static void hitsReady(XesamGSearch *pSearch, XesamGHits *pHits, gpointer pUserDa
 	bool haveEnough = false;
 
 #ifdef DEBUG
-	cout << "XesamEngine::hitsReady: needing " << pData->m_requiredHitsCount
+	clog << "XesamEngine::hitsReady: needing " << pData->m_requiredHitsCount
 		<< " hits, got " << xesam_g_hits_get_count(pHits) << endl;
 #endif
 
@@ -202,7 +202,7 @@ static void searchDone(XesamGSearch *pSearch, gpointer pUserData)
 		return;
 	}
 #ifdef DEBUG
-	cout << "XesamEngine::searchDone: called" << endl;
+	clog << "XesamEngine::searchDone: called" << endl;
 #endif
 
 	CallbackData *pData = (CallbackData *)pUserData;
@@ -221,7 +221,7 @@ void abortTimer(gpointer pUserData)
 
 	CallbackData *pData = (CallbackData *)pUserData;
 
-	cerr << "Aborting Xesam query" << endl;
+	clog << "Aborting Xesam query" << endl;
 
 	// Stop
 	stopSearch(pData->m_pMainLoop);
@@ -322,11 +322,11 @@ bool XesamEngine::runQuery(QueryProperties& queryProps,
 		// Start
 		xesam_g_search_start(pSearch);
 #ifdef DEBUG
-		cout << "XesamEngine::runQuery: main loop start" << endl;
+		clog << "XesamEngine::runQuery: main loop start" << endl;
 #endif
 		g_main_loop_run(pMainLoop);
 #ifdef DEBUG
-		cout << "XesamEngine::runQuery: main loop end" << endl;
+		clog << "XesamEngine::runQuery: main loop end" << endl;
 #endif
 
 		// Stop

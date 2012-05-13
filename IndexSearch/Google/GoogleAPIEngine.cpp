@@ -25,8 +25,8 @@
 #include "GAPIGoogleSearchBindingProxy.h"
 #include "GAPI.nsmap"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 
 struct Namespace *namespaces;
@@ -98,7 +98,7 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps,
 
 	if (queryProps.getType() != QueryProperties::XAPIAN_QP)
 	{
-		cerr << "GoogleAPIEngine::runQuery: query type not supported" << endl;
+		clog << "GoogleAPIEngine::runQuery: query type not supported" << endl;
 		return false;
 	}
 
@@ -106,19 +106,19 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps,
 
 	if (m_key.empty() == true)
 	{
-		cerr << "GoogleAPIEngine::runQuery: no key" << endl;
+		clog << "GoogleAPIEngine::runQuery: no key" << endl;
 		return false;
 	}
 
 	if (queryString.empty() == true)
 	{
 #ifdef DEBUG
-		cout << "GoogleAPIEngine::runQuery: query is empty" << endl;
+		clog << "GoogleAPIEngine::runQuery: query is empty" << endl;
 #endif
 		return false;
 	}
 #ifdef DEBUG
-	cout << "GoogleAPIEngine::runQuery: query is " << queryString << endl;
+	clog << "GoogleAPIEngine::runQuery: query is " << queryString << endl;
 #endif
 
 	GoogleSearchBinding soapProxy;
@@ -129,7 +129,7 @@ bool GoogleAPIEngine::runQuery(QueryProperties& queryProps,
 		false, "", false, "", "utf-8", "utf-8", queryOut);
 	if (soapStatus != SOAP_OK)
 	{
-		cerr << "GoogleAPIEngine::runQuery: search failed with status " << soapStatus << endl;
+		clog << "GoogleAPIEngine::runQuery: search failed with status " << soapStatus << endl;
 		return false;
 	}
 

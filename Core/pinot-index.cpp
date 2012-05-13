@@ -70,7 +70,7 @@ class IndexingState : public ThreadsManager
 			m_onThreadEndSignal.connect(sigc::mem_fun(*this, &IndexingState::on_thread_end));
 		}
 
-		~IndexingState()
+		virtual ~IndexingState()
 		{
 		}
 
@@ -92,7 +92,7 @@ class IndexingState : public ThreadsManager
 			string type(pThread->getType());
 			bool isStopped = pThread->isStopped();
 #ifdef DEBUG
-			cout << "IndexingState::on_thread_end: end of thread " << type << " " << pThread->getId() << endl;
+			clog << "IndexingState::on_thread_end: end of thread " << type << " " << pThread->getId() << endl;
 #endif
 
 			// What type of thread was it ?
@@ -146,7 +146,7 @@ static void printHelp(void)
 	// Help
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
 	ModuleFactory::getSupportedEngines(engines);
-	cout << "pinot-index - Index documents from the command-line\n\n"
+	clog << "pinot-index - Index documents from the command-line\n\n"
 		<< "Usage: pinot-index [OPTIONS] --db DATABASE URLS\n\n"
 		<< "Options:\n"
 		<< "  -b, --backend             name of back-end to use (default " << PinotSettings::getInstance().m_defaultBackend << ")\n"
@@ -162,11 +162,11 @@ static void printHelp(void)
 		if ((engineIter->second == true) &&
 			(ModuleFactory::isSupported(engineIter->first.m_name, true) == true))
 		{
-			cout << " '" << engineIter->first.m_name << "'";
+			clog << " '" << engineIter->first.m_name << "'";
 		}
 	}
 	ModuleFactory::unloadModules();
-	cout << "\n\nExamples:\n"
+	clog << "\n\nExamples:\n"
 		<< "pinot-index --check --showinfo --backend xapian --db ~/.pinot/daemon ../Bozo.txt\n\n"
 		<< "pinot-index --index --db PinotOnTheWeb http://code.google.com/p/pinot-search/\n\n"
 		<< "Indexing documents to My Web Pages or My Documents with pinot-index is not recommended\n\n"
@@ -175,6 +175,12 @@ static void printHelp(void)
 
 static void closeAll(void)
 {
+	if (g_pState != NULL)
+	{
+		delete g_pState;
+		g_pState = NULL;
+	}
+
 	// Close everything
 	ModuleFactory::unloadModules();
 	DownloaderInterface::shutdown();
@@ -185,7 +191,7 @@ static void quitAll(int sigNum)
 {
 	if (g_refMainLoop->is_running() == true)
 	{
-		cout << "Quitting..." << endl;
+		clog << "Quitting..." << endl;
 
 		if (g_pState != NULL)
 		{
@@ -235,7 +241,7 @@ int main(int argc, char **argv)
 				showInfo = true;
 				break;
 			case 'v':
-				cout << "pinot-index - " << PACKAGE_STRING << "\n\n"
+				clog << "pinot-index - " << PACKAGE_STRING << "\n\n"
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
 					<< "the GNU General Public License <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n"
 					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
@@ -263,7 +269,7 @@ int main(int argc, char **argv)
 	if ((argc < 2) ||
 		(argc - optind == 0))
 	{
-		cerr << "Not enough parameters" << endl;
+		clog << "Not enough parameters" << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -271,7 +277,7 @@ int main(int argc, char **argv)
 		(checkDocument == false)) ||
 		(databaseName.empty() == true))
 	{
-		cerr << "Incorrect parameters" << endl;
+		clog << "Incorrect parameters" << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -294,7 +300,7 @@ int main(int argc, char **argv)
 	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
 		string(SHARED_MIME_INFO_PREFIX)) == false)
 	{
-		cerr << "Couldn't load MIME settings" << endl;
+		clog << "Couldn't load MIME settings" << endl;
 	}
 	DownloaderInterface::initialize();
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + string("/pinot/filters"));
@@ -356,7 +362,7 @@ int main(int argc, char **argv)
 	bool wasObsoleteFormat = false;
 	if (ModuleFactory::openOrCreateIndex(backendType, indexProps.m_location, wasObsoleteFormat, (indexDocument ? false : true)) == false)
 	{
-		cerr << "Couldn't open index " << indexProps.m_location << endl;
+		clog << "Couldn't open index " << indexProps.m_location << endl;
 
 		return EXIT_FAILURE;
 	}
@@ -366,7 +372,7 @@ int main(int argc, char **argv)
 	if ((historyDatabase.empty() == true) ||
 		(ActionQueue::create(historyDatabase) == false))
 	{
-		cerr << "Couldn't create history database " << historyDatabase << endl;
+		clog << "Couldn't create history database " << historyDatabase << endl;
 		return EXIT_FAILURE;
 	}
 	else
@@ -384,7 +390,7 @@ int main(int argc, char **argv)
 	IndexInterface *pIndex = ModuleFactory::getIndex(backendType, indexProps.m_location);
 	if (pIndex == NULL)
 	{
-		cerr << "Couldn't obtain index for " << indexProps.m_location << endl;
+		clog << "Couldn't obtain index for " << indexProps.m_location << endl;
 
 		return EXIT_FAILURE;
 	}
@@ -409,7 +415,7 @@ int main(int argc, char **argv)
 			urlParam += thisUrl.getFile();
 		}
 #ifdef DEBUG
-		cout << "URL rewritten to " << urlParam << endl;
+		clog << "URL rewritten to " << urlParam << endl;
 #endif
 
 		DocumentInfo docInfo("", urlParam, MIMEScanner::scanUrl(thisUrl), "");
@@ -424,7 +430,7 @@ int main(int argc, char **argv)
 				docId = pIndex->hasDocument(urlParam);
 				if (docId > 0)
 				{
-					cout << urlParam << ": document ID " << docId << endl;
+					clog << urlParam << ": document ID " << docId << endl;
 					success = true;
 				}
 				else if ((pIndex->listDocuments(urlParam, docIds, IndexInterface::BY_FILE, 100, 0) == true) &&
@@ -432,13 +438,13 @@ int main(int argc, char **argv)
 				{
 					docId = *(docIds.begin());
 
-					cout << urlParam << ": document ID " << docId
+					clog << urlParam << ": document ID " << docId
 						<< " and at least " << docIds.size() - 1 << " others" << endl;
 					success = true;
 				}
 				else
 				{
-					cout << urlParam << ": not found" << endl;
+					clog << urlParam << ": not found" << endl;
 				}
 			}
 		}
@@ -460,7 +466,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				cerr << status << endl;
+				clog << status << endl;
 			}
 
 			// Stop everything
@@ -477,20 +483,20 @@ int main(int argc, char **argv)
 		{
 			set<string> labels;
 
-			cout << "Index version       : " << pIndex->getMetadata("version") << endl;
+			clog << "Index version       : " << pIndex->getMetadata("version") << endl;
 
 			if (pIndex->getDocumentInfo(docId, docInfo) == true)
 			{
-				cout << "Location : '" << docInfo.getLocation(true) << "'" << endl;
-				cout << "Title    : " << docInfo.getTitle() << endl;
-				cout << "Type     : " << docInfo.getType() << endl;
-				cout << "Language : " << docInfo.getLanguage() << endl;
-				cout << "Date     : " << docInfo.getTimestamp() << endl;
-				cout << "Size     : " << docInfo.getSize() << endl;
+				clog << "Location : '" << docInfo.getLocation(true) << "'" << endl;
+				clog << "Title    : " << docInfo.getTitle() << endl;
+				clog << "Type     : " << docInfo.getType() << endl;
+				clog << "Language : " << docInfo.getLanguage() << endl;
+				clog << "Date     : " << docInfo.getTimestamp() << endl;
+				clog << "Size     : " << docInfo.getSize() << endl;
 			}
 			if (pIndex->getDocumentLabels(docId, labels) == true)
 			{
-				cout << "Labels   : ";
+				clog << "Labels   : ";
 				for (set<string>::const_iterator labelIter = labels.begin();
 					labelIter != labels.end(); ++labelIter)
 				{
@@ -498,9 +504,9 @@ int main(int argc, char **argv)
 					{
 						continue;
 					}
-					cout << "[" << Url::escapeUrl(*labelIter) << "]";
+					clog << "[" << Url::escapeUrl(*labelIter) << "]";
 				}
-				cout << endl;
+				clog << endl;
 			}
 
 			vector<MIMEAction> typeActions;
@@ -508,7 +514,7 @@ int main(int argc, char **argv)
 			for (vector<MIMEAction>::const_iterator actionIter = typeActions.begin();
 				actionIter != typeActions.end(); ++actionIter)
 			{
-				cout << "Action   : '" << actionIter->m_name << "' " << actionIter->m_exec << endl;
+				clog << "Action   : '" << actionIter->m_name << "' " << actionIter->m_exec << endl;
 			}
 		}
 
@@ -516,11 +522,6 @@ int main(int argc, char **argv)
 		++optind;
 	}
 	delete pIndex;
-	if (g_pState != NULL)
-	{
-		delete g_pState;
-		g_pState = NULL;
-	}
 
 	// Did whatever operation we carried out succeed ?
 	if (success == true)

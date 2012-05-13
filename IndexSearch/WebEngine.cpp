@@ -30,8 +30,8 @@
 #include "CJKVTokenizer.h"
 #include "WebEngine.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::set;
@@ -77,7 +77,7 @@ class TermHighlighter : public Dijon::CJKVTokenizer::TokensHandler
 				{
 					// Skip multi-character tokens
 #ifdef DEBUG
-					cout << "WebEngine::processResult: skipping " << tok << endl;
+					clog << "WebEngine::processResult: skipping " << tok << endl;
 #endif
 					return true;
 				}
@@ -159,7 +159,7 @@ Document *WebEngine::downloadPage(const DocumentInfo &docInfo)
 		{
 			m_charset = StringManip::removeQuotes(contentType.substr(pos + 8));
 #ifdef DEBUG
-			cout << "WebEngine::downloadPage: page charset is " << m_charset << endl;
+			clog << "WebEngine::downloadPage: page charset is " << m_charset << endl;
 #endif
 		}
 	}
@@ -250,11 +250,11 @@ bool WebEngine::processResult(const string &queryUrl, DocumentInfo &result)
 				resultUrl = Url::unescapeUrl(embeddedUrl);
 			}
 #ifdef DEBUG
-			else cout << "WebEngine::processResult: no embedded URL" << endl;
+			else clog << "WebEngine::processResult: no embedded URL" << endl;
 #endif
 		}
 #ifdef DEBUG
-		else cout << "WebEngine::processResult: no protocol" << endl;
+		else clog << "WebEngine::processResult: no protocol" << endl;
 #endif
 	}
 

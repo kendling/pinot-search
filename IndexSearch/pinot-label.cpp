@@ -44,9 +44,9 @@ static void printLabels(const set<string> &labels, const string &fileName)
 {
 	if (fileName.empty() == false)
 	{
-		cout << fileName << endl;
+		clog << fileName << endl;
 	}
-	cout << "Labels: ";
+	clog << "Labels: ";
 
 	for (set<string>::const_iterator labelIter = labels.begin();
 		labelIter != labels.end(); ++labelIter)
@@ -55,15 +55,15 @@ static void printLabels(const set<string> &labels, const string &fileName)
 		{
 			continue;
 		}
-		cout << "[" << Url::escapeUrl(*labelIter) << "]";
+		clog << "[" << Url::escapeUrl(*labelIter) << "]";
 	}
-	cout << endl;
+	clog << endl;
 }
 
 static void printHelp(void)
 {
 	// Help
-	cout << "pinot-label - Label files from the command-line\n\n"
+	clog << "pinot-label - Label files from the command-line\n\n"
 		<< "Usage: pinot-label [OPTIONS] [FILES]\n\n"
 		<< "Options:\n"
 		<< "  -g, --get                 get the labels list for the given file\n"
@@ -71,7 +71,7 @@ static void printHelp(void)
 		<< "  -l, --list                list known labels\n"
 		<< "  -s, --set                 set labels on the given file\n"
 		<< "  -v, --version             output version information and exit\n\n";
-	cout << "Examples:\n"
+	clog << "Examples:\n"
 		<< "pinot-label --get /home/fabrice/Documents/Bozo.txt\n\n"
 		<< "pinot-label --list\n\n"
 		<< "pinot-label --set \"[Clowns][Fun][My Hero]\" /home/fabrice/Documents/Bozo.txt\n\n"
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'v':
-				cout << "pinot-label - " << PACKAGE_STRING << "\n\n"
+				clog << "pinot-label - " << PACKAGE_STRING << "\n\n"
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
 					<< "the GNU General Public License <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n"
 					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
@@ -135,14 +135,14 @@ int main(int argc, char **argv)
 	if ((argc < 2) ||
 		(argc - optind < minArgNum))
 	{
-		cerr << "Not enough parameters" << endl;
+		clog << "Not enough parameters" << endl;
 		return EXIT_FAILURE;
 	}
 
 	if ((setDocumentLabels == true) &&
 		(labelsString.empty() == true))
 	{
-		cerr << "Incorrect parameters" << endl;
+		clog << "Incorrect parameters" << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 			urlParam += thisUrl.getFile();
 		}
 #ifdef DEBUG
-		cout << "URL rewritten to " << urlParam << endl;
+		clog << "URL rewritten to " << urlParam << endl;
 #endif
 
 		if ((getDocumentLabels == true) ||
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 			docId = index.hasDocument(urlParam);
 			if (docId == 0)
 			{
-				cerr << fileParam << " is not indexed" << endl;
+				clog << fileParam << " is not indexed" << endl;
 				success = false;
 
 				// Next

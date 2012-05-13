@@ -80,8 +80,8 @@ string NeonDownloader::handleRedirection(const char *pBody, unsigned int length)
 		if (linksSet.size() > 1)
 		{
 #ifdef DEBUG
-			cout << "NeonDownloader::handleRedirection: " << linksSet.size() << " links found in " << length << " bytes" << endl;
-			cout << "NeonDownloader::handleRedirection: redirection message was " << pBody << endl;
+			clog << "NeonDownloader::handleRedirection: " << linksSet.size() << " links found in " << length << " bytes" << endl;
+			clog << "NeonDownloader::handleRedirection: redirection message was " << pBody << endl;
 #endif
 			return "";
 		}
@@ -114,7 +114,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	if (url.empty() == true)
 	{
 #ifdef DEBUG
-		cout << "NeonDownloader::retrieveUrl: no URL specified !" << endl;
+		clog << "NeonDownloader::retrieveUrl: no URL specified !" << endl;
 #endif
 		return NULL;
 	}
@@ -131,7 +131,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	if (pSession == NULL)
 	{
 #ifdef DEBUG
-		cout << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
+		clog << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
 #endif
 		return NULL;
 	}
@@ -184,13 +184,13 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	if (pRequest == NULL)
 	{
 #ifdef DEBUG
-		cout << "NeonDownloader::retrieveUrl: couldn't create request !" << endl;
+		clog << "NeonDownloader::retrieveUrl: couldn't create request !" << endl;
 #endif
 		ne_session_destroy(pSession);
 		return NULL;
 	}
 #ifdef DEBUG
-	cout << "NeonDownloader::retrieveUrl: request for " << fullLocation << " on " << hostName << endl;
+	clog << "NeonDownloader::retrieveUrl: request for " << fullLocation << " on " << hostName << endl;
 #endif
 
 	int requestStatus = NE_RETRY;
@@ -203,7 +203,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 		// Begin the request
 		requestStatus = ne_begin_request(pRequest);
 #ifdef DEBUG
-		cout << "NeonDownloader::retrieveUrl: request begun with status " << requestStatus << endl;
+		clog << "NeonDownloader::retrieveUrl: request begun with status " << requestStatus << endl;
 #endif
 		if (requestStatus == NE_OK)
 		{
@@ -216,7 +216,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 			{
 				statusCode = pStatus->code;
 #ifdef DEBUG
-				cout << "NeonDownloader::retrieveUrl: status is " << statusCode << endl;
+				clog << "NeonDownloader::retrieveUrl: status is " << statusCode << endl;
 #endif
 			}
 			else
@@ -275,7 +275,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				}
 
 #ifdef DEBUG
-				cout << "NeonDownloader::retrieveUrl: redirected to " << documentUrl << endl;
+				clog << "NeonDownloader::retrieveUrl: redirected to " << documentUrl << endl;
 #endif
 				urlObj = Url(documentUrl);
 				location = urlObj.getLocation();
@@ -293,7 +293,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 					if (pSession == NULL)
 					{
 #ifdef DEBUG
-						cout << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
+						clog << "NeonDownloader::retrieveUrl: couldn't create session !" << endl;
 #endif
 						return NULL;
 					}
@@ -313,7 +313,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 					fullLocation += file;
 				}
 #ifdef DEBUG
-				cout << "NeonDownloader::retrieveUrl: redirected to " << fullLocation << " on " << hostName << endl;
+				clog << "NeonDownloader::retrieveUrl: redirected to " << fullLocation << " on " << hostName << endl;
 #endif
 
 				// Create a new request for this URL
@@ -321,7 +321,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				if (pRequest == NULL)
 				{
 #ifdef DEBUG
-					cout << "NeonDownloader::retrieveUrl: couldn't create request !" << endl;
+					clog << "NeonDownloader::retrieveUrl: couldn't create request !" << endl;
 #endif
 					ne_session_destroy(pSession);
 					return NULL;
@@ -356,7 +356,7 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				pDocument->setTimestamp(lastModifiedHeaderValue);
 			}
 #ifdef DEBUG
-			cout << "NeonDownloader::retrieveUrl: document size is " << contentLen << endl;
+			clog << "NeonDownloader::retrieveUrl: document size is " << contentLen << endl;
 #endif
 		}
 		free(pContent);

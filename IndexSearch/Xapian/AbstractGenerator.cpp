@@ -30,8 +30,8 @@
 #include "AbstractGenerator.h"
 #include "CJKVTokenizer.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::vector;
@@ -93,7 +93,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		string termName(*termIter);
 
 #ifdef DEBUG
-		cout << "AbstractGenerator::generateAbstract: term " << termName << endl;
+		clog << "AbstractGenerator::generateAbstract: term " << termName << endl;
 #endif
 		try
 		{
@@ -153,13 +153,13 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		catch (const Xapian::Error &error)
 		{
 #ifdef DEBUG
-			cout << "AbstractGenerator::generateAbstract: " << error.get_msg() << endl;
+			clog << "AbstractGenerator::generateAbstract: " << error.get_msg() << endl;
 #endif
 			continue;
 		}
 
 #ifdef DEBUG
-		cout << "AbstractGenerator::generateAbstract: " << abstractWindows.size()
+		clog << "AbstractGenerator::generateAbstract: " << abstractWindows.size()
 			<< " windows, " << seedTermsCount << " terms" << endl;
 #endif
 	}
@@ -170,7 +170,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		winIter != abstractWindows.end(); ++winIter)
 	{
 #ifdef DEBUG
-		cout << "AbstractGenerator::generateAbstract: position " << winIter->first
+		clog << "AbstractGenerator::generateAbstract: position " << winIter->first
 			<< " weighs " << winIter->second.m_backWeight 
 			<< "/" << winIter->second.m_forwardWeight << endl;
 #endif
@@ -191,7 +191,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		}
 	}
 #ifdef DEBUG
-	cout << "AbstractGenerator::generateAbstract: best position is "
+	clog << "AbstractGenerator::generateAbstract: best position is "
 		<< bestPosition << ":" << startPosition << " with weight " << bestWeight << endl;
 #endif
 
@@ -238,7 +238,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 	catch (const Xapian::Error &error)
 	{
 #ifdef DEBUG
-		cout << "AbstractGenerator::generateAbstract: " << error.get_msg() << endl;
+		clog << "AbstractGenerator::generateAbstract: " << error.get_msg() << endl;
 #endif
 		return "";
 	}
@@ -286,7 +286,7 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		g_free(pEscToken);
 	}
 #ifdef DEBUG
-	cout << "AbstractGenerator::generateAbstract: summarized document "
+	clog << "AbstractGenerator::generateAbstract: summarized document "
 		<< docId << " in " << timer.stop() << " ms" << endl;
 #endif
 

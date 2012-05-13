@@ -68,7 +68,7 @@ public:
 	{
 		p.second->stop();
 #ifdef DEBUG
-		cout << "StopThreadFunc: stopped thread " << p.second->getId() << endl;
+		clog << "StopThreadFunc: stopped thread " << p.second->getId() << endl;
 #endif
 		Thread::yield();
 	}
@@ -187,7 +187,7 @@ bool WorkerThread::operator<(const WorkerThread &other) const
 Glib::Thread *WorkerThread::start(void)
 {
 #ifdef DEBUG
-	cout << "WorkerThread::start: " << getType() << " " << m_id << endl;
+	clog << "WorkerThread::start: " << getType() << " " << m_id << endl;
 #endif
 	// Create non-joinable threads
 	return Thread::create(sigc::mem_fun(*this, &WorkerThread::threadHandler), false);
@@ -231,7 +231,7 @@ string WorkerThread::getStatus(void) const
 void WorkerThread::threadHandler(void)
 {
 #ifdef DEBUG
-	cout << "WorkerThread::threadHandler: thread " << m_id << endl;
+	clog << "WorkerThread::threadHandler: thread " << m_id << endl;
 #endif
 	try
 	{
@@ -239,19 +239,19 @@ void WorkerThread::threadHandler(void)
 	}
 	catch (Glib::Exception &ex)
 	{
-		cerr << "Glib exception in thread " << m_id << ", type " << getType()
+		clog << "Glib exception in thread " << m_id << ", type " << getType()
 			<< ":" << ex.what() << endl;
 		m_errorNum = UNKNOWN_ERROR;
 	}
 	catch (std::exception &ex)
 	{
-		cerr << "STL exception in thread " << m_id << ", type " << getType()
+		clog << "STL exception in thread " << m_id << ", type " << getType()
 			<< ":" << ex.what() << endl;
 		m_errorNum = UNKNOWN_ERROR;
 	}
 	catch (...)
 	{
-		cerr << "Unknown exception in thread " << m_id << ", type " << getType() << endl;
+		clog << "Unknown exception in thread " << m_id << ", type " << getType() << endl;
 		m_errorNum = UNKNOWN_ERROR;
 	}
 
@@ -264,7 +264,7 @@ void WorkerThread::emitSignal(void)
 	if (pthread_mutex_lock(&m_dispatcherMutex) == 0)
 	{
 #ifdef DEBUG
-		cout << "WorkerThread::emitSignal: signaling end of thread " << m_id << endl;
+		clog << "WorkerThread::emitSignal: signaling end of thread " << m_id << endl;
 #endif
 		m_dispatcher();
 
@@ -393,7 +393,7 @@ WorkerThread *ThreadsManager::get_thread(void)
 			if (threadIter->second->isDone() == false)
 			{
 #ifdef DEBUG
-				cout << "ThreadsManager::get_thread: thread "
+				clog << "ThreadsManager::get_thread: thread "
 					<< threadId << " is not done" << endl;
 #endif
 
@@ -404,7 +404,7 @@ WorkerThread *ThreadsManager::get_thread(void)
 					// This thread has been running for too long !
 					threadIter->second->stop();
 
-					cerr << "Stopped long-running thread " << threadId << endl;
+					clog << "Stopped long-running thread " << threadId << endl;
 				}
 			}
 			else
@@ -414,7 +414,7 @@ WorkerThread *ThreadsManager::get_thread(void)
 				// Remove it
 				m_threads.erase(threadIter);
 #ifdef DEBUG
-				cout << "ThreadsManager::get_thread: thread " << threadId
+				clog << "ThreadsManager::get_thread: thread " << threadId
 					<< " is done, " << m_threads.size() << " left" << endl;
 #endif
 				break;
@@ -432,7 +432,7 @@ WorkerThread *ThreadsManager::get_thread(void)
 	if (pWorkerThread->isBackground() == true)
 	{
 #ifdef DEBUG
-		cout << "ThreadsManager::get_thread: thread " << pWorkerThread->getId()
+		clog << "ThreadsManager::get_thread: thread " << pWorkerThread->getId()
 			<< " was running in the background" << endl;
 #endif
 		--m_backgroundThreadsCount;
@@ -448,7 +448,7 @@ ustring ThreadsManager::index_document(const DocumentInfo &docInfo)
 	if (m_stopIndexing == true)
 	{
 #ifdef DEBUG
-		cout << "ThreadsManager::index_document: stopped indexing" << endl;
+		clog << "ThreadsManager::index_document: stopped indexing" << endl;
 #endif
 		return _("Indexing was stopped");
 	}
@@ -551,14 +551,14 @@ bool ThreadsManager::start_thread(WorkerThread *pWorkerThread, bool inBackground
 	if (inBackground == true)
 	{
 #ifdef DEBUG
-		cout << "ThreadsManager::start_thread: thread " << pWorkerThread->getId()
+		clog << "ThreadsManager::start_thread: thread " << pWorkerThread->getId()
 			<< " will run in the background" << endl;
 #endif
 		pWorkerThread->inBackground();
 		++m_backgroundThreadsCount;
 	}
 #ifdef DEBUG
-	else cout << "ThreadsManager::start_thread: thread " << pWorkerThread->getId()
+	else clog << "ThreadsManager::start_thread: thread " << pWorkerThread->getId()
 			<< " will run in the foreground" << endl;
 #endif
 
@@ -611,7 +611,7 @@ unsigned int ThreadsManager::get_threads_count(void)
 		unlock_threads();
 	}
 #ifdef DEBUG
-	cout << "ThreadsManager::get_threads_count: " << count << "/"
+	clog << "ThreadsManager::get_threads_count: " << count << "/"
 		<< m_backgroundThreadsCount << " threads left" << endl;
 #endif
 
@@ -646,14 +646,14 @@ void ThreadsManager::connect(void)
 		pThread = get_thread();
 	}
 #ifdef DEBUG
-	cout << "ThreadsManager::connect: connecting" << endl;
+	clog << "ThreadsManager::connect: connecting" << endl;
 #endif
 
 	// Connect the dispatcher
 	m_threadsEndConnection = WorkerThread::getDispatcher().connect(
 		sigc::mem_fun(*this, &ThreadsManager::on_thread_signal));
 #ifdef DEBUG
-	cout << "ThreadsManager::connect: connected" << endl;
+	clog << "ThreadsManager::connect: connected" << endl;
 #endif
 }
 
@@ -662,7 +662,7 @@ void ThreadsManager::disconnect(void)
 	m_threadsEndConnection.block();
 	m_threadsEndConnection.disconnect();
 #ifdef DEBUG
-	cout << "ThreadsManager::disconnect: disconnected" << endl;
+	clog << "ThreadsManager::disconnect: disconnected" << endl;
 #endif
 }
 
@@ -672,7 +672,7 @@ void ThreadsManager::on_thread_signal()
 	if (pThread == NULL)
 	{
 #ifdef DEBUG
-		cout << "ThreadsManager::on_thread_signal: foreign thread" << endl;
+		clog << "ThreadsManager::on_thread_signal: foreign thread" << endl;
 #endif
 		return;
 	}
@@ -697,7 +697,7 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 	if (get_threads_count() >= m_maxIndexThreads)
 	{
 #ifdef DEBUG
-		cout << "ThreadsManager::queue_index: too many threads" << endl;
+		clog << "ThreadsManager::queue_index: too many threads" << endl;
 #endif
 		addToQueue = true;
 	}
@@ -735,12 +735,12 @@ bool ThreadsManager::pop_queue(const string &urlWasIndexed)
 	bool emptyQueue = false;
 
 #ifdef DEBUG
-	cout << "ThreadsManager::pop_queue: called" << endl;
+	clog << "ThreadsManager::pop_queue: called" << endl;
 #endif
 	if (get_threads_count() >= m_maxIndexThreads)
 	{
 #ifdef DEBUG
-		cout << "ThreadsManager::pop_queue: too many threads" << endl;
+		clog << "ThreadsManager::pop_queue: too many threads" << endl;
 #endif
 		getItem = false;
 	}
@@ -856,7 +856,7 @@ QueryingThread::QueryingThread(const PinotSettings::IndexProperties &indexProps,
 	m_isLive(true)
 {
 #ifdef DEBUG
-	cout << "QueryingThread: engine " << m_engineName << ", " << m_engineOption
+	clog << "QueryingThread: engine " << m_engineName << ", " << m_engineOption
 		<< ", mode " << m_listingIndex << endl;
 #endif
 }
@@ -874,7 +874,7 @@ QueryingThread::QueryingThread(const string &engineName, const string &engineDis
 	m_isLive(true)
 {
 #ifdef DEBUG
-	cout << "QueryingThread: engine " << m_engineName << ", " << m_engineOption
+	clog << "QueryingThread: engine " << m_engineName << ", " << m_engineOption
 		<< ", mode 0" << endl;
 #endif
 }
@@ -934,7 +934,7 @@ bool QueryingThread::findPlugin(void)
 		set<ModuleProperties> engines;
 		PinotSettings::getInstance().getSearchEngines(engines, "");
 #ifdef DEBUG
-		cout << "QueryingThread::findPlugin: looking for a plugin named " << pluginName << endl;
+		clog << "QueryingThread::findPlugin: looking for a plugin named " << pluginName << endl;
 #endif
 
 		// Is there a plugin with such a name ?
@@ -954,7 +954,7 @@ bool QueryingThread::findPlugin(void)
 			m_engineDisplayableName = engineIter->m_longName;
 			m_engineOption = engineIter->m_option;
 #ifdef DEBUG
-			cout << "QueryingThread::findPlugin: found " << m_engineName << ", " << m_engineDisplayableName << ", " << m_engineOption << endl;
+			clog << "QueryingThread::findPlugin: found " << m_engineName << ", " << m_engineDisplayableName << ", " << m_engineOption << endl;
 #endif
 
 			return true;
@@ -1033,7 +1033,7 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 		}
 		currentDoc.setTitle(title);
 #ifdef DEBUG
-		cout << "EngineQueryThread::processResults: title is " << title << endl;
+		clog << "EngineQueryThread::processResults: title is " << title << endl;
 #endif
 
 		// Use the query's language if the result's is unknown
@@ -1076,11 +1076,11 @@ void EngineQueryThread::processResults(const vector<DocumentInfo> &resultsList)
 		{
 			currentDoc.setIsIndexed(indexId, docId);
 #ifdef DEBUG
-			cout << "EngineQueryThread::processResults: found in index " << indexId << endl;
+			clog << "EngineQueryThread::processResults: found in index " << indexId << endl;
 #endif
 		}
 #ifdef DEBUG
-		else cout << "EngineQueryThread::processResults: not found in any index" << endl;
+		else clog << "EngineQueryThread::processResults: not found in any index" << endl;
 #endif
 
 		m_documentsList.push_back(currentDoc);
@@ -1177,7 +1177,7 @@ void EngineQueryThread::doWork(void)
 		m_documentsList.reserve(resultsList.size());
 		m_documentsCount = pEngine->getResultsCountEstimate();
 #ifdef DEBUG
-		cout << "EngineQueryThread::doWork: " << resultsList.size() << " off " << m_documentsCount
+		clog << "EngineQueryThread::doWork: " << resultsList.size() << " off " << m_documentsCount
 			<< " results to process, starting at position " << m_startDoc << endl;
 #endif
 
@@ -1311,7 +1311,7 @@ void DownloadingThread::doWork(void)
 
 		m_pDoc = m_pDownloader->retrieveUrl(m_docInfo);
 
-		cout << "Retrieved " << m_docInfo.getLocation() << " in " << collectTimer.stop() << " ms" << endl;
+		clog << "Retrieved " << m_docInfo.getLocation() << " in " << collectTimer.stop() << " ms" << endl;
 	}
 
 	if (m_pDoc == NULL)
@@ -1427,7 +1427,7 @@ void IndexingThread::doWork(void)
 		{
 			doDownload = false;
 #ifdef DEBUG
-			cout << "IndexingThread::doWork: skipping download of unsupported type " << m_docInfo.getLocation() << endl;
+			clog << "IndexingThread::doWork: skipping download of unsupported type " << m_docInfo.getLocation() << endl;
 #endif
 		}
 	}
@@ -1445,7 +1445,7 @@ void IndexingThread::doWork(void)
 			{
 				doDownload = false;
 #ifdef DEBUG
-				cout << "IndexingThread::doWork: let filter download " << m_docInfo.getLocation() << endl;
+				clog << "IndexingThread::doWork: let filter download " << m_docInfo.getLocation() << endl;
 #endif
 			}
 
@@ -1502,7 +1502,7 @@ void IndexingThread::doWork(void)
 			m_docInfo.setTitle(m_pDoc->getTitle());
 		}
 #ifdef DEBUG
-		cout << "IndexingThread::doWork: title is " << m_pDoc->getTitle() << endl;
+		clog << "IndexingThread::doWork: title is " << m_pDoc->getTitle() << endl;
 #endif
 
 		// Check again as the downloader may have altered the MIME type
@@ -1552,7 +1552,7 @@ void IndexingThread::doWork(void)
 				}
 			}
 #ifdef DEBUG
-			else cout << "IndexingThread::doWork: couldn't check document for ROBOTS directive" << endl;
+			else clog << "IndexingThread::doWork: couldn't check document for ROBOTS directive" << endl;
 #endif
 		}
 
@@ -1567,20 +1567,20 @@ void IndexingThread::doWork(void)
 				if (wrapFilter.updateDocument(*m_pDoc, m_docId) == true)
 				{
 #ifdef DEBUG
-					cout << "IndexingThread::doWork: updated " << m_pDoc->getLocation()
+					clog << "IndexingThread::doWork: updated " << m_pDoc->getLocation()
 						<< " at " << m_docId << endl;
 #endif
 					success = true;
 				}
 #ifdef DEBUG
-				else cout << "IndexingThread::doWork: couldn't update " << m_pDoc->getLocation() << endl;
+				else clog << "IndexingThread::doWork: couldn't update " << m_pDoc->getLocation() << endl;
 #endif
 			}
 			else
 			{
 				unsigned int docId = 0;
 #ifdef DEBUG
-				cout << "IndexingThread::doWork: " << m_docInfo.getLabels().size()
+				clog << "IndexingThread::doWork: " << m_docInfo.getLabels().size()
 					<< " labels for URL " << m_pDoc->getLocation() << endl;
 #endif
 
@@ -1590,12 +1590,12 @@ void IndexingThread::doWork(void)
 				{
 					m_docId = docId;
 #ifdef DEBUG
-					cout << "IndexingThread::doWork: indexed " << m_pDoc->getLocation()
+					clog << "IndexingThread::doWork: indexed " << m_pDoc->getLocation()
 						<< " to " << m_docId << endl;
 #endif
 				}
 #ifdef DEBUG
-				else cout << "IndexingThread::doWork: couldn't index " << m_pDoc->getLocation() << endl;
+				else clog << "IndexingThread::doWork: couldn't index " << m_pDoc->getLocation() << endl;
 #endif
 			}
 
@@ -1618,12 +1618,12 @@ void IndexingThread::doWork(void)
 					PinotSettings::getInstance().getIndexPropertiesByLocation(m_indexLocation).m_id,
 					m_docId);
 
-				cout << "Indexed " << m_docInfo.getLocation() << " in " << indexTimer.stop() << " ms" << endl;
+				clog << "Indexed " << m_docInfo.getLocation() << " in " << indexTimer.stop() << " ms" << endl;
 			}
 		}
 	}
 #ifdef DEBUG
-	else cout << "IndexingThread::doWork: couldn't download " << m_docInfo.getLocation() << endl;
+	else clog << "IndexingThread::doWork: couldn't download " << m_docInfo.getLocation() << endl;
 #endif
 }
 
@@ -1693,13 +1693,13 @@ void UnindexingThread::doWork(void)
 			if (pIndex->unindexDocuments(labelName, IndexInterface::BY_LABEL) == true)
 			{
 #ifdef DEBUG
-				cout << "UnindexingThread::doWork: removed label " << labelName << endl;
+				clog << "UnindexingThread::doWork: removed label " << labelName << endl;
 #endif
 				// OK
 				++m_docsCount;
 			}
 #ifdef DEBUG
-			else cout << "UnindexingThread::doWork: couldn't remove label " << labelName << endl;
+			else clog << "UnindexingThread::doWork: couldn't remove label " << labelName << endl;
 #endif
 		}
 
@@ -1715,17 +1715,17 @@ void UnindexingThread::doWork(void)
 			if (pIndex->unindexDocument(docId) == true)
 			{
 #ifdef DEBUG
-				cout << "UnindexingThread::doWork: removed " << docId << endl;
+				clog << "UnindexingThread::doWork: removed " << docId << endl;
 #endif
 				// OK
 				++m_docsCount;
 			}
 #ifdef DEBUG
-			else cout << "UnindexingThread::doWork: couldn't remove " << docId << endl;
+			else clog << "UnindexingThread::doWork: couldn't remove " << docId << endl;
 #endif
 		}
 #ifdef DEBUG
-		cout << "UnindexingThread::doWork: removed " << m_docsCount << " documents" << endl;
+		clog << "UnindexingThread::doWork: removed " << m_docsCount << " documents" << endl;
 #endif
 	}
 
@@ -1797,18 +1797,18 @@ void MonitorThread::processEvents(void)
 	queue<MonitorEvent> events;
 
 #ifdef DEBUG
-	cout << "MonitorThread::processEvents: checking for events" << endl;
+	clog << "MonitorThread::processEvents: checking for events" << endl;
 #endif
 	if ((m_pMonitor == NULL) ||
 		(m_pMonitor->retrievePendingEvents(events) == false))
 	{
 #ifdef DEBUG
-		cout << "MonitorThread::processEvents: failed to retrieve pending events" << endl;
+		clog << "MonitorThread::processEvents: failed to retrieve pending events" << endl;
 #endif
 		return;
 	}
 #ifdef DEBUG
-	cout << "MonitorThread::processEvents: retrieved " << events.size() << " events" << endl;
+	clog << "MonitorThread::processEvents: retrieved " << events.size() << " events" << endl;
 #endif
 
 	while ((events.empty() == false) &&
@@ -1824,7 +1824,7 @@ void MonitorThread::processEvents(void)
 			continue;
 		}
 #ifdef DEBUG
-		cout << "MonitorThread::processEvents: event " << event.m_type << " on "
+		clog << "MonitorThread::processEvents: event " << event.m_type << " on "
 			<< event.m_location << " " << event.m_isDirectory << endl;
 #endif
 
@@ -1878,11 +1878,11 @@ void MonitorThread::processEvents(void)
 						m_pHandler->fileModified(event.m_location);
 					}
 #ifdef DEBUG
-					else cout << "MonitorThread::processEvents: file wasn't modified" << endl;
+					else clog << "MonitorThread::processEvents: file wasn't modified" << endl;
 #endif
 				}
 #ifdef DEBUG
-				else cout << "MonitorThread::processEvents: file wasn't crawled" << endl;
+				else clog << "MonitorThread::processEvents: file wasn't crawled" << endl;
 #endif
 			}
 		}
@@ -1971,7 +1971,7 @@ void MonitorThread::doWork(void)
 			(errno != EINTR))
 		{
 #ifdef DEBUG
-			cout << "MonitorThread::doWork: select() failed" << endl;
+			clog << "MonitorThread::doWork: select() failed" << endl;
 #endif
 			break;
 		}
@@ -2049,7 +2049,7 @@ bool DirectoryScannerThread::isIndexable(const string &entryName) const
 	{
 		// Yes, it is
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::isIndexable: under " << m_dirName << endl;
+		clog << "DirectoryScannerThread::isIndexable: under " << m_dirName << endl;
 #endif
 		return true;
 	}
@@ -2101,7 +2101,7 @@ void DirectoryScannerThread::foundFile(const DocumentInfo &docInfo)
 
 		IndexingThread::doWork();
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::foundFile: indexed " << docInfo.getLocation() << " to " << m_docId << endl;
+		clog << "DirectoryScannerThread::foundFile: indexed " << docInfo.getLocation() << " to " << m_docId << endl;
 #endif
 	}
 	else
@@ -2124,7 +2124,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 	if (entryName.empty() == true)
 	{
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: no name" << endl;
+		clog << "DirectoryScannerThread::scanEntry: no name" << endl;
 #endif
 		return false;
 	}
@@ -2134,12 +2134,12 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 	if (urlObj.getFile()[0] == '.')
 	{
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: skipped dotfile " << urlObj.getFile() << endl;
+		clog << "DirectoryScannerThread::scanEntry: skipped dotfile " << urlObj.getFile() << endl;
 #endif
 		return false;
 	}
 #ifdef DEBUG
-	cout << "DirectoryScannerThread::scanEntry: checking " << entryName << endl;
+	clog << "DirectoryScannerThread::scanEntry: checking " << entryName << endl;
 #endif
 
 #ifdef HAVE_LSTAT
@@ -2161,7 +2161,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 		entryStatus = errno;
 		scanSuccess = false;
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: stat failed with error " << entryStatus << endl;
+		clog << "DirectoryScannerThread::scanEntry: stat failed with error " << entryStatus << endl;
 #endif
 	}
 #ifdef HAVE_LSTAT
@@ -2177,7 +2177,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 			(PinotSettings::getInstance().isBlackListed(entryName) == true))
 		{
 #ifdef DEBUG
-			cout << "DirectoryScannerThread::scanEntry: skipped symlink " << entryName << endl;
+			clog << "DirectoryScannerThread::scanEntry: skipped symlink " << entryName << endl;
 #endif
 			return false;
 		}
@@ -2194,7 +2194,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 				// ...and this entry is below it
 				realEntryName.replace(0, linkToDir.length() - 1, m_currentLinkReferrees.top());
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: really at " << realEntryName << endl;
+				clog << "DirectoryScannerThread::scanEntry: really at " << realEntryName << endl;
 #endif
 				isInIndexableLocation = isIndexable(realEntryName);
 			}
@@ -2221,7 +2221,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 				entryNameReferree.resize(entryNameReferree.length() - 1);
 			}
 #ifdef DEBUG
-			cout << "DirectoryScannerThread::scanEntry: symlink resolved to " << entryNameReferree << endl;
+			clog << "DirectoryScannerThread::scanEntry: symlink resolved to " << entryNameReferree << endl;
 #endif
 
 			g_free(pBuf);
@@ -2253,7 +2253,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 		}
 		else
 		{
-			cout << "Skipping " << entryName << ": it links to " << entryNameReferree
+			clog << "Skipping " << entryName << ": it links to " << entryNameReferree
 				<< " which will be crawled, or has already been crawled" << endl;
 
 			// This should ensure that only metadata is indexed
@@ -2297,7 +2297,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 			if (pDir != NULL)
 			{
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: entering " << entryName << endl;
+				clog << "DirectoryScannerThread::scanEntry: entering " << entryName << endl;
 #endif
 				// Monitor first so that we don't miss events
 				// If monitoring is not possible, record the first case
@@ -2334,7 +2334,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 					pDirEntry = readdir(pDir);
 				}
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: leaving " << entryName << endl;
+				clog << "DirectoryScannerThread::scanEntry: leaving " << entryName << endl;
 #endif
 
 				// Close the directory
@@ -2347,7 +2347,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 				entryStatus = errno;
 				scanSuccess = false;
 #ifdef DEBUG
-				cout << "DirectoryScannerThread::scanEntry: opendir failed with error " << entryStatus << endl;
+				clog << "DirectoryScannerThread::scanEntry: opendir failed with error " << entryStatus << endl;
 #endif
 			}
 		}
@@ -2360,7 +2360,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 		)
 	{
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: unknown entry type" << endl;
+		clog << "DirectoryScannerThread::scanEntry: unknown entry type" << endl;
 #endif
 		entryStatus = ENOENT;
 		scanSuccess = false;
@@ -2372,7 +2372,7 @@ bool DirectoryScannerThread::scanEntry(const string &entryName,
 	{
 		// No, it wasn't
 #ifdef DEBUG
-		cout << "DirectoryScannerThread::scanEntry: not reporting " << location << endl;
+		clog << "DirectoryScannerThread::scanEntry: not reporting " << location << endl;
 #endif
 		reportFile = false;
 	}
@@ -2434,6 +2434,6 @@ void DirectoryScannerThread::doWork(void)
 		m_errorNum = OPENDIR_FAILED;
 		m_errorParam = m_dirName;
 	}
-	cout << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
+	clog << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
 }
 

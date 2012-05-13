@@ -52,7 +52,7 @@ class LastIPathAction : public ReducedAction
 			if (pFilter != NULL)
 			{
 #ifdef DEBUG
-				cout << "LastIPathAction::positionFilter: moving filter for "
+				clog << "LastIPathAction::positionFilter: moving filter for "
 					<< pFilter->get_mime_type() << " to " << thisIPath << endl;
 #endif
 				pFilter->set_property(Dijon::Filter::OPERATING_MODE, "view");
@@ -79,7 +79,7 @@ class LastIPathAction : public ReducedAction
 			{
 				// Go one level deeper
 #ifdef DEBUG
-				cout << "LastIPathAction::isReduced: not final" << endl;
+				clog << "LastIPathAction::isReduced: not final" << endl;
 #endif
 				return false;
 			}
@@ -93,7 +93,7 @@ class LastIPathAction : public ReducedAction
 			{
 				m_pDocument = new Document(doc);
 #ifdef DEBUG
-				cout << "LastIPathAction::takeAction: " << doc.getInternalPath() << " final" << endl;
+				clog << "LastIPathAction::takeAction: " << doc.getInternalPath() << " final" << endl;
 #endif
 			}
 

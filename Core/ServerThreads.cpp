@@ -107,7 +107,7 @@ static bool loadXMLDescription(void)
 
 	if (readFile == false)
 	{
-		cerr << "File " << xmlFileName << " couldn't be read" << endl;
+		clog << "File " << xmlFileName << " couldn't be read" << endl;
 	}
 	return readFile;
 }
@@ -201,7 +201,7 @@ bool CrawlerThread::isIndexable(const string &entryName) const
 		{
 			// Yes, it is
 #ifdef DEBUG
-			cout << "CrawlerThread::isIndexable: under " << locationDir << endl;
+			clog << "CrawlerThread::isIndexable: under " << locationDir << endl;
 #endif
 			return true;
 		}
@@ -297,7 +297,7 @@ void CrawlerThread::foundFile(const DocumentInfo &docInfo)
 void CrawlerThread::flushUpdates(void)
 {
 #ifdef DEBUG
-	cout << "CrawlerThread::flushUpdates: flushing updates" << endl;
+	clog << "CrawlerThread::flushUpdates: flushing updates" << endl;
 #endif
 
 	// Update these records
@@ -305,7 +305,7 @@ void CrawlerThread::flushUpdates(void)
 	m_crawlCache.clear();
 
 #ifdef DEBUG
-	cout << "CrawlerThread::flushUpdates: flushed updates" << endl;
+	clog << "CrawlerThread::flushUpdates: flushed updates" << endl;
 #endif
 }
 
@@ -322,7 +322,7 @@ void CrawlerThread::doWork(void)
 	}
 	scanTimer.start();
 
-	cout << "Scanning " << m_dirName << endl;
+	clog << "Scanning " << m_dirName << endl;
 
 	// Remove errors and links
 	m_crawlHistory.deleteItems(m_sourceId, CrawlHistory::CRAWL_ERROR);
@@ -340,12 +340,12 @@ void CrawlerThread::doWork(void)
 	}
 	flushUpdates();
 
-	cout << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
+	clog << "Scanned " << m_dirName << " in " << scanTimer.stop() << " ms" << endl;
 
 	if (m_done == true)
 	{
 #ifdef DEBUG
-		cout << "CrawlerThread::doWork: leaving cleanup until next crawl" << endl;
+		clog << "CrawlerThread::doWork: leaving cleanup until next crawl" << endl;
 #endif
 		return;
 	}
@@ -377,7 +377,7 @@ void CrawlerThread::doWork(void)
 		currentOffset += 100;
 	}
 
-	cout << "Cleaned up " << currentOffset + urls.size()
+	clog << "Cleaned up " << currentOffset + urls.size()
 		<< " history entries in " << scanTimer.stop() << " ms" << endl;
 }
 
@@ -404,7 +404,7 @@ void DBusServletThread::flushIndexAndSignal(IndexInterface *pIndex)
 		return;
 	}
 #ifdef DEBUG
-	cout << "DBusServletThread::flushIndexAndSignal: flushing" << endl;
+	clog << "DBusServletThread::flushIndexAndSignal: flushing" << endl;
 #endif
 
 	// Flush
@@ -425,13 +425,13 @@ void DBusServletThread::flushIndexAndSignal(IndexInterface *pIndex)
 		{
 			dbus_connection_send(pConnection, pMessage, NULL);
 #ifdef DEBUG
-			cout << "DBusServletThread::flushIndexAndSignal: sent signal IndexFlushed " << docsCount << endl;
+			clog << "DBusServletThread::flushIndexAndSignal: sent signal IndexFlushed " << docsCount << endl;
 #endif
 		}
 		dbus_message_unref(pMessage);
 	}
 #ifdef DEBUG
-	else cout << "DBusServletThread::flushIndexAndSignal: no bus" << endl;
+	else clog << "DBusServletThread::flushIndexAndSignal: no bus" << endl;
 #endif
 }
 
@@ -478,11 +478,11 @@ void DBusServletThread::doWork(void)
 	const char *pSender = dbus_message_get_sender(m_pServletInfo->m_pRequest);
 	if (pSender != NULL)
 	{
-		cout << "DBusServletThread::doWork: called by " << pSender << endl;
+		clog << "DBusServletThread::doWork: called by " << pSender << endl;
 	}
 	else
 	{
-		cout << "DBusServletThread::doWork: called by unknown sender" << endl;
+		clog << "DBusServletThread::doWork: called by unknown sender" << endl;
 	}
 #endif
 
@@ -494,7 +494,7 @@ void DBusServletThread::doWork(void)
 		gboolean lowDiskSpace = FALSE, onBattery = FALSE, crawling = FALSE;
 
 #ifdef DEBUG
-		cout << "DBusServletThread::doWork: received GetStatistics" << endl;
+		clog << "DBusServletThread::doWork: received GetStatistics" << endl;
 #endif
 		// Prepare the reply
 		if (m_pServletInfo->newReply() == true)
@@ -512,7 +512,7 @@ void DBusServletThread::doWork(void)
 				crawling = TRUE;
 			}
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: replying with " << crawledFilesCount
+			clog << "DBusServletThread::doWork: replying with " << crawledFilesCount
 				<< " " << docsCount << " " << lowDiskSpace << onBattery << crawling << endl;
 #endif
 
@@ -533,7 +533,7 @@ void DBusServletThread::doWork(void)
 			gboolean reloading = TRUE;
 
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received Reload" << endl;
+			clog << "DBusServletThread::doWork: received Reload" << endl;
 #endif
 			m_pServer->reload();
 
@@ -554,7 +554,7 @@ void DBusServletThread::doWork(void)
 			int exitStatus = EXIT_SUCCESS;
 
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received Stop" << endl;
+			clog << "DBusServletThread::doWork: received Stop" << endl;
 #endif
 			m_pServer->set_flag(DaemonState::STOPPED);
 
@@ -579,7 +579,7 @@ void DBusServletThread::doWork(void)
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received HasDocument " << pUrl << endl;
+			clog << "DBusServletThread::doWork: received HasDocument " << pUrl << endl;
 #endif
 			if (pUrl != NULL)
 			{
@@ -601,7 +601,7 @@ void DBusServletThread::doWork(void)
 	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, PINOT_DBUS_SERVICE_NAME, "GetLabels") == TRUE)
 	{
 #ifdef DEBUG
-		cout << "DBusServletThread::doWork: received GetLabels" << endl;
+		clog << "DBusServletThread::doWork: received GetLabels" << endl;
 #endif
 		// This method doesn't take any argument
 		m_pServletInfo->m_pArray = g_ptr_array_new();
@@ -626,7 +626,7 @@ void DBusServletThread::doWork(void)
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received AddLabel " << pLabel << endl;
+			clog << "DBusServletThread::doWork: received AddLabel " << pLabel << endl;
 #endif
 			if (pLabel != NULL)
 			{
@@ -664,7 +664,7 @@ void DBusServletThread::doWork(void)
 		{
 			// Nothing to do, this was obsoleted
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
+			clog << "DBusServletThread::doWork: received RenameLabel " << pOldLabel << ", " << pNewLabel << endl;
 #endif
 			
 			// Prepare the reply
@@ -685,7 +685,7 @@ void DBusServletThread::doWork(void)
 			DBUS_TYPE_INVALID) == TRUE)
 		{
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received DeleteLabel " << pLabel << endl;
+			clog << "DBusServletThread::doWork: received DeleteLabel " << pLabel << endl;
 #endif
 			if (pLabel != NULL)
 			{
@@ -723,7 +723,7 @@ void DBusServletThread::doWork(void)
 			set<string> labels;
 
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received GetDocumentLabels " << docId << endl;
+			clog << "DBusServletThread::doWork: received GetDocumentLabels " << docId << endl;
 #endif
 			if (pIndex->getDocumentLabels(docId, labels) == true)
 			{
@@ -780,7 +780,7 @@ void DBusServletThread::doWork(void)
 				}
 			}
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received SetDocumentLabels on ID " << docId
+			clog << "DBusServletThread::doWork: received SetDocumentLabels on ID " << docId
 				<< ", " << labelsCount << " labels" << ", " << resetLabels << endl;
 #endif
 
@@ -846,7 +846,7 @@ void DBusServletThread::doWork(void)
 				}
 			}
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received SetDocumentsLabels on " << docIds.size()
+			clog << "DBusServletThread::doWork: received SetDocumentsLabels on " << docIds.size()
 				<< " IDs, " << labelsCount << " labels" << ", " << resetLabels << endl;
 #endif
 			// Set labels
@@ -887,7 +887,7 @@ void DBusServletThread::doWork(void)
 			DocumentInfo docInfo;
 
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received GetDocumentInfo on " << docId << endl;
+			clog << "DBusServletThread::doWork: received GetDocumentInfo on " << docId << endl;
 #endif
 			if (pIndex->getDocumentInfo(docId, docInfo) == true)
 			{
@@ -927,7 +927,7 @@ void DBusServletThread::doWork(void)
 		else
 		{
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received SetDocumentInfo on " << docId << endl;
+			clog << "DBusServletThread::doWork: received SetDocumentInfo on " << docId << endl;
 #endif
 
 			// Update the document info
@@ -963,7 +963,7 @@ void DBusServletThread::doWork(void)
 			bool replyWithError = true;
 
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received Query " << pSearchText << ", " << startDoc << "/" << maxHits << endl;
+			clog << "DBusServletThread::doWork: received Query " << pSearchText << ", " << startDoc << "/" << maxHits << endl;
 #endif
 			if (pSearchText != NULL)
 			{
@@ -1016,7 +1016,7 @@ void DBusServletThread::doWork(void)
 			bool replyWithError = true;
 
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received SimpleQuery " << pSearchText << ", " << maxHits << endl;
+			clog << "DBusServletThread::doWork: received SimpleQuery " << pSearchText << ", " << maxHits << endl;
 #endif
 			if (pSearchText != NULL)
 			{
@@ -1052,7 +1052,7 @@ void DBusServletThread::doWork(void)
 			DocumentInfo docInfo;
 
 #ifdef DEBUG
-			cout << "DBusServletThread::doWork: received UpdateDocument " << docId << endl;
+			clog << "DBusServletThread::doWork: received UpdateDocument " << docId << endl;
 #endif
 			if (pIndex->getDocumentInfo(docId, docInfo) == true)
 			{
@@ -1072,7 +1072,7 @@ void DBusServletThread::doWork(void)
 	else if (dbus_message_is_method_call(m_pServletInfo->m_pRequest, "org.freedesktop.DBus.Introspectable", "Introspect") == TRUE)
 	{
 #ifdef DEBUG
-		cout << "DBusServletThread::doWork: received Introspect" << endl;
+		clog << "DBusServletThread::doWork: received Introspect" << endl;
 #endif
 		if (loadXMLDescription() == true)
 		{
@@ -1090,7 +1090,7 @@ void DBusServletThread::doWork(void)
 	else
 	{
 #ifdef DEBUG
-		cout << "DBusServletThread::doWork: foreign message for/from " << dbus_message_get_interface(m_pServletInfo->m_pRequest)
+		clog << "DBusServletThread::doWork: foreign message for/from " << dbus_message_get_interface(m_pServletInfo->m_pRequest)
 			<< " " << dbus_message_get_member(m_pServletInfo->m_pRequest) << endl;
 #endif
 	}
@@ -1099,7 +1099,7 @@ void DBusServletThread::doWork(void)
 	if (error.message != NULL)
 	{
 #ifdef DEBUG
-		cout << "DBusServletThread::doWork: error occured: " << error.message << endl;
+		clog << "DBusServletThread::doWork: error occured: " << error.message << endl;
 #endif
 		// Use the error message as reply
 		m_pServletInfo->newErrorReply(error.name, error.message);
@@ -1115,7 +1115,7 @@ void DBusServletThread::doWork(void)
 		labelsCache.clear();
 		pIndex->getLabels(labelsCache);
 #ifdef DEBUG
-		cout << "DBusServletThread::doWork: failed to update labels" << endl;
+		clog << "DBusServletThread::doWork: failed to update labels" << endl;
 #endif
 	}
 
@@ -1180,7 +1180,7 @@ void RestoreMetaDataThread::doWork(void)
 				if (docId == 0)
 				{
 #ifdef DEBUG
-					cout << "RestoreMetaDataThread::doWork: " << *urlIter << " is not indexed, can't be restored" << endl;
+					clog << "RestoreMetaDataThread::doWork: " << *urlIter << " is not indexed, can't be restored" << endl;
 #endif
 					continue;
 				}
@@ -1189,14 +1189,14 @@ void RestoreMetaDataThread::doWork(void)
 				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_FIELDS) == true)
 				{
 #ifdef DEBUG
-					cout << "RestoreMetaDataThread::doWork: restored fields on " << *urlIter << endl;
+					clog << "RestoreMetaDataThread::doWork: restored fields on " << *urlIter << endl;
 #endif
 					pIndex->updateDocumentInfo(docId, docInfo);
 				}
 				if (metaData.getItem(docInfo, DocumentInfo::SERIAL_LABELS) == true)
 				{
 #ifdef DEBUG
-					cout << "RestoreMetaDataThread::doWork: restored " << docInfo.getLabels().size() << " labels on " << *urlIter << endl;
+					clog << "RestoreMetaDataThread::doWork: restored " << docInfo.getLabels().size() << " labels on " << *urlIter << endl;
 #endif
 					pIndex->setDocumentLabels(docId, docInfo.getLabels(), true);
 				}
@@ -1211,7 +1211,7 @@ void RestoreMetaDataThread::doWork(void)
 			currentOffset += 100;
 			urls.clear();
 		}
-		cout << "Restored user-set metadata for " << totalCount << " documents in "
+		clog << "Restored user-set metadata for " << totalCount << " documents in "
 			<< dirName << ", in " << restoreTimer.stop() << " ms" << endl;
 	}
 

@@ -34,7 +34,7 @@
 #include "FilterUtils.h"
 #include "SherlockParser.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 using std::vector;
@@ -244,7 +244,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 		{
 			charset = charsetIter->second;
 #ifdef DEBUG
-			cout << "SherlockResponseParser::parse: response charset is " << charset << endl;
+			clog << "SherlockResponseParser::parse: response charset is " << charset << endl;
 #endif
 		}
 	}
@@ -254,14 +254,14 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 		(m_resultItemEnd.empty() == true))
 	{
 #ifdef DEBUG
-		cout << "SherlockResponseParser::parse: incomplete properties" << endl;
+		clog << "SherlockResponseParser::parse: incomplete properties" << endl;
 #endif
 		return false;
 	}
 
 	// Extract the results list
 #ifdef DEBUG
-	cout << "SherlockResponseParser::parse: getting results list ("
+	clog << "SherlockResponseParser::parse: getting results list ("
 		<< m_resultListStart << ", " << m_resultListEnd << ")" << endl;
 #endif
 	const char *pContent = pResponseDoc->getData(contentLen);
@@ -274,7 +274,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 	// Extract results
 	string::size_type endPos = 0;
 #ifdef DEBUG
-	cout << "SherlockResponseParser::parse: getting first result ("
+	clog << "SherlockResponseParser::parse: getting first result ("
 		<< m_resultItemStart << ", " << m_resultItemEnd << ")" << endl;
 #endif
 	string resultItem = StringManip::extractField(resultList,
@@ -284,7 +284,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 		string contentType, url, name, extract;
 
 #ifdef DEBUG
-		cout << "SherlockResponseParser::parse: candidate chunk \""
+		clog << "SherlockResponseParser::parse: candidate chunk \""
 			<< resultItem << "\"" << endl;
 #endif
 		contentType = pResponseDoc->getType();
@@ -322,7 +322,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 			dummyHtml += htmlChunk;
 			dummyHtml += "</body></html>";
 #ifdef DEBUG
-			cout << "SherlockResponseParser::parse: wrapped chunk \""
+			clog << "SherlockResponseParser::parse: wrapped chunk \""
 				<< dummyHtml << "\"" << endl;
 #endif
 			chunkDoc.setData(dummyHtml.c_str(), dummyHtml.length());
@@ -344,7 +344,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 						url = linkIter->m_url;
 						name = linkIter->m_name;
 #ifdef DEBUG
-						cout << "SherlockResponseParser::parse: first link in chunk is "
+						clog << "SherlockResponseParser::parse: first link in chunk is "
 							<< url << endl;
 #endif
 						endOfFirstLink = linkIter->m_endPos;
@@ -450,7 +450,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 	if (pPluginDoc == NULL)
 	{
 #ifdef DEBUG
-		cout << "SherlockParser::parse: couldn't load " << m_fileName << endl;
+		clog << "SherlockParser::parse: couldn't load " << m_fileName << endl;
 #endif
 		return NULL;
 	}
@@ -482,14 +482,14 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 		catch (const exception &e)
 		{
 #ifdef DEBUG
-			cout << "SherlockParser::parse: caught exception ! " << e.what() << endl;
+			clog << "SherlockParser::parse: caught exception ! " << e.what() << endl;
 #endif
 			parsedPlugin = false;
 		}
 		catch (...)
 		{
 #ifdef DEBUG
-			cout << "SherlockParser::parse: caught unknown exception !" << endl;
+			clog << "SherlockParser::parse: caught unknown exception !" << endl;
 #endif
 			parsedPlugin = false;
 		}
@@ -541,7 +541,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 				inputItems.erase(mapIter);
 			}
 #ifdef DEBUG
-			else cout << "SherlockParser::parse: couldn't remove user input item" << endl;
+			else clog << "SherlockParser::parse: couldn't remove user input item" << endl;
 #endif
 
 			properties.m_variableParameters[SearchPluginProperties::SEARCH_TERMS_PARAM] = userInput;
@@ -550,7 +550,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 			iter != inputItems.end(); ++iter)
 		{
 #ifdef DEBUG
-			cout << "SherlockParser::parse: " << iter->first << "=" << iter->second << endl;
+			clog << "SherlockParser::parse: " << iter->first << "=" << iter->second << endl;
 #endif
 			if (iter->second.substr(0, 5) == "EDIT:")
 			{

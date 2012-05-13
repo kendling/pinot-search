@@ -24,7 +24,7 @@
 #include "TextFilter.h"
 #include "FilterWrapper.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 using std::set;

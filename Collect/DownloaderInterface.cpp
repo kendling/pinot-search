@@ -46,7 +46,7 @@ static void lockingCallback(int mode, int n, const char *file, int line)
 #ifdef DEBUG
 		if (status != 0)
 		{
-			cout << "lockingCallback: failed to lock mutex " << n << endl;
+			clog << "lockingCallback: failed to lock mutex " << n << endl;
 		}
 #endif
 	}
@@ -56,7 +56,7 @@ static void lockingCallback(int mode, int n, const char *file, int line)
 #ifdef DEBUG
 		if (status != 0)
 		{
-			cout << "lockingCallback: failed to unlock mutex " << n << endl;
+			clog << "lockingCallback: failed to unlock mutex " << n << endl;
 		}
 #endif
 	}

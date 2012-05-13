@@ -70,7 +70,7 @@ static size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, 
 	if (pNewContent == NULL)
 	{
 #ifdef DEBUG
-		cout << "writeCallback: failed to enlarge buffer" << endl;
+		clog << "writeCallback: failed to enlarge buffer" << endl;
 #endif
 		freeContentInfo(pInfo);
 		return 0;
@@ -90,7 +90,7 @@ static size_t writeCallback(void *pData, size_t dataSize, size_t elementsCount, 
 		{
 			((char*)pBadChar)[0] = ' ';
 #ifdef DEBUG
-			cout << "writeCallback: bad character" << endl;
+			clog << "writeCallback: bad character" << endl;
 #endif
 		}
 	}
@@ -118,7 +118,7 @@ static size_t headerCallback(void *pData, size_t dataSize, size_t elementsCount,
 	{
 		pInfo->m_lastModified = header.substr(15);
 #ifdef DEBUG
-		cout << "headerCallback: Last-Modified " << pInfo->m_lastModified << endl;
+		clog << "headerCallback: Last-Modified " << pInfo->m_lastModified << endl;
 #endif
 	}
 
@@ -163,7 +163,7 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	if (url.empty() == true)
 	{
 #ifdef DEBUG
-		cout << "CurlDownloader::retrieveUrl: no URL specified !" << endl;
+		clog << "CurlDownloader::retrieveUrl: no URL specified !" << endl;
 #endif
 		return NULL;
 	}
@@ -216,7 +216,7 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 		}
 
 #ifdef DEBUG
-		cout << "CurlDownloader::retrieveUrl: URL is " << url << endl;
+		clog << "CurlDownloader::retrieveUrl: URL is " << url << endl;
 #endif
 		while (redirectionsCount < 10)
 		{
@@ -273,7 +273,7 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 					{
 						url = pMatches[1];
 #ifdef DEBUG
-						cout << "CurlDownloader::retrieveUrl: redirected to URL " << url << endl;
+						clog << "CurlDownloader::retrieveUrl: redirected to URL " << url << endl;
 #endif
 						delete pDocument;
 						pDocument = NULL;
@@ -282,19 +282,19 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 						continue;
 					}
 #ifdef DEBUG
-					else cout << "CurlDownloader::retrieveUrl: no REFRESH META tag" << endl;
+					else clog << "CurlDownloader::retrieveUrl: no REFRESH META tag" << endl;
 #endif
 
 					regfree(&refreshRegex);
 				}
 #ifdef DEBUG
-				else cout << "CurlDownloader::retrieveUrl: couldn't look for a REFRESH META tag" << endl;
+				else clog << "CurlDownloader::retrieveUrl: couldn't look for a REFRESH META tag" << endl;
 #endif
 #endif
 			}
 			else
 			{
-				cerr << "Couldn't download " << url << ": " << curl_easy_strerror(res) << endl;
+				clog << "Couldn't download " << url << ": " << curl_easy_strerror(res) << endl;
 			}
 
 			break;

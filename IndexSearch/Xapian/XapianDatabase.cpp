@@ -37,8 +37,8 @@
 #include "FieldMapperInterface.h"
 #include "XapianDatabase.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::stringstream;
@@ -188,7 +188,7 @@ void XapianDatabase::openDatabase(void)
 		// FIXME: in newer versions, the remote backend supports writing
 		if (m_readOnly == false)
 		{
-			cerr << "XapianDatabase::openDatabase: remote databases " << m_databaseName << " are read-only" << endl;
+			clog << "XapianDatabase::openDatabase: remote databases " << m_databaseName << " are read-only" << endl;
 			return;
 		}
 
@@ -223,7 +223,7 @@ void XapianDatabase::openDatabase(void)
 					args += "/";
 					args += urlObj.getFile();
 #ifdef DEBUG
-					cout << "XapianDatabase::openDatabase: remote ssh access with ssh "
+					clog << "XapianDatabase::openDatabase: remote ssh access with ssh "
 						<< args << endl;
 #endif
 					Xapian::Database remoteDatabase = Xapian::Remote::open("ssh", args);
@@ -232,7 +232,7 @@ void XapianDatabase::openDatabase(void)
 				else
 				{
 #ifdef DEBUG
-					cout << "XapianDatabase::openDatabase: remote database at "
+					clog << "XapianDatabase::openDatabase: remote database at "
 						<< hostName << " " << port << endl;
 #endif
 					Xapian::Database remoteDatabase = Xapian::Remote::open(hostName, port);
@@ -250,12 +250,12 @@ void XapianDatabase::openDatabase(void)
 			}
 			catch (const Xapian::Error &error)
 			{
-				cerr << "Error opening " << m_databaseName << ": " << error.get_type()
+				clog << "Error opening " << m_databaseName << ": " << error.get_type()
 					<< ": " << error.get_msg() << endl;
 			}
 		}
 #ifdef DEBUG
-		else cout << "XapianDatabase::openDatabase: invalid remote database at "
+		else clog << "XapianDatabase::openDatabase: invalid remote database at "
 			<< hostName << "/" << urlObj.getLocation() << "/" << urlObj.getFile() << endl;
 #endif
 
@@ -266,7 +266,7 @@ void XapianDatabase::openDatabase(void)
 	if (stat(m_databaseName.c_str(), &dbStat) == -1)
 	{
 #ifdef DEBUG
-		cout << "XapianDatabase::openDatabase: database " << m_databaseName
+		clog << "XapianDatabase::openDatabase: database " << m_databaseName
 			<< " doesn't exist" << endl;
 #endif
 
@@ -277,7 +277,7 @@ void XapianDatabase::openDatabase(void)
 		if (mkdir(m_databaseName.c_str(), (mode_t)(S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)) != 0)
 #endif
 		{
-			cerr << "XapianDatabase::openDatabase: couldn't create database directory "
+			clog << "XapianDatabase::openDatabase: couldn't create database directory "
 				<< m_databaseName << endl;
 			return;
 		}
@@ -287,7 +287,7 @@ void XapianDatabase::openDatabase(void)
 	else if ((!S_ISDIR(dbStat.st_mode)) &&
 		(!S_ISREG(dbStat.st_mode)))
 	{
-		cerr << "XapianDatabase::openDatabase: " << m_databaseName
+		clog << "XapianDatabase::openDatabase: " << m_databaseName
 			<< " is neither a directory nor a file" << endl;
 		return;
 	}
@@ -323,7 +323,7 @@ void XapianDatabase::openDatabase(void)
 		if (m_pDatabase != NULL)
 		{
 #ifdef DEBUG
-			cout << "XapianDatabase::openDatabase: opened " << m_databaseName
+			clog << "XapianDatabase::openDatabase: opened " << m_databaseName
 				<< " " << m_pDatabase->get_description() << endl;
 #endif
 			m_isOpen = true;
@@ -334,7 +334,7 @@ void XapianDatabase::openDatabase(void)
 #if XAPIAN_MAJOR_VERSION>0
 	catch (const Xapian::DatabaseVersionError &error)
 	{
-		cerr << "Error opening " << m_databaseName << ": " << error.get_type()
+		clog << "Error opening " << m_databaseName << ": " << error.get_type()
 			<< ": " << error.get_msg() << endl;
 
 		// This format is no longer supported
@@ -346,14 +346,14 @@ void XapianDatabase::openDatabase(void)
 #endif
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Error opening " << m_databaseName << ": " << error.get_type()
+		clog << "Error opening " << m_databaseName << ": " << error.get_type()
 			<< ": " << error.get_msg() << endl;
 	}
 
 	// Give it another try ?
 	if (tryAgain == true)
 	{
-		cout << "XapianDatabase::openDatabase: trying again" << endl;
+		clog << "XapianDatabase::openDatabase: trying again" << endl;
 
 		m_overwrite = true;
 		m_obsoleteFormat = true;
@@ -428,7 +428,7 @@ Xapian::Database *XapianDatabase::readLock(void)
 			return m_pDatabase;
 		}
 #ifdef DEBUG
-		else cout << "XapianDatabase::readLock: failed" << endl;
+		else clog << "XapianDatabase::readLock: failed" << endl;
 #endif
 	}
 	else
@@ -462,7 +462,7 @@ Xapian::Database *XapianDatabase::readLock(void)
 			return m_pDatabase;
 		}
 #ifdef DEBUG
-		else cout << "XapianDatabase::readLock: failed" << endl;
+		else clog << "XapianDatabase::readLock: failed" << endl;
 #endif
 	}
 
@@ -475,7 +475,7 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 	if ((m_readOnly == true) ||
 		(m_merge == true))
 	{
-		cerr << "Couldn't open read-only database " << m_databaseName
+		clog << "Couldn't open read-only database " << m_databaseName
 			<< " for writing" << endl;
 		return NULL;
 	}
@@ -491,7 +491,7 @@ Xapian::WritableDatabase *XapianDatabase::writeLock(void)
 		return dynamic_cast<Xapian::WritableDatabase *>(m_pDatabase);
 	}
 #ifdef DEBUG
-	else cout << "XapianDatabase::writeLock: failed" << endl;
+	else clog << "XapianDatabase::writeLock: failed" << endl;
 #endif
 
 	return NULL;
@@ -503,7 +503,7 @@ void XapianDatabase::unlock(void)
 	if (pthread_mutex_unlock(&m_rwLock) != 0)
 	{
 #ifdef DEBUG
-		cout << "XapianDatabase::unlock: failed" << endl;
+		clog << "XapianDatabase::unlock: failed" << endl;
 #endif
 	}
 
@@ -602,7 +602,7 @@ string XapianDatabase::propsToRecord(DocumentInfo *pDoc)
 			pos = title.find("=", pos + 1);
 		}
 #ifdef DEBUG
-		cout << "XapianDatabase::propsToRecord: modified title" << endl;
+		clog << "XapianDatabase::propsToRecord: modified title" << endl;
 #endif
 	}
 	record += title;
@@ -622,7 +622,7 @@ string XapianDatabase::propsToRecord(DocumentInfo *pDoc)
 	sizeStream << pDoc->getSize();
 	record += sizeStream.str();
 #ifdef DEBUG
-	cout << "XapianDatabase::propsToRecord: document data is " << record << endl;
+	clog << "XapianDatabase::propsToRecord: document data is " << record << endl;
 #endif
 
 	return record;

@@ -57,7 +57,7 @@ static void printHelp(void)
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
 	ModuleFactory::getSupportedEngines(engines);
 	ModuleFactory::unloadModules();
-	cout << "pinot-search - Query search engines from the command-line\n\n"
+	clog << "pinot-search - Query search engines from the command-line\n\n"
 		<< "Usage: pinot-search [OPTIONS] SEARCHENGINETYPE SEARCHENGINENAME|SEARCHENGINEOPTION QUERYINPUT\n\n"
 		<< "Options:\n"
 		<< "  -d, --datefirst           sort by date then by relevance\n"
@@ -72,9 +72,9 @@ static void printHelp(void)
 		<< "Supported search engine types are :";
 	for (map<ModuleProperties, bool>::const_iterator engineIter = engines.begin(); engineIter != engines.end(); ++engineIter)
 	{
-		cout << " '" << engineIter->first.m_name << "'";
+		clog << " '" << engineIter->first.m_name << "'";
 	}
-	cout << "\n\nExamples:\n"
+	clog << "\n\nExamples:\n"
 		<< "pinot-search opensearch " << PREFIX << "/share/pinot/engines/KrustyDescription.xml \"clowns\"\n\n"
 		<< "pinot-search --max 20 sherlock " << PREFIX << "/share/pinot/engines/Bozo.src \"clowns\"\n\n"
 		<< "pinot-search googleapi mygoogleapikey \"clowns\"\n\n"
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'v':
-				cout << "pinot-search - " << PACKAGE_STRING << "\n\n"
+				clog << "pinot-search - " << PACKAGE_STRING << "\n\n"
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
 					<< "the GNU General Public License <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n"
 					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 	if ((argc < 4) ||
 		(argc - optind != 3))
 	{
-		cerr << "Wrong number of parameters" << endl;
+		clog << "Wrong number of parameters" << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
 		string(SHARED_MIME_INFO_PREFIX)) == false)
 	{
-		cerr << "Couldn't load MIME settings" << endl;
+		clog << "Couldn't load MIME settings" << endl;
 	}
 	DownloaderInterface::initialize();
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				cerr << "Couldn't find stored query " << pQueryInput << endl;
+				clog << "Couldn't find stored query " << pQueryInput << endl;
 
 				DownloaderInterface::shutdown();
 				MIMEScanner::shutdown();
@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 	SearchEngineInterface *pEngine = ModuleFactory::getSearchEngine(engineType, option);
 	if (pEngine == NULL)
 	{
-		cerr << "Couldn't obtain search engine instance" << endl;
+		clog << "Couldn't obtain search engine instance" << endl;
 
 		DownloaderInterface::shutdown();
 		MIMEScanner::shutdown();
@@ -290,7 +290,7 @@ int main(int argc, char **argv)
 
 				if (locationOnly == false)
 				{
-					cout << "Showing " << resultsList.size() << " results of about " << estimatedResultsCount << endl;
+					clog << "Showing " << resultsList.size() << " results of about " << estimatedResultsCount << endl;
 				}
 
 				vector<DocumentInfo>::const_iterator resultIter = resultsList.begin();
@@ -300,18 +300,18 @@ int main(int argc, char **argv)
 
 					if (locationOnly == false)
 					{
-						cout << count << " Location : '" << rawUrl << "'"<< endl;
-						cout << count << " Title    : " << resultIter->getTitle() << endl;
-						cout << count << " Type     : " << resultIter->getType() << endl;
-						cout << count << " Language : " << resultIter->getLanguage() << endl;
-						cout << count << " Date     : " << resultIter->getTimestamp() << endl;
-						cout << count << " Size     : " << resultIter->getSize() << endl;
-						cout << count << " Extract  : " << resultIter->getExtract() << endl;
-						cout << count << " Score    : " << resultIter->getScore() << endl;
+						clog << count << " Location : '" << rawUrl << "'"<< endl;
+						clog << count << " Title    : " << resultIter->getTitle() << endl;
+						clog << count << " Type     : " << resultIter->getType() << endl;
+						clog << count << " Language : " << resultIter->getLanguage() << endl;
+						clog << count << " Date     : " << resultIter->getTimestamp() << endl;
+						clog << count << " Size     : " << resultIter->getSize() << endl;
+						clog << count << " Extract  : " << resultIter->getExtract() << endl;
+						clog << count << " Score    : " << resultIter->getScore() << endl;
 					}
 					else
 					{
-						cout << rawUrl << endl;
+						clog << rawUrl << endl;
 					}
 					++count;
 
@@ -340,12 +340,12 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			cerr << "No results" << endl;
+			clog << "No results" << endl;
 		}
 	}
 	else
 	{
-		cerr << "Couldn't run query on search engine " << engineType << endl;
+		clog << "Couldn't run query on search engine " << engineType << endl;
 	}
 
 	delete pEngine;

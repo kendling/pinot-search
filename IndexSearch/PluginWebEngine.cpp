@@ -31,8 +31,8 @@
 #endif
 #include "PluginWebEngine.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 
 PluginWebEngine::PluginWebEngine(const string &fileName) :
@@ -81,7 +81,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery, unsigned int maxResu
 	Document *pResponseDoc = downloadPage(docInfo);
 	if (pResponseDoc == NULL)
 	{
-		cerr << "PluginWebEngine::getPage: couldn't download "
+		clog << "PluginWebEngine::getPage: couldn't download "
 			<< formattedQuery << endl;
 		return false;
 	}
@@ -92,7 +92,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery, unsigned int maxResu
 		(contentLen == 0))
 	{
 #ifdef DEBUG
-		cout << "PluginWebEngine::getPage: downloaded empty page" << endl;
+		clog << "PluginWebEngine::getPage: downloaded empty page" << endl;
 #endif
 		delete pResponseDoc;
 		return false;
@@ -113,7 +113,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery, unsigned int maxResu
 	{
 		m_charset = responseCharset;
 #ifdef DEBUG
-		cout << "PluginWebEngine::getPage: page charset is " << m_charset << endl;
+		clog << "PluginWebEngine::getPage: page charset is " << m_charset << endl;
 #endif
 	}
 
@@ -199,7 +199,7 @@ bool PluginWebEngine::getDetails(const string &fileName, SearchPluginProperties 
 	ResponseParserInterface *pResponseParser = pParser->parse(properties, true);
 	if (pResponseParser == NULL)
 	{
-		cerr << "PluginWebEngine::getDetails: couldn't parse "
+		clog << "PluginWebEngine::getDetails: couldn't parse "
 			<< fileName << endl;
 		delete pParser;
 
@@ -211,7 +211,7 @@ bool PluginWebEngine::getDetails(const string &fileName, SearchPluginProperties 
 	if (properties.m_response == SearchPluginProperties::UNKNOWN_RESPONSE)
 	{
 #ifdef DEBUG
-		cout << "PluginWebEngine::getDetails: bad response type for "
+		clog << "PluginWebEngine::getDetails: bad response type for "
 			<< fileName << endl;
 #endif
 		return false;
@@ -239,14 +239,14 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 
 	if (queryProps.getType() != QueryProperties::XAPIAN_QP)
 	{
-		cerr << "PluginWebEngine::runQuery: query type not supported" << endl;
+		clog << "PluginWebEngine::runQuery: query type not supported" << endl;
 		return false;
 	}
 
 	if (queryString.empty() == true)
 	{
 #ifdef DEBUG
-		cout << "PluginWebEngine::runQuery: query is empty" << endl;
+		clog << "PluginWebEngine::runQuery: query is empty" << endl;
 #endif
 		return false;
 	}
@@ -261,7 +261,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		formattedQuery += "=";
 	}
 #ifdef DEBUG
-	else cout << "PluginWebEngine::runQuery: no user input tag" << endl;
+	else clog << "PluginWebEngine::runQuery: no user input tag" << endl;
 #endif
 
 	formattedQuery += queryString;
@@ -298,7 +298,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		map<string, string>::const_iterator valueIter = m_editableValues.find(editableIter->second);
 		if (valueIter == m_editableValues.end())
 		{
-			cerr << "PluginWebEngine::runQuery: no value provided for plugin's editable parameter " << editableIter->second << endl;
+			clog << "PluginWebEngine::runQuery: no value provided for plugin's editable parameter " << editableIter->second << endl;
 			continue;
 		}
 
@@ -311,7 +311,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 	setQuery(queryProps);
 
 #ifdef DEBUG
-	cout << "PluginWebEngine::runQuery: querying " << m_properties.m_longName << endl;
+	clog << "PluginWebEngine::runQuery: querying " << m_properties.m_longName << endl;
 #endif
 	while (count < maxResultsCount)
 	{
@@ -367,7 +367,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 			(canScroll == false))
 		{
 #ifdef DEBUG
-			cout << "PluginWebEngine::runQuery: can't scroll to the next page of results" << endl;
+			clog << "PluginWebEngine::runQuery: can't scroll to the next page of results" << endl;
 #endif
 			break;
 		}
@@ -382,7 +382,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 		{
 			// That one page should have all the results...
 #ifdef DEBUG
-			cout << "PluginWebEngine::runQuery: performed one off call" << endl;
+			clog << "PluginWebEngine::runQuery: performed one off call" << endl;
 #endif
 			break;
 		}
@@ -393,7 +393,7 @@ bool PluginWebEngine::runQuery(QueryProperties& queryProps,
 				// We got less than the maximum number of results per page
 				// so there's no point in requesting the next page
 #ifdef DEBUG
-				cout << "PluginWebEngine::runQuery: last page wasn't full" << endl;
+				clog << "PluginWebEngine::runQuery: last page wasn't full" << endl;
 #endif
 				break;
 			}

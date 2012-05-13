@@ -27,8 +27,8 @@
 #include "config.h"
 #include "UniqueApplication.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::fstream;
@@ -41,11 +41,11 @@ UniqueApplication::UniqueApplication(const string &name)
 #ifdef DEBUG
 	if (m_pApp != NULL)
 	{
-		cout << "UniqueApplication: registered" << endl;
+		clog << "UniqueApplication: registered" << endl;
 	}
 	else
 	{
-		cout << "UniqueApplication: failed to register" << endl;
+		clog << "UniqueApplication: failed to register" << endl;
 	}
 #endif
 #endif
@@ -153,13 +153,13 @@ bool UniqueApplication::isRunning(const string &pidFileName, const string &proce
 
 			if (stillRunning == true)
 			{
-				cout << "Process " << processName << " (" << processID << ") is still running" << endl;
+				clog << "Process " << processName << " (" << processID << ") is still running" << endl;
 				return true;
 			}
 
 			if (processDied == true)
 			{
-				cerr << "Previous instance " << processID << " died prematurely" << endl;
+				clog << "Previous instance " << processID << " died prematurely" << endl;
 			}
 		}
 	}

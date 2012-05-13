@@ -111,7 +111,7 @@ static double getFSFreeSpace(const string &path)
 	double mbRatio = blockSize / (1024 * 1024);
 	double availableMbSize = availableBlocks * mbRatio;
 #ifdef DEBUG
-	cout << "DaemonState::getFSFreeSpace: " << availableBlocks << " blocks of " << blockSize
+	clog << "DaemonState::getFSFreeSpace: " << availableBlocks << " blocks of " << blockSize
 		<< " bytes (" << mbRatio << ")" << endl;
 #endif
 
@@ -130,7 +130,7 @@ public:
 		{
 			p.second->stop();
 #ifdef DEBUG
-			cout << "StopCrawlerThreadFunc: stopped thread " << p.second->getId() << endl;
+			clog << "StopCrawlerThreadFunc: stopped thread " << p.second->getId() << endl;
 #endif
 		}
 	}
@@ -263,7 +263,7 @@ bool DBusServletInfo::newQueryReply(const vector<DocumentInfo> &resultsList,
 		unsigned int docId = resultIter->getIsIndexed(indexId);
 
 #ifdef DEBUG
-		cout << "DBusServletInfo::newQueryReply: adding result " << docId << endl;
+		clog << "DBusServletInfo::newQueryReply: adding result " << docId << endl;
 #endif
 		if (m_simpleQuery == false)
 		{
@@ -307,7 +307,7 @@ bool DBusServletInfo::reply(void)
 		dbus_connection_send(m_pConnection, m_pReply, NULL);
 		dbus_connection_flush(m_pConnection);
 #ifdef DEBUG
-		cout << "DBusServletInfo::reply: sent reply" << endl;
+		clog << "DBusServletInfo::reply: sent reply" << endl;
 #endif
 
 		return true;
@@ -353,7 +353,7 @@ bool DaemonState::on_activity_timeout(void)
 		if (availableMbSize >= 0)
 		{
 #ifdef DEBUG
-			cout << "DaemonState::on_activity_timeout: " << availableMbSize << " Mb free for "
+			clog << "DaemonState::on_activity_timeout: " << availableMbSize << " Mb free for "
 				<< PinotSettings::getInstance().m_daemonIndexLocation << endl;
 #endif
 			if (availableMbSize < PinotSettings::getInstance().m_minimumDiskSpace)
@@ -364,7 +364,7 @@ bool DaemonState::on_activity_timeout(void)
 				set_flag(LOW_DISK_SPACE);
 				stop_crawling();
 
-				cerr << "Stopped indexing because of low disk space" << endl;
+				clog << "Stopped indexing because of low disk space" << endl;
 			}
 			else if (m_stopIndexing == true)
 			{
@@ -372,7 +372,7 @@ bool DaemonState::on_activity_timeout(void)
 				m_stopIndexing = false;
 				reset_flag(LOW_DISK_SPACE);
 
-				cerr << "Resumed indexing following low disk space condition" << endl;
+				clog << "Resumed indexing following low disk space condition" << endl;
 			}
 		}
 #endif
@@ -396,7 +396,7 @@ void DaemonState::check_battery_state(void)
 	if (sysctlbyname("hw.acpi.acline", &acline, &len, NULL, 0) == 0)
 	{
 #ifdef DEBUG
-		cout << "DaemonState::check_battery_state: acline " << acline << endl;
+		clog << "DaemonState::check_battery_state: acline " << acline << endl;
 #endif
 		if (acline == 0)
 		{
@@ -412,7 +412,7 @@ void DaemonState::check_battery_state(void)
 				set_flag(ON_BATTERY);
 				stop_crawling();
 
-				cout << "System is now on battery" << endl;
+				clog << "System is now on battery" << endl;
 			}
 			else
 			{
@@ -420,7 +420,7 @@ void DaemonState::check_battery_state(void)
 				reset_flag(ON_BATTERY);
 				start_crawling();
 
-				cout << "System is now on AC" << endl;
+				clog << "System is now on AC" << endl;
 			}
 		}
 	}
@@ -440,7 +440,7 @@ bool DaemonState::crawl_location(const PinotSettings::IndexableLocation &locatio
 		(is_flag_set(ON_BATTERY) == true))
 	{
 #ifdef DEBUG
-		cout << "DaemonState::crawl_location: crawling was stopped" << endl;
+		clog << "DaemonState::crawl_location: crawling was stopped" << endl;
 #endif
 		return false;
 	}
@@ -519,7 +519,7 @@ void DaemonState::start(bool isReindex)
 		m_crawlQueue.push(*locationIter);
 	}
 #ifdef DEBUG
-	cout << "DaemonState::start: " << m_crawlQueue.size() << " locations to crawl" << endl;
+	clog << "DaemonState::start: " << m_crawlQueue.size() << " locations to crawl" << endl;
 #endif
 
 	// Update all items status so that we can get rid of files from deleted sources
@@ -544,7 +544,7 @@ bool DaemonState::start_crawling(void)
 	if (write_lock_lists() == true)
 	{
 #ifdef DEBUG
-		cout << "DaemonState::start_crawling: " << m_crawlQueue.size() << " locations to crawl, "
+		clog << "DaemonState::start_crawling: " << m_crawlQueue.size() << " locations to crawl, "
 			<< m_crawlers << " crawlers" << endl;
 #endif
 		// Get the next location, unless something is still being crawled
@@ -567,7 +567,7 @@ bool DaemonState::start_crawling(void)
 					(m_crawlHistory.getItems(CrawlHistory::TO_CRAWL, deletedFiles) > 0))
 				{
 #ifdef DEBUG
-					cout << "DaemonState::start_crawling: " << deletedFiles.size() << " orphaned files" << endl;
+					clog << "DaemonState::start_crawling: " << deletedFiles.size() << " orphaned files" << endl;
 #endif
 					for(set<string>::const_iterator fileIter = deletedFiles.begin();
 						fileIter != deletedFiles.end(); ++fileIter)
@@ -615,7 +615,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 	string type(pThread->getType());
 	bool isStopped = pThread->isStopped();
 #ifdef DEBUG
-	cout << "DaemonState::on_thread_end: end of thread " << type << " " << pThread->getId() << endl;
+	clog << "DaemonState::on_thread_end: end of thread " << type << " " << pThread->getId() << endl;
 #endif
 
 	// What type of thread was it ?
@@ -629,7 +629,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		}
 		--m_crawlers;
 #ifdef DEBUG
-		cout << "DaemonState::on_thread_end: done crawling " << pCrawlerThread->getDirectory() << endl;
+		clog << "DaemonState::on_thread_end: done crawling " << pCrawlerThread->getDirectory() << endl;
 #endif
 
 		if (isStopped == false)
@@ -736,7 +736,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 				(pInfo->m_pThread->getId() == pThread->getId()))
 			{
 #ifdef DEBUG
-				cout << "DaemonState::on_thread_end: ran query " << queryProps.getName() << endl;
+				clog << "DaemonState::on_thread_end: ran query " << queryProps.getName() << endl;
 #endif
 				// Prepare and send the reply
 				pInfo->newQueryReply(resultsList, pQueryThread->getDocumentsCount());
@@ -765,7 +765,7 @@ void DaemonState::on_thread_end(WorkerThread *pThread)
 		(get_threads_count() == 0))
 	{
 #ifdef DEBUG
-		cout << "DaemonState::on_thread_end: stopping all threads" << endl;
+		clog << "DaemonState::on_thread_end: stopping all threads" << endl;
 #endif
 		// Stop background threads
 		stop_threads();
@@ -825,7 +825,7 @@ void DaemonState::on_message_filefound(DocumentInfo docInfo, bool isDirectory)
 		newLocation.m_name = docInfo.getLocation().substr(7);
 		newLocation.m_isSource = false;
 #ifdef DEBUG
-		cout << "DaemonState::on_message_filefound: new directory " << newLocation.m_name << endl;
+		clog << "DaemonState::on_message_filefound: new directory " << newLocation.m_name << endl;
 #endif
 
 		// Queue this directory for crawling

@@ -24,8 +24,8 @@
 #include "Languages.h"
 #include "DBusIndex.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::stringstream;
@@ -45,7 +45,7 @@ static DBusGConnection *getBusConnection(void)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex: couldn't connect to session bus: " << pError->message << endl;
+			clog << "DBusIndex: couldn't connect to session bus: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -112,7 +112,7 @@ bool DBusIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
 	if (type != DBUS_TYPE_UINT32)
 	{
 #ifdef DEBUG
-		cout << "DBusIndex::documentInfoFromDBus: expected unsigned integer, got " << type << endl;
+		clog << "DBusIndex::documentInfoFromDBus: expected unsigned integer, got " << type << endl;
 #endif
 		return false;
 	}
@@ -123,7 +123,7 @@ bool DBusIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
 	if (type != DBUS_TYPE_ARRAY)
 	{
 #ifdef DEBUG
-		cout << "DBusIndex::documentInfoFromDBus: expected array, got " << type << endl;
+		clog << "DBusIndex::documentInfoFromDBus: expected array, got " << type << endl;
 #endif
 		return false;
 	}
@@ -138,7 +138,7 @@ bool DBusIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
 		if (type != DBUS_TYPE_STRUCT)
 		{
 #ifdef DEBUG
-			cout << "DBusIndex::documentInfoFromDBus: expected struct, got " << type << endl;
+			clog << "DBusIndex::documentInfoFromDBus: expected struct, got " << type << endl;
 #endif
 			return false;
 		}
@@ -148,7 +148,7 @@ bool DBusIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
 		if (pName == NULL)
 		{
 #ifdef DEBUG
-			cout << "DBusIndex::documentInfoFromDBus: invalid field name" << endl;
+			clog << "DBusIndex::documentInfoFromDBus: invalid field name" << endl;
 #endif
 		}
 
@@ -157,12 +157,12 @@ bool DBusIndex::documentInfoFromDBus(DBusMessageIter *iter, unsigned int &docId,
 		if (pValue == NULL)
 		{
 #ifdef DEBUG
-			cout << "DBusIndex::documentInfoFromDBus: invalid field value" << endl;
+			clog << "DBusIndex::documentInfoFromDBus: invalid field value" << endl;
 #endif
 			continue;
 		}
 #ifdef DEBUG
-		cout << "DBusIndex::documentInfoFromDBus: field " << pName << "=" << pValue << endl;
+		clog << "DBusIndex::documentInfoFromDBus: field " << pName << "=" << pValue << endl;
 #endif
 
 		// Populate docInfo
@@ -229,7 +229,7 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 		DBUS_STRUCT_END_CHAR_AS_STRING, &array_iter))
 	{
 #ifdef DEBUG
-		cout << "DBusIndex::documentInfoToDBus: couldn't open array container" << endl;
+		clog << "DBusIndex::documentInfoToDBus: couldn't open array container" << endl;
 #endif
 		return false;
 	}
@@ -280,7 +280,7 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 			DBUS_TYPE_STRUCT, NULL, &struct_iter))
 		{
 #ifdef DEBUG
-			cout << "DBusIndex::documentInfoToDBus: couldn't open struct container" << endl;
+			clog << "DBusIndex::documentInfoToDBus: couldn't open struct container" << endl;
 #endif
 			return false;
 		}
@@ -289,13 +289,13 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &g_fieldNames[fieldNum]);
 		dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_STRING, &pValue);
 #ifdef DEBUG
-		cout << "DBusIndex::documentInfoToDBus: field " << g_fieldNames[fieldNum] << "=" << pValue << endl;
+		clog << "DBusIndex::documentInfoToDBus: field " << g_fieldNames[fieldNum] << "=" << pValue << endl;
 #endif
 
 		if (!dbus_message_iter_close_container(&array_iter, &struct_iter))
 		{
 #ifdef DEBUG
-			cout << "DBusIndex::documentInfoToDBus: couldn't close struct container" << endl;
+			clog << "DBusIndex::documentInfoToDBus: couldn't close struct container" << endl;
 #endif
 			return false;
 		}
@@ -304,7 +304,7 @@ bool DBusIndex::documentInfoToDBus(DBusMessageIter *iter, unsigned int docId,
 	if (!dbus_message_iter_close_container(iter, &array_iter))
 	{
 #ifdef DEBUG
-		cout << "DBusIndex::documentInfoToDBus: couldn't close array container" << endl;
+		clog << "DBusIndex::documentInfoToDBus: couldn't close array container" << endl;
 #endif
 		return false;
 	}
@@ -326,7 +326,7 @@ bool DBusIndex::reload(void)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::reload: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::reload: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -338,7 +338,7 @@ bool DBusIndex::reload(void)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::reload: " << pError->message << endl;
+			clog << "DBusIndex::reload: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -369,7 +369,7 @@ bool DBusIndex::getStatistics(unsigned int crawledCount, unsigned int docsCount,
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::getStatistics: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::getStatistics: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -385,14 +385,14 @@ bool DBusIndex::getStatistics(unsigned int crawledCount, unsigned int docsCount,
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::getStatistics: " << pError->message << endl;
+			clog << "DBusIndex::getStatistics: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
 	else
 	{
 #ifdef DEBUG
-		cout << "DBusIndex::getStatistics: got " << crawledCount << " " << docsCount
+		clog << "DBusIndex::getStatistics: got " << crawledCount << " " << docsCount
 			<< " " << lowDiskSpaceB << onBatteryB << crawlingB << endl;
 #endif
 		if (lowDiskSpaceB == TRUE)
@@ -444,7 +444,7 @@ string DBusIndex::getMetadata(const string &name) const
 /// Sets metadata.
 bool DBusIndex::setMetadata(const string &name, const string &value) const
 {
-	cerr << "DBusIndex::setMetadata: not allowed" << endl;
+	clog << "DBusIndex::setMetadata: not allowed" << endl;
 	return false;
 }
 
@@ -520,7 +520,7 @@ bool DBusIndex::getLabels(set<string> &labels) const
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::getLabels: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::getLabels: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -547,7 +547,7 @@ bool DBusIndex::getLabels(set<string> &labels) const
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::getLabels: " << pError->message << endl;
+			clog << "DBusIndex::getLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -572,7 +572,7 @@ bool DBusIndex::addLabel(const string &name)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::addLabel: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::addLabel: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -591,7 +591,7 @@ bool DBusIndex::addLabel(const string &name)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::addLabel: " << pError->message << endl;
+			clog << "DBusIndex::addLabel: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -616,7 +616,7 @@ bool DBusIndex::deleteLabel(const string &name)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::deleteLabel: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::deleteLabel: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -635,7 +635,7 @@ bool DBusIndex::deleteLabel(const string &name)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::deleteLabel: " << pError->message << endl;
+			clog << "DBusIndex::deleteLabel: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -673,7 +673,7 @@ bool DBusIndex::getDocumentLabels(unsigned int docId, set<string> &labels) const
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::getDocumentLabels: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::getDocumentLabels: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -701,7 +701,7 @@ bool DBusIndex::getDocumentLabels(unsigned int docId, set<string> &labels) const
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::getDocumentLabels: " << pError->message << endl;
+			clog << "DBusIndex::getDocumentLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -727,7 +727,7 @@ bool DBusIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::setDocumentLabels: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::setDocumentLabels: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -760,7 +760,7 @@ bool DBusIndex::setDocumentLabels(unsigned int docId, const set<string> &labels,
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::setDocumentLabels: " << pError->message << endl;
+			clog << "DBusIndex::setDocumentLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -789,7 +789,7 @@ bool DBusIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::setDocumentsLabels: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::setDocumentsLabels: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -807,7 +807,7 @@ bool DBusIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	{
 		pDocIds[idIndex] = g_strdup_printf("%u", *idIter); 
 #ifdef DEBUG
-		cout << "DBusIndex::setDocumentsLabels: document " << pDocIds[idIndex] << endl;
+		clog << "DBusIndex::setDocumentsLabels: document " << pDocIds[idIndex] << endl;
 #endif
 		++idIndex;
 	}
@@ -817,7 +817,7 @@ bool DBusIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	{
 		pLabels[labelIndex] = g_strdup(labelIter->c_str());
 #ifdef DEBUG
-		cout << "DBusIndex::setDocumentsLabels: label " << pLabels[labelIndex] << endl;
+		clog << "DBusIndex::setDocumentsLabels: label " << pLabels[labelIndex] << endl;
 #endif
 		++labelIndex;
 	}
@@ -834,7 +834,7 @@ bool DBusIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::setDocumentsLabels: " << pError->message << endl;
+			clog << "DBusIndex::setDocumentsLabels: " << pError->message << endl;
 			g_error_free(pError);
 		}
 		updatedLabels = FALSE;
@@ -874,7 +874,7 @@ unsigned int DBusIndex::hasDocument(const string &url) const
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::hasDocument: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::hasDocument: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -890,7 +890,7 @@ unsigned int DBusIndex::hasDocument(const string &url) const
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::hasDocument: " << pError->message << endl;
+			clog << "DBusIndex::hasDocument: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -972,7 +972,7 @@ bool DBusIndex::listDocuments(const string &name, set<unsigned int> &docIds,
 bool DBusIndex::indexDocument(const Document &doc, const set<string> &labels,
 	unsigned int &docId)
 {
-	cerr << "DBusIndex::indexDocument: not allowed" << endl;
+	clog << "DBusIndex::indexDocument: not allowed" << endl;
 	return false;
 }
 
@@ -990,7 +990,7 @@ bool DBusIndex::updateDocument(unsigned int docId, const Document &doc)
 	DBusGProxy *pBusProxy = getBusProxy(pBus);
 	if (pBusProxy == NULL)
 	{
-		cerr << "DBusIndex::updateDocument: couldn't get bus proxy" << endl;
+		clog << "DBusIndex::updateDocument: couldn't get bus proxy" << endl;
 		return false;
 	}
 
@@ -1007,7 +1007,7 @@ bool DBusIndex::updateDocument(unsigned int docId, const Document &doc)
 	{
 		if (pError != NULL)
 		{
-			cerr << "DBusIndex::updateDocument: " << pError->message << endl;
+			clog << "DBusIndex::updateDocument: " << pError->message << endl;
 			g_error_free(pError);
 		}
 	}
@@ -1035,7 +1035,7 @@ bool DBusIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docIn
 		PINOT_DBUS_OBJECT_PATH, PINOT_DBUS_SERVICE_NAME, "SetDocumentInfo");
 	if (pMsg == NULL)
 	{
-		cerr << "DBusIndex::updateDocumentInfo: couldn't call method" << endl;
+		clog << "DBusIndex::updateDocumentInfo: couldn't call method" << endl;
 		return false;
 	}
 
@@ -1055,7 +1055,7 @@ bool DBusIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docIn
 
 		if (dbus_error_is_set(&err))
 		{
-			cerr << "DBusIndex::updateDocumentInfo: " << err.message << endl;
+			clog << "DBusIndex::updateDocumentInfo: " << err.message << endl;
 			dbus_error_free(&err);
 			return false;
 		}
@@ -1079,28 +1079,28 @@ bool DBusIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &docIn
 /// Unindexes the given document; true if success.
 bool DBusIndex::unindexDocument(unsigned int docId)
 {
-	cerr << "DBusIndex::unindexDocument: not allowed" << endl;
+	clog << "DBusIndex::unindexDocument: not allowed" << endl;
 	return false;
 }
 
 /// Unindexes the given document.
 bool DBusIndex::unindexDocument(const string &location)
 {
-	cerr << "DBusIndex::unindexDocument: not allowed" << endl;
+	clog << "DBusIndex::unindexDocument: not allowed" << endl;
 	return false;
 }
 
 /// Unindexes documents.
 bool DBusIndex::unindexDocuments(const string &name, NameType type)
 {
-	cerr << "DBusIndex::unindexDocuments: not allowed" << endl;
+	clog << "DBusIndex::unindexDocuments: not allowed" << endl;
 	return false;
 }
 
 /// Unindexes all documents.
 bool DBusIndex::unindexAllDocuments(void)
 {
-	cerr << "DBusIndex::unindexDocuments: not allowed" << endl;
+	clog << "DBusIndex::unindexDocuments: not allowed" << endl;
 	return false;
 }
 

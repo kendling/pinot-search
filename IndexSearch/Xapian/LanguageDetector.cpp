@@ -45,8 +45,8 @@ extern "C"
 #include "LanguageDetector.h"
 #include "config.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::vector;
@@ -66,7 +66,7 @@ LanguageDetector::LanguageDetector() :
 	// What configuration file should we use ?
 	confFile += "/pinot/";
 #ifdef DEBUG
-	cout << "LanguageDetector::guessLanguage: detected " << textCatVersion << endl;
+	clog << "LanguageDetector::guessLanguage: detected " << textCatVersion << endl;
 #endif
 	if (strncasecmp(textCatVersion, "3.", 2) == 0)
 	{
@@ -156,7 +156,7 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 				language.resize(dashPos);
 			}
 #ifdef DEBUG
-			cout << "LanguageDetector::guessLanguage: found language " << language << endl;
+			clog << "LanguageDetector::guessLanguage: found language " << language << endl;
 #endif
 			candidates.push_back(language);
 		}
@@ -198,7 +198,7 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 					language.resize(dashPos);
 				}
 #ifdef DEBUG
-				cout << "LanguageDetector::guessLanguage: found language " << language << endl;
+				clog << "LanguageDetector::guessLanguage: found language " << language << endl;
 #endif
 				candidates.push_back(language);
 
@@ -212,7 +212,7 @@ void LanguageDetector::guessLanguage(const char *pData, unsigned int dataLength,
 	// Unlock
 	pthread_mutex_unlock(&m_mutex);
 #ifdef DEBUG
-	cout << "LanguageDetector::guessLanguage: language guessing took "
+	clog << "LanguageDetector::guessLanguage: language guessing took "
 		<< timer.stop() << " ms" << endl;
 #endif
 #else

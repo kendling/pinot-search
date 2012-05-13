@@ -88,7 +88,7 @@ static ThreadsManager *g_pState = NULL;
 
 static void closeAll(void)
 {
-	cout << "Exiting..." << endl;
+	clog << "Exiting..." << endl;
 
 	// Close everything
 	ModuleFactory::unloadModules();
@@ -96,11 +96,11 @@ static void closeAll(void)
 	// Restore the stream buffers
 	if (g_coutBuf != NULL)
 	{
-		cout.rdbuf(g_coutBuf);
+		clog.rdbuf(g_coutBuf);
 	}
 	if (g_cerrBuf != NULL)
 	{
-		cerr.rdbuf(g_cerrBuf);
+		clog.rdbuf(g_cerrBuf);
 	}
 	if (g_clogBuf != NULL)
 	{
@@ -120,7 +120,7 @@ static void quitAll(int sigNum)
 {
 	if (g_refMainLoop->is_running() == true)
 	{
-		cout << "Quitting..." << endl;
+		clog << "Quitting..." << endl;
 
 		if (g_pState != NULL)
 		{
@@ -204,7 +204,7 @@ static bool getBatteryState(const string &name, bool systemBus,
 	{
 		if (pError != NULL)
 		{
-			cerr << "Couldn't get battery state: " << pError->message << endl;
+			clog << "Couldn't get battery state: " << pError->message << endl;
 			g_error_free(pError);
 		}
 
@@ -221,13 +221,13 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 	bool batteryChange = false;
 
 #ifdef DEBUG
-	cout << "filterHandler: called" << endl;
+	clog << "filterHandler: called" << endl;
 #endif
 	// Are we about to be disconnected ?
 	if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_LOCAL, "Disconnected") == TRUE)
 	{
 #ifdef DEBUG
-		cout << "filterHandler: received Disconnected" << endl;
+		clog << "filterHandler: received Disconnected" << endl;
 #endif
 		if (pServer != NULL)
 		{
@@ -238,13 +238,13 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 	else if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_DBUS, "NameOwnerChanged") == TRUE)
 	{
 #ifdef DEBUG
-		cout << "filterHandler: received NameOwnerChanged" << endl;
+		clog << "filterHandler: received NameOwnerChanged" << endl;
 #endif
 	}
 	else if (dbus_message_is_signal(pMessage, "org.freedesktop.DeviceKit.Power", "Changed") == TRUE)
 	{
 #ifdef DEBUG
-		cout << "filterHandler: received Changed" << endl;
+		clog << "filterHandler: received Changed" << endl;
 #endif
 		// Properties changed, check again
 		batteryChange = getBatteryState("org.freedesktop.DeviceKit.Power", true,
@@ -257,7 +257,7 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 	else if (dbus_message_is_signal(pMessage, "org.freedesktop.UPower", "Changed") == TRUE)
 	{
 #ifdef DEBUG
-		cout << "filterHandler: received Changed" << endl;
+		clog << "filterHandler: received Changed" << endl;
 #endif
 		// Properties changed, check again
 		batteryChange = getBatteryState("org.freedesktop.UPower", true,
@@ -275,7 +275,7 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 		DBusError error;
 
 #ifdef DEBUG
-		cout << "filterHandler: received OnBatteryChanged" << endl;
+		clog << "filterHandler: received OnBatteryChanged" << endl;
 #endif
 		dbus_error_init(&error);
 		if ((dbus_message_get_args(pMessage, &error,
@@ -312,7 +312,7 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 				pServer->stop_crawling();
 			}
 
-			cout << "System is now on battery" << endl;
+			clog << "System is now on battery" << endl;
 		}
 		else
 		{
@@ -323,7 +323,7 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 				pServer->start_crawling();
 			}
 
-			cout << "System is now on AC" << endl;
+			clog << "System is now on AC" << endl;
 		}
 
 		return DBUS_HANDLER_RESULT_HANDLED;
@@ -335,7 +335,7 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 static void unregisteredHandler(DBusConnection *pConnection, void *pData)
 {
 #ifdef DEBUG
-	cout << "unregisteredHandler: called" << endl;
+	clog << "unregisteredHandler: called" << endl;
 #endif
 }
 
@@ -383,9 +383,9 @@ int main(int argc, char **argv)
 			case 'h':
 				// Help
 #ifdef HAVE_DBUS
-				cout << programName << " - D-Bus search and index daemon\n\n"
+				clog << programName << " - D-Bus search and index daemon\n\n"
 #else
-				cout << programName << " - Search and index daemon\n\n"
+				clog << programName << " - Search and index daemon\n\n"
 #endif
 					<< "Usage: " << programName << " [OPTIONS]\n\n"
 					<< "Options:\n"
@@ -414,7 +414,7 @@ int main(int argc, char **argv)
 				reindex = true;
 				break;
 			case 'v':
-				cout << programName << " - " << PACKAGE_STRING << "\n\n" 
+				clog << programName << " - " << PACKAGE_STRING << "\n\n" 
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
 					<< "the GNU General Public License <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n"
 					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
@@ -485,7 +485,7 @@ int main(int argc, char **argv)
 				if (pLocale != NULL)
 				{
 #ifdef DEBUG
-					cout << "Changed locale to " << pLocale << endl;
+					clog << "Changed locale to " << pLocale << endl;
 #endif
 				}
 			}
@@ -507,7 +507,7 @@ int main(int argc, char **argv)
 			return EXIT_SUCCESS;
 		}
 
-		// Redirect cout and cerr to a file
+		// Redirect clog and clog to a file
 		string fileName(confDirectory);
 		fileName += "/";
 		fileName += programName;
@@ -516,8 +516,8 @@ int main(int argc, char **argv)
 		g_coutBuf = cout.rdbuf();
 		g_cerrBuf = cerr.rdbuf();
 		g_clogBuf = clog.rdbuf();
-		cout.rdbuf(g_outputFile.rdbuf());
-		cerr.rdbuf(g_outputFile.rdbuf());
+		clog.rdbuf(g_outputFile.rdbuf());
+		clog.rdbuf(g_outputFile.rdbuf());
 		clog.rdbuf(g_outputFile.rdbuf());
 	}
 	else
@@ -538,7 +538,7 @@ int main(int argc, char **argv)
 	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
 		string(SHARED_MIME_INFO_PREFIX)) == false)
 	{
-		cerr << "Couldn't load MIME settings" << endl;
+		clog << "Couldn't load MIME settings" << endl;
 	}
 	DownloaderInterface::initialize();
 	// Load filter libraries, if any
@@ -590,7 +590,7 @@ int main(int argc, char **argv)
 	bool wasObsoleteFormat = false;
 	if (ModuleFactory::openOrCreateIndex(settings.m_defaultBackend, settings.m_daemonIndexLocation, wasObsoleteFormat, false) == false)
 	{
-		cerr << "Couldn't open index " << settings.m_daemonIndexLocation << endl;
+		clog << "Couldn't open index " << settings.m_daemonIndexLocation << endl;
 		return EXIT_FAILURE;
 	}
 	if (wasObsoleteFormat == true)
@@ -608,7 +608,7 @@ int main(int argc, char **argv)
 		(QueryHistory::create(historyDatabase) == false) ||
 		(ViewHistory::create(historyDatabase) == false))
 	{
-		cerr << "Couldn't create history database " << historyDatabase << endl;
+		clog << "Couldn't create history database " << historyDatabase << endl;
 		return EXIT_FAILURE;
 	}
 	else
@@ -621,7 +621,7 @@ int main(int argc, char **argv)
 
 		// Don't expire actions left from last time
 		actionsCount += actionQueue.getItemsCount(ActionQueue::UNINDEX);
-		cout << actionsCount << " actions left" << endl;
+		clog << actionsCount << " actions left" << endl;
 
 		// Expire the rest
 		queryHistory.expireItems(timeNow);
@@ -635,17 +635,17 @@ int main(int argc, char **argv)
 	struct sched_param schedParam;
 	if (sched_getparam(0, &schedParam) == -1)
 	{
-		cerr << "Couldn't get current scheduling policy" << endl;
+		clog << "Couldn't get current scheduling policy" << endl;
 	}
 	else if (sched_setscheduler(0, SCHED_IDLE, &schedParam) == -1)
 	{
-		cerr << "Couldn't set scheduling policy" << endl;
+		clog << "Couldn't set scheduling policy" << endl;
 	}
 #else
 	// Change the daemon's priority
 	if (setpriority(PRIO_PROCESS, 0, priority) == -1)
 	{
-		cerr << "Couldn't set scheduling priority to " << priority << endl;
+		clog << "Couldn't set scheduling priority to " << priority << endl;
 	}
 #endif
 
@@ -658,10 +658,10 @@ int main(int argc, char **argv)
 	{
 		if (pError != NULL)
 		{
-			cerr << "Couldn't open system bus connection: " << pError->message << endl;
+			clog << "Couldn't open system bus connection: " << pError->message << endl;
 			if (pError->message != NULL)
 			{
-				cerr << "Error is " << pError->message << endl;
+				clog << "Error is " << pError->message << endl;
 			}
 			g_error_free(pError);
 		}
@@ -673,10 +673,10 @@ int main(int argc, char **argv)
 	{
 		if (pError != NULL)
 		{
-			cerr << "Couldn't open session bus connection: " << pError->message << endl;
+			clog << "Couldn't open session bus connection: " << pError->message << endl;
 			if (pError->message != NULL)
 			{
-				cerr << "Error is " << pError->message << endl;
+				clog << "Error is " << pError->message << endl;
 			}
 			g_error_free(pError);
 		}
@@ -687,13 +687,13 @@ int main(int argc, char **argv)
 	DBusConnection *pSystemConnection = dbus_g_connection_get_connection(DBusServletThread::m_pSystemBus);
 	if (pSystemConnection == NULL)
 	{
-		cerr << "Couldn't get system connection" << endl;
+		clog << "Couldn't get system connection" << endl;
 		return EXIT_FAILURE;
 	}
 	DBusConnection *pSessionConnection = dbus_g_connection_get_connection(DBusServletThread::m_pSessionBus);
 	if (pSessionConnection == NULL)
 	{
-		cerr << "Couldn't get session connection" << endl;
+		clog << "Couldn't get session connection" << endl;
 		return EXIT_FAILURE;
 	}
 #endif
@@ -734,10 +734,10 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			cerr << "Couldn't obtain name " << PINOT_DBUS_SERVICE_NAME << endl;
+			clog << "Couldn't obtain name " << PINOT_DBUS_SERVICE_NAME << endl;
 			if (error.message != NULL)
 			{
-				cerr << "Error is " << error.message << endl;
+				clog << "Error is " << error.message << endl;
 			}
 		}
 #endif
@@ -767,7 +767,7 @@ int main(int argc, char **argv)
 				}
 				else if (indexVersion < PINOT_INDEX_MIN_VERSION)
 				{
-					cout << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
+					clog << "Upgrading index from version " << indexVersion << " to " << VERSION << endl;
 
 					reindex = true;
 				}
@@ -779,7 +779,7 @@ int main(int argc, char **argv)
 					DBusServletThread::flushIndexAndSignal(pIndex);
 #endif
 
-					cout << "Reset index" << endl;
+					clog << "Reset index" << endl;
 
 					resetHistory = resetLabels = true;
 				}
@@ -802,7 +802,7 @@ int main(int argc, char **argv)
 					crawlHistory.deleteSource(sourceIter->first);
 				}
 
-				cout << "Reset crawler history" << endl;
+				clog << "Reset crawler history" << endl;
 			}
 
 			if ((resetLabels == true) &&
@@ -815,7 +815,7 @@ int main(int argc, char **argv)
 					// needs to be pulled from the configuration file
 					pIndex->setLabels(settings.m_labels, true);
 
-					cout << "Set labels as per the configuration file" << endl;
+					clog << "Set labels as per the configuration file" << endl;
 				}
 				else
 				{
@@ -880,11 +880,11 @@ int main(int argc, char **argv)
 				server.set_flag(DaemonState::ON_BATTERY);
 				server.stop_crawling();
 
-				cout << "System is on battery" << endl;
+				clog << "System is on battery" << endl;
 			}
 			else
 			{
-				cout << "System is on AC" << endl;
+				clog << "System is on AC" << endl;
 			}
 #endif
 
@@ -896,24 +896,24 @@ int main(int argc, char **argv)
 		}
 		catch (const Glib::Exception &e)
 		{
-			cerr << e.what() << endl;
+			clog << e.what() << endl;
 			return EXIT_FAILURE;
 		}
 		catch (const char *pMsg)
 		{
-			cerr << pMsg << endl;
+			clog << pMsg << endl;
 			return EXIT_FAILURE;
 		}
 		catch (...)
 		{
-			cerr << "Unknown exception" << endl;
+			clog << "Unknown exception" << endl;
 			return EXIT_FAILURE;
 		}
 #ifdef HAVE_DBUS
 	}
 	else
 	{
-		cerr << "Couldn't register object path" << endl;
+		clog << "Couldn't register object path" << endl;
 	}
 	dbus_error_free(&error);
 #endif

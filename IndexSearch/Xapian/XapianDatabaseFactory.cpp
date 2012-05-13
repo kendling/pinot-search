@@ -20,7 +20,7 @@
 
 #include "XapianDatabaseFactory.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 using std::map;
@@ -99,7 +99,7 @@ XapianDatabase *XapianDatabaseFactory::getDatabase(const string &location,
 		{
 			dbIter->second = NULL;
 #ifdef DEBUG
-			cout << "XapianDatabaseFactory::getDatabase: closing " << dbIter->first << endl;
+			clog << "XapianDatabaseFactory::getDatabase: closing " << dbIter->first << endl;
 #endif
 			m_databases.erase(dbIter);
 			delete pDb;
@@ -161,7 +161,7 @@ void XapianDatabaseFactory::closeAll(void)
 		std::map<std::string, XapianDatabase *>::iterator nextIter = dbIter;
 		++nextIter;
 #ifdef DEBUG
-		cout << "XapianDatabaseFactory::closeAll: closing " << dbIter->first << endl;
+		clog << "XapianDatabaseFactory::closeAll: closing " << dbIter->first << endl;
 #endif
 
 		// Remove from the map
@@ -182,7 +182,7 @@ void XapianDatabaseFactory::closeAll(void)
 		XapianDatabase *pDb = dbIter->second;
 		Xapian::Database *pIndex = NULL;
 #ifdef DEBUG
-		cout << "XapianDatabaseFactory::closeAll: closing " << dbIter->first << endl;
+		clog << "XapianDatabaseFactory::closeAll: closing " << dbIter->first << endl;
 #endif
 
 		// Remove from the map

@@ -23,7 +23,7 @@
 #include "Url.h"
 #include "SearchEngineInterface.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 
 SearchEngineInterface::SearchEngineInterface() :

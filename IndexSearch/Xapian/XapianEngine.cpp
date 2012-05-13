@@ -42,8 +42,8 @@
 using std::string;
 using std::multimap;
 using std::vector;
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::inserter;
 using std::getline;
@@ -69,7 +69,7 @@ static void checkFilter(const string &freeQuery, string::size_type filterValueSt
 		filterName = freeQuery.substr(filterNameStart + 1, filterValueStart - filterNameStart - 1);
 	}
 #ifdef DEBUG
-	cout << "checkFilter: filter " << filterName << endl;
+	clog << "checkFilter: filter " << filterName << endl;
 #endif
 
 	// In XapianIndex, these are escaped and hashed
@@ -110,7 +110,7 @@ class TimeValueRangeProcessor : public Xapian::ValueRangeProcessor
 			{
 				// HHMMSS
 #ifdef DEBUG
-				cout << "TimeValueRangeProcessor::operator: accepting " << begin << ".." << end << endl;
+				clog << "TimeValueRangeProcessor::operator: accepting " << begin << ".." << end << endl;
 #endif
 				return m_valueNumber;
 			}
@@ -124,12 +124,12 @@ class TimeValueRangeProcessor : public Xapian::ValueRangeProcessor
 				end.erase(2, 1);
 				end.erase(5, 1);
 #ifdef DEBUG
-				cout << "TimeValueRangeProcessor::operator: accepting " << begin << ".." << end << endl;
+				clog << "TimeValueRangeProcessor::operator: accepting " << begin << ".." << end << endl;
 #endif
 				return m_valueNumber;
 			}
 #ifdef DEBUG
-			cout << "TimeValueRangeProcessor::operator: rejecting " << begin << ".." << end << endl;
+			clog << "TimeValueRangeProcessor::operator: rejecting " << begin << ".." << end << endl;
 #endif
 
 			return Xapian::BAD_VALUENO;
@@ -177,7 +177,7 @@ class TermDecider : public Xapian::ExpandDecider
 				}
 			}
 #ifdef DEBUG
-			cout << "TermDecider: avoiding " << m_pTermsToAvoid->size() << " terms" << endl;
+			clog << "TermDecider: avoiding " << m_pTermsToAvoid->size() << " terms" << endl;
 #endif
 		}
 		~TermDecider()
@@ -308,7 +308,7 @@ class FileStopper : public Xapian::SimpleStopper
 				inputFile.close();
 
 #ifdef DEBUG
-				cout << "FileStopper: " << m_stopwordsCount << " stopwords for language code " << languageCode << endl;
+				clog << "FileStopper: " << m_stopwordsCount << " stopwords for language code " << languageCode << endl;
 #endif
 			}
 		}
@@ -386,7 +386,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 				return false;
 			}
 #ifdef DEBUG
-			cout << "QueryModifier::handle_token: " << tok << endl;
+			clog << "QueryModifier::handle_token: " << tok << endl;
 #endif
 
 			// Where is this token in the original query ?
@@ -476,7 +476,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 			}
 			m_modifiedQuery += tok;
 #ifdef DEBUG
-			cout << "QueryModifier::handle_token: " << m_modifiedQuery << endl;
+			clog << "QueryModifier::handle_token: " << m_modifiedQuery << endl;
 #endif
 
 			if (tokPos != string::npos)
@@ -497,7 +497,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 		string get_modified_query(bool &pureCJKV)
 		{
 #ifdef DEBUG
-			cout << "QueryModifier::get_modified_query: " << m_pos << "/" << m_query.length() << endl;
+			clog << "QueryModifier::get_modified_query: " << m_pos << "/" << m_query.length() << endl;
 #endif
 
 			// Anything left ?
@@ -507,7 +507,7 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 			}
 			wrapClose();
 #ifdef DEBUG
-			cout << "QueryModifier::get_modified_query: " << m_modifiedQuery << endl;
+			clog << "QueryModifier::get_modified_query: " << m_modifiedQuery << endl;
 #endif
 
 			if ((m_hasCJKV == true) &&
@@ -619,7 +619,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		// We can disable stemming and spelling correction for pure CJKV queries
 		string cjkvQuery(handler.get_modified_query(minimal));
 #ifdef DEBUG
-		cout << "XapianEngine::parseQuery: CJKV query is " << cjkvQuery << endl;
+		clog << "XapianEngine::parseQuery: CJKV query is " << cjkvQuery << endl;
 #endif
 
 		// Do as if the user had given this as input
@@ -642,7 +642,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		}
 	}
 #ifdef DEBUG
-	cout << "XapianEngine::parseQuery: " << tokensCount << " tokens" << endl;
+	clog << "XapianEngine::parseQuery: " << tokensCount << " tokens" << endl;
 #endif
 
 	if (pIndex != NULL)
@@ -672,7 +672,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	else
 	{
 #ifdef DEBUG
-		cout << "XapianEngine::parseQuery: no stemming" << endl;
+		clog << "XapianEngine::parseQuery: no stemming" << endl;
 #endif
 		parser.set_stemming_strategy(Xapian::QueryParser::STEM_NONE);
 	}
@@ -780,7 +780,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 			}
 
 #ifdef DEBUG
-			cout << "XapianEngine::parseQuery: escaping to " << escapedValue << endl;
+			clog << "XapianEngine::parseQuery: escaping to " << escapedValue << endl;
 #endif
 			freeQuery.replace(escapedFilterStart + 1, escapedFilterEnd - escapedFilterStart,
 				escapedValue);
@@ -793,7 +793,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 			escapedFilterEnd -= 2;
 		}
 #ifdef DEBUG
-		cout << "XapianEngine::parseQuery: replaced filter: " << freeQuery << endl;
+		clog << "XapianEngine::parseQuery: replaced filter: " << freeQuery << endl;
 #endif
 
 		// Next
@@ -812,7 +812,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 	}
 	Xapian::Query parsedQuery = parser.parse_query(freeQuery, flags);
 #ifdef DEBUG
-	cout << "XapianEngine::parseQuery: query is " << parsedQuery.get_description() << endl;
+	clog << "XapianEngine::parseQuery: query is " << parsedQuery.get_description() << endl;
 #endif
 
 	// Any limit on what documents should be searched ?
@@ -824,7 +824,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 		parsedQuery = Xapian::Query(Xapian::Query::OP_FILTER,
 			parsedQuery, filterQuery);
 #ifdef DEBUG
-		cout << "XapianEngine::parseQuery: limited query is " << parsedQuery.get_description() << endl;
+		clog << "XapianEngine::parseQuery: limited query is " << parsedQuery.get_description() << endl;
 #endif
 	}
 
@@ -836,7 +836,7 @@ Xapian::Query XapianEngine::parseQuery(Xapian::Database *pIndex, const QueryProp
 #ifdef DEBUG
 		if (correctedFreeQuery.empty() == false)
 		{
-			cout << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
+			clog << "XapianEngine::parseQuery: corrected spelling to: " << correctedFreeQuery << endl;
 		}
 #endif
 #endif
@@ -878,7 +878,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			enquire.set_sort_by_relevance_then_value(4);
 #endif
 #ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: sorting by relevance first" << endl;
+			clog << "XapianEngine::queryDatabase: sorting by relevance first" << endl;
 #endif
 		}
 		else if (queryProps.getSortOrder() == QueryProperties::DATE)
@@ -890,7 +890,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			enquire.set_sort_by_value_then_relevance(4);
 #endif
 #ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: sorting by date and time first" << endl;
+			clog << "XapianEngine::queryDatabase: sorting by date and time first" << endl;
 #endif
 		}
 
@@ -911,9 +911,9 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		if (matches.empty() == false)
 		{
 #ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: found " << matches.size() << "/" << maxResultsCount
+			clog << "XapianEngine::queryDatabase: found " << matches.size() << "/" << maxResultsCount
 				<< " results found from position " << startDoc << endl;
-			cout << "XapianEngine::queryDatabase: estimated " << matches.get_matches_lower_bound()
+			clog << "XapianEngine::queryDatabase: estimated " << matches.get_matches_lower_bound()
 				<< "/" << m_resultsCountEstimate << "/" << matches.get_matches_upper_bound() << endl;
 #endif
 
@@ -934,7 +934,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 					{
 						seedTerms.push_back(*termIter);
 #ifdef DEBUG
-						cout << "XapianEngine::queryDatabase: matched term " << *termIter << endl;
+						clog << "XapianEngine::queryDatabase: matched term " << *termIter << endl;
 #endif
 					}
 					else if (firstChar == 'Z')
@@ -956,7 +956,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 									break;
 								}
 #ifdef DEBUG
-								cout << "XapianEngine::queryDatabase: matched unstem " << *docTermIter << endl;
+								clog << "XapianEngine::queryDatabase: matched unstem " << *docTermIter << endl;
 #endif
 
 								// FIXME: check this term stems to stemmed !
@@ -971,7 +971,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 				thisResult.setScore((float)mIter.get_percent());
 
 #ifdef DEBUG
-				cout << "XapianEngine::queryDatabase: found document ID " << docId << endl;
+				clog << "XapianEngine::queryDatabase: found document ID " << docId << endl;
 #endif
 				XapianDatabase::recordToProps(doc.get_data(), &thisResult);
 				// XapianDatabase stored the language in English
@@ -997,9 +997,9 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't run query: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't run query: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
-	cout << "Ran query \"" << queryProps.getFreeQuery() << "\" in " << timer.stop() << " ms" << endl;
+	clog << "Ran query \"" << queryProps.getFreeQuery() << "\" in " << timer.stop() << " ms" << endl;
 
 	try
 	{
@@ -1023,7 +1023,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 				}
 			}
 #ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: expand from " << expandDocs.size() << " documents" << endl;
+			clog << "XapianEngine::queryDatabase: expand from " << expandDocs.size() << " documents" << endl;
 #endif
 
 			// Get 10 non-prefixed terms
@@ -1033,7 +1033,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 				allowedPrefixes, query);
 			Xapian::ESet expandTerms = enquire.get_eset(10, expandDocs, &expandDecider);
 #ifdef DEBUG
-			cout << "XapianEngine::queryDatabase: " << expandTerms.size() << " expand terms" << endl;
+			clog << "XapianEngine::queryDatabase: " << expandTerms.size() << " expand terms" << endl;
 #endif
 			for (Xapian::ESetIterator termIter = expandTerms.begin();
 				termIter != expandTerms.end(); ++termIter)
@@ -1053,7 +1053,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't run query: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't run query: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 
 	// Be tolerant of errors as long as we got some results
@@ -1089,7 +1089,7 @@ bool XapianEngine::setLimitSet(const set<string> &docsSet)
 		m_limitDocuments.insert(urlFilter);
 	}
 #ifdef DEBUG
-	cout << "XapianEngine::setLimitSet: " << m_limitDocuments.size() << " documents" << endl;
+	clog << "XapianEngine::setLimitSet: " << m_limitDocuments.size() << " documents" << endl;
 #endif
 
 	return true;
@@ -1101,7 +1101,7 @@ bool XapianEngine::setExpandSet(const set<string> &docsSet)
 	copy(docsSet.begin(), docsSet.end(),
 		inserter(m_expandDocuments, m_expandDocuments.begin()));
 #ifdef DEBUG
-	cout << "XapianEngine::setExpandSet: " << m_expandDocuments.size() << " documents" << endl;
+	clog << "XapianEngine::setExpandSet: " << m_expandDocuments.size() << " documents" << endl;
 #endif
 
 	return true;
@@ -1121,7 +1121,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	if (queryProps.isEmpty() == true)
 	{
 #ifdef DEBUG
-		cout << "XapianEngine::runQuery: query is empty" << endl;
+		clog << "XapianEngine::runQuery: query is empty" << endl;
 #endif
 		return false;
 	}
@@ -1129,14 +1129,14 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, true);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
 	if (stemLanguage.empty() == false)
 	{
 #ifdef DEBUG
-		cout << "XapianEngine::runQuery: " << stemLanguage << " stemming" << endl;
+		clog << "XapianEngine::runQuery: " << stemLanguage << " stemming" << endl;
 #endif
 		try
 		{
@@ -1144,7 +1144,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 		}
 		catch (const Xapian::Error &error)
 		{
-			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
+			clog << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
 		}
 	}
 
@@ -1175,7 +1175,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 					(stemLanguage.empty() == false))
 				{
 #ifdef DEBUG
-					cout << "XapianEngine::runQuery: trying again with stemming" << endl;
+					clog << "XapianEngine::runQuery: trying again with stemming" << endl;
 #endif
 					fullQuery = parseQuery(pIndex, queryProps, stemLanguage,
 						m_defaultOperator, m_correctedFreeQuery);
@@ -1195,7 +1195,7 @@ bool XapianEngine::runQuery(QueryProperties& queryProps,
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't run query: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't run query: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	pDatabase->unlock();
 

@@ -295,7 +295,7 @@ string QueryProperties::getFreeQuery(bool withoutFilters) const
 	}
 
 #ifdef DEBUG
-	cout << "QueryProperties::getFreeQuery: " << m_freeQueryWithoutFilters << endl;
+	clog << "QueryProperties::getFreeQuery: " << m_freeQueryWithoutFilters << endl;
 #endif
 	return m_freeQueryWithoutFilters;
 }

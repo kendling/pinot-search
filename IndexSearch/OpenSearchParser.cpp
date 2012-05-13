@@ -101,7 +101,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 	if ((mimeType.empty() == false) &&
 		(mimeType.find("xml") == string::npos))
 	{
-		cerr << "OpenSearchResponseParser::parse: response is not XML" << endl;
+		clog << "OpenSearchResponseParser::parse: response is not XML" << endl;
 		return false;
 	}
 
@@ -124,7 +124,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 		{
 			charset = encoding;
 #ifdef DEBUG
-			cout << "OpenSearchResponseParser::parse: response charset is " << charset << endl;
+			clog << "OpenSearchResponseParser::parse: response charset is " << charset << endl;
 #endif
 		}
 
@@ -170,7 +170,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 		if (loadFeed == false)
 		{
 #ifdef DEBUG
-			cout << "OpenSearchResponseParser::parse: error on root node "
+			clog << "OpenSearchResponseParser::parse: error on root node "
 				<< rootNodeName << endl;
 #endif
 			return false;
@@ -203,7 +203,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 				{
 					totalResults = min((unsigned int)atoi(nodeContent.c_str()), totalResults);
 #ifdef DEBUG
-					cout << "OpenSearchResponseParser::parse: total results "
+					clog << "OpenSearchResponseParser::parse: total results "
 						<< totalResults << endl;
 #endif
 				}
@@ -214,7 +214,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 				{
 					firstResultIndex = (unsigned int)atoi(nodeContent.c_str());
 #ifdef DEBUG
-					cout << "OpenSearchResponseParser::parse: first result index "
+					clog << "OpenSearchResponseParser::parse: first result index "
 						<< firstResultIndex << endl;
 #endif
 				}
@@ -293,7 +293,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 	catch (const std::exception& ex)
 	{
 #ifdef DEBUG
-		cout << "OpenSearchResponseParser::parse: caught exception: " << ex.what() << endl;
+		clog << "OpenSearchResponseParser::parse: caught exception: " << ex.what() << endl;
 #endif
 		foundResult = false;
 	}
@@ -347,7 +347,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 			(rootNodeName != "SearchPlugin"))
 		{
 #ifdef DEBUG
-			cout << "OpenSearchParser::parse: wrong root node " << rootNodeName << endl;
+			clog << "OpenSearchParser::parse: wrong root node " << rootNodeName << endl;
 #endif
 			return NULL;
 		}
@@ -432,7 +432,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 						{
 							response = SearchPluginProperties::UNKNOWN_RESPONSE;
 #ifdef DEBUG
-							cout << "OpenSearchParser::parse: unsupported response type "
+							clog << "OpenSearchParser::parse: unsupported response type "
 								<< type << endl;
 #endif
 							continue;
@@ -446,7 +446,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 							// URL
 							properties.m_baseUrl = url.substr(0, pos);
 #ifdef DEBUG
-							cout << "OpenSearchParser::parse: URL is " << url << endl;
+							clog << "OpenSearchParser::parse: URL is " << url << endl;
 #endif
 
 							// Split this into the actual parameters
@@ -499,7 +499,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 									else
 									{
 #ifdef DEBUG
-										cout << "OpenSearchParser::parse: " << paramName << "=" << paramValue << endl;
+										clog << "OpenSearchParser::parse: " << paramName << "=" << paramValue << endl;
 #endif
 										if (paramValue.substr(0, 5) == "EDIT:")
 										{
@@ -551,7 +551,7 @@ ResponseParserInterface *OpenSearchParser::parse(SearchPluginProperties &propert
 	catch (const std::exception& ex)
 	{
 #ifdef DEBUG
-		cout << "OpenSearchParser::parse: caught exception: " << ex.what() << endl;
+		clog << "OpenSearchParser::parse: caught exception: " << ex.what() << endl;
 #endif
 		success = false;
 	}

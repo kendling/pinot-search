@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@
 
 #include "INotifyMonitor.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::map;
@@ -53,7 +53,7 @@ INotifyMonitor::INotifyMonitor() :
 		char errBuffer[1024];
 
 		strerror_r(errno, errBuffer, 1024);
-		cerr << "Couldn't initialize inotify: " << errBuffer << endl;
+		clog << "Couldn't initialize inotify: " << errBuffer << endl;
 	}
 
 	// FIXME: check for existence of /proc
@@ -100,7 +100,7 @@ bool INotifyMonitor::removeWatch(const string &location)
 	}
 	else
 	{
-		cerr << location << " is not being monitored" << endl;
+		clog << location << " is not being monitored" << endl;
 	}
 
 	return false;
@@ -112,7 +112,7 @@ unsigned int INotifyMonitor::getLimit(void) const
 	return m_maxUserWatches;
 }
 
-/// Starts monitoring a location.
+/// Adds a watch for the specified location.
 bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 {
 	uint32_t eventsMask = IN_CLOSE_WRITE|IN_MOVE|IN_CREATE|IN_DELETE|IN_UNMOUNT|IN_MOVE_SELF|IN_DELETE_SELF;
@@ -158,7 +158,7 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 			m_watches.insert(pair<int, string>(watchNum, location));
 			m_locations.insert(pair<string, int>(location, watchNum));
 #ifdef DEBUG
-			cout << "INotifyMonitor::addLocation: added watch "
+			clog << "INotifyMonitor::addLocation: added watch "
 				<< watchNum << " for " << location << endl;
 #endif
 			addedLocation = true;
@@ -170,7 +170,7 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 				// There are no watches left
 				m_watchesCount = m_maxUserWatches + 1;
 			}
-			cerr << "Couldn't monitor " << location << endl;
+			clog << "Couldn't monitor " << location << endl;
 		}
 	}
 	pthread_mutex_unlock(&m_mutex);
@@ -178,7 +178,7 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 	return addedLocation;
 }
 
-/// Stops monitoring a location.
+/// Removes the watch for the specified location.
 bool INotifyMonitor::removeLocation(const string &location)
 {
 	bool removedLocation = false;
@@ -231,7 +231,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 	if (ioctl(m_monitorFd, FIONREAD, &queueLen) == 0)
 	{
 #ifdef DEBUG
-		cout << "INotifyMonitor::retrievePendingEvents: "
+		clog << "INotifyMonitor::retrievePendingEvents: "
 			<< queueLen << " bytes to read" << endl;
 #endif
 	}
@@ -250,7 +250,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		size_t eventSize = sizeof(struct inotify_event) + pEvent->len;
 
 #ifdef DEBUG
-		cout << "INotifyMonitor::retrievePendingEvents: read "
+		clog << "INotifyMonitor::retrievePendingEvents: read "
 			<< bytesRead << " bytes at offset " << offset << endl;
 #endif
 
@@ -259,7 +259,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		if (watchIter == m_watches.end())
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: unknown watch "
+			clog << "INotifyMonitor::retrievePendingEvents: unknown watch "
 				<< pEvent->wd << endl;
 #endif
 			offset += eventSize;
@@ -287,7 +287,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		if (pEvent->mask & IN_CREATE)
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: created "
+			clog << "INotifyMonitor::retrievePendingEvents: created "
 				<< monEvent.m_location << endl;
 #endif
 			monEvent.m_type = MonitorEvent::CREATED;
@@ -295,7 +295,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		else if (pEvent->mask & IN_CLOSE_WRITE)
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: written and closed "
+			clog << "INotifyMonitor::retrievePendingEvents: written and closed "
 				<< monEvent.m_location << endl;
 #endif
 			monEvent.m_type = MonitorEvent::WRITE_CLOSED;
@@ -303,7 +303,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		else if (pEvent->mask & IN_MOVED_FROM)
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: moved from on "
+			clog << "INotifyMonitor::retrievePendingEvents: moved from on "
 				<< monEvent.m_location << " " << pEvent->cookie << endl;
 #endif
 			// Store this until we receive a IN_MOVED_TO event
@@ -312,7 +312,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		else if (pEvent->mask & IN_MOVED_TO)
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: moved to on "
+			clog << "INotifyMonitor::retrievePendingEvents: moved to on "
 				<< monEvent.m_location << " " << pEvent->cookie << endl;
 #endif
 			// What was the previous location ?
@@ -322,7 +322,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 				monEvent.m_previousLocation = movedIter->second.m_location;
 				monEvent.m_type = MonitorEvent::MOVED;
 #ifdef DEBUG
-				cout << "INotifyMonitor::retrievePendingEvents: moved from "
+				clog << "INotifyMonitor::retrievePendingEvents: moved from "
 					<< monEvent.m_previousLocation << endl;
 #endif
 				m_movedFrom.erase(movedIter);
@@ -346,7 +346,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 				// The previous location is unknown because it's from somewhere not being monitored
 				monEvent.m_type = MonitorEvent::CREATED;
 #ifdef DEBUG
-				cout << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
+				clog << "INotifyMonitor::retrievePendingEvents: don't know where file was moved from" << endl;
 #endif
 			}
 		}
@@ -355,7 +355,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 			map<uint32_t, MonitorEvent>::iterator movedIter = m_movedFrom.end();
 
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: moved self on "
+			clog << "INotifyMonitor::retrievePendingEvents: moved self on "
 				<< monEvent.m_location << " " << pEvent->cookie << endl;
 #endif
 			// It was moved somewhere not being monitored
@@ -389,7 +389,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		else if (pEvent->mask & IN_DELETE)
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: deleted "
+			clog << "INotifyMonitor::retrievePendingEvents: deleted "
 				<< monEvent.m_location << endl;
 #endif
 			monEvent.m_type = MonitorEvent::DELETED;
@@ -397,7 +397,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		else if (pEvent->mask & IN_DELETE_SELF)
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: deleted self on "
+			clog << "INotifyMonitor::retrievePendingEvents: deleted self on "
 				<< monEvent.m_location << endl;
 #endif
 			if (monEvent.m_isWatch == true)
@@ -408,7 +408,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		else if (pEvent->mask & IN_UNMOUNT)
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: unmounted on "
+			clog << "INotifyMonitor::retrievePendingEvents: unmounted on "
 				<< monEvent.m_location << endl;
 #endif
 			if (monEvent.m_isWatch == true)
@@ -420,7 +420,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		else
 		{
 #ifdef DEBUG
-			cout << "INotifyMonitor::retrievePendingEvents: ignoring event "
+			clog << "INotifyMonitor::retrievePendingEvents: ignoring event "
 				<< pEvent->mask << " on " << monEvent.m_location << endl;
 #endif
 		}
@@ -443,7 +443,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 				movedIter->second.m_type = MonitorEvent::DELETED;
 				events.push(movedIter->second);
 #ifdef DEBUG
-				cout << "INotifyMonitor::retrievePendingEvents: don't know where "
+				clog << "INotifyMonitor::retrievePendingEvents: don't know where "
 					<< movedIter->second.m_location << " was moved to" << endl;
 #endif
 

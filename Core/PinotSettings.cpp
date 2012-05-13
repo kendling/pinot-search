@@ -136,12 +136,12 @@ PinotSettings::PinotSettings() :
 		if (mkdir(directoryName.c_str(), (mode_t)S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IXOTH) == 0)
 #endif
 		{
-			cerr << "Created directory " << directoryName << endl;
+			clog << "Created directory " << directoryName << endl;
 			m_firstRun = true;
 		}
 		else
 		{
-			cerr << "Couldn't create pinot directory at "
+			clog << "Couldn't create pinot directory at "
 				<< directoryName << endl;
 		}
 	}
@@ -270,7 +270,7 @@ void PinotSettings::checkHistoryDatabase(void)
 
 		CommandLine::runSync(string("\\cp -f ") + uiHistoryDatabase + " " + daemonHistoryDatabase, output);
 #ifdef DEBUG
-		cout << "PinotSettings::checkHistoryDatabase: " << output << endl;
+		clog << "PinotSettings::checkHistoryDatabase: " << output << endl;
 #endif
 	}
 }
@@ -374,7 +374,7 @@ bool PinotSettings::load(LoadWhat what)
 				save(SAVE_PREFS);
 				save(SAVE_CONFIG);
 
-				cout << "Migrated settings to 0.90 format" << endl;
+				clog << "Migrated settings to 0.90 format" << endl;
 			}
 			else
 			{
@@ -416,7 +416,7 @@ bool PinotSettings::load(LoadWhat what)
 				channelName = modProps.m_channel = currentUserChannel;
 
 #ifdef DEBUG
-				cout << "PinotSettings::load: no channel for back-end " << engineIter->first.m_name << endl;
+				clog << "PinotSettings::load: no channel for back-end " << engineIter->first.m_name << endl;
 #endif
 				m_engines.insert(modProps);
 			}
@@ -543,7 +543,7 @@ bool PinotSettings::loadSearchEngines(const string &directoryName)
 						}
 					}
 #ifdef DEBUG
-					cout << "PinotSettings::loadSearchEngines: " << properties.m_name
+					clog << "PinotSettings::loadSearchEngines: " << properties.m_name
 						<< ", " << properties.m_longName << ", " << properties.m_option
 						<< " has " << properties.m_editableParameters.size() << " editable values" << endl;
 #endif
@@ -567,7 +567,7 @@ bool PinotSettings::loadConfiguration(const string &fileName, bool isGlobal)
 	if ((stat(fileName.c_str(), &fileStat) != 0) ||
 		(!S_ISREG(fileStat.st_mode)))
 	{
-		cerr << "Couldn't open settings file " << fileName << endl;
+		clog << "Couldn't open settings file " << fileName << endl;
 		return false;
 	}
 
@@ -715,7 +715,7 @@ bool PinotSettings::loadConfiguration(const string &fileName, bool isGlobal)
 	}
 	catch (const std::exception& ex)
 	{
-		cerr << "Couldn't parse settings file: "
+		clog << "Couldn't parse settings file: "
 			<< ex.what() << endl;
 		success = false;
 	}
@@ -1093,7 +1093,7 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		ustring maxDateStr(maxDate.format_string("%Y%m%d"));
 
 #ifdef DEBUG
-		cout << "PinotSettings::loadQueries: date range " << minDateStr << " to " << maxDateStr << endl;
+		clog << "PinotSettings::loadQueries: date range " << minDateStr << " to " << maxDateStr << endl;
 #endif
 		freeQuery += " ";
 		freeQuery += minDateStr;
@@ -1653,7 +1653,7 @@ bool PinotSettings::save(SaveWhat what)
 			}
 		}
 #ifdef DEBUG
-		cout << "PinotSettings::save: saving to " << getFileName(prefsOrUI) << endl;
+		clog << "PinotSettings::save: saving to " << getFileName(prefsOrUI) << endl;
 #endif
 
 		// Save to file
@@ -1661,7 +1661,7 @@ bool PinotSettings::save(SaveWhat what)
 	}
 	catch (const std::exception& ex)
 	{
-		cerr << "Couldn't save settings file: "
+		clog << "Couldn't save settings file: "
 			<< ex.what() << endl;
 		return false;
 	}
@@ -1681,7 +1681,7 @@ bool PinotSettings::addIndex(const ustring &name, const string &location, bool i
 	unsigned int indexId(1 << m_indexCount);
 	m_indexes.insert(IndexProperties(name, location, indexId, isInternal));
 #ifdef DEBUG
-	cout << "PinotSettings::addIndex: index " << m_indexCount << " is " << name << " with ID " << indexId << endl;
+	clog << "PinotSettings::addIndex: index " << m_indexCount << " is " << name << " with ID " << indexId << endl;
 #endif
 	++m_indexCount;
 
@@ -1765,7 +1765,7 @@ void PinotSettings::getIndexNames(unsigned int id, set<string> &names)
 				if (propsIter->m_id == indexId)
 				{
 #ifdef DEBUG
-					cout << "PinotSettings::getIndexNames: index " << indexId << " is " << propsIter->m_name << endl;
+					clog << "PinotSettings::getIndexNames: index " << indexId << " is " << propsIter->m_name << endl;
 #endif
 					// Get the associated name
 					names.insert(propsIter->m_name);
@@ -1815,7 +1815,7 @@ bool PinotSettings::getSearchEngines(set<ModuleProperties> &engines, const strin
 			if (engineIter->m_channel == channelName)
 			{
 #ifdef DEBUG
-				cout << "PinotSettings::getSearchEngines: engine " << engineIter->m_longName << " in channel " << channelName << endl;
+				clog << "PinotSettings::getSearchEngines: engine " << engineIter->m_longName << " in channel " << channelName << endl;
 #endif
 				engines.insert(*engineIter);
 			}
@@ -1840,7 +1840,7 @@ unsigned int PinotSettings::getEngineId(const string &name)
 		}
 	}
 #ifdef DEBUG
-	cout << "PinotSettings::getEngineId: " << name << ", ID " << engineId << endl;
+	clog << "PinotSettings::getEngineId: " << name << ", ID " << engineId << endl;
 #endif
 
 	return engineId;

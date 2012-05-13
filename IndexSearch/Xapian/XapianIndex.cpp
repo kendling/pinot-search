@@ -44,8 +44,8 @@
 
 #define MAGIC_TERM "X-MetaSE-Doc"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::ios;
 using std::ifstream;
@@ -250,7 +250,7 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 				}
 				catch (const Xapian::UnimplementedError &error)
 				{
-					cerr << "Couldn't index with spelling correction: " << error.get_type() << ": " << error.get_msg() << endl;
+					clog << "Couldn't index with spelling correction: " << error.get_type() << ": " << error.get_msg() << endl;
 
 					m_doSpelling = false;
 				}
@@ -323,7 +323,7 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -334,7 +334,7 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 		if (pIndex != NULL)
 		{
 #ifdef DEBUG
-			cout << "XapianIndex::listDocumentsWithTerm: term " << term << endl;
+			clog << "XapianIndex::listDocumentsWithTerm: term " << term << endl;
 #endif
 			// Get a list of documents that have the term
 			for (Xapian::PostingIterator postingIter = pIndex->postlist_begin(term);
@@ -355,11 +355,11 @@ bool XapianIndex::listDocumentsWithTerm(const string &term, set<unsigned int> &d
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document list: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't get document list: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't get document list, unknown exception occured" << endl;
+		clog << "Couldn't get document list, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -383,7 +383,7 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 		}
 		catch (const Xapian::Error &error)
 		{
-			cerr << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
+			clog << "Couldn't create stemmer: " << error.get_type() << ": " << error.get_msg() << endl;
 		}
 	}
 
@@ -432,7 +432,7 @@ void XapianIndex::addPostingsToDocument(const Xapian::Utf8Iterator &itor, Xapian
 		}
 		catch (const Xapian::UnimplementedError &error)
 		{
-			cerr << "Couldn't index with spelling correction: " << error.get_type() << ": " << error.get_msg() << endl;
+			clog << "Couldn't index with spelling correction: " << error.get_type() << ": " << error.get_msg() << endl;
 
 			if (doSpelling == true)
 			{
@@ -465,7 +465,7 @@ void XapianIndex::addPostingsToDocument(Dijon::CJKVTokenizer &tokenizer, Xapian:
 	// Get the terms
 	tokenizer.tokenize(text, handler, true);
 #ifdef DEBUG
-	cout << "XapianIndex::addPostingsToDocument: terms to position " << termPos << endl;
+	clog << "XapianIndex::addPostingsToDocument: terms to position " << termPos << endl;
 #endif
 }
 
@@ -490,7 +490,7 @@ void XapianIndex::addLabelsToDocument(Xapian::Document &doc, const set<string> &
 		}
 
 #ifdef DEBUG
-		cout << "XapianIndex::addLabelsToDocument: label \"" << labelName << "\"" << endl;
+		clog << "XapianIndex::addLabelsToDocument: label \"" << labelName << "\"" << endl;
 #endif
 		doc.add_term(string("XLABEL:") + XapianDatabase::limitTermLength(Url::escapeUrl(labelName)));
 	}
@@ -516,7 +516,7 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 		bool removeTerm = false;
 
 #ifdef DEBUG
-		cout << "XapianIndex::removePostingsFromDocument: term " << *termListIter
+		clog << "XapianIndex::removePostingsFromDocument: term " << *termListIter
 			<< " has " << postingsCount << " postings" << endl;
 #endif
 		// If a prefix is defined, or there are no postings, we can afford removing the term
@@ -538,7 +538,7 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 					{
 						// This term doesn't exist in the document !
 #ifdef DEBUG
-						cout << "XapianIndex::removePostingsFromDocument: no such term" << endl;
+						clog << "XapianIndex::removePostingsFromDocument: no such term" << endl;
 #endif
 						continue;
 					}
@@ -547,7 +547,7 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 					{
 						// All postings are to be removed, so we can remove the term
 #ifdef DEBUG
-						cout << "XapianIndex::removePostingsFromDocument: no extra posting" << endl;
+						clog << "XapianIndex::removePostingsFromDocument: no extra posting" << endl;
 #endif
 						removeTerm = true;
 					}
@@ -564,7 +564,7 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 			catch (const Xapian::Error &error)
 			{
 #ifdef DEBUG
-				cout << "XapianIndex::removePostingsFromDocument: " << error.get_msg() << endl;
+				clog << "XapianIndex::removePostingsFromDocument: " << error.get_msg() << endl;
 #endif
 			}
 
@@ -578,13 +578,13 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 			}
 			catch (const Xapian::UnimplementedError &error)
 			{
-				cerr << "Couldn't remove spelling correction: " << error.get_type() << ": " << error.get_msg() << endl;
+				clog << "Couldn't remove spelling correction: " << error.get_type() << ": " << error.get_msg() << endl;
 				doSpelling = false;
 			}
 			catch (const Xapian::Error &error)
 			{
 #ifdef DEBUG
-				cout << "XapianIndex::removePostingsFromDocument: " << error.get_msg() << endl;
+				clog << "XapianIndex::removePostingsFromDocument: " << error.get_msg() << endl;
 #endif
 			}
 			continue;
@@ -610,7 +610,7 @@ void XapianIndex::removePostingsFromDocument(const Xapian::Utf8Iterator &itor, X
 			{
 				// This posting may have been removed already
 #ifdef DEBUG
-				cout << "XapianIndex::removePostingsFromDocument: " << error.get_msg() << endl;
+				clog << "XapianIndex::removePostingsFromDocument: " << error.get_msg() << endl;
 #endif
 			}
 		}
@@ -891,7 +891,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 		catch (const Xapian::Error &error)
 		{
 #ifdef DEBUG
-			cout << "XapianIndex::removeCommonTerms: " << error.get_msg() << endl;
+			clog << "XapianIndex::removeCommonTerms: " << error.get_msg() << endl;
 #endif
 		}
 	}
@@ -933,7 +933,7 @@ string XapianIndex::scanDocument(const string &suggestedLanguage,
 		}
 		catch (const Xapian::Error &error)
 		{
-			cerr << "Invalid language: " << error.get_type() << ": " << error.get_msg() << endl;
+			clog << "Invalid language: " << error.get_type() << ": " << error.get_msg() << endl;
 
 			if (scannedDocument == false)
 			{
@@ -955,7 +955,7 @@ string XapianIndex::scanDocument(const string &suggestedLanguage,
 		break;
 	}
 #ifdef DEBUG
-	cout << "XapianIndex::scanDocument: language " << language << endl;
+	clog << "XapianIndex::scanDocument: language " << language << endl;
 #endif
 
 	return language;
@@ -1009,7 +1009,7 @@ bool XapianIndex::deleteDocuments(const string &term)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1019,7 +1019,7 @@ bool XapianIndex::deleteDocuments(const string &term)
 		if (pIndex != NULL)
 		{
 #ifdef DEBUG
-			cout << "XapianIndex::deleteDocuments: term is " << term << endl;
+			clog << "XapianIndex::deleteDocuments: term is " << term << endl;
 #endif
 
 			// Delete documents from the index
@@ -1030,11 +1030,11 @@ bool XapianIndex::deleteDocuments(const string &term)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't unindex documents: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't unindex documents: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't unindex documents, unknown exception occured" << endl;
+		clog << "Couldn't unindex documents, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1060,7 +1060,7 @@ string XapianIndex::getMetadata(const string &name) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return "";
 	}
 
@@ -1076,11 +1076,11 @@ string XapianIndex::getMetadata(const string &name) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get metadata: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't get metadata: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't get metadata, unknown exception occured" << endl;
+		clog << "Couldn't get metadata, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1099,7 +1099,7 @@ bool XapianIndex::setMetadata(const string &name, const string &value) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1114,15 +1114,15 @@ bool XapianIndex::setMetadata(const string &name, const string &value) const
 	}
 	catch (const Xapian::UnimplementedError &error)
 	{
-		cerr << "Couldn't set metadata: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't set metadata: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't set metadata: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't set metadata: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't set metadata, unknown exception occured" << endl;
+		clog << "Couldn't set metadata, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1151,7 +1151,7 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1175,11 +1175,11 @@ bool XapianIndex::getDocumentInfo(unsigned int docId, DocumentInfo &docInfo) con
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document properties: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't get document properties: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't get document properties, unknown exception occured" << endl;
+		clog << "Couldn't get document properties, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1194,7 +1194,7 @@ unsigned int XapianIndex::getDocumentTermsCount(unsigned int docId) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1207,17 +1207,17 @@ unsigned int XapianIndex::getDocumentTermsCount(unsigned int docId) const
 
 			termsCount = doc.termlist_count();
 #ifdef DEBUG
-			cout << "XapianIndex::getDocumentTermsCount: " << termsCount << " terms in document " << docId << endl;
+			clog << "XapianIndex::getDocumentTermsCount: " << termsCount << " terms in document " << docId << endl;
 #endif
 		}
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document terms count: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't get document terms count: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't get document terms count, unknown exception occured" << endl;
+		clog << "Couldn't get document terms count, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1233,7 +1233,7 @@ bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string>
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1259,7 +1259,7 @@ bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string>
 					if (firstChar == 'X')
 					{
 #ifdef DEBUG
-						cout << "XapianIndex::getDocumentTerms: skipping " << termName << endl;
+						clog << "XapianIndex::getDocumentTerms: skipping " << termName << endl;
 #endif
 						continue;
 					}
@@ -1298,11 +1298,11 @@ bool XapianIndex::getDocumentTerms(unsigned int docId, map<unsigned int, string>
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document terms: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't get document terms: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't get document terms, unknown exception occured" << endl;
+		clog << "Couldn't get document terms, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1380,7 +1380,7 @@ bool XapianIndex::deleteLabel(const string &name)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1410,11 +1410,11 @@ bool XapianIndex::deleteLabel(const string &name)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't delete label: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't delete label, unknown exception occured" << endl;
+		clog << "Couldn't delete label, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1429,7 +1429,7 @@ bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1458,11 +1458,11 @@ bool XapianIndex::hasLabel(unsigned int docId, const string &name) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't check document labels: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't check document labels: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't check document labels, unknown exception occured" << endl;
+		clog << "Couldn't check document labels, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1477,7 +1477,7 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1510,11 +1510,11 @@ bool XapianIndex::getDocumentLabels(unsigned int docId, set<string> &labels) con
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't get document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't get document's labels, unknown exception occured" << endl;
+		clog << "Couldn't get document's labels, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1540,7 +1540,7 @@ bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1587,11 +1587,11 @@ bool XapianIndex::setDocumentsLabels(const set<unsigned int> &docIds,
 		}
 		catch (const Xapian::Error &error)
 		{
-			cerr << "Couldn't update document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
+			clog << "Couldn't update document's labels: " << error.get_type() << ": " << error.get_msg() << endl;
 		}
 		catch (...)
 		{
-			cerr << "Couldn't update document's labels, unknown exception occured" << endl;
+			clog << "Couldn't update document's labels, unknown exception occured" << endl;
 		}
 
 		pDatabase->unlock();
@@ -1608,7 +1608,7 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1626,7 +1626,7 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 				// This URL was indexed
 				docId = *postingIter;
 #ifdef DEBUG
-				cout << "XapianIndex::hasDocument: " << term << " in document "
+				clog << "XapianIndex::hasDocument: " << term << " in document "
 					<< docId << " " << postingIter.get_wdf() << " time(s)" << endl;
 #endif
 			}
@@ -1635,11 +1635,11 @@ unsigned int XapianIndex::hasDocument(const string &url) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't look for document: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't look for document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't look for document, unknown exception occured" << endl;
+		clog << "Couldn't look for document, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1660,7 +1660,7 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1697,11 +1697,11 @@ unsigned int XapianIndex::getCloseTerms(const string &term, set<string> &suggest
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get terms: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't get terms: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't get terms, unknown exception occured" << endl;
+		clog << "Couldn't get terms, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1716,7 +1716,7 @@ unsigned int XapianIndex::getLastDocumentID(void) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1730,11 +1730,11 @@ unsigned int XapianIndex::getLastDocumentID(void) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't get last document ID: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't get last document ID: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't get last document ID, unknown exception occured" << endl;
+		clog << "Couldn't get last document ID, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1749,7 +1749,7 @@ unsigned int XapianIndex::getDocumentsCount(const string &labelName) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return 0;
 	}
 
@@ -1775,11 +1775,11 @@ unsigned int XapianIndex::getDocumentsCount(const string &labelName) const
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't count documents: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't count documents: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't count documents, unknown exception occured" << endl;
+		clog << "Couldn't count documents, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1825,7 +1825,7 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1863,7 +1863,7 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 					false, m_doSpelling, termPos);
 			}
 #ifdef DEBUG
-			cout << "XapianIndex::indexDocument: " << labels.size() << " labels for URL " << docInfo.getLocation(true) << endl;
+			clog << "XapianIndex::indexDocument: " << labels.size() << " labels for URL " << docInfo.getLocation(true) << endl;
 #endif
 
 			// Add labels
@@ -1879,11 +1879,11 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't index document: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't index document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't index document, unknown exception occured" << endl;
+		clog << "Couldn't index document, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -1898,7 +1898,7 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -1956,11 +1956,11 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't update document: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't update document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't update document, unknown exception occured" << endl;
+		clog << "Couldn't update document, unknown exception occured" << endl;
 	}
 	if (pIndex != NULL)
 	{
@@ -1983,7 +1983,7 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -2007,11 +2007,11 @@ bool XapianIndex::updateDocumentInfo(unsigned int docId, const DocumentInfo &doc
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't update document properties: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't update document properties: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't update document properties, unknown exception occured" << endl;
+		clog << "Couldn't update document properties, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -2031,7 +2031,7 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -2047,11 +2047,11 @@ bool XapianIndex::unindexDocument(unsigned int docId)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't unindex document: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't unindex document: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't unindex document, unknown exception occured" << endl;
+		clog << "Couldn't unindex document, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -2102,7 +2102,7 @@ bool XapianIndex::flush(void)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
@@ -2117,11 +2117,11 @@ bool XapianIndex::flush(void)
 	}
 	catch (const Xapian::Error &error)
 	{
-		cerr << "Couldn't flush database: " << error.get_type() << ": " << error.get_msg() << endl;
+		clog << "Couldn't flush database: " << error.get_type() << ": " << error.get_msg() << endl;
 	}
 	catch (...)
 	{
-		cerr << "Couldn't flush database, unknown exception occured" << endl;
+		clog << "Couldn't flush database, unknown exception occured" << endl;
 	}
 	pDatabase->unlock();
 
@@ -2135,7 +2135,7 @@ bool XapianIndex::reopen(void) const
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 	pDatabase->reopen();
@@ -2150,7 +2150,7 @@ bool XapianIndex::reset(void)
 	XapianDatabase *pDatabase = XapianDatabaseFactory::getDatabase(m_databaseName, false, true);
 	if (pDatabase == NULL)
 	{
-		cerr << "Couldn't get index " << m_databaseName << endl;
+		clog << "Couldn't get index " << m_databaseName << endl;
 		return false;
 	}
 
