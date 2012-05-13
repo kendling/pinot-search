@@ -116,7 +116,7 @@ class GetLabelsThread : public WorkerThread
 						inserter(labels, labels.begin()));
 				}
 #ifdef DEBUG
-				else cout << "GetLabelsThread::doWork: relying on configuration file" << endl;
+				else clog << "GetLabelsThread::doWork: relying on configuration file" << endl;
 #endif
 
 				delete pDaemonIndex;
@@ -174,7 +174,7 @@ prefsWindow::prefsWindow() :
 		guint rowsCount = rowsProp.get_value();
 
 #ifdef DEBUG
-		cout << "prefsWindow: adding " << m_settings.m_editablePluginValues.size() << " more rows" << endl;
+		clog << "prefsWindow: adding " << m_settings.m_editablePluginValues.size() << " more rows" << endl;
 #endif
 		generalTable->resize(rowsCount + m_settings.m_editablePluginValues.size(), columnsProp.get_value());
 
@@ -278,7 +278,7 @@ void prefsWindow::updateLabelRow(const ustring &path_string, const ustring &text
 		TreeRow row = *iter;
 
 #ifdef DEBUG
-		cout << "prefsWindow::updateLabelRow: set label to " << text << endl;
+		clog << "prefsWindow::updateLabelRow: set label to " << text << endl;
 #endif
 		// Set the value of the name column
 		row.set_value(m_labelsColumns.m_name, (ustring)text);
@@ -333,7 +333,7 @@ void prefsWindow::on_thread_end(WorkerThread *pThread)
 	if (status.empty() == false)
 	{
 #ifdef DEBUG
-		cout << "prefsWindow::on_thread_end: " << status << endl;
+		clog << "prefsWindow::on_thread_end: " << status << endl;
 #endif
 		// FIXME: tell the user the thread failed
 	}
@@ -369,7 +369,7 @@ void prefsWindow::on_thread_end(WorkerThread *pThread)
 	else
 	{
 #ifdef DEBUG
-		cout << "prefsWindow::on_thread_end: quitting" << endl;
+		clog << "prefsWindow::on_thread_end: quitting" << endl;
 #endif
 		on_prefsWindow_delete_event(NULL);
 	}
@@ -489,7 +489,7 @@ void prefsWindow::save_labelsTreeview()
 			}
 
 #ifdef DEBUG
-			cout << "prefsWindow::save_labelsTreeview: " << labelName << endl;
+			clog << "prefsWindow::save_labelsTreeview: " << labelName << endl;
 #endif
 			// Add this new label to the settings
 			labels.insert(labelName);
@@ -559,7 +559,7 @@ bool prefsWindow::save_directoriesTreeview()
 			}
 
 #ifdef DEBUG
-			cout << "prefsWindow::save_directoriesTreeview: " << indexableLocation.m_name << endl;
+			clog << "prefsWindow::save_directoriesTreeview: " << indexableLocation.m_name << endl;
 #endif
 			m_settings.m_indexableLocations.insert(indexableLocation);
 			dirsString += indexableLocation.m_name + (indexableLocation.m_monitor == true ? "1" : "0") + "|";
@@ -569,7 +569,7 @@ bool prefsWindow::save_directoriesTreeview()
 	if (m_directoriesHash != StringManip::hashString(dirsString))
 	{
 #ifdef DEBUG
-		cout << "prefsWindow::save_directoriesTreeview: directories changed" << endl;
+		clog << "prefsWindow::save_directoriesTreeview: directories changed" << endl;
 #endif
 		return true;
 	}
@@ -671,7 +671,7 @@ bool prefsWindow::save_patternsTreeview()
 	if (m_patternsHash != StringManip::hashString(patternsString))
 	{
 #ifdef DEBUG
-		cout << "prefsWindow::save_patternsTreeview: patterns changed" << endl;
+		clog << "prefsWindow::save_patternsTreeview: patterns changed" << endl;
 #endif
 		return true;
 	}
@@ -787,7 +787,7 @@ void prefsWindow::on_addDirectoryButton_clicked()
 	if (select_file_name(_("Directory to index"), dirName, true, true) == true)
 	{
 #ifdef DEBUG
-		cout << "prefsWindow::on_addDirectoryButton_clicked: "
+		clog << "prefsWindow::on_addDirectoryButton_clicked: "
 			<< dirName << endl;
 #endif
 		// Create a new entry in the directories list

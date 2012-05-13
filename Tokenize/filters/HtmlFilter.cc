@@ -28,8 +28,8 @@
 
 #include "HtmlFilter.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::for_each;
@@ -260,7 +260,7 @@ bool HtmlFilter::ParserState::get_links_text(unsigned int currentLinkIndex)
 				{
 					m_abstract = abstract;
 #ifdef DEBUG
-					cout << "HtmlFilter::get_links_text: abstract after link "
+					clog << "HtmlFilter::get_links_text: abstract after link "
 						<< linkIter->m_index << " to " << linkIter->m_url << endl;
 #endif
 
@@ -504,7 +504,7 @@ void HtmlFilter::ParserState::closing_tag(const string &tag)
 		trimSpaces(m_title);
 		removeCharacters(m_title, "\r\n");
 #ifdef DEBUG
-		cout << "HtmlFilter::endHandler: title is " << m_title << endl;
+		clog << "HtmlFilter::endHandler: title is " << m_title << endl;
 #endif
 		m_appendToTitle = false;
 	}
@@ -614,7 +614,7 @@ bool HtmlFilter::set_document_string(const string &data_str)
 		(htmlPos > 0))
 	{
 #ifdef DEBUG
-		cout << "HtmlFilter::set_document_string: removed " << htmlPos << " characters" << endl;
+		clog << "HtmlFilter::set_document_string: removed " << htmlPos << " characters" << endl;
 #endif
 		return parse_html(data_str.substr(htmlPos));
 	}
@@ -728,7 +728,7 @@ bool HtmlFilter::parse_html(const string &html)
 		m_pParserState->m_text.append(keywordsIter->second.c_str(), keywordsIter->second.length());
 	}
 #ifdef DEBUG
-	cout << "HtmlFilter::parse_html: " << m_pParserState->m_text.size() << " bytes of text" << endl;
+	clog << "HtmlFilter::parse_html: " << m_pParserState->m_text.size() << " bytes of text" << endl;
 #endif
 
 	// Assume charset is UTF-8 by default
@@ -740,7 +740,7 @@ bool HtmlFilter::parse_html(const string &html)
 	{
 		m_pParserState->m_charset = toLowerCase(m_pParserState->m_charset);
 #ifdef DEBUG
-		cout << "HtmlFilter::parse_html: found charset " << m_pParserState->m_charset << endl;
+		clog << "HtmlFilter::parse_html: found charset " << m_pParserState->m_charset << endl;
 #endif
 	}
 

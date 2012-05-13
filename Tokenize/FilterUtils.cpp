@@ -38,8 +38,8 @@
 #define UNSUPPORTED_TYPE "X-Unsupported"
 #define SIZE_THRESHOLD 5242880
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::set;
@@ -151,7 +151,7 @@ Dijon::Filter *FilterUtils::getFilter(const string &mimeType)
 			}
 		}
 #ifdef DEBUG
-		cout << "FilterUtils::getFilter: no valid parent for " << mimeType << endl;
+		clog << "FilterUtils::getFilter: no valid parent for " << mimeType << endl;
 #endif
 
 		// This type has no valid parent
@@ -201,7 +201,7 @@ bool FilterUtils::isSupportedType(const string &mimeType)
 		}
 	}
 #ifdef DEBUG
-	cout << "FilterUtils::isSupportedType: no valid parent for " << mimeType << endl;
+	clog << "FilterUtils::isSupportedType: no valid parent for " << mimeType << endl;
 #endif
 
 	// This type has no valid parent
@@ -256,7 +256,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 		if (inFd != -1)
 		{
 #ifdef DEBUG
-			cout << "FilterUtils::feedFilter: feeding temporary file " << inTemplate << endl;
+			clog << "FilterUtils::feedFilter: feeding temporary file " << inTemplate << endl;
 #endif
 
 			// Save the data
@@ -281,7 +281,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 		if (pFilter->is_data_input_ok(Dijon::Filter::DOCUMENT_FILE_NAME) == true)
 		{
 #ifdef DEBUG
-			cout << "FilterUtils::feedFilter: feeding file " << fileName << endl;
+			clog << "FilterUtils::feedFilter: feeding file " << fileName << endl;
 #endif
 			fedInput = pFilter->set_document_file(fileName);
 		}
@@ -293,12 +293,12 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 
 			if (docCopy.setDataFromFile(fileName) == false)
 			{
-				cerr << "Couldn't load " << fileName << endl;
+				clog << "Couldn't load " << fileName << endl;
 
 				return false;
 			}
 #ifdef DEBUG
-			cout << "FilterUtils::feedFilter: feeding contents of file " << fileName << endl;
+			clog << "FilterUtils::feedFilter: feeding contents of file " << fileName << endl;
 #endif
 
 			pData = docCopy.getData(dataLength);
@@ -313,7 +313,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 
 	if (fedInput == false)
 	{
-		cerr << "Couldn't feed filter for " << doc.getLocation(true) << endl;
+		clog << "Couldn't feed filter for " << doc.getLocation(true) << endl;
 
 		return false;
 	}
@@ -379,7 +379,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 				doc.setSize(size);
 			}
 #ifdef DEBUG
-			else cout << "FilterUtils::populateDocument: ignoring size zero" << endl;
+			else clog << "FilterUtils::populateDocument: ignoring size zero" << endl;
 #endif
 		}
 		else if (metaIter->first == "uri")
@@ -414,7 +414,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 		currentIPath += ipath;
 		doc.setInternalPath(currentIPath);
 #ifdef DEBUG
-		cout << "FilterUtils::populateDocument: ipath " << currentIPath << endl;
+		clog << "FilterUtils::populateDocument: ipath " << currentIPath << endl;
 #endif
 	}
 
@@ -463,7 +463,7 @@ bool FilterUtils::populateDocument(Document &doc, Dijon::Filter *pFilter)
 
 			if (converter.getErrorsCount() > 0)
 			{
-				cerr << doc.getLocation(true) << " may not have been fully converted to UTF-8" << endl;
+				clog << doc.getLocation(true) << " may not have been fully converted to UTF-8" << endl;
 			}
 			doc.setData(utf8Data.c_str(), utf8Data.length());
 		}
@@ -527,7 +527,7 @@ bool FilterUtils::filterDocument(const Document &doc, const string &originalType
 	// At this point, pFilter cannot be NULL
 	bool hasDocs = pFilter->has_documents();
 #ifdef DEBUG
-	cout << "FilterUtils::filterDocument: has documents " << hasDocs << endl;
+	clog << "FilterUtils::filterDocument: has documents " << hasDocs << endl;
 #endif
 	while (hasDocs == true)
 	{
@@ -539,7 +539,7 @@ bool FilterUtils::filterDocument(const Document &doc, const string &originalType
 			(pFilter->next_document() == false))
 		{
 #ifdef DEBUG
-			cout << "FilterUtils::filterDocument: no more documents in " << doc.getLocation(true) << endl;
+			clog << "FilterUtils::filterDocument: no more documents in " << doc.getLocation(true) << endl;
 #endif
 			break;
 		}
@@ -550,7 +550,7 @@ bool FilterUtils::filterDocument(const Document &doc, const string &originalType
 		if (pInfo == NULL)
 		{
 #ifdef DEBUG
-			cout << "FilterUtils::filterDocument: couldn't duplicate document information" << endl;
+			clog << "FilterUtils::filterDocument: couldn't duplicate document information" << endl;
 #endif
 			break;
 		}
@@ -571,7 +571,7 @@ bool FilterUtils::filterDocument(const Document &doc, const string &originalType
 		{
 			actualType = filteredDoc.getType();
 #ifdef DEBUG
-			cout << "FilterUtils::filterDocument: nested document of type " << actualType << endl;
+			clog << "FilterUtils::filterDocument: nested document of type " << actualType << endl;
 #endif
 			isNested = true;
 		}
@@ -596,7 +596,7 @@ bool FilterUtils::filterDocument(const Document &doc, const string &originalType
 				// Default to the file name as title
 				filteredDoc.setTitle(urlObj.getFile());
 #ifdef DEBUG
-				cout << "FilterUtils::filterDocument: set default title " << urlObj.getFile() << endl;
+				clog << "FilterUtils::filterDocument: set default title " << urlObj.getFile() << endl;
 #endif
 			}
 
@@ -628,7 +628,7 @@ bool FilterUtils::filterDocument(const Document &doc, const string &originalType
 	delete pFilter;
 
 #ifdef DEBUG
-	cout << "FilterUtils::filterDocument: done with " << doc.getLocation(true) << " status " << finalSuccess << endl;
+	clog << "FilterUtils::filterDocument: done with " << doc.getLocation(true) << " status " << finalSuccess << endl;
 #endif
 
 	return finalSuccess;

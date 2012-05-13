@@ -30,7 +30,7 @@
 
 using std::string;
 using std::vector;
-using std::cout;
+using std::clog;
 using std::endl;
 using std::stringstream;
 using namespace Dijon;
@@ -78,7 +78,7 @@ static int enumerator(struct chmFile *pHandle,
 		(pUnitInfo->path != NULL))
 	{
 #ifdef DEBUG
-		cout << "ChmFilter: found " << pUnitInfo->path << ", size " << pUnitInfo->length << endl;
+		clog << "ChmFilter: found " << pUnitInfo->path << ", size " << pUnitInfo->length << endl;
 #endif
 		pFilter->add_unit(pUnitInfo);
 	}
@@ -238,7 +238,7 @@ bool ChmFilter::next_document(const std::string &ipath)
 				m_metaData["size"] = sizeStream.str();
 				m_metaData["mimetype"] = "SCAN";
 #ifdef DEBUG
-				cout << "ChmFilter::next_document: returning "
+				clog << "ChmFilter::next_document: returning "
 					<< pUnitInfo->path << ", size " << m_content.size() << endl;
 #endif
 			}

@@ -24,7 +24,7 @@
 #include "StringManip.h"
 #include "TextConverter.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::string;
 using namespace Glib;
@@ -90,7 +90,7 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 					// Conversion was only partially successful
 					++m_conversionErrors;
 #ifdef DEBUG
-					cout << "TextConverter::toUTF8: invalid sequence" << endl;
+					clog << "TextConverter::toUTF8: invalid sequence" << endl;
 #endif
 					if (m_conversionErrors >= m_maxErrors)
 					{
@@ -114,7 +114,7 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 				else if (errorCode != E2BIG)
 				{
 #ifdef DEBUG
-					cout << "TextConverter::toUTF8: unknown error " << errorCode << endl;
+					clog << "TextConverter::toUTF8: unknown error " << errorCode << endl;
 #endif
 					return text;
 				}
@@ -129,13 +129,13 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 		}
 
 #ifdef DEBUG
-		cout << "TextConverter::toUTF8: " << m_conversionErrors << " conversion errors" << endl;
+		clog << "TextConverter::toUTF8: " << m_conversionErrors << " conversion errors" << endl;
 #endif
 	}
 	catch (Error &ce)
 	{
 #ifdef DEBUG
-		cout << "TextConverter::toUTF8: " << ce.what() << endl;
+		clog << "TextConverter::toUTF8: " << ce.what() << endl;
 #endif
 		outputText.clear();
 
@@ -145,7 +145,7 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 			string fixedCharset(StringManip::replaceSubString(textCharset, "_", "-"));
 
 #ifdef DEBUG
-			cout << "TextConverter::toUTF8: trying with charset " << fixedCharset << endl;
+			clog << "TextConverter::toUTF8: trying with charset " << fixedCharset << endl;
 #endif
 			textCharset = fixedCharset;
 			outputText = toUTF8(text, fixedCharset);
@@ -154,7 +154,7 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 	catch (...)
 	{
 #ifdef DEBUG
-		cout << "TextConverter::toUTF8: unknown exception" << endl;
+		clog << "TextConverter::toUTF8: unknown exception" << endl;
 #endif
 		outputText.clear();
 	}
@@ -177,13 +177,13 @@ string TextConverter::fromUTF8(const string &text)
 	catch (Error &ce)
 	{
 #ifdef DEBUG
-		cout << "TextConverter::fromUTF8: " << ce.what() << endl;
+		clog << "TextConverter::fromUTF8: " << ce.what() << endl;
 #endif
 	}
 	catch (...)
 	{
 #ifdef DEBUG
-		cout << "TextConverter::fromUTF8: unknown exception" << endl;
+		clog << "TextConverter::fromUTF8: unknown exception" << endl;
 #endif
 	}
  

@@ -238,7 +238,7 @@ void queryDialog::on_queryOkbutton_clicked()
 			// Yes, it is
 			m_badName = true;
 #ifdef DEBUG
-			cout << "queryDialog::on_queryOkbutton_clicked: name in use" << endl;
+			clog << "queryDialog::on_queryOkbutton_clicked: name in use" << endl;
 #endif
 		}
 	}

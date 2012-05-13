@@ -31,8 +31,8 @@
 #include "ExifImageFilter.h"
 
 using std::string;
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using namespace Dijon;
 
@@ -134,7 +134,7 @@ static void entryCallback(ExifEntry *pEntry, void *pData)
 			break;
 	}
 #ifdef DEBUG
-	cout << "ExifImageFilter: tag " << exif_tag_get_name(pEntry->tag) << ": " << value << endl;
+	clog << "ExifImageFilter: tag " << exif_tag_get_name(pEntry->tag) << ": " << value << endl;
 #endif
 }
 
@@ -206,7 +206,7 @@ bool ExifImageFilter::next_document(void)
 	if (m_parseDocument == true)
 	{
 #ifdef DEBUG
-		cout << "ExifImageFilter::next_document: " << m_filePath << endl;
+		clog << "ExifImageFilter::next_document: " << m_filePath << endl;
 #endif
 		m_parseDocument = false;
 
@@ -216,7 +216,7 @@ bool ExifImageFilter::next_document(void)
 		ExifData *pData = exif_data_new_from_file(m_filePath.c_str());
 		if (pData == NULL)
 		{
-			cerr << "No EXIF data in " << m_filePath.c_str() << endl;
+			clog << "No EXIF data in " << m_filePath.c_str() << endl;
 		}
 		else
 		{

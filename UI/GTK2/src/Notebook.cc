@@ -197,7 +197,7 @@ bool ResultsPage::appendSuggestion(const ustring &text)
 		ustring activeText(m_pCombobox->get_active_text());
 
 #ifdef DEBUG
-		cout << "ResultsPage::appendSuggestion: suggesting " << text << endl;
+		clog << "ResultsPage::appendSuggestion: suggesting " << text << endl;
 #endif
 		m_suggestions.insert(text);
 #if GTK_VERSION_LT(3, 0)

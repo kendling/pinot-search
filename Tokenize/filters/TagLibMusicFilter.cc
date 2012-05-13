@@ -26,7 +26,7 @@
 #include "TagLibMusicFilter.h"
 
 using std::string;
-using std::cout;
+using std::clog;
 using std::endl;
 
 using namespace Dijon;
@@ -144,7 +144,7 @@ bool TagLibMusicFilter::next_document(void)
 				trackTitle += pTag->artist().toCString(true);
 
 #ifdef DEBUG
-				cout << "TagLibMusicFilter::next_document: " << trackTitle.length() << " bytes of text" << endl;
+				clog << "TagLibMusicFilter::next_document: " << trackTitle.length() << " bytes of text" << endl;
 #endif
 				m_content.append(trackTitle.c_str(), trackTitle.length());
 				m_content += " ";

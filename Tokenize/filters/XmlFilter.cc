@@ -22,7 +22,7 @@
 #include "XmlFilter.h"
 
 using std::string;
-using std::cout;
+using std::clog;
 using std::endl;
 
 using namespace Dijon;
@@ -66,7 +66,7 @@ static dstring replaceEntities(const string &str)
 	dstring::size_type startPos = 0;
 
 #ifdef DEBUG
-	cout << "replaceEntities: " << str.length() << " bytes of text" << endl;
+	clog << "replaceEntities: " << str.length() << " bytes of text" << endl;
 #endif
 	unescapedStr.reserve(str.length());
 

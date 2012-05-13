@@ -357,7 +357,7 @@ void ResultsTree::onButtonPressEvent(GdkEventButton *ev)
 	else if (ev->type == GDK_2BUTTON_PRESS)
 	{
 #ifdef DEBUG
-		cout << "ResultsTree::onButtonPressEvent: double click on button " << ev->button << endl;
+		clog << "ResultsTree::onButtonPressEvent: double click on button " << ev->button << endl;
 #endif
 		m_signalDoubleClick();
 	}
@@ -395,7 +395,7 @@ bool ResultsTree::onSelectionSelect(const RefPtr<TreeModel>& model,
 			refBuffer->set_text("");
 
 #ifdef DEBUG
-			cout << "ResultsTree::onSelectionSelect: extract for " << row[m_resultsColumns.m_url] << endl;
+			clog << "ResultsTree::onSelectionSelect: extract for " << row[m_resultsColumns.m_url] << endl;
 #endif
 			if (boldPos == ustring::npos)
 			{
@@ -440,7 +440,7 @@ void ResultsTree::onStyleChanged(void)
 #endif
 {
 #ifdef DEBUG
-	cout << "ResultsTree::onStyleChanged: called" << endl;
+	clog << "ResultsTree::onStyleChanged: called" << endl;
 #endif
 	// FIXME: find better icons :-)
 #if GTK_VERSION_LT(3, 0)
@@ -536,15 +536,15 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 				indexId = indexProps.m_id;
 				engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
 #ifdef DEBUG
-				cout << "ResultsTree::addResults: engine is index " << engineName << " " << indexId << " " << engineId << endl;
+				clog << "ResultsTree::addResults: engine is index " << engineName << " " << indexId << " " << engineId << endl;
 #endif
 			}
 #ifdef DEBUG
-			else cout << "ResultsTree::addResults: " << engineName << " is not an index" <<  endl;
+			else clog << "ResultsTree::addResults: " << engineName << " is not an index" <<  endl;
 #endif
 		}
 #ifdef DEBUG
-		else cout << "ResultsTree::addResults: ID for engine " << engineName << " is " << engineId <<  endl;
+		else clog << "ResultsTree::addResults: ID for engine " << engineName << " is " << engineId <<  endl;
 #endif
 	}
 
@@ -575,7 +575,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		}
 	}
 #ifdef DEBUG
-	cout << "ResultsTree::addResults: " << resultsList.size() << " results with charset " << charset
+	clog << "ResultsTree::addResults: " << resultsList.size() << " results with charset " << charset
 		<< ", second last run " << secondLastRunTime << endl;
 #endif
 
@@ -612,7 +612,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 			float previousScore = queryHistory.hasItem(m_treeName, engineName,
 				location, oldestScore);
 #ifdef DEBUG
-			cout << "ResultsTree::addResults: " << location << " has scores "
+			clog << "ResultsTree::addResults: " << location << " has scores "
 				<< previousScore << ", " << oldestScore << endl;
 #endif
 			if (previousScore > 0)
@@ -659,7 +659,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 			engineId, indexId, titleIter, groupIter, true) == true)
 		{
 #ifdef DEBUG
-			cout << "ResultsTree::addResults: added row for result " << count
+			clog << "ResultsTree::addResults: added row for result " << count
 				<< ", " << currentScore << ", " << isIndexed << " " << docId
 				<< " " << indexId << endl;
 #endif
@@ -677,7 +677,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 		(updateHistory == true))
 	{
 #ifdef DEBUG
-		cout << "ResultsTree::addResults: removing items for " << m_treeName
+		clog << "ResultsTree::addResults: removing items for " << m_treeName
 			<< ", " << engineName << " older than " << secondLastRunTime << endl;
 #endif
 		queryHistory.deleteItems(m_treeName, engineName, secondLastRunTime);
@@ -686,7 +686,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 	if (count > 0)
 	{
 #ifdef DEBUG
-		cout << "ResultsTree::addResults: " << updatedGroups.size() << " groups to update" << endl;
+		clog << "ResultsTree::addResults: " << updatedGroups.size() << " groups to update" << endl;
 #endif
 		// Update the groups to which we have added results
 		for (std::map<string, TreeModel::iterator>::iterator mapIter = updatedGroups.begin();
@@ -730,7 +730,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 		return;
 	}
 #ifdef DEBUG
-	cout << "ResultsTree::setGroupMode: set to " << groupMode << endl;
+	clog << "ResultsTree::setGroupMode: set to " << groupMode << endl;
 #endif
 	m_groupMode = groupMode;
 
@@ -766,7 +766,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 	{
 		TreeModel::Row row = *iter;
 #ifdef DEBUG
-		cout << "ResultsTree::setGroupMode: looking at " << row[m_resultsColumns.m_url] << endl;
+		clog << "ResultsTree::setGroupMode: looking at " << row[m_resultsColumns.m_url] << endl;
 #endif
 		ResultsModelColumns::RowType type = row[m_resultsColumns.m_resultType];
 		// Skip new type and other rows
@@ -808,7 +808,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 			{
 				Url urlObj(url);
 #ifdef DEBUG
-				cout << "ResultsTree::setGroupMode: row " << url << endl;
+				clog << "ResultsTree::setGroupMode: row " << url << endl;
 #endif
 				// Add group
 				if (appendGroup(urlObj.getHost(), newType, groupIter) == true)
@@ -835,7 +835,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 				if (engineNames.empty() == false)
 				{
 #ifdef DEBUG
-					cout << "ResultsTree::setGroupMode: row is for " << engineNames.size() << " engine(s)" << endl;
+					clog << "ResultsTree::setGroupMode: row is for " << engineNames.size() << " engine(s)" << endl;
 #endif
 					// Are there indexes in the list ?
 					set<string>::iterator backendIter = engineNames.find(m_settings.m_defaultBackend);
@@ -845,7 +845,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 						// Erase this
 						engineNames.erase(backendIter);
 #ifdef DEBUG
-						cout << "ResultsTree::setGroupMode: row is for index(es) " << indexIds << endl;
+						clog << "ResultsTree::setGroupMode: row is for index(es) " << indexIds << endl;
 #endif
 
 						// Add entries for each index name so that we can loop once on engine names
@@ -857,7 +857,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 							string indexName(*indexIter);
 							engineNames.insert(indexName);
 #ifdef DEBUG
-							cout << "ResultsTree::setGroupMode: row is for index " << indexName << endl;
+							clog << "ResultsTree::setGroupMode: row is for index " << indexName << endl;
 #endif
 						}
 					}
@@ -878,11 +878,11 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 								engineId = m_settings.getEngineId(m_settings.m_defaultBackend);
 							}
 #ifdef DEBUG
-							cout << "ResultsTree::setGroupMode: index " << indexId << endl;
+							clog << "ResultsTree::setGroupMode: index " << indexId << endl;
 #endif
 						}
 #ifdef DEBUG
-						else cout << "ResultsTree::setGroupMode: no index" << endl;
+						else clog << "ResultsTree::setGroupMode: no index" << endl;
 #endif
 
 						// Add group
@@ -901,7 +901,7 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 								engineId, indexId,
 								newIter, groupIter, true);
 #ifdef DEBUG
-							cout << "ResultsTree::setGroupMode: row for " << engineName << endl;
+							clog << "ResultsTree::setGroupMode: row for " << engineName << endl;
 #endif
 						}
 					}
@@ -1022,7 +1022,7 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 					if (indexProps.m_internal == true)
 					{
 #ifdef DEBUG
-						cout << "ResultsTree::getSelection: result in internal index " << *indexIter << endl;
+						clog << "ResultsTree::getSelection: result in internal index " << *indexIter << endl;
 #endif
 						current.setIsIndexed(indexProps.m_id, row[m_resultsColumns.m_docId]);
 						break;
@@ -1034,7 +1034,7 @@ bool ResultsTree::getSelection(vector<DocumentInfo> &resultsList, bool skipIndex
 		}
 	}
 #ifdef DEBUG
-	cout << "ResultsTree::getSelection: " << resultsList.size() << " results selected" << endl;
+	clog << "ResultsTree::getSelection: " << resultsList.size() << " results selected" << endl;
 #endif
 
 	return true;
@@ -1149,7 +1149,7 @@ bool ResultsTree::deleteSelection(void)
 			{
 				m_resultsGroups.erase(mapIter);
 #ifdef DEBUG
-				cout << "ResultsTree::deleteSelection: erased group " << groupName << endl;
+				clog << "ResultsTree::deleteSelection: erased group " << groupName << endl;
 #endif
 			}
 		}
@@ -1248,7 +1248,7 @@ bool ResultsTree::deleteResults(const string &engineName)
 	{
 		onSelectionChanged();
 #ifdef DEBUG
-		cout << "ResultsTree::deleteResults: erased " << count << " rows" << endl;
+		clog << "ResultsTree::deleteResults: erased " << count << " rows" << endl;
 #endif
 		return true;
 	}
@@ -1377,7 +1377,7 @@ void ResultsTree::exportResults(const string &fileName,
 		maxResultsCount += groupChildren.size();
 	}
 #ifdef DEBUG
-	cout << "ResultsTree::exportResults: " << maxResultsCount << " results to export" << endl;
+	clog << "ResultsTree::exportResults: " << maxResultsCount << " results to export" << endl;
 #endif
 
 	// Start
@@ -1435,7 +1435,7 @@ void ResultsTree::exportResults(TreeModel::Children &groupChildren,
 		unsigned int indexIds = childRow[m_resultsColumns.m_indexes];
 
 #ifdef DEBUG
-		cout << "ResultsTree::exportResults: engines " << engineIds << ", indexes " << indexIds << endl;
+		clog << "ResultsTree::exportResults: engines " << engineIds << ", indexes " << indexIds << endl;
 #endif
 		result.deserialize(serial);
 		m_settings.getEngineNames(engineIds, engineNames);
@@ -1501,7 +1501,7 @@ bool ResultsTree::appendResult(const ustring &text, const ustring &url,
 	if (!parentIter)
 	{
 #ifdef DEBUG
-		cout << "ResultsTree::appendResult: no parent" << endl;
+		clog << "ResultsTree::appendResult: no parent" << endl;
 #endif
 		newRowIter = m_refStore->append();
 	}
@@ -1570,7 +1570,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::RowT
 		m_resultsGroups[groupName] = groupIter;
 		success = true;
 #ifdef DEBUG
-		cout << "ResultsTree::appendGroup: updated map with " << groupName << endl;
+		clog << "ResultsTree::appendGroup: updated map with " << groupName << endl;
 #endif
 	}
 	else
@@ -1578,7 +1578,7 @@ bool ResultsTree::appendGroup(const string &groupName, ResultsModelColumns::RowT
 		// Yes, it is
 		groupIter = mapIter->second;
 #ifdef DEBUG
-		cout << "ResultsTree::appendGroup: found " << groupName << " in map" << endl;
+		clog << "ResultsTree::appendGroup: found " << groupName << " in map" << endl;
 #endif
 		success = true;
 	}
@@ -1660,13 +1660,13 @@ void ResultsTree::updateRow(TreeModel::Row &row, const ustring &text,
 	catch (Error &error)
 	{
 #ifdef DEBUG
-		cout << "ResultsTree::updateRow: " << error.what() << endl;
+		clog << "ResultsTree::updateRow: " << error.what() << endl;
 #endif
 	}
 	catch (...)
 	{
 #ifdef DEBUG
-		cout << "ResultsTree::updateRow: caught unknown exception" << endl;
+		clog << "ResultsTree::updateRow: caught unknown exception" << endl;
 #endif
 	}
 }
@@ -1684,7 +1684,7 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 	unsigned int indexIds = row[m_resultsColumns.m_indexes];
 
 #ifdef DEBUG
-	cout << "ResultsTree::findResultsExtract: " << url << " has engines " << engineIds << ", indexes " << indexIds << endl;
+	clog << "ResultsTree::findResultsExtract: " << url << " has engines " << engineIds << ", indexes " << indexIds << endl;
 #endif
 	m_settings.getEngineNames(engineIds, engineNames);
 	for (set<string>::const_iterator engineIter = engineNames.begin();
@@ -1710,7 +1710,7 @@ ustring ResultsTree::findResultsExtract(const Gtk::TreeModel::Row &row)
 			engineName = (*indexNames.begin());
 
 #ifdef DEBUG
-			cout << "ResultsTree::findResultsExtract: engine or index " << engineName << endl;
+			clog << "ResultsTree::findResultsExtract: engine or index " << engineName << endl;
 #endif
 			extract = queryHistory.getItemExtract(from_utf8(m_treeName), engineName, url);
 			if (extract.empty() == false)

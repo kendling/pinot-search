@@ -44,7 +44,7 @@
 
 #include "ExternalFilter.h"
 
-using std::cout;
+using std::clog;
 using std::endl;
 using std::min;
 using std::string;
@@ -328,7 +328,7 @@ void ExternalFilter::initialize(const std::string &config_file, set<std::string>
 				(arguments.empty() == false))
 			{
 #ifdef DEBUG
-				cout << "ExternalFilter::initialize: " << mimeType << "="
+				clog << "ExternalFilter::initialize: " << mimeType << "="
 					<< command << " " << arguments << endl;
 #endif
 
@@ -406,14 +406,14 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 	commandLine += ">";
 	commandLine += outTemplate;
 #ifdef DEBUG
-	cout << "ExternalFilter::run_command: running " << commandLine << endl;
+	clog << "ExternalFilter::run_command: running " << commandLine << endl;
 #endif
 
 	// Run the command
 	if (system(commandLine.c_str()) == -1)
 	{
 #ifdef DEBUG
-		cout << "ExternalFilter::run_command: couldn't run command line" << endl;
+		clog << "ExternalFilter::run_command: couldn't run command line" << endl;
 #endif
 		return false;
 	}
@@ -442,7 +442,7 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 	}
 
 #ifdef DEBUG
-	cout << "ExternalFilter::run_command: running " << commandLine << endl;
+	clog << "ExternalFilter::run_command: running " << commandLine << endl;
 #endif
 	// Fork and execute the command
 	pid_t childPid = fork();
@@ -494,7 +494,7 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 		if (WIFEXITED(status) && WEXITSTATUS(status) == 127)
 		{
 #ifdef DEBUG
-			cout << "ExternalFilter::run_command: couldn't run " << command << endl;
+			clog << "ExternalFilter::run_command: couldn't run " << command << endl;
 #endif
 			return false;
 		}
@@ -503,7 +503,7 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 	if (WIFSIGNALED(status) && WTERMSIG(status) == SIGXCPU)
 	{
 #ifdef DEBUG
-		cout << "ExternalFilter::run_command: " << command << " consumed too much CPU" << endl;
+		clog << "ExternalFilter::run_command: " << command << " consumed too much CPU" << endl;
 #endif
 		return false;
 	}

@@ -456,7 +456,7 @@ void mainWindow::save_queryTreeview()
 			string name = from_utf8(row[m_queryColumns.m_name]);
 			QueryProperties queryProps = row[m_queryColumns.m_properties];
 #ifdef DEBUG
-			cout << "mainWindow::save_queryTreeview: " << name << endl;
+			clog << "mainWindow::save_queryTreeview: " << name << endl;
 #endif
 			m_settings.addQuery(queryProps);
 		}
@@ -512,7 +512,7 @@ void mainWindow::populate_cacheMenu()
 			m_pCacheMenu->append(*pCacheMenuItem);
 #endif
 #ifdef DEBUG
-			cout << "mainWindow::populate_cacheMenu: appended menuitem " << cacheIter->m_name << endl;
+			clog << "mainWindow::populate_cacheMenu: appended menuitem " << cacheIter->m_name << endl;
 #endif
 		}
 	}
@@ -525,7 +525,7 @@ void mainWindow::populate_cacheMenu()
 		opencache1->set_submenu(*m_pCacheMenu);
 		opencache1->show_all_children();
 #ifdef DEBUG
-		cout << "mainWindow::populate_cacheMenu: set submenu" << endl;
+		clog << "mainWindow::populate_cacheMenu: set submenu" << endl;
 #endif
 	}
 }
@@ -573,7 +573,7 @@ void mainWindow::populate_indexMenu()
 		m_pIndexMenu->append(*pIndexMenuItem);
 #endif
 #ifdef DEBUG
-		cout << "mainWindow::populate_indexMenu: appended menuitem " << indexIter->m_name << endl;
+		clog << "mainWindow::populate_indexMenu: appended menuitem " << indexIter->m_name << endl;
 #endif
 	}
 
@@ -585,7 +585,7 @@ void mainWindow::populate_indexMenu()
 		listcontents1->set_submenu(*m_pIndexMenu);
 		listcontents1->show_all_children();
 #ifdef DEBUG
-		cout << "mainWindow::populate_indexMenu: set submenu" << endl;
+		clog << "mainWindow::populate_indexMenu: set submenu" << endl;
 #endif
 	}
 }
@@ -634,7 +634,7 @@ void mainWindow::populate_findMenu()
 		m_pFindMenu->append(*pFindMenuItem);
 #endif
 #ifdef DEBUG
-		cout << "mainWindow::populate_findMenu: appended menuitem " << queryName << endl;
+		clog << "mainWindow::populate_findMenu: appended menuitem " << queryName << endl;
 #endif
 	}
 
@@ -646,7 +646,7 @@ void mainWindow::populate_findMenu()
 		searchthisfor1->set_submenu(*m_pFindMenu);
 		searchthisfor1->show_all_children();
 #ifdef DEBUG
-		cout << "mainWindow::populate_findMenu: set submenu" << endl;
+		clog << "mainWindow::populate_findMenu: set submenu" << endl;
 #endif
 	}
 }
@@ -812,7 +812,7 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 	ustring droppedText(data.get_text());
 	bool goodDrop = false;
 
-	cout << "mainWindow::on_data_received: data type "
+	clog << "mainWindow::on_data_received: data type "
 		<< data.get_data_type() << " in format " << data.get_format() << endl;
 
 	if (droppedUris.empty() == false)
@@ -834,7 +834,7 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 		{
 			string uri(*uriIter);
 
-			cout << "mainWindow::on_data_received: received " << uri << endl; 
+			clog << "mainWindow::on_data_received: received " << uri << endl; 
 
 			// Query the merged index
 			if (pIndex != NULL)
@@ -895,7 +895,7 @@ void mainWindow::on_data_received(const RefPtr<DragContext> &context,
 		QueryProperties queryProps("", from_utf8(droppedText));
 		edit_query(queryProps, true);
 
-		cout << "mainWindow::on_data_received: received text \""
+		clog << "mainWindow::on_data_received: received text \""
 			<< droppedText << "\"" << endl;
 
 		goodDrop = true;
@@ -1028,7 +1028,7 @@ void mainWindow::on_document_changed(vector<DocumentInfo> &resultsList,
 			string protocol(urlObj.getProtocol());
 
 #ifdef DEBUG
-			cout << "mainWindow::on_document_changed: " << url << endl;
+			clog << "mainWindow::on_document_changed: " << url << endl;
 #endif
 			if (firstResult == true)
 			{
@@ -1100,7 +1100,7 @@ void mainWindow::on_index_changed(ustring indexName)
 	bool foundPage = false;
 
 #ifdef DEBUG
-	cout << "mainWindow::on_index_changed: current index now " << indexName << endl;
+	clog << "mainWindow::on_index_changed: current index now " << indexName << endl;
 #endif
 
 	// Is there already a page for this index ?
@@ -1226,7 +1226,7 @@ void mainWindow::on_cache_changed(PinotSettings::CacheProvider cacheProvider)
 
 					resultIter->setLocation(location);
 #ifdef DEBUG
-					cout << "mainWindow::on_cache_changed: rewritten "
+					clog << "mainWindow::on_cache_changed: rewritten "
 						<< url << " to " << location << endl;
 #endif
 				}
@@ -1327,7 +1327,7 @@ void mainWindow::on_switch_page(Widget *pPage, guint pageNum)
 			}
 		}
 #ifdef DEBUG
-		cout << "mainWindow::on_switch_page: page " << pageNum << " has type " << type << endl;
+		clog << "mainWindow::on_switch_page: page " << pageNum << " has type " << type << endl;
 #endif
 	}
 
@@ -1349,7 +1349,7 @@ void mainWindow::on_close_page(ustring title, NotebookPageBox::PageType type)
 	int pageDecrement = 0;
 
 #ifdef DEBUG
-	cout << "mainWindow::on_close_page: called for tab " << title << endl;
+	clog << "mainWindow::on_close_page: called for tab " << title << endl;
 #endif
 	int pageNum = get_page_number(title, type);
 	if (pageNum >= 0)
@@ -1389,7 +1389,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 	string type(pThread->getType());
 	string threadStatus(pThread->getStatus());
 #ifdef DEBUG
-	cout << "mainWindow::on_thread_end: end of thread " << pThread->getId() << endl;
+	clog << "mainWindow::on_thread_end: end of thread " << pThread->getId() << endl;
 #endif
 
 	// Did the thread fail for some reason ?
@@ -1522,7 +1522,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 				if (queryHistory.hasItem(queryName, engineName, resultIter->getLocation(true), oldestScore) <= 0)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::on_thread_end: new result " << resultIter->getLocation(true) << endl;
+					clog << "mainWindow::on_thread_end: new result " << resultIter->getLocation(true) << endl;
 #endif
 					isNewResult = true;
 				}
@@ -1640,7 +1640,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			// Set/reset labels
 			docInfo.setLabels(labels);
 #ifdef DEBUG
-			cout << "mainWindow::on_thread_end: indexing results with label " << labelName << endl;
+			clog << "mainWindow::on_thread_end: indexing results with label " << labelName << endl;
 #endif
 			m_state.queue_index(docInfo);
 		}
@@ -1707,7 +1707,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			{
 				browse_index(_("My Web Pages"), pIndexPage->getQueryName(), 0, false);
 #ifdef DEBUG
-				cout << "mainWindow::on_thread_end: refreshed My Web Pages" << endl;
+				clog << "mainWindow::on_thread_end: refreshed My Web Pages" << endl;
 #endif
 			}
 		}
@@ -1718,7 +1718,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 			{
 				browse_index(_("My Documents"), pIndexPage->getQueryName(), 0, false);
 #ifdef DEBUG
-				cout << "mainWindow::on_thread_end: refreshed My Documents" << endl;
+				clog << "mainWindow::on_thread_end: refreshed My Documents" << endl;
 #endif
 			}
 		}
@@ -1846,7 +1846,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 					browse_index(_("My Web Pages"), pIndexPage->getQueryName(),
 						pIndexPage->getFirstDocument(), false);
 #ifdef DEBUG
-					cout << "mainWindow::on_thread_end: refreshed My Web Pages" << endl;
+					clog << "mainWindow::on_thread_end: refreshed My Web Pages" << endl;
 #endif
 				}
 				pIndexPage->updateButtonsState(m_maxDocsCount);
@@ -1945,7 +1945,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 void mainWindow::on_editindex(ustring indexName, ustring location)
 {
 #ifdef DEBUG
-	cout << "mainWindow::on_editindex: called" << endl;
+	clog << "mainWindow::on_editindex: called" << endl;
 #endif
 	// Open the index properties dialog
 	indexDialog indexBox(indexName, location);
@@ -2046,19 +2046,19 @@ void mainWindow::on_indexForwardButton_clicked(ustring indexName)
 		if (pIndexPage->getDocumentsCount() == 0)
 		{
 #ifdef DEBUG
-			cout << "mainWindow::on_indexForwardButton_clicked: first" << endl;
+			clog << "mainWindow::on_indexForwardButton_clicked: first" << endl;
 #endif
 			browse_index(indexName, pIndexPage->getQueryName(), 0);
 		}
 		else if (pIndexPage->getDocumentsCount() >= pIndexPage->getFirstDocument() + m_maxDocsCount)
 		{
 #ifdef DEBUG
-			cout << "mainWindow::on_indexForwardButton_clicked: next" << endl;
+			clog << "mainWindow::on_indexForwardButton_clicked: next" << endl;
 #endif
 			browse_index(indexName, pIndexPage->getQueryName(), pIndexPage->getFirstDocument() + m_maxDocsCount);
 		}
 #ifdef DEBUG
-		cout << "mainWindow::on_indexForwardButton_clicked: counts "
+		clog << "mainWindow::on_indexForwardButton_clicked: counts "
 			<< pIndexPage->getFirstDocument() << " " << pIndexPage->getDocumentsCount() << endl;
 #endif
 	}
@@ -2111,7 +2111,7 @@ void mainWindow::on_copy_activate()
 	else if (queryTreeview->is_focus() == true)
 	{
 #ifdef DEBUG
-		cout << "mainWindow::on_copy_activate: query tree" << endl;
+		clog << "mainWindow::on_copy_activate: query tree" << endl;
 #endif
 		TreeModel::iterator iter = queryTreeview->get_selection()->get_selected();
 		TreeModel::Row row = *iter;
@@ -2165,7 +2165,7 @@ void mainWindow::on_copy_activate()
 		{
 			// Only rows from the query, results and index trees can be copied
 #ifdef DEBUG
-			cout << "mainWindow::on_copy_activate: other" << endl;
+			clog << "mainWindow::on_copy_activate: other" << endl;
 #endif
 			return;
 		}
@@ -2203,7 +2203,7 @@ void mainWindow::on_paste_activate()
 	else if (queryTreeview->is_focus() == true)
 	{
 #ifdef DEBUG
-		cout << "mainWindow::on_paste_activate: query tree" << endl;
+		clog << "mainWindow::on_paste_activate: query tree" << endl;
 #endif
 		// Use whatever text is in the clipboard as query name
 		QueryProperties queryProps("", from_utf8(clipText));
@@ -2213,7 +2213,7 @@ void mainWindow::on_paste_activate()
 	{
 		// Only the query tree can be pasted into, others are read-only
 #ifdef DEBUG
-		cout << "mainWindow::on_paste_activate: other" << endl;
+		clog << "mainWindow::on_paste_activate: other" << endl;
 #endif
 		return;
 	}
@@ -2234,7 +2234,7 @@ void mainWindow::on_delete_activate()
 			if (pResultsPage != NULL)
 			{
 #ifdef DEBUG
-				cout << "mainWindow::on_delete_activate: results tree" << endl;
+				clog << "mainWindow::on_delete_activate: results tree" << endl;
 #endif
 				ResultsTree *pResultsTree = pResultsPage->getTree();
 				if (pResultsTree != NULL)
@@ -2413,7 +2413,7 @@ void mainWindow::on_addtoindex_activate()
 					resultIter != resultsList.end(); ++resultIter)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::on_addtoindex_activate: URL is " << resultIter->getLocation() << endl;
+					clog << "mainWindow::on_addtoindex_activate: URL is " << resultIter->getLocation() << endl;
 #endif
 					ustring status = m_state.queue_index(*resultIter);
 					if (status.empty() == false)
@@ -2441,7 +2441,7 @@ void mainWindow::on_import_activate()
 	if (docInfo.getLocation().empty() == false)
 	{
 #ifdef DEBUG
-		cout << "mainWindow::on_import_activate: URL is " << docInfo.getLocation() << endl;
+		clog << "mainWindow::on_import_activate: URL is " << docInfo.getLocation() << endl;
 #endif
 		ustring status = m_state.queue_index(docInfo);
 		if (status.empty() == false)
@@ -2507,7 +2507,7 @@ void mainWindow::on_openparent_activate()
 					{
 						location.erase(slashPos);
 #ifdef DEBUG
-						cout << "mainWindow::on_openparent_activate: " << location << endl;
+						clog << "mainWindow::on_openparent_activate: " << location << endl;
 #endif
 						resultIter->setLocation(location);
 						resultIter->setType("x-directory/normal");
@@ -2565,7 +2565,7 @@ void mainWindow::on_updateindex_activate()
 			continue;
 		}
 #ifdef DEBUG
-		cout << "mainWindow::on_updateindex_activate: URL is " << docIter->getLocation() << endl;
+		clog << "mainWindow::on_updateindex_activate: URL is " << docIter->getLocation() << endl;
 #endif
 
 		// Add this action to the queue
@@ -2586,7 +2586,7 @@ void mainWindow::on_properties_activate()
 	bool docsIndex = false, daemonIndex = false, readOnlyProps = false;
 
 #ifdef DEBUG
-	cout << "mainWindow::on_properties_activate: called" << endl;
+	clog << "mainWindow::on_properties_activate: called" << endl;
 #endif
 	ResultsTree *pResultsTree = NULL;
 	IndexPage *pIndexPage = dynamic_cast<IndexPage*>(get_current_page());
@@ -2737,7 +2737,7 @@ void mainWindow::on_unindex_activate()
 	{
 		// Queue this action
 #ifdef DEBUG
-		cout << "mainWindow::on_unindex_activate: " << docIdList.size() << " documents to unindex" << endl;
+		clog << "mainWindow::on_unindex_activate: " << docIdList.size() << " documents to unindex" << endl;
 #endif
 		start_thread(new UnindexingThread(docIdList));
 	}
@@ -2768,7 +2768,7 @@ bool mainWindow::on_activity_timeout()
 		mainProgressbar->pulse();
 	}
 #ifdef DEBUG
-	else cout << "mainWindow::on_activity_timeout: blocked" << endl;
+	else clog << "mainWindow::on_activity_timeout: blocked" << endl;
 #endif
 
 	return true;
@@ -2973,7 +2973,7 @@ void mainWindow::on_liveQueryEntry_changed()
 			++termIndex;
 		}
 #ifdef DEBUG
-		cout << "mainWindow::on_liveQueryEntry_changed: " << termIndex << " suggestions" << endl;
+		clog << "mainWindow::on_liveQueryEntry_changed: " << termIndex << " suggestions" << endl;
 #endif
 
 		delete pIndex;
@@ -3144,7 +3144,7 @@ bool mainWindow::on_queryTreeview_button_press_event(GdkEventButton *ev)
 		{
 			TreeModel::Row row = *iter;
 #ifdef DEBUG
-			cout << "mainWindow::on_queryTreeview_button_press_event: selected " << row[m_queryColumns.m_name] << endl;
+			clog << "mainWindow::on_queryTreeview_button_press_event: selected " << row[m_queryColumns.m_name] << endl;
 #endif
 
 			// Edit this query's properties
@@ -3189,7 +3189,7 @@ bool mainWindow::on_mainWindow_delete_event(GdkEventAny *ev)
 	m_settings.m_expandQueries = queryExpander->get_expanded();
 	m_settings.m_showEngines = enginesTogglebutton->get_active();
 #ifdef DEBUG
-	cout << "mainWindow::on_mainWindow_delete_event: quitting" << endl;
+	clog << "mainWindow::on_mainWindow_delete_event: quitting" << endl;
 #endif
 
 	Main::quit();
@@ -3251,7 +3251,7 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 	NotebookPageBox *pNotebookPage = NULL;
 
 #ifdef DEBUG
-	cout << "mainWindow::get_page: looking for " << title << " " << type << endl;
+	clog << "mainWindow::get_page: looking for " << title << " " << type << endl;
 #endif
 	if (m_state.read_lock_lists() == true)
 	{
@@ -3264,7 +3264,7 @@ NotebookPageBox *mainWindow::get_page(const ustring &title, NotebookPageBox::Pag
 				if (pNotebookPage != NULL)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::get_page: " << pNotebookPage->getTitle()
+					clog << "mainWindow::get_page: " << pNotebookPage->getTitle()
 						<< " " << pNotebookPage->getType() << endl;
 #endif
 					if ((title == pNotebookPage->getTitle()) &&
@@ -3302,7 +3302,7 @@ int mainWindow::get_page_number(const ustring &title, NotebookPageBox::PageType 
 				if (pNotebookPage != NULL)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::get_page_number: " << pNotebookPage->getTitle() << endl;
+					clog << "mainWindow::get_page_number: " << pNotebookPage->getTitle() << endl;
 #endif
 					if ((title == pNotebookPage->getTitle()) &&
 						(type == pNotebookPage->getType()))
@@ -3442,7 +3442,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 		return;
 	}
 #ifdef DEBUG
-	cout << "mainWindow::run_search: query name is " << queryProps.getName() << endl;
+	clog << "mainWindow::run_search: query name is " << queryProps.getName() << endl;
 #endif
 
 	// Check a search engine has been selected
@@ -3516,7 +3516,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 		}
 	}
 #ifdef DEBUG
-	cout << "mainWindow::run_search: selected " << engineIters.size()
+	clog << "mainWindow::run_search: selected " << engineIters.size()
 		<< " engines" << endl;
 #endif
 
@@ -3546,7 +3546,7 @@ void mainWindow::run_search(const QueryProperties &queryProps)
 		ustring engineOption = engineRow[engineColumns.m_option];
 		EnginesModelColumns::EngineType engineType = engineRow[engineColumns.m_type];
 #ifdef DEBUG
-		cout << "mainWindow::run_search: engine " << engineDisplayableName << endl;
+		clog << "mainWindow::run_search: engine " << engineDisplayableName << endl;
 #endif
 
 		// Is it a web engine ?
@@ -3589,7 +3589,7 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 	unsigned int startDoc, bool changePage)
 {
 #ifdef DEBUG
-	cout << "mainWindow::browse_index: called on " << indexName << ", " << queryName << endl;
+	clog << "mainWindow::browse_index: called on " << indexName << ", " << queryName << endl;
 #endif
 	// Rudimentary lock
 	if (m_state.m_browsingIndex == true)
@@ -3620,7 +3620,7 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 	if (indexProps.m_location.empty() == true)
 	{
 #ifdef DEBUG
-		cout << "mainWindow::browse_index: couldn't find index " << indexName << endl;
+		clog << "mainWindow::browse_index: couldn't find index " << indexName << endl;
 #endif
 		return;
 	}
@@ -3646,7 +3646,7 @@ void mainWindow::browse_index(const ustring &indexName, const ustring &queryName
 			start_thread(new EngineQueryThread(indexProps, queryProps, startDoc, true));
 		}
 #ifdef DEBUG
-		else cout << "mainWindow::browse_index: couldn't find query " << queryName << endl;
+		else clog << "mainWindow::browse_index: couldn't find query " << queryName << endl;
 #endif
 	}
 }
@@ -3667,7 +3667,7 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 		string mimeType(docIter->getType());
 
 #ifdef DEBUG
-		cout << "mainWindow::view_documents: " << url << "?" << docIter->getInternalPath() << endl;
+		clog << "mainWindow::view_documents: " << url << "?" << docIter->getInternalPath() << endl;
 #endif
 		if (url.empty() == true)
 		{
@@ -3698,7 +3698,7 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 		}
 
 #ifdef DEBUG
-		cout << "mainWindow::view_documents: " << url << " has type " << mimeType << endl;
+		clog << "mainWindow::view_documents: " << url << " has type " << mimeType << endl;
 #endif
 		locationsByType.insert(pair<string, string>(mimeType, url));
 	}
@@ -3727,7 +3727,7 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 				if (CommandLine::runAsync(action, arguments) == false)
 				{
 #ifdef DEBUG
-					cout << "mainWindow::view_documents: couldn't view type "
+					clog << "mainWindow::view_documents: couldn't view type "
 						<< currentType << endl;
 #endif
 				}
@@ -3743,7 +3743,7 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 				// Chances are the web browser will be able to open this
 				type = "text/html";
 #ifdef DEBUG
-				cout << "mainWindow::view_documents: defaulting to text/html" << endl;
+				clog << "mainWindow::view_documents: defaulting to text/html" << endl;
 #endif
 			}
 			bool foundAction = MIMEScanner::getDefaultActions(type, urlObj.isLocal(), actionsList);
@@ -3757,7 +3757,7 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 					type = "text/plain";
 					foundAction = MIMEScanner::getDefaultActions(type, urlObj.isLocal(), actionsList);
 #ifdef DEBUG
-					cout << "mainWindow::view_documents: defaulting to text/plain" << endl;
+					clog << "mainWindow::view_documents: defaulting to text/plain" << endl;
 #endif
 				}
 
@@ -3784,7 +3784,7 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 					{
 						// Add this to MIMESCanner's list
 #ifdef DEBUG
-						cout << "mainWindow::view_documents: adding user-defined action for type " << type << endl;
+						clog << "mainWindow::view_documents: adding user-defined action for type " << type << endl;
 #endif
 						MIMEScanner::addDefaultAction(type, action);
 						// FIXME: save this in the settings ?
@@ -3830,7 +3830,7 @@ void mainWindow::view_documents(const vector<DocumentInfo> &documentsList)
 		(CommandLine::runAsync(action, arguments) == false))
 	{
 #ifdef DEBUG
-		cout << "mainWindow::view_documents: couldn't view type "
+		clog << "mainWindow::view_documents: couldn't view type "
 			<< currentType << endl;
 #endif
 	}
@@ -3848,7 +3848,7 @@ bool mainWindow::start_thread(WorkerThread *pNewThread, bool inBackground)
 		return false;
 	}
 #ifdef DEBUG
-	cout << "mainWindow::start_thread: started thread " << pNewThread->getId() << endl;
+	clog << "mainWindow::start_thread: started thread " << pNewThread->getId() << endl;
 #endif
 
 	if (inBackground == false)
@@ -3874,7 +3874,7 @@ bool mainWindow::expand_locations(void)
 	{
 		pExpandQueryThread = new ExpandQueryThread(expandIter->m_queryProps, expandIter->m_locations);
 #ifdef DEBUG
-		cout << "mainWindow::expand_locations: " << expandIter->m_locations.size() << " locations in set" << endl;
+		clog << "mainWindow::expand_locations: " << expandIter->m_locations.size() << " locations in set" << endl;
 #endif
 
 		m_expandSets.erase(expandIter);

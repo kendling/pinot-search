@@ -142,11 +142,11 @@ int get_column_height(TreeView *pTree)
 		pColumn->cell_get_size(cellArea, xOffset, yOffset, cellWidth, cellHeight);
 		height += cellHeight;
 #ifdef DEBUG
-		cout << "get_column_height: cell " << cellHeight << " " << yOffset << endl;
+		clog << "get_column_height: cell " << cellHeight << " " << yOffset << endl;
 #endif
 	}
 #ifdef DEBUG
-	cout << "get_column_height: " << height << endl;
+	clog << "get_column_height: " << height << endl;
 #endif
 
 	return height;
@@ -231,7 +231,7 @@ ustring to_utf8(const string &text, const string &charset)
 	catch (Error &ce)
 	{
 #ifdef DEBUG
-		cout << "to_utf8: cannot convert from " << charset << ": " << ce.what() << endl;
+		clog << "to_utf8: cannot convert from " << charset << ": " << ce.what() << endl;
 #endif
 		if (charset.empty() == false)
 		{
@@ -241,7 +241,7 @@ ustring to_utf8(const string &text, const string &charset)
 	catch (...)
 	{
 #ifdef DEBUG
-		cout << "to_utf8: unknown exception" << endl;
+		clog << "to_utf8: unknown exception" << endl;
 #endif
 	}
 
@@ -258,13 +258,13 @@ string from_utf8(const ustring &text)
 	catch (Error &ce)
 	{
 #ifdef DEBUG
-		cout << "from_utf8: " << ce.what() << endl;
+		clog << "from_utf8: " << ce.what() << endl;
 #endif
 	}
 	catch (...)
 	{
 #ifdef DEBUG
-		cout << "from_utf8: unknown exception" << endl;
+		clog << "from_utf8: unknown exception" << endl;
 #endif
 	}
 

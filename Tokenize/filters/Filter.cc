@@ -27,7 +27,7 @@
 using std::string;
 using std::set;
 using std::map;
-using std::cout;
+using std::clog;
 using std::endl;
 
 using namespace Dijon;

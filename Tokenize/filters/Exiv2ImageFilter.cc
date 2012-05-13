@@ -31,8 +31,8 @@
 #include "Exiv2ImageFilter.h"
 
 using std::string;
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using namespace Dijon;
 
@@ -56,7 +56,6 @@ DIJON_FILTER_EXPORT bool get_filter_types(std::set<std::string> &mime_types)
 	mime_types.insert("image/png");
 	mime_types.insert("image/pgf");
 	mime_types.insert("image/x-fuji-raf");
-	mime_types.insert("image/gif");
 	mime_types.insert("image/x-photoshop");
 	mime_types.insert("image/targa");
 	mime_types.insert("image/x-ms-bmp");
@@ -110,7 +109,7 @@ static string iptcDateTime(const string &ccyymmdd, const string &hhmmss)
 		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S", &timeTm) > 0)
 		{
 #ifdef DEBUG
-			cout << "IPTC " << ccyymmdd << " " << hhmmss << " is " << timeStr << endl;
+			clog << "IPTC " << ccyymmdd << " " << hhmmss << " is " << timeStr << endl;
 #endif
 			return timeStr;
 		}
@@ -145,7 +144,7 @@ static string exifDateTime(const string &value)
 		if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S", &timeTm) > 0)
 		{
 #ifdef DEBUG
-			cout << "EXIF " << value << " is " << timeStr << endl;
+			clog << "EXIF " << value << " is " << timeStr << endl;
 #endif
 			return timeStr;
 		}
@@ -221,7 +220,7 @@ bool Exiv2ImageFilter::next_document(void)
 		return false;
 	}
 #ifdef DEBUG
-	cout << "Exiv2ImageFilter::next_document: " << m_filePath << endl;
+	clog << "Exiv2ImageFilter::next_document: " << m_filePath << endl;
 #endif
 
 	m_parseDocument = false;
@@ -234,7 +233,7 @@ bool Exiv2ImageFilter::next_document(void)
 		Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(m_filePath);
 		if (image.get() == NULL)
 		{
-			cerr << m_filePath.c_str() << " is not an image" << endl;
+			clog << m_filePath.c_str() << " is not an image" << endl;
 			return false;
 		}
 
@@ -245,7 +244,7 @@ bool Exiv2ImageFilter::next_document(void)
 		if (xmpData.empty() == false)
 		{
 #ifdef DEBUG
-			cout << "Exiv2ImageFilter::next_document: XMP data in " << m_filePath << endl;
+			clog << "Exiv2ImageFilter::next_document: XMP data in " << m_filePath << endl;
 #endif
 			for (Exiv2::XmpData::const_iterator tagIter = xmpData.begin();
 				tagIter != xmpData.end(); ++tagIter)
@@ -270,7 +269,7 @@ bool Exiv2ImageFilter::next_document(void)
 					m_content.append(valueStr.c_str(), valueStr.length());
 				}
 #ifdef DEBUG
-				cout << "Exiv2ImageFilter::next_document: " << key << "=" << value << endl;
+				clog << "Exiv2ImageFilter::next_document: " << key << "=" << value << endl;
 #endif
 			}
 
@@ -282,7 +281,7 @@ bool Exiv2ImageFilter::next_document(void)
 			string iptcDate, iptcTime;
 
 #ifdef DEBUG
-			cout << "Exiv2ImageFilter::next_document: IPTC data in " << m_filePath << endl;
+			clog << "Exiv2ImageFilter::next_document: IPTC data in " << m_filePath << endl;
 #endif
 			for (Exiv2::IptcData::const_iterator tagIter = iptcData.begin();
 				tagIter != iptcData.end(); ++tagIter)
@@ -299,7 +298,7 @@ bool Exiv2ImageFilter::next_document(void)
 				string valueStr(value.toString());
 
 #ifdef DEBUG
-				cout << "Exiv2ImageFilter::next_document: " << key << "=" << value << endl;
+				clog << "Exiv2ImageFilter::next_document: " << key << "=" << value << endl;
 #endif
 				if ((strncasecmp(pTypeName, "Date", 4) == 0) &&
 					(key == "Iptc.Application2.DateCreated"))
@@ -342,7 +341,7 @@ bool Exiv2ImageFilter::next_document(void)
 			bool foundDate = false;
 
 #ifdef DEBUG
-			cout << "Exiv2ImageFilter::next_document: EXIF data in " << m_filePath << endl;
+			clog << "Exiv2ImageFilter::next_document: EXIF data in " << m_filePath << endl;
 #endif
 			for (Exiv2::ExifData::const_iterator tagIter = exifData.begin();
 				tagIter != exifData.end(); ++tagIter)
@@ -360,7 +359,7 @@ bool Exiv2ImageFilter::next_document(void)
 				string valueStr(value.toString());
 
 #ifdef DEBUG
-				cout << "Exiv2ImageFilter::next_document: " << key << "=" << value << endl;
+				clog << "Exiv2ImageFilter::next_document: " << key << "=" << value << endl;
 #endif
 				if (key == "Exif.Image.DocumentName")
 				{
@@ -390,11 +389,11 @@ bool Exiv2ImageFilter::next_document(void)
 	}
 	catch (Exiv2::AnyError &e)
 	{
-		cerr << "Caught exiv2 exception: " << e << endl;
+		clog << "Caught exiv2 exception: " << e << endl;
 	}
 	catch (...)
 	{
-		cerr << "Caught unknown exception" << endl;
+		clog << "Caught unknown exception" << endl;
 	}
 
 	return foundData;

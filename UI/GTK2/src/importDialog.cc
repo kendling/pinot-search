@@ -87,7 +87,7 @@ void importDialog::on_data_received(const RefPtr<DragContext> &context,
 #endif
 	bool goodDrop = false;
 
-	cout << "importDialog::on_data_received: data type "
+	clog << "importDialog::on_data_received: data type "
 		<< data.get_data_type() << " in format " << data.get_format() << endl;
 
 	if (droppedUris.empty() == false)

@@ -228,7 +228,7 @@ void IndexPage::populateQueryCombobox(const string &queryName)
 void IndexPage::updateButtonsState(unsigned int maxDocsCount)
 {
 #ifdef DEBUG
-	cout << "IndexPage::updateButtonsState: counts " << m_firstDoc
+	clog << "IndexPage::updateButtonsState: counts " << m_firstDoc
 		<< " " << m_docsCount << endl;
 #endif
 	if (m_firstDoc >= maxDocsCount)

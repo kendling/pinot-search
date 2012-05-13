@@ -507,7 +507,7 @@ int main(int argc, char **argv)
 			return EXIT_SUCCESS;
 		}
 
-		// Redirect clog and clog to a file
+		// Redirect cout, cerr and clog to a file
 		string fileName(confDirectory);
 		fileName += "/";
 		fileName += programName;

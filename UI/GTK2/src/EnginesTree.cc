@@ -130,7 +130,7 @@ void EnginesTree::save(void)
 			if (channelIter != channels.end())
 			{
 #ifdef DEBUG
-				cout << "EnginesTree::save: " << channelName << " is " << row_expanded(channelPath) << endl;
+				clog << "EnginesTree::save: " << channelName << " is " << row_expanded(channelPath) << endl;
 #endif
 				channelIter->second = row_expanded(channelPath);
 			}
@@ -195,7 +195,7 @@ void EnginesTree::onButtonPressEvent(GdkEventButton *ev)
 	if (ev->type == GDK_2BUTTON_PRESS)
 	{
 #ifdef DEBUG
-		cout << "EnginesTree::onButtonPressEvent: double click on button " << ev->button << endl;
+		clog << "EnginesTree::onButtonPressEvent: double click on button " << ev->button << endl;
 #endif
 		// Make sure the engine is an external index
 		EnginesModelColumns::EngineType engineType = engineRow[m_enginesColumns.m_type];
@@ -243,7 +243,7 @@ void EnginesTree::onStyleChanged(void)
 #endif
 {
 #ifdef DEBUG
-	cout << "EnginesTree::onStyleChanged: called" << endl;
+	clog << "EnginesTree::onStyleChanged: called" << endl;
 #endif
 	// FIXME: find better icons :-)
 #if GTK_VERSION_LT(3, 0)
@@ -356,7 +356,7 @@ void EnginesTree::populate(bool indexesOnly)
 			row[m_enginesColumns.m_option] = engineIter->m_option;
 			row[m_enginesColumns.m_type] = EnginesModelColumns::WEB_ENGINE;
 #ifdef DEBUG
-			cout << "EnginesTree::populate: engine " << engineName << "/" << engineType << " at " << engineIter->m_option << endl;
+			clog << "EnginesTree::populate: engine " << engineName << "/" << engineType << " at " << engineIter->m_option << endl;
 #endif
 		}
 

@@ -29,7 +29,7 @@
 #include "TarFilter.h"
 
 using std::string;
-using std::cout;
+using std::clog;
 using std::endl;
 using std::stringstream;
 using namespace Dijon;
@@ -181,7 +181,7 @@ bool TarFilter::next_document(const std::string &ipath)
 	sizeStream << size;
 	m_metaData["size"] = sizeStream.str();
 #ifdef DEBUG
-	cout << "TarFilter::next_document: found " << pFileName << ", size " << size << endl;
+	clog << "TarFilter::next_document: found " << pFileName << ", size " << size << endl;
 #endif
 
 	if (TH_ISDIR(m_pHandle))
@@ -215,7 +215,7 @@ bool TarFilter::next_document(const std::string &ipath)
 				(totalSize > m_maxSize))
 			{
 #ifdef DEBUG
-				cout << "TarFilter::next_document: stopping at " << totalSize << endl;
+				clog << "TarFilter::next_document: stopping at " << totalSize << endl;
 #endif
 				readFile = false;
 			}

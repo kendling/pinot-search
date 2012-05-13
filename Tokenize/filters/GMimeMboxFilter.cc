@@ -37,8 +37,8 @@
 
 #include "GMimeMboxFilter.h"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::map;
@@ -83,7 +83,7 @@ DIJON_FILTER_INITIALIZE void initialize_gmime(void)
 	g_mime_init(GMIME_INIT_FLAG_UTF8);
 #endif
 #ifdef DEBUG
-	cout << "GMimeMboxFilter: initialized" << endl;
+	clog << "GMimeMboxFilter: initialized" << endl;
 #endif
 }
 
@@ -310,7 +310,7 @@ int GMimeMboxFilter::openFile(const string &filePath)
 	if (fd < 0)
 	{
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::openFile: couldn't open " << filePath << endl;
+		clog << "GMimeMboxFilter::openFile: couldn't open " << filePath << endl;
 #endif
 		return false;
 	}
@@ -336,7 +336,7 @@ bool GMimeMboxFilter::initializeData(void)
 		ssize_t streamLength = g_mime_stream_length(m_pGMimeMboxStream);
 
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::initializeData: from offset " << m_messageStart
+		clog << "GMimeMboxFilter::initializeData: from offset " << m_messageStart
 			<< " to " << streamLength << endl;
 #endif
 		if (m_messageStart > (GMIME_OFFSET_TYPE)streamLength)
@@ -376,7 +376,7 @@ bool GMimeMboxFilter::initializeFile(void)
 		m_pGMimeMboxStream = g_mime_stream_fs_new_with_bounds(m_fd, m_messageStart, (GMIME_OFFSET_TYPE)streamLength);
 #endif
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::initializeFile: stream starts at offset " << m_messageStart << endl;
+		clog << "GMimeMboxFilter::initializeFile: stream starts at offset " << m_messageStart << endl;
 #endif
 	}
 	else
@@ -410,7 +410,7 @@ bool GMimeMboxFilter::initialize(void)
 		return true;
 	}
 #ifdef DEBUG
-	cout << "GMimeMboxFilter::initialize: couldn't create new parser" << endl;
+	clog << "GMimeMboxFilter::initialize: couldn't create new parser" << endl;
 #endif
 
 	return false;
@@ -472,7 +472,7 @@ bool GMimeMboxFilter::readStream(GMimeStream *pStream, dstring &fileBuffer)
 	bool gotOutput = true;
 
 #ifdef DEBUG
-	cout << "GMimeMboxFilter::readStream: stream is " << streamLen
+	clog << "GMimeMboxFilter::readStream: stream is " << streamLen
 		<< " bytes long" << endl;
 #endif
 
@@ -482,7 +482,7 @@ bool GMimeMboxFilter::readStream(GMimeStream *pStream, dstring &fileBuffer)
 			(totalSize >= m_maxSize))
 		{
 #ifdef DEBUG
-			cout << "GMimeMboxFilter::readStream: stopping at "
+			clog << "GMimeMboxFilter::readStream: stopping at "
 				<< totalSize << endl;
 #endif
 			break;
@@ -508,7 +508,7 @@ bool GMimeMboxFilter::readStream(GMimeStream *pStream, dstring &fileBuffer)
 		}
 	} while (bytesRead > 0);
 #ifdef DEBUG
-	cout << "GMimeMboxFilter::readStream: read " << totalSize
+	clog << "GMimeMboxFilter::readStream: read " << totalSize
 		<< "/" << fileBuffer.size() << " bytes" << endl;
 #endif
 
@@ -546,7 +546,7 @@ bool GMimeMboxFilter::nextPart(const string &subject)
 				snprintf(posStr, 128, "o=%u&p=%d", m_messageStart, max(m_partNum - 1, 0));
 				m_metaData["ipath"] = posStr;
 #ifdef DEBUG
-				cout << "GMimeMboxFilter::nextPart: message location is " << posStr << endl; 
+				clog << "GMimeMboxFilter::nextPart: message location is " << posStr << endl; 
 #endif
 
 #ifndef GMIME_ENABLE_RFC2047_WORKAROUNDS
@@ -589,7 +589,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	while (GMIME_IS_MESSAGE_PART(part))
 	{
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::extractPart: nested message part" << endl;
+		clog << "GMimeMboxFilter::extractPart: nested message part" << endl;
 #endif
 		GMimeMessage *partMessage = g_mime_message_part_get_message(GMIME_MESSAGE_PART(part));
 		part = g_mime_message_get_mime_part(partMessage);
@@ -607,12 +607,12 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 		m_partsCount = g_mime_multipart_get_number(GMIME_MULTIPART(part));
 #endif
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::extractPart: message has " << m_partsCount << " parts" << endl;
+		clog << "GMimeMboxFilter::extractPart: message has " << m_partsCount << " parts" << endl;
 #endif
 		for (int partNum = max(m_partNum, 0); partNum < m_partsCount; ++partNum)
 		{
 #ifdef DEBUG
-			cout << "GMimeMboxFilter::extractPart: extracting part " << partNum << endl;
+			clog << "GMimeMboxFilter::extractPart: extracting part " << partNum << endl;
 #endif
 			
 			GMimeObject *multiMimePart = g_mime_multipart_get_part(GMIME_MULTIPART(part), partNum);
@@ -640,7 +640,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	if (!GMIME_IS_PART(part))
 	{
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::extractPart: not a part" << endl;
+		clog << "GMimeMboxFilter::extractPart: not a part" << endl;
 #endif
 		return false;
 	}
@@ -657,7 +657,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	if (partType != NULL)
 	{
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::extractPart: type is " << partType << endl;
+		clog << "GMimeMboxFilter::extractPart: type is " << partType << endl;
 #endif
 		mboxPart.m_contentType = partType;
 
@@ -670,7 +670,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 				string contentAccessType(partAccessType);
 
 #ifdef DEBUG
-				cout << "GMimeMboxFilter::extractPart: part access type is " << contentAccessType << endl;
+				clog << "GMimeMboxFilter::extractPart: part access type is " << contentAccessType << endl;
 #endif
 				if (contentAccessType == "local-file")
 				{
@@ -682,7 +682,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 						mboxPart.m_subject = partLocalFile;
 						mboxPart.m_buffer.clear();
 #ifdef DEBUG
-						cout << "GMimeMboxFilter::extractPart: local file at " << partLocalFile << endl;
+						clog << "GMimeMboxFilter::extractPart: local file at " << partLocalFile << endl;
 #endif
 
 						// Load the part from file
@@ -705,7 +705,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 				{
 					mboxPart.m_contentType = "application/octet-stream";
 #ifdef DEBUG
-					cout << "GMimeMboxFilter::extractPart: unknown part access type" << endl;
+					clog << "GMimeMboxFilter::extractPart: unknown part access type" << endl;
 #endif
 				}
 			}
@@ -725,7 +725,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	GMimePartEncodingType encodingType = g_mime_part_get_encoding(mimePart);
 #endif
 #ifdef DEBUG
-	cout << "GMimeMboxFilter::extractPart: encoding is " << encodingType << endl;
+	clog << "GMimeMboxFilter::extractPart: encoding is " << encodingType << endl;
 #endif
 #ifdef GMIME_ENABLE_RFC2047_WORKAROUNDS
 	g_mime_part_set_content_encoding(mimePart, GMIME_CONTENT_ENCODING_QUOTEDPRINTABLE);
@@ -736,7 +736,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	if (fileName != NULL)
 	{
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::extractPart: file name is " << fileName << endl;
+		clog << "GMimeMboxFilter::extractPart: file name is " << fileName << endl;
 #endif
 		mboxPart.m_subject = fileName;
 	}
@@ -760,7 +760,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 			if (charsetFilter != NULL)
 			{
 #ifdef DEBUG
-				cout << "GMimeMboxFilter::extractPart: converting from charset " << charset << endl;
+				clog << "GMimeMboxFilter::extractPart: converting from charset " << charset << endl;
 #endif
 				g_mime_stream_filter_add(GMIME_STREAM_FILTER(memStream), charsetFilter);
 				g_object_unref(charsetFilter);
@@ -775,7 +775,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	{
 		ssize_t writeLen = g_mime_data_wrapper_write_to_stream(dataWrapper, memStream);
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::extractPart: wrote " << writeLen << " bytes" << endl;
+		clog << "GMimeMboxFilter::extractPart: wrote " << writeLen << " bytes" << endl;
 #endif
 		if (G_IS_OBJECT(dataWrapper))
 		{
@@ -835,7 +835,7 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 			m_pMimeMessage = g_mime_parser_construct_message(m_pParser);
 			if (m_pMimeMessage == NULL)
 			{
-				cerr << "Couldn't construct new MIME message" << endl;
+				clog << "Couldn't construct new MIME message" << endl;
 				break;
 			}
 
@@ -846,7 +846,7 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 			off_t messageEnd = g_mime_parser_tell(m_pParser);
 #endif
 #ifdef DEBUG
-			cout << "GMimeMboxFilter::extractMessage: message between offsets " << m_messageStart
+			clog << "GMimeMboxFilter::extractMessage: message between offsets " << m_messageStart
 				<< " and " << messageEnd << endl;
 #endif
 			if (messageEnd > m_messageStart)
@@ -864,7 +864,7 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 						(mozFlags & 0x0040))
 					{
 #ifdef DEBUG
-						cout << "GMimeMboxFilter::extractMessage: flagged by Mozilla" << endl;
+						clog << "GMimeMboxFilter::extractMessage: flagged by Mozilla" << endl;
 #endif
 						continue;
 					}
@@ -886,7 +886,7 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 						if (evoFlags & 0x0002)
 						{
 #ifdef DEBUG
-							cout << "GMimeMboxFilter::extractMessage: flagged by Evolution" << endl;
+							clog << "GMimeMboxFilter::extractMessage: flagged by Evolution" << endl;
 #endif
 							continue;
 						}
@@ -932,7 +932,7 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 					delete pTimeTm;
 				}
 #ifdef DEBUG
-				cout << "GMimeMboxFilter::extractMessage: message date is " << m_messageDate << endl;
+				clog << "GMimeMboxFilter::extractMessage: message date is " << m_messageDate << endl;
 #endif
 
 				// Extract the subject
@@ -944,7 +944,7 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 			}
 		}
 #ifdef DEBUG
-		cout << "GMimeMboxFilter::extractMessage: message subject is " << msgSubject << endl;
+		clog << "GMimeMboxFilter::extractMessage: message subject is " << msgSubject << endl;
 #endif
 
 		if (nextPart(msgSubject) == true)

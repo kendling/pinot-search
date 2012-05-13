@@ -65,7 +65,7 @@ static struct option g_longOptions[] = {
 
 static void closeAll(void)
 {
-	cout << "Exiting..." << endl;
+	clog << "Exiting..." << endl;
 
 	// Close everything
 	ModuleFactory::unloadModules();
@@ -73,15 +73,15 @@ static void closeAll(void)
 	// Restore the stream buffers
 	if (g_coutBuf != NULL)
 	{
-		cout.rdbuf(g_coutBuf);
+		clog.rdbuf(g_coutBuf);
 	}
 	if (g_cerrBuf != NULL)
 	{
-		cerr.rdbuf(g_cerrBuf);
+		clog.rdbuf(g_cerrBuf);
 	}
 	if (g_clogBuf != NULL)
 	{
-		clog.rdbuf(g_cerrBuf);
+		clog.rdbuf(g_clogBuf);
 	}
 	g_outputFile.close();
 
@@ -91,7 +91,7 @@ static void closeAll(void)
 
 static void quitAll(int sigNum)
 {
-	cout << "Quitting..." << endl;
+	clog << "Quitting..." << endl;
 
 	Gtk::Main::quit();
 }
@@ -103,13 +103,13 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 	if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_LOCAL, "Disconnected") == TRUE)
 	{
 #ifdef DEBUG
-		cout << "filterHandler: received Disconnected" << endl;
+		clog << "filterHandler: received Disconnected" << endl;
 #endif
 	}
 	else if (dbus_message_is_signal(pMessage, DBUS_INTERFACE_DBUS, "NameOwnerChanged") == TRUE)
 	{
 #ifdef DEBUG
-		cout << "filterHandler: received NameOwnerChanged" << endl;
+		clog << "filterHandler: received NameOwnerChanged" << endl;
 #endif
 	}
 	else if (dbus_message_is_signal(pMessage, PINOT_DBUS_SERVICE_NAME, "IndexFlushed") == TRUE)
@@ -118,7 +118,7 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 		unsigned int docsCount = 0;
 
 #ifdef DEBUG
-		cout << "filterHandler: received IndexFlushed" << endl;
+		clog << "filterHandler: received IndexFlushed" << endl;
 #endif
 		dbus_error_init(&error);
 		if ((dbus_message_get_args(pMessage, &error,
@@ -128,7 +128,7 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 			PinotSettings &settings = PinotSettings::getInstance();
 
 #ifdef DEBUG
-			cout << "filterHandler: reopening index, now with " << docsCount << " documents" << endl;
+			clog << "filterHandler: reopening index, now with " << docsCount << " documents" << endl;
 #endif
 			IndexInterface *pIndex = settings.getIndex(settings.m_daemonIndexLocation);
 			if (pIndex != NULL)
@@ -138,7 +138,7 @@ static DBusHandlerResult filterHandler(DBusConnection *pConnection, DBusMessage 
 				delete pIndex;
 			}
 #ifdef DEBUG
-			cout << "filterHandler: reopened index" << endl;
+			clog << "filterHandler: reopened index" << endl;
 #endif
 		}
 		dbus_error_free(&error);
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
 		{
 			case 'h':
 				// Help
-				cout << "pinot - A metasearch tool for the Free Desktop\n\n"
+				clog << "pinot - A metasearch tool for the Free Desktop\n\n"
 					<< "Usage: pinot [OPTIONS]\n\n"
 					<< "Options:\n"
 					<< "  -h, --help		display this help and exit\n"
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 				prefsMode = true;
 				break;
 			case 'v':
-				cout << "pinot - " << PACKAGE_STRING << "\n\n" 
+				clog << "pinot - " << PACKAGE_STRING << "\n\n" 
 					<< "This is free software.  You may redistribute copies of it under the terms of\n"
 					<< "the GNU General Public License <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n"
 					<< "There is NO WARRANTY, to the extent permitted by law." << endl;
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 				if (pLocale != NULL)
 				{
 #ifdef DEBUG
-					cout << "Changed locale to " << pLocale << endl;
+					clog << "Changed locale to " << pLocale << endl;
 #endif
 				}
 			}
@@ -273,7 +273,7 @@ int main(int argc, char **argv)
 	string confDirectory(PinotSettings::getConfigurationDirectory());
 	if (chdir(confDirectory.c_str()) == 0)
 	{
-		// Redirect cout and cerr to a file
+		// Redirect cout, cerr and clog to a file
 		string logFileName = confDirectory;
 		if (prefsMode == false)
 		{
@@ -284,11 +284,11 @@ int main(int argc, char **argv)
 			logFileName += "/pinot-prefs.log";
 		}
 		g_outputFile.open(logFileName.c_str());
-		g_coutBuf = cout.rdbuf();
-		g_cerrBuf = cerr.rdbuf();
+		g_coutBuf = clog.rdbuf();
+		g_cerrBuf = clog.rdbuf();
 		g_clogBuf = clog.rdbuf();
-		cout.rdbuf(g_outputFile.rdbuf());
-		cerr.rdbuf(g_outputFile.rdbuf());
+		clog.rdbuf(g_outputFile.rdbuf());
+		clog.rdbuf(g_outputFile.rdbuf());
 		clog.rdbuf(g_outputFile.rdbuf());
 	}
 
@@ -296,7 +296,7 @@ int main(int argc, char **argv)
 	if (MIMEScanner::initialize(PinotSettings::getHomeDirectory() + "/.local",
 		string(SHARED_MIME_INFO_PREFIX)) == false)
 	{
-		cerr << "Couldn't load MIME settings" << endl;
+		clog << "Couldn't load MIME settings" << endl;
 	}
 	DownloaderInterface::initialize();
 	// Load filter libraries, if any
@@ -400,10 +400,10 @@ int main(int argc, char **argv)
 		{
 			if (pError != NULL)
 			{
-				cerr << "Couldn't open bus connection: " << pError->message << endl;
+				clog << "Couldn't open bus connection: " << pError->message << endl;
 				if (pError->message != NULL)
 				{
-					cerr << "Error is " << pError->message << endl;
+					clog << "Error is " << pError->message << endl;
 				}
 				g_error_free(pError);
 			}
@@ -452,7 +452,7 @@ int main(int argc, char **argv)
 				warnAboutVersion = true;
 			}
 #ifdef DEBUG
-			cout << "My Web Pages was set to version " << indexVersion << endl;
+			clog << "My Web Pages was set to version " << indexVersion << endl;
 #endif
 			pIndex->setMetadata("version", VERSION);
 
@@ -487,17 +487,17 @@ int main(int argc, char **argv)
 	}
 	catch (const Glib::Exception &e)
 	{
-		cerr << e.what() << endl;
+		clog << e.what() << endl;
 		return EXIT_FAILURE;
 	}
 	catch (const char *pMsg)
 	{
-		cerr << pMsg << endl;
+		clog << pMsg << endl;
 		return EXIT_FAILURE;
 	}
 	catch (...)
 	{
-		cerr << "Unknown exception" << endl;
+		clog << "Unknown exception" << endl;
 		return EXIT_FAILURE;
 	}
 

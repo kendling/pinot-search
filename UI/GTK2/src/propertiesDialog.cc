@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2011 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 
 #include "config.h"
 #include "Languages.h"
+#include "MIMEScanner.h"
 #include "StringManip.h"
 #include "NLS.h"
 #include "PinotSettings.h"
@@ -67,7 +68,7 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 		// Get the document ID
 		m_docId = docInfo.getIsIndexed(indexId);
 #ifdef DEBUG
-		cout << "propertiesDialog::propertiesDialog: document " << m_docId << " in index " << indexId << endl;
+		clog << "propertiesDialog::propertiesDialog: document " << m_docId << " in index " << indexId << endl;
 #endif
 		if (m_docId > 0)
 		{
@@ -88,7 +89,7 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 			set_title(get_title() + " (ID " + numStr + ")");
 
 			titleEntry->set_text(to_utf8(title));
-			typeEntry->set_text(to_utf8(docInfo.getType()));
+			typeEntry->set_text(to_utf8(MIMEScanner::getDescription(docInfo.getType())));
 
 			unsigned int size = docInfo.getSize();
 			snprintf(numStr, 128, "%u", size);
@@ -110,7 +111,7 @@ propertiesDialog::propertiesDialog(const string &indexLocation,
 			docIter != m_documentsList.end(); ++docIter)
 		{
 #ifdef DEBUG
-			cout << "propertiesDialog::propertiesDialog: language " << language << endl;
+			clog << "propertiesDialog::propertiesDialog: language " << language << endl;
 #endif
 			if (firstDoc == true)
 			{
@@ -231,7 +232,7 @@ void propertiesDialog::populate_labelsTreeview(const set<string> &docLabels)
 		}
 	}
 #ifdef DEBUG
-	cout << "propertiesDialog::populate_labelsTreeview: showing " << docLabels.size()
+	clog << "propertiesDialog::populate_labelsTreeview: showing " << docLabels.size()
 		<< "/" << sysLabels.size() << " labels" << endl;
 #endif
 
@@ -288,7 +289,7 @@ void propertiesDialog::on_labelOkButton_clicked()
 		// FIXME: find out if changes were actually made 
 	}
 #ifdef DEBUG
-	cout << "propertiesDialog::on_labelOkButton_clicked: chosen title " << title << endl;
+	clog << "propertiesDialog::on_labelOkButton_clicked: chosen title " << title << endl;
 #endif
 
 	// Did we add an extra string to the languages list ?
@@ -302,12 +303,12 @@ void propertiesDialog::on_labelOkButton_clicked()
 		languageName.clear();
 	}
 #ifdef DEBUG
-	cout << "propertiesDialog::on_labelOkButton_clicked: chosen language " << languageName << endl;
+	clog << "propertiesDialog::on_labelOkButton_clicked: chosen language " << languageName << endl;
 #endif
 	if (m_infoHash != StringManip::hashString(title + languageName))
 	{
 #ifdef DEBUG
-		cout << "propertiesDialog::on_labelOkButton_clicked: properties changed" << endl;
+		clog << "propertiesDialog::on_labelOkButton_clicked: properties changed" << endl;
 #endif
 		m_changedInfo = true;
 	}
@@ -331,12 +332,12 @@ void propertiesDialog::on_labelOkButton_clicked()
 		}
 	}
 #ifdef DEBUG
-	cout << "propertiesDialog::on_labelOkButton_clicked: chosen " << m_labels.size() << " labels" << endl;
+	clog << "propertiesDialog::on_labelOkButton_clicked: chosen " << m_labels.size() << " labels" << endl;
 #endif
 	if (m_labelsHash != StringManip::hashString(labelsString))
 	{
 #ifdef DEBUG
-		cout << "propertiesDialog::on_labelOkButton_clicked: labels changed" << endl;
+		clog << "propertiesDialog::on_labelOkButton_clicked: labels changed" << endl;
 #endif
 		m_changedLabels = true;
 	}
@@ -361,7 +362,7 @@ void propertiesDialog::on_saveTermsButton_clicked()
 
 	location += "/terms.txt";
 #ifdef DEBUG
-	cout << "propertiesDialog::on_saveTermsButton_clicked: " << location << endl;
+	clog << "propertiesDialog::on_saveTermsButton_clicked: " << location << endl;
 #endif
 
 	IndexInterface *pIndex = PinotSettings::getInstance().getIndex(m_indexLocation);

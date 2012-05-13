@@ -74,7 +74,7 @@ bool TextFilter::set_document_string(const string &data_str)
 	rewind();
 
 #ifdef DEBUG
-	cout << "TextFilter::set_document_string: " << data_str.length() << " bytes of text" << endl;
+	clog << "TextFilter::set_document_string: " << data_str.length() << " bytes of text" << endl;
 #endif
 	m_content.reserve(data_str.length());
 	m_content.append(data_str.c_str(), data_str.length());

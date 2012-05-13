@@ -254,7 +254,7 @@ void indexDialog::on_indexOkbutton_clicked()
 #endif
 	}
 #ifdef DEBUG
-	cout << "indexDialog::on_indexOkbutton_clicked: " << name << ", " << location << endl;
+	clog << "indexDialog::on_indexOkbutton_clicked: " << name << ", " << location << endl;
 #endif
 
 	// Look up that index name in the map
@@ -267,7 +267,7 @@ void indexDialog::on_indexOkbutton_clicked()
 			// This name is in use
 			m_badName = true;
 #ifdef DEBUG
-			cout << "indexDialog::on_indexOkbutton_clicked: name in use" << endl;
+			clog << "indexDialog::on_indexOkbutton_clicked: name in use" << endl;
 #endif
 			break;
 		}
@@ -279,7 +279,7 @@ void indexDialog::on_indexOkbutton_clicked()
 		// ... but that's okay, because it's the original name
 		m_badName = false;
 #ifdef DEBUG
-		cout << "indexDialog::on_indexOkbutton_clicked: old name" << endl;
+		clog << "indexDialog::on_indexOkbutton_clicked: old name" << endl;
 #endif
 	}
 

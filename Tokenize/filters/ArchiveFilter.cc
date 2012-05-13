@@ -32,7 +32,7 @@
 #include "ArchiveFilter.h"
 
 using std::string;
-using std::cout;
+using std::clog;
 using std::endl;
 using std::stringstream;
 using namespace Dijon;
@@ -145,7 +145,7 @@ bool ArchiveFilter::set_document_data(const char *data_ptr, unsigned int data_le
 	{
 		m_parseDocument = true;
 #ifdef DEBUG
-		cout << "ArchiveFilter::set_document_data: " << m_mimeType 
+		clog << "ArchiveFilter::set_document_data: " << m_mimeType 
 			<< ", format " << archive_format(m_pHandle) << endl;
 #endif
 
@@ -195,7 +195,7 @@ bool ArchiveFilter::set_document_file(const string &file_path, bool unlink_when_
 		if (m_fd < 0)
 		{
 #ifdef DEBUG
-			cout << "ArchiveFilter::set_document_file: couldn't open " << file_path << endl;
+			clog << "ArchiveFilter::set_document_file: couldn't open " << file_path << endl;
 #endif
 			return false;
 		}
@@ -208,7 +208,7 @@ bool ArchiveFilter::set_document_file(const string &file_path, bool unlink_when_
 		{
 			m_parseDocument = true;
 #ifdef DEBUG
-			cout << "ArchiveFilter::set_document_file: " << file_path
+			clog << "ArchiveFilter::set_document_file: " << file_path
 				<< ", " << m_mimeType << ", format " << archive_format(m_pHandle) << endl;
 #endif
 
@@ -296,7 +296,7 @@ bool ArchiveFilter::next_document(const std::string &ipath)
 		if (archive_read_next_header(m_pHandle, &pEntry) != ARCHIVE_OK)
 		{
 #ifdef DEBUG
-			cout << "ArchiveFilter::next_document: no more entries" << endl;
+			clog << "ArchiveFilter::next_document: no more entries" << endl;
 #endif
 			m_parseDocument = false;
 			return false;
@@ -341,7 +341,7 @@ bool ArchiveFilter::next_document(const std::string &ipath)
 	sizeStream << size;
 	m_metaData["size"] = sizeStream.str();
 #ifdef DEBUG
-	cout << "ArchiveFilter::next_document: found " << pFileName << ", size " << size << " bytes" << endl;
+	clog << "ArchiveFilter::next_document: found " << pFileName << ", size " << size << " bytes" << endl;
 #endif
 
 	if (S_ISDIR(pEntryStats->st_mode))
@@ -371,7 +371,7 @@ bool ArchiveFilter::next_document(const std::string &ipath)
 				(totalSize > m_maxSize))
 			{
 #ifdef DEBUG
-				cout << "ArchiveFilter::next_document: stopping at " << totalSize << endl;
+				clog << "ArchiveFilter::next_document: stopping at " << totalSize << endl;
 #endif
 				readFile = false;
 			}
@@ -381,7 +381,7 @@ bool ArchiveFilter::next_document(const std::string &ipath)
 			}
 		}
 #ifdef DEBUG
-		cout << "ArchiveFilter::next_document: read " << totalSize
+		clog << "ArchiveFilter::next_document: read " << totalSize
 			<< "/" << m_content.size() << " bytes" << endl;
 #endif
 

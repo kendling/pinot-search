@@ -45,8 +45,8 @@
 #define GETFILTERTYPESFUNC	"_Z16get_filter_typesRSt3setISsSt4lessISsESaISsEE"
 #define GETFILTERFUNC		"_Z10get_filterRKSs"
 
-using std::cout;
-using std::cerr;
+using std::clog;
+using std::clog;
 using std::endl;
 using std::string;
 using std::set;
@@ -80,7 +80,7 @@ unsigned int FilterFactory::loadFilters(const string &dir_name)
 	if ((stat(dir_name.c_str(), &fileStat) == -1) ||
 		(!S_ISDIR(fileStat.st_mode)))
 	{
-		cerr << "FilterFactory::loadFilters: " << dir_name << " is not a directory" << endl;
+		clog << "FilterFactory::loadFilters: " << dir_name << " is not a directory" << endl;
 		return 0;
 	}
 
@@ -136,21 +136,21 @@ unsigned int FilterFactory::loadFilters(const string &dir_name)
 								// Add a record for this filter
 								m_types[*typeIter] = fileName;
 #ifdef DEBUG
-								cout << "FilterFactory::loadFilters: type " << *typeIter
+								clog << "FilterFactory::loadFilters: type " << *typeIter
 									<< " is supported by " << pEntryName << endl;
 #endif
 							}
 
 							m_handles[fileName] = pHandle;
 						}
-						else cerr << "FilterFactory::loadFilters: couldn't get types from " << fileName << endl;
+						else clog << "FilterFactory::loadFilters: couldn't get types from " << fileName << endl;
 					}
-					else cerr << "FilterFactory::loadFilters: " << dlerror() << endl;
+					else clog << "FilterFactory::loadFilters: " << dlerror() << endl;
 				}
-				else cerr << "FilterFactory::loadFilters: " << dlerror() << endl;
+				else clog << "FilterFactory::loadFilters: " << dlerror() << endl;
 			}
 #ifdef DEBUG
-			else cout << "FilterFactory::loadFilters: "
+			else clog << "FilterFactory::loadFilters: "
 				<< pEntryName << " is not a file" << endl;
 #endif
 		}
@@ -171,7 +171,7 @@ Filter *FilterFactory::getLibraryFilter(const string &mime_type)
 	if (m_handles.empty() == true)
 	{
 #ifdef DEBUG
-		cout << "FilterFactory::getLibraryFilter: no libraries" << endl;
+		clog << "FilterFactory::getLibraryFilter: no libraries" << endl;
 #endif
 		return NULL;
 	}
@@ -203,7 +203,7 @@ Filter *FilterFactory::getLibraryFilter(const string &mime_type)
 		return (*pFunc)(mime_type);
 	}
 #ifdef DEBUG
-	cout << "FilterFactory::getLibraryFilter: couldn't find export getFilter" << endl;
+	clog << "FilterFactory::getLibraryFilter: couldn't find export getFilter" << endl;
 #endif
 #endif
 
@@ -221,7 +221,7 @@ Filter *FilterFactory::getFilter(const string &mime_type)
 		typeOnly = mime_type.substr(0, semiColonPos);
 	}
 #ifdef DEBUG
-	cout << "FilterFactory::getFilter: file type is " << typeOnly << endl;
+	clog << "FilterFactory::getFilter: file type is " << typeOnly << endl;
 #endif
 
 	if (typeOnly == "text/plain")
@@ -302,7 +302,7 @@ void FilterFactory::unloadFilters(void)
 		if (dlclose(iter->second) != 0)
 		{
 #ifdef DEBUG
-			cout << "FilterFactory::unloadFilters: failed on " << iter->first << endl;
+			clog << "FilterFactory::unloadFilters: failed on " << iter->first << endl;
 #endif
 		}
 	}

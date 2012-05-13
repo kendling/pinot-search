@@ -80,7 +80,7 @@ class DaemonStatusThread : public WorkerThread
 				m_gotStats = true;
 			}
 #ifdef DEBUG
-			else cout << "DaemonStatusThread::doWork: failed to get statistics" << endl;
+			else clog << "DaemonStatusThread::doWork: failed to get statistics" << endl;
 #endif
 		}
 
@@ -478,7 +478,7 @@ void statisticsDialog::on_thread_end(WorkerThread *pThread)
 	if (status.empty() == false)
 	{
 #ifdef DEBUG
-		cout << "statisticsDialog::on_thread_end: " << status << endl;
+		clog << "statisticsDialog::on_thread_end: " << status << endl;
 #endif
 		success = false;
 	}
@@ -502,7 +502,7 @@ void statisticsDialog::on_thread_end(WorkerThread *pThread)
 				m_state.m_onBattery = pStatusThread->m_onBattery;
 				m_state.m_crawling = pStatusThread->m_crawling;
 #ifdef DEBUG
-				cout << "statisticsDialog::on_thread_end: refreshed stats" << endl;
+				clog << "statisticsDialog::on_thread_end: refreshed stats" << endl;
 #endif
 			}
 		}

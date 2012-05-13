@@ -77,13 +77,13 @@ void IndexBrowserThread::doWork(void)
 	if (m_documentsCount == 0)
 	{
 #ifdef DEBUG
-		cout << "IndexBrowserThread::doWork: no documents" << endl;
+		clog << "IndexBrowserThread::doWork: no documents" << endl;
 #endif
 		return;
 	}
 
 #ifdef DEBUG
-	cout << "IndexBrowserThread::doWork: " << m_maxDocsCount << " off " << m_documentsCount
+	clog << "IndexBrowserThread::doWork: " << m_maxDocsCount << " off " << m_documentsCount
 		<< " documents to browse, starting at position " << m_startDoc << endl;
 #endif
 	pIndex->listDocuments(docIDList, m_maxDocsCount, m_startDoc);
@@ -116,7 +116,7 @@ void IndexBrowserThread::doWork(void)
 			++numDocs;
 		}
 #ifdef DEBUG
-		else cout << "IndexBrowserThread::doWork: couldn't retrieve document " << docId << endl;
+		else clog << "IndexBrowserThread::doWork: couldn't retrieve document " << docId << endl;
 #endif
 	}
 	delete pIndex;

@@ -628,14 +628,6 @@ HtmlParser::parse_html(const string &body)
 			}
 		    }
 		}
-#if 0
-		cout << "<" << tag;
-		map<string, string>::const_iterator x;
-		for (x = parameters.begin(); x != parameters.end(); x++) {
-		    cout << " " << x->first << "=\"" << x->second << "\"";
-		}
-		cout << ">\n";
-#endif
 		opening_tag(tag);
 		parameters.clear();
 
