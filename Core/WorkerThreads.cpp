@@ -1744,15 +1744,12 @@ void UnindexingThread::doWork(void)
 	delete pIndex;
 }
 
-MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler,
-	bool checkHistory) :
+MonitorThread::MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler) :
 	WorkerThread(),
 	m_ctrlReadPipe(-1),
 	m_ctrlWritePipe(-1),
-	m_crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName()),
 	m_pMonitor(pMonitor),
-	m_pHandler(pHandler),
-	m_checkHistory(checkHistory)
+	m_pHandler(pHandler)
 {
 	int pipeFds[2];
 
@@ -1790,6 +1787,12 @@ void MonitorThread::stop(void)
 	{
 		write(m_ctrlWritePipe, "X", 1);
 	}
+}
+
+void MonitorThread::fileModified(const string &location)
+{
+	// Pass this event directly to the handler 
+	m_pHandler->fileModified(location);
 }
 
 void MonitorThread::processEvents(void)
@@ -1861,29 +1864,7 @@ void MonitorThread::processEvents(void)
 		{
 			if (event.m_isDirectory == false)
 			{
-				CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
-				struct stat fileStat;
-				time_t itemDate = 0;
-
-				if (m_checkHistory == false)
-				{
-					m_pHandler->fileModified(event.m_location);
-				}
-				else if (m_crawlHistory.hasItem("file://" + event.m_location, status, itemDate) == true)
-				{
-					// Was the file actually modified ?
-					if ((stat(event.m_location.c_str(), &fileStat) == 0) &&
-						(itemDate < fileStat.st_mtime))
-					{
-						m_pHandler->fileModified(event.m_location);
-					}
-#ifdef DEBUG
-					else clog << "MonitorThread::processEvents: file wasn't modified" << endl;
-#endif
-				}
-#ifdef DEBUG
-				else clog << "MonitorThread::processEvents: file wasn't crawled" << endl;
-#endif
+				fileModified(event.m_location);
 			}
 		}
 		else if (event.m_type == MonitorEvent::MOVED)
@@ -1980,6 +1961,39 @@ void MonitorThread::doWork(void)
 			processEvents();
 		}
 	}
+}
+
+HistoryMonitorThread::HistoryMonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler) :
+	MonitorThread(pMonitor, pHandler),
+	m_crawlHistory(PinotSettings::getInstance().getHistoryDatabaseName())
+{
+}
+
+HistoryMonitorThread::~HistoryMonitorThread()
+{
+}
+
+void HistoryMonitorThread::fileModified(const string &location)
+{ 
+	CrawlHistory::CrawlStatus status = CrawlHistory::UNKNOWN;
+	struct stat fileStat;
+	time_t itemDate = 0;
+
+	if (m_crawlHistory.hasItem("file://" + location, status, itemDate) == true)
+	{
+		// Was the file actually modified ?
+		if ((stat(location.c_str(), &fileStat) == 0) &&
+				(itemDate < fileStat.st_mtime))
+		{
+			m_pHandler->fileModified(location);
+		}
+#ifdef DEBUG
+		else clog << "HistoryMonitorThread::fileModified: file wasn't modified" << endl;
+#endif
+	}
+#ifdef DEBUG
+	else clog << "HistoryMonitorThread::fileModified: file wasn't crawled" << endl;
+#endif
 }
 
 DirectoryScannerThread::DirectoryScannerThread(const string &dirName,

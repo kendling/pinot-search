@@ -299,7 +299,7 @@ mainWindow::mainWindow() :
 	{
 		// Run this in the background
 		m_pSettingsHandler = new ReloadHandler();
-		MonitorThread *pSettingsMonitorThread = new MonitorThread(m_pSettingsMonitor, m_pSettingsHandler, false);
+		MonitorThread *pSettingsMonitorThread = new MonitorThread(m_pSettingsMonitor, m_pSettingsHandler);
 		start_thread(pSettingsMonitorThread, true);
 	}
 

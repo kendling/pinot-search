@@ -369,8 +369,7 @@ class UnindexingThread : public WorkerThread
 class MonitorThread : public WorkerThread
 {
 	public:
-		MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler,
-			bool checkHistory = true);
+		MonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler);
 		virtual ~MonitorThread();
 
 		virtual std::string getType(void) const;
@@ -380,17 +379,33 @@ class MonitorThread : public WorkerThread
 	protected:
 		int m_ctrlReadPipe;
 		int m_ctrlWritePipe;
-		CrawlHistory m_crawlHistory;
 		MonitorInterface *m_pMonitor;
 		MonitorHandler *m_pHandler;
-		bool m_checkHistory;
 
+		virtual void fileModified(const std::string &location);
 		void processEvents(void);
 		virtual void doWork(void);
 
 	private:
 		MonitorThread(const MonitorThread &other);
 		MonitorThread &operator=(const MonitorThread &other);
+
+};
+
+class HistoryMonitorThread : public MonitorThread
+{
+	public:
+		HistoryMonitorThread(MonitorInterface *pMonitor, MonitorHandler *pHandler);
+		virtual ~HistoryMonitorThread();
+
+	protected:
+		CrawlHistory m_crawlHistory;
+
+		virtual void fileModified(const std::string &location);
+
+	private:
+		HistoryMonitorThread(const HistoryMonitorThread &other);
+		HistoryMonitorThread &operator=(const HistoryMonitorThread &other);
 
 };
 

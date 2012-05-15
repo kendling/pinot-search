@@ -510,7 +510,7 @@ void DaemonState::start(bool isReindex)
 		pDiskHandler->getFileFoundSignal().connect(sigc::mem_fun(*this, &DaemonState::on_message_filefound));
 		m_pDiskHandler = pDiskHandler;
 	}
-	MonitorThread *pDiskMonitorThread = new MonitorThread(m_pDiskMonitor, m_pDiskHandler);
+	HistoryMonitorThread *pDiskMonitorThread = new HistoryMonitorThread(m_pDiskMonitor, m_pDiskHandler);
 	start_thread(pDiskMonitorThread, true);
 
 	for (set<PinotSettings::IndexableLocation>::const_iterator locationIter = PinotSettings::getInstance().m_indexableLocations.begin();
