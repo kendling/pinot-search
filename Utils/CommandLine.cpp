@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -288,7 +288,7 @@ bool CommandLine::runAsync(const MIMEAction &action, const vector<string> &argum
 
 			if (replacement.empty() == false)
 			{
-				shellReplacement = Glib::shell_quote(replacement);
+				shellReplacement = quote(replacement);
 			}
 			commandLine.replace(paramPos, 2, shellReplacement);
 
