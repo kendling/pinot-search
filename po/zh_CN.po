@@ -1,98 +1,98 @@
 # Simplified Chinese translation for pinot
 # This file is distributed under the same license as the pinot package.
-# Ashlee Ma <ashlee8310@hotmail.com>, 2008.
+# Administrator <gzmeng@tom.com>, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pinot 0.98\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-14 21:56+0800\n"
-"PO-Revision-Date: 2010-12-15 03:59+0000\n"
-"Last-Translator: mike2718 <mike2718@gmail.com>\n"
-"Language-Team: \n"
-"Language: \n"
+"POT-Creation-Date: 2011-01-06 11:44+0100\n"
+"PO-Revision-Date: 2012-04-22 09:06+0000\n"
+"Last-Translator: happymeng <gzmeng@tom.com>\n"
+"Language-Team: elotto\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
 
 #: SQL/SQLiteBase.cpp:419
 msgid "failed to begin transaction"
-msgstr ""
+msgstr "开始事务处理失败"
 
 #: SQL/SQLiteBase.cpp:455
 msgid "failed to rollback transaction"
-msgstr ""
+msgstr "回滚事务处理失败"
 
 #: SQL/SQLiteBase.cpp:491
 msgid "failed to end transaction"
-msgstr ""
+msgstr "结束事务处理失败"
 
 #: SQL/SQLiteBase.cpp:553
 msgid "couldn't format SQL statement"
 msgstr "无法格式化SQL语句"
 
 #. Localize language names
-#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:310
+#: Core/pinot-dbus-daemon.cpp:548 UI/GTK2/src/pinot.cc:308
 msgid "Unknown"
 msgstr "未知"
 
-#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:311
+#: Core/pinot-dbus-daemon.cpp:549 UI/GTK2/src/pinot.cc:309
 msgid "Danish"
 msgstr "丹麦语"
 
-#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:312
+#: Core/pinot-dbus-daemon.cpp:550 UI/GTK2/src/pinot.cc:310
 msgid "Dutch"
 msgstr "荷兰语"
 
-#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:313
+#: Core/pinot-dbus-daemon.cpp:551 UI/GTK2/src/pinot.cc:311
 msgid "English"
 msgstr "英语"
 
-#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:314
+#: Core/pinot-dbus-daemon.cpp:552 UI/GTK2/src/pinot.cc:312
 msgid "Finnish"
 msgstr "芬兰语"
 
-#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:315
+#: Core/pinot-dbus-daemon.cpp:553 UI/GTK2/src/pinot.cc:313
 msgid "French"
 msgstr "法语"
 
-#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:316
+#: Core/pinot-dbus-daemon.cpp:554 UI/GTK2/src/pinot.cc:314
 msgid "German"
 msgstr "德语"
 
-#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:317
+#: Core/pinot-dbus-daemon.cpp:555 UI/GTK2/src/pinot.cc:315
 msgid "Hungarian"
 msgstr "匈牙利语"
 
-#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:318
+#: Core/pinot-dbus-daemon.cpp:556 UI/GTK2/src/pinot.cc:316
 msgid "Italian"
 msgstr "意大利语"
 
-#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:319
+#: Core/pinot-dbus-daemon.cpp:557 UI/GTK2/src/pinot.cc:317
 msgid "Norwegian"
 msgstr "挪威语"
 
-#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:320
+#: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:318
 msgid "Portuguese"
 msgstr "葡萄牙语"
 
-#: Core/pinot-dbus-daemon.cpp:559 UI/GTK2/src/pinot.cc:321
+#: Core/pinot-dbus-daemon.cpp:559 UI/GTK2/src/pinot.cc:319
 msgid "Romanian"
 msgstr "罗马尼亚语"
 
-#: Core/pinot-dbus-daemon.cpp:560 UI/GTK2/src/pinot.cc:322
+#: Core/pinot-dbus-daemon.cpp:560 UI/GTK2/src/pinot.cc:320
 msgid "Russian"
 msgstr "俄语"
 
-#: Core/pinot-dbus-daemon.cpp:561 UI/GTK2/src/pinot.cc:323
+#: Core/pinot-dbus-daemon.cpp:561 UI/GTK2/src/pinot.cc:321
 msgid "Spanish"
 msgstr "西班牙语"
 
-#: Core/pinot-dbus-daemon.cpp:562 UI/GTK2/src/pinot.cc:324
+#: Core/pinot-dbus-daemon.cpp:562 UI/GTK2/src/pinot.cc:322
 msgid "Swedish"
 msgstr "瑞典语"
 
-#: Core/pinot-dbus-daemon.cpp:563 UI/GTK2/src/pinot.cc:325
+#: Core/pinot-dbus-daemon.cpp:563 UI/GTK2/src/pinot.cc:323
 msgid "Turkish"
 msgstr "土耳其语"
 
@@ -100,21 +100,21 @@ msgstr "土耳其语"
 #. Apply this label
 #. Is this an internal index ?
 #: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1712
-#: Core/WorkerThreads.cpp:1061 UI/GTK2/src/mainWindow.cc:888
-#: UI/GTK2/src/mainWindow.cc:1154 UI/GTK2/src/mainWindow.cc:1417
-#: UI/GTK2/src/mainWindow.cc:1577 UI/GTK2/src/mainWindow.cc:1580
-#: UI/GTK2/src/mainWindow.cc:1684 UI/GTK2/src/mainWindow.cc:1718
-#: UI/GTK2/src/mainWindow.cc:1743 UI/GTK2/src/mainWindow.cc:2452
+#: Core/WorkerThreads.cpp:1060 UI/GTK2/src/mainWindow.cc:887
+#: UI/GTK2/src/mainWindow.cc:1153 UI/GTK2/src/mainWindow.cc:1416
+#: UI/GTK2/src/mainWindow.cc:1576 UI/GTK2/src/mainWindow.cc:1579
+#: UI/GTK2/src/mainWindow.cc:1683 UI/GTK2/src/mainWindow.cc:1717
+#: UI/GTK2/src/mainWindow.cc:1742 UI/GTK2/src/mainWindow.cc:2451
 #: UI/GTK2/src/statisticsDialog.cc:157
 msgid "My Web Pages"
 msgstr "我的网页"
 
 #. Spawn new threads
 #: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1713
-#: Core/WorkerThreads.cpp:1071 UI/GTK2/src/mainWindow.cc:1149
-#: UI/GTK2/src/mainWindow.cc:1407 UI/GTK2/src/mainWindow.cc:1421
-#: UI/GTK2/src/mainWindow.cc:1588 UI/GTK2/src/mainWindow.cc:1591
-#: UI/GTK2/src/mainWindow.cc:2456 UI/GTK2/src/statisticsDialog.cc:163
+#: Core/WorkerThreads.cpp:1070 UI/GTK2/src/mainWindow.cc:1148
+#: UI/GTK2/src/mainWindow.cc:1406 UI/GTK2/src/mainWindow.cc:1420
+#: UI/GTK2/src/mainWindow.cc:1587 UI/GTK2/src/mainWindow.cc:1590
+#: UI/GTK2/src/mainWindow.cc:2455 UI/GTK2/src/statisticsDialog.cc:163
 msgid "My Documents"
 msgstr "我的文件"
 
@@ -133,118 +133,118 @@ msgstr "个人资料"
 
 #: Core/PinotSettings.cpp:466
 msgid "Me"
-msgstr ""
+msgstr "我的"
 
 #: Core/PinotSettings.cpp:474
 msgid "Latest First"
-msgstr ""
+msgstr "先来后到"
 
 #: Core/PinotSettings.cpp:477
 msgid "Home Stuff"
-msgstr ""
+msgstr "主页的材料"
 
 #: Core/PinotSettings.cpp:478
 msgid "With Label New"
-msgstr ""
+msgstr "新标号"
 
 #: Core/PinotSettings.cpp:479
 msgid "Have CJKV"
-msgstr ""
+msgstr "具有统一表意文字"
 
 #: Core/PinotSettings.cpp:480
 msgid "In English"
-msgstr ""
+msgstr "用英语"
 
 #: Core/PinotSettings.cpp:481
 msgid "10kb And Smaller"
-msgstr ""
+msgstr "不超过10kb"
 
 #: Core/PinotSettings.cpp:526
 msgid "Unclassified"
 msgstr "未分类的"
 
-#: Core/WorkerThreads.cpp:97
+#: Core/WorkerThreads.cpp:96
 msgid "Index error"
-msgstr ""
+msgstr "索引错误"
 
-#: Core/WorkerThreads.cpp:99
+#: Core/WorkerThreads.cpp:98
 msgid "Couldn't index document"
-msgstr ""
+msgstr "无法建立文档的索引"
 
-#: Core/WorkerThreads.cpp:101
+#: Core/WorkerThreads.cpp:100
 msgid "Couldn't update document"
 msgstr "无法更新文件"
 
-#: Core/WorkerThreads.cpp:103
+#: Core/WorkerThreads.cpp:102
 msgid "Couldn't unindex document(s)"
 msgstr "无法解除文件的索引"
 
-#: Core/WorkerThreads.cpp:105
+#: Core/WorkerThreads.cpp:104
 msgid "Couldn't run query on search engine"
 msgstr "搜寻引擎无法执行查询"
 
-#: Core/WorkerThreads.cpp:107
+#: Core/WorkerThreads.cpp:106
 msgid "Couldn't get history for search engine"
-msgstr ""
+msgstr "无法获取搜寻引擎的历史记录"
 
-#: Core/WorkerThreads.cpp:109
+#: Core/WorkerThreads.cpp:108
 msgid "Couldn't retrieve document"
-msgstr ""
+msgstr "无法检索文档"
 
-#: Core/WorkerThreads.cpp:111
+#: Core/WorkerThreads.cpp:110
 msgid "File monitor error"
-msgstr ""
+msgstr "文件监控器错误"
 
-#: Core/WorkerThreads.cpp:113
+#: Core/WorkerThreads.cpp:112
 msgid "Couldn't open directory"
-msgstr ""
+msgstr "无法开启目录"
 
-#: Core/WorkerThreads.cpp:115
+#: Core/WorkerThreads.cpp:114
 msgid "Index doesn't exist"
-msgstr ""
+msgstr "索引不存在"
 
-#: Core/WorkerThreads.cpp:117
+#: Core/WorkerThreads.cpp:116
 msgid "Couldn't create search engine"
 msgstr "无法建立搜寻引擎"
 
-#: Core/WorkerThreads.cpp:119
+#: Core/WorkerThreads.cpp:118
 msgid "Cannot index document type"
 msgstr "无法索引档案类别"
 
-#: Core/WorkerThreads.cpp:121
+#: Core/WorkerThreads.cpp:120
 msgid "No downloader for this protocol"
-msgstr ""
+msgstr "此协议不能下载"
 
-#: Core/WorkerThreads.cpp:123
+#: Core/WorkerThreads.cpp:122
 msgid "Robots META tag forbids indexing"
 msgstr "Robots的meta标记不允许索引"
 
-#: Core/WorkerThreads.cpp:125
+#: Core/WorkerThreads.cpp:124
 msgid "No monitoring handler"
-msgstr ""
+msgstr "无监控处理程序"
 
-#: Core/WorkerThreads.cpp:130 UI/GTK2/src/statisticsDialog.cc:245
+#: Core/WorkerThreads.cpp:129 UI/GTK2/src/statisticsDialog.cc:245
 #: UI/GTK2/src/statisticsDialog.cc:263
 msgid "Unknown error"
 msgstr "未知错误"
 
-#: Core/WorkerThreads.cpp:453
+#: Core/WorkerThreads.cpp:452
 msgid "Indexing was stopped"
-msgstr ""
+msgstr "索引被终止"
 
-#: Core/WorkerThreads.cpp:466
+#: Core/WorkerThreads.cpp:465
 msgid "Can't index mail here"
 msgstr "无法索引邮件"
 
-#: Core/WorkerThreads.cpp:487 Core/WorkerThreads.cpp:789
+#: Core/WorkerThreads.cpp:486 Core/WorkerThreads.cpp:788
 msgid "is already being indexed"
 msgstr "已经被索引了"
 
-#: Core/WorkerThreads.cpp:497
+#: Core/WorkerThreads.cpp:496
 msgid "is blacklisted"
 msgstr "列入黑名单"
 
-#: Core/WorkerThreads.cpp:1024
+#: Core/WorkerThreads.cpp:1023
 msgid "No title"
 msgstr "无标题"
 
@@ -258,11 +258,11 @@ msgstr "目前的使用者"
 
 #: UI/GTK2/src/indexDialog.cc:122
 msgid "Served by"
-msgstr ""
+msgstr "服务提供者"
 
 #: UI/GTK2/src/indexDialog.cc:124
 msgid "Local"
-msgstr "本地端"
+msgstr "本地的"
 
 #: UI/GTK2/src/indexDialog.cc:290
 msgid "Index location"
@@ -342,253 +342,253 @@ msgstr "请把这个命令用在其他同类型的文件"
 msgid "Helper application"
 msgstr "支援程式"
 
-#: UI/GTK2/src/mainWindow.cc:215
+#: UI/GTK2/src/mainWindow.cc:214
 msgid "Query Name"
 msgstr "查询名称"
 
-#: UI/GTK2/src/mainWindow.cc:220
+#: UI/GTK2/src/mainWindow.cc:219
 msgid "Last Run"
 msgstr "上次的程式执行"
 
-#: UI/GTK2/src/mainWindow.cc:225
+#: UI/GTK2/src/mainWindow.cc:224
 msgid "Summary"
 msgstr "概阅"
 
 #. Set tooltips
-#: UI/GTK2/src/mainWindow.cc:267
+#: UI/GTK2/src/mainWindow.cc:266
 msgid "Show all search engines"
 msgstr "显示所有的搜寻引擎"
 
-#: UI/GTK2/src/mainWindow.cc:269 UI/GTK2/src/mainWindow.cc:278
+#: UI/GTK2/src/mainWindow.cc:268 UI/GTK2/src/mainWindow.cc:277
 msgid "Find documents that match the query"
-msgstr ""
+msgstr "找到与查询匹配的文档"
 
-#: UI/GTK2/src/mainWindow.cc:271
+#: UI/GTK2/src/mainWindow.cc:270
 msgid "Find documents that match the query string"
-msgstr ""
+msgstr "找到与查询字符串匹配的文档"
+
+#: UI/GTK2/src/mainWindow.cc:272
+msgid "Add an index"
+msgstr "添加一条索引"
 
 #: UI/GTK2/src/mainWindow.cc:273
-msgid "Add an index"
-msgstr ""
+msgid "Remove an index"
+msgstr "删除一条索引"
 
 #: UI/GTK2/src/mainWindow.cc:274
-msgid "Remove an index"
-msgstr ""
+msgid "Add a query"
+msgstr "添加一项查询"
 
 #: UI/GTK2/src/mainWindow.cc:275
-msgid "Add a query"
-msgstr ""
+msgid "Remove a query"
+msgstr "删除一项查询"
 
 #: UI/GTK2/src/mainWindow.cc:276
-msgid "Remove a query"
-msgstr ""
-
-#: UI/GTK2/src/mainWindow.cc:277
 msgid "Show the query's previous results"
-msgstr ""
+msgstr "显示查询早期的结果"
 
 #. Now we are ready
-#: UI/GTK2/src/mainWindow.cc:297
+#: UI/GTK2/src/mainWindow.cc:296
 msgid "Ready"
 msgstr "就緒。"
 
-#: UI/GTK2/src/mainWindow.cc:309
+#: UI/GTK2/src/mainWindow.cc:308
 msgid "Updating all documents in My Web Pages is recommended"
 msgstr "建议更新在我的网页中的所有文件"
 
-#: UI/GTK2/src/mainWindow.cc:317
+#: UI/GTK2/src/mainWindow.cc:316
 msgid "Don't warn me again"
-msgstr ""
+msgstr "不要再次提醒我"
 
-#: UI/GTK2/src/mainWindow.cc:325 UI/GTK2/src/mainWindow_glade.cc:177
+#: UI/GTK2/src/mainWindow.cc:324 UI/GTK2/src/mainWindow_glade.cc:177
 msgid "Update"
 msgstr "更新"
 
-#: UI/GTK2/src/mainWindow.cc:386
+#: UI/GTK2/src/mainWindow.cc:385
 msgid "N/A"
-msgstr ""
+msgstr "不可用"
 
-#: UI/GTK2/src/mainWindow.cc:404
+#: UI/GTK2/src/mainWindow.cc:403
 msgid "Undefined"
 msgstr "未定义"
 
 #. Find this query
-#: UI/GTK2/src/mainWindow.cc:643 UI/GTK2/src/mainWindow.cc:2848
+#: UI/GTK2/src/mainWindow.cc:642 UI/GTK2/src/mainWindow.cc:2847
 msgid "Live query"
-msgstr ""
+msgstr "实时查询"
 
 #. Show the URL of the first document in the status bar
-#: UI/GTK2/src/mainWindow.cc:916
+#: UI/GTK2/src/mainWindow.cc:915
 msgid "Document location is"
 msgstr "文件位置在"
 
-#: UI/GTK2/src/mainWindow.cc:1135
+#: UI/GTK2/src/mainWindow.cc:1134
 msgid "Couldn't search in results"
-msgstr ""
+msgstr "找不到结果"
 
-#: UI/GTK2/src/mainWindow.cc:1145
+#: UI/GTK2/src/mainWindow.cc:1144
 msgid "In Results"
-msgstr ""
+msgstr "结果是"
 
-#: UI/GTK2/src/mainWindow.cc:1318
+#: UI/GTK2/src/mainWindow.cc:1317
 msgid "Showing"
 msgstr "显示"
 
-#: UI/GTK2/src/mainWindow.cc:1326
+#: UI/GTK2/src/mainWindow.cc:1325
 msgid "of"
 msgstr ""
 
-#: UI/GTK2/src/mainWindow.cc:1368
+#: UI/GTK2/src/mainWindow.cc:1367
 msgid "Query"
 msgstr "查询"
 
-#: UI/GTK2/src/mainWindow.cc:1372 UI/GTK2/src/mainWindow.cc:3396
+#: UI/GTK2/src/mainWindow.cc:1371 UI/GTK2/src/mainWindow.cc:3395
 msgid "on"
 msgstr ""
 
-#: UI/GTK2/src/mainWindow.cc:1376
+#: UI/GTK2/src/mainWindow.cc:1375
 msgid "ended"
 msgstr "结束"
 
-#: UI/GTK2/src/mainWindow.cc:1531
+#: UI/GTK2/src/mainWindow.cc:1530
 msgid "More Like"
 msgstr "比较类似"
 
-#: UI/GTK2/src/mainWindow.cc:1598
+#: UI/GTK2/src/mainWindow.cc:1597
 msgid "Updated label(s)"
 msgstr "更新的标记"
 
 #. Yes, it did
-#: UI/GTK2/src/mainWindow.cc:1694 UI/GTK2/src/mainWindow.cc:1784
+#: UI/GTK2/src/mainWindow.cc:1693 UI/GTK2/src/mainWindow.cc:1783
 msgid "Updated document"
 msgstr "更新的文件"
 
-#: UI/GTK2/src/mainWindow.cc:1707
+#: UI/GTK2/src/mainWindow.cc:1706
 msgid "Indexed"
 msgstr "已索引"
 
-#: UI/GTK2/src/mainWindow.cc:1744
+#: UI/GTK2/src/mainWindow.cc:1743
 msgid "Unindexed document(s)"
 msgstr "未索引的文件"
 
-#: UI/GTK2/src/mainWindow.cc:1839
+#: UI/GTK2/src/mainWindow.cc:1838
 msgid "Couldn't rename index, name"
 msgstr "无法更改索引名称，名称为"
 
-#: UI/GTK2/src/mainWindow.cc:1843 UI/GTK2/src/mainWindow.cc:2652
-#: UI/GTK2/src/mainWindow.cc:3202
+#: UI/GTK2/src/mainWindow.cc:1842 UI/GTK2/src/mainWindow.cc:2651
+#: UI/GTK2/src/mainWindow.cc:3201
 msgid "is already in use"
 msgstr "已经在使用中"
 
-#: UI/GTK2/src/mainWindow.cc:1855
+#: UI/GTK2/src/mainWindow.cc:1854
 msgid "Couldn't rename index"
 msgstr "无法改变索引的名称"
 
-#: UI/GTK2/src/mainWindow.cc:1870
+#: UI/GTK2/src/mainWindow.cc:1869
 msgid "Edited index"
 msgstr "编辑过的索引"
 
-#: UI/GTK2/src/mainWindow.cc:2180
+#: UI/GTK2/src/mainWindow.cc:2179
 msgid "Export"
-msgstr ""
+msgstr "输出"
 
-#: UI/GTK2/src/mainWindow.cc:2225
+#: UI/GTK2/src/mainWindow.cc:2224
 msgid "Couldn't find similar documents"
-msgstr ""
+msgstr "找不到类似的文档"
 
-#: UI/GTK2/src/mainWindow.cc:2468
+#: UI/GTK2/src/mainWindow.cc:2467
 msgid "Index"
 msgstr "索引"
 
-#: UI/GTK2/src/mainWindow.cc:2472
+#: UI/GTK2/src/mainWindow.cc:2471
 msgid "doesn't exist"
 msgstr "不存在"
 
-#: UI/GTK2/src/mainWindow.cc:2539
+#: UI/GTK2/src/mainWindow.cc:2538
 msgid "Remove this document from the index ?"
 msgstr "要从索引删除这个文件吗？"
 
-#: UI/GTK2/src/mainWindow.cc:2558
+#: UI/GTK2/src/mainWindow.cc:2557
 msgid "Remove these documents from the index ?"
 msgstr "要从索引删除这些文件？"
 
-#: UI/GTK2/src/mainWindow.cc:2563 UI/GTK2/src/mainWindow_glade.cc:180
+#: UI/GTK2/src/mainWindow.cc:2562 UI/GTK2/src/mainWindow_glade.cc:180
 msgid "Unindex"
 msgstr "解除索引"
 
-#: UI/GTK2/src/mainWindow.cc:2602
+#: UI/GTK2/src/mainWindow.cc:2601
 msgid "A metasearch tool for the Free Desktop"
 msgstr "Free Desktop 的元搜寻工具"
 
-#: UI/GTK2/src/mainWindow.cc:2603
+#: UI/GTK2/src/mainWindow.cc:2602
 msgid "Search the Web and your documents !"
 msgstr "搜寻网络路和你的文件！"
 
-#: UI/GTK2/src/mainWindow.cc:2648
+#: UI/GTK2/src/mainWindow.cc:2647
 msgid "Index name"
 msgstr "索引名称"
 
-#: UI/GTK2/src/mainWindow.cc:2662
+#: UI/GTK2/src/mainWindow.cc:2661
 msgid "Couldn't add index"
 msgstr "无法新增索引"
 
-#: UI/GTK2/src/mainWindow.cc:2678
+#: UI/GTK2/src/mainWindow.cc:2677
 msgid "Added new index"
 msgstr "新加入的索引"
 
-#: UI/GTK2/src/mainWindow.cc:2713
+#: UI/GTK2/src/mainWindow.cc:2712
 msgid "Couldn't remove index"
 msgstr "无法移除索引"
 
-#: UI/GTK2/src/mainWindow.cc:2939
+#: UI/GTK2/src/mainWindow.cc:2938
 msgid "No history for"
-msgstr ""
+msgstr "无历史记录给"
 
-#: UI/GTK2/src/mainWindow.cc:3011 UI/GTK2/src/prefsWindow.cc:960
+#: UI/GTK2/src/mainWindow.cc:3010 UI/GTK2/src/prefsWindow.cc:960
 msgid "At least one task hasn't completed yet. Quit now ?"
 msgstr "至少还有一项工作尚未完成。要离开吗？"
 
-#: UI/GTK2/src/mainWindow.cc:3013 UI/GTK2/src/prefsWindow.cc:962
+#: UI/GTK2/src/mainWindow.cc:3012 UI/GTK2/src/prefsWindow.cc:962
 msgid "Quit"
-msgstr ""
+msgstr "退出"
 
-#: UI/GTK2/src/mainWindow.cc:3198
+#: UI/GTK2/src/mainWindow.cc:3197
 msgid "Query name"
 msgstr "查询名称"
 
-#: UI/GTK2/src/mainWindow.cc:3225
+#: UI/GTK2/src/mainWindow.cc:3224
 msgid "Couldn't update query"
 msgstr "无法更新查询"
 
-#: UI/GTK2/src/mainWindow.cc:3236
+#: UI/GTK2/src/mainWindow.cc:3235
 msgid "Edited query"
 msgstr "编辑过的查询"
 
-#: UI/GTK2/src/mainWindow.cc:3243
+#: UI/GTK2/src/mainWindow.cc:3242
 msgid "Couldn't add query"
 msgstr "无法新增查询"
 
-#: UI/GTK2/src/mainWindow.cc:3251
+#: UI/GTK2/src/mainWindow.cc:3250
 msgid "Added new query"
 msgstr "新增的查詢"
 
-#: UI/GTK2/src/mainWindow.cc:3285
+#: UI/GTK2/src/mainWindow.cc:3284
 msgid "Query is not set"
 msgstr "查询尚未设定好"
 
-#: UI/GTK2/src/mainWindow.cc:3296
+#: UI/GTK2/src/mainWindow.cc:3295
 msgid "No search engine selected"
 msgstr "没有选择搜寻引擎"
 
-#: UI/GTK2/src/mainWindow.cc:3383
+#: UI/GTK2/src/mainWindow.cc:3382
 msgid "Please set the Google API key first"
 msgstr "请先设定Google API key"
 
-#: UI/GTK2/src/mainWindow.cc:3392
+#: UI/GTK2/src/mainWindow.cc:3391
 msgid "Running query"
 msgstr "正在执行的查询"
 
-#: UI/GTK2/src/mainWindow.cc:3599
+#: UI/GTK2/src/mainWindow.cc:3598
 msgid "No default application defined for type"
 msgstr "档案类型没有定义应用程式"
 
@@ -606,15 +606,15 @@ msgstr "储存的查询"
 
 #: UI/GTK2/src/mainWindow_glade.cc:165
 msgid "Open Cache"
-msgstr ""
+msgstr "打开缓存"
 
 #: UI/GTK2/src/mainWindow_glade.cc:168
 msgid "Open Parent"
-msgstr ""
+msgstr "打开父节点"
 
 #: UI/GTK2/src/mainWindow_glade.cc:174
 msgid "_Add To Index"
-msgstr ""
+msgstr "加进索引"
 
 #: UI/GTK2/src/mainWindow_glade.cc:186
 msgid "More Like This"
@@ -622,7 +622,7 @@ msgstr "比较像这个"
 
 #: UI/GTK2/src/mainWindow_glade.cc:189
 msgid "Search This For"
-msgstr ""
+msgstr "找这些给"
 
 #: UI/GTK2/src/mainWindow_glade.cc:222
 msgid "Search Engine"
@@ -638,15 +638,15 @@ msgstr "列出內容"
 
 #: UI/GTK2/src/mainWindow_glade.cc:231
 msgid "Group Results By"
-msgstr ""
+msgstr "结果编组成"
 
 #: UI/GTK2/src/mainWindow_glade.cc:234
 msgid "Show Extracts"
-msgstr ""
+msgstr "对外显示结果"
 
 #: UI/GTK2/src/mainWindow_glade.cc:243
 msgid "Export List"
-msgstr ""
+msgstr "输出列表"
 
 #: UI/GTK2/src/mainWindow_glade.cc:249 UI/GTK2/src/statisticsDialog.cc:121
 #: UI/GTK2/src/statisticsDialog_glade.cc:86
@@ -655,7 +655,7 @@ msgstr "状态"
 
 #: UI/GTK2/src/mainWindow_glade.cc:255
 msgid "_File"
-msgstr ""
+msgstr "文件"
 
 #: UI/GTK2/src/mainWindow_glade.cc:258
 msgid "_Edit"
@@ -663,7 +663,7 @@ msgstr "编辑(_E)"
 
 #: UI/GTK2/src/mainWindow_glade.cc:261
 msgid "_Options"
-msgstr ""
+msgstr "选项"
 
 #: UI/GTK2/src/mainWindow_glade.cc:264
 msgid "_Help"
@@ -675,27 +675,27 @@ msgstr "Pinot"
 
 #: UI/GTK2/src/Notebook.cc:84
 msgid "Did you mean ?"
-msgstr ""
+msgstr "你的意思是？"
 
 #: UI/GTK2/src/Notebook.cc:95 UI/GTK2/src/Notebook.cc:242
 msgid "Close"
-msgstr ""
+msgstr "关闭"
 
-#: UI/GTK2/src/pinot.cc:351
+#: UI/GTK2/src/pinot.cc:349
 msgid "Couldn't open index"
 msgstr "无法开启索引"
 
-#: UI/GTK2/src/pinot.cc:372
+#: UI/GTK2/src/pinot.cc:370
 msgid "Couldn't create history database"
 msgstr "无法开启历史资料库"
 
 #: UI/GTK2/src/prefsWindow.cc:149
 msgid "File Indexing and Search"
-msgstr ""
+msgstr "索引文件并查找"
 
 #: UI/GTK2/src/prefsWindow.cc:150
 msgid "Configure Pinot to index your files"
-msgstr ""
+msgstr "配置Pinot（霹诺特）来给文件建索引"
 
 #: UI/GTK2/src/prefsWindow.cc:208
 msgid "Name"
@@ -730,7 +730,8 @@ msgid "New Label"
 msgstr "新的标记"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:69
-msgid "These directories will be indexed and optionally monitored for changes:"
+msgid ""
+"These directories will be indexed and optionally monitored for changes:"
 msgstr "这些目录将会被索引，你也可以选择监看资料是否有改变。"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:74 UI/GTK2/src/prefsWindow_glade.cc:90
@@ -740,11 +741,11 @@ msgstr "加入"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:82
 msgid "File patterns:"
-msgstr ""
+msgstr "文件模式："
 
 #: UI/GTK2/src/prefsWindow_glade.cc:95
 msgid "Reset"
-msgstr ""
+msgstr "复位"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:100
 msgid "Indexing"
@@ -800,11 +801,11 @@ msgstr "新的结果："
 
 #: UI/GTK2/src/prefsWindow_glade.cc:149
 msgid "Miscellaneous"
-msgstr ""
+msgstr "杂项"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:523
 msgid "Pinot Preferences"
-msgstr ""
+msgstr "Pinot 参数选择"
 
 #: UI/GTK2/src/propertiesDialog.cc:105
 msgid "Per document"
@@ -812,7 +813,7 @@ msgstr "每个文件"
 
 #: UI/GTK2/src/propertiesDialog.cc:365
 msgid "Export Terms"
-msgstr ""
+msgstr "输出项"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:64
 msgid "Language:"
@@ -832,7 +833,7 @@ msgstr "词："
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:77
 msgid "bytes"
-msgstr ""
+msgstr "字节"
 
 #: UI/GTK2/src/propertiesDialog_glade.cc:224
 msgid "Properties"
@@ -866,11 +867,11 @@ msgstr "目录"
 
 #: UI/GTK2/src/queryDialog.cc:116
 msgid "In URL"
-msgstr ""
+msgstr "用网址"
 
 #: UI/GTK2/src/queryDialog.cc:117
 msgid "Path"
-msgstr ""
+msgstr "路径"
 
 #: UI/GTK2/src/queryDialog.cc:118
 msgid "Language code"
@@ -895,24 +896,24 @@ msgstr "日期"
 
 #: UI/GTK2/src/queryDialog.cc:125
 msgid "Time"
-msgstr ""
+msgstr "时间"
 
 #: UI/GTK2/src/queryDialog.cc:126
 msgid "Size"
-msgstr ""
+msgstr "大小"
 
 #. Sort order
 #: UI/GTK2/src/queryDialog.cc:130
 msgid "By relevance"
-msgstr ""
+msgstr "依据关联性"
 
 #: UI/GTK2/src/queryDialog.cc:131
 msgid "By date"
-msgstr ""
+msgstr "依据日期"
 
 #: UI/GTK2/src/queryDialog_glade.cc:71
 msgid "New filter or range:"
-msgstr ""
+msgstr "新过滤器或者范围："
 
 #: UI/GTK2/src/queryDialog_glade.cc:80
 msgid "Query Text"
@@ -928,15 +929,15 @@ msgstr "结果数目"
 
 #: UI/GTK2/src/queryDialog_glade.cc:89
 msgid "Sort order:"
-msgstr ""
+msgstr "排列次序："
 
 #: UI/GTK2/src/queryDialog_glade.cc:93
 msgid "Stemming:"
-msgstr ""
+msgstr "填充："
 
 #: UI/GTK2/src/queryDialog_glade.cc:94
 msgid "Only index new results"
-msgstr ""
+msgstr "只索引新结果"
 
 #: UI/GTK2/src/queryDialog_glade.cc:208
 msgid "Query parameters"
@@ -949,7 +950,7 @@ msgstr "评分"
 
 #: UI/GTK2/src/ResultsTree.cc:1555
 msgid "No results"
-msgstr ""
+msgstr "无结果"
 
 #: UI/GTK2/src/statisticsDialog.cc:154
 msgid "Indexes"
@@ -958,7 +959,7 @@ msgstr "索引"
 #: UI/GTK2/src/statisticsDialog.cc:160 UI/GTK2/src/statisticsDialog.cc:166
 #: UI/GTK2/src/statisticsDialog.cc:197
 msgid "Checking"
-msgstr ""
+msgstr "校验"
 
 #: UI/GTK2/src/statisticsDialog.cc:194
 msgid "Daemon"
@@ -991,11 +992,11 @@ msgstr "程式执行的行程代码"
 
 #: UI/GTK2/src/statisticsDialog.cc:306
 msgid "Disconnected from D-Bus"
-msgstr ""
+msgstr "断开D—BUS"
 
 #: UI/GTK2/src/statisticsDialog.cc:310
 msgid "Stopped"
-msgstr ""
+msgstr "停止"
 
 #: UI/GTK2/src/statisticsDialog.cc:314
 msgid "Currently not running"
@@ -1003,15 +1004,15 @@ msgstr "目前没有执行"
 
 #: UI/GTK2/src/statisticsDialog.cc:328
 msgid "Low disk space"
-msgstr ""
+msgstr "磁盘空间不足"
 
 #: UI/GTK2/src/statisticsDialog.cc:345
 msgid "System on battery"
-msgstr ""
+msgstr "依靠电池的系统"
 
 #: UI/GTK2/src/statisticsDialog.cc:363
 msgid "Crawling"
-msgstr ""
+msgstr "爬行"
 
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
