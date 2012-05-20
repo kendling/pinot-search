@@ -1,6 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
-noinst_HEADERS = \
+pkginclude_HEADERS = \
 	CommandLine.h \
 	Document.h \
 	DocumentInfo.h \
@@ -12,28 +12,29 @@ noinst_HEADERS = \
 	TimeConverter.h \
 	Timer.h \
 	Url.h \
-	Visibility.h \
-	$(top_srcdir)/Utils/unac/unac.h \
-	$(top_srcdir)/Utils/xdgmime/xdgmimealias.h \
-	$(top_srcdir)/Utils/xdgmime/xdgmimecache.h \
-	$(top_srcdir)/Utils/xdgmime/xdgmimeglob.h \
-	$(top_srcdir)/Utils/xdgmime/xdgmime.h \
-	$(top_srcdir)/Utils/xdgmime/xdgmimeint.h \
-	$(top_srcdir)/Utils/xdgmime/xdgmimemagic.h \
-	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.h
+	Visibility.h
+
+nobase_pkginclude_HEADERS = unac/unac.h \
+	xdgmime/xdgmimealias.h \
+	xdgmime/xdgmimecache.h \
+	xdgmime/xdgmimeglob.h \
+	xdgmime/xdgmime.h \
+	xdgmime/xdgmimeint.h \
+	xdgmime/xdgmimemagic.h \
+	xdgmime/xdgmimeparent.h
 
 if HAVE_GIO_MIME
-noinst_HEADERS += \
-	$(top_srcdir)/Utils/xdgmime/xdgmimealias.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmime.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimecache.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimeglob.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimeint.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimemagic.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.c
+nobase_pkginclude_HEADERS += \
+	xdgmime/xdgmimealias.c \
+	xdgmime/xdgmime.c \
+	xdgmime/xdgmimecache.c \
+	xdgmime/xdgmimeglob.c \
+	xdgmime/xdgmimeint.c \
+	xdgmime/xdgmimemagic.c \
+	xdgmime/xdgmimeparent.c
 endif
 
-noinst_LTLIBRARIES = libBasicUtils.la libUtils.la
+pkglib_LTLIBRARIES = libBasicUtils.la libUtils.la
 
 libBasicUtils_la_SOURCES = \
 	CommandLine.cpp \
@@ -43,7 +44,7 @@ libBasicUtils_la_SOURCES = \
 	TimeConverter.cpp \
 	Timer.cpp \
 	Url.cpp \
-	$(top_srcdir)/Utils/unac/unac.c
+	unac/unac.c
 
 libUtils_la_SOURCES = \
 	Languages.cpp \
@@ -53,13 +54,13 @@ libUtils_la_SOURCES = \
 if HAVE_GIO_MIME
 else
 libUtils_la_SOURCES += \
-	$(top_srcdir)/Utils/xdgmime/xdgmimealias.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmime.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimecache.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimeglob.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimeint.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimemagic.c \
-	$(top_srcdir)/Utils/xdgmime/xdgmimeparent.c
+	xdgmime/xdgmimealias.c \
+	xdgmime/xdgmime.c \
+	xdgmime/xdgmimecache.c \
+	xdgmime/xdgmimeglob.c \
+	xdgmime/xdgmimeint.c \
+	xdgmime/xdgmimemagic.c \
+	xdgmime/xdgmimeparent.c
 endif
 
 AM_CFLAGS = -fPIC -DXDG_PREFIX=pinot_xdg -DUNAC_VERSION=\"1.0.7\"

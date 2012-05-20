@@ -1,6 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
-noinst_HEADERS = \
+pkginclude_HEADERS = \
 	DBusIndex.h \
 	FieldMapperInterface.h \
 	FilterWrapper.h \
@@ -18,9 +18,9 @@ noinst_HEADERS = \
 	WebEngine.h
 
 if HAVE_DBUS
-noinst_LTLIBRARIES = libIndex.la libIndexSearch.la
+pkglib_LTLIBRARIES = libIndex.la libIndexSearch.la
 else
-noinst_LTLIBRARIES = libIndexSearch.la
+pkglib_LTLIBRARIES = libIndexSearch.la
 endif
 
 libIndex_la_SOURCES = \
@@ -50,7 +50,7 @@ bin_PROGRAMS = pinot-label
 endif
 
 pinot_label_LDFLAGS = \
-	-export-dynamic
+	-static
 
 pinot_label_LDADD = \
 	-L$(top_builddir)/Utils \

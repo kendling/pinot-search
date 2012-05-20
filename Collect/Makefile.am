@@ -1,13 +1,13 @@
 # Process this file with automake to produce Makefile.in
 
-noinst_HEADERS = \
+pkginclude_HEADERS = \
 	CurlDownloader.h \
 	DownloaderFactory.h \
 	DownloaderInterface.h \
 	FileCollector.h \
 	NeonDownloader.h
 
-noinst_LTLIBRARIES = libCollect.la
+pkglib_LTLIBRARIES = libCollect.la
 
 libCollect_la_SOURCES = \
 	@HTTP_DOWNLOADER@.cpp \

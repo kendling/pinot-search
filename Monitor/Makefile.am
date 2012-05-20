@@ -1,13 +1,13 @@
 # Process this file with automake to produce Makefile.in
 
-noinst_HEADERS = \
+pkginclude_HEADERS = \
 	INotifyMonitor.h \
 	MonitorEvent.h \
 	MonitorFactory.h \
 	MonitorHandler.h \
 	MonitorInterface.h
 
-noinst_LTLIBRARIES = libMonitor.la
+pkglib_LTLIBRARIES = libMonitor.la
 
 libMonitor_la_SOURCES = \
 	MonitorEvent.cpp \

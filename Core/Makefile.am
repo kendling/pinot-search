@@ -1,6 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
-noinst_HEADERS = \
+pkginclude_HEADERS = \
 	DaemonState.h \
 	OnDiskHandler.h \
 	PinotSettings.h \
@@ -8,7 +8,7 @@ noinst_HEADERS = \
 	UniqueApplication.h \
 	WorkerThreads.h
 
-noinst_LTLIBRARIES = libCore.la
+pkglib_LTLIBRARIES = libCore.la
 
 libCore_la_SOURCES = \
 	PinotSettings.cpp \
@@ -38,7 +38,7 @@ AM_CXXFLAGS += -DHAVE_DBUS
 endif
 
 pinot_index_LDFLAGS = \
-	-export-dynamic
+	-static
 
 pinot_index_LDADD = \
 	-L$(top_builddir)/Utils \
@@ -48,7 +48,7 @@ pinot_index_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
 	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
-	-lTokenize -lBasicUtils -lUtils @LIBS@ \
+	-lTokenize -lFilter -lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
@@ -57,14 +57,14 @@ pinot_index_SOURCES = pinot-index.cpp
 pinot_index_DEPENDENCIES = libCore.la
 
 pinot_search_LDFLAGS = \
-	-export-dynamic
+	-static
 
 pinot_search_LDADD = \
 	-L$(top_builddir)/Utils \
 	-L$(top_builddir)/Tokenize \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
-	-lCore -lIndexSearch -lCollect -lTokenize \
+	-lCore -lIndexSearch -lCollect -lTokenize -lFilter \
 	-lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ \
 	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
@@ -75,7 +75,7 @@ pinot_search_SOURCES = \
 pinot_search_DEPENDENCIES = libCore.la
 
 pinot_dbus_daemon_LDFLAGS = \
-	-export-dynamic
+	-static
 
 pinot_dbus_daemon_LDADD = \
 	-L$(top_builddir)/Utils \
@@ -85,7 +85,7 @@ pinot_dbus_daemon_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
 	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
-	-lTokenize -lBasicUtils -lUtils @LIBS@ \
+	-lTokenize -lFilter -lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 
@@ -98,7 +98,7 @@ pinot_dbus_daemon_SOURCES = \
 pinot_dbus_daemon_DEPENDENCIES = libCore.la
 
 pinot_daemon_LDFLAGS = \
-	-export-dynamic
+	-static
 
 pinot_daemon_LDADD = \
 	-L$(top_builddir)/Utils \
@@ -108,7 +108,7 @@ pinot_daemon_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
 	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
-	-lTokenize -lBasicUtils -lUtils @LIBS@ \
+	-lTokenize -lFilter -lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 

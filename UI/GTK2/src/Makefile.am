@@ -71,7 +71,7 @@ AM_CXXFLAGS += -DHAVE_DBUS
 endif
 
 pinot_LDFLAGS = \
-	-export-dynamic
+	-static
 
 pinot_LDADD = \
 	-L$(top_builddir)/Utils \
@@ -82,7 +82,7 @@ pinot_LDADD = \
 	-L$(top_builddir)/IndexSearch \
 	-L$(top_srcdir)/Core \
 	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
-	-lTokenize -lBasicUtils -lUtils @LIBS@ \
+	-lTokenize -lFilter -lBasicUtils -lUtils @LIBS@ \
 	@GTKMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
 

@@ -15,6 +15,14 @@
 %define dbus_dev_pkg dbus-devel
 %endif
 
+# Private libraries are not be exposed globally by RPM
+%{?filter_setup:
+%filter_provides_in %{_libdir}/pinot/lib.*\.so.*$
+%filter_requires_in %{_libdir}/pinot/lib.*\.so.*$
+%filter_from_requires /libBasicUtils.*/d
+%filter_setup
+}
+
 Summary: Personal search and metasearch tool
 Name: @PACKAGE@
 Version: @VERSION@
@@ -25,13 +33,17 @@ Source: %{name}-%{version}.tar.gz
 URL: http://code.google.com/p/pinot-search/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: xapian-core-libs >= 1.0.4, libtextcat >= 2.2, sqlite >= 3.3.1, libcurl >= 7.13, gmime >= 2.1
-Requires: libxml++ >= 2.12, %{dbus_pkg} >= 0.60, shared-mime-info
+Requires: libxml++ >= 2.12, shared-mime-info
 Requires: taglib >= 1.4, exiv2-libs >= 0.21, unzip, antiword, unrtf, %{pftotext_pkg}
 #Suggests: xapian-omega
 BuildRequires: xapian-core-devel >= 1.0.4, libtextcat-devel >= 2.2, sqlite-devel >= 3.3.1, libcurl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
-BuildRequires: libxml++-devel >= 2.12, %{dbus_dev_pkg} >= 0.60, gettext-devel, desktop-file-utils
+BuildRequires: libxml++-devel >= 2.12, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4, exiv2-devel >= 0.21
 BuildRequires: gcc-c++
+%if 0%{?_with_nodbus:1}
+Requires: %{dbus_pkg} >= 0.60
+BuildRequires: %{dbus_dev_pkg} >= 0.60
+%endif
 %if 0%{?_with_gtkmm3:1}
 Requires: gtkmm30 >= 3.0
 BuildRequires: gtkmm30-devel >= 3.0
@@ -47,9 +59,6 @@ BuildRequires: libarchive-devel >= 2.6.2
 Requires: chmlib >= 0.40
 BuildRequires: chmlib-devel >= 0.40
 %endif
-# These used to be independant packages
-Obsoletes: pinot-audio-docs
-Obsoletes: pinot-omega
 
 %description
 Pinot is a D-Bus service that crawls, indexes your documents and monitors them
@@ -57,16 +66,29 @@ for changes, as well as a GTK-based user interface that enables to query
 the index built by the service and your favourite Web engines, and display and
 analyze the results.
 
+%package devel
+Summary: Files for development of applications which will use Pinot.
+Group: Development/Libraries
+Requires: %{name} = %{version}
+
+%description devel
+Pinot is a D-Bus service that crawls, indexes your documents and monitors them
+for changes. This package package contains include files needed to develop
+applications on top of Pinot.
+
 %prep
 %setup -q
 
 %build
-%configure %{?_with_gtkmm3:--enable-gtkmm3=yes} %{?_with_libarchive:--enable-libarchive=yes} %{?_with_chmlib:--enable-chmlib=yes} %{?_with_debug:--enable-debug=yes}
+%configure %{?_with_nodbus:--enable-dbus=no} %{?_with_gtkmm3:--enable-gtkmm3=yes} %{?_with_libarchive:--enable-libarchive=yes} %{?_with_chmlib:--enable-chmlib=yes} %{?_with_debug:--enable-debug=yes}
 make %{?_smp_mflags}
 
 %install
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
+# Keep static libraries only
+rm -f $RPM_BUILD_ROOT/%{_libdir}/pinot/lib*.la*
+rm -f $RPM_BUILD_ROOT/%{_libdir}/pinot/lib*.so*
 %find_lang %{name}
 
 %post
@@ -89,11 +111,21 @@ fi
 %doc AUTHORS ChangeLog ChangeLog-dijon COPYING FAQ NEWS README TODO
 %config(noreplace) %{_sysconfdir}/pinot/
 %{_bindir}/pinot
+%if 0%{?_with_nodbus:1}
+%{_bindir}/pinot-daemon
+%else
 %{_bindir}/pinot-dbus-daemon
+%endif
 %{_bindir}/pinot-index
+%if 0%{?_with_nodbus:0}
 %{_bindir}/pinot-label
+%endif
 %{_bindir}/pinot-prefs
 %{_bindir}/pinot-search
+%dir %{_libdir}/pinot
+%dir %{_libdir}/pinot/backends
+%{_libdir}/pinot/backends/lib*backend.so*
+%dir %{_libdir}/pinot/filters
 %if 0%{?_with_libarchive:1}
 %{_libdir}/pinot/filters/libarchivefilter.so*
 %endif
@@ -104,17 +136,25 @@ fi
 %{_libdir}/pinot/filters/libexternalfilter.so*
 %{_libdir}/pinot/filters/libmboxfilter.so*
 %{_libdir}/pinot/filters/libtaglibfilter.so*
-%{_libdir}/pinot/backends/lib*backend.so*
+%if 0%{?_with_nodbus:0}
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
+%endif
 %{_datadir}/pinot/
 %{_datadir}/icons/hicolor/48x48/apps/pinot.png
 %{_datadir}/icons/hicolor/32x32/apps/pinot.png
 %{_datadir}/icons/hicolor/24x24/apps/pinot.png
 %{_datadir}/icons/hicolor/22x22/apps/pinot.png
 %{_datadir}/icons/hicolor/16x16/apps/pinot.png
+%if 0%{?_with_nodbus:0}
 %{_sysconfdir}/xdg/autostart/*.desktop
+%endif
 %{_datadir}/applications/*.desktop
 %{_mandir}/man1/pinot*
+
+%files devel
+%defattr(-,root,root,-)
+%{_includedir}/pinot
+%{_libdir}/pinot/lib*
 
 %changelog
 
