@@ -15,14 +15,6 @@
 %define dbus_dev_pkg dbus-devel
 %endif
 
-# Private libraries are not be exposed globally by RPM
-%{?filter_setup:
-%filter_provides_in %{_libdir}/pinot/lib.*\.so.*$
-%filter_requires_in %{_libdir}/pinot/lib.*\.so.*$
-%filter_from_requires /libBasicUtils.*/d
-%filter_setup
-}
-
 Summary: Personal search and metasearch tool
 Name: @PACKAGE@
 Version: @VERSION@
@@ -34,11 +26,11 @@ URL: http://code.google.com/p/pinot-search/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: xapian-core-libs >= 1.0.4, libtextcat >= 2.2, sqlite >= 3.3.1, libcurl >= 7.13, gmime >= 2.1
 Requires: libxml++ >= 2.12, shared-mime-info
-Requires: taglib >= 1.4, exiv2-libs >= 0.21, unzip, antiword, unrtf, %{pftotext_pkg}
+Requires: taglib >= 1.4, exiv2-libs >= 0.18, unzip, antiword, unrtf, %{pftotext_pkg}
 #Suggests: xapian-omega
 BuildRequires: xapian-core-devel >= 1.0.4, libtextcat-devel >= 2.2, sqlite-devel >= 3.3.1, libcurl-devel >= 7.13, gmime-devel >= 2.1, boost-devel >= 1.32
 BuildRequires: libxml++-devel >= 2.12, gettext-devel, desktop-file-utils
-BuildRequires: taglib-devel >= 1.4, exiv2-devel >= 0.21
+BuildRequires: taglib-devel >= 1.4, exiv2-devel >= 0.18
 BuildRequires: gcc-c++
 %if 0%{?_with_nodbus:1}
 Requires: %{dbus_pkg} >= 0.60
@@ -86,9 +78,6 @@ make %{?_smp_mflags}
 %install
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
-# Keep static libraries only
-rm -f $RPM_BUILD_ROOT/%{_libdir}/pinot/lib*.la*
-rm -f $RPM_BUILD_ROOT/%{_libdir}/pinot/lib*.so*
 %find_lang %{name}
 
 %post

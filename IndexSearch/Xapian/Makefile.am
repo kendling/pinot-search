@@ -19,7 +19,8 @@ libxapianbackend_la_SOURCES = \
 	XapianIndex.cpp \
 	XapianEngine.cpp
 
-libxapianbackend_la_LDFLAGS = -module -avoid-version -shared -nostartfiles
+libxapianbackend_la_LDFLAGS = \
+	-module -version-info 1:0:0 -shared -nostartfiles
 
 libxapianbackend_la_LIBADD = \
 	-L$(top_builddir)/Utils \

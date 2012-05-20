@@ -10,6 +10,9 @@ pkginclude_HEADERS = \
 
 pkglib_LTLIBRARIES = libCore.la
 
+libCore_la_LDFLAGS = \
+	-static
+
 libCore_la_SOURCES = \
 	PinotSettings.cpp \
 	UniqueApplication.cpp \

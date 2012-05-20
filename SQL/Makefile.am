@@ -11,6 +11,9 @@ pkginclude_HEADERS = \
 
 pkglib_LTLIBRARIES = libSQL.la
 
+libSQL_la_LDFLAGS = \
+	-static
+
 libSQL_la_SOURCES = \
 	ActionQueue.cpp \
 	CrawlHistory.cpp \

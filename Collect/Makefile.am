@@ -9,6 +9,9 @@ pkginclude_HEADERS = \
 
 pkglib_LTLIBRARIES = libCollect.la
 
+libCollect_la_LDFLAGS = \
+	-static
+
 libCollect_la_SOURCES = \
 	@HTTP_DOWNLOADER@.cpp \
 	DownloaderFactory.cpp \

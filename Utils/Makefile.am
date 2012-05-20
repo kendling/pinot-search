@@ -36,6 +36,9 @@ endif
 
 pkglib_LTLIBRARIES = libBasicUtils.la libUtils.la
 
+libBasicUtils_la_LDFLAGS = \
+	-static
+
 libBasicUtils_la_SOURCES = \
 	CommandLine.cpp \
 	Document.cpp \
@@ -45,6 +48,9 @@ libBasicUtils_la_SOURCES = \
 	Timer.cpp \
 	Url.cpp \
 	unac/unac.c
+
+libUtils_la_LDFLAGS = \
+	-static
 
 libUtils_la_SOURCES = \
 	Languages.cpp \

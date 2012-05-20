@@ -23,8 +23,14 @@ else
 pkglib_LTLIBRARIES = libIndexSearch.la
 endif
 
+libIndex_la_LDFLAGS = \
+	-static
+
 libIndex_la_SOURCES = \
 	DBusIndex.cpp
+
+libIndexSearch_la_LDFLAGS = \
+	-static
 
 libIndexSearch_la_SOURCES = \
 	FilterWrapper.cpp \

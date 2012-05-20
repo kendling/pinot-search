@@ -33,6 +33,9 @@ endif
 
 pkglib_LTLIBRARIES = libFilter.la libTokenize.la
 
+libFilter_la_LDFLAGS = \
+	-static
+
 libFilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Filter.cc \
 	$(top_srcdir)/Tokenize/filters/FilterFactory.cc \
@@ -99,6 +102,9 @@ libtaglibfilter_la_SOURCES = \
 libtaglibfilter_la_LDFLAGS = -module -avoid-version
 
 libtaglibfilter_la_LIBADD = @TAGLIB_LIBS@
+
+libTokenize_la_LDFLAGS = \
+	-static
 
 libTokenize_la_SOURCES = \
 	FilterUtils.cpp \

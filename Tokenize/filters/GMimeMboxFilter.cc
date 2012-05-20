@@ -82,9 +82,6 @@ DIJON_FILTER_INITIALIZE void initialize_gmime(void)
 #else
 	g_mime_init(GMIME_INIT_FLAG_UTF8);
 #endif
-#ifdef DEBUG
-	clog << "GMimeMboxFilter: initialized" << endl;
-#endif
 }
 
 DIJON_FILTER_SHUTDOWN void shutdown_gmime(void)

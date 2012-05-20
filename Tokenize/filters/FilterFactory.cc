@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2008 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -114,45 +114,69 @@ unsigned int FilterFactory::loadFilters(const string &dir_name)
 			fileName += pEntryName;
 
 			// Check this entry
-			if ((stat(fileName.c_str(), &fileStat) == 0) &&
-				(S_ISREG(fileStat.st_mode)))
+			if ((stat(fileName.c_str(), &fileStat) != 0) ||
+				(!S_ISREG(fileStat.st_mode)))
 			{
-				void *pHandle = dlopen(fileName.c_str(), DLOPEN_FLAGS);
-				if (pHandle != NULL)
-				{
-					// What type(s) does this support ?
-					get_filter_types_func *pTypesFunc = (get_filter_types_func *)dlsym(pHandle,
-							GETFILTERTYPESFUNC);
-					if (pTypesFunc != NULL)
-					{
-						set<string> types;
-						bool filterOkay = (*pTypesFunc)(types);
-
-						if (filterOkay == true)
-						{
-							for (set<string>::iterator typeIter = types.begin();
-								typeIter != types.end(); ++typeIter)
-							{
-								// Add a record for this filter
-								m_types[*typeIter] = fileName;
 #ifdef DEBUG
-								clog << "FilterFactory::loadFilters: type " << *typeIter
-									<< " is supported by " << pEntryName << endl;
+				clog << "FilterFactory::loadFilters: "
+					<< pEntryName << " is not a file" << endl;
 #endif
-							}
-
-							m_handles[fileName] = pHandle;
-						}
-						else clog << "FilterFactory::loadFilters: couldn't get types from " << fileName << endl;
-					}
-					else clog << "FilterFactory::loadFilters: " << dlerror() << endl;
-				}
-				else clog << "FilterFactory::loadFilters: " << dlerror() << endl;
+				continue;
 			}
+
+			void *pHandle = dlopen(fileName.c_str(), DLOPEN_FLAGS);
+			if (pHandle == NULL)
+			{
+				clog << "FilterFactory::loadFilters: " << dlerror() << endl;
+				continue;
+			}
+
+			// What type(s) does this support ?
+			get_filter_types_func *pTypesFunc = (get_filter_types_func *)dlsym(pHandle,
+					GETFILTERTYPESFUNC);
+			if (pTypesFunc == NULL)
+			{
+				clog << "FilterFactory::loadFilters: " << dlerror() << endl;
+			}
+
+			set<string> types;
+			unsigned int typeCount = 0;
+			bool filterOkay = (*pTypesFunc)(types);
+
+			if (filterOkay == false)
+			{
+				clog << "FilterFactory::loadFilters: couldn't get types from " << pEntryName << endl;
+				continue;
+			}
+
+			for (set<string>::iterator typeIter = types.begin();
+				typeIter != types.end(); ++typeIter)
+			{
+				string newType(*typeIter);
+
+				if (m_types.find(newType) == m_types.end())
+				{
+					// Add a record for this filter
+					m_types[newType] = fileName;
+					++typeCount;
 #ifdef DEBUG
-			else clog << "FilterFactory::loadFilters: "
-				<< pEntryName << " is not a file" << endl;
+					clog << "FilterFactory::loadFilters: type " << newType
+						<< " is supported by " << pEntryName << endl;
 #endif
+				}
+			}
+
+			if (typeCount > 0)
+			{
+				m_handles[fileName] = pHandle;
+			}
+			else
+			{
+#ifdef DEBUG
+				clog << "FilterFactory::loadFilters: no useful types from " << fileName << endl;
+#endif
+				dlclose(pHandle);
+			}
 		}
 
 		// Next entry

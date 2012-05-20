@@ -9,6 +9,9 @@ pkginclude_HEADERS = \
 
 pkglib_LTLIBRARIES = libMonitor.la
 
+libMonitor_la_LDFLAGS = \
+	-static
+
 libMonitor_la_SOURCES = \
 	MonitorEvent.cpp \
 	MonitorFactory.cpp \
