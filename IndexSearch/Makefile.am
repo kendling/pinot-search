@@ -56,7 +56,7 @@ bin_PROGRAMS = pinot-label
 endif
 
 pinot_label_LDFLAGS = \
-	-static
+	-export-dynamic
 
 pinot_label_LDADD = \
 	-L$(top_builddir)/Utils \

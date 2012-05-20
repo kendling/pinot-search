@@ -71,7 +71,7 @@ AM_CXXFLAGS += -DHAVE_DBUS
 endif
 
 pinot_LDFLAGS = \
-	-static
+	-export-dynamic
 
 pinot_LDADD = \
 	-L$(top_builddir)/Utils \
