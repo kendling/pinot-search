@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "Memory.h"
 #include "MIMEScanner.h"
 #include "Visibility.h"
 
@@ -35,13 +36,22 @@ class PINOT_EXPORT CommandLine
 		static std::string quote(const std::string &str);
 
 		/// Runs a command synchronously.
-		static bool runSync(const std::string &commandLine, std::string &output);
+		static bool runSync(const std::string &commandLine,
+			std::string &output);
+
+		/// Runs a command synchronously.
+		static bool runSync(const std::string &commandLine, ssize_t maxSize,
+			const std::string &input, dstring &output);
 
 		/// Runs a command asynchronously.
-		static bool runAsync(const MIMEAction &action, const std::vector<std::string> &arguments);
+		static bool runAsync(const MIMEAction &action,
+			const std::vector<std::string> &arguments);
 
 	protected:
 		CommandLine();
+
+		static bool readFile(int fd, ssize_t maxSize,
+			dstring &output, ssize_t &totalSize);
 
 	private:
 		CommandLine(const CommandLine &other);
