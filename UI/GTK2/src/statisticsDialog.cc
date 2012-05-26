@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ class DaemonStatusThread : public WorkerThread
 #endif
 
 statisticsDialog::InternalState::InternalState(statisticsDialog *pWindow) :
-        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation),
+        QueueManager(PinotSettings::getInstance().m_docsIndexLocation),
 	m_getStats(true),
 	m_gettingStats(false),
 	m_lowDiskSpace(false),

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ class DBusServletInfo
 };
 #endif
 
-class DaemonState : public ThreadsManager
+class DaemonState : public QueueManager
 {
 	public:
 		DaemonState();

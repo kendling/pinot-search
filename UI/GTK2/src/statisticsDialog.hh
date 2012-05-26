@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ protected:
 	bool m_hasBattery;
 	bool m_hasCrawl;
 	sigc::connection m_idleConnection;
-	class InternalState : public ThreadsManager
+	class InternalState : public QueueManager
 	{
 	public:
 		InternalState(statisticsDialog *pWindow);

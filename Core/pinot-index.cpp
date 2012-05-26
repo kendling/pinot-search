@@ -57,11 +57,11 @@ static struct option g_longOptions[] = {
 };
 static Glib::RefPtr<Glib::MainLoop> g_refMainLoop;
 
-class IndexingState : public ThreadsManager
+class IndexingState : public QueueManager
 {
 	public:
 		IndexingState(const string &indexLocation) :
-			ThreadsManager(indexLocation, 60, true),
+			QueueManager(indexLocation, 60, true),
 			m_docId(0)
 		{
 			// Disable implicit flushing

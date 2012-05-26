@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -138,10 +138,6 @@ class ThreadsManager : virtual public sigc::trackable
 
 		bool mustQuit(bool quit = false);
 
-		virtual Glib::ustring queue_index(const DocumentInfo &docInfo);
-
-		bool pop_queue(const std::string &urlWasIndexed = "");
-
 	protected:
 		static unsigned int m_nextThreadId;
 		sigc::connection m_threadsEndConnection;
@@ -149,7 +145,6 @@ class ThreadsManager : virtual public sigc::trackable
 		pthread_rwlock_t m_listsLock;
 		std::map<unsigned int, WorkerThread *> m_threads;
 		bool m_mustQuit;
-		ActionQueue m_actionQueue;
 		std::string m_defaultIndexLocation;
 		unsigned int m_maxIndexThreads;
 		unsigned int m_backgroundThreadsCount;
@@ -170,11 +165,32 @@ class ThreadsManager : virtual public sigc::trackable
 
 		Glib::ustring index_document(const DocumentInfo &docInfo);
 
-		void clear_queues(void);
-
 	private:
 		ThreadsManager(const ThreadsManager &other);
 		ThreadsManager &operator=(const ThreadsManager &other);
+
+};
+
+class QueueManager : public ThreadsManager
+{
+	public:
+		QueueManager(const std::string &defaultIndexLocation,
+			unsigned int maxThreadsTime = 300,
+			bool scanLocalFiles = false);
+		virtual ~QueueManager();
+
+		virtual Glib::ustring queue_index(const DocumentInfo &docInfo);
+
+		virtual bool pop_queue(const std::string &urlWasIndexed = "");
+
+	protected:
+		ActionQueue m_actionQueue;
+
+		virtual void clear_queues(void);
+
+	private:
+		QueueManager(const QueueManager &other);
+		QueueManager &operator=(const QueueManager &other);
 
 };
 

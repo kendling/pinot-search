@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2010 Fabrice Colin
+ *  Copyright 2008-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ protected:
 	std::set<std::string> m_deletedDirectories;
 	std::string m_directoriesHash;
 	std::string m_patternsHash;
-	class InternalState : public ThreadsManager
+	class InternalState : public QueueManager
 	{
 	public:
 		InternalState(prefsWindow *pWindow);

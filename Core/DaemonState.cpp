@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2011 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -318,7 +318,7 @@ bool DBusServletInfo::reply(void)
 #endif
 
 DaemonState::DaemonState() :
-	ThreadsManager(PinotSettings::getInstance().m_daemonIndexLocation),
+	QueueManager(PinotSettings::getInstance().m_daemonIndexLocation),
 	m_isReindex(false),
 	m_reload(false),
 	m_flush(false),

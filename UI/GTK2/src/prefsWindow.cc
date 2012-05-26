@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2011 Fabrice Colin
+ *  Copyright 2008-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ class GetLabelsThread : public WorkerThread
 };
 
 prefsWindow::InternalState::InternalState(prefsWindow *pWindow) :
-        ThreadsManager(PinotSettings::getInstance().m_docsIndexLocation),
+        QueueManager(PinotSettings::getInstance().m_docsIndexLocation),
 	m_savedPrefs(false)
 {
         m_onThreadEndSignal.connect(sigc::mem_fun(*pWindow, &prefsWindow::on_thread_end));

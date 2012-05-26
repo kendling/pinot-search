@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2011 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -277,7 +277,6 @@ unsigned int ThreadsManager::m_nextThreadId = 1;
 ThreadsManager::ThreadsManager(const string &defaultIndexLocation,
 	unsigned int maxThreadsTime, bool scanLocalFiles) :
 	m_mustQuit(false),
-	m_actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name()),
 	m_defaultIndexLocation(defaultIndexLocation),
 	m_maxIndexThreads(1),
 	m_backgroundThreadsCount(0),
@@ -513,18 +512,6 @@ ustring ThreadsManager::index_document(const DocumentInfo &docInfo)
 	return "";
 }
 
-void ThreadsManager::clear_queues(void)
-{
-	if (write_lock_lists() == true)
-	{
-		m_beingIndexed.clear();
-
-		unlock_lists();
-
-		m_actionQueue.expireItems(time(NULL));
-	}
-}
-
 unsigned int ThreadsManager::get_next_id(void)
 {
 	unsigned int nextThreadId = ++m_nextThreadId;
@@ -690,14 +677,38 @@ bool ThreadsManager::mustQuit(bool quit)
 	return m_mustQuit;
 }
 
-ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
+QueueManager::QueueManager(const string &defaultIndexLocation,
+	unsigned int maxThreadsTime, bool scanLocalFiles) :
+	ThreadsManager(defaultIndexLocation,
+		maxThreadsTime, scanLocalFiles),
+	m_actionQueue(PinotSettings::getInstance().getHistoryDatabaseName(), get_application_name())
+{
+}
+
+QueueManager::~QueueManager()
+{
+}
+
+void QueueManager::clear_queues(void)
+{
+	if (write_lock_lists() == true)
+	{
+		m_beingIndexed.clear();
+
+		unlock_lists();
+
+		m_actionQueue.expireItems(time(NULL));
+	}
+}
+
+ustring QueueManager::queue_index(const DocumentInfo &docInfo)
 {
 	bool addToQueue = false;
 
 	if (get_threads_count() >= m_maxIndexThreads)
 	{
 #ifdef DEBUG
-		clog << "ThreadsManager::queue_index: too many threads" << endl;
+		clog << "QueueManager::queue_index: too many threads" << endl;
 #endif
 		addToQueue = true;
 	}
@@ -729,18 +740,18 @@ ustring ThreadsManager::queue_index(const DocumentInfo &docInfo)
 	return index_document(docInfo);
 }
 
-bool ThreadsManager::pop_queue(const string &urlWasIndexed)
+bool QueueManager::pop_queue(const string &urlWasIndexed)
 {
 	bool getItem = true;
 	bool emptyQueue = false;
 
 #ifdef DEBUG
-	clog << "ThreadsManager::pop_queue: called" << endl;
+	clog << "QueueManager::pop_queue: called" << endl;
 #endif
 	if (get_threads_count() >= m_maxIndexThreads)
 	{
 #ifdef DEBUG
-		clog << "ThreadsManager::pop_queue: too many threads" << endl;
+		clog << "QueueManager::pop_queue: too many threads" << endl;
 #endif
 		getItem = false;
 	}

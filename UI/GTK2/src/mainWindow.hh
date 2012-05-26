@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2011 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -195,7 +195,7 @@ private:
 	// Viewing
 	std::set<std::string> m_temporaryFiles;
 	// Internal state
-	class InternalState : public ThreadsManager
+	class InternalState : public QueueManager
 	{
 		public:
 			InternalState(mainWindow *pWindow);
