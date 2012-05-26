@@ -22,10 +22,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <iostream>
+#include <sstream>
 
 #include "FileOutputFilter.h"
 
 using std::string;
+using std::stringstream;
 using std::set;
 using std::map;
 using std::clog;
@@ -86,6 +88,14 @@ bool FileOutputFilter::read_file(int fd, ssize_t maxSize, ssize_t &totalSize)
 			bytesRead = 1;
 		}
 	} while (bytesRead > 0);
+
+	if (gotOutput == true)
+	{
+	        stringstream numStream;
+
+	        numStream << totalSize;
+	        m_metaData["size"] = numStream.str();
+	}
 
 	return gotOutput;
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2011 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/resource.h>
-#define LIMIT_EXTERNAL_PROGRAMS 1
 #endif
 #endif
 #endif
@@ -48,7 +47,6 @@ using std::clog;
 using std::endl;
 using std::min;
 using std::string;
-using std::stringstream;
 using std::set;
 using std::map;
 
@@ -364,6 +362,8 @@ void ExternalFilter::rewind(void)
 bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 {
 	string commandLine(command);
+	int fds[2];
+	int status = 0;
 	bool replacedParam = false, gotOutput = false;
 
 	string::size_type argPos = commandLine.find("%s");
@@ -385,57 +385,9 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 		commandLine += shell_protect(m_filePath);
 	}
 
-#ifndef LIMIT_EXTERNAL_PROGRAMS
-	// Create a temporary file for the program's output
-	char outTemplate[18] = "/tmp/filterXXXXXX";
-#ifdef HAVE_MKSTEMP
-	int outFd = mkstemp(outTemplate);
-#else
-	int outFd = -1;
-	char *pOutFile = mktemp(outTemplate);
-	if (pOutFile != NULL)
-	{
-		outFd = open(pOutFile, O_WRONLY|O_TRUNC);
-	}
-#endif
-	if (outFd == -1)
-	{
-		return false;
-	}
-
-	commandLine += ">";
-	commandLine += outTemplate;
-#ifdef DEBUG
-	clog << "ExternalFilter::run_command: running " << commandLine << endl;
-#endif
-
-	// Run the command
-	if (system(commandLine.c_str()) == -1)
-	{
-#ifdef DEBUG
-		clog << "ExternalFilter::run_command: couldn't run command line" << endl;
-#endif
-		return false;
-	}
-
-	ssize_t totalSize = 0;
-	gotOutput = read_file(outFd, maxSize, totalSize);
-
-	// Close and delete the temporary file
-	close(outFd);
-	unlink(outTemplate);
-
-	if (gotOutput == false)
-	{
-		return false;
-	}
-#else
-	int status = 0;
-
 	// We want to be able to get the exit status of the child process
 	signal(SIGCHLD, SIG_DFL);
 
-	int fds[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, fds) < 0)
 	{
 		return false;
@@ -451,11 +403,11 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 		// Child process
 		// Close the parent's side of the socket pair
 		close(fds[0]);
-
 		// Connect stdout to our side of the socket pair
 		dup2(fds[1], 1);
-		// Close stderr
+		// Close stdout and stdlog
 		close(2);
+		close(3);
 
 		// Limit CPU time for external programs to 300 seconds
 		struct rlimit cpu_limit = { 300, RLIM_INFINITY } ;
@@ -483,6 +435,7 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 
 	// Wait until the child terminates
 	pid_t actualChildPid = waitpid(childPid, &status, 0);
+
 	if ((gotOutput == false) ||
 		(actualChildPid == -1))
 	{
@@ -507,11 +460,6 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 #endif
 		return false;
 	}
-#endif
-
-	stringstream numStream;
-	numStream << totalSize;
-	m_metaData["size"] = numStream.str();
 #endif
 
 	return true;
