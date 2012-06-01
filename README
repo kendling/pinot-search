@@ -1,5 +1,5 @@
 Pinot
-Copyright 2005-2011 Fabrice Colin <fabrice dot colin at gmail dot com>
+Copyright 2005-2012 Fabrice Colin <fabrice dot colin at gmail dot com>
 http://code.google.com/p/pinot-search/
 formerly at http://pinot.berlios.de/
 
@@ -16,11 +16,10 @@ formerly at http://pinot.berlios.de/
 10. Digging deeper
 11. Saving results
 12. D-Bus service
-13. DeskbarApplet plugins
-14. CJKV support
-15. Environment variables and aliases
-16. How to reset indexes
-17. Dependencies
+13. CJKV support
+14. Environment variables and aliases
+15. How to reset indexes
+16. Dependencies
 
 
 1. What is Pinot
@@ -387,31 +386,7 @@ formerly at http://pinot.berlios.de/
   in the file pinot-dbus-daemon.xml.
 
 
-13. DeskbarApplet plugins
-
-
-  DeskbarApplet provides an omnipresent versatile search interface for Gnome.
-  Searching documents indexed by Pinot with the applet is possible.
-
-  Starting with Pinot 0.81, two plugins are available : a "module" for Deskbar
-  2.20 or newer, and a "handler" for older versions. Both plugins rely on the
-  D-Bus service to query the My Documents index.
-
-  The module is at scripts/python/pinot-module.py, while the handler is at
-  scripts/python/pinot-live.py. The module should be copied into
-  /usr/libexec/deskbar-applet/modules-2.20-compatible and the handler in
-  /usr/libexec/deskbar-applet/handlers for use by all users.
-  For use only by the current user, the directories to copy to are
-  ~/.gnome2/deskbar-applet/modules-2.20-compatible and
-  ~/.gnome2/deskbar-applet/handlers respectively.
-
-  DeskbarApplet appears to sort results by names, so it may not present
-  results in the same order as the Pinot UI. Additionally, searches run through
-  the D-Bus interface are treated a bit differently, as terms are OR'ed
-  together if no exact match is found.
-
-
-14. CJKV support
+13. CJKV support
 
 
   Starting with v0.83, Pinot supports indexing and searching CJKV text.
@@ -435,7 +410,7 @@ formerly at http://pinot.berlios.de/
   by the indexer with the special filter "tokens:CJKV".
 
 
-15. Environment variables and aliases
+14. Environment variables and aliases
 
 
   Pinot tries to provide reasonable defaults for most systems, but there may be
@@ -493,7 +468,7 @@ formerly at http://pinot.berlios.de/
   the second alias will stop it by calling the Stop method.
 
 
-16. How to reset indexes
+15. How to reset indexes
 
 
   You may wish to reset one of the index and start from scratch. There
@@ -518,7 +493,7 @@ formerly at http://pinot.berlios.de/
   $ pinot-dbus-daemon --reindex
 
 
-17. Dependencies
+16. Dependencies
 
 
   The version numbers indicate the minimum version Pinot has been tested
@@ -555,6 +530,9 @@ http://libxmlplusplus.sourceforge.net/
 
 libtextcat						2.2
 http://software.wise-guys.nl/libtextcat/
+- OR - 
+libexttextcat						3.2
+http://cgit.freedesktop.org/libreoffice/libexttextcat/
 
 gmime (3)						2.4.0
 http://spruce.sourceforge.net/gmime
@@ -585,9 +563,6 @@ http://www.jedrea.com/chmlib/
 
 openssh-askpass (7)					4.3
 http://www.openssh.com/portable.html
-
-DeskbarApplet (8)					2.30
-http://live.gnome.org/DeskbarApplet
 
 ---------------------------------------------------------------
 External filter programs
@@ -624,6 +599,5 @@ Notes :
 (5) experimental - enabled with "./configure --enable-libarchive=yes"
 (6) experimental - enabled with "./configure --enable-chmlib=yes"
 (7) experimental - required only if _SSH_TUNNEL is set
-(8) optional DeskbarApplet plugins 
 ---------------------------------------------------------------------
 
