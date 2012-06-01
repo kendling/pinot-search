@@ -238,12 +238,16 @@ if test "x$is_libexttextcat" != "xyes"; then
    is_libexttextcat="no"
 fi
 if test "x$is_libexttextcat" = "no"; then
+   dnl libtextcat 2.* has textcat_Cat()
    AC_CHECK_LIB(textcat, textcat_Cat,
       [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)],
       [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)]
       )
+   TEXTCAT_LIBS="-ltextcat"
 else
-   AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)
+   dnl libexttextcat has textcat_Classify()
+   AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)
+   TEXTCAT_LIBS="-lexttextcat"
 fi
 
 dnl libarchive
@@ -415,7 +419,7 @@ PKG_CHECK_MODULES(XML, libxml++-2.6 >= 2.12 )
 AC_SUBST(XML_CFLAGS)
 AC_SUBST(XML_LIBS)
 INDEX_CFLAGS="$XAPIAN_CFLAGS"
-INDEX_LIBS="$XAPIAN_LIBS -ltextcat"
+INDEX_LIBS="$XAPIAN_LIBS $TEXTCAT_LIBS"
 AC_SUBST(INDEX_CFLAGS)
 AC_SUBST(INDEX_LIBS)
 PKG_CHECK_MODULES(SIGCPP, sigc++-2.0 >= 2.0 )
