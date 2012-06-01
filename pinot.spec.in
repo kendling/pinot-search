@@ -32,7 +32,7 @@ BuildRequires: xapian-core-devel >= 1.0.4, libtextcat-devel >= 2.2, sqlite-devel
 BuildRequires: libxml++-devel >= 2.12, gettext-devel, desktop-file-utils
 BuildRequires: taglib-devel >= 1.4, exiv2-devel >= 0.18
 BuildRequires: gcc-c++
-%if 0%{?_with_nodbus:1}
+%if 0%{?!_with_nodbus:1}
 Requires: %{dbus_pkg} >= 0.60
 BuildRequires: %{dbus_dev_pkg} >= 0.60
 %endif
@@ -106,7 +106,7 @@ fi
 %{_bindir}/pinot-dbus-daemon
 %endif
 %{_bindir}/pinot-index
-%if 0%{?_with_nodbus:0}
+%if 0%{?!_with_nodbus:1}
 %{_bindir}/pinot-label
 %endif
 %{_bindir}/pinot-prefs
@@ -125,7 +125,7 @@ fi
 %{_libdir}/pinot/filters/libexternalfilter.so*
 %{_libdir}/pinot/filters/libmboxfilter.so*
 %{_libdir}/pinot/filters/libtaglibfilter.so*
-%if 0%{?_with_nodbus:0}
+%if 0%{?!_with_nodbus:1}
 %{_datadir}/dbus-1/services/de.berlios.Pinot.service
 %endif
 %{_datadir}/pinot/
@@ -134,7 +134,7 @@ fi
 %{_datadir}/icons/hicolor/24x24/apps/pinot.png
 %{_datadir}/icons/hicolor/22x22/apps/pinot.png
 %{_datadir}/icons/hicolor/16x16/apps/pinot.png
-%if 0%{?_with_nodbus:0}
+%if 0%{?!_with_nodbus:1}
 %{_sysconfdir}/xdg/autostart/*.desktop
 %endif
 %{_datadir}/applications/*.desktop
