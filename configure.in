@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 0.98,[fabricecolin@users.berlios.de])
+AC_INIT(pinot, 1.0,[fabrice.colin@gmail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -230,14 +230,14 @@ if test "x$enable_mempool" = "xyes"; then
 fi
 
 dnl TextCat
-AC_CHECK_HEADERS([textcat.h],,
-   [AC_CHECK_HEADERS([libtextcat/textcat.h],,
+AC_CHECK_HEADERS([textcat.h],[is_libexttextcat=no],
+   [AC_CHECK_HEADERS([libtextcat/textcat.h],[is_libexttextcat=no],
     AC_CHECK_HEADERS([libexttextcat/textcat.h],[is_libexttextcat=yes],[is_libexttextcat=no]))
    ])
 if test "x$is_libexttextcat" != "xyes"; then
    is_libexttextcat="no"
 fi
-if test "x$is_libexttextcat" = "no"; then
+if test "x$is_libexttextcat" = "xno"; then
    dnl libtextcat 2.* has textcat_Cat()
    AC_CHECK_LIB(textcat, textcat_Cat,
       [AM_CONDITIONAL(HAVE_TEXTCAT_CAT, true)],
