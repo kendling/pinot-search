@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2011 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -716,7 +716,7 @@ bool ResultsTree::addResults(const string &engineName, const vector<DocumentInfo
 //
 void ResultsTree::setGroupMode(GroupByMode groupMode)
 {
-	ResultsModelColumns::RowType currentType, newType;
+	ResultsModelColumns::RowType newType;
 
 	if (m_groupMode == FLAT)
 	{
@@ -745,13 +745,11 @@ void ResultsTree::setGroupMode(GroupByMode groupMode)
 	if (m_groupMode == BY_ENGINE)
 	{
 		// By search engine
-		currentType = ResultsModelColumns::ROW_HOST;
 		newType = ResultsModelColumns::ROW_ENGINE;
 	}
 	else
 	{
 		// By host
-		currentType = ResultsModelColumns::ROW_ENGINE;
 		newType = ResultsModelColumns::ROW_HOST;
 	}
 
