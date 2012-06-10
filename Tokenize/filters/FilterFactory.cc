@@ -117,10 +117,10 @@ unsigned int FilterFactory::loadFilters(const string &dir_name)
 			if ((stat(fileName.c_str(), &fileStat) != 0) ||
 				(!S_ISREG(fileStat.st_mode)))
 			{
-#ifdef DEBUG
-				clog << "FilterFactory::loadFilters: "
-					<< pEntryName << " is not a file" << endl;
-#endif
+				clog << "FilterFactory::loadFilters: couldn't stat " << pEntryName << endl;
+
+				// Next entry
+				pDirEntry = readdir(pDir);
 				continue;
 			}
 
@@ -128,6 +128,9 @@ unsigned int FilterFactory::loadFilters(const string &dir_name)
 			if (pHandle == NULL)
 			{
 				clog << "FilterFactory::loadFilters: " << dlerror() << endl;
+
+				// Next entry
+				pDirEntry = readdir(pDir);
 				continue;
 			}
 
@@ -146,10 +149,8 @@ unsigned int FilterFactory::loadFilters(const string &dir_name)
 			if (filterOkay == false)
 			{
 				clog << "FilterFactory::loadFilters: couldn't get types from " << pEntryName << endl;
-				continue;
 			}
-
-			for (set<string>::iterator typeIter = types.begin();
+			else for (set<string>::iterator typeIter = types.begin();
 				typeIter != types.end(); ++typeIter)
 			{
 				string newType(*typeIter);
