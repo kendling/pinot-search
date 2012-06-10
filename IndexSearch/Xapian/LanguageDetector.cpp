@@ -68,15 +68,20 @@ LanguageDetector::LanguageDetector() :
 #ifdef DEBUG
 	clog << "LanguageDetector::guessLanguage: detected " << textCatVersion << endl;
 #endif
-	if (strncasecmp(textCatVersion, "3.", 2) == 0)
-	{
-		// Version 3.1 and above
-		confFile += "textcat31_conf.txt";
-	}
-	else if (strncasecmp(textCatVersion, "TextCat 3", 9) == 0)
+	if (strncasecmp(textCatVersion, "TextCat 3", 9) == 0)
 	{
 		// Version 3
 		confFile += "textcat3_conf.txt";
+	}
+	else if (strncasecmp(textCatVersion, "3.1", 3) == 0)
+	{
+		// Version 3.1
+		confFile += "textcat31_conf.txt";
+	}
+	else if (strncasecmp(textCatVersion, "3.", 2) == 0)
+	{
+		// Version 3.2 and above
+		confFile += "textcat32_conf.txt";
 	}
 	else
 	{
