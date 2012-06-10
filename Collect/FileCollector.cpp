@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ class LastIPathAction : public ReducedAction
 			{
 #ifdef DEBUG
 				clog << "LastIPathAction::positionFilter: moving filter for "
-					<< pFilter->get_mime_type() << " to " << thisIPath << endl;
+					<< pFilter->get_mime_type() << " to ipath " << thisIPath << endl;
 #endif
 				pFilter->set_property(Dijon::Filter::OPERATING_MODE, "view");
 
@@ -93,7 +93,7 @@ class LastIPathAction : public ReducedAction
 			{
 				m_pDocument = new Document(doc);
 #ifdef DEBUG
-				clog << "LastIPathAction::takeAction: " << doc.getInternalPath() << " final" << endl;
+				clog << "LastIPathAction::takeAction: ipath " << doc.getInternalPath() << " is final" << endl;
 #endif
 			}
 
