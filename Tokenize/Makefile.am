@@ -66,7 +66,7 @@ libchmfilter_la_LDFLAGS = -module -avoid-version
 libchmfilter_la_LIBADD = -lchm
 endif
 
-libexiv2filter_la_DEPENDENCIES = libFilter.la
+libexiv2imagefilter_la_DEPENDENCIES = libFilter.la
 
 libexiv2imagefilter_la_SOURCES = \
 	$(top_srcdir)/Tokenize/filters/Exiv2ImageFilter.cc
