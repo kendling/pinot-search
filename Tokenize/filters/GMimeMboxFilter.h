@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2010 Fabrice Colin
+ *  Copyright 2007-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string>
+#include <map>
+#include <utility>
 #include <gmime/gmime-object.h>
 #include <gmime/gmime-stream.h>
 #include <gmime/gmime-parser.h>
@@ -123,6 +125,9 @@ namespace Dijon
 	GMimeMessage *m_pMimeMessage;
 	int m_partsCount;
 	int m_partNum;
+	int m_partLevel;
+	int m_currentLevel;
+	std::map<int, std::pair<int,int> > m_levels;
 	GMIME_OFFSET_TYPE m_messageStart;
 	std::string m_messageDate;
 	std::string m_partCharset;

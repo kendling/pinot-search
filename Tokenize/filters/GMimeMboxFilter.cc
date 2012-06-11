@@ -30,8 +30,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
-#include <utility>
-#include <algorithm>
 
 #include <gmime/gmime.h>
 
@@ -42,7 +40,7 @@ using std::clog;
 using std::endl;
 using std::string;
 using std::map;
-using std::max;
+using std::pair;
 using namespace Dijon;
 
 #ifdef _DYNAMIC_DIJON_FILTERS
@@ -91,6 +89,50 @@ DIJON_FILTER_SHUTDOWN void shutdown_gmime(void)
 }
 #endif
 
+static string extractField(const string &str,
+	const string &start, const string &end,
+	string::size_type &endPos, bool anyCharacterOfEnd = false)
+{
+	string fieldValue;
+	string::size_type startPos = string::npos;
+
+	if (start.empty() == true)
+	{
+		startPos = 0;
+	}
+	else
+	{
+		startPos = str.find(start, endPos);
+	}
+
+	if (startPos != string::npos)
+	{
+		startPos += start.length();
+
+		if (end.empty() == true)
+		{
+			fieldValue = str.substr(startPos);
+		}
+		else
+		{
+			if (anyCharacterOfEnd == false)
+			{
+				endPos = str.find(end, startPos);
+			}
+			else
+			{
+				endPos = str.find_first_of(end, startPos);
+			}
+			if (endPos != string::npos)
+			{
+				fieldValue = str.substr(startPos, endPos - startPos);
+			}
+		}
+	}
+
+	return fieldValue;
+}
+
 GMimeMboxFilter::GMimeMboxPart::GMimeMboxPart(const string &subject,
 	dstring &buffer) :
 	m_subject(subject),
@@ -114,6 +156,8 @@ GMimeMboxFilter::GMimeMboxFilter(const string &mime_type) :
 	m_pMimeMessage(NULL),
 	m_partsCount(-1),
 	m_partNum(-1),
+	m_partLevel(-1),
+	m_currentLevel(0),
 	m_messageStart(0),
 	m_foundDocument(false)
 {
@@ -169,7 +213,8 @@ bool GMimeMboxFilter::set_document_data(const char *data_ptr, unsigned int data_
 {
 	// Close/free whatever was opened/allocated on a previous call to set_document()
 	finalize(true);
-	m_partsCount = m_partNum = -1;
+	m_partsCount = m_partNum = m_partLevel = -1;
+	m_levels.clear();
 	m_messageStart = 0;
 	m_messageDate.clear();
 	m_partCharset.clear();
@@ -197,7 +242,8 @@ bool GMimeMboxFilter::set_document_file(const string &file_path, bool unlink_whe
 {
 	// Close/free whatever was opened/allocated on a previous call to set_document()
 	finalize(true);
-	m_partsCount = m_partNum = -1;
+	m_partsCount = m_partNum = m_partLevel = -1;
+	m_levels.clear();
 	m_messageStart = 0;
 	m_messageDate.clear();
 	m_partCharset.clear();
@@ -252,14 +298,42 @@ bool GMimeMboxFilter::skip_to_document(const string &ipath)
 		return true;
 	}
 
-	// ipath's format is "o=offset&p=part_number"
-	if (sscanf(ipath.c_str(), "o=%u&p=%d", (unsigned int*)&m_messageStart, &m_partNum) != 2)
+	// ipath's format is "o=offset&l=part_levels"
+	if (sscanf(ipath.c_str(), "o=%u&l=[", (unsigned int*)&m_messageStart) != 1)
 	{
 		return false;
 	}
 
 	finalize(false);
 	m_partsCount = -1;
+	m_levels.clear();
+	string::size_type levelsPos = ipath.find("l=[");
+	if (levelsPos != string::npos)
+	{
+		string::size_type endPos = 0;
+		string levels(ipath.substr(levelsPos + 2));
+		string levelInfo(extractField(levels, "[", "]", endPos));
+
+		// Parse levels
+		while (levelInfo.empty() == false)
+		{
+			int partLevel = 0, partsCount = 0, partNum = 0;
+
+#ifdef DEBUG
+			clog << "GMimeMboxFilter::skip_to_document: level " << levelInfo << endl;
+#endif
+			if (sscanf(levelInfo.c_str(), "%d,%d,%d", &partLevel, &partsCount, &partNum) == 3)
+			{
+				m_levels[partLevel] = pair<int, int>(partsCount, partNum);
+			}
+
+			if (endPos == string::npos)
+			{
+				break;
+			}
+			levelInfo = extractField(levels, "[", "]", endPos);
+		}
+	}
 	m_messageDate.clear();
 	m_partCharset.clear();
 	m_foundDocument = false;
@@ -526,6 +600,7 @@ bool GMimeMboxFilter::nextPart(const string &subject)
 			m_content.clear();
 			if (extractPart(pMimePart, mboxPart) == true)
 			{
+				string ipath;
 				char posStr[128];
 
 				// New document
@@ -539,11 +614,23 @@ bool GMimeMboxFilter::nextPart(const string &subject)
 				m_metaData["charset"] = m_partCharset;
 				snprintf(posStr, 128, "%u", m_content.length());
 				m_metaData["size"] = posStr;
-				// FIXME: use the same scheme as Mozilla
-				snprintf(posStr, 128, "o=%u&p=%d", m_messageStart, max(m_partNum - 1, 0));
-				m_metaData["ipath"] = posStr;
+				snprintf(posStr, 128, "o=%u&l=", m_messageStart);
+				ipath = posStr;
+				for (map<int, pair<int, int> >::const_iterator levelIter = m_levels.begin();
+					levelIter != m_levels.end(); ++levelIter)
+				{
+					int partNum = levelIter->second.second;
+
+					if (levelIter->first == m_partLevel)
+					{
+						partNum = m_partNum;
+					}
+					snprintf(posStr, 128, "[%d,%d,%d]", levelIter->first, levelIter->second.first, partNum);
+					ipath += posStr;
+				}
+				m_metaData["ipath"] = ipath;
 #ifdef DEBUG
-				clog << "GMimeMboxFilter::nextPart: message location is " << posStr << endl; 
+				clog << "GMimeMboxFilter::nextPart: message location is " << ipath << endl; 
 #endif
 
 #ifndef GMIME_ENABLE_RFC2047_WORKAROUNDS
@@ -570,7 +657,7 @@ bool GMimeMboxFilter::nextPart(const string &subject)
 	}
 
 	// If we get there, no suitable parts were found
-	m_partsCount = m_partNum = -1;
+	m_partsCount = m_partNum = m_partLevel = -1;
 
 	return false;
 }
@@ -598,40 +685,99 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	// Is this a multipart ?
 	if (GMIME_IS_MULTIPART(part))
 	{
+		int partNum = 0;
+		bool gotPart = false;
+
 #ifdef GMIME_ENABLE_RFC2047_WORKAROUNDS
 		m_partsCount = g_mime_multipart_get_count(GMIME_MULTIPART(part));
 #else
 		m_partsCount = g_mime_multipart_get_number(GMIME_MULTIPART(part));
 #endif
+		++m_currentLevel;
 #ifdef DEBUG
-		clog << "GMimeMboxFilter::extractPart: message has " << m_partsCount << " parts" << endl;
+		clog << "GMimeMboxFilter::extractPart: message has " << m_partsCount << " parts at level " << m_currentLevel << endl;
 #endif
-		for (int partNum = max(m_partNum, 0); partNum < m_partsCount; ++partNum)
+
+		map<int, pair<int, int> >::iterator levelIter = m_levels.find(m_currentLevel);
+		if (levelIter != m_levels.end())
+		{
+			pair<int, int> partPair = levelIter->second;
+#ifdef DEBUG
+			clog << "GMimeMboxFilter::extractPart: level " << m_currentLevel << " had " << partPair.first << " parts" << endl;
+#endif
+			if (partPair.first == m_partsCount)
+			{
+				partNum = partPair.second;
+#ifdef DEBUG
+				clog << "GMimeMboxFilter::extractPart: restarting level " << m_currentLevel << " at part " << partNum << endl;
+#endif
+			}
+		}
+		else
+		{
+			partNum = 0;
+		}
+
+		for (; partNum < m_partsCount; ++partNum)
 		{
 #ifdef DEBUG
 			clog << "GMimeMboxFilter::extractPart: extracting part " << partNum << endl;
 #endif
-			
+			m_partNum = partNum;
+
 			GMimeObject *multiMimePart = g_mime_multipart_get_part(GMIME_MULTIPART(part), partNum);
 			if (multiMimePart == NULL)
 			{
 				continue;
 			}
 
-			bool gotPart = extractPart(multiMimePart, mboxPart);
+			gotPart = extractPart(multiMimePart, mboxPart);
 #ifndef GMIME_ENABLE_RFC2047_WORKAROUNDS
 			g_mime_object_unref(multiMimePart);
 #endif
 
 			if (gotPart == true)
 			{
-				m_partNum = ++partNum;
-				return true;
+				break;
 			}
 		}
 
+		if (gotPart == true)
+		{
+			// Were all parts in the next level parsed ?
+			map<int, pair<int, int> >::iterator levelIter = m_levels.find(m_currentLevel + 1);
+			if ((levelIter == m_levels.end()) ||
+				(levelIter->second.second + 1 >= levelIter->second.first))
+			{
+				// Move to the next part at this level
+				++partNum;
+			}
+
+			levelIter = m_levels.find(m_currentLevel);
+			if (levelIter != m_levels.end())
+			{
+				if (partNum > levelIter->second.second)
+				{
+					levelIter->second.second = partNum;
+#ifdef DEBUG
+					clog << "GMimeMboxFilter::extractPart: remembering to restart level " << m_currentLevel << " at part " << partNum << endl;
+#endif
+				}
+			}
+			else
+			{
+				m_levels[m_currentLevel] = pair<int, int>(m_partsCount, partNum);
+#ifdef DEBUG
+				clog << "GMimeMboxFilter::extractPart: remembering to restart level " << m_currentLevel << " at part " << partNum << endl;
+#endif
+			}
+			--m_currentLevel;
+
+			return true;
+		}
+
 		// None of the parts were suitable
-		m_partsCount = m_partNum = -1;
+		m_partsCount = m_partNum = m_partLevel = -1;
 	}
 
 	if (!GMIME_IS_PART(part))
@@ -801,6 +947,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	{
 		g_object_unref(memStream);
 	}
+	m_partLevel = m_currentLevel;
 
 	return true;
 }
@@ -809,6 +956,7 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 {
 	string msgSubject(subject);
 
+	m_currentLevel = 0;
 	while (g_mime_stream_eos(m_pGMimeMboxStream) == FALSE)
 	{
 		// Does the previous message have parts left to parse ?
