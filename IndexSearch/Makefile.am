@@ -76,11 +76,12 @@ AM_CXXFLAGS = \
 	-I$(top_srcdir)/Collect \
 	-I$(top_srcdir)/IndexSearch/cjkv \
 	-I$(top_srcdir)/IndexSearch/Google \
-	@HTTP_CFLAGS@ @XML_CFLAGS@ @DBUS_CFLAGS@ \
+	@HTTP_CFLAGS@ @XML_CFLAGS@ \
 	@INDEX_CFLAGS@ @GLIBMM_CFLAGS@
 
 if HAVE_DBUS
-AM_CXXFLAGS += -DHAVE_DBUS
+AM_CXXFLAGS += @DBUS_CFLAGS@ \
+	-DHAVE_DBUS
 endif
 
 if HAVE_BOOST_SPIRIT
