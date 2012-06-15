@@ -1,5 +1,5 @@
 /*
- *  Copyright 2011 Fabrice Colin
+ *  Copyright 2011-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -213,7 +213,7 @@ bool Exiv2ImageFilter::has_documents(void) const
 
 bool Exiv2ImageFilter::next_document(void)
 {
-	bool foundData = false;
+	bool foundData = true;
 
 	if (m_parseDocument == false)
 	{
@@ -272,8 +272,6 @@ bool Exiv2ImageFilter::next_document(void)
 				clog << "Exiv2ImageFilter::next_document: " << key << "=" << value << endl;
 #endif
 			}
-
-			foundData = true;
 		}
 		Exiv2::IptcData &iptcData = image->iptcData();
 		if (iptcData.empty() == false)
@@ -328,7 +326,6 @@ bool Exiv2ImageFilter::next_document(void)
 				}
 			}
 
-			foundData = true;
 			if ((iptcDate.empty() == false) ||
 				(iptcTime.empty() == false))
 			{
@@ -383,17 +380,17 @@ bool Exiv2ImageFilter::next_document(void)
 					m_content.append(valueStr.c_str(), valueStr.length());
 				}
 			}
-
-			foundData = true;
 		}
 	}
 	catch (Exiv2::AnyError &e)
 	{
 		clog << "Caught exiv2 exception: " << e << endl;
+		foundData = false;
 	}
 	catch (...)
 	{
 		clog << "Caught unknown exception" << endl;
+		foundData = false;
 	}
 
 	return foundData;
