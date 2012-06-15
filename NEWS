@@ -1,3 +1,21 @@
+2012/06/16 version_1_0_0
+General :
+ - install headers and libraries
+ - prefer default programs that don't support URIs to view local files
+Deskbar :
+ - dropped support for Deskbar since it's now dead
+Tokenize :
+ - better mbox parsing. The internal part numbering scheme has changed;
+ reindexing email is recommended.
+IndexSearch :
+ - support for LibreOffice's libexttextcat v3.2
+ - fixed the Google plugin
+ - renamed the Freshmeat plugin to Freecode
+UI :
+ - updated Simplified Chinese translation by happymeng
+ - updated German translation by Gena Haltmair
+ - initial GTK+ 3 port. Enable with "./configure ... --enable-gtkmm3=yes"
+
 2011/11/07 version_0_9_8
 Tokenize :
  - new exiv2-based filter
