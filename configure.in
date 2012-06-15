@@ -229,6 +229,9 @@ if test "x$enable_mempool" = "xyes"; then
    AC_CHECK_HEADERS([boost/pool/poolfwd.hpp])
 fi
 
+dnl Allocators
+AC_CHECK_HEADERS([ext/malloc_allocator.h])
+
 dnl TextCat
 AC_CHECK_HEADERS([textcat.h],[is_libexttextcat=no],
    [AC_CHECK_HEADERS([libtextcat/textcat.h],[is_libexttextcat=no],
@@ -392,7 +395,7 @@ MISC_CFLAGS="$PTHREAD_CFLAGS $VISIB_CFLAGS -D_FILE_OFFSET_BITS=64"
 MISC_LIBS="$PTHREAD_LIBS $DL_LIBS"
 AC_SUBST(MISC_CFLAGS)
 AC_SUBST(MISC_LIBS)
-AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h ext/malloc_allocator.h])
+AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h])
 PKG_CHECK_MODULES(MIMEINFO, shared-mime-info )
 SHARED_MIME_INFO_PREFIX=`pkg-config --variable=prefix shared-mime-info`
 AC_SUBST(SHARED_MIME_INFO_PREFIX)
