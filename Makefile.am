@@ -23,17 +23,17 @@ man_MANS = Core/pinot-index.1 Core/pinot-search.1 Core/pinot-daemon.1 \
 endif
 
 manuals:
-	@help2man --no-info --name "Index documents from the command-line" Core/pinot-index >Core/pinot-index.1
+	@help2man --no-info --no-discard-stderr --name "Index documents from the command-line" Core/pinot-index >Core/pinot-index.1
 if HAVE_DBUS
-	@help2man --no-info --name "Label files from the command-line" IndexSearch/pinot-label     >IndexSearch/pinot-label.1
+	@help2man --no-info --no-discard-stderr --name "Label files from the command-line" IndexSearch/pinot-label     >IndexSearch/pinot-label.1
 endif
-	@help2man --no-info --name "Query search engines from the command-line" Core/pinot-search  >Core/pinot-search.1
+	@help2man --no-info --no-discard-stderr --name "Query search engines from the command-line" Core/pinot-search  >Core/pinot-search.1
 if HAVE_DBUS
-	@help2man --no-info --name "D-Bus search and index daemon" Core/pinot-dbus-daemon          >Core/pinot-dbus-daemon.1
+	@help2man --no-info --no-discard-stderr --name "D-Bus search and index daemon" Core/pinot-dbus-daemon          >Core/pinot-dbus-daemon.1
 else
-	@help2man --no-info --name "Search and index daemon" Core/pinot-daemon                     >Core/pinot-daemon.1
+	@help2man --no-info --no-discard-stderr --name "Search and index daemon" Core/pinot-daemon                     >Core/pinot-daemon.1
 endif
-	@help2man --no-info --name "A metasearch tool for the Free Desktop" UI/GTK2/src/pinot      >UI/GTK2/src/pinot.1
+	@help2man --no-info --no-discard-stderr --name "A metasearch tool for the Free Desktop" UI/GTK2/src/pinot      >UI/GTK2/src/pinot.1
 
 install-data-local:
 	@ln -fs $(bindir)/pinot $(DESTDIR)$(bindir)/pinot-prefs
