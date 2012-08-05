@@ -33,9 +33,6 @@ class PINOT_EXPORT StringManip
 		/// Converts to uppercase.
 		static std::string toUpperCase(const std::string &str);
 
-		/// Strips diacritics.
-		static std::string stripDiacritics(const std::string &str);
-
 		/// Extracts the sub-string between start and end.
 		static std::string extractField(const std::string &str, const std::string &start,
 			const std::string &end, bool anyCharacterOfEnd = false);

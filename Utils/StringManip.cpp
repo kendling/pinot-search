@@ -26,7 +26,6 @@
 #endif
 #include <ctype.h>
 #include <algorithm>
-#include "unac/unac.h"
 
 #include "StringManip.h"
 
@@ -77,31 +76,6 @@ string StringManip::toUpperCase(const string &str)
 	for_each(tmp.begin(), tmp.end(), ToUpper());
 
 	return tmp;
-}
-
-/// Strips diacritics.
-string StringManip::stripDiacritics(const string &str)
-{
-	string unaccentedStr;
-	char *pOut = NULL;
-	size_t outLength;
-
-	if (unac_string("utf-8", str.c_str(), (size_t)str.length(),
-		&pOut, &outLength) >= 0)
-	{
-		unaccentedStr = string(pOut, outLength);
-	}
-	else
-	{
-		unaccentedStr = str;
-	}
-
-	if (pOut != NULL)
-	{
-		free(pOut);
-	}
-
-	return unaccentedStr;
 }
 
 /// Extracts the sub-string between start and end.

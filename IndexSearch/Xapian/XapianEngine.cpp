@@ -437,9 +437,12 @@ class QueryModifier : public Dijon::CJKVTokenizer::TokensHandler
 				if (m_diacriticSensitive == false)
 				{
 					// Strip accents and other diacritics from terms
-					string unaccentedTok(StringManip::stripDiacritics(tok));
+					string unaccentedTok(Dijon::CJKVTokenizer::strip_marks(tok));
 					if (tok != unaccentedTok)
 					{
+#ifdef DEBUG
+						clog << "QueryModifier::handle_token: " << tok << " stripped to " << unaccentedTok << endl;
+#endif
 						m_query.replace(tokPos, tok.length(), unaccentedTok);
 					}
 				}
@@ -914,7 +917,8 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			clog << "XapianEngine::queryDatabase: found " << matches.size() << "/" << maxResultsCount
 				<< " results found from position " << startDoc << endl;
 			clog << "XapianEngine::queryDatabase: estimated " << matches.get_matches_lower_bound()
-				<< "/" << m_resultsCountEstimate << "/" << matches.get_matches_upper_bound() << endl;
+				<< "/" << m_resultsCountEstimate << "/" << matches.get_matches_upper_bound()
+				<< ", " << matches.get_description() << endl;
 #endif
 
 			// Get the results
@@ -964,6 +968,14 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 							}
 						}
 					}
+				}
+
+				if (docId <= 0)
+				{
+#ifdef DEBUG
+					clog << "XapianEngine::queryDatabase: bogus document ID " << docId << endl;
+#endif
+					continue;
 				}
 
 				DocumentInfo thisResult;

@@ -36,9 +36,6 @@ Small patches, bug reports and helpful comments :
 	Martijn Verstrate <martijn dot verstrate at wm-m dot net>
 	Kamil Rytarowski <krytarowski at gmail dot com>
 
-The source in Utils/unac is from unac 1.7.0 (Copyright Loic Dachary
-<loic at senga dot org>).
-
 Some code is borrowed from Xapian Omega, which is "largely the work of
 Olly Betts, Mark Shinwell (omindex-config) and Richard Boulton",
 including its HTML parser. The file Tokenize/filters/HtmlParser.cc is :

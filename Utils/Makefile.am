@@ -14,7 +14,7 @@ pkginclude_HEADERS = \
 	Url.h \
 	Visibility.h
 
-nobase_pkginclude_HEADERS = unac/unac.h \
+nobase_pkginclude_HEADERS = \
 	xdgmime/xdgmimealias.h \
 	xdgmime/xdgmimecache.h \
 	xdgmime/xdgmimeglob.h \
@@ -46,8 +46,7 @@ libBasicUtils_la_SOURCES = \
 	StringManip.cpp \
 	TimeConverter.cpp \
 	Timer.cpp \
-	Url.cpp \
-	unac/unac.c
+	Url.cpp
 
 libUtils_la_LDFLAGS = \
 	-static

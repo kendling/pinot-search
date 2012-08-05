@@ -164,9 +164,12 @@ class TokensIndexer : public Dijon::CJKVTokenizer::TokensHandler
 				bool hasDiacritics = false;
 
 				// Remove accents and other diacritics
-				string unaccentedTerm(StringManip::stripDiacritics(term));
+				string unaccentedTerm(Dijon::CJKVTokenizer::strip_marks(term));
 				if (unaccentedTerm != term)
 				{
+#ifdef DEBUG
+					clog << "TokensIndexer::handle_token: " << term << " stripped to " << unaccentedTerm << endl;
+#endif
 					m_doc.add_posting(m_prefix + XapianDatabase::limitTermLength(unaccentedTerm), m_termPos);
 					hasDiacritics = true;
 				}

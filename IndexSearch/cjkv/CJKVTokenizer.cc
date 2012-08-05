@@ -1,6 +1,6 @@
 /*
  *  Copyright 2007-2008 林永忠 Yung-Chung Lin
- *  Copyright 2008-2009 Fabrice Colin
+ *  Copyright 2008-2012 Fabrice Colin
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -19,47 +19,17 @@
 
 #include <ctype.h>
 #include <string.h>
+#include <string.h>
 #include <iostream>
 
 #include "CJKVTokenizer.h"
 
-#ifndef HAVE_UNICODE_H
-static void unicode_init(void)
-{
-}
-
-static char *unicode_get_utf8(const char *p, unicode_char_t *result)
+static char *unicode_get_utf8(const char *p, gunichar *result)
 {
 	*result = g_utf8_get_char(p);
 
-	return (*result == (unicode_char_t)-1) ? NULL : g_utf8_next_char(p);
+	return (*result == (gunichar)-1) ? NULL : g_utf8_next_char(p);
 }
-
-static int unicode_strlen(const char *p, int max)
-{
-	return (int)g_utf8_strlen(p, (gssize)max);
-}
-
-static int unicode_ispunct(unicode_char_t c)
-{
-	if (g_unichar_ispunct(c))
-	{
-		return 1;
-	}
-
-	return 0;
-}
-
-static int unicode_isspace(unicode_char_t c)
-{
-	if (g_unichar_isspace(c))
-	{
-		return 1;
-	}
-
-	return 0;
-}
-#endif
 
 // 2E80..2EFF; CJK Radicals Supplement
 // 3000..303F; CJK Symbols and Punctuation
@@ -83,7 +53,7 @@ static int unicode_isspace(unicode_char_t c)
 // FF00..FFEF; Halfwidth and Fullwidth Forms
 // 20000..2A6DF; CJK Unified Ideographs Extension B
 // 2F800..2FA1F; CJK Compatibility Ideographs Supplement
-#define UTF8_IS_CJKV(p)                                                  \
+#define UTF8_IS_CJKV(p)                                                 \
     (((p) >= 0x2E80 && (p) <= 0x2EFF)                                   \
      || ((p) >= 0x3000 && (p) <= 0x303F)                                \
      || ((p) >= 0x3040 && (p) <= 0x309F)                                \
@@ -107,6 +77,16 @@ static int unicode_isspace(unicode_char_t c)
      || ((p) >= 0x20000 && (p) <= 0x2A6DF)                              \
      || ((p) >= 0x2F800 && (p) <= 0x2FA1F)                              \
      || ((p) >= 0x2F800 && (p) <= 0x2FA1F))
+// Combining Marks
+// 0300..036F; Basic range
+// 1DC0..1DFF; Supplements
+// 20D0..20FF; Symbols
+// FE20..FE2F; Half marks
+#define UTF8_IS_CM(p)                                                   \
+    (((p) >= 0x0300 && (p) <= 0x036F)                                   \
+     || ((p) >= 0x1DC0 && (p) <= 0x1DFF)                                \
+     || ((p) >= 0x20D0 && (p) <= 0x20FF)                                \
+     || ((p) >= 0xFE20 && (p) <= 0xFE2F))
 
 using namespace std;
 using namespace Dijon;
@@ -126,13 +106,13 @@ static void _split_string(string str, const string &delim,
 		str = str.substr(cut_at+1);
 	}
 
-	if (str.length() > 0)
+	if (str.empty() == false)
 	{
 		list.push_back(str);
 	}
 }
 
-static inline unsigned char *_unicode_to_char(unicode_char_t &uchar,
+static inline unsigned char *_unicode_to_char(gunichar &uchar,
 	unsigned char *p) 
 {
 	if (p == NULL)
@@ -140,9 +120,9 @@ static inline unsigned char *_unicode_to_char(unicode_char_t &uchar,
 		return NULL;
 	}
 
-	memset(p, 0, sizeof(unicode_char_t) + 1);
-	if (unicode_isspace(uchar) ||
-		(unicode_ispunct(uchar) && (uchar != '.')))
+	memset(p, 0, sizeof(gunichar) + 1);
+	if (g_unichar_isspace(uchar) ||
+		(g_unichar_ispunct(uchar) && (uchar != '.')))
 	{
 		p[0] = ' ';
 	}
@@ -201,11 +181,76 @@ CJKVTokenizer::CJKVTokenizer() :
 	m_maxTokenCount(0),
 	m_maxTextSize(5242880)
 {
-	unicode_init();
 }
 
 CJKVTokenizer::~CJKVTokenizer()
 {
+}
+
+string CJKVTokenizer::normalize(const string &str)
+{
+	// Normalize the string
+	gchar *normalized = g_utf8_normalize(str.c_str(), str.length(), G_NORMALIZE_NFKD);
+	if (normalized == NULL)
+	{
+		return "";
+	}
+
+	string normalized_str(normalized, strlen(normalized));
+
+	g_free(normalized);
+
+	return normalized_str;
+}
+
+string CJKVTokenizer::strip_marks(const string &str)
+{
+	if (str.empty() == true)
+	{
+		return "";
+	}
+
+	gchar *stripped = g_strdup(str.c_str());
+	gsize input_pos = 0, output_pos = 0;
+
+	if (stripped == NULL)
+	{
+		return "";
+	}
+
+	while (input_pos < strlen(stripped))
+	{
+		gunichar unichar = g_utf8_get_char_validated(&stripped[input_pos], -1);
+
+		if ((unichar == (gunichar)-1) ||
+			(unichar == (gunichar)-2))
+		{
+			break;
+		}
+
+		gchar *next_utf8 = g_utf8_next_char(&stripped[input_pos]);
+		gint utf8_len = next_utf8 - &stripped[input_pos];
+
+		// Is this a Combining Mark ?
+		if (!UTF8_IS_CM((guint32)unichar))
+		{
+			// No, it's not
+			if (input_pos != output_pos)
+			{
+				memmove(&stripped[output_pos], &stripped[input_pos], utf8_len);
+			}
+
+			output_pos += utf8_len;
+		}
+		input_pos += utf8_len;
+	}
+	stripped[output_pos] = '\0';
+
+	string stripped_str(stripped, output_pos);
+
+	g_free(stripped);
+
+	return stripped_str;
 }
 
 void CJKVTokenizer::set_ngram_size(unsigned int ngram_size)
@@ -251,11 +296,10 @@ void CJKVTokenizer::tokenize(const string &str, TokensHandler &handler,
 {
 	string token_str;
 	vector<string> temp_token_list;
-	vector<unicode_char_t> temp_uchar_list;
+	vector<gunichar> temp_uchar_list;
 	unsigned int tokens_count = 0;
 
-	split(str, temp_token_list);
-	split(str, temp_uchar_list);
+	split(str, temp_token_list, temp_uchar_list);
 
 	for (unsigned int i = 0; i < temp_token_list.size();)
 	{
@@ -281,7 +325,7 @@ void CJKVTokenizer::tokenize(const string &str, TokensHandler &handler,
 				if (UTF8_IS_CJKV(temp_uchar_list[j]))
 				{
 					token_str += temp_token_list[j];
-					if (handler.handle_token(token_str, true) == true)
+					if (handler.handle_token(normalize(token_str), true) == true)
 					{
 						++tokens_count;
 					}
@@ -332,9 +376,9 @@ void CJKVTokenizer::tokenize(const string &str, TokensHandler &handler,
 			{
 				break;
 			}
-			if (token_str.length() > 0)
+			if (token_str.empty() == false)
 			{
-				if (handler.handle_token(token_str, false) == true)
+				if (handler.handle_token(normalize(token_str), false) == true)
 				{
 					++tokens_count;
 				}
@@ -343,14 +387,16 @@ void CJKVTokenizer::tokenize(const string &str, TokensHandler &handler,
 	}
 }
 
-void CJKVTokenizer::split(const string &str, vector<string> &token_list)
+void CJKVTokenizer::split(const string &str,
+	vector<string> &string_list,
+	vector<gunichar> &unicode_list)
 {
-	unicode_char_t uchar;
+	gunichar uchar;
 	const char *str_ptr = str.c_str();
-	int str_utf8_len = unicode_strlen(str_ptr, str.length());
-	unsigned char p[sizeof(unicode_char_t) + 1];
+	glong str_utf8_len = g_utf8_strlen(str_ptr, str.length());
+	unsigned char p[sizeof(gunichar) + 1];
 
-	for (int i = 0; i < str_utf8_len; i++)
+	for (glong i = 0; i < str_utf8_len; i++)
 	{
 		str_ptr = unicode_get_utf8(str_ptr, &uchar);
 		if (str_ptr == NULL)
@@ -363,30 +409,8 @@ void CJKVTokenizer::split(const string &str, vector<string> &token_list)
 			break;
 		}
 
-		token_list.push_back((const char*)_unicode_to_char(uchar, p));
-	}
-}
-
-void CJKVTokenizer::split(const string &str, vector<unicode_char_t> &token_list)
-{
-	unicode_char_t uchar;
-	const char *str_ptr = str.c_str();
-	int str_utf8_len = unicode_strlen(str_ptr, str.length());
-
-	for (int i = 0; i < str_utf8_len; i++)
-	{
-		str_ptr = unicode_get_utf8(str_ptr, &uchar);
-		if (str_ptr == NULL)
-		{
-			break;
-		}
-
-		if (i >= m_maxTextSize)
-		{
-			break;
-		}
-
-		token_list.push_back(uchar);
+		string_list.push_back((const char*)_unicode_to_char(uchar, p));
+		unicode_list.push_back(uchar);
 	}
 }
 
@@ -408,9 +432,10 @@ void CJKVTokenizer::segment(const string &str, vector<string> &token_segment)
 
 bool CJKVTokenizer::has_cjkv(const string &str)
 {
-	vector<unicode_char_t> temp_uchar_list;
+	vector<string> temp_token_list;
+	vector<gunichar> temp_uchar_list;
 
-	split(str, temp_uchar_list);
+	split(str, temp_token_list, temp_uchar_list);
 
 	for (unsigned int i = 0; i < temp_uchar_list.size(); i++)
 	{
@@ -424,15 +449,16 @@ bool CJKVTokenizer::has_cjkv(const string &str)
 
 bool CJKVTokenizer::has_cjkv_only(const string &str)
 {
-	vector<unicode_char_t> temp_uchar_list;
+	vector<string> temp_token_list;
+	vector<gunichar> temp_uchar_list;
 
-	split(str, temp_uchar_list);
+	split(str, temp_token_list, temp_uchar_list);
 
 	for (unsigned int i = 0; i < temp_uchar_list.size(); i++)
 	{
 		if (!(UTF8_IS_CJKV(temp_uchar_list[i])))
 		{
-			unsigned char p[sizeof(unicode_char_t) + 1];
+			unsigned char p[sizeof(gunichar) + 1];
 
 			_unicode_to_char(temp_uchar_list[i], p);
 			if (isspace((int)p[0]) == 0)

@@ -1,6 +1,6 @@
 /*
  *  Copyright 2007-2008 林永忠 Yung-Chung Lin
- *  Copyright 2008-2011 Fabrice Colin
+ *  Copyright 2008-2012 Fabrice Colin
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -22,12 +22,7 @@
 
 #include <string>
 #include <vector>
-#ifdef HAVE_UNICODE_H
-#include <unicode.h>
-#else
 #include <glib.h>
-#define unicode_char_t gunichar
-#endif
 
 #ifndef DIJON_CJKV_EXPORT
 #if defined __GNUC__ && (__GNUC__ >= 4)
@@ -44,6 +39,10 @@ namespace Dijon
 		public:
 			CJKVTokenizer();
 			~CJKVTokenizer();
+
+			static std::string normalize(const std::string &str);
+
+			static std::string strip_marks(const std::string &str);
 
 			class TokensHandler
 			{
@@ -75,10 +74,8 @@ namespace Dijon
 				bool break_ascii_only_on_space = false);
 
 			void split(const std::string &str,
-				std::vector<std::string> &token_list);
-
-			void split(const std::string &str,
-				std::vector<unicode_char_t> &token_list);
+				std::vector<std::string> &string_list,
+				std::vector<gunichar> &unicode_list);
 
 			void segment(const std::string &str,
 				std::vector<std::string> &token_segment);
