@@ -219,6 +219,13 @@ This item is optional, and defaults to text/plain.
   <output>text/html</output>
 </filter>
 <filter>
+  <mimetype>text/x-rst</mimetype>
+  <charset>utf-8</charset>
+  <command>rst2html</command>
+  <arguments>-r 5 %s</arguments>
+  <output>text/html</output>
+</filter>
+<filter>
   <mimetype>application/msword</mimetype>
   <charset>utf-8</charset>
   <command>antiword</command>

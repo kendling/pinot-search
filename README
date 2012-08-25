@@ -279,6 +279,7 @@ formerly at http://pinot.berlios.de/
   The following document types are supported through external programs :
     * PDF (pdftotext required)
     * RTF (unrtf required)
+    * ReStructured Text (rst2html required)
     * OpenDocument/StarOffice files (unzip required)
     * MS Word (antiword required)
     * PowerPoint (catppt required)
@@ -579,6 +580,9 @@ http://www.winfield.demon.nl/
 
 unrtf
 http://www.gnu.org/software/unrtf/unrtf.html
+
+rst2html
+http://docutils.sourceforge.net
 
 djvutxt							
 http://djvu.sourceforge.net/
