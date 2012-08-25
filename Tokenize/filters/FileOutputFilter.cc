@@ -50,12 +50,14 @@ bool FileOutputFilter::read_file(int fd, ssize_t maxSize, ssize_t &totalSize)
 	ssize_t bytesRead = 0;
 	bool gotOutput = true;
 
-#ifdef DEBUG
-	if (fstat(fd, &fdStats) == 0)
+	if ((fstat(fd, &fdStats) != 0) ||
+		(fdStats.st_size == 0))
 	{
-		clog << "FileOutputFilter::read_file: file size " << fdStats.st_size << endl;
+	        m_metaData["size"] = "0";
+
+		return true;
 	}
-#endif
+	clog << "FileOutputFilter::read_file: file size " << fdStats.st_size << endl;
 
 	do
 	{
