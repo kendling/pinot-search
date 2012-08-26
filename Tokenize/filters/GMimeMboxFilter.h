@@ -31,9 +31,11 @@
 #include "Filter.h"
 
 #ifdef GMIME_ENABLE_RFC2047_WORKAROUNDS
-#define GMIME_OFFSET_TYPE gint64 
+#define GMIME_OFFSET_TYPE gint64
+#define GMIME_OFFSET_MODIFIER "%ld" 
 #else
 #define GMIME_OFFSET_TYPE off_t
+#define GMIME_OFFSET_MODIFIER "%lld"
 #endif
 
 namespace Dijon
@@ -166,6 +168,8 @@ namespace Dijon
 	bool extractPart(GMimeObject *mimeObject, GMimeMboxPart &mboxPart);
 
 	bool extractMessage(const std::string &subject);
+
+	void extractMetaData(GMimeMboxPart &mboxPart);
 
     private:
 	/// GMimeMboxFilter objects cannot be copied.

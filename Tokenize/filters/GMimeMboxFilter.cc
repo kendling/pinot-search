@@ -30,21 +30,23 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
+#include <algorithm>
 
 #include <gmime/gmime.h>
 
 #include "GMimeMboxFilter.h"
 
 using std::clog;
-using std::clog;
 using std::endl;
 using std::string;
+using std::max;
 using std::map;
+using std::set;
 using std::pair;
 using namespace Dijon;
 
 #ifdef _DYNAMIC_DIJON_FILTERS
-DIJON_FILTER_EXPORT bool get_filter_types(std::set<std::string> &mime_types)
+DIJON_FILTER_EXPORT bool get_filter_types(set<string> &mime_types)
 {
 	mime_types.clear();
 	mime_types.insert("application/mbox");
@@ -67,7 +69,7 @@ DIJON_FILTER_EXPORT bool check_filter_data_input(int data_input)
 	return false;
 }
 
-DIJON_FILTER_EXPORT Filter *get_filter(const std::string &mime_type)
+DIJON_FILTER_EXPORT Filter *get_filter(const string &mime_type)
 {
 	return new GMimeMboxFilter(mime_type);
 }
@@ -299,7 +301,7 @@ bool GMimeMboxFilter::skip_to_document(const string &ipath)
 	}
 
 	// ipath's format is "o=offset&l=part_levels"
-	if (sscanf(ipath.c_str(), "o=%u&l=[", (unsigned int*)&m_messageStart) != 1)
+	if (sscanf(ipath.c_str(), "o="GMIME_OFFSET_MODIFIER"&l=[", &m_messageStart) != 1)
 	{
 		return false;
 	}
@@ -402,19 +404,18 @@ bool GMimeMboxFilter::initializeData(void)
 		return false;
 	}
 
+	ssize_t streamLength = g_mime_stream_length(m_pGMimeMboxStream);
 	if (m_messageStart > 0)
 	{
-		ssize_t streamLength = g_mime_stream_length(m_pGMimeMboxStream);
-
-#ifdef DEBUG
-		clog << "GMimeMboxFilter::initializeData: from offset " << m_messageStart
-			<< " to " << streamLength << endl;
-#endif
 		if (m_messageStart > (GMIME_OFFSET_TYPE)streamLength)
 		{
 			// This offset doesn't make sense !
 			m_messageStart = 0;
 		}
+#ifdef DEBUG
+		clog << "GMimeMboxFilter::initializeData: from offset " << m_messageStart
+			<< " to " << streamLength << endl;
+#endif
 
 		g_mime_stream_set_bounds(m_pGMimeMboxStream, m_messageStart, (GMIME_OFFSET_TYPE)streamLength);
 	}
@@ -440,14 +441,15 @@ bool GMimeMboxFilter::initializeFile(void)
 			// This offset doesn't make sense !
 			m_messageStart = 0;
 		}
+#ifdef DEBUG
+		clog << "GMimeMboxFilter::initializeFile: from offset " << m_messageStart
+			<< " to " << streamLength << endl;
+#endif
 
 #ifdef HAVE_MMAP
 		m_pGMimeMboxStream = g_mime_stream_mmap_new_with_bounds(m_fd, PROT_READ, MAP_PRIVATE, m_messageStart, (GMIME_OFFSET_TYPE)streamLength);
 #else
 		m_pGMimeMboxStream = g_mime_stream_fs_new_with_bounds(m_fd, m_messageStart, (GMIME_OFFSET_TYPE)streamLength);
-#endif
-#ifdef DEBUG
-		clog << "GMimeMboxFilter::initializeFile: stream starts at offset " << m_messageStart << endl;
 #endif
 	}
 	else
@@ -600,48 +602,23 @@ bool GMimeMboxFilter::nextPart(const string &subject)
 			m_content.clear();
 			if (extractPart(pMimePart, mboxPart) == true)
 			{
-				string ipath;
-				char posStr[128];
-
-				// New document
-				m_metaData.clear();
-				m_metaData["title"] = mboxPart.m_subject;
-				m_metaData["mimetype"] = mboxPart.m_contentType;
-				if (m_messageDate.empty() == false)
-				{
-					m_metaData["date"] = m_messageDate;
-				}
-				m_metaData["charset"] = m_partCharset;
-				snprintf(posStr, 128, "%u", m_content.length());
-				m_metaData["size"] = posStr;
-				snprintf(posStr, 128, "o=%u&l=", m_messageStart);
-				ipath = posStr;
-				for (map<int, pair<int, int> >::const_iterator levelIter = m_levels.begin();
-					levelIter != m_levels.end(); ++levelIter)
-				{
-					int partNum = levelIter->second.second;
-
-					if (levelIter->first == m_partLevel)
-					{
-						partNum = m_partNum;
-					}
-					snprintf(posStr, 128, "[%d,%d,%d]", levelIter->first, levelIter->second.first, partNum);
-					ipath += posStr;
-				}
-				m_metaData["ipath"] = ipath;
-#ifdef DEBUG
-				clog << "GMimeMboxFilter::nextPart: message location is " << ipath << endl; 
-#endif
+				extractMetaData(mboxPart);
 
 #ifndef GMIME_ENABLE_RFC2047_WORKAROUNDS
-				g_mime_object_unref(pMimePart);
+				if (pMimePart != NULL)
+				{
+					g_mime_object_unref(pMimePart);
+				}
 #endif
 
 				return true;
 			}
 
 #ifndef GMIME_ENABLE_RFC2047_WORKAROUNDS
-			g_mime_object_unref(pMimePart);
+			if (pMimePart != NULL)
+			{
+				g_mime_object_unref(pMimePart);
+			}
 #endif
 		}
 
@@ -685,13 +662,13 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	// Is this a multipart ?
 	if (GMIME_IS_MULTIPART(part))
 	{
-		int partNum = 0;
+		int partsCount = 0, partNum = 0;
 		bool gotPart = false;
 
 #ifdef GMIME_ENABLE_RFC2047_WORKAROUNDS
-		m_partsCount = g_mime_multipart_get_count(GMIME_MULTIPART(part));
+		m_partsCount = partsCount = g_mime_multipart_get_count(GMIME_MULTIPART(part));
 #else
-		m_partsCount = g_mime_multipart_get_number(GMIME_MULTIPART(part));
+		m_partsCount = partsCount = g_mime_multipart_get_number(GMIME_MULTIPART(part));
 #endif
 		++m_currentLevel;
 #ifdef DEBUG
@@ -700,7 +677,7 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 
 		map<int, pair<int, int> >::iterator levelIter = m_levels.find(m_currentLevel);
 		if (levelIter != m_levels.end())
-		{
+ 		{
 			pair<int, int> partPair = levelIter->second;
 #ifdef DEBUG
 			clog << "GMimeMboxFilter::extractPart: level " << m_currentLevel << " had " << partPair.first << " parts" << endl;
@@ -742,36 +719,39 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 			}
 		}
 
+		// Were all parts in the next level parsed ?
+		levelIter = m_levels.find(m_currentLevel + 1);
+		if ((levelIter == m_levels.end()) ||
+			(levelIter->second.second + 1 > levelIter->second.first))
+		{
+			// Move to the next part at this level
+			++partNum;
+		}
+
+		levelIter = m_levels.find(m_currentLevel);
+		if (levelIter != m_levels.end())
+		{
+			if (partNum > levelIter->second.second)
+			{
+				levelIter->second.second = partNum;
+#ifdef DEBUG
+				clog << "GMimeMboxFilter::extractPart: remembering to restart level "
+					<< m_currentLevel << " at part " << partNum << endl;
+#endif
+			}
+		}
+		else
+		{
+			m_levels[m_currentLevel] = pair<int, int>(partsCount, partNum);
+#ifdef DEBUG
+			clog << "GMimeMboxFilter::extractPart: remembering to restart level "
+				<< m_currentLevel << " at part " << partNum << endl;
+#endif
+		}
+		--m_currentLevel;
+
 		if (gotPart == true)
 		{
-			// Were all parts in the next level parsed ?
-			map<int, pair<int, int> >::iterator levelIter = m_levels.find(m_currentLevel + 1);
-			if ((levelIter == m_levels.end()) ||
-				(levelIter->second.second + 1 >= levelIter->second.first))
-			{
-				// Move to the next part at this level
-				++partNum;
-			}
-
-			levelIter = m_levels.find(m_currentLevel);
-			if (levelIter != m_levels.end())
-			{
-				if (partNum > levelIter->second.second)
-				{
-					levelIter->second.second = partNum;
-#ifdef DEBUG
-					clog << "GMimeMboxFilter::extractPart: remembering to restart level " << m_currentLevel << " at part " << partNum << endl;
-#endif
-				}
-			}
-			else
-			{
-				m_levels[m_currentLevel] = pair<int, int>(m_partsCount, partNum);
-#ifdef DEBUG
-				clog << "GMimeMboxFilter::extractPart: remembering to restart level " << m_currentLevel << " at part " << partNum << endl;
-#endif
-			}
-			--m_currentLevel;
 
 			return true;
 		}
@@ -1106,4 +1086,40 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 	}
 
 	return false;
+}
+
+void GMimeMboxFilter::extractMetaData(GMimeMboxPart &mboxPart)
+{
+	string ipath;
+	char posStr[128];
+
+	// New document
+	m_metaData.clear();
+	m_metaData["title"] = mboxPart.m_subject;
+	m_metaData["mimetype"] = mboxPart.m_contentType;
+	if (m_messageDate.empty() == false)
+	{
+		m_metaData["date"] = m_messageDate;
+	}
+	m_metaData["charset"] = m_partCharset;
+	snprintf(posStr, 128, "%lu", m_content.length());
+	m_metaData["size"] = posStr;
+	snprintf(posStr, 128, "o=%u&l=", m_messageStart);
+	ipath = posStr;
+	for (map<int, pair<int, int> >::const_iterator levelIter = m_levels.begin();
+		levelIter != m_levels.end(); ++levelIter)
+	{
+		int partNum = max(levelIter->second.second - 1, 0);
+
+		if (levelIter->first == m_partLevel)
+		{
+			partNum = m_partNum;
+		}
+		snprintf(posStr, 128, "[%d,%d,%d]", levelIter->first, levelIter->second.first, partNum);
+		ipath += posStr;
+	}
+	m_metaData["ipath"] = ipath;
+#ifdef DEBUG
+	clog << "GMimeMboxFilter::extractMetaData: message location is " << ipath << endl; 
+#endif
 }
