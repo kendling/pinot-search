@@ -396,6 +396,7 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 #ifdef DEBUG
 	clog << "ExternalFilter::run_command: running " << commandLine << endl;
 #endif
+
 	// Fork and execute the command
 	pid_t childPid = fork();
 	if (childPid == 0)
@@ -403,11 +404,10 @@ bool ExternalFilter::run_command(const string &command, ssize_t maxSize)
 		// Child process
 		// Close the parent's side of the socket pair
 		close(fds[0]);
-		// Connect stdout to our side of the socket pair
+		// Connect stdout, stderr and stdlog to our side of the socket pair
 		dup2(fds[1], 1);
-		// Close stdout and stdlog
-		close(2);
-		close(3);
+		dup2(fds[1], 2);
+		dup2(fds[1], 3);
 
 		// Limit CPU time for external programs to 300 seconds
 		struct rlimit cpu_limit = { 300, RLIM_INFINITY } ;

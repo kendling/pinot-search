@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2011 Fabrice Colin
+ *  Copyright 2008-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -72,6 +72,7 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 	gsize inputSize = (gsize)text.length();
 	bool invalidSequence = false;
 
+	outputText.clear();
 	try
 	{
 		IConv converter("UTF-8", textCharset);
