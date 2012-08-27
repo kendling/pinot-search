@@ -1,3 +1,14 @@
+2012/08/27 version_1_0_1
+General :
+ - run rst2html on RST files, if available, and if RST files are detected as such.
+ See http://code.google.com/p/pinot-search/issues/detail?id=12
+Tokenize :
+ - better mbox parts extraction
+IndexSearch :
+ - dropped unac in favour of own code, resulting in faster indexing.
+ - pinot-index --override MIMETYPE:EXTENSION overrides MIME type detection
+ based on files extensions
+
 2012/06/16 version_1_0_0
 General :
  - install headers and libraries
