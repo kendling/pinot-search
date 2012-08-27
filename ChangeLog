@@ -1,4 +1,98 @@
 ------------------------------------------------------------------------
+r1854 | fabrice.colin@gmail.com | 2012-08-27 21:20:31 +0800 (Mon, 27 Aug 2012) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-daemon.1
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/NEWS
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Releasing v1.01.
+
+------------------------------------------------------------------------
+r1853 | fabrice.colin@gmail.com | 2012-08-27 21:05:55 +0800 (Mon, 27 Aug 2012) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+   M /trunk/Utils/MIMEScanner.cpp
+   M /trunk/Utils/MIMEScanner.h
+
+Allow to override MIME type detection with "-o/--override MIMETYPE:EXTENSION".
+
+------------------------------------------------------------------------
+r1852 | fabrice.colin@gmail.com | 2012-08-26 13:19:53 +0800 (Sun, 26 Aug 2012) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/filters/GMimeMboxFilter.cc
+   M /trunk/Tokenize/filters/GMimeMboxFilter.h
+
+Fixed parts parsing.
+
+------------------------------------------------------------------------
+r1851 | fabrice.colin@gmail.com | 2012-08-26 13:19:08 +0800 (Sun, 26 Aug 2012) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/TextConverter.cpp
+   M /trunk/Tokenize/filters/ExternalFilter.cc
+   M /trunk/Tokenize/filters/FileOutputFilter.cc
+
+Various fixes.
+
+------------------------------------------------------------------------
+r1850 | fabrice.colin@gmail.com | 2012-08-25 17:23:09 +0800 (Sat, 25 Aug 2012) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/README
+   M /trunk/Tokenize/filters/external-filters.xml
+
+Add an entry for RST files, as suggested by Takafumi Arakaki in
+http://code.google.com/p/pinot-search/issues/detail?id=12
+
+------------------------------------------------------------------------
+r1849 | fabrice.colin@gmail.com | 2012-08-25 17:19:36 +0800 (Sat, 25 Aug 2012) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/filters/FileOutputFilter.cc
+
+Catch zero outputs early.
+
+------------------------------------------------------------------------
+r1848 | fabrice.colin@gmail.com | 2012-08-05 16:58:44 +0800 (Sun, 05 Aug 2012) | 3 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/cjkv/CJKVTokenizer.cc
+   M /trunk/IndexSearch/cjkv/CJKVTokenizer.h
+   M /trunk/Utils/Makefile.am
+   M /trunk/Utils/StringManip.cpp
+   M /trunk/Utils/StringManip.h
+   D /trunk/Utils/unac
+
+Dropped unac in favour of our own code.
+UTF-8 strings are normalized. Some other minor changes.
+
+------------------------------------------------------------------------
+r1847 | fabrice.colin@gmail.com | 2012-08-05 09:44:43 +0800 (Sun, 05 Aug 2012) | 2 lines
+Changed paths:
+   M /trunk/Utils/unac/unac.c
+
+Updated to unac 1.8.0.
+
+------------------------------------------------------------------------
+r1846 | fabrice.colin@gmail.com | 2012-07-10 18:36:43 +0800 (Tue, 10 Jul 2012) | 2 lines
+Changed paths:
+   M /trunk/textcat32_conf.txt
+
+This was in DOS format for some reason...
+
+------------------------------------------------------------------------
+r1844 | fabrice.colin@gmail.com | 2012-06-16 15:21:09 +0800 (Sat, 16 Jun 2012) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Current logs.
+
+------------------------------------------------------------------------
 r1843 | fabrice.colin@gmail.com | 2012-06-15 23:09:30 +0800 (Fri, 15 Jun 2012) | 2 lines
 Changed paths:
    M /trunk/Core/pinot-dbus-daemon.1
