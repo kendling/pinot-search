@@ -119,6 +119,9 @@ class PINOT_EXPORT MIMEScanner
 		/// Lists MIME configuration files under the given prefix.
 		static void listConfigurationFiles(const std::string &prefix, std::set<std::string> &files);
 
+		/// Adds a MIME type override.
+		static void addOverride(const std::string &mimeType, const std::string &extension);
+
 		/// Finds out the given file's MIME type.
 		static std::string scanFile(const std::string &fileName);
 
@@ -152,6 +155,8 @@ class PINOT_EXPORT MIMEScanner
 		/// MIME type caches, ordered by decreasing priority.
 		static std::list<MIMECache> m_caches;
 #endif
+		/// MIME type overrides.
+		static std::map<std::string, std::string> m_overrides;
 
 		MIMEScanner();
 

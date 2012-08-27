@@ -51,6 +51,7 @@ static struct option g_longOptions[] = {
 	{"db", 1, 0, 'd'},
 	{"help", 0, 0, 'h'},
 	{"index", 0, 0, 'i'},
+	{"override", 1, 0, 'o'},
 	{"showinfo", 0, 0, 's'},
 	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
@@ -154,6 +155,7 @@ static void printHelp(void)
 		<< "  -d, --db                  path to, or name of, index to use (mandatory)\n"
 		<< "  -h, --help                display this help and exit\n"
 		<< "  -i, --index               index the given URL\n"
+		<< "  -o, --override            MIME type detection override, as TYPE:EXT\n"
 		<< "  -s, --showinfo            show information about the document\n"
 		<< "  -v, --version             output version information and exit\n\n"
 		<< "Supported back-ends are :";
@@ -169,6 +171,7 @@ static void printHelp(void)
 	clog << "\n\nExamples:\n"
 		<< "pinot-index --check --showinfo --backend xapian --db ~/.pinot/daemon ../Bozo.txt\n\n"
 		<< "pinot-index --index --db PinotOnTheWeb http://code.google.com/p/pinot-search/\n\n"
+		<< "pinot-index --index --db Docs --override text/x-rst:rst /usr/share/doc/python-kitchen-1.1.1/docs/index.rst\n\n"
 		<< "Indexing documents to My Web Pages or My Documents with pinot-index is not recommended\n\n"
 		<< "Report bugs to " << PACKAGE_BUGREPORT << endl;
 }
@@ -209,7 +212,7 @@ int main(int argc, char **argv)
 	bool checkDocument = false, indexDocument = false, showInfo = false, success = false;
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "b:cd:hisv", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "b:cd:hio:sv", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		set<string> engines;
@@ -237,6 +240,19 @@ int main(int argc, char **argv)
 			case 'i':
 				indexDocument = true;
 				break;
+			case 'o':
+				if (optarg != NULL)
+				{
+					string override(optarg);
+					string::size_type pos = override.find(':');
+
+					if ((pos != string::npos) &&
+						(pos + 1 < override.length()))
+					{
+						MIMEScanner::addOverride(override.substr(0, pos), override.substr(pos + 1));
+					}
+				}
+				break;
 			case 's':
 				showInfo = true;
 				break;
@@ -251,7 +267,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "b:cd:hisv", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "b:cd:hio:sv", g_longOptions, &longOptionIndex);
 	}
 
 #if defined(ENABLE_NLS)

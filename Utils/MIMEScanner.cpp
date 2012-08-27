@@ -443,6 +443,7 @@ pthread_mutex_t MIMEScanner::m_xdgMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_rwlock_t MIMEScanner::m_cachesLock = PTHREAD_RWLOCK_INITIALIZER;
 list<MIMECache> MIMEScanner::m_caches;
 #endif
+map<string, string> MIMEScanner::m_overrides;
 
 MIMEScanner::MIMEScanner()
 {
@@ -560,6 +561,21 @@ string MIMEScanner::scanFileType(const string &fileName)
 	}
 
 	// Does it have an obvious extension ?
+	for (map<string, string>::const_iterator overrideIter = m_overrides.begin();
+		overrideIter != m_overrides.end(); ++overrideIter)
+	{
+		string ext(overrideIter->second);
+
+		if (fileName.find(ext) == fileName.length() - ext.length())
+		{
+			// This extension matches
+#ifdef DEBUG
+			clog << "MIMEScanner::scanFileType: " << fileName << " has extension "
+				<< ext << ", is type " << overrideIter->first << endl;
+#endif
+			return overrideIter->first;
+		}
+	}
 #ifdef USE_GIO
 	char *pType = g_content_type_guess(fileName.c_str(), NULL, 0, NULL);
 #else
@@ -619,6 +635,12 @@ string MIMEScanner::scanFileType(const string &fileName)
 #endif
 
 	return mimeType;
+}
+
+/// Adds a MIME type override.
+void MIMEScanner::addOverride(const string &mimeType, const string &extension)
+{
+	m_overrides.insert(pair<string, string>(mimeType, extension));
 }
 
 /// Finds out the given file's MIME type.
