@@ -53,6 +53,9 @@
     https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=178592
     The latest version seems to fix this issue.
 
+  * If the daemon crashes with a backtrace pointing at boost::pool_allocator<>,
+    rebuild with the configure option "--enable-mempool=no".
+
   * If the daemon crashes seemingly randomly while indexing, it may be because
     SQLite wasn't built thread-safe. I have witnessed this mostly on dual CPU
     machines, but others are not immune. Try rebuilding SQLite by passing
