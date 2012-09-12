@@ -5,7 +5,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 1.0\n"
+"Project-Id-Version: pinot 1.01\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-06-10 15:41+0800\n"
 "PO-Revision-Date: 2011-02-14 01:26+0000\n"

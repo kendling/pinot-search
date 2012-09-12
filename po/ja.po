@@ -5,11 +5,11 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 1.0\n"
+"Project-Id-Version: pinot 1.01\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-10 15:41+0800\n"
-"PO-Revision-Date: 2010-08-16 05:23+0000\n"
-"Last-Translator: Takeo Mizuki <Unknown>\n"
+"POT-Creation-Date: 2012-06-11 09:58+0800\n"
+"PO-Revision-Date: 2012-09-07 11:52+0000\n"
+"Last-Translator: tkf <Unknown>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -436,7 +436,7 @@ msgstr "on"
 
 #: UI/GTK2/src/mainWindow.cc:1502
 msgid "ended"
-msgstr ""
+msgstr "終了"
 
 #: UI/GTK2/src/mainWindow.cc:1659
 msgid "More Like"
@@ -461,7 +461,7 @@ msgstr "インデックスされていない文書"
 
 #: UI/GTK2/src/mainWindow.cc:1967
 msgid "Couldn't rename index, name"
-msgstr ""
+msgstr "インデックス名を変更出来ませんでした"
 
 #: UI/GTK2/src/mainWindow.cc:1971 UI/GTK2/src/mainWindow.cc:2800
 #: UI/GTK2/src/mainWindow.cc:3358
@@ -535,8 +535,7 @@ msgstr "次のキーワードに対する履歴はありませんでした。"
 
 #: UI/GTK2/src/mainWindow.cc:3167 UI/GTK2/src/prefsWindow.cc:975
 msgid "At least one task hasn't completed yet. Quit now ?"
-msgstr ""
-"少なくともひとつ以上のタスクが未だ完了していません。いま直ぐ終了しますか？"
+msgstr "少なくともひとつ以上のタスクが未だ完了していません。いま直ぐ終了しますか？"
 
 #: UI/GTK2/src/mainWindow.cc:3169 UI/GTK2/src/prefsWindow.cc:977
 msgid "Quit"
@@ -612,7 +611,7 @@ msgstr "さらに類似を探す"
 
 #: UI/GTK2/src/mainWindow_glade.cc:195 UI/GTK2/src/mainWindow_glade.cc:303
 msgid "Search This For"
-msgstr ""
+msgstr "このキーワードについて調べる"
 
 #: UI/GTK2/src/mainWindow_glade.cc:228 UI/GTK2/src/mainWindow_glade.cc:336
 msgid "Search Engine"
@@ -628,7 +627,7 @@ msgstr "コンテンツ一覧"
 
 #: UI/GTK2/src/mainWindow_glade.cc:237 UI/GTK2/src/mainWindow_glade.cc:345
 msgid "Group Results By"
-msgstr ""
+msgstr "結果をグループ分けする"
 
 #: UI/GTK2/src/mainWindow_glade.cc:240 UI/GTK2/src/mainWindow_glade.cc:349
 msgid "Show Extracts"
@@ -666,7 +665,7 @@ msgstr "Pinot"
 
 #: UI/GTK2/src/Notebook.cc:87
 msgid "Did you mean ?"
-msgstr ""
+msgstr "もしかして"
 
 #: UI/GTK2/src/Notebook.cc:98 UI/GTK2/src/Notebook.cc:272
 msgid "Close"
@@ -721,9 +720,9 @@ msgid "New Label"
 msgstr "新規ラベル"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:69
-msgid "These directories will be indexed and optionally monitored for changes:"
-msgstr ""
-"このディレクトリはインデックス化され、変更をモニターすることも可能です。"
+msgid ""
+"These directories will be indexed and optionally monitored for changes:"
+msgstr "このディレクトリはインデックス化され、変更をモニターすることも可能です。"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:74 UI/GTK2/src/prefsWindow_glade.cc:90
 #: UI/GTK2/src/prefsWindow_glade.cc:106
@@ -784,7 +783,7 @@ msgstr "robots.txtとロボット用メタタグを無視"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:149
 msgid "HTTP crawling:"
-msgstr "HTTPクローリング"
+msgstr "HTTPを探索中"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:151
 msgid "New results:"
@@ -796,7 +795,7 @@ msgstr "その他"
 
 #: UI/GTK2/src/prefsWindow_glade.cc:636
 msgid "Pinot Preferences"
-msgstr ""
+msgstr "設定"
 
 #: UI/GTK2/src/propertiesDialog.cc:106
 msgid "Per document"
@@ -968,7 +967,7 @@ msgstr "結果"
 
 #: UI/GTK2/src/statisticsDialog.cc:222
 msgid "Crawled"
-msgstr ""
+msgstr "探索済み"
 
 #: UI/GTK2/src/statisticsDialog.cc:222
 msgid "files"
@@ -1001,7 +1000,7 @@ msgstr "ディスク空き容量が少ない"
 
 #: UI/GTK2/src/statisticsDialog.cc:345
 msgid "System on battery"
-msgstr ""
+msgstr "バッテリーで動作中"
 
 #: UI/GTK2/src/statisticsDialog.cc:363
 msgid "Crawling"
@@ -1010,15 +1009,3 @@ msgstr "探索中"
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "エラー"
-
-#~ msgid "failed to begin transaction"
-#~ msgstr "トランザクションの開始に失敗しました。"
-
-#~ msgid "failed to rollback transaction"
-#~ msgstr "トランザクションのロールバックに失敗しました。"
-
-#~ msgid "failed to end transaction"
-#~ msgstr "トランザクションの終了に失敗しました。"
-
-#~ msgid "couldn't format SQL statement"
-#~ msgstr "SQLステートメントをフォーマットできませんでした。"
