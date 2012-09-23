@@ -7,8 +7,8 @@ msgstr ""
 "Project-Id-Version: pinot 1.01\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-06-10 15:41+0800\n"
-"PO-Revision-Date: 2010-08-22 08:34+0000\n"
-"Last-Translator: feen <Unknown>\n"
+"PO-Revision-Date: 2012-09-19 16:27+0000\n"
+"Last-Translator: Adriano Steffler <Unknown>\n"
 "Language-Team: Portuguese (Brazil) <pt_BR@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -42,7 +42,7 @@ msgstr "French"
 
 #: Core/pinot-dbus-daemon.cpp:558 UI/GTK2/src/pinot.cc:316
 msgid "German"
-msgstr "German"
+msgstr "Alemão"
 
 #: Core/pinot-dbus-daemon.cpp:559 UI/GTK2/src/pinot.cc:317
 msgid "Hungarian"
@@ -1009,15 +1009,3 @@ msgstr "Rastreando"
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "Erros"
-
-#~ msgid "failed to begin transaction"
-#~ msgstr "falha em iniciar transação"
-
-#~ msgid "failed to rollback transaction"
-#~ msgstr "falha em reduzir transação"
-
-#~ msgid "failed to end transaction"
-#~ msgstr "falha em finalizar transação"
-
-#~ msgid "couldn't format SQL statement"
-#~ msgstr "impossível formatar frase SQL"
