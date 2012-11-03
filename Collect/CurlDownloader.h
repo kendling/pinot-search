@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #define _CURL_DOWNLOADER_H
 
 #include <string>
+#include <map>
 
 #include "DownloaderInterface.h"
 
@@ -30,11 +31,26 @@ class CurlDownloader : public DownloaderInterface
 		CurlDownloader();
 		virtual ~CurlDownloader();
 
-		/// Retrieves the specified document; NULL if error. Caller deletes.
+		/**
+		  * Retrieves the specified document.
+		  * NULL if error. Caller deletes.
+		  */
 		virtual Document *retrieveUrl(const DocumentInfo &docInfo);
+
+		/**
+		  * Puts the specified document at the given URL.
+		  * NULL if error. Caller deletes.
+		  */
+		virtual Document *putUrl(const DocumentInfo &docInfo,
+			const std::map<std::string, std::string> &headers,
+			const std::string &url);
 
 	protected:
 		static unsigned int m_initialized;
+
+		static Document *populateDocument(const DocumentInfo &docInfo,
+			const std::string &url, void *pHandler,
+			void *pInfo);
 
 	private:
 		CurlDownloader(const CurlDownloader &other);

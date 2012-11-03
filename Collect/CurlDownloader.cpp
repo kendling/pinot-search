@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2012 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -149,6 +149,41 @@ CurlDownloader::~CurlDownloader()
 	}
 }
 
+Document *CurlDownloader::populateDocument(const DocumentInfo &docInfo,
+	const string &url, void *pHandler, void *pInfo)
+{
+	if ((pHandler == NULL) ||
+		(pInfo == NULL))
+	{
+		return NULL;
+	}
+
+	Document *pDocument = new Document(docInfo);
+	ContentInfo *pContentInfo = (ContentInfo *)pInfo;
+	char *pContentType = NULL;
+
+	// Copy the document content
+	pDocument->setData(pContentInfo->m_pContent, pContentInfo->m_contentLen);
+	pDocument->setLocation(url);
+	pDocument->setSize((off_t )pContentInfo->m_contentLen);
+
+	// What's the Content-Type ?
+	CURLcode res = curl_easy_getinfo((CURL *)pHandler, CURLINFO_CONTENT_TYPE, &pContentType);
+	if ((res == CURLE_OK) &&
+		(pContentType != NULL))
+	{
+		pDocument->setType(pContentType);
+	}
+
+	// The Last-Modified date ?
+	if (pContentInfo->m_lastModified.empty() == false)
+	{
+		pDocument->setTimestamp(pContentInfo->m_lastModified);
+	}
+
+	return pDocument;
+}
+
 //
 // Implementation of DownloaderInterface
 //
@@ -236,27 +271,8 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 				(pContentInfo->m_pContent != NULL) &&
 				(pContentInfo->m_contentLen > 0))
 			{
-				char *pContentType = NULL;
-
-				// Copy the document content
-				pDocument = new Document(docInfo);
-				pDocument->setData(pContentInfo->m_pContent, pContentInfo->m_contentLen);
-				pDocument->setLocation(url);
-				pDocument->setSize((off_t )pContentInfo->m_contentLen);
-
-				// What's the Content-Type ?
-				res = curl_easy_getinfo(pCurlHandler, CURLINFO_CONTENT_TYPE, &pContentType);
-				if ((res == CURLE_OK) &&
-					(pContentType != NULL))
-				{
-					pDocument->setType(pContentType);
-				}
-
-				// The Last-Modified date ?
-				if (pContentInfo->m_lastModified.empty() == false)
-				{
-					pDocument->setTimestamp(pContentInfo->m_lastModified);
-				}
+				pDocument = populateDocument(docInfo, url,
+					pCurlHandler, pContentInfo);
 
 #ifdef HAVE_REGEX_H
 				regex_t refreshRegex;
@@ -306,6 +322,109 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 		// Cleanup
 		curl_easy_cleanup(pCurlHandler);
 	}
+
+	return pDocument;
+}
+
+Document *CurlDownloader::putUrl(const DocumentInfo &docInfo,
+	const map<string, string> &headers,
+	const string &url)
+{
+	Document *pDocument = NULL;
+	struct curl_slist *pHeadersList = NULL;
+	string mimeType(docInfo.getType());
+	string fileLocation(docInfo.getLocation());
+	char pBuffer[1024];
+
+	if (url.empty() == true)
+	{
+#ifdef DEBUG
+		clog << "CurlDownloader::putUrl: no URL specified !" << endl;
+#endif
+		return NULL;
+	}
+
+	FILE *pFile = fopen(fileLocation.c_str(), "r");
+	if (pFile == NULL)
+	{
+#ifdef DEBUG
+		clog << "CurlDownloader::putUrl: couldn't open file " << fileLocation << endl;
+#endif
+		return NULL;
+	}
+
+	// Create a session
+	CURL *pCurlHandler = curl_easy_init();
+	if (pCurlHandler == NULL)
+	{
+		fclose(pFile);
+
+		return NULL;
+	}
+
+	ContentInfo *pContentInfo = new ContentInfo;
+
+	pContentInfo->m_pContent = NULL;
+	pContentInfo->m_contentLen = 0;
+
+	// Add headers
+	for (map<string, string>::const_iterator headerIter = headers.begin();
+		headerIter != headers.end(); ++headerIter)
+	{
+		snprintf(pBuffer, sizeof(pBuffer), "%s: %s",
+			headerIter->first.c_str(),
+			headerIter->second.c_str());
+
+		pHeadersList = curl_slist_append(pHeadersList, pBuffer);
+	}
+
+	curl_easy_setopt(pCurlHandler, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(pCurlHandler, CURLOPT_USERAGENT, m_userAgent.c_str());
+	curl_easy_setopt(pCurlHandler, CURLOPT_NOSIGNAL, (long)1);
+	curl_easy_setopt(pCurlHandler, CURLOPT_TIMEOUT, (long)m_timeout);
+#ifndef DEBUG
+	curl_easy_setopt(pCurlHandler, CURLOPT_NOPROGRESS, 1);
+#endif
+	curl_easy_setopt(pCurlHandler, CURLOPT_HTTPHEADER, pHeadersList);
+	curl_easy_setopt(pCurlHandler, CURLOPT_URL, url.c_str());
+	// Use the default read function
+	curl_easy_setopt(pCurlHandler, CURLOPT_READFUNCTION, NULL);
+	curl_easy_setopt(pCurlHandler, CURLOPT_READDATA, pFile);
+	curl_easy_setopt(pCurlHandler, CURLOPT_WRITEFUNCTION, writeCallback);
+	curl_easy_setopt(pCurlHandler, CURLOPT_WRITEDATA, pContentInfo);
+	curl_easy_setopt(pCurlHandler, CURLOPT_HEADERFUNCTION, headerCallback);
+	curl_easy_setopt(pCurlHandler, CURLOPT_HEADERDATA, pContentInfo);
+	curl_easy_setopt(pCurlHandler, CURLOPT_UPLOAD, 1);
+	curl_easy_setopt(pCurlHandler, CURLOPT_INFILESIZE_LARGE, (curl_off_t)docInfo.getSize());
+
+	CURLcode res = curl_easy_perform(pCurlHandler);
+#ifdef DEBUG
+	if ((pContentInfo->m_pContent != NULL) &&
+		(pContentInfo->m_contentLen > 0))
+	{
+		clog << "CurlDownloader::putUrl: received " << pContentInfo->m_pContent << endl;
+	}
+#endif
+
+	if (res == CURLE_OK)
+	{
+#ifdef DEBUG
+		clog << "CurlDownloader::putUrl: uploaded " << docInfo.getSize()
+			<< " bytes to " << url << endl;
+#endif
+		pDocument = populateDocument(docInfo, url,
+			pCurlHandler, pContentInfo);
+	}
+	else
+	{
+		clog << "Couldn't upload to " << url << ": " << curl_easy_strerror(res) << endl;
+	}
+
+	curl_slist_free_all(pHeadersList);
+	curl_easy_cleanup(pCurlHandler);
+	fclose(pFile);
+	freeContentInfo(pContentInfo);
+	delete pContentInfo;
 
 	return pDocument;
 }
