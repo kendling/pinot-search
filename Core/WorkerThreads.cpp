@@ -54,7 +54,6 @@
 #include "FilterWrapper.h"
 #include "ModuleFactory.h"
 #include "WebEngine.h"
-#include "PinotSettings.h"
 #include "WorkerThreads.h"
 
 using namespace std;

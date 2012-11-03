@@ -39,6 +39,7 @@
 #include "MonitorInterface.h"
 #include "MonitorHandler.h"
 #include "QueryProperties.h"
+#include "PinotSettings.h"
 
 class WorkerThread
 {
