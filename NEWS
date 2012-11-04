@@ -1,3 +1,11 @@
+2012/11/04 version_1_0_2
+General :
+ - turn memory pooling off by default to avoid issues with newer boost
+UI :
+ - new Czech translation by Zbyněk Schwarz
+ - updated Japanese translation by Takafumi Arakaki
+ - updated Brazilian Portuguese translation by Adriano Steffler
+
 2012/08/27 version_1_0_1
 General :
  - run rst2html on RST files, if available, and if RST files are detected as such.
