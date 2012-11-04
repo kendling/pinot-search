@@ -398,14 +398,6 @@ Document *CurlDownloader::putUrl(const DocumentInfo &docInfo,
 	curl_easy_setopt(pCurlHandler, CURLOPT_INFILESIZE_LARGE, (curl_off_t)docInfo.getSize());
 
 	CURLcode res = curl_easy_perform(pCurlHandler);
-#ifdef DEBUG
-	if ((pContentInfo->m_pContent != NULL) &&
-		(pContentInfo->m_contentLen > 0))
-	{
-		clog << "CurlDownloader::putUrl: received " << pContentInfo->m_pContent << endl;
-	}
-#endif
-
 	if (res == CURLE_OK)
 	{
 #ifdef DEBUG
