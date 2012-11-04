@@ -438,7 +438,7 @@ string Url::escapeUrl(const string &url)
 			char currentChar = url[pos];
 			char encodedStr[4];
 
-			snprintf(encodedStr, 4, "%%%02x", (int)currentChar);
+			snprintf(encodedStr, 4, "%%%02X", (int)currentChar);
 			escapedUrl += encodedStr;
 		}
 		else
@@ -471,7 +471,8 @@ string Url::unescapeUrl(const string &escapedUrl)
 			numberStr[0] = escapedUrl[pos + 1];
 			numberStr[1] = escapedUrl[pos + 2];
 			numberStr[2] = '\0';
-			if (sscanf(numberStr, "%x", &number) == 1)
+			if ((sscanf(numberStr, "%X", &number) == 1) ||
+				(sscanf(numberStr, "%x", &number) == 1))
 			{
 				unescapedUrl += (char)(0x0ff & number);
 				pos += 3;
