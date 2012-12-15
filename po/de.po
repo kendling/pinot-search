@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-11-02 20:25+0800\n"
 "PO-Revision-Date: 2012-02-20 12:32+0000\n"
-"Last-Translator: Gena Haltmair <Unknown>\n"
+"Last-Translator: GH <Unknown>\n"
 "Language-Team: German <de@li.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -1010,15 +1010,3 @@ msgstr "Durchsuchen"
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "Fehler"
-
-#~ msgid "failed to begin transaction"
-#~ msgstr "Vorgang konnte nicht gestartet werden"
-
-#~ msgid "failed to rollback transaction"
-#~ msgstr "Vorgang konnte nicht rückgängig gemacht werden"
-
-#~ msgid "failed to end transaction"
-#~ msgstr "Vorgang konnte nicht beendet werden"
-
-#~ msgid "couldn't format SQL statement"
-#~ msgstr "SQL-Ausdruck konnte nicht formatiert werden"

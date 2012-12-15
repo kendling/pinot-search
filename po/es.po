@@ -1010,15 +1010,3 @@ msgstr "Rastreando"
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "Errores"
-
-#~ msgid "failed to begin transaction"
-#~ msgstr "no se pudo iniciar la transacción"
-
-#~ msgid "failed to rollback transaction"
-#~ msgstr "no se pudo deshacer la transacción"
-
-#~ msgid "failed to end transaction"
-#~ msgstr "no se pudo finalizar la transacción"
-
-#~ msgid "couldn't format SQL statement"
-#~ msgstr "no se pudo formatear la sentencia SQL"

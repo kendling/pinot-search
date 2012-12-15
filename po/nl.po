@@ -1011,15 +1011,3 @@ msgstr "Aan het doorzoeken"
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "Fouten"
-
-#~ msgid "failed to begin transaction"
-#~ msgstr "starten van transactie is mislukt"
-
-#~ msgid "failed to rollback transaction"
-#~ msgstr "terugdraaien van transactie is mislukt"
-
-#~ msgid "failed to end transaction"
-#~ msgstr "beëindigen van transactie is mislukt"
-
-#~ msgid "couldn't format SQL statement"
-#~ msgstr "kon het SQL statement niet aanmaken"

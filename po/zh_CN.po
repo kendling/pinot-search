@@ -1005,15 +1005,3 @@ msgstr "爬行"
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "错误"
-
-#~ msgid "failed to begin transaction"
-#~ msgstr "开始事务处理失败"
-
-#~ msgid "failed to rollback transaction"
-#~ msgstr "回滚事务处理失败"
-
-#~ msgid "failed to end transaction"
-#~ msgstr "结束事务处理失败"
-
-#~ msgid "couldn't format SQL statement"
-#~ msgstr "无法格式化SQL语句"

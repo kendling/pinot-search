@@ -1008,15 +1008,3 @@ msgstr ""
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "שגיאות"
-
-#~ msgid "failed to begin transaction"
-#~ msgstr "ארע כשל בתחילת ההעברה"
-
-#~ msgid "failed to rollback transaction"
-#~ msgstr "ארע כשל בהחזרת ההעברה"
-
-#~ msgid "failed to end transaction"
-#~ msgstr "ארע כשל בסיום ההעברה"
-
-#~ msgid "couldn't format SQL statement"
-#~ msgstr "לא ניתן לסגנן את שאילתת ה־SQL"

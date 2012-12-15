@@ -1011,15 +1011,3 @@ msgstr "Сканирование"
 #: UI/GTK2/src/statisticsDialog.cc:402
 msgid "Errors"
 msgstr "Ошибки"
-
-#~ msgid "failed to begin transaction"
-#~ msgstr "Не удалось начать транзакцию"
-
-#~ msgid "failed to rollback transaction"
-#~ msgstr "Не удалось откатить транзакцию"
-
-#~ msgid "failed to end transaction"
-#~ msgstr "Не удалось завершить транзакцию"
-
-#~ msgid "couldn't format SQL statement"
-#~ msgstr "Невозможно выполнить форматирование выражения SQL"
