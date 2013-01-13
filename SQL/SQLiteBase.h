@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2012 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -85,6 +85,8 @@ class SQLiteBase : public SQLDB
 		virtual ~SQLiteBase();
 
 		static bool check(const std::string &databaseName);
+
+		bool backup(const std::string &destDatabaseName);
 
 		virtual bool isOpen(void) const;
 

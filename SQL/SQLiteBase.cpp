@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2012 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -324,6 +324,58 @@ bool SQLiteBase::check(const string &databaseName)
 	}
 
 	return true;
+}
+
+bool SQLiteBase::backup(const string &destDatabaseName)
+{
+	sqlite3 *pBackupDatabase = NULL;
+	int errorCode = sqlite3_open(destDatabaseName.c_str(), &pBackupDatabase);
+
+	if (errorCode != SQLITE_OK)
+	{
+		return false;
+	}
+
+	// Open the backup object
+	sqlite3_backup *pBackup = sqlite3_backup_init(pBackupDatabase, "main", m_pDatabase, "main");
+	if (pBackup != NULL)
+	{
+
+		do
+		{
+			// Copy database pages 5 by 5 
+			errorCode = sqlite3_backup_step(pBackup, 5);
+
+			int remainingPages = sqlite3_backup_remaining(pBackup);
+			int totalPages = sqlite3_backup_pagecount(pBackup);
+			int donePages = totalPages - remainingPages;
+
+			clog << m_databaseName << ": backed up " << donePages
+				<< " pages out of " << totalPages << endl;
+
+			if ((errorCode == SQLITE_OK) ||
+				(errorCode == SQLITE_BUSY) ||
+				(errorCode == SQLITE_LOCKED))
+			{
+				// Sleep roughly a sixth of a second, ie around 10 write operations
+				sqlite3_sleep(150);
+			}
+		} while ((errorCode == SQLITE_OK) ||
+			(errorCode == SQLITE_BUSY) ||
+			(errorCode == SQLITE_LOCKED));
+
+		sqlite3_backup_finish(pBackup);
+	}
+
+	errorCode = sqlite3_errcode(pBackupDatabase);
+	sqlite3_close(pBackupDatabase);
+
+	if (errorCode == SQLITE_OK)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 void SQLiteBase::executeSimpleStatement(const string &sql, int &execError)
