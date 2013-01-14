@@ -1,3 +1,9 @@
+2013/01/14 version_1_0_3
+IndexSearch :
+ - fix a Unicode handling issue introduced in 1.01
+UI :
+ - updated French translation by Eliovir
+
 2012/11/04 version_1_0_2
 General :
  - turn memory pooling off by default to avoid issues with newer boost
