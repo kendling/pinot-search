@@ -190,7 +190,7 @@ CJKVTokenizer::~CJKVTokenizer()
 string CJKVTokenizer::normalize(const string &str)
 {
 	// Normalize the string
-	gchar *normalized = g_utf8_normalize(str.c_str(), str.length(), G_NORMALIZE_NFKD);
+	gchar *normalized = g_utf8_normalize(str.c_str(), str.length(), G_NORMALIZE_DEFAULT_COMPOSE);
 	if (normalized == NULL)
 	{
 		return "";
