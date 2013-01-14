@@ -1,4 +1,97 @@
 ------------------------------------------------------------------------
+r1876 | fabrice.colin@gmail.com | 2013-01-14 20:50:00 +0800 (Mon, 14 Jan 2013) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+News for 1.03.
+
+------------------------------------------------------------------------
+r1875 | fabrice.colin@gmail.com | 2013-01-14 20:49:12 +0800 (Mon, 14 Jan 2013) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/pinot-label.1
+
+Another man page.
+
+------------------------------------------------------------------------
+r1874 | fabrice.colin@gmail.com | 2013-01-14 20:48:24 +0800 (Mon, 14 Jan 2013) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/README
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/aclocal.m4
+   M /trunk/configure.in
+   M /trunk/po/cs.po
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Preparing for 1.03.
+
+------------------------------------------------------------------------
+r1873 | fabrice.colin@gmail.com | 2013-01-14 20:31:08 +0800 (Mon, 14 Jan 2013) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/cjkv/CJKVTokenizer.cc
+
+Fix normalization and http://code.google.com/p/pinot-search/issues/detail?id=18.
+
+------------------------------------------------------------------------
+r1872 | fabrice.colin@gmail.com | 2013-01-13 13:03:24 +0800 (Sun, 13 Jan 2013) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Support for sqlite's backup API.
+
+------------------------------------------------------------------------
+r1871 | fabrice.colin@gmail.com | 2013-01-13 11:50:53 +0800 (Sun, 13 Jan 2013) | 3 lines
+Changed paths:
+   M /trunk/configure.in
+
+Patch for http://code.google.com/p/pinot-search/issues/detail?id=19 from
+Kamil Rytarowski.
+
+------------------------------------------------------------------------
+r1870 | fabrice.colin@gmail.com | 2012-12-16 03:05:47 +0800 (Sun, 16 Dec 2012) | 2 lines
+Changed paths:
+   M /trunk/AUTHORS
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/nl.po
+   M /trunk/po/ru.po
+   M /trunk/po/zh_CN.po
+
+Update to the French translation by Eliovir.
+
+------------------------------------------------------------------------
+r1868 | fabrice.colin@gmail.com | 2012-11-04 16:22:32 +0800 (Sun, 04 Nov 2012) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/NEWS
+   M /trunk/UI/GTK2/src/pinot.1
+
+Updated NEWS, manuals.
+
+------------------------------------------------------------------------
 r1867 | fabrice.colin@gmail.com | 2012-11-04 15:01:00 +0800 (Sun, 04 Nov 2012) | 2 lines
 Changed paths:
    M /trunk/po/cs.po
