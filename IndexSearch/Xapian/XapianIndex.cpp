@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2012 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -635,7 +635,7 @@ void XapianIndex::addCommonTerms(const DocumentInfo &docInfo, Xapian::Document &
 	if (title.empty() == false)
 	{
 		addPostingsToDocument(Xapian::Utf8Iterator(title), doc, db, "S",
-			true, m_doSpelling, termPos);
+			false, m_doSpelling, termPos);
 	}
 
 	// Index the full URL with prefix U
@@ -772,7 +772,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 	if (title.empty() == false)
 	{
 		removePostingsFromDocument(Xapian::Utf8Iterator(title), doc, db, "S",
-			true, m_doSpelling);
+			false, m_doSpelling);
 	}
 
 	// Location 

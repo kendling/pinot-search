@@ -1,6 +1,6 @@
 /*
  *  Copyright 2007-2008 林永忠 Yung-Chung Lin
- *  Copyright 2008-2012 Fabrice Colin
+ *  Copyright 2008-2013 Fabrice Colin
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -187,10 +187,12 @@ CJKVTokenizer::~CJKVTokenizer()
 {
 }
 
-string CJKVTokenizer::normalize(const string &str)
+string CJKVTokenizer::normalize(const string &str,
+	bool normalizeAll)
 {
 	// Normalize the string
-	gchar *normalized = g_utf8_normalize(str.c_str(), str.length(), G_NORMALIZE_DEFAULT_COMPOSE);
+	gchar *normalized = g_utf8_normalize(str.c_str(), str.length(),
+		(normalizeAll == true ? G_NORMALIZE_ALL : G_NORMALIZE_DEFAULT_COMPOSE));
 	if (normalized == NULL)
 	{
 		return "";
@@ -210,7 +212,7 @@ string CJKVTokenizer::strip_marks(const string &str)
 		return "";
 	}
 
-	gchar *stripped = g_strdup(str.c_str());
+	gchar *stripped = g_strdup(normalize(str, true).c_str());
 	gsize input_pos = 0, output_pos = 0;
 
 	if (stripped == NULL)

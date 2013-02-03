@@ -1,6 +1,6 @@
 /*
  *  Copyright 2007-2008 林永忠 Yung-Chung Lin
- *  Copyright 2008-2012 Fabrice Colin
+ *  Copyright 2008-2013 Fabrice Colin
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,8 @@ namespace Dijon
 			CJKVTokenizer();
 			~CJKVTokenizer();
 
-			static std::string normalize(const std::string &str);
+			static std::string normalize(const std::string &str,
+				bool normalizeAll = false);
 
 			static std::string strip_marks(const std::string &str);
 
