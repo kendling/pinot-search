@@ -1,5 +1,5 @@
 /*
- *  Copyright 2012 Fabrice Colin
+ *  Copyright 2012-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,6 +33,15 @@ class PINOT_EXPORT FieldMapperInterface
 	public:
 		FieldMapperInterface(const FieldMapperInterface &other) {};
 		virtual ~FieldMapperInterface() {};
+
+		/// Gets the host for this document.
+		virtual std::string getHost(const DocumentInfo &docInfo) = 0;
+
+		/// Gets the directory for this document.
+		virtual std::string getDirectory(const DocumentInfo &docInfo) = 0;
+
+		/// Gets the file for this document.
+		virtual std::string getFile(const DocumentInfo &docInfo) = 0;
 
 		/// Gets terms from the document and their prefixes.
 		virtual void getTerms(const DocumentInfo &docInfo,

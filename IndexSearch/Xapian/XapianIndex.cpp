@@ -638,6 +638,21 @@ void XapianIndex::addCommonTerms(const DocumentInfo &docInfo, Xapian::Document &
 			false, m_doSpelling, termPos);
 	}
 
+	string hostName, tree, fileName;
+
+	if (g_pMapper != NULL)
+	{
+		hostName = g_pMapper->getHost(docInfo);
+		tree = g_pMapper->getDirectory(docInfo);
+		fileName = g_pMapper->getFile(docInfo);
+	}
+	else
+	{
+		hostName = StringManip::toLowerCase(urlObj.getHost());
+		tree = urlObj.getLocation();
+		fileName = urlObj.getFile();
+	}
+
 	// Index the full URL with prefix U
 	doc.add_term(string("U") + XapianDatabase::limitTermLength(Url::escapeUrl(docInfo.getLocation(true)), true));
 	// ...the base file with XFILE:
@@ -658,7 +673,6 @@ void XapianIndex::addCommonTerms(const DocumentInfo &docInfo, Xapian::Document &
 		}
 	}
 	// ...the host name and included domains with prefix H
-	string hostName(StringManip::toLowerCase(urlObj.getHost()));
 	if (hostName.empty() == false)
 	{
 		doc.add_term(string("H") + XapianDatabase::limitTermLength(hostName, true));
@@ -672,7 +686,6 @@ void XapianIndex::addCommonTerms(const DocumentInfo &docInfo, Xapian::Document &
 		}
 	}
 	// ...the location (as is) and all directories with prefix XDIR:
-	string tree(urlObj.getLocation());
 	if (tree.empty() == false)
 	{
 		doc.add_term(string("XDIR:") + XapianDatabase::limitTermLength(Url::escapeUrl(tree), true));
@@ -699,7 +712,6 @@ void XapianIndex::addCommonTerms(const DocumentInfo &docInfo, Xapian::Document &
 		doc.add_term("XDIR:/");
 	}
 	// ...and the file name with prefix P
-	string fileName(urlObj.getFile());
 	if (fileName.empty() == false)
 	{
 		string extension;
