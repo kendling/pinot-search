@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2009 Fabrice Colin
+ *  Copyright 2008-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdarg.h>
@@ -75,6 +76,36 @@ bool SQLResults::rewind(void)
 	m_nCurrentRow = 0;
 
 	return true;
+}
+
+int SQLResults::getIntCount(void)
+{
+	SQLRow *row = nextRow();
+	int totalCount = 0;
+
+	if (row != NULL)
+	{
+		totalCount = atoi(row->getColumn(0).c_str());
+
+		delete row;
+	}
+
+	return totalCount;
+}
+
+off_t SQLResults::getOffsetCount(void)
+{
+	SQLRow *row = nextRow();
+	off_t totalCount = 0;
+
+	if (row != NULL)
+	{
+		totalCount = (off_t)atoll(row->getColumn(0).c_str());
+
+		delete row;
+	}
+
+	return totalCount;
 }
 
 SQLDB::SQLDB(const string &databaseName,

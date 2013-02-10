@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -139,13 +139,7 @@ unsigned int ViewHistory::getItemsCount(void)
 	SQLResults *results = executeStatement("SELECT COUNT(*) FROM ViewHistory;");
 	if (results != NULL)
 	{
-		SQLRow *row = results->nextRow();
-		if (row != NULL)
-		{
-			count = atoi(row->getColumn(0).c_str());
-
-			delete row;
-		}
+		count = (unsigned int)results->getIntCount();
 
 		delete results;
 	}

@@ -196,14 +196,8 @@ unsigned int CrawlHistory::insertSource(const string &url)
 	SQLResults *results = executeStatement("SELECT MAX(SourceID) FROM CrawlSources;");
 	if (results != NULL)
 	{
-		SQLRow *row = results->nextRow();
-		if (row != NULL)
-		{
-			sourceId = atoi(row->getColumn(0).c_str());
-			++sourceId;
-
-			delete row;
-		}
+		sourceId = (unsigned int)results->getIntCount();
+		++sourceId;
 
 		delete results;
 	}
@@ -230,14 +224,8 @@ bool CrawlHistory::hasSource(const string &url, unsigned int &sourceId)
 	SQLResults *results = executePreparedStatement("has-source", values);
 	if (results != NULL)
 	{
-		SQLRow *row = results->nextRow();
-		if (row != NULL)
-		{
-			sourceId = atoi(row->getColumn(0).c_str());
-			success = true;
-
-			delete row;
-		}
+		sourceId = (unsigned int)results->getIntCount();
+		success = true;
 
 		delete results;
 	}
@@ -584,13 +572,7 @@ unsigned int CrawlHistory::getItemsCount(CrawlStatus status)
 	SQLResults *results = executePreparedStatement("get-items-count", values);
 	if (results != NULL)
 	{
-		SQLRow *row = results->nextRow();
-		if (row != NULL)
-		{
-			count = atoi(row->getColumn(0).c_str());
-
-			delete row;
-		}
+		count = (unsigned int)results->getIntCount();
 
 		delete results;
 	}

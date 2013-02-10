@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -255,13 +255,7 @@ unsigned int ActionQueue::getItemsCount(ActionType type)
 		typeToText(type).c_str());
 	if (results != NULL)
 	{
-		SQLRow *row = results->nextRow();
-		if (row != NULL)
-		{
-			count = atoi(row->getColumn(0).c_str());
-
-			delete row;
-		}
+		count = (unsigned int)results->getIntCount();
 
 		delete results;
 	}
