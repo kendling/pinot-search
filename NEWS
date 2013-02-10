@@ -1,3 +1,8 @@
+2013/02/11 version_1_0_4
+IndexSearch:
+ - fix stripping of diacritics
+ - stem subject terms
+
 2013/01/14 version_1_0_3
 IndexSearch :
  - fix a Unicode handling issue introduced in 1.01

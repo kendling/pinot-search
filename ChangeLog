@@ -1,4 +1,40 @@
 ------------------------------------------------------------------------
+r1881 | fabrice.colin@gmail.com | 2013-02-11 07:14:39 +0800 (Mon, 11 Feb 2013) | 2 lines
+Changed paths:
+   M /trunk/SQL/ActionQueue.cpp
+   M /trunk/SQL/CrawlHistory.cpp
+   M /trunk/SQL/SQLDB.cpp
+   M /trunk/SQL/SQLDB.h
+   M /trunk/SQL/ViewHistory.cpp
+
+Added helper methods for counting.
+
+------------------------------------------------------------------------
+r1880 | fabrice.colin@gmail.com | 2013-02-05 21:45:20 +0800 (Tue, 05 Feb 2013) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/FieldMapperInterface.h
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+Allow the FieldMapper to override the host name, directory and file name.
+
+------------------------------------------------------------------------
+r1879 | fabrice.colin@gmail.com | 2013-02-03 12:39:32 +0800 (Sun, 03 Feb 2013) | 3 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/IndexSearch/cjkv/CJKVTokenizer.cc
+   M /trunk/IndexSearch/cjkv/CJKVTokenizer.h
+
+Fix stripping of diacritics.
+Stem subject terms.
+
+------------------------------------------------------------------------
+r1877 | fabrice.colin@gmail.com | 2013-01-14 20:51:11 +0800 (Mon, 14 Jan 2013) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Current log.
+
+------------------------------------------------------------------------
 r1876 | fabrice.colin@gmail.com | 2013-01-14 20:50:00 +0800 (Mon, 14 Jan 2013) | 2 lines
 Changed paths:
    M /trunk/NEWS
