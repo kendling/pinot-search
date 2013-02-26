@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005,2006 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -248,15 +248,10 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		wordIter != wordsBuffer.end(); ++wordIter)
 	{
 		gchar *pEscToken = NULL;
-		gchar *pUTF8Token = NULL;
-		gsize bytesWritten = 0;
 
-		pUTF8Token = g_locale_to_utf8(wordIter->second.c_str(), wordIter->second.length(),
-			NULL, &bytesWritten, NULL);
-		if (pUTF8Token != NULL)
+		if (g_utf8_validate(wordIter->second.c_str(), -1, NULL))
 		{
-			pEscToken = g_markup_escape_text(pUTF8Token, -1);
-			g_free(pUTF8Token);
+			pEscToken = g_markup_escape_text(wordIter->second.c_str(), -1);
 		}
 		if (pEscToken == NULL)
 		{
@@ -274,16 +269,15 @@ string AbstractGenerator::generateAbstract(Xapian::docid docId,
 		if (seedTermsPositions.find(wordIter->first) != seedTermsPositions.end())
 		{
 			summary += "<b>";
-			summary += pEscToken;
+			summary += wordIter->second;
 			summary += "</b>";
 		}
 		else
 		{
-			summary += pEscToken;
+			summary += wordIter->second;
 		}
 
 		wasCJKV = isCJKV;
-		g_free(pEscToken);
 	}
 #ifdef DEBUG
 	clog << "AbstractGenerator::generateAbstract: summarized document "
