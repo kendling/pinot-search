@@ -326,7 +326,14 @@ void CJKVTokenizer::tokenize(const string &str, TokensHandler &handler,
 				}
 				if (UTF8_IS_CJKV(temp_uchar_list[j]))
 				{
-					token_str += temp_token_list[j];
+					string token(temp_token_list[j]);
+
+					if ((token.length() == 1) &&
+						(isspace(token[0]) != 0))
+					{
+						break;
+					}
+					token_str += token;
 					if (handler.handle_token(normalize(token_str), true) == true)
 					{
 						++tokens_count;
