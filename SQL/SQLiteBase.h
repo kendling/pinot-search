@@ -86,7 +86,8 @@ class SQLiteBase : public SQLDB
 
 		static bool check(const std::string &databaseName);
 
-		bool backup(const std::string &destDatabaseName);
+		bool backup(const std::string &destDatabaseName,
+			int pagesCount = 5, bool retryOnLock = true);
 
 		virtual bool isOpen(void) const;
 

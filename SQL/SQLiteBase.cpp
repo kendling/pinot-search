@@ -326,7 +326,8 @@ bool SQLiteBase::check(const string &databaseName)
 	return true;
 }
 
-bool SQLiteBase::backup(const string &destDatabaseName)
+bool SQLiteBase::backup(const string &destDatabaseName,
+	int pagesCount, bool retryOnLock)
 {
 	sqlite3 *pBackupDatabase = NULL;
 	int errorCode = sqlite3_open(destDatabaseName.c_str(), &pBackupDatabase);
@@ -340,11 +341,14 @@ bool SQLiteBase::backup(const string &destDatabaseName)
 	sqlite3_backup *pBackup = sqlite3_backup_init(pBackupDatabase, "main", m_pDatabase, "main");
 	if (pBackup != NULL)
 	{
-
-		do
+		// Copy database pages
+		errorCode = sqlite3_backup_step(pBackup, pagesCount);
+		while ((errorCode == SQLITE_OK) ||
+			(errorCode == SQLITE_BUSY) ||
+			((errorCode == SQLITE_LOCKED) && (retryOnLock == true)))
 		{
-			// Copy database pages 5 by 5 
-			errorCode = sqlite3_backup_step(pBackup, 5);
+			// Sleep roughly a sixth of a second, ie around 10 write operations
+			sqlite3_sleep(150);
 
 			int remainingPages = sqlite3_backup_remaining(pBackup);
 			int totalPages = sqlite3_backup_pagecount(pBackup);
@@ -353,16 +357,8 @@ bool SQLiteBase::backup(const string &destDatabaseName)
 			clog << m_databaseName << ": backed up " << donePages
 				<< " pages out of " << totalPages << endl;
 
-			if ((errorCode == SQLITE_OK) ||
-				(errorCode == SQLITE_BUSY) ||
-				(errorCode == SQLITE_LOCKED))
-			{
-				// Sleep roughly a sixth of a second, ie around 10 write operations
-				sqlite3_sleep(150);
-			}
-		} while ((errorCode == SQLITE_OK) ||
-			(errorCode == SQLITE_BUSY) ||
-			(errorCode == SQLITE_LOCKED));
+			errorCode = sqlite3_backup_step(pBackup, pagesCount);
+		}
 
 		sqlite3_backup_finish(pBackup);
 	}
