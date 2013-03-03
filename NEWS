@@ -1,3 +1,7 @@
+2013/03/03 version_1_0_5
+IndexSearch:
+ - fixes to abstract generation, CJKV tokenization
+
 2013/02/11 version_1_0_4
 IndexSearch:
  - fix stripping of diacritics
