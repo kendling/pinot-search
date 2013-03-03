@@ -1,4 +1,74 @@
 ------------------------------------------------------------------------
+r1888 | fabrice.colin@gmail.com | 2013-03-03 10:32:53 +0800 (Sun, 03 Mar 2013) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/NEWS
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+
+Releasing 1.05.
+
+------------------------------------------------------------------------
+r1887 | fabrice.colin@gmail.com | 2013-02-26 20:30:24 +0800 (Tue, 26 Feb 2013) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+
+Less DEBUG.
+
+------------------------------------------------------------------------
+r1886 | fabrice.colin@gmail.com | 2013-02-26 20:29:52 +0800 (Tue, 26 Feb 2013) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Tweaked the backup interface.
+
+------------------------------------------------------------------------
+r1885 | fabrice.colin@gmail.com | 2013-02-26 20:29:15 +0800 (Tue, 26 Feb 2013) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/cjkv/CJKVTokenizer.cc
+
+Don't generate ngrams that include space.
+
+------------------------------------------------------------------------
+r1884 | fabrice.colin@gmail.com | 2013-02-26 20:28:29 +0800 (Tue, 26 Feb 2013) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Xapian/AbstractGenerator.cpp
+
+Skip tokens that don't validate.
+
+------------------------------------------------------------------------
+r1882 | fabrice.colin@gmail.com | 2013-02-11 07:39:49 +0800 (Mon, 11 Feb 2013) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/Core/pinot-dbus-daemon.1
+   M /trunk/Core/pinot-index.1
+   M /trunk/Core/pinot-search.1
+   M /trunk/IndexSearch/pinot-label.1
+   M /trunk/NEWS
+   M /trunk/UI/GTK2/src/pinot.1
+   M /trunk/configure.in
+   M /trunk/po/cs.po
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Preparing for v1.04.
+
+------------------------------------------------------------------------
 r1881 | fabrice.colin@gmail.com | 2013-02-11 07:14:39 +0800 (Mon, 11 Feb 2013) | 2 lines
 Changed paths:
    M /trunk/SQL/ActionQueue.cpp
