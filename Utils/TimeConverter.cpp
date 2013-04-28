@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -322,5 +322,52 @@ time_t TimeConverter::fromHHMMSSString(const string &hhmmss, bool inGMTime)
 	}
 
 	return gmTime;
+}
+
+string TimeConverter::toNormalDate(time_t aTime, DateFormat format)
+{
+	struct tm *pTimeTm = new struct tm;
+
+	if (
+#ifdef HAVE_LOCALTIME_R
+		(localtime_r(&aTime, pTimeTm) != NULL)
+#else
+		((pTimeTm = localtime(&aTime)) != NULL)
+#endif
+		)
+	{
+		char timeStr[64];
+		size_t formattedSize = 0;
+
+		if (format == DATE_EUROPE)
+		{
+			// FIXME: don't use this extension ?
+#if defined(__GNU_LIBRARY__)
+			// %z is a GNU extension
+			formattedSize = strftime(timeStr, 64, "%A, %d %B %Y %H:%M:%S %z", pTimeTm);
+#else
+			formattedSize = strftime(timeStr, 64, "%A, %d %B %Y %H:%M:%S %Z", pTimeTm);
+#endif
+		}
+		else
+		{
+			// FIXME: don't use this extension ?
+#if defined(__GNU_LIBRARY__)
+			// %z is a GNU extension
+			formattedSize = strftime(timeStr, 64, "%Y-%m-%d %a %H:%M:%S %z", pTimeTm);
+#else
+			formattedSize = strftime(timeStr, 64, "%Y-%m-%d %a %H:%M:%S %Z", pTimeTm);
+#endif
+		}
+		if (formattedSize > 0)
+		{
+			delete pTimeTm;
+
+			return timeStr;
+		}
+	}
+	delete pTimeTm;
+
+	return "";
 }
 

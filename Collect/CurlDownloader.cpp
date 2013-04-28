@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2012 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -191,8 +191,18 @@ Document *CurlDownloader::populateDocument(const DocumentInfo &docInfo,
 /// Retrieves the specified document; NULL if error.
 Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 {
+	map<string, string> headers;
+
+	return retrieveUrl(docInfo, headers);
+}
+
+/// Retrieves the specified document; NULL if error.
+Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo,
+	const map<string, string> &headers)
+{
 	Document *pDocument = NULL;
 	string url(Url::escapeUrl(docInfo.getLocation()));
+	char pBuffer[1024];
 	unsigned int redirectionsCount = 0;
 
 	if (url.empty() == true)
@@ -205,123 +215,138 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo)
 
 	// Create a session
 	CURL *pCurlHandler = curl_easy_init();
-	if (pCurlHandler != NULL)
+	if (pCurlHandler == NULL)
 	{
-		ContentInfo *pContentInfo = new ContentInfo;
+		return NULL;
+	}
 
-		pContentInfo->m_pContent = NULL;
-		pContentInfo->m_contentLen = 0;
+	struct curl_slist *pHeadersList = NULL;
+	ContentInfo *pContentInfo = new ContentInfo;
 
-		curl_easy_setopt(pCurlHandler, CURLOPT_AUTOREFERER, 1);
-		curl_easy_setopt(pCurlHandler, CURLOPT_FOLLOWLOCATION, 1);
-		curl_easy_setopt(pCurlHandler, CURLOPT_MAXREDIRS, 10);
-		curl_easy_setopt(pCurlHandler, CURLOPT_USERAGENT, m_userAgent.c_str());
-		curl_easy_setopt(pCurlHandler, CURLOPT_NOSIGNAL, (long)1);
-		curl_easy_setopt(pCurlHandler, CURLOPT_TIMEOUT, (long)m_timeout);
+	pContentInfo->m_pContent = NULL;
+	pContentInfo->m_contentLen = 0;
+
+	// Add headers
+	for (map<string, string>::const_iterator headerIter = headers.begin();
+			headerIter != headers.end(); ++headerIter)
+	{
+		snprintf(pBuffer, sizeof(pBuffer), "%s: %s",
+			headerIter->first.c_str(),
+			headerIter->second.c_str());
+
+		pHeadersList = curl_slist_append(pHeadersList, pBuffer);
+	}
+
+	curl_easy_setopt(pCurlHandler, CURLOPT_AUTOREFERER, 1);
+	curl_easy_setopt(pCurlHandler, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(pCurlHandler, CURLOPT_MAXREDIRS, 10);
+	curl_easy_setopt(pCurlHandler, CURLOPT_USERAGENT, m_userAgent.c_str());
+	curl_easy_setopt(pCurlHandler, CURLOPT_NOSIGNAL, (long)1);
+	curl_easy_setopt(pCurlHandler, CURLOPT_TIMEOUT, (long)m_timeout);
 #ifndef DEBUG
-		curl_easy_setopt(pCurlHandler, CURLOPT_NOPROGRESS, 1);
+	curl_easy_setopt(pCurlHandler, CURLOPT_NOPROGRESS, 1);
 #endif
-		curl_easy_setopt(pCurlHandler, CURLOPT_WRITEFUNCTION, writeCallback);
-		curl_easy_setopt(pCurlHandler, CURLOPT_WRITEDATA, pContentInfo);
-		curl_easy_setopt(pCurlHandler, CURLOPT_HEADERFUNCTION, headerCallback);
-		curl_easy_setopt(pCurlHandler, CURLOPT_HEADERDATA, pContentInfo);
+	curl_easy_setopt(pCurlHandler, CURLOPT_HTTPHEADER, pHeadersList);
+	curl_easy_setopt(pCurlHandler, CURLOPT_WRITEFUNCTION, writeCallback);
+	curl_easy_setopt(pCurlHandler, CURLOPT_WRITEDATA, pContentInfo);
+	curl_easy_setopt(pCurlHandler, CURLOPT_HEADERFUNCTION, headerCallback);
+	curl_easy_setopt(pCurlHandler, CURLOPT_HEADERDATA, pContentInfo);
 
-		// Is a proxy defined ?
-		// Curl automatically checks and makes use of the *_proxy environment variables 
-		if ((m_proxyAddress.empty() == false) &&
-			(m_proxyPort > 0))
+	// Is a proxy defined ?
+	// Curl automatically checks and makes use of the *_proxy environment variables 
+	if ((m_proxyAddress.empty() == false) &&
+		(m_proxyPort > 0))
+	{
+		curl_proxytype proxyType = CURLPROXY_HTTP;
+
+		curl_easy_setopt(pCurlHandler, CURLOPT_PROXY, m_proxyAddress.c_str());
+		curl_easy_setopt(pCurlHandler, CURLOPT_PROXYPORT, m_proxyPort);
+		// Type defaults to HTTP
+		if (m_proxyType.empty() == false)
 		{
-			curl_proxytype proxyType = CURLPROXY_HTTP;
-
-			curl_easy_setopt(pCurlHandler, CURLOPT_PROXY, m_proxyAddress.c_str());
-			curl_easy_setopt(pCurlHandler, CURLOPT_PROXYPORT, m_proxyPort);
-			// Type defaults to HTTP
-			if (m_proxyType.empty() == false)
+			if (m_proxyType == "SOCKS4")
 			{
-				if (m_proxyType == "SOCKS4")
-				{
-					proxyType = CURLPROXY_SOCKS4;
-				}
-				else if (m_proxyType == "SOCKS5")
-				{
-					proxyType = CURLPROXY_SOCKS5;
-				}
+				proxyType = CURLPROXY_SOCKS4;
 			}
-			curl_easy_setopt(pCurlHandler, CURLOPT_PROXYTYPE, proxyType);
+			else if (m_proxyType == "SOCKS5")
+			{
+				proxyType = CURLPROXY_SOCKS5;
+			}
 		}
+		curl_easy_setopt(pCurlHandler, CURLOPT_PROXYTYPE, proxyType);
+	}
 
 #ifdef DEBUG
-		clog << "CurlDownloader::retrieveUrl: URL is " << url << endl;
+	clog << "CurlDownloader::retrieveUrl: URL is " << url << endl;
 #endif
-		while (redirectionsCount < 10)
+	while (redirectionsCount < 10)
+	{
+		curl_easy_setopt(pCurlHandler, CURLOPT_URL, url.c_str());
+
+		if (m_method == "POST")
 		{
-			curl_easy_setopt(pCurlHandler, CURLOPT_URL, url.c_str());
-
-			if (m_method == "POST")
+			curl_easy_setopt(pCurlHandler, CURLOPT_POST, 1);
+			if (m_postFields.empty() == false)
 			{
-				curl_easy_setopt(pCurlHandler, CURLOPT_POST, 1);
-				if (m_postFields.empty() == false)
-				{
-					curl_easy_setopt(pCurlHandler, CURLOPT_POSTFIELDS, m_postFields.c_str());
-				}
+				curl_easy_setopt(pCurlHandler, CURLOPT_POSTFIELDS, m_postFields.c_str());
 			}
+		}
 
-			CURLcode res = curl_easy_perform(pCurlHandler);
-			if ((res == CURLE_OK) &&
-				(pContentInfo->m_pContent != NULL) &&
-				(pContentInfo->m_contentLen > 0))
-			{
-				pDocument = populateDocument(docInfo, url,
-					pCurlHandler, pContentInfo);
+		CURLcode res = curl_easy_perform(pCurlHandler);
+		if ((res == CURLE_OK) &&
+			(pContentInfo->m_pContent != NULL) &&
+			(pContentInfo->m_contentLen > 0))
+		{
+			pDocument = populateDocument(docInfo, url,
+				pCurlHandler, pContentInfo);
 
 #ifdef HAVE_REGEX_H
-				regex_t refreshRegex;
-				regmatch_t pMatches[2];
+			regex_t refreshRegex;
+			regmatch_t pMatches[2];
 
-				// Any REFRESH META tag ?
-				// Look for <meta http-equiv="refresh" content="SECS;url=URL">
-				if (regcomp(&refreshRegex,
-					"<meta http-equiv=\"refresh\" content=\"([0-9]*);url=([^\"]*)\">"
-					REG_EXTENDED|REG_ICASE) == 0)
+			// Any REFRESH META tag ?
+			// Look for <meta http-equiv="refresh" content="SECS;url=URL">
+			if (regcomp(&refreshRegex,
+				"<meta http-equiv=\"refresh\" content=\"([0-9]*);url=([^\"]*)\">"
+				REG_EXTENDED|REG_ICASE) == 0)
+			{
+				if (regexec(&refreshRegex, pContentInfo->m_pContent, 2,
+					pMatches, REG_NOTBOL|REG_NOTEOL) == 0)
 				{
-					if (regexec(&refreshRegex, pContentInfo->m_pContent, 2,
-						pMatches, REG_NOTBOL|REG_NOTEOL) == 0)
-					{
-						url = pMatches[1];
+					url = pMatches[1];
 #ifdef DEBUG
-						clog << "CurlDownloader::retrieveUrl: redirected to URL " << url << endl;
+					clog << "CurlDownloader::retrieveUrl: redirected to URL " << url << endl;
 #endif
-						delete pDocument;
-						pDocument = NULL;
-						freeContentInfo(pContentInfo);
-						++redirectionsCount;
-						continue;
-					}
-#ifdef DEBUG
-					else clog << "CurlDownloader::retrieveUrl: no REFRESH META tag" << endl;
-#endif
-
-					regfree(&refreshRegex);
+					delete pDocument;
+					pDocument = NULL;
+					freeContentInfo(pContentInfo);
+					++redirectionsCount;
+					continue;
 				}
 #ifdef DEBUG
-				else clog << "CurlDownloader::retrieveUrl: couldn't look for a REFRESH META tag" << endl;
+				else clog << "CurlDownloader::retrieveUrl: no REFRESH META tag" << endl;
 #endif
-#endif
-			}
-			else
-			{
-				clog << "Couldn't download " << url << ": " << curl_easy_strerror(res) << endl;
-			}
 
-			break;
+				regfree(&refreshRegex);
+			}
+#ifdef DEBUG
+			else clog << "CurlDownloader::retrieveUrl: couldn't look for a REFRESH META tag" << endl;
+#endif
+#endif
+		}
+		else
+		{
+			clog << "Couldn't download " << url << ": " << curl_easy_strerror(res) << endl;
 		}
 
-		freeContentInfo(pContentInfo);
-		delete pContentInfo;
-
-		// Cleanup
-		curl_easy_cleanup(pCurlHandler);
+		break;
 	}
+
+	freeContentInfo(pContentInfo);
+	delete pContentInfo;
+
+	// Cleanup
+	curl_easy_cleanup(pCurlHandler);
 
 	return pDocument;
 }

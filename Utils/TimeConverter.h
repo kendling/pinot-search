@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,6 +44,11 @@ class PINOT_EXPORT TimeConverter
 
 		/// Converts from a HHMMSS-formatted string.
 		static time_t fromHHMMSSString(const std::string &hhmmss, bool inGMTime = false);
+
+		typedef enum { DATE_EUROPE = 0, DATE_JAPAN } DateFormat;
+
+		/// Converts into a longer human-readable date.
+		static std::string toNormalDate(time_t aTime, DateFormat format);
 
 	protected:
 		TimeConverter();
