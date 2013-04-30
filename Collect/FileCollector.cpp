@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2012 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -130,6 +130,15 @@ FileCollector::~FileCollector()
 
 /// Retrieves the specified document; NULL if error.
 Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo)
+{
+	map<string, string> headers;
+
+	return retrieveUrl(docInfo, headers);
+}
+
+/// Retrieves the specified document; NULL if error.
+Document *FileCollector::retrieveUrl(const DocumentInfo &docInfo,
+	const map<string, string> &headers)
 {
 	Url thisUrl(docInfo.getLocation());
 	string protocol(thisUrl.getProtocol());

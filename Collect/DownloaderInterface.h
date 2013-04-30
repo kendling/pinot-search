@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -49,6 +49,10 @@ class DownloaderInterface
 
 		/// Retrieves the specified document; NULL if error. Caller deletes.
 		virtual Document *retrieveUrl(const DocumentInfo &docInfo) = 0;
+
+		/// Retrieves the specified document; NULL if error. Caller deletes.
+		virtual Document *retrieveUrl(const DocumentInfo &docInfo,
+			const std::map<std::string, std::string> &headers) = 0;
 
 	protected:
 		std::string m_userAgent;
