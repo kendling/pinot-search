@@ -201,7 +201,8 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo,
 	const map<string, string> &headers)
 {
 	Document *pDocument = NULL;
-	string url(Url::escapeUrl(docInfo.getLocation()));
+	string ipath(docInfo.getInternalPath());
+	string url(docInfo.getLocation());
 	char pBuffer[1024];
 	unsigned int redirectionsCount = 0;
 
@@ -211,6 +212,12 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo,
 		clog << "CurlDownloader::retrieveUrl: no URL specified !" << endl;
 #endif
 		return NULL;
+	}
+
+	if (ipath.empty() == false)
+	{
+		url += "?";
+		url += ipath;
 	}
 
 	// Create a session
@@ -281,7 +288,7 @@ Document *CurlDownloader::retrieveUrl(const DocumentInfo &docInfo,
 #endif
 	while (redirectionsCount < 10)
 	{
-		curl_easy_setopt(pCurlHandler, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(pCurlHandler, CURLOPT_URL, Url::escapeUrl(url).c_str());
 
 		if (m_method == "POST")
 		{
