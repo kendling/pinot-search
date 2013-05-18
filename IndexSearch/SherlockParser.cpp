@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,15 +16,25 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
 #include <stdlib.h>
 #include <map>
 #include <set>
 #include <iostream>
 #include <cstring>
+#ifdef HAVE_BOOST_SPIRIT_CORE_HPP
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
 #include <boost/spirit/actor/insert_at_actor.hpp>
 #include <boost/spirit/utility/confix.hpp>
+#else
+#ifdef HAVE_BOOST_SPIRIT_HPP
+#include <boost/spirit.hpp>
+#include <boost/spirit/home/classic/actor/push_back_actor.hpp>
+#include <boost/spirit/home/classic/actor/insert_at_actor.hpp>
+#include <boost/spirit/home/classic/utility/confix.hpp>
+#endif
+#endif
 
 #include "StringManip.h"
 #include "Url.h"

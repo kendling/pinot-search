@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 1.05, [fabrice.colin@gmail.com])
+AC_INIT(pinot, 1.06, [fabrice.colin@gmail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -213,8 +213,8 @@ AC_CHECK_HEADERS([sys/inotify.h],
 
 dnl boost
 AM_CONDITIONAL(HAVE_BOOST_SPIRIT, false)
-AC_CHECK_HEADERS([boost/spirit/core.hpp],
-   [AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)
+AC_CHECK_HEADERS([boost/spirit/core.hpp],[AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)],
+   [AC_CHECK_HEADERS([boost/spirit.hpp],[AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)])
    ])
 AC_MSG_CHECKING(whether to enable the memory pool)
 AC_ARG_ENABLE(mempool,

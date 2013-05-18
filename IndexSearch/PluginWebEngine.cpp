@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -165,7 +165,7 @@ PluginParserInterface *PluginWebEngine::getPluginParser(const string &fileName,
 	}
 
 	string extension(fileName.substr(pos + 1));
-#ifdef HAVE_BOOST_SPIRIT_CORE_HPP
+#ifdef HAVE_BOOST_SPIRIT
 	if (strncasecmp(extension.c_str(), "src", 3) == 0)
 	{
 		pluginType = "sherlock";
