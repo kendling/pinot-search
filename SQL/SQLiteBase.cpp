@@ -174,13 +174,28 @@ void SQLiteResults::step(void)
 	}
 
 	m_stepCode = SQLITE_BUSY;
-	while (m_stepCode == SQLITE_BUSY)
+	while ((m_stepCode == SQLITE_BUSY) ||
+		(m_stepCode == SQLITE_IOERR_BLOCKED))
 	{
 		m_stepCode = sqlite3_step(m_pStatement);
-		if (m_stepCode == SQLITE_BUSY)
+		if ((m_stepCode == SQLITE_BUSY) ||
+			(m_stepCode == SQLITE_IOERR_BLOCKED))
 		{
+#if SQLITE_VERSION_NUMBER < 3006024
+			// 3.6.23 and older require a call to sqlite3_reset() for any code other
+			// than SQLITE_ROW before stepping again
+			// http://www.sqlite.org/c3ref/step.html
+			rewind();
+#endif
 			// Sleep roughly a sixth of a second, ie around 10 write operations
 			usleep(150000);
+		}
+		else if ((m_stepCode != SQLITE_ROW) &&
+			(m_stepCode != SQLITE_DONE))
+		{
+#ifdef DEBUG
+			clog << "Step returned error code " << m_stepCode << endl;
+#endif
 		}
 	}
 }
@@ -750,8 +765,16 @@ SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
 	}
 
 	SQLiteResults *pResults = new SQLiteResults(statIter->second);
-	if (pResults->getStepCode() == SQLITE_BUSY)
+	int stepCode = pResults->getStepCode();
+
+	if ((stepCode != SQLITE_ROW) &&
+		(stepCode != SQLITE_DONE))
 	{
+#ifdef DEBUG
+		clog << m_databaseName << ": step for statement " << statementId
+			<< " failed with error " << stepCode
+			<< " " << sqlite3_errmsg(m_pDatabase) << endl;
+#endif
 		delete pResults;
 
 		return NULL;
