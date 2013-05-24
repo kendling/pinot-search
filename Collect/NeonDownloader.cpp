@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2008 Fabrice Colin
+ *  Copyright 2005-2013 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -103,6 +103,15 @@ string NeonDownloader::handleRedirection(const char *pBody, unsigned int length)
 
 /// Retrieves the specified document; NULL if error.
 Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
+{
+	map<string, string> headers;
+
+	return retrieveUrl(docInfo, headers);
+}
+
+/// Retrieves the specified document; NULL if error.
+Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo,
+	const map<string, string> &headers)
 {
 	Document *pDocument = NULL;
 	string url = Url::escapeUrl(docInfo.getLocation());
@@ -367,5 +376,13 @@ Document *NeonDownloader::retrieveUrl(const DocumentInfo &docInfo)
 	ne_session_destroy(pSession);
 
 	return pDocument;
+}
+
+Document *NeonDownloader::putUrl(const DocumentInfo &docInfo,
+	const map<string, string> &headers,
+	const string &url)
+{
+	// FIXME: implement this
+	return NULL;
 }
 
