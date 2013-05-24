@@ -1,7 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
 noinst_HEADERS = \
-	$(top_srcdir)/IndexSearch/cjkv/CJKVTokenizer.h \
 	$(top_srcdir)/Tokenize/filters/ArchiveFilter.h \
 	$(top_srcdir)/Tokenize/filters/ChmFilter.h \
 	$(top_srcdir)/Tokenize/filters/ExifImageFilter.h \

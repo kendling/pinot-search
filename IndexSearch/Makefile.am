@@ -17,6 +17,9 @@ pkginclude_HEADERS = \
 	SherlockParser.h \
 	WebEngine.h
 
+nobase_pkginclude_HEADERS = \
+	cjkv/CJKVTokenizer.h
+
 if HAVE_DBUS
 pkglib_LTLIBRARIES = libIndex.la libIndexSearch.la
 else
