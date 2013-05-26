@@ -1,4 +1,90 @@
 ------------------------------------------------------------------------
+r1898 | fabrice.colin@gmail.com | 2013-05-26 12:32:13 +0800 (Sun, 26 May 2013) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/po/cs.po
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Releasing 1.06.
+
+------------------------------------------------------------------------
+r1897 | fabrice.colin@gmail.com | 2013-05-24 14:33:39 +0800 (Fri, 24 May 2013) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/Makefile.am
+   M /trunk/Tokenize/Makefile.am
+
+Install cjkv/CJKVTokenizer.h.
+
+------------------------------------------------------------------------
+r1896 | fabrice.colin@gmail.com | 2013-05-24 13:37:21 +0800 (Fri, 24 May 2013) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLiteBase.cpp
+
+Look out for SQLITE_IOERR_BLOCKED and handle pre-3.6.24 specifics. 
+
+------------------------------------------------------------------------
+r1895 | fabrice.colin@gmail.com | 2013-05-24 13:35:20 +0800 (Fri, 24 May 2013) | 2 lines
+Changed paths:
+   M /trunk/Collect/NeonDownloader.cpp
+   M /trunk/Collect/NeonDownloader.h
+
+Brought this up to date, even though curl is still the preferred HTTP backend.
+
+------------------------------------------------------------------------
+r1894 | fabrice.colin@gmail.com | 2013-05-18 11:56:27 +0800 (Sat, 18 May 2013) | 2 lines
+Changed paths:
+   M /trunk/Collect/CurlDownloader.cpp
+
+Query parameters were ignored.
+
+------------------------------------------------------------------------
+r1893 | fabrice.colin@gmail.com | 2013-05-18 11:55:38 +0800 (Sat, 18 May 2013) | 2 lines
+Changed paths:
+   M /trunk/IndexSearch/PluginWebEngine.cpp
+   M /trunk/IndexSearch/SherlockParser.cpp
+   M /trunk/configure.in
+
+Support for boost 1.50, based on patch from Thierry Thomas.
+
+------------------------------------------------------------------------
+r1892 | fabrice.colin@gmail.com | 2013-04-30 21:39:11 +0800 (Tue, 30 Apr 2013) | 2 lines
+Changed paths:
+   M /trunk/Collect/DownloaderInterface.h
+   M /trunk/Collect/FileCollector.cpp
+   M /trunk/Collect/FileCollector.h
+
+Added override to base class.
+
+------------------------------------------------------------------------
+r1891 | fabrice.colin@gmail.com | 2013-04-28 15:20:03 +0800 (Sun, 28 Apr 2013) | 2 lines
+Changed paths:
+   M /trunk/Collect/CurlDownloader.cpp
+   M /trunk/Collect/CurlDownloader.h
+   M /trunk/Utils/TimeConverter.cpp
+   M /trunk/Utils/TimeConverter.h
+
+Added TimeConverter::toNormalDate(), CurlDownloader::retrieveUrl() override.
+
+------------------------------------------------------------------------
+r1889 | fabrice.colin@gmail.com | 2013-03-03 10:33:25 +0800 (Sun, 03 Mar 2013) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Current log.
+
+------------------------------------------------------------------------
 r1888 | fabrice.colin@gmail.com | 2013-03-03 10:32:53 +0800 (Sun, 03 Mar 2013) | 2 lines
 Changed paths:
    M /trunk/Core/pinot-dbus-daemon.1
