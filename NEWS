@@ -1,3 +1,11 @@
+2013/05/26 version_1_0_6
+IndexSearch:
+ - support boost 1.50's Spirit
+SQL :
+ - better handling of potential errors while stepping through results
+Collect :
+ - minor fixes to curl backend
+
 2013/03/03 version_1_0_5
 IndexSearch:
  - fixes to abstract generation, CJKV tokenization
