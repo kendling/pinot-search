@@ -19,6 +19,7 @@
 #ifndef _TIME_CONVERTER_H
 #define _TIME_CONVERTER_H
 
+#include <time.h>
 #include <string>
 
 #include "Visibility.h"
