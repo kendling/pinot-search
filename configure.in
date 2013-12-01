@@ -249,7 +249,7 @@ if test "x$is_libexttextcat" = "xno"; then
 else
    dnl libexttextcat has textcat_Classify()
    AM_CONDITIONAL(HAVE_TEXTCAT_CAT, false)
-   TEXTCAT_LIBS="-lexttextcat"
+   PKG_CHECK_MODULES(TEXTCAT, libexttextcat)
 fi
 
 dnl libarchive
