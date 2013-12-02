@@ -1766,7 +1766,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 						viewDoc = true;
 					}
 
-					close(inFd);
+					::close(inFd);
 				}
 
 				if (viewDoc == true)
