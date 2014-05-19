@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2012 Fabrice Colin
+ *  Copyright 2005-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -126,6 +126,11 @@ bool INotifyMonitor::addLocation(const string &location, bool isDirectory)
 		return false;
 	}
 
+	if (access(location.c_str(), F_OK) != 0)
+	{
+		return false;
+	}
+
 	if (pthread_mutex_lock(&m_mutex) != 0)
 	{
 		return false;
@@ -203,7 +208,7 @@ bool INotifyMonitor::removeLocation(const string &location)
 /// Retrieves pending events.
 bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 {
-	set<string> removedLocations;
+	set<MonitorEvent> removedLocations;
 	char buffer[1024];
 	unsigned int queueLen = 0;
 	size_t offset = 0;
@@ -402,7 +407,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 #endif
 			if (monEvent.m_isWatch == true)
 			{
-				removedLocations.insert(monEvent.m_location);
+				removedLocations.insert(monEvent);
 			}
 		}
 		else if (pEvent->mask & IN_UNMOUNT)
@@ -414,7 +419,7 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 			if (monEvent.m_isWatch == true)
 			{
 				// Watches are removed silently if the backing filesystem is unmounted
-				removedLocations.insert(monEvent.m_location);
+				removedLocations.insert(monEvent);
 			}
 		}
 		else
@@ -461,10 +466,12 @@ bool INotifyMonitor::retrievePendingEvents(queue<MonitorEvent> &events)
 		offset += eventSize;
 	}
 	// Any location to remove ?
-	for (set<string>::const_iterator removalIter = removedLocations.begin();
+	for (set<MonitorEvent>::const_iterator removalIter = removedLocations.begin();
 		removalIter != removedLocations.end(); ++removalIter)
 	{
-		removeWatch(*removalIter);
+		removeWatch(removalIter->m_location);
+
+		addLocation(removalIter->m_location, removalIter->m_isDirectory);
 	}
 	pthread_mutex_unlock(&m_mutex);
 
