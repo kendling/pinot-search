@@ -1739,7 +1739,7 @@ void mainWindow::on_thread_end(WorkerThread *pThread)
 		const Document *pDoc = pDownloadThread->getDocument();
 		if (pDoc != NULL)
 		{
-			unsigned int dataLength = 0;
+			off_t dataLength = 0;
 			const char *pData = pDoc->getData(dataLength);
 
 			if ((pData != NULL) &&

@@ -86,7 +86,7 @@ bool PluginWebEngine::getPage(const string &formattedQuery, unsigned int maxResu
 		return false;
 	}
 
-	unsigned int contentLen;
+	off_t contentLen;
 	const char *pContent = pResponseDoc->getData(contentLen);
 	if ((pContent == NULL) ||
 		(contentLen == 0))

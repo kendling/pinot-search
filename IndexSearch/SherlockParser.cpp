@@ -233,7 +233,7 @@ bool SherlockResponseParser::parse(const Document *pResponseDoc, vector<Document
 	unsigned int &totalResults, unsigned int &firstResultIndex, string &charset) const
 {
 	float pseudoScore = 100;
-	unsigned int contentLen = 0;
+	off_t contentLen = 0;
 	bool foundResult = false;
 
 	if ((pResponseDoc == NULL) ||
@@ -465,7 +465,7 @@ ResponseParserInterface *SherlockParser::parse(SearchPluginProperties &propertie
 		return NULL;
 	}
 
-	unsigned int dataLength;
+	off_t dataLength;
 	const char *pData = pPluginDoc->getData(dataLength);
 	if ((pData == NULL) ||
 		(dataLength == 0))

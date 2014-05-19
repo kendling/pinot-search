@@ -86,7 +86,7 @@ bool OpenSearchResponseParser::parse(const ::Document *pResponseDoc, vector<Docu
 	unsigned int &totalResults, unsigned int &firstResultIndex, string &charset) const
 {
 	float pseudoScore = 100;
-	unsigned int contentLen = 0;
+	off_t contentLen = 0;
 	bool foundResult = false;
 
 	if ((pResponseDoc == NULL) ||

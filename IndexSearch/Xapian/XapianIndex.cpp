@@ -910,7 +910,7 @@ void XapianIndex::removeCommonTerms(Xapian::Document &doc, const Xapian::Writabl
 }
 
 string XapianIndex::scanDocument(const string &suggestedLanguage,
-	const char *pData, unsigned int dataLength)
+	const char *pData, off_t dataLength)
 {
 	vector<string> candidates;
 	string language;
@@ -924,7 +924,7 @@ string XapianIndex::scanDocument(const string &suggestedLanguage,
 	else
 	{
 		// Try to determine the document's language right away
-		LanguageDetector::getInstance().guessLanguage(pData, max(dataLength, (unsigned int)2048), candidates);
+		LanguageDetector::getInstance().guessLanguage(pData, max(dataLength, (off_t)2048), candidates);
 
 		scannedDocument = true;
 	}
@@ -951,7 +951,7 @@ string XapianIndex::scanDocument(const string &suggestedLanguage,
 			{
 				// The suggested language is not suitable
 				candidates.clear();
-				LanguageDetector::getInstance().guessLanguage(pData, max(dataLength, (unsigned int)2048), candidates);
+				LanguageDetector::getInstance().guessLanguage(pData, max(dataLength, (off_t)2048), candidates);
 
 				langIter = candidates.begin();
 				scannedDocument = true;
@@ -1845,7 +1845,7 @@ bool XapianIndex::indexDocument(const Document &document, const std::set<std::st
 	DocumentInfo docInfo(document);
 	docInfo.setLocation(Url::canonicalizeUrl(document.getLocation()));
 
-	unsigned int dataLength = 0;
+	off_t dataLength = 0;
 	const char *pData = document.getData(dataLength);
 
 	// Don't scan the document if a language is specified
@@ -1918,7 +1918,7 @@ bool XapianIndex::updateDocument(unsigned int docId, const Document &document)
 	DocumentInfo docInfo(document);
 	docInfo.setLocation(Url::canonicalizeUrl(document.getLocation()));
 
-	unsigned int dataLength = 0;
+	off_t dataLength = 0;
 	const char *pData = document.getData(dataLength);
 
 	// Don't scan the document if a language is specified

@@ -88,7 +88,7 @@ bool TagLibMusicFilter::set_property(Properties prop_name, const string &prop_va
 	return false;
 }
 
-bool TagLibMusicFilter::set_document_data(const char *data_ptr, unsigned int data_length)
+bool TagLibMusicFilter::set_document_data(const char *data_ptr, off_t data_length)
 {
 	return false;
 }

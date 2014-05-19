@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,13 +40,13 @@ class PINOT_EXPORT Document : public DocumentInfo
 		bool operator<(const Document& other) const;
 
 		/// Copies the given data in the document.
-		virtual bool setData(const char *data, unsigned int length);
+		virtual bool setData(const char *data, off_t length);
 
 		/// Maps the given file.
 		virtual bool setDataFromFile(const std::string &fileName);
 
 		/// Returns the document's data; NULL if document is empty.
-		virtual const char *getData(unsigned int &length) const;
+		virtual const char *getData(off_t &length) const;
 
 		/// Resets the document's data.
 		void resetData(void);
@@ -56,7 +56,7 @@ class PINOT_EXPORT Document : public DocumentInfo
 
 	protected:
 		char *m_pData;
-		unsigned int m_dataLength;
+		off_t m_dataLength;
 		bool m_isMapped;
 
 };

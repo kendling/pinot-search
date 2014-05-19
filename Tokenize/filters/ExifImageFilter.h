@@ -54,7 +54,7 @@ namespace Dijon
 	 * Call next_document() to position the filter onto the first document.
 	 * Returns false if this input is not supported or an error occured.
 	 */
-	virtual bool set_document_data(const char *data_ptr, unsigned int data_length);
+	virtual bool set_document_data(const char *data_ptr, off_t data_length);
 
 	/** (Re)initializes the filter with the given data.
 	 * Call next_document() to position the filter onto the first document.

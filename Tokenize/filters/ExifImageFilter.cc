@@ -169,7 +169,7 @@ bool ExifImageFilter::set_property(Properties prop_name, const string &prop_valu
 	return false;
 }
 
-bool ExifImageFilter::set_document_data(const char *data_ptr, unsigned int data_length)
+bool ExifImageFilter::set_document_data(const char *data_ptr, off_t data_length)
 {
 	return false;
 }

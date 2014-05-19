@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -132,7 +132,7 @@ bool Document::operator<(const Document& other) const
 }
 
 /// Copies the given data in the document.
-bool Document::setData(const char *data, unsigned int length)
+bool Document::setData(const char *data, off_t length)
 {
 	if ((data == NULL) ||
 		(length == 0))
@@ -250,7 +250,7 @@ bool Document::setDataFromFile(const string &fileName)
 		if (read(fd, (void*)m_pData, fileStat.st_size) == fileStat.st_size)
 		{
 			m_pData[fileStat.st_size] = '\0';
-			m_dataLength = (unsigned int)fileStat.st_size;
+			m_dataLength = fileStat.st_size;
 		}
 		else
 		{
@@ -336,7 +336,7 @@ bool Document::setDataFromFile(const string &fileName)
 }
 
 /// Returns the document's data; NULL if document is empty.
-const char *Document::getData(unsigned int &length) const
+const char *Document::getData(off_t &length) const
 {
 	length = m_dataLength;
 	return m_pData;

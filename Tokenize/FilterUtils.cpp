@@ -215,7 +215,7 @@ bool FilterUtils::feedFilter(const Document &doc, Dijon::Filter *pFilter)
 	string location(doc.getLocation());
 	Url urlObj(location);
 	string fileName;
-	unsigned int dataLength = 0;
+	off_t dataLength = 0;
 	const char *pData = doc.getData(dataLength);
 	bool fedInput = false;
 

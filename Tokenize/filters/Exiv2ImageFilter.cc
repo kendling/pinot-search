@@ -179,7 +179,7 @@ bool Exiv2ImageFilter::set_property(Properties prop_name, const string &prop_val
 	return false;
 }
 
-bool Exiv2ImageFilter::set_document_data(const char *data_ptr, unsigned int data_length)
+bool Exiv2ImageFilter::set_document_data(const char *data_ptr, off_t data_length)
 {
 	return false;
 }

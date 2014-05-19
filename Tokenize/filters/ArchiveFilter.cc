@@ -120,7 +120,7 @@ bool ArchiveFilter::set_property(Properties prop_name, const string &prop_value)
 	return false;
 }
 
-bool ArchiveFilter::set_document_data(const char *data_ptr, unsigned int data_length)
+bool ArchiveFilter::set_document_data(const char *data_ptr, off_t data_length)
 {
 	initialize();
 	if ((m_pHandle == NULL) ||

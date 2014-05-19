@@ -95,7 +95,7 @@ bool TarFilter::set_property(Properties prop_name, const string &prop_value)
 	return false;
 }
 
-bool TarFilter::set_document_data(const char *data_ptr, unsigned int data_length)
+bool TarFilter::set_document_data(const char *data_ptr, off_t data_length)
 {
 	return false;
 }

@@ -177,7 +177,7 @@ class XapianIndex : public IndexInterface
 		void removeCommonTerms(Xapian::Document &doc, const Xapian::WritableDatabase &db);
 
 		std::string scanDocument(const std::string &suggestedLanguage,
-			const char *pData, unsigned int dataLength);
+			const char *pData, off_t dataLength);
 
 		void setDocumentData(const DocumentInfo &info, Xapian::Document &doc,
 			const std::string &language) const;
