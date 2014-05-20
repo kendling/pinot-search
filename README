@@ -538,7 +538,7 @@ http://cgit.freedesktop.org/libreoffice/libexttextcat/
 gmime (3)						2.4.0
 http://spruce.sourceforge.net/gmime
 
-boost (4)						1.32.0
+boost (4)						1.32
 http://www.boost.org/
 
 D-Bus with GLib bindings				0.61
@@ -600,7 +600,7 @@ Notes :
 (2) obsolete - enabled with "./configure --enable-soap=yes"
 (3) for gmime 2.0 support, edit configure.in
 (4) for building only
-    if boost 1.48 or newer is used, better turn off memory pooling with "./configure --enable-mempool=no"
+    with boost > 1.48 and < 1.54, turning off memory pooling with "./configure --enable-mempool=no" may be preferable
 (5) experimental - enabled with "./configure --enable-libarchive=yes"
 (6) experimental - enabled with "./configure --enable-chmlib=yes"
 (7) experimental - required only if _SSH_TUNNEL is set

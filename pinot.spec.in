@@ -51,6 +51,10 @@ BuildRequires: libarchive-devel >= 2.6.2
 Requires: chmlib >= 0.40
 BuildRequires: chmlib-devel >= 0.40
 %endif
+%if 0%{?_with_mempool:1}
+Requires: boost-system >= 1.54
+BuildRequires: boost-devel >= 1.54
+%endif
 
 %description
 Pinot is a D-Bus service that crawls, indexes your documents and monitors them
@@ -72,7 +76,7 @@ applications on top of Pinot.
 %setup -q
 
 %build
-%configure %{?_with_nodbus:--enable-dbus=no} %{?_with_gtkmm3:--enable-gtkmm3=yes} %{?_with_libarchive:--enable-libarchive=yes} %{?_with_chmlib:--enable-chmlib=yes} %{?_with_debug:--enable-debug=yes} --enable-mempool=no
+%configure %{?_with_nodbus:--enable-dbus=no} %{?_with_gtkmm3:--enable-gtkmm3=yes} %{?_with_libarchive:--enable-libarchive=yes} %{?_with_chmlib:--enable-chmlib=yes} %{?_with_debug:--enable-debug=yes} %{?_with_mempool:--enable-mempool=yes}
 make %{?_smp_mflags}
 
 %install

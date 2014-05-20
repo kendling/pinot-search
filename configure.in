@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 1.06, [fabrice.colin@gmail.com])
+AC_INIT(pinot, 1.07, [fabrice.colin@gmail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -212,6 +212,7 @@ AC_CHECK_HEADERS([sys/inotify.h],
    ])
 
 dnl boost
+BOOST_LIBS=""
 AM_CONDITIONAL(HAVE_BOOST_SPIRIT, false)
 AC_CHECK_HEADERS([boost/spirit/core.hpp],[AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)],
    [AC_CHECK_HEADERS([boost/spirit.hpp],[AM_CONDITIONAL(HAVE_BOOST_SPIRIT, true)])
@@ -226,6 +227,7 @@ fi
 AC_MSG_RESULT($enable_mempool)
 if test "x$enable_mempool" = "xyes"; then
    AC_CHECK_HEADERS([boost/pool/poolfwd.hpp])
+   BOOST_LIBS="-lboost_system"
 fi
 
 dnl Allocators
@@ -391,7 +393,7 @@ AC_MSG_RESULT($gio_can_sniff)
 
 dnl Other libraries
 MISC_CFLAGS="$PTHREAD_CFLAGS $VISIB_CFLAGS -D_FILE_OFFSET_BITS=64"
-MISC_LIBS="$PTHREAD_LIBS $DL_LIBS"
+MISC_LIBS="$PTHREAD_LIBS $DL_LIBS $BOOST_LIBS"
 AC_SUBST(MISC_CFLAGS)
 AC_SUBST(MISC_LIBS)
 AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h])
