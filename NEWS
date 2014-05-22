@@ -1,4 +1,15 @@
-2013/05/26 version_1_0_6
+2014/05/22 version_1_0_7
+General:
+ - compilation fixes
+ - prefer off_t for file sizes, offsets, buffer lengths
+Monitor :
+ - try and reapply watches on directories that have just been removed
+Tokenize :
+ - refactored encoding conversion
+IndexSearch :
+ - fixed build with libexttextcat
+
+2014/05/26 version_1_0_6
 IndexSearch:
  - support boost 1.50's Spirit
 SQL :
