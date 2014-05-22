@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2012 Fabrice Colin
+ *  Copyright 2008-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,40 +42,19 @@ TextConverter::~TextConverter()
 {
 }
 
-dstring TextConverter::toUTF8(const dstring &text, string &charset)
+dstring TextConverter::convert(const dstring &text,
+	string &fromCharset, const string &toCharset)
 {
-	string textCharset(StringManip::toLowerCase(charset));
+	dstring outputText;
 	char outputBuffer[8192];
 	char *pInput = const_cast<char *>(text.c_str());
-
-	m_conversionErrors = 0;
-
-	if ((text.empty() == true) ||
-		(textCharset == "utf-8"))
-	{
-		// No conversion necessary
-		return text;
-	}
-
-	if (textCharset.empty() == true)
-	{
-		if (m_utf8Locale == true)
-		{
-			// The current locale uses UTF-8
-			return text;
-		}
-
-		textCharset = m_localeCharset;
-	}
-
-	dstring outputText;
 	gsize inputSize = (gsize)text.length();
 	bool invalidSequence = false;
 
 	outputText.clear();
 	try
 	{
-		IConv converter("UTF-8", textCharset);
+		IConv converter(toCharset, fromCharset);
  
 		while (inputSize > 0)
 		{
@@ -91,7 +70,7 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 					// Conversion was only partially successful
 					++m_conversionErrors;
 #ifdef DEBUG
-					clog << "TextConverter::toUTF8: invalid sequence" << endl;
+					clog << "TextConverter::convert: invalid sequence" << endl;
 #endif
 					if (m_conversionErrors >= m_maxErrors)
 					{
@@ -115,7 +94,7 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 				else if (errorCode != E2BIG)
 				{
 #ifdef DEBUG
-					clog << "TextConverter::toUTF8: unknown error " << errorCode << endl;
+					clog << "TextConverter::convert: unknown error " << errorCode << endl;
 #endif
 					return text;
 				}
@@ -130,43 +109,73 @@ dstring TextConverter::toUTF8(const dstring &text, string &charset)
 		}
 
 #ifdef DEBUG
-		clog << "TextConverter::toUTF8: " << m_conversionErrors << " conversion errors" << endl;
+		clog << "TextConverter::convert: " << m_conversionErrors << " conversion errors" << endl;
 #endif
 	}
 	catch (Error &ce)
 	{
 #ifdef DEBUG
-		clog << "TextConverter::toUTF8: " << ce.what() << endl;
+		clog << "TextConverter::convert: " << ce.what() << endl;
 #endif
 		outputText.clear();
 
-		string::size_type pos = textCharset.find('_');
+		string::size_type pos = fromCharset.find('_');
 		if (pos != string::npos)
 		{
-			string fixedCharset(StringManip::replaceSubString(textCharset, "_", "-"));
+			string fixedCharset(StringManip::replaceSubString(fromCharset, "_", "-"));
 
 #ifdef DEBUG
-			clog << "TextConverter::toUTF8: trying with charset " << fixedCharset << endl;
+			clog << "TextConverter::convert: trying with charset " << fixedCharset << endl;
 #endif
-			textCharset = fixedCharset;
-			outputText = toUTF8(text, fixedCharset);
+			fromCharset = fixedCharset;
+			outputText = convert(text, fromCharset, toCharset);
 		}
 	}
 	catch (...)
 	{
 #ifdef DEBUG
-		clog << "TextConverter::toUTF8: unknown exception" << endl;
+		clog << "TextConverter::convert: unknown exception" << endl;
 #endif
 		outputText.clear();
 	}
 
-	charset = textCharset;
 	return outputText;
 }
 
-unsigned int TextConverter::getErrorsCount(void) const
+dstring TextConverter::toUTF8(const dstring &text,
+	string &charset)
 {
-	return m_conversionErrors;
+	string textCharset(StringManip::toLowerCase(charset));
+
+	m_conversionErrors = 0;
+
+	if ((text.empty() == true) ||
+		(textCharset == "utf-8"))
+	{
+		// No conversion necessary
+		return text;
+	}
+
+	if (textCharset.empty() == true)
+	{
+		if (m_utf8Locale == true)
+		{
+			// The current locale uses UTF-8
+			return text;
+		}
+
+		textCharset = m_localeCharset;
+	}
+
+	return convert(text, textCharset, "UTF-8");
+}
+
+dstring TextConverter::fromUTF8(const dstring &text,
+	const string &charset)
+{
+	string fromCharset("UTF-8");
+
+	return convert(text, fromCharset, charset);
 }
 
 string TextConverter::fromUTF8(const string &text)
@@ -189,5 +198,10 @@ string TextConverter::fromUTF8(const string &text)
 	}
  
        return "";
+}
+
+unsigned int TextConverter::getErrorsCount(void) const
+{
+	return m_conversionErrors;
 }
 
