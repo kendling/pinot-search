@@ -9,7 +9,7 @@ Tokenize :
 IndexSearch :
  - fixed build with libexttextcat
 
-2014/05/26 version_1_0_6
+2013/05/26 version_1_0_6
 IndexSearch:
  - support boost 1.50's Spirit
 SQL :
