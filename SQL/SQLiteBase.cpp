@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2013 Fabrice Colin
+ *  Copyright 2005-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ using std::string;
 using std::vector;
 using std::map;
 using std::pair;
+using std::for_each;
 
 static int busyHandler(void *pData, int lockNum)
 {
@@ -42,8 +43,8 @@ static int busyHandler(void *pData, int lockNum)
 	return 1;
 }
 
-// A function object to delete statements with for_each()
-struct DeleteStatementsFunc
+// A function object to finalize statements with for_each()
+struct FinalizeStatementsFunc
 {
 	public:
 		void operator()(map<string, sqlite3_stmt*>::value_type &p)
@@ -325,6 +326,71 @@ SQLiteBase::~SQLiteBase()
 	}
 }
 
+void SQLiteBase::executeSimpleStatement(const string &sql, int &execError)
+{
+	char *errMsg = NULL;
+
+	execError = sqlite3_exec(m_pDatabase,
+		sql.c_str(), 
+		NULL, NULL, // No callback
+		&errMsg);
+	if (execError != SQLITE_OK)
+	{
+		if (errMsg != NULL)
+		{
+			clog << m_databaseName << ": SQL <" << sql << "> failed with error " << execError << ": " << errMsg << endl;
+
+			sqlite3_free(errMsg);
+		}
+	}
+}
+
+void SQLiteBase::open(void)
+{
+	int openFlags = SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE;
+
+	if (m_readOnly == true)
+	{
+		openFlags = SQLITE_OPEN_READONLY;
+	}
+
+	// Open the new database
+	// FIXME: ensure it's in mode SQLITE_CONFIG_SERIALIZED
+	if (sqlite3_open_v2(m_databaseName.c_str(), &m_pDatabase,
+		openFlags, NULL) != SQLITE_OK)
+	{
+		// An handle is returned even when an error occurs !
+		if (m_pDatabase != NULL)
+		{
+			clog << m_databaseName << ": " << sqlite3_errmsg(m_pDatabase) << endl;
+			close();
+		}
+	}
+
+	if (m_pDatabase != NULL)
+	{
+		// Set up a busy handler
+		sqlite3_busy_handler(m_pDatabase, busyHandler, NULL);
+	}
+	else
+	{
+		clog << "Couldn't open " << m_databaseName << endl;
+	}
+}
+
+void SQLiteBase::close(void)
+{
+	if (m_pDatabase != NULL)
+	{
+		for_each(m_statements.begin(), m_statements.end(),
+			FinalizeStatementsFunc());
+		m_statements.clear();
+
+		sqlite3_close(m_pDatabase);
+		m_pDatabase = NULL;
+	}
+}
+
 bool SQLiteBase::check(const string &databaseName)
 {
 	struct stat dbStat;
@@ -389,58 +455,6 @@ bool SQLiteBase::backup(const string &destDatabaseName,
 	return false;
 }
 
-void SQLiteBase::executeSimpleStatement(const string &sql, int &execError)
-{
-	char *errMsg = NULL;
-
-	execError = sqlite3_exec(m_pDatabase,
-		sql.c_str(), 
-		NULL, NULL, // No callback
-		&errMsg);
-	if (execError != SQLITE_OK)
-	{
-		if (errMsg != NULL)
-		{
-			clog << m_databaseName << ": SQL <" << sql << "> failed with error " << execError << ": " << errMsg << endl;
-
-			sqlite3_free(errMsg);
-		}
-	}
-}
-
-void SQLiteBase::open(void)
-{
-	int openFlags = SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE;
-
-	if (m_readOnly == true)
-	{
-		openFlags = SQLITE_OPEN_READONLY;
-	}
-
-	// Open the new database
-	// FIXME: ensure it's in mode SQLITE_CONFIG_SERIALIZED
-	if (sqlite3_open_v2(m_databaseName.c_str(), &m_pDatabase,
-		openFlags, NULL) != SQLITE_OK)
-	{
-		// An handle is returned even when an error occurs !
-		if (m_pDatabase != NULL)
-		{
-			clog << m_databaseName << ": " << sqlite3_errmsg(m_pDatabase) << endl;
-			close();
-		}
-	}
-
-	if (m_pDatabase != NULL)
-	{
-		// Set up a busy handler
-		sqlite3_busy_handler(m_pDatabase, busyHandler, NULL);
-	}
-	else
-	{
-		clog << "Couldn't open " << m_databaseName << endl;
-	}
-}
-
 bool SQLiteBase::isOpen(void) const
 {
 	if (m_pDatabase == NULL)
@@ -491,19 +505,6 @@ bool SQLiteBase::alterTable(const string &tableName,
 #endif
 
 	return executeSimpleStatement(sql);
-}
-
-void SQLiteBase::close(void)
-{
-	if (m_pDatabase != NULL)
-	{
-		for_each(m_statements.begin(), m_statements.end(),
-			DeleteStatementsFunc());
-		m_statements.clear();
-
-		sqlite3_close(m_pDatabase);
-		m_pDatabase = NULL;
-	}
 }
 
 bool SQLiteBase::beginTransaction(void)
@@ -737,7 +738,7 @@ bool SQLiteBase::prepareStatement(const string &statementId,
 SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
 	const vector<string> &values)
 {
-	int paramIndex = 1;
+	unsigned int paramIndex = 1;
 
 	map<string, sqlite3_stmt*>::iterator statIter = m_statements.find(statementId);
 	if (statIter == m_statements.end())
@@ -781,5 +782,22 @@ SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
 	}
 
 	return pResults;
+}
+
+SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
+	const map<string, SQLRow::SQLType> &values,
+	const vector<SQLRow::SQLType> &resultTypes)
+{
+	vector<string> untypedValues;
+
+	// SQLite doesn't care about the type of parameters and results
+	for (map<string, SQLRow::SQLType>::const_iterator valueIter = values.begin();
+		valueIter != values.end(); ++valueIter)
+	{
+		untypedValues.push_back(valueIter->first);
+	}
+
+	return executePreparedStatement(statementId,
+		untypedValues);
 }
 

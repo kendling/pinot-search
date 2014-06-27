@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2013 Fabrice Colin
+ *  Copyright 2005-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,14 +20,14 @@
 #define _SQLITE_BASE_H
 
 #include <string>
-#include <vector>
 #include <map>
+#include <vector>
 
 #include <sqlite3.h>
 
 #include "SQLDB.h"
 
-/// A row in a SQLite table.
+/// A row of results.
 class SQLiteRow : public SQLRow
 {
 	public:
@@ -40,6 +40,10 @@ class SQLiteRow : public SQLRow
 	protected:
 		std::vector<std::string> m_columns;
 		sqlite3_stmt *m_pStatement;
+
+	private:
+		SQLiteRow(const SQLiteRow &other);
+		SQLiteRow &operator=(const SQLiteRow &other);
 
 };
 
@@ -110,6 +114,10 @@ class SQLiteBase : public SQLDB
 
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
 			const std::vector<std::string> &values);
+
+		virtual SQLResults *executePreparedStatement(const std::string &statementId,
+			const std::map<std::string, SQLRow::SQLType> &values,
+			const std::vector<SQLRow::SQLType> &resultTypes);
 
 	protected:
 		bool m_onDemand;

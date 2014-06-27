@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Fabrice Colin
+ *  Copyright 2008-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,13 +20,16 @@
 #define _SQL_DB_H
 
 #include <string>
+#include <map>
 #include <vector>
 
-/// A row in a table.
+/// A row of results.
 class SQLRow
 {
 	public:
 		virtual ~SQLRow();
+
+		typedef enum { SQL_TYPE_INT = 0, SQL_TYPE_DOUBLE, SQL_TYPE_TIME, SQL_TYPE_DATE, SQL_TYPE_DATETIME, SQL_TYPE_TIMESTAMP, SQL_TYPE_STRING, SQL_TYPE_BLOB, SQL_TYPE_NULL } SQLType;
 
 		unsigned int getColumnsCount(void) const;
 
@@ -36,6 +39,10 @@ class SQLRow
 		unsigned int m_nColumns;
 
 		SQLRow(unsigned int nColumns);
+
+	private:
+		SQLRow(const SQLRow &other);
+		SQLRow &operator=(const SQLRow &other);
 
 };
 
@@ -86,6 +93,8 @@ class SQLDB
 
 		virtual bool beginTransaction(void) = 0;
 
+		virtual bool rollbackTransaction(void) = 0;
+
 		virtual bool endTransaction(void) = 0;
 
 		virtual bool executeSimpleStatement(const std::string &sql) = 0;
@@ -97,6 +106,10 @@ class SQLDB
 
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
 			const std::vector<std::string> &values) = 0;
+
+		virtual SQLResults *executePreparedStatement(const std::string &statementId,
+			const std::map<std::string, SQLRow::SQLType> &values,
+			const std::vector<SQLRow::SQLType> &resultTypes) = 0;
 
 	protected:
 		std::string m_databaseName;
