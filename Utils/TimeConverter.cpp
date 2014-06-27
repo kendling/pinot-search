@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2013 Fabrice Colin
+ *  Copyright 2005-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -95,7 +95,6 @@ static time_t mktime_from_utc (struct tm *t)
     }
   return (tl - (tb - tl));
 }
-#define timegm(T) mktime_from_utc(T)
 #endif
 #ifdef USE_NEON
 #include <neon/ne_dates.h>
@@ -115,6 +114,16 @@ using std::string;
 
 TimeConverter::TimeConverter()
 {
+}
+
+// Inverse of gmtime().
+time_t TimeConverter::timegm(struct tm *tm)
+{
+#ifdef HAVE_TIMEGM
+	return ::timegm(tm);
+#else
+	return mktime_from_utc(tm);
+#endif
 }
 
 /// Converts into an RFC 822 timestamp.

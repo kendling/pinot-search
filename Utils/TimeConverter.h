@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2013 Fabrice Colin
+ *  Copyright 2005-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,9 @@
 class PINOT_EXPORT TimeConverter
 {
 	public:
+		// Inverse of gmtime().
+		static time_t timegm(struct tm *tm);
+
 		/// Converts into an RFC 822 timestamp.
 		static std::string toTimestamp(time_t aTime, bool inGMTime = false);
 
