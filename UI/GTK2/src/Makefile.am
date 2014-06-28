@@ -81,7 +81,7 @@ pinot_LDADD = \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
 	-L$(top_srcdir)/Core \
-	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
+	-lCore -lThread -lIndexSearch -lMonitor -lCollect -lSQLDB -lSQLite -lSQL \
 	-lTokenize -lFilter -lBasicUtils -lUtils @LIBS@ \
 	@GTKMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@

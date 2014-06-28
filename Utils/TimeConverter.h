@@ -28,7 +28,7 @@
 class PINOT_EXPORT TimeConverter
 {
 	public:
-		// Inverse of gmtime().
+		/// Inverse of gmtime().
 		static time_t timegm(struct tm *tm);
 
 		/// Converts into an RFC 822 timestamp.
