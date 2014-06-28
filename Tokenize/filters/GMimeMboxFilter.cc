@@ -1104,7 +1104,7 @@ void GMimeMboxFilter::extractMetaData(GMimeMboxPart &mboxPart)
 	m_metaData["charset"] = m_partCharset;
 	snprintf(posStr, 128, "%lu", m_content.length());
 	m_metaData["size"] = posStr;
-	snprintf(posStr, 128, "o=%u&l=", m_messageStart);
+	snprintf(posStr, 128, "o=%ld&l=", m_messageStart);
 	ipath = posStr;
 	for (map<int, pair<int, int> >::const_iterator levelIter = m_levels.begin();
 		levelIter != m_levels.end(); ++levelIter)
