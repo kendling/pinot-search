@@ -6,9 +6,16 @@ pkginclude_HEADERS = \
 	PinotSettings.h \
 	ServerThreads.h \
 	UniqueApplication.h \
+	WorkerThread.h \
 	WorkerThreads.h
 
-pkglib_LTLIBRARIES = libCore.la
+pkglib_LTLIBRARIES = libThread.la libCore.la
+
+libThread_la_LDFLAGS = \
+	-static
+
+libThread_la_SOURCES = \
+	WorkerThread.cpp
 
 libCore_la_LDFLAGS = \
 	-static
@@ -50,7 +57,7 @@ pinot_index_LDADD = \
 	-L$(top_builddir)/Monitor \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
-	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
+	-lCore -lThread -lIndexSearch -lMonitor -lCollect -lSQLDB -lSQLite -lSQL \
 	-lTokenize -lFilter -lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
@@ -67,7 +74,7 @@ pinot_search_LDADD = \
 	-L$(top_builddir)/Tokenize \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
-	-lCore -lIndexSearch -lCollect -lTokenize -lFilter \
+	-lCore -lThread -lIndexSearch -lCollect -lTokenize -lFilter \
 	-lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ \
 	@XML_LIBS@ @HTTP_LIBS@ @MISC_LIBS@
@@ -87,7 +94,7 @@ pinot_dbus_daemon_LDADD = \
 	-L$(top_builddir)/Monitor \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
-	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
+	-lCore -lThread -lIndexSearch -lMonitor -lCollect -lSQLDB -lSQLite -lSQL \
 	-lTokenize -lFilter -lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @DBUS_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
@@ -110,7 +117,7 @@ pinot_daemon_LDADD = \
 	-L$(top_builddir)/Monitor \
 	-L$(top_builddir)/Collect \
 	-L$(top_builddir)/IndexSearch \
-	-lCore -lIndexSearch -lMonitor -lCollect -lSQL \
+	-lCore -lThread -lIndexSearch -lMonitor -lCollect -lSQLDB -lSQLite -lSQL \
 	-lTokenize -lFilter -lBasicUtils -lUtils @LIBS@ \
 	@GLIBMM_LIBS@ @GTHREAD_LIBS@ @XML_LIBS@ \
 	@HTTP_LIBS@ @SQL_LIBS@ @MISC_LIBS@
