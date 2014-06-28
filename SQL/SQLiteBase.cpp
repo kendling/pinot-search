@@ -21,7 +21,6 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <algorithm>
-#include <utility>
 #include <iostream>
 
 #include "config.h"
@@ -785,12 +784,12 @@ SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
 }
 
 SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
-	const map<string, SQLRow::SQLType> &values)
+	const vector<pair<string, SQLRow::SQLType> > &values)
 {
 	vector<string> untypedValues;
 
 	// SQLite doesn't care about the type of parameters and results
-	for (map<string, SQLRow::SQLType>::const_iterator valueIter = values.begin();
+	for (vector<pair<string, SQLRow::SQLType> >::const_iterator valueIter = values.begin();
 		valueIter != values.end(); ++valueIter)
 	{
 		untypedValues.push_back(valueIter->first);
@@ -801,7 +800,7 @@ SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
 }
 
 SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
-	const map<string, SQLRow::SQLType> &values,
+	const vector<pair<string, SQLRow::SQLType> > &values,
 	const vector<SQLRow::SQLType> &resultTypes)
 {
 	return executePreparedStatement(statementId,

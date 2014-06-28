@@ -22,6 +22,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <utility>
 
 #include <sqlite3.h>
 
@@ -116,10 +117,10 @@ class SQLiteBase : public SQLDB
 			const std::vector<std::string> &values);
 
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
-			const std::map<std::string, SQLRow::SQLType> &values);
+			const std::vector<std::pair<std::string, SQLRow::SQLType> > &values);
 
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
-			const std::map<std::string, SQLRow::SQLType> &values,
+			const std::vector<std::pair<std::string, SQLRow::SQLType> > &values,
 			const std::vector<SQLRow::SQLType> &resultTypes);
 
 	protected:

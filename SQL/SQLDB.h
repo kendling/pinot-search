@@ -20,8 +20,8 @@
 #define _SQL_DB_H
 
 #include <string>
-#include <map>
 #include <vector>
+#include <utility>
 
 /// A row of results.
 class SQLRow
@@ -108,10 +108,10 @@ class SQLDB
 			const std::vector<std::string> &values) = 0;
 
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
-			const std::map<std::string, SQLRow::SQLType> &values) = 0;
+			const std::vector<std::pair<std::string, SQLRow::SQLType> > &values) = 0;
 
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
-			const std::map<std::string, SQLRow::SQLType> &values,
+			const std::vector<std::pair<std::string, SQLRow::SQLType> > &values,
 			const std::vector<SQLRow::SQLType> &resultTypes) = 0;
 
 	protected:
