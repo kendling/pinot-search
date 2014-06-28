@@ -785,8 +785,7 @@ SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
 }
 
 SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
-	const map<string, SQLRow::SQLType> &values,
-	const vector<SQLRow::SQLType> &resultTypes)
+	const map<string, SQLRow::SQLType> &values)
 {
 	vector<string> untypedValues;
 
@@ -799,5 +798,13 @@ SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
 
 	return executePreparedStatement(statementId,
 		untypedValues);
+}
+
+SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
+	const map<string, SQLRow::SQLType> &values,
+	const vector<SQLRow::SQLType> &resultTypes)
+{
+	return executePreparedStatement(statementId,
+		values);
 }
 

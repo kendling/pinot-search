@@ -116,6 +116,9 @@ class SQLiteBase : public SQLDB
 			const std::vector<std::string> &values);
 
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
+			const std::map<std::string, SQLRow::SQLType> &values);
+
+		virtual SQLResults *executePreparedStatement(const std::string &statementId,
 			const std::map<std::string, SQLRow::SQLType> &values,
 			const std::vector<SQLRow::SQLType> &resultTypes);
 

@@ -108,6 +108,9 @@ class SQLDB
 			const std::vector<std::string> &values) = 0;
 
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
+			const std::map<std::string, SQLRow::SQLType> &values) = 0;
+
+		virtual SQLResults *executePreparedStatement(const std::string &statementId,
 			const std::map<std::string, SQLRow::SQLType> &values,
 			const std::vector<SQLRow::SQLType> &resultTypes) = 0;
 
