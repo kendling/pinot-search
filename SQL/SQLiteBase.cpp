@@ -799,11 +799,3 @@ SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
 		untypedValues);
 }
 
-SQLResults *SQLiteBase::executePreparedStatement(const string &statementId,
-	const vector<pair<string, SQLRow::SQLType> > &values,
-	const vector<SQLRow::SQLType> &resultTypes)
-{
-	return executePreparedStatement(statementId,
-		values);
-}
-

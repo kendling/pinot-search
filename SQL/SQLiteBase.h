@@ -119,10 +119,6 @@ class SQLiteBase : public SQLDB
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
 			const std::vector<std::pair<std::string, SQLRow::SQLType> > &values);
 
-		virtual SQLResults *executePreparedStatement(const std::string &statementId,
-			const std::vector<std::pair<std::string, SQLRow::SQLType> > &values,
-			const std::vector<SQLRow::SQLType> &resultTypes);
-
 	protected:
 		bool m_onDemand;
 		bool m_inTransaction;

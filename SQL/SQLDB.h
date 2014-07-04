@@ -110,10 +110,6 @@ class SQLDB
 		virtual SQLResults *executePreparedStatement(const std::string &statementId,
 			const std::vector<std::pair<std::string, SQLRow::SQLType> > &values) = 0;
 
-		virtual SQLResults *executePreparedStatement(const std::string &statementId,
-			const std::vector<std::pair<std::string, SQLRow::SQLType> > &values,
-			const std::vector<SQLRow::SQLType> &resultTypes) = 0;
-
 	protected:
 		std::string m_databaseName;
 		bool m_readOnly;
