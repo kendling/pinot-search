@@ -136,10 +136,16 @@ unsigned int FilterFactory::loadFilters(const string &dir_name)
 
 			// What type(s) does this support ?
 			get_filter_types_func *pTypesFunc = (get_filter_types_func *)dlsym(pHandle,
-					GETFILTERTYPESFUNC);
+				GETFILTERTYPESFUNC);
 			if (pTypesFunc == NULL)
 			{
 				clog << "FilterFactory::loadFilters: " << dlerror() << endl;
+
+				dlclose(pHandle);
+
+				// Next entry
+				pDirEntry = readdir(pDir);
+				continue;
 			}
 
 			set<string> types;
