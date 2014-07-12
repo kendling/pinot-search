@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2013 Fabrice Colin
+ *  Copyright 2005-2014 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,9 +25,11 @@
 #endif
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 
 #include <curl/curl.h>
 
+#include "StringManip.h"
 #include "Url.h"
 #include "CurlDownloader.h"
 
@@ -38,6 +40,8 @@ struct ContentInfo
 	char *m_pContent;
 	size_t m_contentLen;
 	string m_lastModified;
+	map<string, string> m_headers;
+
 };
 
 static void freeContentInfo(struct ContentInfo *pInfo)
@@ -112,14 +116,28 @@ static size_t headerCallback(void *pData, size_t dataSize, size_t elementsCount,
 	pInfo = (ContentInfo *)pStream;
 
 	string header((const char*)pData, totalSize);
-
 	string::size_type pos = header.find("Last-Modified: ");
-	if (pos != string::npos)
+
+#ifdef DEBUG
+	clog << "headerCallback: header " << header << endl;
+#endif
+	if (pos == 0)
 	{
 		pInfo->m_lastModified = header.substr(15);
-#ifdef DEBUG
-		clog << "headerCallback: Last-Modified " << pInfo->m_lastModified << endl;
-#endif
+
+		return totalSize;
+	}
+
+	pos = header.find(": ");
+	if ((pos != string::npos) &&
+		(header.length() > pos + 2))
+	{
+		string headerValue(StringManip::extractField(header.substr(pos + 2), "\"", "\""));
+
+		StringManip::trimSpaces(headerValue);
+
+		pInfo->m_headers.insert(pair<string, string>(header.substr(0, pos),
+			headerValue));
 	}
 
 	return totalSize;
@@ -161,6 +179,7 @@ Document *CurlDownloader::populateDocument(const DocumentInfo &docInfo,
 	Document *pDocument = new Document(docInfo);
 	ContentInfo *pContentInfo = (ContentInfo *)pInfo;
 	char *pContentType = NULL;
+	long responseCode = 200;
 
 	// Copy the document content
 	pDocument->setData(pContentInfo->m_pContent, pContentInfo->m_contentLen);
@@ -175,10 +194,25 @@ Document *CurlDownloader::populateDocument(const DocumentInfo &docInfo,
 		pDocument->setType(pContentType);
 	}
 
+	// What's the response code ?
+	res = curl_easy_getinfo((CURL *)pHandler, CURLINFO_RESPONSE_CODE, &responseCode);
+	if (res == CURLE_OK)
+	{
+		stringstream numStr;
+
+		numStr << responseCode;
+		pDocument->setOther("ResponseCode", numStr.str());
+	}
+
 	// The Last-Modified date ?
 	if (pContentInfo->m_lastModified.empty() == false)
 	{
 		pDocument->setTimestamp(pContentInfo->m_lastModified);
+	}
+	for (map<string, string>::const_iterator headerIter = pContentInfo->m_headers.begin();
+		headerIter != pContentInfo->m_headers.end(); ++headerIter)
+	{
+		pDocument->setOther(headerIter->first, headerIter->second);
 	}
 
 	return pDocument;
