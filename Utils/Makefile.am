@@ -14,7 +14,7 @@ pkginclude_HEADERS = \
 	Url.h \
 	Visibility.h
 
-nobase_pkginclude_HEADERS = \
+noinst_HEADERS = \
 	xdgmime/xdgmimealias.h \
 	xdgmime/xdgmimecache.h \
 	xdgmime/xdgmimeglob.h \
@@ -24,7 +24,7 @@ nobase_pkginclude_HEADERS = \
 	xdgmime/xdgmimeparent.h
 
 if HAVE_GIO_MIME
-nobase_pkginclude_HEADERS += \
+noinst_HEADERS += \
 	xdgmime/xdgmimealias.c \
 	xdgmime/xdgmime.c \
 	xdgmime/xdgmimecache.c \
