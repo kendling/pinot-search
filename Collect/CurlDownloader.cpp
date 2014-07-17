@@ -134,6 +134,10 @@ static size_t headerCallback(void *pData, size_t dataSize, size_t elementsCount,
 	{
 		string headerValue(StringManip::extractField(header.substr(pos + 2), "\"", "\""));
 
+		if (headerValue.empty() == true)
+		{
+			headerValue = header.substr(pos + 2);
+		}
 		StringManip::trimSpaces(headerValue);
 
 		pInfo->m_headers.insert(pair<string, string>(header.substr(0, pos),
