@@ -2,7 +2,7 @@
 # using glademm V2.6.0
 
 AC_PREREQ(2.50)
-AC_INIT(pinot, 1.07, [fabrice.colin@gmail.com])
+AC_INIT(pinot, 1.08, [fabrice.colin@gmail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
@@ -207,9 +207,23 @@ fi
 
 dnl inotify
 AM_CONDITIONAL(HAVE_LINUX_INOTIFY, false)
-AC_CHECK_HEADERS([sys/inotify.h],
-   [AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
-   ])
+AC_MSG_CHECKING(whether to enable libnotify support)
+AC_ARG_ENABLE(libnotify,
+   [AS_HELP_STRING([--enable-libnotify], [enable libnotify support [default=no]])],
+   ,[enable_libnotify=no])
+if test "x$enable_libnotify" != "xyes"; then
+   enable_libnotify="no"
+fi
+AC_MSG_RESULT($enable_libnotify)
+if test "x$enable_libnotify" = "xno"; then
+   AC_CHECK_HEADERS([sys/inotify.h],
+      [AM_CONDITIONAL(HAVE_LINUX_INOTIFY, true)
+      ])
+    NOTIFY_CFLAGS=""
+    NOTIFY_LIBS=""
+else
+   PKG_CHECK_MODULES(NOTIFY, libnotify >= 0.2.2 )
+fi
 
 dnl boost
 BOOST_LIBS=""
@@ -392,8 +406,8 @@ fi
 AC_MSG_RESULT($gio_can_sniff)
 
 dnl Other libraries
-MISC_CFLAGS="$PTHREAD_CFLAGS $VISIB_CFLAGS -D_FILE_OFFSET_BITS=64"
-MISC_LIBS="$PTHREAD_LIBS $DL_LIBS $BOOST_LIBS"
+MISC_CFLAGS="$NOTIFY_CFLAGS $PTHREAD_CFLAGS $VISIB_CFLAGS -D_FILE_OFFSET_BITS=64"
+MISC_LIBS="$NOTIFY_LIBS $PTHREAD_LIBS $DL_LIBS $BOOST_LIBS"
 AC_SUBST(MISC_CFLAGS)
 AC_SUBST(MISC_LIBS)
 AC_CHECK_HEADERS([sys/vfs.h sys/statfs.h sys/mount.h sys/statvfs.h attr/xattr.h dlfcn.h regex.h fnmatch.h pwd.h])

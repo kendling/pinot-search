@@ -5,6 +5,7 @@ Core/pinot-dbus-daemon.cpp
 Core/PinotSettings.cpp
 Core/ServerThreads.cpp
 Core/UniqueApplication.cpp
+Core/WorkerThread.cpp
 Core/WorkerThreads.cpp
 UI/GTK2/src/EnginesTree.cc
 UI/GTK2/src/indexDialog.cc
