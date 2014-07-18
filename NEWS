@@ -1,3 +1,13 @@
+2014/07/18 version_1_0_8
+General :
+ - don't install the xdgmime files
+ - use libnotify if --enable-libnotify=yes est utilise
+ - fixed check on library symbols that could cause a crash, added
+ support for LLVM-built filters
+ - general clean up
+SQL :
+ - refactored the DB interface
+
 2014/05/22 version_1_0_7
 General:
  - compilation fixes

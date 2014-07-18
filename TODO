@@ -54,6 +54,7 @@ Search
 - Add a plugin for http://arxiv.org/find
 
 Index
+- Support the Brass backend
 - Play around with the XAPIAN_FLUSH_THRESHOLD env var
 - MD5 hash to determine on updates whether documents have changed, as done by omindex
 - Allow to access remote Xapian indexes tunneled through ssh with xapian-progsrv,
