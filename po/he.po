@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 1.07\n"
+"Project-Id-Version: pinot 1.08\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-18 22:19+0200\n"
+"POT-Creation-Date: 2014-07-12 18:47+0200\n"
 "PO-Revision-Date: 2010-06-29 08:45+0000\n"
 "Last-Translator: Yaron <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <he@li.org>\n"
@@ -85,7 +85,7 @@ msgstr "טורקית"
 #. Apply this label
 #. Is this an internal index ?
 #: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1712
-#: Core/WorkerThreads.cpp:1071 UI/GTK2/src/mainWindow.cc:1008
+#: Core/WorkerThreads.cpp:525 UI/GTK2/src/mainWindow.cc:1008
 #: UI/GTK2/src/mainWindow.cc:1276 UI/GTK2/src/mainWindow.cc:1543
 #: UI/GTK2/src/mainWindow.cc:1705 UI/GTK2/src/mainWindow.cc:1708
 #: UI/GTK2/src/mainWindow.cc:1812 UI/GTK2/src/mainWindow.cc:1846
@@ -96,7 +96,7 @@ msgstr "עמודי האינטרנט שלי"
 
 #. Spawn new threads
 #: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1713
-#: Core/WorkerThreads.cpp:1081 UI/GTK2/src/mainWindow.cc:1271
+#: Core/WorkerThreads.cpp:535 UI/GTK2/src/mainWindow.cc:1271
 #: UI/GTK2/src/mainWindow.cc:1533 UI/GTK2/src/mainWindow.cc:1547
 #: UI/GTK2/src/mainWindow.cc:1716 UI/GTK2/src/mainWindow.cc:1719
 #: UI/GTK2/src/mainWindow.cc:2604 UI/GTK2/src/statisticsDialog.cc:163
@@ -148,88 +148,88 @@ msgstr "10ק\"ב ומטה"
 msgid "Unclassified"
 msgstr "לא מסווג"
 
-#: Core/WorkerThreads.cpp:96
+#: Core/WorkerThread.cpp:85
 msgid "Index error"
 msgstr "שגיאת אינדקס"
 
-#: Core/WorkerThreads.cpp:98
+#: Core/WorkerThread.cpp:87
 msgid "Couldn't index document"
 msgstr "לא ניתן לאחסן את המסמך באינדקס"
 
-#: Core/WorkerThreads.cpp:100
+#: Core/WorkerThread.cpp:89
 msgid "Couldn't update document"
 msgstr "לא ניתן לעדכן את המסמך"
 
-#: Core/WorkerThreads.cpp:102
+#: Core/WorkerThread.cpp:91
 msgid "Couldn't unindex document(s)"
 msgstr "לא ניתן למחוק את המסמך/ים מהאינדקס"
 
-#: Core/WorkerThreads.cpp:104
+#: Core/WorkerThread.cpp:93
 msgid "Couldn't run query on search engine"
 msgstr "לא ניתן להריץ את השאילתה על מנוע החיפוש"
 
-#: Core/WorkerThreads.cpp:106
+#: Core/WorkerThread.cpp:95
 msgid "Couldn't get history for search engine"
 msgstr "לא ניתן לאחזר את היסטוריית מנוע החיפוש"
 
-#: Core/WorkerThreads.cpp:108
+#: Core/WorkerThread.cpp:97
 msgid "Couldn't retrieve document"
 msgstr "לא ניתן לאחזר את המסמך"
 
-#: Core/WorkerThreads.cpp:110
+#: Core/WorkerThread.cpp:99
 msgid "File monitor error"
 msgstr "המעקב אחר הקבצים נכשל"
 
-#: Core/WorkerThreads.cpp:112
+#: Core/WorkerThread.cpp:101
 msgid "Couldn't open directory"
 msgstr "לא ניתן לפתוח את התיקייה"
 
-#: Core/WorkerThreads.cpp:114
+#: Core/WorkerThread.cpp:103
 msgid "Index doesn't exist"
 msgstr "האינדקס לא קיים"
 
-#: Core/WorkerThreads.cpp:116
+#: Core/WorkerThread.cpp:105
 msgid "Couldn't create search engine"
 msgstr "לא ניתן ליצור את מנוע החיפוש"
 
-#: Core/WorkerThreads.cpp:118
+#: Core/WorkerThread.cpp:107
 msgid "Cannot index document type"
 msgstr "לא ניתן לשמור באינדקס סוג מסמכים זה"
 
-#: Core/WorkerThreads.cpp:120
+#: Core/WorkerThread.cpp:109
 msgid "No downloader for this protocol"
 msgstr "אין כלי הורדה לפרוטוקול זה"
 
-#: Core/WorkerThreads.cpp:122
+#: Core/WorkerThread.cpp:111
 msgid "Robots META tag forbids indexing"
 msgstr "תגיות ה־META של הרובוטים אוסרות על שמירה באינדקס"
 
-#: Core/WorkerThreads.cpp:124
+#: Core/WorkerThread.cpp:113
 msgid "No monitoring handler"
 msgstr "אין כלי למעקב"
 
-#: Core/WorkerThreads.cpp:129 UI/GTK2/src/statisticsDialog.cc:245
+#: Core/WorkerThread.cpp:118 UI/GTK2/src/statisticsDialog.cc:245
 #: UI/GTK2/src/statisticsDialog.cc:263
 msgid "Unknown error"
 msgstr "שגיאה לא ידועה"
 
-#: Core/WorkerThreads.cpp:451
+#: Core/WorkerThreads.cpp:82
 msgid "Indexing was stopped"
 msgstr "השמירה באינדקס נעצרה"
 
-#: Core/WorkerThreads.cpp:464
+#: Core/WorkerThreads.cpp:95
 msgid "Can't index mail here"
 msgstr "לא ניתן לשמור את הודעות הדוא\"ל באינדקס מכאן"
 
-#: Core/WorkerThreads.cpp:485 Core/WorkerThreads.cpp:799
+#: Core/WorkerThreads.cpp:116 Core/WorkerThreads.cpp:253
 msgid "is already being indexed"
 msgstr "כבר שמור באינדקס"
 
-#: Core/WorkerThreads.cpp:495
+#: Core/WorkerThreads.cpp:126
 msgid "is blacklisted"
 msgstr "ברשימה השחורה"
 
-#: Core/WorkerThreads.cpp:1034
+#: Core/WorkerThreads.cpp:488
 msgid "No title"
 msgstr "ללא כותרת"
 

@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 1.07\n"
+"Project-Id-Version: pinot 1.08\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-18 22:19+0200\n"
+"POT-Creation-Date: 2014-07-12 18:47+0200\n"
 "PO-Revision-Date: 2010-06-20 08:47+0000\n"
 "Last-Translator: Daniel Nylander <yeager@ubuntu.com>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -85,7 +85,7 @@ msgstr "Turkiska"
 #. Apply this label
 #. Is this an internal index ?
 #: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1712
-#: Core/WorkerThreads.cpp:1071 UI/GTK2/src/mainWindow.cc:1008
+#: Core/WorkerThreads.cpp:525 UI/GTK2/src/mainWindow.cc:1008
 #: UI/GTK2/src/mainWindow.cc:1276 UI/GTK2/src/mainWindow.cc:1543
 #: UI/GTK2/src/mainWindow.cc:1705 UI/GTK2/src/mainWindow.cc:1708
 #: UI/GTK2/src/mainWindow.cc:1812 UI/GTK2/src/mainWindow.cc:1846
@@ -96,7 +96,7 @@ msgstr "Mina webbsidor"
 
 #. Spawn new threads
 #: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1713
-#: Core/WorkerThreads.cpp:1081 UI/GTK2/src/mainWindow.cc:1271
+#: Core/WorkerThreads.cpp:535 UI/GTK2/src/mainWindow.cc:1271
 #: UI/GTK2/src/mainWindow.cc:1533 UI/GTK2/src/mainWindow.cc:1547
 #: UI/GTK2/src/mainWindow.cc:1716 UI/GTK2/src/mainWindow.cc:1719
 #: UI/GTK2/src/mainWindow.cc:2604 UI/GTK2/src/statisticsDialog.cc:163
@@ -148,88 +148,88 @@ msgstr "10kb och mindre"
 msgid "Unclassified"
 msgstr "Oklassificerad"
 
-#: Core/WorkerThreads.cpp:96
+#: Core/WorkerThread.cpp:85
 msgid "Index error"
 msgstr "Indexfel"
 
-#: Core/WorkerThreads.cpp:98
+#: Core/WorkerThread.cpp:87
 msgid "Couldn't index document"
 msgstr "Kunde inte indexera dokument"
 
-#: Core/WorkerThreads.cpp:100
+#: Core/WorkerThread.cpp:89
 msgid "Couldn't update document"
 msgstr "Kunde inte uppdatera dokument"
 
-#: Core/WorkerThreads.cpp:102
+#: Core/WorkerThread.cpp:91
 msgid "Couldn't unindex document(s)"
 msgstr "Kunde inte avindexera dokument"
 
-#: Core/WorkerThreads.cpp:104
+#: Core/WorkerThread.cpp:93
 msgid "Couldn't run query on search engine"
 msgstr "Kunde inte köra fråga på sökmotor"
 
-#: Core/WorkerThreads.cpp:106
+#: Core/WorkerThread.cpp:95
 msgid "Couldn't get history for search engine"
 msgstr "Kunde inte hämta historik för sökmotor"
 
-#: Core/WorkerThreads.cpp:108
+#: Core/WorkerThread.cpp:97
 msgid "Couldn't retrieve document"
 msgstr "Kunde inte hämta dokument"
 
-#: Core/WorkerThreads.cpp:110
+#: Core/WorkerThread.cpp:99
 msgid "File monitor error"
 msgstr "Fel i filövervakare"
 
-#: Core/WorkerThreads.cpp:112
+#: Core/WorkerThread.cpp:101
 msgid "Couldn't open directory"
 msgstr "Kunde inte öppna katalog"
 
-#: Core/WorkerThreads.cpp:114
+#: Core/WorkerThread.cpp:103
 msgid "Index doesn't exist"
 msgstr "Indexet finns inte"
 
-#: Core/WorkerThreads.cpp:116
+#: Core/WorkerThread.cpp:105
 msgid "Couldn't create search engine"
 msgstr "Kunde inte skapa sökmotor"
 
-#: Core/WorkerThreads.cpp:118
+#: Core/WorkerThread.cpp:107
 msgid "Cannot index document type"
 msgstr "Kan inte indexera dokumenttyp"
 
-#: Core/WorkerThreads.cpp:120
+#: Core/WorkerThread.cpp:109
 msgid "No downloader for this protocol"
 msgstr "Ingen hämtare för detta protokoll"
 
-#: Core/WorkerThreads.cpp:122
+#: Core/WorkerThread.cpp:111
 msgid "Robots META tag forbids indexing"
 msgstr "Robots META-tagg förbjuder indexering"
 
-#: Core/WorkerThreads.cpp:124
+#: Core/WorkerThread.cpp:113
 msgid "No monitoring handler"
 msgstr "Ingen övervakningshanterare"
 
-#: Core/WorkerThreads.cpp:129 UI/GTK2/src/statisticsDialog.cc:245
+#: Core/WorkerThread.cpp:118 UI/GTK2/src/statisticsDialog.cc:245
 #: UI/GTK2/src/statisticsDialog.cc:263
 msgid "Unknown error"
 msgstr "Okänt fel"
 
-#: Core/WorkerThreads.cpp:451
+#: Core/WorkerThreads.cpp:82
 msgid "Indexing was stopped"
 msgstr "Indexeringen stoppades"
 
-#: Core/WorkerThreads.cpp:464
+#: Core/WorkerThreads.cpp:95
 msgid "Can't index mail here"
 msgstr "Kan inte indexera post här"
 
-#: Core/WorkerThreads.cpp:485 Core/WorkerThreads.cpp:799
+#: Core/WorkerThreads.cpp:116 Core/WorkerThreads.cpp:253
 msgid "is already being indexed"
 msgstr "håller redan på att bli indexerad"
 
-#: Core/WorkerThreads.cpp:495
+#: Core/WorkerThreads.cpp:126
 msgid "is blacklisted"
 msgstr "är svartlistad"
 
-#: Core/WorkerThreads.cpp:1034
+#: Core/WorkerThreads.cpp:488
 msgid "No title"
 msgstr "Ingen titel"
 

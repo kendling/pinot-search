@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 1.07\n"
+"Project-Id-Version: pinot 1.08\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-18 22:19+0200\n"
+"POT-Creation-Date: 2014-07-12 18:47+0200\n"
 "PO-Revision-Date: 2012-09-07 11:52+0000\n"
 "Last-Translator: tkf <Unknown>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -85,7 +85,7 @@ msgstr "トルコ語"
 #. Apply this label
 #. Is this an internal index ?
 #: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1712
-#: Core/WorkerThreads.cpp:1071 UI/GTK2/src/mainWindow.cc:1008
+#: Core/WorkerThreads.cpp:525 UI/GTK2/src/mainWindow.cc:1008
 #: UI/GTK2/src/mainWindow.cc:1276 UI/GTK2/src/mainWindow.cc:1543
 #: UI/GTK2/src/mainWindow.cc:1705 UI/GTK2/src/mainWindow.cc:1708
 #: UI/GTK2/src/mainWindow.cc:1812 UI/GTK2/src/mainWindow.cc:1846
@@ -96,7 +96,7 @@ msgstr "マイウェブページ"
 
 #. Spawn new threads
 #: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1713
-#: Core/WorkerThreads.cpp:1081 UI/GTK2/src/mainWindow.cc:1271
+#: Core/WorkerThreads.cpp:535 UI/GTK2/src/mainWindow.cc:1271
 #: UI/GTK2/src/mainWindow.cc:1533 UI/GTK2/src/mainWindow.cc:1547
 #: UI/GTK2/src/mainWindow.cc:1716 UI/GTK2/src/mainWindow.cc:1719
 #: UI/GTK2/src/mainWindow.cc:2604 UI/GTK2/src/statisticsDialog.cc:163
@@ -148,88 +148,88 @@ msgstr "10kbまたはそれ以下"
 msgid "Unclassified"
 msgstr "未分類"
 
-#: Core/WorkerThreads.cpp:96
+#: Core/WorkerThread.cpp:85
 msgid "Index error"
 msgstr "インデックスエラー"
 
-#: Core/WorkerThreads.cpp:98
+#: Core/WorkerThread.cpp:87
 msgid "Couldn't index document"
 msgstr "文書にインデックスをつけられません"
 
-#: Core/WorkerThreads.cpp:100
+#: Core/WorkerThread.cpp:89
 msgid "Couldn't update document"
 msgstr "文書を更新できません"
 
-#: Core/WorkerThreads.cpp:102
+#: Core/WorkerThread.cpp:91
 msgid "Couldn't unindex document(s)"
 msgstr "文書からインデックスを解除できません"
 
-#: Core/WorkerThreads.cpp:104
+#: Core/WorkerThread.cpp:93
 msgid "Couldn't run query on search engine"
 msgstr "検索エンジンでクエリーを実行できません"
 
-#: Core/WorkerThreads.cpp:106
+#: Core/WorkerThread.cpp:95
 msgid "Couldn't get history for search engine"
 msgstr "検索エンジンから履歴を取得できません"
 
-#: Core/WorkerThreads.cpp:108
+#: Core/WorkerThread.cpp:97
 msgid "Couldn't retrieve document"
 msgstr "文書を取得できません"
 
-#: Core/WorkerThreads.cpp:110
+#: Core/WorkerThread.cpp:99
 msgid "File monitor error"
 msgstr "ファイルモニターエラー"
 
-#: Core/WorkerThreads.cpp:112
+#: Core/WorkerThread.cpp:101
 msgid "Couldn't open directory"
 msgstr "ディレクトリを開けません"
 
-#: Core/WorkerThreads.cpp:114
+#: Core/WorkerThread.cpp:103
 msgid "Index doesn't exist"
 msgstr "インデックスが存在しません"
 
-#: Core/WorkerThreads.cpp:116
+#: Core/WorkerThread.cpp:105
 msgid "Couldn't create search engine"
 msgstr "検索エンジンを作成できません"
 
-#: Core/WorkerThreads.cpp:118
+#: Core/WorkerThread.cpp:107
 msgid "Cannot index document type"
 msgstr "文書タイプにインデックスをつけられません"
 
-#: Core/WorkerThreads.cpp:120
+#: Core/WorkerThread.cpp:109
 msgid "No downloader for this protocol"
 msgstr "このプロトコルに対するダウンローダーがありません"
 
-#: Core/WorkerThreads.cpp:122
+#: Core/WorkerThread.cpp:111
 msgid "Robots META tag forbids indexing"
 msgstr "ロボット用メタタグのインデックス化を禁止"
 
-#: Core/WorkerThreads.cpp:124
+#: Core/WorkerThread.cpp:113
 msgid "No monitoring handler"
 msgstr "モニタリングハンドラーがありません"
 
-#: Core/WorkerThreads.cpp:129 UI/GTK2/src/statisticsDialog.cc:245
+#: Core/WorkerThread.cpp:118 UI/GTK2/src/statisticsDialog.cc:245
 #: UI/GTK2/src/statisticsDialog.cc:263
 msgid "Unknown error"
 msgstr "不明なエラー"
 
-#: Core/WorkerThreads.cpp:451
+#: Core/WorkerThreads.cpp:82
 msgid "Indexing was stopped"
 msgstr "インデックス作業を停止しました"
 
-#: Core/WorkerThreads.cpp:464
+#: Core/WorkerThreads.cpp:95
 msgid "Can't index mail here"
 msgstr "メールにインデックスをつけられません"
 
-#: Core/WorkerThreads.cpp:485 Core/WorkerThreads.cpp:799
+#: Core/WorkerThreads.cpp:116 Core/WorkerThreads.cpp:253
 msgid "is already being indexed"
 msgstr "は既にインデックスがつけられています"
 
-#: Core/WorkerThreads.cpp:495
+#: Core/WorkerThreads.cpp:126
 msgid "is blacklisted"
 msgstr "はブラックリストに登録されています"
 
-#: Core/WorkerThreads.cpp:1034
+#: Core/WorkerThreads.cpp:488
 msgid "No title"
 msgstr "タイトルなし"
 
