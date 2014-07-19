@@ -1,4 +1,173 @@
 ------------------------------------------------------------------------
+r1928 | fabrice.colin@gmail.com | 2014-07-18 21:15:03 +0200 (Fri, 18 Jul 2014) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/TODO
+
+1.08 news.
+
+------------------------------------------------------------------------
+r1927 | fabrice.colin@gmail.com | 2014-07-18 21:14:21 +0200 (Fri, 18 Jul 2014) | 2 lines
+Changed paths:
+   M /trunk/po/cs.po
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Current POs.
+
+------------------------------------------------------------------------
+r1926 | fabrice.colin@gmail.com | 2014-07-18 21:04:27 +0200 (Fri, 18 Jul 2014) | 3 lines
+Changed paths:
+   M /trunk/configure.in
+   M /trunk/po/POTFILES.in
+
+Preparing for v1.08.
+Added --enable-libnotify switch for BSD.
+
+------------------------------------------------------------------------
+r1925 | fabrice.colin@gmail.com | 2014-07-18 21:03:35 +0200 (Fri, 18 Jul 2014) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/filters/FilterFactory.cc
+
+Look for LLVM-mangled names if built with LLVM.
+
+------------------------------------------------------------------------
+r1924 | fabrice.colin@gmail.com | 2014-07-17 21:57:37 +0200 (Thu, 17 Jul 2014) | 2 lines
+Changed paths:
+   M /trunk/Collect/CurlDownloader.cpp
+
+Fallback if the header wasn't quoted.
+
+------------------------------------------------------------------------
+r1923 | fabrice.colin@gmail.com | 2014-07-12 18:43:47 +0200 (Sat, 12 Jul 2014) | 3 lines
+Changed paths:
+   M /trunk/Collect/CurlDownloader.cpp
+
+Set the HTTP response code as document field ResponseCode.
+Likewise for all HTTP headers seen in the response.
+
+------------------------------------------------------------------------
+r1922 | fabrice.colin@gmail.com | 2014-07-12 18:42:01 +0200 (Sat, 12 Jul 2014) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/filters/FilterFactory.cc
+
+Close the handle and move on if FILTERTYPESFUNC can't be looked up!
+
+------------------------------------------------------------------------
+r1921 | fabrice.colin@gmail.com | 2014-07-12 18:40:49 +0200 (Sat, 12 Jul 2014) | 2 lines
+Changed paths:
+   M /trunk/README
+   M /trunk/UI/GTK2/src/mainWindow.cc
+
+Updated year.
+
+------------------------------------------------------------------------
+r1920 | fabrice.colin@gmail.com | 2014-07-12 18:17:07 +0200 (Sat, 12 Jul 2014) | 2 lines
+Changed paths:
+   M /trunk/Utils/Makefile.am
+
+Never install the xdgmime files.
+
+------------------------------------------------------------------------
+r1919 | fabrice.colin@gmail.com | 2014-07-04 22:27:56 +0200 (Fri, 04 Jul 2014) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLDB.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Simplified.
+
+------------------------------------------------------------------------
+r1918 | fabrice.colin@gmail.com | 2014-06-28 20:08:34 +0200 (Sat, 28 Jun 2014) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLDB.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Provide values in the right order...
+
+------------------------------------------------------------------------
+r1917 | fabrice.colin@gmail.com | 2014-06-28 15:33:41 +0200 (Sat, 28 Jun 2014) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLDB.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+One more overload of executePreparedStatement() for when no result is expected.
+
+------------------------------------------------------------------------
+r1916 | fabrice.colin@gmail.com | 2014-06-28 12:51:03 +0200 (Sat, 28 Jun 2014) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/filters/GMimeMboxFilter.cc
+
+Fix type warning.
+
+------------------------------------------------------------------------
+r1915 | fabrice.colin@gmail.com | 2014-06-28 12:50:36 +0200 (Sat, 28 Jun 2014) | 3 lines
+Changed paths:
+   M /trunk/SQL/Makefile.am
+   M /trunk/UI/GTK2/src/Makefile.am
+   M /trunk/Utils/TimeConverter.h
+
+Split libSQL into libSQL, libSQLite and libSQLDB.
+Some cosmetic changes.
+
+------------------------------------------------------------------------
+r1914 | fabrice.colin@gmail.com | 2014-06-28 12:48:41 +0200 (Sat, 28 Jun 2014) | 3 lines
+Changed paths:
+   M /trunk/Core/Makefile.am
+   A /trunk/Core/WorkerThread.cpp
+   A /trunk/Core/WorkerThread.h
+   M /trunk/Core/WorkerThreads.cpp
+   M /trunk/Core/WorkerThreads.h
+
+Moved base classes to WorkerThread, with no dependency on PinotSettings nor
+DB-based classes.
+
+------------------------------------------------------------------------
+r1913 | fabrice.colin@gmail.com | 2014-06-27 20:36:31 +0200 (Fri, 27 Jun 2014) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLDB.h
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Added rollbackTransaction() and a executePreparedStatement() overload to SQLDB.
+
+------------------------------------------------------------------------
+r1912 | fabrice.colin@gmail.com | 2014-06-27 20:28:05 +0200 (Fri, 27 Jun 2014) | 2 lines
+Changed paths:
+   M /trunk/Utils/TimeConverter.cpp
+   M /trunk/Utils/TimeConverter.h
+
+Export timegm().
+
+------------------------------------------------------------------------
+r1910 | fabrice.colin@gmail.com | 2014-05-25 11:11:26 +0200 (Sun, 25 May 2014) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+Correct date.
+
+------------------------------------------------------------------------
+r1909 | fabrice.colin@gmail.com | 2014-05-22 20:30:42 +0200 (Thu, 22 May 2014) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+   M /trunk/NEWS
+
+Current NEWS and log.
+
+------------------------------------------------------------------------
 r1908 | fabrice.colin@gmail.com | 2014-05-22 20:25:13 +0200 (Thu, 22 May 2014) | 3 lines
 Changed paths:
    M /trunk/aclocal.m4
