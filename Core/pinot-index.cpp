@@ -319,7 +319,10 @@ int main(int argc, char **argv)
 		clog << "Couldn't load MIME settings" << endl;
 	}
 	DownloaderInterface::initialize();
+	// Load filter libraries, if any
 	Dijon::FilterFactory::loadFilters(string(LIBDIR) + string("/pinot/filters"));
+	Dijon::FilterFactory::loadFilters(confDirectory + "/filters");
+	// Load backends, if any
 	ModuleFactory::loadModules(string(LIBDIR) + string("/pinot/backends"));
 	ModuleFactory::loadModules(confDirectory + "/backends");
 
