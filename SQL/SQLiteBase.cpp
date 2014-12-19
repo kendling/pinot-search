@@ -464,6 +464,26 @@ bool SQLiteBase::isOpen(void) const
 	return true;
 }
 
+bool SQLiteBase::reopen(const string &databaseName)
+{
+	if (m_databaseName == databaseName)
+	{
+		return false;
+	}
+
+	close();
+
+	m_databaseName = databaseName;
+
+	open();
+	if (isOpen() == true)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 bool SQLiteBase::alterTable(const string &tableName,
 	const string &columns, const string &newDefinition)
 {

@@ -96,6 +96,8 @@ class SQLiteBase : public SQLDB
 
 		virtual bool isOpen(void) const;
 
+		virtual bool reopen(const std::string &databaseName);
+
 		virtual bool alterTable(const std::string &tableName,
 			const std::string &columns,
 			const std::string &newDefinition);
