@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2012 Fabrice Colin
+ *  Copyright 2007-2015 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -932,6 +932,56 @@ bool GMimeMboxFilter::extractPart(GMimeObject *part, GMimeMboxPart &mboxPart)
 	return true;
 }
 
+bool GMimeMboxFilter::extractDate(const string &header)
+{
+	const char *pDate = g_mime_object_get_header(GMIME_OBJECT(m_pMimeMessage), header.c_str());
+
+	if (pDate == NULL)
+	{
+		return false;
+	}
+
+	string date(pDate);
+	struct tm timeTm;
+
+	timeTm.tm_sec = timeTm.tm_min = timeTm.tm_hour = timeTm.tm_mday = 0;
+	timeTm.tm_mon = timeTm.tm_year = timeTm.tm_wday = timeTm.tm_yday = timeTm.tm_isdst = 0;
+
+	if (date.find(',') != string::npos)
+	{
+		strptime(pDate, "%a, %d %b %Y %H:%M:%S %z", &timeTm);
+		if (timeTm.tm_year <= 0)
+		{
+			strptime(pDate, "%a, %d %b %y %H:%M:%S %z", &timeTm);
+		}
+	}
+	else
+	{
+		strptime(pDate, "%d %b %Y %H:%M:%S %z", &timeTm);
+		if (timeTm.tm_year <= 0)
+		{
+			strptime(pDate, "%d %b %y %H:%M:%S %z", &timeTm);
+		}
+	}
+
+	// Sanity check
+	if (timeTm.tm_year <= 0)
+	{
+#ifdef DEBUG
+		clog << "GMimeMboxFilter::extractDate: ignoring bogus year " << timeTm.tm_year << endl;
+#endif
+		return false;
+	}
+
+	m_messageDate = mktime(&timeTm);
+#ifdef DEBUG
+	clog << "GMimeMboxFilter::extractDate: message date is " << pDate
+		<< ": " << m_messageDate << endl;
+#endif
+
+	return true;
+}
+
 bool GMimeMboxFilter::extractMessage(const string &subject)
 {
 	string msgSubject(subject);
@@ -1019,46 +1069,15 @@ bool GMimeMboxFilter::extractMessage(const string &subject)
 				}
 
 				// How old is this message ?
-				const char *pDate = g_mime_object_get_header(GMIME_OBJECT(m_pMimeMessage), "Date");
-				if (pDate == NULL)
+				if ((extractDate("Date") == false) &&
+					(extractDate("Delivery-Date") == false) &&
+					(extractDate("Resent-Date") == false))
 				{
-					pDate = g_mime_object_get_header(GMIME_OBJECT(m_pMimeMessage), "Resent-Date");
-				}
-				if (pDate != NULL)
-				{
-					m_messageDate = pDate;
-				}
-				else
-				{
-					time_t timeNow = time(NULL);
-					struct tm *pTimeTm = new struct tm;
-
-#ifdef HAVE_LOCALTIME_R
-					if (localtime_r(&timeNow, pTimeTm) != NULL)
-#else
-					pTimeTm = localtime(&timeNow);
-					if (pTimeTm != NULL)
-#endif
-					{
-						char timeStr[64];
-
-						// FIXME: don't use this extension ?
-#if defined(__GNU_LIBRARY__)
-						// %z is a GNU extension
-						if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %z", pTimeTm) > 0)
-#else
-						if (strftime(timeStr, 64, "%a, %d %b %Y %H:%M:%S %Z", pTimeTm) > 0)
-#endif
-						{
-							m_messageDate = timeStr;
-						}
-					}
-
-					delete pTimeTm;
-				}
+					m_messageDate = time(NULL);
 #ifdef DEBUG
-				clog << "GMimeMboxFilter::extractMessage: message date is " << m_messageDate << endl;
+					clog << "GMimeMboxFilter::extractMessage: message date is today's " << m_messageDate << endl;
 #endif
+				}
 
 				// Extract the subject
 				const char *pSubject = g_mime_message_get_subject(m_pMimeMessage);

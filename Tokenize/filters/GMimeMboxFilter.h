@@ -1,5 +1,5 @@
 /*
- *  Copyright 2007-2012 Fabrice Colin
+ *  Copyright 2007-2015 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -166,6 +166,8 @@ namespace Dijon
 	bool nextPart(const std::string &subject);
 
 	bool extractPart(GMimeObject *mimeObject, GMimeMboxPart &mboxPart);
+
+	bool extractDate(const std::string &header);
 
 	bool extractMessage(const std::string &subject);
 
