@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2010 Fabrice Colin
+ *  Copyright 2005-2015 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -874,7 +874,7 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 		// How should results be sorted ?
 		if (queryProps.getSortOrder() == QueryProperties::RELEVANCE)
 		{
-			// By relevance, only
+			// By relevance, then date
 #if XAPIAN_NUM_VERSION >= 1001000
 			enquire.set_sort_by_relevance_then_value(4, true);
 #else
@@ -884,16 +884,30 @@ bool XapianEngine::queryDatabase(Xapian::Database *pIndex, Xapian::Query &query,
 			clog << "XapianEngine::queryDatabase: sorting by relevance first" << endl;
 #endif
 		}
-		else if (queryProps.getSortOrder() == QueryProperties::DATE)
+		else if (queryProps.getSortOrder() == QueryProperties::DATE_DESC)
 		{
 			// By date, and then by relevance
+			enquire.set_docid_order(Xapian::Enquire::DONT_CARE);
 #if XAPIAN_NUM_VERSION >= 1001000
 			enquire.set_sort_by_value_then_relevance(4, true);
 #else
 			enquire.set_sort_by_value_then_relevance(4);
 #endif
 #ifdef DEBUG
-			clog << "XapianEngine::queryDatabase: sorting by date and time first" << endl;
+			clog << "XapianEngine::queryDatabase: sorting by date and time desc" << endl;
+#endif
+		}
+		else if (queryProps.getSortOrder() == QueryProperties::DATE_ASC)
+		{
+			// By date, and then by relevance
+			enquire.set_docid_order(Xapian::Enquire::DONT_CARE);
+#if XAPIAN_NUM_VERSION >= 1001000
+			enquire.set_sort_by_value_then_relevance(5, true);
+#else
+			enquire.set_sort_by_value_then_relevance(5);
+#endif
+#ifdef DEBUG
+			clog << "XapianEngine::queryDatabase: sorting by date and time asc" << endl;
 #endif
 		}
 

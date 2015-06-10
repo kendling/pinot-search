@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2013 Fabrice Colin
+ *  Copyright 2005-2015 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -990,6 +990,8 @@ void XapianIndex::setDocumentData(const DocumentInfo &docInfo, Xapian::Document 
 	doc.add_value(3, hhmmss);
 	// Date and time, for results sorting
 	doc.add_value(4, yyyymmdd + hhmmss);
+	// Number of seconds to January 1st, 10000
+	doc.add_value(5, Xapian::sortable_serialise((double )253402300800 - timeT));
 	// Any custom value ?
 	if (g_pMapper != NULL)
 	{

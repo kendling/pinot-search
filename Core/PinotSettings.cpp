@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2009 Fabrice Colin
+ *  Copyright 2005-2015 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -465,14 +465,14 @@ bool PinotSettings::load(LoadWhat what)
 			{
 				QueryProperties queryProps(_("Me"), string("\"") + userName + string("\""));
 
-				queryProps.setSortOrder(QueryProperties::DATE);
+				queryProps.setSortOrder(QueryProperties::DATE_DESC);
 				addQuery(queryProps);
 			}
 		}
 #endif
 
 		QueryProperties queryProps(_("Latest First"), "dir:/");
-		queryProps.setSortOrder(QueryProperties::DATE);
+		queryProps.setSortOrder(QueryProperties::DATE_DESC);
 		addQuery(queryProps);
 		addQuery(QueryProperties(_("Home Stuff"), string("dir:") + getHomeDirectory()));
 		addQuery(QueryProperties(_("With Label New"), "label:New"));
@@ -917,9 +917,14 @@ bool PinotSettings::loadQueries(const Element *pElem)
 		}
 		else if (nodeName == "sortorder")
 		{
-			if (nodeContent == "DATE")
+			if ((nodeContent == "DATE") ||
+				(nodeContent == "DATE_DESC"))
 			{
-				queryProps.setSortOrder(QueryProperties::DATE);
+				queryProps.setSortOrder(QueryProperties::DATE_DESC);
+			}
+			else if (nodeContent == "DATE_ASC")
+			{
+				queryProps.setSortOrder(QueryProperties::DATE_ASC);
 			}
 			else
 			{
@@ -1546,8 +1551,18 @@ bool PinotSettings::save(SaveWhat what)
 					return false;
 				}
 
+				string sortOrder("RELEVANCE");
+
+				if (queryIter->second.getSortOrder() == QueryProperties::DATE_DESC)
+				{
+					sortOrder = "DATE";
+				}
+				else if (queryIter->second.getSortOrder() == QueryProperties::DATE_ASC)
+				{
+					sortOrder = "DATE_ASC";
+				}
 				addChildElement(pElem, "name", queryIter->first);
-				addChildElement(pElem, "sortorder", (queryIter->second.getSortOrder() == QueryProperties::DATE ? "DATE" : "RELEVANCE"));
+				addChildElement(pElem, "sortorder", sortOrder);
 				addChildElement(pElem, "text", queryIter->second.getFreeQuery());
 				addChildElement(pElem, "stemlanguage", Languages::toEnglish(queryIter->second.getStemmingLanguage()));
 				snprintf(numStr, 64, "%u", queryIter->second.getMaximumResultsCount());

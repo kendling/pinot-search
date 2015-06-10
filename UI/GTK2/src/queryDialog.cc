@@ -1,5 +1,5 @@
 /*
- *  Copyright 2005-2011 Fabrice Colin
+ *  Copyright 2005-2015 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -154,7 +154,7 @@ void queryDialog::populate_comboboxes()
 	sortOrderCombobox->append(_("By relevance"));
 	sortOrderCombobox->append(_("By date"));
 #endif
-	if (m_properties.getSortOrder() == QueryProperties::DATE)
+	if (m_properties.getSortOrder() == QueryProperties::DATE_DESC)
 	{
 		sortOrderCombobox->set_active(1);
 	}
@@ -254,7 +254,7 @@ void queryDialog::on_queryOkbutton_clicked()
 	// Sort order
 	if (sortOrderCombobox->get_active_row_number() == 1)
 	{
-		m_properties.setSortOrder(QueryProperties::DATE);
+		m_properties.setSortOrder(QueryProperties::DATE_DESC);
 	}
 	else
 	{
