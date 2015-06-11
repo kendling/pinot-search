@@ -4,9 +4,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pinot 1.08\n"
+"Project-Id-Version: pinot 1.09\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-12 18:47+0200\n"
+"POT-Creation-Date: 2015-06-09 21:05+0200\n"
 "PO-Revision-Date: 2012-04-22 09:06+0000\n"
 "Last-Translator: happymeng <gzmeng@tom.com>\n"
 "Language-Team: elotto\n"
@@ -83,7 +83,7 @@ msgstr "土耳其语"
 #. Internal indices
 #. Apply this label
 #. Is this an internal index ?
-#: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1712
+#: Core/PinotSettings.cpp:436 Core/PinotSettings.cpp:1727
 #: Core/WorkerThreads.cpp:525 UI/GTK2/src/mainWindow.cc:1008
 #: UI/GTK2/src/mainWindow.cc:1276 UI/GTK2/src/mainWindow.cc:1543
 #: UI/GTK2/src/mainWindow.cc:1705 UI/GTK2/src/mainWindow.cc:1708
@@ -94,7 +94,7 @@ msgid "My Web Pages"
 msgstr "我的网页"
 
 #. Spawn new threads
-#: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1713
+#: Core/PinotSettings.cpp:437 Core/PinotSettings.cpp:1728
 #: Core/WorkerThreads.cpp:535 UI/GTK2/src/mainWindow.cc:1271
 #: UI/GTK2/src/mainWindow.cc:1533 UI/GTK2/src/mainWindow.cc:1547
 #: UI/GTK2/src/mainWindow.cc:1716 UI/GTK2/src/mainWindow.cc:1719

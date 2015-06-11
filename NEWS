@@ -1,3 +1,11 @@
+2015/06/11 version_1_0_9
+Tokenize :
+ - new JSON filter
+ - streamlined the mbox filter a bit
+ - pinot-index looks for filters in the same locations as the UI
+IndexSearch :
+ - sort documents by date, in ascending or descending order
+
 2014/07/18 version_1_0_8
 General :
  - don't install the xdgmime files
