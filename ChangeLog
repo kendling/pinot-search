@@ -1,4 +1,93 @@
 ------------------------------------------------------------------------
+r1938 | fabrice.colin@gmail.com | 2015-06-13 09:31:43 +0200 (Sat, 13 Jun 2015) | 2 lines
+Changed paths:
+   M /trunk/aclocal.m4
+
+Regenerated.
+
+------------------------------------------------------------------------
+r1937 | fabrice.colin@gmail.com | 2015-06-11 17:01:35 +0200 (Thu, 11 Jun 2015) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+   M /trunk/README
+   M /trunk/configure.in
+   M /trunk/po/cs.po
+   M /trunk/po/de.po
+   M /trunk/po/es.po
+   M /trunk/po/fr.po
+   M /trunk/po/he.po
+   M /trunk/po/it.po
+   M /trunk/po/ja.po
+   M /trunk/po/nl.po
+   M /trunk/po/pt.po
+   M /trunk/po/pt_BR.po
+   M /trunk/po/ru.po
+   M /trunk/po/sv.po
+   M /trunk/po/zh_CN.po
+   M /trunk/po/zh_TW.po
+
+Updated for v1.09.
+
+------------------------------------------------------------------------
+r1936 | fabrice.colin@gmail.com | 2015-06-10 21:57:59 +0200 (Wed, 10 Jun 2015) | 2 lines
+Changed paths:
+   A /trunk/Tokenize/filters/JsonFilter.cc
+   A /trunk/Tokenize/filters/JsonFilter.h
+
+Simple JSON filter.
+
+------------------------------------------------------------------------
+r1935 | fabrice.colin@gmail.com | 2015-06-10 21:54:27 +0200 (Wed, 10 Jun 2015) | 2 lines
+Changed paths:
+   M /trunk/Tokenize/filters/GMimeMboxFilter.cc
+   M /trunk/Tokenize/filters/GMimeMboxFilter.h
+
+Better date extraction.
+
+------------------------------------------------------------------------
+r1934 | fabrice.colin@gmail.com | 2015-06-10 21:44:00 +0200 (Wed, 10 Jun 2015) | 3 lines
+Changed paths:
+   M /trunk/Core/PinotSettings.cpp
+   M /trunk/Core/pinot-search.cpp
+   M /trunk/IndexSearch/QueryProperties.h
+   M /trunk/IndexSearch/Xapian/XapianEngine.cpp
+   M /trunk/IndexSearch/Xapian/XapianIndex.cpp
+   M /trunk/UI/GTK2/src/mainWindow.cc
+   M /trunk/UI/GTK2/src/queryDialog.cc
+
+Sort by date in descending or ascending order.
+Updated Copyright notice.
+
+------------------------------------------------------------------------
+r1933 | fabrice.colin@gmail.com | 2014-12-19 23:13:55 +0100 (Fri, 19 Dec 2014) | 2 lines
+Changed paths:
+   M /trunk/NEWS
+
+Fixed language mixup...
+
+------------------------------------------------------------------------
+r1932 | fabrice.colin@gmail.com | 2014-12-19 23:12:37 +0100 (Fri, 19 Dec 2014) | 2 lines
+Changed paths:
+   M /trunk/Core/pinot-index.cpp
+
+Look for filters in the same places as the daemon and the GUI.
+
+------------------------------------------------------------------------
+r1931 | fabrice.colin@gmail.com | 2014-12-19 23:10:24 +0100 (Fri, 19 Dec 2014) | 2 lines
+Changed paths:
+   M /trunk/SQL/SQLiteBase.cpp
+   M /trunk/SQL/SQLiteBase.h
+
+Helper method reopen().
+
+------------------------------------------------------------------------
+r1929 | fabrice.colin@gmail.com | 2014-07-19 10:20:15 +0200 (Sat, 19 Jul 2014) | 2 lines
+Changed paths:
+   M /trunk/ChangeLog
+
+Current log.
+
+------------------------------------------------------------------------
 r1928 | fabrice.colin@gmail.com | 2014-07-18 21:15:03 +0200 (Fri, 18 Jul 2014) | 2 lines
 Changed paths:
    M /trunk/NEWS
